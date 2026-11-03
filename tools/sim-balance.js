@@ -1,5 +1,5 @@
 // node tools/sim-balance.js → v5 (상자 밴드·패시브 포함) / v4 인플레이션/강화/합성 시뮬레이션 (19종, 부적 6개, 장비 옵션)
-global.window={};require('../game-data.js');require('../game-data-v3.js');require('../game-data-v4.js');require('../game-data-v5.js');const D=window.NK_DATA,SYS=require('../systems.js');
+global.window={};require('../game-data.js');require('../game-data-v3.js');require('../game-data-v4.js');require('../game-data-v5.js');require('../game-data-v7.js');const D=window.NK_DATA,SYS=require('../systems.js');
 const rnd=Math.random,N=200000;
 const BEST=['luck','expert','big','quick','merchant','treasure'];
 function mkS(rodK,lv,charmTier,nCharm,star,pas){const S={coins:0,nid:1,charms:[],equip:[],stones:0,gear:[],baits:{},dex:{},tank:[],stats:{g:[0,0,0,0,0]}};
@@ -28,4 +28,8 @@ const S0={coins:0,nid:1,charms:[],equip:[],stones:0,gear:[],baits:{}};const cnt=
 const out={v5:rows.filter(r=>/v5|기본\(|최종\)/.test(r.name)),rows,enh,synth,box:cnt,coinPerBox:S0.coins/20000};
 console.table(rows.map(r=>({구성:r.name,'코인/회':r.coin.toFixed(1),'코인/시':r.perHour.toFixed(0),배수:r.x.toFixed(2),'희귀+':(r.rare*100).toFixed(1)+'%','전설+':(r.leg*100).toFixed(2)+'%','상자':(r.box*100).toFixed(2)+'%'})));
 console.log('enh',enh,'synth',synth,'box',cnt,out.coinPerBox);
+// v7 초월 등급: 기대 획득 시간 (독립 굴림 p × 보정 min(1.8, 1+행운%/100+낚싯대행운×4))
+const TXc=[['기본(대나무·지렁이)','bamboo','worm',0,null],['은빛+5★1·희귀부적6','silver','paste',5,2,6,1],['용+10★3·전설부적6','dragon','shrimp',10,4,6,3],['용+10★5·신화부적6(최종)','dragon','shrimp',10,5,6,5],['최종+패시브 만렙','dragon','shrimp',10,5,6,5,1]];
+const tx=TXc.map(([n,rk,bk,lv,ct,nc,st,pas])=>{const S=mkS(rk,lv,ct,nc||6,st,pas),r=SYS.gearStats(D,SYS.gearOf(S)),b=D.BAITS.find(x=>x.k===bk),M=SYS.mods(D,S,r,b);const boost=Math.min(D.TX.boostMax,1+M.ch.luck/100+(r.luck||0)*4),cph=3600/(4*M.wait+4),pp=D.TX.p*boost;return {구성:n,'보정':'×'+boost.toFixed(2),'캐스팅/시':cph.toFixed(0),'1회 확률':(pp*100).toFixed(4)+'%','기대 시간(h)':(1/(pp*cph)).toFixed(1),'50% 시점(h)':(Math.log(2)/(pp*cph)).toFixed(1)};});
+console.log('초월 p=',D.TX.p,'≈1/'+Math.round(1/D.TX.p));console.table(tx);out.tx=tx;
 require('fs').writeFileSync(__dirname+'/../sim-result.js','window.NK_SIM='+JSON.stringify(out)+';');

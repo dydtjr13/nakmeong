@@ -46,7 +46,7 @@ SYS.weights=(D,S,rod,bait,night=0)=>{const ch=SYS.charmSum(D,S),N=night>.5,bb=ba
 SYS.migrate=(D,S)=>{S.gear=S.gear||[];if(!S.gear.length){(S.rods||['bamboo']).forEach(k=>{const g=SYS.makeGear(D,k,S.nid++);g.q=1;g.enh=(S.enh||{})[k]||0;S.gear.push(g);if(k===S.rod)S.rodId=g.id;});}
   if(!S.gear.find(g=>g.id===S.rodId))S.rodId=S.gear[0].id;if(!S.stats){S.stats={g:[0,0,0,0,0]};for(const k in (S.dex||{}))S.dex[k].gr.forEach((v,j)=>S.stats.g[j]+=v?1:0);}S.presets=S.presets||[[],[],[]];if(S.preset==null)S.preset=0;S.boxDesign=S.boxDesign||1;(S.charms||[]).forEach(c=>{if(c.lock==null)c.lock=false;});};
 // ── v5: 패시브 (도감 업적 + 어항 조합) ──
-SYS.comboState=(D,tank)=>D.COMBO.list.map(c=>{const best=c.ks.map(k=>{const fs=(tank||[]).filter(f=>f.k===k);return fs.length?Math.max(...fs.map(f=>f.g)):-1;});const on=best.every(g=>g>=0),lv=on?Math.min(...best):-1,m=on?D.COMBO.mult[lv]:0;
+SYS.comboState=(D,tank)=>D.COMBO.list.map(c=>{const best=c.ks.map(k=>{const fs=(tank||[]).filter(f=>f.k===k);return fs.length?Math.max(...fs.map(f=>f.g)):-1;});const on=best.every(g=>g>=0),lv=on?Math.min(4,...best):-1,m=on?D.COMBO.mult[lv]:0;
   const e={};for(const k in c.e)e[k]=R1(c.e[k]*m);return {c,best,on,lv,e,have:best.filter(g=>g>=0).length};});
 SYS.passives=(D,S)=>{const sum={};for(const k in D.CHARM.opts)sum[k]=0;S.stats=S.stats||{g:[0,0,0,0,0]};
   const ach=(D.ACH||[]).map(a=>{const [c,n]=a.p(S);const done=c>=n;if(done)for(const k in a.e)sum[k]+=a.e[k];return {a,c:Math.min(c,n),n,done};});
