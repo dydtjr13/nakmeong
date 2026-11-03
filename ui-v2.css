@@ -369,7 +369,7 @@ body.menu-b #mMain #bAutoFish.on{background:linear-gradient(135deg,#7fd4a8,#3fb0
 .txname{color:#ff2d8a;font-weight:800}body.tx-rainbow .txname{background:linear-gradient(90deg,#ff5f6d,#ffc371,#47e891,#3fb2ff,#b06bff);-webkit-background-clip:text;background-clip:text;color:transparent}
 #frank{z-index:60}
 .fr-card{width:min(520px,94vw);padding:18px 18px 14px}
-.fr-head{display:flex;gap:12px;align-items:center;margin-bottom:8px}.fr-head img{width:90px;height:60px;object-fit:contain}.fr-head h2{margin:0;font-size:19px}
+.fr-head{display:flex;gap:12px;align-items:center;margin-bottom:8px}.fr-head>img{width:90px;height:60px;object-fit:contain}.fr-head h2{margin:0;font-size:19px}
 .fr-list{max-height:48vh;overflow:auto;margin-top:8px}
 .fr-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;font-size:14px}
 .fr-row+.fr-row{margin-top:3px}.fr-n{width:30px;text-align:center;font-weight:900;color:#9a93a6;font-size:15px}.fr-nm{flex:1;font-weight:700}.fr-cm{font-weight:900;min-width:70px;text-align:right}
@@ -380,3 +380,33 @@ body.menu-b #mMain #bAutoFish.on{background:linear-gradient(135deg,#7fd4a8,#3fb0
 .fr-mine{border-top:2px solid #f1ede4;margin-top:8px;padding-top:8px}
 .fr-gap{font-size:13px;background:linear-gradient(90deg,#3d3548,#6a4f8a);color:#fff;border-radius:12px;padding:9px 12px;margin-top:6px}
 .fr-gap b{color:#ffd86b}
+
+/* ───────── v12 ───────── */
+#tankBig{position:absolute;left:14px;top:14px;z-index:3;font-size:12.5px;font-weight:800;padding:6px 12px;border-radius:12px;border:0;background:#fffdf8e6;box-shadow:0 2px 10px #0002;cursor:pointer}
+#tankHint{position:absolute;left:14px;bottom:12px;z-index:3;font-size:11.5px;color:#fff;background:#3d354899;border-radius:10px;padding:4px 10px;pointer-events:none}
+.tankwrap{position:relative}#tankCv{touch-action:none;cursor:grab}
+#tank.big #tankSide{display:none}#tank.big #tankCv{height:100%!important;flex:1!important}
+.cks2{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0}
+.cslot{align-self:start;border-radius:12px;background:#f4f1ea;padding:6px 4px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px;border:2px solid transparent}
+.cslot.h{background:#fff;border-color:var(--gc)}.cslot img{width:58px;height:38px;object-fit:contain}.cslot img.sil{filter:grayscale(1) brightness(1.5);opacity:.45}
+.cslot b{font-size:12.5px}.cslot small{font-size:10.5px;color:#8a8296}
+.cswap,.ctag2{margin-top:3px;font-size:11px;font-weight:800;border:0;border-radius:9px;padding:3px 7px;background:linear-gradient(90deg,#ffb36b,#ff8a5a);color:#fff;cursor:pointer}
+.ctag2{font-size:12px;padding:3px 9px;vertical-align:1px}
+/* 랭킹 F: 트로피 카드형 */
+.fr-tops{display:grid;gap:8px;margin:4px 0 8px}
+.fr-tc{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:18px;position:relative;overflow:hidden}
+.fr-tc .fr-nm{flex:1;font-weight:800;font-size:15px}.fr-tc .fr-cm{font-size:21px;font-weight:900}.fr-tc .fr-cm small{font-size:12px}
+.fr-tc.t1{background:linear-gradient(120deg,#fff1b8,#ffd86b 60%,#ffeaa0);box-shadow:0 0 0 2px #f6c542 inset,0 8px 22px #f6c54255}
+.fr-tc.t2{background:linear-gradient(120deg,#f6f8fb,#d6dde7);box-shadow:0 0 0 2px #b7c2d0 inset}
+.fr-tc.t3{background:linear-gradient(120deg,#fff0e4,#f3c19c);box-shadow:0 0 0 2px #e5a06e inset}
+.fr-tc.me{outline:3px solid #ff9a5a;outline-offset:-3px}
+.fr-tc:after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,#fff9 50%,transparent 65%);transform:translateX(-120%);animation:frsh 3s infinite;pointer-events:none}
+.fr-tc.t2:after{animation-delay:.4s}.fr-tc.t3:after{animation-delay:.8s}@keyframes frsh{60%,100%{transform:translateX(120%)}}
+.fr-medal{width:32px;height:32px;flex:none;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#fff;font-size:15px;box-shadow:inset 0 -3px 0 #0002}
+.fr-medal.m1{background:radial-gradient(circle at 35% 30%,#fff3a8,#f6c542 55%,#d99b22)}.fr-medal.m2{background:radial-gradient(circle at 35% 30%,#fff,#c7d0dc 55%,#97a3b3)}.fr-medal.m3{background:radial-gradient(circle at 35% 30%,#ffe0c8,#e5a06e 55%,#b9713f)}
+.fr-medal.mini{display:inline-grid;width:20px;height:20px;font-size:11px;vertical-align:-4px;margin-right:5px}
+.fr-sp{position:absolute;width:9px;height:9px;background:#fff;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);animation:frtw 1.8s infinite;pointer-events:none}
+@keyframes frtw{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1)}}
+.fr-row:nth-child(even){background:#f8f5ee}
+.cswap img,.ctag2 img,.cslot small img{width:1.15em!important;height:1.15em!important;vertical-align:-.2em}
+@media(max-width:700px){#tankHint{bottom:auto;top:calc(45% - 30px);font-size:10.5px}#tank.big #tankHint{top:auto;bottom:12px}}

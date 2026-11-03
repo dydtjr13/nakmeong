@@ -1,5 +1,5 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>낚멍 v11 — 3D 로우폴리 파스텔</title><link rel="stylesheet" href="ui-v2.css?v11"><script src="emoji.js?v11"></script></head><body>
+<title>낚멍 v12 — 3D 로우폴리 파스텔</title><link rel="stylesheet" href="ui-v2.css?v12"><script src="emoji.js?v12"></script></head><body>
 <canvas id="world"></canvas>
 <div id="hud">
   <div class="top">
@@ -24,7 +24,7 @@
   <button id="go" class="big">탭해서 시작 (사운드 ON)</button>
   <p id="loading" class="muted small">에셋 로딩 중…</p></div></div>
 <div id="dex" class="modal"></div>
-<div id="tank" class="modal"><div class="tankwrap"><canvas id="tankCv"></canvas><div id="tankSide"></div><button class="close" data-close="tank">×</button></div></div>
+<div id="tank" class="modal"><div class="tankwrap"><canvas id="tankCv"></canvas><button id="tankBig" onclick="NKV2.tankView.toggleBig()">⤢ 크게 보기</button><div id="tankHint">드래그: 회전 · 휠/핀치: 확대·축소 · 클릭: 크게 보기</div><div id="tankSide"></div><button class="close" data-close="tank">×</button></div></div>
 <div id="shop" class="modal"></div>
 <div id="sound" class="modal"></div>
 <div id="bag" class="modal"></div>
@@ -33,5 +33,5 @@
 <div id="confirm" class="modal"></div>
 <div id="ribbons"></div>
 <script src="lib/three.min.js"></script><script src="lib/GLTFLoader.js"></script><script src="lib/SkeletonUtils.js"></script>
-<script src="assets/assets-data.js"></script><script src="game-data.js"></script><script src="game-data-v3.js"></script><script src="game-data-v4.js"></script><script src="game-data-v5.js"></script><script src="game-data-v7.js"></script><script src="game-data-v8.js"></script><script src="game-data-v9.js"></script><script src="game-data-v10.js"></script><script src="game-data-v11.js"></script><script src="tank-ext.js"></script><script src="rod-3d.js"></script><script src="systems.js?v11"></script><script src="sim-result.js"></script><script src="game-v2.js?v11"></script>
+<script src="assets/assets-data.js"></script><script src="game-data.js"></script><script src="game-data-v3.js"></script><script src="game-data-v4.js"></script><script src="game-data-v5.js"></script><script src="game-data-v7.js"></script><script src="game-data-v8.js"></script><script src="game-data-v9.js"></script><script src="game-data-v10.js"></script><script src="game-data-v11.js"></script><script src="game-data-v12.js"></script><script src="tank-themes-v12.js"></script><script src="tank-ext.js"></script><script src="rod-3d.js"></script><script src="systems.js?v12"></script><script src="sim-result.js"></script><script src="game-v2.js?v12"></script>
 </body></html>

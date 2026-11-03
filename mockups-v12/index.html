@@ -1,0 +1,24 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v12 시안</title>
+<style>body{margin:0;font-family:Pretendard,'Noto Sans KR',system-ui,sans-serif;background:#fbf7ef;color:#3d3548}main{max-width:1240px;margin:0 auto;padding:22px 18px 40px}
+h1{margin:0 0 4px;font-size:24px}h2{margin:30px 0 6px;font-size:20px}p.l{margin:0 0 12px;color:#7a7286;font-size:14px}
+.g{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.c{background:#fff;border-radius:18px;box-shadow:0 6px 22px #3d354814;padding:12px}
+.c h3{margin:2px 4px 8px;font-size:16px}.c p{margin:8px 4px 2px;font-size:13px;color:#5c5468;line-height:1.55}.c img{width:100%;border-radius:12px;display:block}
+.row{display:grid;grid-template-columns:2.2fr 1fr;gap:8px;align-items:start}.tag{display:inline-block;font-size:11px;font-weight:800;border-radius:7px;padding:1px 7px;background:#3d3548;color:#fff;margin-right:4px}
+table{border-collapse:collapse;width:100%;font-size:13px;margin-top:8px;background:#fff;border-radius:12px;overflow:hidden}td,th{padding:7px 9px;border-bottom:1px solid #f1ede4;text-align:left}th{background:#f6f2ea}
+@media(max-width:700px){.g{grid-template-columns:1fr}.row{grid-template-columns:1fr 1fr}}</style></head><body><main>
+<h1>낚멍 v12 시안</h1><p class="l">아래 두 가지는 게임에 아직 적용하지 않은 시안이에요. 모두 실제 게임 화면에서 캡처했어요.</p>
+<h2>👑 서버 1~3위 닉네임 표시 (4종)</h2><p class="l">어종별 주간 랭킹 1~3위 유저를 월드에서 알아볼 수 있게 하는 표시예요. (예시: 물멍러 1위 · 붕어왕 2위 · 노을소녀 3위)</p>
+<div class="g" id="cw"></div>
+<h2>🛶 데크 30개 배치 (3종)</h2><p class="l">현재 호수(반지름 24, 데크 20개)를 기준으로 비교했어요. 모든 시안이 데크·어항을 인스턴싱으로 그려서 데크가 늘어도 draw call이 거의 같아요.</p>
+<div class="c" style="margin-bottom:16px"><h3>현재 · 데크 20개 (반지름 24)</h3><img src="deck30-now-top.jpg" style="max-width:560px"></div>
+<div id="dk"></div>
+<table><tr><th>시안</th><th>호수 반지름</th><th>데크 간격(입구 기준)</th><th>한 바퀴 걷기</th><th>draw calls / 삼각형 (PC·모바일)</th><th>장점</th><th>주의점</th></tr>
+<tr><td><b>A 큰 원형</b></td><td>24 → 32 (+33%)</td><td>약 7.3m (현재 8.4m)</td><td>약 +30%</td><td>89·84 / 133k</td><td>지금 구조 그대로 확장 · 버그 위험 최소</td><td>건너편 데크가 멀어져 소셜감↓, 이동 시간↑</td></tr>
+<tr><td><b>B 지그재그</b></td><td>24 → 26 (+8%)</td><td>약 6m (안/밖 교차)</td><td>약 +8%</td><td>89·84 / 134k</td><td>호수를 거의 안 넓혀도 30개 · 이동 거리 유지</td><td>바깥 데크는 낚시 지점이 2.6m 뒤 · 촘촘해 보일 수 있음</td></tr>
+<tr><td><b>C 만(灣)형 6마을</b></td><td>24 → 29 (+21%)</td><td>마을 안 5m · 마을 사이 빈터</td><td>약 +20%</td><td>104·87 / 135k</td><td>마을(5데크)별 친구 모임 · 빈터에 상점·캠프파이어·이벤트</td><td>상점·캠프파이어 위치 재배치 필요</td></tr></table>
+<p class="l" style="margin-top:10px">카메라: 세 시안 모두 지금 3인칭 카메라를 그대로 써도 옆 데크가 화면에 2~3개 보여요. 모바일 성능: 데크·랜턴·어항이 인스턴싱이라 삼각형은 +2% 이내예요. 봇 수만 늘리지 않으면 프레임 차이가 없어요(이 테스트 환경은 소프트웨어 렌더링이라 모든 시안이 약 20 FPS로 같게 나와요).</p>
+</main><script src="crown-overlay.js"></script><script>
+document.getElementById('cw').innerHTML=Object.entries(CROWN_V).map(([k,v])=>`<div class="c"><h3>${v.n}</h3><div class="row"><img src="crown-${k}-d.jpg"><img src="crown-${k}-m.jpg"></div><p>${v.d}</p></div>`).join('');
+const DK=[['a','A · 큰 원형 호수','호수 반지름 24→32, 데크 30개를 같은 간격으로 한 줄 배치'],['b','B · 지그재그 2열','반지름 26, 홀수 데크를 2.6m 바깥으로 밀어 끝이 엇갈리게 배치'],['c','C · 만(灣)형 6마을','반지름 29, 데크 5개씩 6개 마을로 묶고 사이를 빈터로 남김']];
+document.getElementById('dk').innerHTML='<div class="g">'+DK.map(([k,n,d])=>`<div class="c"><h3>${n}</h3><img src="deck30-${k}-top.jpg"><div class="row" style="margin-top:8px"><img src="deck30-${k}-ig-d.jpg"><img src="deck30-${k}-ig-m.jpg"></div><p>${d}</p></div>`).join('')+'</div>';
+let n=0;const im=()=>[...document.images];window.READY=()=>im().every(i=>i.complete);</script></body></html>

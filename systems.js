@@ -7,7 +7,7 @@ SYS.makeGear=(D,k,id,rnd=Math.random,tier)=>{const G=D.GEAR;tier=tier==null?(G.s
 SYS.slotCount=(D,g)=>D.GEAR.slots[g.k]+D.GEAR.starSlot.filter(s=>g.star>=s).length;
 SYS.extraMax=(D,g,ok)=>D.CHARM.opts[ok].cap*D.GEAR.mul[g.k];
 SYS.addExtra=(D,g,rnd=Math.random)=>{const pool=D.GEAR.pool.filter(k=>!g.extra.some(e=>e.k===k));if(!pool.length)return;const k=pool[Math.floor(rnd()*pool.length)];const xb=D.GEAR.xBand?D.GEAR.xBand[g.tier==null?1:g.tier]:[.4,1];g.extra.push({k,v:R1(SYS.extraMax(D,g,k)*(xb[0]+(xb[1]-xb[0])*rnd()))});};
-SYS.gearStats=(D,g)=>{const r=D.RODS.find(x=>x.k===(g?g.k:'bamboo')),m=g?g.q*(1+D.GEAR.starBonus*g.star):1;
+SYS.gearStats=(D,g)=>{const r=D.RODS.find(x=>x.k===(g?g.k:'bamboo')),m=g?(D.GEAR.fixedBase?1:g.q)*(1+D.GEAR.starBonus*g.star):1;
   const B=SYS.enhBonus(D,g?g.enh:0);return {k:r.k,n:r.n,id:g&&g.id,star:g?g.star:0,enh:g?g.enh:0,q:g?g.q:1,size:(1+(r.size-1)*m)*(1+B.size),speed:1-(1-r.speed)*m,luck:r.luck*m+B.luck,coin:(r.coin||0)*m+B.coin,box:(r.box||0)+B.box,price:r.price,bt:B};};
 // v11 강화 돌파 보너스(+5/+10/+15/+20 누적)
 SYS.enhBonus=(D,lv)=>{const o={size:0,luck:0,coin:0,box:0};((D.ENH&&D.ENH.bt)||[]).forEach(b=>{if(lv>=b.lv)for(const k in o)o[k]+=b[k]||0;});return o;};
@@ -54,7 +54,7 @@ SYS.comboState=(D,tank)=>D.COMBO.list.map(c=>{const best=c.ks.map(k=>{const fs=(
   const e={};for(const k in c.e)e[k]=R1(c.e[k]*m);return {c,best,on,lv,e,have:best.filter(g=>g>=0).length};});
 SYS.passives=(D,S)=>{const sum={};for(const k in D.CHARM.opts)sum[k]=0;S.stats=S.stats||{g:[0,0,0,0,0]};
   const ach=(D.ACH||[]).map(a=>{const [c,n]=a.p(S);const done=c>=n;if(done)for(const k in a.e)sum[k]+=a.e[k];return {a,c:Math.min(c,n),n,done};});
-  const combo=D.COMBO?SYS.comboState(D,S.tank):[];combo.forEach(x=>{if(x.on)for(const k in x.e)sum[k]+=x.e[k];});
+  const combo=D.COMBO?SYS.comboState(D,S.cslot?Object.values(S.cslot):S.tank):[];combo.forEach(x=>{if(x.on)for(const k in x.e)sum[k]+=x.e[k];});
   const raw=Object.assign({},sum);for(const k in sum)sum[k]=R1(Math.min(sum[k],(D.PASSIVE.cap[k]||0)));return {ach,combo,sum,raw};};
 // ── v5: 부적 합성 (같은 등급 5개 → 다음 등급 / 신화 3개 → 다른 신화) ──
 SYS.synthPool=(D,S,tier)=>S.charms.filter(c=>c.tier===tier&&!c.lock&&!S.equip.includes(c.id)&&!(S.presets||[]).some(p=>p.includes(c.id))).sort((a,b)=>a.opts.reduce((x,o)=>x+o.v/D.CHARM.opts[o.k].cap,0)-b.opts.reduce((x,o)=>x+o.v/D.CHARM.opts[o.k].cap,0));
