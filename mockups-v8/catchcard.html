@@ -1,0 +1,42 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>v8 시안 · 낚시 성공 카드</title>
+<script>window.NK_EMOJI_BASE="../icons/emoji/";</script><script src="../emoji.js"></script>
+<style>
+*{box-sizing:border-box}img.emj{width:1.1em;height:1.1em;vertical-align:-.18em;display:inline-block}
+body{margin:0;min-height:100vh;font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;color:#3d3548;background:url(bg-desktop.jpg) center/cover fixed}
+@media(max-width:600px){body{background-image:url(bg-mobile.jpg)}}
+.tag{text-align:center;padding:14px 10px 0}.tag span{background:#3d3548e6;color:#fff;font-size:12px;border-radius:10px;padding:6px 12px;display:inline-block}
+.row{display:flex;justify-content:center;align-items:center;gap:22px;flex-wrap:wrap;padding:40px 16px}
+.cap{font-size:11px;font-weight:700;color:#3d3548;background:#fffc;border-radius:8px;padding:2px 8px;display:inline-block;margin-bottom:8px}
+.col{display:flex;flex-direction:column;align-items:center}
+.chip{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:800;color:#fff;background:var(--g)}
+.bd{display:inline-block;font-size:11px;font-weight:800;border-radius:8px;padding:2px 7px;margin:2px}.bd.new{background:#fff1c9;color:#b7791f}.bd.rec{background:#dff5e8;color:#2f8f5b}
+/* A 미니멀 */
+.A{width:250px;background:#fffdf9;border-radius:22px;padding:16px 16px 14px;text-align:center;box-shadow:0 14px 40px #0003;border:2px solid color-mix(in srgb,var(--g) 55%,#fff)}
+.A img.f{width:170px;height:84px;object-fit:contain;filter:drop-shadow(0 6px 8px #0002)}.A .nm{font-size:18px;font-weight:900;margin:4px 0 2px}
+.A .cm{font-size:30px;font-weight:900;letter-spacing:-.5px;line-height:1.1}.A .cm small{font-size:15px}.A .v{font-size:14px;font-weight:800;color:#b7791f;margin-top:2px}.A .bds{min-height:22px;margin-top:6px}
+/* B 가로 스트립 */
+.B{width:360px;display:flex;align-items:center;gap:12px;background:#fffdf9;border-radius:18px;padding:10px 14px 10px 10px;box-shadow:0 10px 30px #0003;border-left:7px solid var(--g)}
+.B img.f{width:86px;height:56px;object-fit:contain;flex:none}.B .m{flex:1;min-width:0}.B .nm{font-weight:900;font-size:15px}.B .s{font-size:12px;color:#6a6078;margin-top:2px}.B .r{text-align:right;flex:none}.B .cm{font-size:22px;font-weight:900;line-height:1}.B .v{font-size:12px;font-weight:800;color:#b7791f;margin-top:4px}
+/* C 등급 헤더 */
+.C{width:240px;background:#fffdf9;border-radius:20px;overflow:hidden;box-shadow:0 14px 40px #0003;text-align:center}
+.C .hd{background:var(--g);color:#fff;font-weight:900;font-size:13px;letter-spacing:2px;padding:7px 0}.C .bdy{padding:12px 14px 14px}.C img.f{width:160px;height:80px;object-fit:contain}
+.C .nm{font-weight:900;font-size:17px}.C .kv{display:grid;grid-template-columns:1fr 1fr;margin-top:8px;border-top:1px solid #efe6d8}.C .kv div{padding:8px 0 0}.C .kv div+div{border-left:1px solid #efe6d8}.C .kv small{display:block;font-size:10px;color:#8a8094;font-weight:700}.C .kv b{font-size:18px}.C .kv b.v{color:#b7791f}
+/* D 메달형 */
+.D{width:270px;position:relative;background:#fffdf9;border-radius:24px;padding:58px 16px 14px;text-align:center;box-shadow:0 14px 40px #0003;margin-top:44px}
+.D .md{position:absolute;left:50%;top:-46px;transform:translateX(-50%);width:100px;height:100px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#fff,color-mix(in srgb,var(--g) 25%,#fff));border:5px solid var(--g);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px #0002}.D .md img{width:82px;height:60px;object-fit:contain}
+.D .rib{position:absolute;right:-6px;top:14px;background:#ef6f8f;color:#fff;font-size:11px;font-weight:900;padding:3px 10px;border-radius:8px 0 0 8px;box-shadow:0 3px 6px #0002}.D .rib.rec{background:#3fbf7f;top:40px}
+.D .nm{font-weight:900;font-size:17px}.D .ln{display:flex;justify-content:center;gap:10px;align-items:baseline;margin-top:4px}.D .cm{font-size:28px;font-weight:900}.D .v{font-weight:800;color:#b7791f}
+@media(max-width:600px){.row{flex-direction:column;gap:16px;padding:20px 10px}.B{width:340px}}
+</style></head><body><div class="tag"><span id="t"></span></div><div class="row" id="row"></div>
+<script>
+const V=new URLSearchParams(location.search).get('v')||'a';
+const C=[{k:'crucian',n:'붕어',g:'일반',c:'#aab4c0',cm:21.4,v:14,new:1},{k:'bass',n:'배스',g:'희귀',c:'#4ea3ea',cm:47.2,v:186,rec:1},{k:'snakehead',n:'가물치',g:'전설',c:'#f4a62a',cm:88.5,v:2240,new:1,rec:1}];
+const bd=c=>`${c.new?'<span class="bd new">✨ 첫 획득</span>':''}${c.rec?'<span class="bd rec">📏 최대 기록</span>':''}`;
+const card={a:c=>`<div class="A" style="--g:${c.c}"><img class="f" src="../img/fish/${c.k}.png"><div class="nm">${c.n} <span class="chip">${c.g}</span></div><div class="cm">${c.cm}<small>cm</small></div><div class="v">🪙 ${c.v.toLocaleString()}</div><div class="bds">${bd(c)}</div></div>`,
+ b:c=>`<div class="B" style="--g:${c.c}"><img class="f" src="../img/fish/${c.k}.png"><div class="m"><div class="nm">${c.n} <span class="chip">${c.g}</span></div><div class="s">${bd(c)||'🐠 어항에 보관'}</div></div><div class="r"><div class="cm">${c.cm}cm</div><div class="v">🪙 ${c.v.toLocaleString()}</div></div></div>`,
+ c:c=>`<div class="C" style="--g:${c.c}"><div class="hd">${c.g}</div><div class="bdy"><img class="f" src="../img/fish/${c.k}.png"><div class="nm">${c.n}</div><div>${bd(c)}</div><div class="kv"><div><small>크기</small><b>${c.cm}cm</b></div><div><small>가치</small><b class="v">🪙${c.v.toLocaleString()}</b></div></div></div></div>`,
+ d:c=>`<div class="D" style="--g:${c.c}"><div class="md"><img src="../img/fish/${c.k}.png"></div>${c.new?'<div class="rib">NEW</div>':''}${c.rec?'<div class="rib rec">기록!</div>':''}<div class="nm">${c.n} <span class="chip">${c.g}</span></div><div class="ln"><span class="cm">${c.cm}cm</span><span class="v">🪙 ${c.v.toLocaleString()}</span></div></div>`};
+const T={a:'A · 미니멀 세로 카드 (이미지 → 이름·등급 → 크기 크게 → 가치 → 배지)',b:'B · 가로 스트립 (화면을 덜 가림, 한 줄 요약)',c:'C · 등급 헤더 카드 (등급색 띠 + 크기/가치 2칸)',d:'D · 메달형 (원형 아이콘 + NEW/기록 리본)'};
+document.getElementById('t').textContent='낚시 성공 카드 시안 '+T[V]+' · 예시: 일반(첫 획득) / 희귀(최대 기록) / 전설(둘 다)';
+document.getElementById('row').innerHTML=C.map((c,i)=>`<div class="col"><span class="cap">${['일반 · 첫 획득','희귀 · 최대 기록','전설 · 첫 획득+기록'][i]}</span>${card[V](c)}</div>`).join('');window.READY=()=>true;
+</script></body></html>

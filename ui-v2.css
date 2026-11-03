@@ -182,3 +182,19 @@ body.tx-rainbow .dcard.g5{border:4px solid transparent!important;background:line
 .btile .k img.emj,.btile .k{width:16px;height:16px;font-size:12px}.bslot img.emj{width:auto;height:auto}
 .eqdot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#5fc48a;border:2px solid #fff;box-shadow:0 0 0 1px #5fc48a;vertical-align:-1px}
 @media(max-width:700px){.bside:has(.bdet.empty){order:0}.bdet.empty{padding:8px 4px}.bdet.empty>div{display:none}.bdet.empty p{margin:4px 0}}
+/* v8 합산 툴팁 */
+.bso{position:relative;cursor:help;border-radius:8px;padding:2px 4px;margin:-2px -4px}.bso:hover,.bso:focus{background:#ffffff14;outline:none}
+.btip{display:none;position:absolute;left:0;top:calc(100% + 6px);z-index:30;width:250px;background:#fffaf3;color:#4a4058;border-radius:12px;padding:10px 12px;box-shadow:0 10px 30px #0006;font-size:12px;line-height:1.5;pointer-events:none}
+.btip:before{content:'';position:absolute;top:-6px;left:22px;border:6px solid transparent;border-top:0;border-bottom-color:#fffaf3}
+.bso:hover .btip,.bso:focus .btip{display:block}.bsg .bso:nth-child(2n) .btip{left:auto;right:0}.bsg .bso:nth-child(2n) .btip:before{left:auto;right:22px}
+.btip .ttl{font-weight:900;font-size:13px}.btip .ttl small{color:#8a8094;font-weight:400}.btip .tds{color:#6a6078;margin:2px 0 6px}.btip .tsrc{border-top:1px dashed #e6dccb;padding-top:5px}.btip .tcap{margin-top:5px;color:#8a8094;font-size:11px}
+.bsum{overflow:visible}
+/* v8 드래그 */
+.dghost{position:fixed;left:0;top:0;width:64px;height:64px;z-index:200;pointer-events:none;border-radius:14px;background:#fff;border:3px solid var(--gc,#3d3548);padding:4px;box-shadow:0 12px 26px #0005;opacity:.95}.dghost img{width:100%;height:100%;object-fit:contain}
+#bag.dragging .bslot{transition:transform .12s}#bag.dragging .bslot.dropon{transform:scale(1.08);outline:3px solid #5fc48a;outline-offset:3px}
+#bag.drag-slot .blist{outline:3px dashed #ef6f8f;outline-offset:-3px}#bag.drag-slot .blist.dropon{background:#fff0f3}#bag.drag-slot .blist.dropon:after{content:'여기에 놓으면 장착 해제';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#ef6f8f;color:#fff;font-weight:800;padding:6px 14px;border-radius:12px;font-size:13px}
+.blist{position:relative}#bag.drag-list .bslots{outline:3px dashed #5fc48a;outline-offset:2px}
+.btile,.bslot{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.bdrag-hint{font-size:11px;color:#8a8094}
+.cutin.box{pointer-events:auto;cursor:pointer}
+#bag.drag-slot .blist.dropon:after{top:auto;bottom:44px;transform:translateX(-50%);z-index:5;box-shadow:0 4px 12px #0003}

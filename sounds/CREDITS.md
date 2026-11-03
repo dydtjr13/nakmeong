@@ -31,7 +31,11 @@ v5에서 CC BY·CC BY-SA 소스를 모두 제거했습니다. 아래 원본은 �
 | day4_afternoon_pond | d_reil + w_stream + w_trickle |
 | night1_frog_chorus | n_peeper + w_pebble |
 | night2_nightingale_forest | n_nacht + n_country + w_hemlock (v4 "부엉이 숲" 대체: CC0 부엉이 음원 없음) |
-| night3_toad_pond | n_edible + n_chorus + w_trickle |
+| night3_toad_pond | n_chorus + n_peeper + w_trickle (v8: n_edible 제거) |
 | night4_campfire_crickets | 합성 모닥불 + n_grass + n_country |
 
 제거된 v4 소스: Birdsong volga st (CC BY 4.0), Forest ambience 1·2 Gravity Sound (CC BY 4.0), Water on Rocks (CC BY 3.0), Dordogne pond (CC BY 3.0), Niger Delta frogs (CC BY 4.0), Tawny owl (CC BY 4.0), Field cricket (CC BY-SA 3.0).
+
+## v8 변경
+- 밤 트랙의 '괴수 음성'처럼 들리던 저음 울음 제거: night3에서 **n_edible(식용개구리 울음)** 레이어 삭제.
+- 남은 밤 생물음(n_peeper·n_country·n_chorus·n_grass·n_nacht)에 350Hz 하이패스 적용 → 배경의 낮은 그르렁/웅웅 성분 제거. 모닥불 합성음(night4)은 유지.

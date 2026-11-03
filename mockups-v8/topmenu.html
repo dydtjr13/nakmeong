@@ -1,0 +1,59 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>v8 시안 · 상단 메뉴</title>
+<script>window.NK_EMOJI_BASE="../icons/emoji/";</script><script src="../emoji.js"></script>
+<style>
+*{box-sizing:border-box}img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;display:inline-block}
+body{margin:0;height:100vh;overflow:hidden;font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;color:#3d3548;background:url(bg-desktop.jpg) center/cover}
+@media(max-width:600px){body{background-image:url(bg-mobile.jpg)}}
+.tag{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);background:#3d3548e6;color:#fff;font-size:12px;border-radius:10px;padding:6px 12px;white-space:nowrap;z-index:50;max-width:94vw;overflow:hidden;text-overflow:ellipsis}
+.glass{background:#fffaf3e8;backdrop-filter:blur(8px);box-shadow:0 4px 14px #0002;border:1px solid #fff}
+.coin{font-weight:900;font-size:15px;display:flex;align-items:center;gap:6px}.sub{font-size:11px;color:#8a8094;font-weight:600}
+.ib{width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:21px;position:relative;background:#fff;box-shadow:0 2px 0 #0001;border:1px solid #efe6d8}
+.ib small{position:absolute;bottom:-17px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:#3d3548;white-space:nowrap;text-shadow:0 0 4px #fff,0 0 4px #fff}
+.ib .k{position:absolute;right:-4px;top:-5px;background:#3d3548;color:#fff;font-size:9px;border-radius:6px;padding:0 4px;font-weight:700}
+.ib .dot{position:absolute;right:-3px;top:-3px;width:16px;height:16px;border-radius:50%;background:#ef6f8f;color:#fff;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+.hb{width:18px;height:2px;background:currentColor;display:block;box-shadow:0 -6px 0 currentColor,0 6px 0 currentColor;border-radius:2px}.ib.on{background:#3d3548;color:#fff}
+/* A: 좌 정보 / 우 아이콘 + 시스템 묶음 */
+.A .l{position:fixed;left:12px;top:12px;border-radius:18px;padding:8px 14px;display:flex;align-items:center;gap:12px}
+.A .l .sep{width:1px;height:26px;background:#e6dccb}
+.A .r{position:fixed;right:12px;top:12px;display:flex;gap:10px;align-items:center;border-radius:20px;padding:8px 10px 22px}
+.A .menu{position:fixed;right:12px;top:84px;width:220px;border-radius:16px;padding:8px;font-size:13px}.A .menu div{padding:8px 10px;border-radius:10px;display:flex;justify-content:space-between}.A .menu div:hover,.A .menu .h{background:#f4ece0}.A .menu small{color:#8a8094}
+/* B: 상단 상태바 + 하단 독 */
+.B .top{position:fixed;left:12px;right:12px;top:10px;display:flex;justify-content:space-between;pointer-events:none}.B .top>div{pointer-events:auto;border-radius:16px;padding:7px 14px;display:flex;align-items:center;gap:10px}
+.B .dock{position:fixed;left:50%;bottom:52px;transform:translateX(-50%);display:flex;gap:14px;border-radius:24px;padding:10px 16px 24px}
+.B .dock .ib{width:54px;height:54px;font-size:26px;border-radius:18px}.B .dock .main{background:linear-gradient(#ffb36b,#f4a62a);border-color:#f4a62a;width:64px;height:64px;margin-top:-10px;font-size:30px}
+.B .mini{display:flex;gap:6px}.B .mini .ib{width:34px;height:34px;font-size:16px;border-radius:11px}
+/* C: 좌측 세로 레일 */
+.C .rail{position:fixed;left:12px;top:70px;display:flex;flex-direction:column;gap:8px;border-radius:20px;padding:10px 8px}
+.C .rail .ib{width:48px;height:48px}.C .rail .lab{font-size:10px;text-align:center;font-weight:700;margin-top:-4px;margin-bottom:2px}
+.C .rail hr{border:0;border-top:1px solid #e6dccb;margin:2px 4px;width:auto}
+.C .bar{position:fixed;left:12px;top:12px;border-radius:16px;padding:8px 14px;display:flex;gap:14px;align-items:center}
+.C .rt{position:fixed;right:12px;top:12px;display:flex;gap:8px}.C .rt .ib{width:38px;height:38px;font-size:18px}
+/* D: 퀵 2개 + ☰ 패널 */
+.D .l{position:fixed;left:12px;top:12px;border-radius:18px;padding:6px 6px 6px 14px;display:flex;align-items:center;gap:10px}
+.D .l .eq{display:flex;gap:6px;font-size:12px}.D .l .eq span{background:#f4ece0;border-radius:9px;padding:4px 8px;font-weight:700}
+.D .r{position:fixed;right:12px;top:12px;display:flex;gap:8px}
+.D .panel{position:fixed;right:12px;top:68px;width:300px;border-radius:20px;padding:12px}.D .panel h4{margin:2px 4px 8px;font-size:12px;color:#8a8094}
+.D .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.D .grid div{background:#fff;border:1px solid #efe6d8;border-radius:14px;padding:10px 4px;text-align:center;font-size:12px;font-weight:700}.D .grid div b{display:block;font-size:22px;margin-bottom:2px}.D .grid div .k{font-size:9px;color:#8a8094;font-weight:600}
+.D .tgl{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:8px 6px;border-top:1px solid #efe6d8;margin-top:8px}.D .sw{width:38px;height:22px;border-radius:11px;background:#5fc48a;position:relative}.D .sw:after{content:'';position:absolute;right:3px;top:3px;width:16px;height:16px;border-radius:50%;background:#fff}
+/* 모바일 */
+@media(max-width:600px){
+ .A .l{padding:6px 10px;gap:8px}.A .l .eqx{display:none}.A .r{left:auto;top:62px;flex-direction:column;padding:8px 8px 8px;gap:22px}.A .r .ib small{display:none}.A .r{gap:8px}.A .menu{top:150px;bottom:auto;right:66px;width:200px}
+ .B .top .hide-m{display:none}.B .dock{bottom:46px;gap:10px;padding:8px 12px 22px}.B .dock .ib{width:48px;height:48px;font-size:22px}.B .dock .main{width:58px;height:58px}
+ .C .rail{top:64px;padding:8px 6px}.C .rail .ib{width:42px;height:42px;font-size:19px}.C .bar .hide-m{display:none}
+ .D .l .eq{display:none}.D .panel{left:12px;right:12px;width:auto}}
+</style></head><body><div id="root"></div>
+<script>
+const V=new URLSearchParams(location.search).get('v')||'a';let H='',T='';
+const ib=(e,l,x='')=>`<div class="ib ${x.includes('on')?'on':''}">${e}${l?`<small>${l}</small>`:''}${x.includes('k:')?`<span class="k">${x.split('k:')[1].split(' ')[0]}</span>`:''}${x.includes('n:')?`<span class="dot">${x.split('n:')[1].split(' ')[0]}</span>`:''}</div>`;
+if(V==='a'){T='A · 정보(좌) + 핵심 아이콘(우) + 시스템은 ⚙ 하나로';H=`<div class="A"><div class="l glass"><div class="coin">🪙 900,420</div><div class="sep"></div><div class="sub">☀️ 낮 · 14:20</div><div class="sep eqx"></div><div class="sub eqx">🎣 대나무 · 🪱 지렁이 · 🐠 4/5</div></div>
+<div class="r glass">${ib('📖','도감','k:B')}${ib('🐠','어항','k:F')}${ib('🛒','상점','k:E')}${ib('🎒','가방','n:3')}${ib('⚙️','메뉴','on')}</div>
+<div class="menu glass"><div>💾 저장 <small>자동 저장 1분 전</small></div><div>🔊 사운드 <small>낮·밤 음원</small></div><div class="h">🕒 시간 흐름 <small>ON</small></div><div>🌗 시간대 변경 <small>낮→밤</small></div><div>🪑 앉기 <small>휴식</small></div><div>⚙️ 설정 <small>닉네임·자동판매</small></div></div></div>`;}
+if(V==='b'){T='B · 상단은 상태만 + 하단 독(가운데 낚시 버튼 강조)';H=`<div class="B"><div class="top"><div class="glass"><div class="coin">🪙 900,420</div><div class="sub hide-m">🎣 대나무 · 🪱 지렁이 · 🐠 4/5</div></div><div class="glass mini">${ib('🌗','')}${ib('🔊','')}${ib('⚙️','')}</div></div>
+<div class="dock glass">${ib('📖','도감')}${ib('🐠','어항')}${ib('🎣','낚시','main')}${ib('🛒','상점')}${ib('🎒','가방','n:3')}</div></div>`;}
+if(V==='c'){T='C · 좌측 세로 레일(라벨 포함) + 상단 얇은 상태바';H=`<div class="C"><div class="bar glass"><div class="coin">🪙 900,420</div><div class="sub">☀️ 낮</div><div class="sub hide-m">🎣 대나무 · 🪱 지렁이 · 🐠 4/5</div></div><div class="rt">${ib('🔊','')}${ib('⚙️','')}</div>
+<div class="rail glass">${ib('📖','')}<div class="lab">도감</div>${ib('🐠','')}<div class="lab">어항</div>${ib('🛒','')}<div class="lab">상점</div>${ib('🎒','','n:3')}<div class="lab">가방</div><hr>${ib('💾','')}<div class="lab">저장</div>${ib('🪑','')}<div class="lab">앉기</div></div></div>`;}
+if(V==='d'){T='D · 자주 쓰는 2개만 노출 + 메뉴 펼침 패널(열린 상태)';H=`<div class="D"><div class="l glass"><div class="coin">🪙 900,420</div><div class="eq"><span>🎣 대나무</span><span>🪱 지렁이</span><span>🐠 4/5</span></div></div>
+<div class="r">${ib('🎒','','n:3')}${ib('🛒','')}${ib('<i class="hb"></i>','','on')}</div>
+<div class="panel glass"><h4>메뉴</h4><div class="grid"><div><b>📖</b>도감 <span class="k">B</span></div><div><b>🐠</b>내 어항 <span class="k">F</span></div><div><b>🛒</b>상점 <span class="k">E</span></div><div><b>🎒</b>가방</div><div><b>🔊</b>사운드</div><div><b>⚙️</b>설정</div><div><b>💾</b>저장</div><div><b>🪑</b>앉기</div><div><b>🌗</b>시간대</div></div><div class="tgl">🕒 시간 흐름 <span class="sw"></span></div></div></div>`;}
+document.getElementById('root').innerHTML=H+`<div class="tag">상단 메뉴 시안 ${T}</div>`;window.READY=()=>true;
+</script></body></html>
