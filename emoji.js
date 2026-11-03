@@ -12,7 +12,9 @@ function walk(root){if(root.nodeType===3){if(root.parentNode&&!SKIP[root.parentN
  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),L=[];let n;while((n=w.nextNode()))if(!SKIP[n.parentNode.nodeName])L.push(n);L.forEach(conv);}
 window.NK_iconize=walk;
 // 캔버스(이름표/말풍선)용: 텍스트를 이모지 이미지와 섞어 그림
-const cache={};window.NK_emojiImg=(e,cb)=>{const u=url(e);if(!cache[u]){const im=new Image();im.onload=()=>{im._ok=1;(im._cb||[]).forEach(f=>f());};im._cb=[];im.src=u;cache[u]=im;}const im=cache[u];if(!im._ok&&cb)im._cb.push(cb);return im._ok?im:null;};
+// v9: 캔버스용은 PNG(128px) 사용 — Safari/Firefox는 width/height 없는 SVG를 drawImage 시 그리지 않음
+const urlPng=e=>(window.NK_EMOJI_BASE||'icons/emoji/').replace(/emoji\/$/,'emoji-png/')+code(e)+'.png';
+const cache={};window.NK_emojiImg=(e,cb)=>{const u=urlPng(e);if(!cache[u]){const im=new Image();im.onload=()=>{im._ok=1;(im._cb||[]).forEach(f=>f());im._cb=[];};im.onerror=()=>{if(!im._fb){im._fb=1;im.src=url(e);}};im._cb=[];im.src=u;cache[u]=im;}const im=cache[u];if(!im._ok&&cb)im._cb.push(cb);return im._ok?im:null;};
 window.NK_fillTextEmoji=(x,str,cx,cy,size,redraw)=>{const parts=[];let i=0,m;RX.lastIndex=0;while((m=RX.exec(str))){if(TXT.has(m[0]))continue;if(m.index>i)parts.push(str.slice(i,m.index));parts.push({e:m[0]});i=m.index+m[0].length;}if(i<str.length)parts.push(str.slice(i));
  const wOf=p=>typeof p==='string'?x.measureText(p).width:size*1.1;const tw=parts.reduce((a,p)=>a+wOf(p),0);let px=cx-tw/2;const al=x.textAlign;x.textAlign='left';
  for(const p of parts){if(typeof p==='string'){x.fillText(p,px,cy);}else{const im=window.NK_emojiImg(p.e,redraw);if(im)x.drawImage(im,px+size*.05,cy-size*.85,size,size);}px+=wOf(p);}x.textAlign=al;return tw;};

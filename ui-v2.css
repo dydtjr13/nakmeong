@@ -198,3 +198,115 @@ body.tx-rainbow .dcard.g5{border:4px solid transparent!important;background:line
 .bdrag-hint{font-size:11px;color:#8a8094}
 .cutin.box{pointer-events:auto;cursor:pointer}
 #bag.drag-slot .blist.dropon:after{top:auto;bottom:44px;transform:translateX(-50%);z-index:5;box-shadow:0 4px 12px #0003}
+
+/* ───────── v9 상단 메뉴 레이아웃 ───────── */
+.mgrp{position:absolute;display:flex;gap:6px;align-items:center;pointer-events:none}
+.mgrp>*{pointer-events:auto}
+#mStat{top:10px;left:10px;gap:8px}
+#mStat #equip{position:static;font-size:12px}
+.mgrp button,#bMore{display:inline-flex;align-items:center;gap:5px;border:0;cursor:pointer;font:inherit;font-weight:700;background:var(--bg);border-radius:14px;padding:8px 12px;box-shadow:0 4px 14px #0002;color:inherit}
+.mgrp button .mi,#bMore .mi{font-weight:400;font-size:17px;line-height:1;display:inline-flex}
+.mgrp button .mi img{width:18px;height:18px}
+.mgrp button kbd{font-size:10px;opacity:.55;margin-left:2px}
+.mgrp button:hover,#bMore:hover{filter:brightness(1.06);transform:translateY(-1px)}
+#bMore{position:absolute;pointer-events:auto;display:none}
+.hb{display:inline-block;width:16px;height:2px;background:currentColor;border-radius:2px;box-shadow:0 -5px 0 currentColor,0 5px 0 currentColor;margin:6px 0}
+/* B: 상단 상태바 + 우상단 미니 아이콘 + 하단 독 (기본) */
+body.menu-b #mSys{top:10px;right:10px;gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:52vw}
+body.menu-b #mSys button{padding:7px 9px}
+body.menu-b #mSys button .ml,body.menu-b #mSys kbd{display:none}
+body.menu-b #mSys #bTime .ml,body.menu-b #mSys #bAuto .ml{display:inline;font-size:11px}
+body.menu-b #mMain{left:50%;bottom:12px;transform:translateX(-50%);gap:4px;background:var(--bg);padding:6px 8px;border-radius:22px;box-shadow:0 8px 24px #0003}
+body.menu-b #mMain button{flex-direction:column;gap:1px;padding:6px 14px;box-shadow:none;background:transparent;border-radius:14px;min-width:62px}
+body.menu-b #mMain button .mi{font-size:22px}
+body.menu-b #mMain button .ml{font-size:11px}
+body.menu-b #mMain button kbd{display:none}
+body.menu-b #mMain button:hover{background:#0000000d}
+body.menu-b #fishBtn{bottom:96px}
+body.menu-b #prompt{bottom:160px}
+body.menu-b #chat{bottom:12px}
+/* A: 우측 주요 아이콘 + ⚙ 묶음 드롭다운 */
+body.menu-a #mMain{top:10px;right:64px}
+body.menu-a #mMain button .ml{display:none}
+body.menu-a #mMain button{padding:8px 10px}
+body.menu-a #bMore{display:inline-flex;top:10px;right:10px}
+body.menu-a #bMore .ml{display:none}
+body.menu-a #mSys{top:58px;right:10px;flex-direction:column;align-items:stretch;background:var(--bg);padding:8px;border-radius:16px;box-shadow:0 8px 24px #0003;display:none}
+body.menu-a #mSys button{box-shadow:none;justify-content:flex-start}
+body.menu-a.menu-open #mSys,body.menu-d.menu-open #mSys{display:flex}
+/* C: 좌측 세로 레일 */
+body.menu-c #mMain,body.menu-c #mSys{left:10px;flex-direction:column;align-items:flex-start}
+body.menu-c #mMain{top:62px}
+body.menu-c #mSys{top:280px;gap:4px}
+body.menu-c #mSys button{padding:6px 10px;font-size:12px}
+body.menu-c #mSys button .ml{display:none}
+body.menu-c #mSys{flex-direction:row;flex-wrap:wrap;width:150px}
+body.menu-c #equip{display:none}
+/* D: 가방·상점만 노출 + ☰ 메뉴 패널 */
+body.menu-d #mMain{top:10px;right:64px}
+body.menu-d #bDex,body.menu-d #bTank{display:none}
+body.menu-d.menu-open #bDex,body.menu-d.menu-open #bTank{display:none}
+body.menu-d #bMore{display:inline-flex;top:10px;right:10px}
+body.menu-d #bMore .ml{display:none}
+body.menu-d #mSys{top:58px;right:10px;display:none;flex-wrap:wrap;width:300px;background:var(--bg);padding:10px;border-radius:18px;box-shadow:0 8px 24px #0003}
+body.menu-d #mSys::before{content:'';display:none}
+body.menu-d #mSys button{flex:1 1 40%;box-shadow:none;background:#0000000a}
+@media(max-width:700px){
+ .mgrp button,#bMore{padding:6px 8px;font-size:12px}
+ #mStat{flex-wrap:wrap;max-width:44vw}
+ #mStat #equip{display:none}
+ body.menu-b #mSys{max-width:54vw}
+ body.menu-b #mSys #bTime .ml,body.menu-b #mSys #bAuto .ml{display:none}
+ body.menu-b #mMain{left:8px;right:8px;transform:none;justify-content:space-around;bottom:8px}
+ body.menu-b #mMain button{min-width:0;padding:5px 8px}
+ body.menu-b #chat{bottom:82px}
+ body.menu-b #joy{bottom:96px}
+ body.menu-b #fishBtn{bottom:240px}
+ body.menu-b #prompt{bottom:300px}
+ body.menu-a #mMain,body.menu-d #mMain{right:54px}
+ body.menu-a #mMain button .ml{display:none}
+ body.menu-c #mSys{top:250px;width:110px}
+}
+
+/* ───────── v9 낚시 성공 카드 ───────── */
+#toast .ccw{font-size:14px;color:#2b2b38;text-shadow:none;text-align:left}
+.ccw .cc{background:#fffdf8;border-radius:20px;box-shadow:0 14px 40px #0003;overflow:hidden;position:relative}
+.ccw img.fi{object-fit:contain}
+.cc-chip{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:9px;background:var(--g);color:#fff;vertical-align:middle;margin-left:4px}
+.cc-bd{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:9px;margin:2px 3px 0 0}
+.cc-bd.new{background:#ffe7a3;color:#8a5a00}.cc-bd.rec{background:#d8f1ff;color:#0b5a83}.cc-bd.ng{background:#e8ddff;color:#5a2ea8}
+.cc-w{font-size:11px;color:#8a8a99;margin-top:6px}
+.cc .v{color:#c07a00;font-weight:800}
+/* D 메달형 */
+.cc.D{width:230px;padding:18px 16px 14px;text-align:center}
+.cc.D .md{width:96px;height:96px;margin:0 auto 8px;border-radius:50%;border:5px solid var(--g);background:radial-gradient(circle at 50% 40%,#fff,#f1efe8);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px #fff,0 6px 18px #0002}
+.cc.D .md img.fi{width:78px;height:78px}
+.cc.D .rib{position:absolute;top:12px;right:-30px;transform:rotate(35deg);background:#ff5a5a;color:#fff;font-weight:900;font-size:11px;padding:3px 34px}
+.cc.D .rib.rec{background:#2a9df4}
+.cc.D .nm{font-weight:900;font-size:17px}
+.cc.D .ln{display:flex;justify-content:center;gap:12px;margin-top:6px;font-size:14px}
+.cc.D .cm{font-weight:800}
+/* C 등급 헤더 */
+.cc.C{width:230px}
+.cc.C .hd{background:var(--g);color:#fff;font-weight:900;text-align:center;padding:6px;letter-spacing:2px}
+.cc.C .bdy{padding:12px 14px;text-align:center}
+.cc.C img.fi{width:110px;height:80px}
+.cc.C .nm{font-weight:900;font-size:17px}
+.cc.C .kv{display:flex;gap:8px;margin-top:8px}
+.cc.C .kv>div{flex:1;background:#f4f1ea;border-radius:10px;padding:5px}
+.cc.C .kv small{display:block;font-size:10px;color:#888}
+/* B 가로 스트립 */
+.cc.B{display:flex;align-items:center;gap:10px;padding:10px 14px;width:min(360px,88vw);border-left:6px solid var(--g)}
+.cc.B img.fi{width:64px;height:48px}
+.cc.B .m{flex:1;min-width:0}.cc.B .nm{font-weight:900;font-size:15px}.cc.B .s{font-size:11px;color:#888}
+.cc.B .r{text-align:right}.cc.B .cm{font-weight:800}
+/* A 미니멀 */
+.cc.A{width:200px;padding:14px;text-align:center;border-top:4px solid var(--g)}
+.cc.A img.fi{width:96px;height:64px}
+.cc.A .nm{font-weight:800}
+.cc.A .cm{font-size:30px;font-weight:900;line-height:1.1}.cc.A .cm small{font-size:13px}
+body.menu-b #mMain button .mi img{width:26px;height:26px}
+#mStat .logo{margin-right:2px;white-space:nowrap}
+
+.ccw img.emj{width:1.15em;height:1.15em}
+.optrow label{display:inline-block;white-space:nowrap;margin:2px 10px 2px 0}

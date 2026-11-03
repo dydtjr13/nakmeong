@@ -7,7 +7,7 @@ const UP=new THREE.Vector3(0,1,0),V=new THREE.Vector3(),Q=new THREE.Quaternion()
 const rand=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.random()*a.length|0];
 // ───────── 저장 데이터 ─────────
 const SKEY='nakmeong_v2';
-const S0={coins:D.START_COINS,tank:[],tankK:'s',tanks:['s'],rod:'bamboo',rods:['bamboo'],bait:'worm',baits:{worm:-1},dex:{},char:0,sDay:0,sNight:0,vol:.8,nid:1,caught:0,earned:0,gear:[],rodId:null,charms:[],equip:[],stones:0,enh:{},boxes:[],auto:null,nick:'',showG:{tree:1,grass:1,flower:1}};
+const S0={coins:D.START_COINS,tank:[],tankK:'s',tanks:['s'],rod:'bamboo',rods:['bamboo'],bait:'worm',baits:{worm:-1},dex:{},char:0,sDay:0,sNight:0,vol:.3,nid:1,caught:0,earned:0,gear:[],rodId:null,charms:[],equip:[],stones:0,enh:{},boxes:[],auto:null,nick:'',showG:{tree:1,grass:1,flower:1}};
 let S=Object.assign({},S0,JSON.parse(localStorage.getItem(SKEY)||'{}'));
 const SYS=window.NK_SYS;S.auto=S.auto||Object.assign({},D.AUTO_DEFAULT,{keepNew:false});if(!S.auto.v6){S.auto.v6=1;S.auto.keepNew=false;}const NICK=()=>S.nick||'나';SYS.migrate(D,S);let NIGHT=0;
 const save=()=>{S.savedAt=S.savedAt||Date.now();try{localStorage.setItem(SKEY,JSON.stringify(S));}catch(e){}};
@@ -157,12 +157,12 @@ function makeChar(ki,name){const K=KINDS[ki],src=G[K.k];const o=THREE.SkeletonUt
   rodM.position.set(0,-.2,.05);rodM.rotation.x=1.15;rodM.visible=false;(arm||o).add(rodM);
   const tip=new THREE.Object3D();tip.position.y=.95;rodM.add(tip);rc.visible=reel.visible=false;
   const tag=makeTag(name);scene.add(tag);const bub=makeBub();scene.add(bub);
-  const c={o,mixer,acts,cur:null,rod:rodM,tip,tag,bub,name,h:1.9*K.s,dir:0};c.play=n=>{if(c.cur===n||!acts[n])return;const a=acts[n];a.reset().fadeIn(.2).play();if(c.cur&&acts[c.cur])acts[c.cur].fadeOut(.2);c.cur=n;};c.play('idle');chars.push(c);setCharRod(c,'bamboo',0);return c;}
+  const c={o,mixer,acts,cur:null,rod:rodM,tip,tag,bub,head:o.getObjectByName('head'),name,h:1.9*K.s,dir:0};c.play=n=>{if(c.cur===n||!acts[n])return;const a=acts[n];a.reset().fadeIn(.2).play();if(c.cur&&acts[c.cur])acts[c.cur].fadeOut(.2);c.cur=n;};c.play('idle');chars.push(c);setCharRod(c,'bamboo',0);return c;}
 function setCharRod(c,k,star){if(!window.NK_ROD3D)return;if(c.rodK===k+star)return;c.rodK=k+star;if(c.rodMdl)c.rod.remove(c.rodMdl);const m=NK_ROD3D(k,star);c.rod.add(m);c.rodMdl=m;c.tip=m.userData.tip;}
-function makeBub(){const cv=document.createElement('canvas');cv.width=512;cv.height=176;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false,transparent:true}));sp.renderOrder=10;sp.visible=false;sp.userData={cv,last:null};return sp;}
+const _hv=new THREE.Vector3();function makeBub(){const cv=document.createElement('canvas');cv.width=512;cv.height=176;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false,transparent:true}));sp.renderOrder=10;sp.visible=false;sp.userData={cv,last:null};return sp;}
 function drawBub(sp,b){const key=b?(b.emo?'e:':'t:')+b.txt+b.t:'';if(sp.userData.last===key)return;sp.userData.last=key;const x=sp.userData.cv.getContext('2d');x.clearRect(0,0,512,176);if(!b){sp.visible=false;return;}sp.visible=true;
   const rr=(X,Y,W,H,R)=>{x.beginPath();if(x.roundRect)x.roundRect(X,Y,W,H,R);else x.rect(X,Y,W,H);};x.shadowColor='#0003';x.shadowBlur=10;x.shadowOffsetY=3;x.fillStyle='#fffaf3';
-  if(b.emo){rr(256-62,14,124,124,62);x.fill();x.shadowColor='transparent';x.beginPath();x.moveTo(244,134);x.lineTo(268,134);x.lineTo(256,156);x.fill();NK_fillTextEmoji(x,b.txt,256,112,84,()=>{sp.userData.last=null;});}
+  if(b.emo){rr(256-62,14,124,124,62);x.fill();x.shadowColor='transparent';x.beginPath();x.moveTo(244,134);x.lineTo(268,134);x.lineTo(256,156);x.fill();x.strokeStyle='#e6dccb';x.lineWidth=3;x.beginPath();x.arc(256,76,61,0,Math.PI*2);x.stroke();const im=NK_emojiImg(b.txt,()=>{sp.userData.last=null;});if(im)x.drawImage(im,256-40,76-40,80,80);}
   else{x.font='bold 34px sans-serif';const t=[...b.txt].length>16?[...b.txt].slice(0,15).join('')+'…':b.txt;const w=Math.min(496,x.measureText(t).width+48);rr(256-w/2,40,w,76,30);x.fill();x.shadowColor='transparent';x.beginPath();x.moveTo(242,114);x.lineTo(270,114);x.lineTo(256,138);x.fill();x.strokeStyle='#e6dccb';x.lineWidth=2;rr(256-w/2,40,w,76,30);x.stroke();x.fillStyle='#4a4058';x.textAlign='center';NK_fillTextEmoji(x,t,256,90,34,()=>{sp.userData.last=null;});}
   sp.material.map.needsUpdate=true;}
 function makeTag(name){const cv=document.createElement('canvas');cv.width=320;cv.height=110;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false,transparent:true}));sp.scale.set(3.4,1.17,1);sp.renderOrder=9;sp.userData={cv,last:null,name};return sp;}
@@ -177,16 +177,20 @@ const snd={on:true,ctx:null,day:new Audio(),night:new Audio(),force:null,forceT:
 function setAmb(){const d=D.SOUNDS.day[S.sDay],n=D.SOUNDS.night[S.sNight];const ext=snd.day.canPlayType('audio/ogg')?'.ogg':'.mp3';
   if(!snd.day.src.includes(d.f)){snd.day.src=d.f+ext+'?v8';snd.on&&snd.day.play().catch(()=>{});}if(!snd.night.src.includes(n.f)){snd.night.src=n.f+ext+'?v8';snd.on&&snd.night.play().catch(()=>{});}}
 function startAudio(){try{snd.ctx=new (window.AudioContext||window.webkitAudioContext)();snd.m=snd.ctx.createGain();snd.m.gain.value=.5;snd.m.connect(snd.ctx.destination);
+  // v9: iOS Safari는 HTMLMediaElement.volume 무시 → 환경음도 WebAudio GainNode 경유 (file://은 교차출처 무음 문제로 제외)
+  if(location.protocol!=='file:'){try{const mk=el=>{const g=snd.ctx.createGain();g.gain.value=0;snd.ctx.createMediaElementSource(el).connect(g).connect(snd.ctx.destination);return g;};snd.gDay=mk(snd.day);snd.gNight=mk(snd.night);snd.wa=true;
+   fetch('sounds/sfx/splash-drop.wav').then(r=>r.arrayBuffer()).then(b=>snd.ctx.decodeAudioData(b)).then(buf=>snd.dropBuf=buf).catch(()=>{});}catch(e){snd.wa=false;}}
+  const rs=()=>{if(snd.ctx&&snd.ctx.state!=='running')snd.ctx.resume().catch(()=>{});};['pointerdown','touchend','keydown'].forEach(ev=>addEventListener(ev,rs,{passive:true}));
   const nb=snd.ctx.createBuffer(1,snd.ctx.sampleRate,snd.ctx.sampleRate),d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;snd.nb=nb;}catch(e){}setAmb();snd.day.play().catch(()=>{});snd.night.play().catch(()=>{});}
 function tone(f1,f2,dur,type='sine',g=.15,delay=0){if(!snd.ctx||!snd.on)return;const A=snd.ctx,t=A.currentTime+delay,o=A.createOscillator(),gn=A.createGain();o.type=type;o.frequency.setValueAtTime(f1,t);o.frequency.exponentialRampToValueAtTime(f2,t+dur);gn.gain.setValueAtTime(g,t);gn.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(gn).connect(snd.m);o.start(t);o.stop(t+dur+.05);}
 function splash(g=.3,f=1100){if(!snd.ctx||!snd.on)return;const A=snd.ctx,s=A.createBufferSource();s.buffer=snd.nb;const fl=A.createBiquadFilter();fl.type='bandpass';fl.frequency.value=f;fl.Q.value=.8;const gn=A.createGain();gn.gain.setValueAtTime(g,A.currentTime);gn.gain.exponentialRampToValueAtTime(.001,A.currentTime+.6);s.connect(fl).connect(gn).connect(snd.m);s.start();s.stop(A.currentTime+.6);}
 const sfx={cast(){tone(660,440,.22,'sine',.025);},bite(){tone(880,880,.12,'sine',.07);tone(1320,1320,.18,'sine',.05,.13);},
   reel(){[523,659,784].forEach((f,i)=>tone(f,f,.3,'sine',.045,.1+i*.09));},
   coin(){tone(1568,1568,.08,'square',.05);tone(2093,2093,.25,'square',.05,.08);},fail(){tone(400,200,.3,'sine',.08);},
-  drop(){if(!snd.on)return;try{const a=sfxDrop.cloneNode();a.volume=Math.max(0,Math.min(1,(S.vol==null?.5:S.vol)*1.2));a.play().catch(()=>{});}catch(e){}}};
+  drop(){if(!snd.on)return;if(snd.dropBuf&&snd.ctx){const b=snd.ctx.createBufferSource(),g=snd.ctx.createGain();b.buffer=snd.dropBuf;g.gain.value=1.6;b.connect(g).connect(snd.m);b.start();return;}try{const a=sfxDrop.cloneNode();a.volume=Math.max(0,Math.min(1,(S.vol==null?.5:S.vol)*1.2));a.play().catch(()=>{});}catch(e){}}};
 const FISH_IMG={};D.FISH.forEach(f=>{const im=new Image();im.decoding='async';im.src=f.img;FISH_IMG[f.k]=im;if(im.decode)im.decode().catch(()=>{});});
 const sfxDrop=new Audio('sounds/sfx/splash-drop.wav');sfxDrop.preload='auto';
-function updAmb(p){const k=snd.force==='day'?0:snd.force==='night'?1:Math.min(1,p.night*1.15);const v=snd.on?S.vol:0;snd.day.volume=Math.max(0,Math.min(1,v*(1-k)));snd.night.volume=Math.max(0,Math.min(1,v*k));}
+function updAmb(p){const k=snd.force==='day'?0:snd.force==='night'?1:Math.min(1,p.night*1.15);const v=snd.on?S.vol:0,cl=x=>Math.max(0,Math.min(1,x));if(snd.wa){snd.day.volume=snd.night.volume=1;snd.gDay.gain.value=cl(v*(1-k));snd.gNight.gain.value=cl(v*k);}else{snd.day.volume=cl(v*(1-k));snd.night.volume=cl(v*k);}if(snd.m)snd.m.gain.value=cl(v*.625);}
 // ───────── 게임 상태 ─────────
 let me,yaw=0,pitch=.38,dist=12,drag=null,fishing={state:'off'},nearSpot=null,bob=null,line=null,lineG,castT=-1,castTo=new THREE.Vector3();
 const bots=[];const BOT_NAMES=['물멍러','붕어왕','노을소녀','캠핑아재','꼬마강태공','밤낚시','호수요정','쏘가리헌터','루어장인'];
@@ -227,12 +231,22 @@ function fishAction(){if(anyModal())return;
     fishing={state:'cast',t:0,bite:rand(2,6)*MO.wait,d:nearSpot};castT=0;castTo.set(nearSpot.ca*(LR-12.5)+rand(-1.5,1.5)*-nearSpot.sa,-.05,nearSpot.sa*(LR-12.5)+rand(-1.5,1.5)*nearSpot.ca);me.dir=Math.atan2(castTo.x-me.o.position.x,castTo.z-me.o.position.z);sfx.cast();return;}
   if(fishing.state==='cast'||fishing.state==='bite'){if(fishing.state==='bite'||Math.random()<.5)catchFish();else{toast('앗, 너무 빨랐어요! 다시 던져봐요');sfx.fail();endFish();}}}
 function endFish(){fishing={state:'off'};castT=-1;bob.visible=line.visible=false;wU.bob.value.y=0;}
+function setMB(id,ic,lab){const b=$(id);if(!b)return;const k=ic+'|'+lab;if(b._k===k)return;b._k=k;const kb=b.querySelector('kbd');b.innerHTML=`<b class="mi">${ic}</b><small class="ml">${lab}</small>${kb?kb.outerHTML:''}`;}
+// v9 낚시 성공 카드 (설정: D 메달형 기본 / C 등급 헤더 / B 가로 스트립 / A 미니멀)
+function catchCard(f,F,G0,o){const st=S.cardStyle||'d',v='🪙 '+f.v.toLocaleString(),chip=`<span class="cc-chip">${G0.n}</span>`,im=`<img class="fi" src="${F.img}" alt="">`;
+ const bd=`${o.isNew?'<span class="cc-bd new">✨ 첫 획득</span>':''}${o.rec&&!o.isNew?'<span class="cc-bd rec">📏 최대 기록</span>':''}${o.newG&&!o.isNew?'<span class="cc-bd ng">🏅 새 등급</span>':''}`;
+ const where=`<div class="cc-w">${o.where}</div>`;let h;
+ if(st==='a')h=`<div class="cc A">${im}<div class="nm">${F.n} ${chip}</div><div class="cm">${f.cm}<small>cm</small></div><div class="v">${v}</div><div class="bds">${bd}</div>${where}</div>`;
+ else if(st==='b')h=`<div class="cc B">${im}<div class="m"><div class="nm">${F.n} ${chip}</div><div class="s">${bd||o.where}</div></div><div class="r"><div class="cm">${f.cm}cm</div><div class="v">${v}</div></div></div>`;
+ else if(st==='c')h=`<div class="cc C"><div class="hd">${G0.n}</div><div class="bdy">${im}<div class="nm">${F.n}</div><div class="bds">${bd}</div><div class="kv"><div><small>크기</small><b>${f.cm}cm</b></div><div><small>가치</small><b class="v">${v}</b></div></div>${where}</div></div>`;
+ else h=`<div class="cc D"><div class="md">${im}</div>${o.isNew?'<div class="rib">NEW</div>':''}${o.rec&&!o.isNew?'<div class="rib rec">기록!</div>':''}<div class="nm">${F.n} ${chip}</div><div class="ln"><span class="cm">${f.cm}cm</span><span class="v">${v}</span></div>${where}</div>`;
+ return `<div class="ccw" style="--g:${G0.c}">${h}</div>`;}
 function catchFish(){const f=rollFish(),F=FI(f.k),G0=GR(f.g);S.caught++;const dx=S.dex[f.k]||(S.dex[f.k]={n:0,max:0,gr:[0,0,0,0,0]});const isNew=!dx.n,newG=!dx.gr[f.g],rec=f.cm>dx.max;dx.n++;dx.gr[f.g]=1;dx.max=Math.max(dx.max,f.cm);S.stats=S.stats||{g:[0,0,0,0,0]};S.stats.g[f.g]=(S.stats.g[f.g]||0)+1;
   let where;const AU=S.auto;if(AU.on&&f.v<AU.th&&!(AU.keepNew&&isNew)){const p=sellP(f);S.coins+=p;S.earned+=p;where=`⚙ 자동판매 (가치 ${f.v} < ${AU.th}) +${p}코인`;}
   else if(S.tank.length<cap()){S.tank.push(f);where='🐠 내 어항에 넣었어요';}else{const p=sellP(f);S.coins+=p;where=`어항이 가득 차서 ${p}코인에 판매`;}
   const bc=SYS.mods(D,S,rod(),bait()).box;if(Math.random()<bc){S.boxes.push(Date.now());setTimeout(()=>{toast('🎁 <b>행운 상자</b>를 발견했어요!<br><small>🎒 가방에서 열어보세요</small>',2600);sfx.coin();},3300);say('시스템','🎁 행운 상자 획득!');}
   save();hud();sfx.reel();endFish();
-  if(f.g<3)toast(`<div style="background:#fffaf3;color:#4a4058;border-radius:20px;padding:14px 22px;border:5px solid ${G0.c};box-shadow:0 0 30px ${G0.c}"><span class="gbadge" style="--gc:${G0.c}">${G0.n}</span><br><img src="${F.img}" style="height:70px"><br>${F.n} <b>${f.cm}cm</b> · 🪙${f.v}<br><small>${isNew?'✨ 도감 신규 등록! ':''}${newG&&!isNew?'🏅 새 등급 슬롯! ':''}${rec&&!isNew?'📏 최대 크기 갱신! ':''}${where}</small></div>`,3200);
+  if(f.g<3)toast(catchCard(f,F,G0,{isNew,newG,rec,where}),3200);
   say('시스템',`${F.n} ${f.cm}cm (${G0.n})를 낚았어요! · ${where}`);if(f.g>=3)legendAlert(NICK(),f,true,{isNew,rec});achCheck(true);}
 function achCheck(t){const A=SYS.passives(D,S).ach.filter(a=>a.done).map(a=>a.a.id);if(!S.achSeen){S.achSeen=A;return;}A.filter(x=>!S.achSeen.includes(x)).forEach((id,j)=>{const a=D.ACH.find(x=>x.id===id);if(t)setTimeout(()=>{toast(`🏆 <b>도감 업적 달성!</b><br>${a.n} · ${effTxt(a.e)}`,3000);say('시스템',`🏆 업적 '${a.n}' 달성 (${effTxt(a.e)})`);},4200+j*900);});S.achSeen=A;}
 const effTxt=e=>Object.entries(e).map(([k,v])=>`${D.CHARM.opts[k].n} +${v}%`).join(', ');
@@ -467,6 +481,8 @@ function renderSet(){const A=S.auto,g=S.showG;
  <h4>👤 프로필 (로컬)</h4><p>닉네임 <input id="nick" maxlength="10" value="${S.nick||''}" placeholder="나"> <button id="nickOk">적용</button><br><span class="small muted">※ 현재는 이 브라우저에만 저장되는 로컬 프로필입니다. 실제 로그인/계정 연동은 서버 단계에서 구현 예정.</span></p>
  <h4>💾 저장</h4><p><button class="acc" id="saveNow">지금 저장</button> <button id="exp">JSON 내보내기</button> <label class="btnlike">JSON 불러오기<input type="file" id="imp" accept=".json" hidden></label> <span class="small muted" id="lastSave">${S.savedAt?'마지막 저장 '+new Date(S.savedAt).toLocaleString('ko-KR'):''}</span></p>
  <h4>⚙ 자동 판매</h4><p><label><input type="checkbox" id="auOn" ${A.on?'checked':''}> 자동판매 켜기</label> · 가치 <input type="number" id="auTh" min="1" value="${A.th}" style="width:70px"> 코인 미만 물고기<br><label><input type="checkbox" id="auNew" ${A.keepNew?'checked':''}> 처음 낚은 어종(도감 첫 등록)은 보관</label> <span class="small muted">· 🔒 잠금 물고기는 항상 제외 · 낚는 즉시 적용</span><br><span class="small" id="auPrev">${autoPrevTxt()}</span> <button id="auBulk">지금 어항에서 일괄 판매</button></p>
+ <h4>🧭 상단 메뉴 레이아웃</h4><p class="optrow">${[['b','B · 하단 독 (기본)'],['a','A · 우측 아이콘 + ⚙ 묶음'],['c','C · 좌측 세로 레일'],['d','D · 가방·상점 + 메뉴 패널']].map(([k,n])=>`<label><input type="radio" name="menuS" value="${k}" ${(S.menuStyle||'b')===k?'checked':''}> ${n}</label>`).join(' ')}</p>
+ <h4>🎣 낚시 성공 카드</h4><p class="optrow">${[['d','D · 메달형 (기본)'],['c','C · 등급 헤더'],['b','B · 가로 스트립'],['a','A · 미니멀']].map(([k,n])=>`<label><input type="radio" name="cardS" value="${k}" ${(S.cardStyle||'d')===k?'checked':''}> ${n}</label>`).join(' ')} <button id="cardPrev" class="small">미리보기</button></p>
  <h4>✦ 초월 등급 테두리</h4><p><label><input type="radio" name="txs" value="pink" ${S.txStyle!=='rainbow'?'checked':''}> <span class="txsw pk"></span> 진한 핑크 (기본)</label> &nbsp; <label><input type="radio" name="txs" value="rainbow" ${S.txStyle==='rainbow'?'checked':''}> <span class="txsw rb"></span> 무지개 회전</label><br><span class="small muted">초월 등급 도감 카드·컷인·알림 리본에 적용 · 출현 확률 ${(D.TX.p*100).toFixed(4)}% (≈1/${Math.round(1/D.TX.p).toLocaleString()}), 행운 보정 최대 ×${D.TX.boostMax}</span></p>
  <h4>🌲 그래픽 테스트</h4><p>${[['tree','나무'],['grass','풀·덤불'],['flower','꽃·버섯']].map(([k,n])=>`<label><input type="checkbox" data-vg="${k}" ${g[k]?'checked':''}> ${n} (${VG[k].length} draw)</label>`).join(' ')}<br><span class="small muted">우하단 FPS · draw calls 표시로 비교하세요</span></p>
  <h4>🎁 행운 상자 아이콘 (테스트)</h4><p>${[1,2,3,4].map(i=>`<label class="bdes"><input type="radio" name="bdes" value="${i}" ${(S.boxDesign||1)===i?'checked':''}> <img src="img/box/${i===1?'t3':'d'+i}.png"> 디자인 ${i}${i===1?' (기본·등급별 원화)':' (등급별 색조 필터)'}</label>`).join('')}</p>
@@ -530,7 +546,7 @@ $('world').addEventListener('wheel',e=>{dist=Math.max(6,Math.min(26,dist+e.delta
 if('ontouchstart' in window||navigator.maxTouchPoints>0){const j=$('joy'),k=j.firstElementChild;j.style.display='block';const mv=e=>{const t=e.targetTouches[0],r=j.getBoundingClientRect();let x=(t.clientX-r.left-58)/46,y=(t.clientY-r.top-58)/46;const l=Math.hypot(x,y);if(l>1){x/=l;y/=l;}joy.x=x;joy.y=y;k.style.left=36+x*36+'px';k.style.top=36+y*36+'px';e.preventDefault();e.stopPropagation();};
   j.addEventListener('touchstart',mv,{passive:false});j.addEventListener('touchmove',mv,{passive:false});j.addEventListener('touchend',()=>{joy.x=joy.y=0;k.style.left=k.style.top='36px';});}
 $('fishBtn').onclick=e=>{e.stopPropagation();fishAction();};$('bDex').onclick=()=>{renderDex();openM('dex');};$('bTank').onclick=()=>tankView.open('me');$('bShop').onclick=()=>{renderShop();openM('shop');};
-$('bSound').onclick=()=>{renderSound();openM('sound');};$('bSit').onclick=()=>{sitting=!sitting;};$('bTime').onclick=()=>{time.t=((Math.floor(time.t*3)+1)%3)/3+.02;};$('bAuto').onclick=()=>{time.auto=!time.auto;$('bAuto').textContent='🕒 시간 흐름 '+(time.auto?'ON':'OFF');};
+$('bSound').onclick=()=>{renderSound();openM('sound');};$('bSit').onclick=()=>{sitting=!sitting;};$('bTime').onclick=()=>{time.t=((Math.floor(time.t*3)+1)%3)/3+.02;};$('bAuto').onclick=()=>{time.auto=!time.auto;setMB('bAuto','🕒','시간 흐름 '+(time.auto?'ON':'OFF'));};
 ['😊','👍','🐟','❤️','😴','🎉'].forEach(em=>{const b=document.createElement('button');b.textContent=em;b.onclick=()=>{emote(NICK(),em,true);if(document.activeElement===$('msg'))$('msg').focus();};$('emo').appendChild(b);});
 {const M=$('msg');let pend=false,ign=0;const send=()=>{const v=M.value.trim();if(!v)return false;say(NICK(),v,true);M.value='';return true;};
  M.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();M.value='';M.blur();return;}if(e.key!=='Enter')return;e.stopPropagation();if(e.isComposing||e.keyCode===229){pend=true;return;}e.preventDefault();if(performance.now()<ign)return;if(!send())M.blur();});
@@ -544,7 +560,7 @@ $('charPick').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.char=+b.dat
 $('go').disabled=true;
 // ───────── 메인 ─────────
 let fpsA=60,camOverride=null;let started=false,T=0,last=performance.now();
-function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;T+=dt;if(time.auto)time.t=(time.t+dt/time.len)%1;const p=palette();$('bTime').textContent='🌗 '+p.name;
+function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;T+=dt;if(time.auto)time.t=(time.t+dt/time.len)%1;const p=palette();setMB('bTime','🌗',p.name);
   if(snd.forceT>0){snd.forceT-=dt;if(snd.forceT<=0)snd.force=null;}NIGHT=p.night;updAmb(p);
   scene.background=p.sky;scene.fog.color.copy(p.sky);sun.color.copy(p.sun);sun.intensity=p.si;hemi.intensity=p.hemi;hemi.groundColor.copy(p.gnd);wU.deep.value.copy(p.deep);wU.shal.value.copy(p.shal);wU.sky.value.copy(p.sky);wU.night.value=p.night;wU.t.value=T;
   fireL.intensity=p.fire*(.85+Math.sin(T*13)*.08+Math.sin(T*7.1)*.07);fireMesh.scale.set(1+Math.sin(T*11)*.08,1+Math.sin(T*15)*.18,1);lanL.intensity=p.lan;if(lanGlow)lanGlow.material.color.copy(lerpC('#d8d2c4','#ffd27a',Math.min(1,p.night+p.lan*.3)));
@@ -568,7 +584,7 @@ function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;T+=dt;if(tim
       const a=lineG.attributes.position;a.setXYZ(0,tip.x,tip.y,tip.z);a.setXYZ(1,bob.position.x,bob.position.y,bob.position.z);a.needsUpdate=true;}
     updBots(dt,T);botBuy(dt);botLegend(dt);botRestock(dt);botBoxAlert(dt);
     cam.position.set(pp.x+Math.sin(yaw)*Math.cos(pitch)*dist,pp.y+1.6+Math.sin(pitch)*dist,pp.z+Math.cos(yaw)*Math.cos(pitch)*dist);cam.lookAt(pp.x,pp.y+1.6,pp.z);}
-  for(const c of chars){c.mixer.update(dt);c.tag.position.set(c.o.position.x,c.o.position.y+c.h*1.0+1.3,c.o.position.z);drawTag(c.tag,null);const bb=bubbleOf(c),dd=cam.position.distanceTo(c.tag.position);drawBub(c.bub,dd<70?bb:null);if(c.bub.visible){const k=Math.max(.5,Math.min(2.8,dd/14)),ag=(performance.now()-bb.t)/BUB_MS,op=ag>.85?(1-ag)/.15:1;c.bub.material.opacity=op;c.bub.scale.set(3.3*k,1.13*k,1);c.bub.position.set(c.o.position.x,c.o.position.y+c.h+.75+.5*k,c.o.position.z);}}
+  for(const c of chars){c.mixer.update(dt);c.tag.position.set(c.o.position.x,c.o.position.y+c.h*1.0+1.3,c.o.position.z);drawTag(c.tag,null);const bb=bubbleOf(c),dd=cam.position.distanceTo(c.tag.position);drawBub(c.bub,dd<70?bb:null);if(c.bub.visible){const k=Math.max(.5,Math.min(2.8,dd/14)),ag=(performance.now()-bb.t)/BUB_MS,op=ag>.85?(1-ag)/.15:1;c.bub.material.opacity=op;const es=bb.emo?.8:1;c.bub.scale.set(3.3*k*es,1.13*k*es,1);const hp=c.head?c.head.getWorldPosition(_hv):c.o.position;c.bub.position.set(hp.x,c.o.position.y+c.h+(es<1?.15:.7)+.5*k*es,hp.z);}}
   if(camOverride){cam.position.set(camOverride[0],camOverride[1],camOverride[2]);cam.lookAt(camOverride[3],camOverride[4],camOverride[5]);}R.render(scene,cam);tankView.frame(dt,T);
   fpsA=fpsA*.95+(1/Math.max(dt,1e-3))*.05;$('dc').textContent=`FPS ${fpsA.toFixed(0)} · draw calls ${R.info.render.calls} · tris ${(R.info.render.triangles/1000).toFixed(1)}k · decks ${DECKS}`;window.__nk={calls:R.info.render.calls,tris:R.info.render.triangles};requestAnimationFrame(frame);}
 loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyVG();setInterval(()=>{S.savedAt=Date.now();save();},30000);
@@ -582,7 +598,22 @@ loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyV
   $('bBag').onclick=openBag;$('bSet').onclick=()=>{renderSet();openM('set');};$('bSave').onclick=()=>{S.savedAt=Date.now();save();toast('💾 저장 완료');};
   addEventListener('contextmenu',e=>e.preventDefault());
   ;(function(){const ap=()=>document.body.classList.toggle('tx-rainbow',S.txStyle==='rainbow');ap();document.addEventListener('change',e=>{if(e.target&&e.target.name==='txs'){S.txStyle=e.target.value;save();ap();}});})();
-window.NKV2={botBuyNow:()=>{buyT=0;botBuy(0);},S,D,decks,bots,fishAction,catchFish,tankView,renderShop,renderDex,openM,closeM,time,me:()=>me,setPos:(x,z)=>{me.o.position.set(x,.4,z);},nearSpot:()=>nearSpot,fishing:()=>fishing,save,VG,bag:()=>openBag(),legendAlert,botLegend,boxAlert,botBoxAlert,bagTab:t=>{bagTab=t;renderBag();},openSet:()=>{renderSet();openM('set');},SYS,giveBox:(n=1)=>{for(let i=0;i<n;i++)S.boxes.push(Date.now());save();},setCam:(x,y,z,tx=0,ty=0,tz=0)=>{camOverride=x==null?null:[x,y,z,tx,ty,tz];},setDecks:n=>{},dexTab:t=>{dexTab=t;},synthFx,hud};});
+// ───────── v9 상단 메뉴 레이아웃 (B 기본, 설정에서 A/C/D) ─────────
+const MENU={main:[['bDex','📖','도감'],['bTank','🐠','어항'],['bShop','🛒','상점'],['bBag','🎒','가방']],sys:[['bSave','💾','저장'],['bSound','🔊','사운드'],['bSet','⚙️','설정'],['bSit','🪑','앉기'],['bTime','🌗','낮'],['bAuto','🕒','시간 흐름 ON']]};
+(function buildMenu(){const top=document.querySelector('#hud .top');[...MENU.main,...MENU.sys].forEach(([id,ic,l])=>{const b=$(id);const kb=b.querySelector('kbd');b.innerHTML=`<b class="mi">${ic}</b><small class="ml">${l}</small>${kb?kb.outerHTML:''}`;b.title=b.title||l;});
+ const mk=(id,cls)=>{const d=document.createElement('div');d.id=id;d.className=cls;$('hud').appendChild(d);return d;};
+ const st=mk('mStat','mgrp'),mn=mk('mMain','mgrp'),sy=mk('mSys','mgrp');st.appendChild(document.querySelector('#hud .logo'));st.appendChild($('coins'));st.appendChild($('equip'));
+ MENU.main.forEach(([id])=>mn.appendChild($(id)));MENU.sys.forEach(([id])=>sy.appendChild($(id)));
+ const more=document.createElement('button');more.id='bMore';more.innerHTML='<b class="mi"><i class="hb"></i></b><small class="ml">메뉴</small>';more.onclick=e=>{e.stopPropagation();document.body.classList.toggle('menu-open');};$('hud').appendChild(more);
+ document.addEventListener('pointerdown',e=>{if(document.body.classList.contains('menu-open')&&!e.target.closest('#mSys,#bMore,#mMain'))document.body.classList.remove('menu-open');});
+ sy.addEventListener('click',e=>{if(e.target.closest('button')&&!e.target.closest('#bTime,#bAuto'))document.body.classList.remove('menu-open');});
+ top.style.display='none';})();
+function applyMenu(){const m=S.menuStyle||'b';document.body.classList.remove('menu-a','menu-b','menu-c','menu-d','menu-open');document.body.classList.add('menu-'+m);}
+applyMenu();
+function applyCard(){document.body.dataset.card=S.cardStyle||'d';}applyCard();
+document.addEventListener('change',e=>{if(e.target&&e.target.name==='menuS'){S.menuStyle=e.target.value;save();applyMenu();}if(e.target&&e.target.name==='cardS'){S.cardStyle=e.target.value;save();applyCard();}});
+document.addEventListener('click',e=>{if(e.target&&e.target.id==='cardPrev'){const F=D.FISH[7],G0=D.GRADES[2];closeM('set');toast(catchCard({cm:47.2,v:186},F,G0,{isNew:true,newG:false,rec:false,where:'🐠 내 어항에 넣었어요'}),2600);}});
+window.NKV2={snd:()=>snd,emote,applyMenu,botBuyNow:()=>{buyT=0;botBuy(0);},S,D,decks,bots,fishAction,catchFish,tankView,renderShop,renderDex,openM,closeM,time,me:()=>me,setPos:(x,z)=>{me.o.position.set(x,.4,z);},nearSpot:()=>nearSpot,fishing:()=>fishing,save,VG,bag:()=>openBag(),legendAlert,botLegend,boxAlert,botBoxAlert,bagTab:t=>{bagTab=t;renderBag();},openSet:()=>{renderSet();openM('set');},SYS,giveBox:(n=1)=>{for(let i=0;i<n;i++)S.boxes.push(Date.now());save();},setCam:(x,y,z,tx=0,ty=0,tz=0)=>{camOverride=x==null?null:[x,y,z,tx,ty,tz];},setDecks:n=>{},dexTab:t=>{dexTab=t;},synthFx,hud};});
 })();
 
 // ───────── v5 툴팁 (마우스 오버 / 모바일 탭) ─────────

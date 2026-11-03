@@ -16,6 +16,6 @@ miss=[]
 for e in em:
   c=code(e);p='icons/emoji/'+c+'.svg'
   if os.path.exists(p):continue
-  try:urllib.request.urlretrieve('https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/'+c+'.svg',p)
+  try:urllib.request.urlretrieve('https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/svg/'+c+'.svg',p);urllib.request.urlretrieve('https://cdn.jsdelivr.net/gh/jdecked/twemoji@15.1.0/assets/72x72/'+c+'.png','icons/emoji-png/'+c+'.png')
   except Exception as x:miss.append((e,c))
 print(len(em),'emoji, missing:',miss)
