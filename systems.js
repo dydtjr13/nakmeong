@@ -18,10 +18,10 @@ SYS.makeCharm=(D,tier,id,rnd=Math.random)=>{const C=D.CHARM,keys=Object.keys(C.o
   return {id,tier,opts,lock:false};};
 SYS.rollTier=(D,masterPct=0,rnd=Math.random)=>{const ws=D.BOX.tiers.map((t,i)=>t.w*(i>=2?1+masterPct/100:1));let s=rnd()*ws.reduce((a,b)=>a+b,0);for(let i=0;i<ws.length;i++){s-=ws[i];if(s<0)return i;}return 0;};
 SYS.boxChance=(D,ch)=>D.BOX.base*(1+ch.treasure/100);
-SYS.openBox=(D,S,rnd=Math.random)=>{const ch=SYS.charmSum(D,S),tier=SYS.rollTier(D,ch.master,rnd),out=[],RW=D.BOX.reward;
+SYS.openBox=(D,S,rnd=Math.random,src)=>{const ch=SYS.charmSum(D,S),tier=src==='streak'&&D.BOX.streakTiers?SYS.rollTier({BOX:{tiers:D.BOX.streakTiers.map(w=>({w}))}},ch.master,rnd):SYS.rollTier(D,ch.master,rnd),out=[],RW=src==='streak'&&D.BOX.streakReward||D.BOX.reward;
   const one=()=>{let x=rnd();
     if((x-=RW.charm)<0){const c=SYS.makeCharm(D,tier,S.nid++,rnd);S.charms.push(c);out.push({type:'charm',c});return;}
-    if((x-=RW.rod)<0){const pl=D.BOX.rodPool[tier],k=pl[Math.floor(rnd()*pl.length)],g=SYS.makeGear(D,k,S.nid++,rnd,tier);S.gear.push(g);out.push({type:'rod',g});return;}
+    if((x-=RW.rod)<0){const k=SYS.boxRod(D,tier,rnd),g=SYS.makeGear(D,k,S.nid++,rnd,tier);S.gear.push(g);out.push({type:'rod',g});return;}
     if((x-=RW.bait)<0){const [k,n]=D.BOX.baitPool[tier];S.baits[k]=Math.max(0,S.baits[k]||0)+n;out.push({type:'bait',k,n});return;}
     const st=D.BOX.stones[tier],co=D.BOX.coins[tier];S.stones=(S.stones||0)+st;S.coins+=co;out.push({type:'stone',st,co});};
   one();if(rnd()<ch.appraise/100){one();out[out.length-1].bonus=true;}return {tier,out};};
@@ -59,5 +59,20 @@ SYS.synthPool=(D,S,tier)=>S.charms.filter(c=>c.tier===tier&&!c.lock&&!S.equip.in
 SYS.charmSynth=(D,S,tier,rnd=Math.random)=>{const need=tier>=5?D.CHARM.synth.mythNeed:D.CHARM.synth.need,pool=SYS.synthPool(D,S,tier),cost=D.CHARM.synth.coin[tier];
   if(pool.length<need)return {r:'lack',need,have:pool.length};if(S.coins<cost)return {r:'coin',cost};const used=pool.slice(0,need);S.coins-=cost;S.charms=S.charms.filter(c=>!used.includes(c));
   const nt=Math.min(5,tier+1),c=SYS.makeCharm(D,nt,S.nid++,rnd);S.charms.push(c);return {r:'ok',used,c,from:tier};};
+
+// v10 크기 굴림: 신화 구간(f.soft 이상)은 최대치로 '점근'하도록 압축 → 최대치 고착(clamp) 질량 제거, 신화 기준 상향이 실제로 작동
+SYS.sizeRoll=(D,f,size,rnd=Math.random)=>{let cm=f.min-Math.log(1-rnd())*f.scale*size;const s0=f.soft;if(s0!=null&&cm>s0){const M=f.max-s0;cm=s0+M*(1-Math.exp(-(cm-s0)/M));}if(f.mythP!=null&&f.mythP<1&&cm>=f.g[3]&&rnd()>=f.mythP)cm=f.g[3]-.1-rnd()*.15*(f.g[3]-(f.soft||f.min));return Math.min(f.max,cm);};
+// v10 상자 낚싯대: 상위 낚싯대는 keep 확률을 통과해야 지급, 실패 시 한 단계 아래로
+SYS.boxRod=(D,tier,rnd=Math.random)=>{const pl=D.BOX.rodPool[tier];let k=pl[Math.floor(rnd()*pl.length)];const K=D.BOX.rodKeep||{},ord=D.RODS.map(r=>r.k);
+  for(let i=0;i<8&&K[k]!=null&&rnd()>=K[k];i++){const lower=ord.slice(0,ord.indexOf(k)).filter(x=>K[x]==null||x!==k);k=K[k+'_fb']||lower[lower.length-1];}return k;};
+
+// v10 수집 목표 판정
+SYS.goalProg=(D,S,g)=>{const dx=S.dex||{},hasG=(k,m)=>dx[k]&&dx[k].gr.some((v,i)=>v&&i>=m);
+  if(g.t==='set'){const n=g.ks.filter(k=>hasG(k,g.minG)).length;return [n,g.ks.length];}
+  if(g.t==='species')return [Math.min(g.cnt,D.FISH.filter(f=>dx[f.k]).length),g.cnt];
+  if(g.t==='caught')return [Math.min(g.cnt,S.caught||0),g.cnt];
+  if(g.t==='gradeSp')return [Math.min(g.cnt,D.FISH.filter(f=>hasG(f.k,g.g)).length),g.cnt];
+  if(g.t==='myth')return [Math.min(g.n,((S.stats&&S.stats.g)||[])[4]||0),g.n];return [0,1];};
+SYS.goalDone=(D,S,g)=>{const [a,b]=SYS.goalProg(D,S,g);return a>=b;};
 root.NK_SYS=SYS;if(typeof module!=='undefined')module.exports=SYS;
 })(typeof window!=='undefined'?window:globalThis);

@@ -1,5 +1,5 @@
 // node tools/sim-balance.js → v5 (상자 밴드·패시브 포함) / v4 인플레이션/강화/합성 시뮬레이션 (19종, 부적 6개, 장비 옵션)
-global.window={};require('../game-data.js');require('../game-data-v3.js');require('../game-data-v4.js');require('../game-data-v5.js');require('../game-data-v7.js');require('../game-data-v8.js');if(process.env.NOGATE)window.NK_DATA.GATE.on=false;const D=window.NK_DATA,SYS=require('../systems.js');
+global.window={};require('../game-data.js');require('../game-data-v3.js');require('../game-data-v4.js');require('../game-data-v5.js');require('../game-data-v7.js');require('../game-data-v8.js');require('../game-data-v9.js');require('../game-data-v10.js');if(process.env.NOGATE)window.NK_DATA.GATE.on=false;const D=window.NK_DATA,SYS=require('../systems.js');
 const rnd=Math.random,N=200000;
 const BEST=['luck','expert','big','quick','merchant','treasure'];
 function mkS(rodK,lv,charmTier,nCharm,star,pas){const S={coins:0,nid:1,charms:[],equip:[],stones:0,gear:[],baits:{},dex:{},tank:[],stats:{g:[0,0,0,0,0]}};
@@ -13,7 +13,7 @@ function mkS(rodK,lv,charmTier,nCharm,star,pas){const S={coins:0,nid:1,charms:[]
 function run(name,rodK,baitK,lv,ct,nc,star,pas){const S=mkS(rodK,lv,ct,nc||6,star,pas),r=SYS.gearStats(D,SYS.gearOf(S)),b=D.BAITS.find(x=>x.k===baitK),M=SYS.mods(D,S,r,b);
  let coin=0,rare=0,leg=0,box=0,hi=0,mid=0;for(const night of [0,1]){const ws=SYS.weights(D,S,r,b,night),sw=ws.reduce((a,c)=>a+c);
  for(let i=0;i<N/2;i++){let s=rnd()*sw,f=D.FISH[0];for(let j=0;j<ws.length;j++){s-=ws[j];if(s<0){f=D.FISH[j];break;}}
-  const cm=Math.min(f.max,f.min-Math.log(1-rnd())*f.scale*M.size);let g=0;f.g.forEach((t,k)=>{if(cm>=t)g=k+1;});const v=Math.round(f.base*Math.pow(cm/f.min,1.5)*D.GRADES[g].m);
+  const cm=SYS.sizeRoll(D,f,M.size,rnd);let g=0;f.g.forEach((t,k)=>{if(cm>=t)g=k+1;});const v=Math.round(f.base*Math.pow(cm/f.min,1.5)*D.GRADES[g].m);
   coin+=Math.round(v*M.sell);if(f.base>=28)hi++;else if(f.base>=14)mid++;if(g>=2)rare++;if(g>=3)leg++;if(rnd()<M.box)box++;}}
  const sec=4*M.wait+4;return {name,P:SYS.progress(D,S,r),hi:hi/N,mid:mid/N,coin:coin/N,perHour:coin/N*3600/sec,rare:rare/N,leg:leg/N,box:box/N};}
 const rows=[run('기본(대나무·지렁이)','bamboo','worm',0,null),run('카본+3·일반부적3','carbon','worm',3,0,3),run('은빛+5★1·희귀부적6','silver','paste',5,2,6,1),run('황금+7★2·영웅부적6','gold','shrimp',7,3,6,2),

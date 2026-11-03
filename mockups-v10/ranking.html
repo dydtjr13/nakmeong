@@ -1,0 +1,130 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>v10 시안 · 랭킹</title>
+<script>window.NK_EMOJI_BASE="../icons/emoji/";</script><script src="../emoji.js"></script>
+<style>
+*{box-sizing:border-box}img.emj{width:1.1em;height:1.1em;vertical-align:-.18em;display:inline-block}
+body{margin:0;min-height:100vh;font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;color:#3d3548;background:#2a2f45 url(ig-desktop.jpg) center/cover fixed}
+body::before{content:'';position:fixed;inset:0;background:#1b1f3366;backdrop-filter:blur(3px)}
+@media(max-width:700px){body{background-image:url(ig-mobile.jpg)}}
+.wrap{position:relative;display:flex;gap:22px;justify-content:center;align-items:flex-start;padding:26px 22px;flex-wrap:wrap}
+.tagline{position:relative;text-align:center;padding-top:14px}.tagline span{background:#000a;color:#fff;font-size:12px;border-radius:10px;padding:6px 12px;display:inline-block}
+:root{--au:#f6c542;--au2:#fff3b0;--ag:#c9d2de;--ag2:#ffffff;--cu:#d98b4e;--cu2:#ffd9b8}
+.panel{background:#fffdf8;border-radius:24px;box-shadow:0 20px 60px #0006;width:min(560px,100%);overflow:hidden}
+.ph{padding:16px 18px 10px}.ph h2{margin:0 0 8px;font-size:20px;display:flex;align-items:center;gap:8px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}.tabs b{font-size:13px;padding:6px 12px;border-radius:12px;background:#f1ede4;font-weight:700;color:#6b6377}.tabs b.on{background:#3d3548;color:#fff}
+.cats{display:flex;gap:6px;margin-top:8px;overflow:auto}.cats b{font-size:12px;padding:5px 10px;border-radius:10px;border:1.5px solid #e6e0d4;white-space:nowrap;font-weight:700;color:#7a7286}.cats b.on{border-color:#ff9a5a;color:#e0703a;background:#fff4ec}
+.sub{font-size:11.5px;color:#9a93a6;margin-top:6px}
+.row{display:flex;align-items:center;gap:10px;padding:9px 18px;border-top:1px solid #0000000a;font-size:14px}
+.row .n{width:28px;text-align:center;font-weight:900;color:#9a93a6}.row .nm{flex:1;font-weight:700}.row .v{font-weight:800;color:#3d3548}
+.row .ch{font-size:11px;font-weight:800}.up{color:#2fa36b}.dn{color:#e05a5a}
+.me{background:#fff4ec;border-top:2px solid #ffb98a}
+.av{width:34px;height:34px;border-radius:50%;background:#e8e2d6;display:flex;align-items:center;justify-content:center;font-size:18px;flex:none}
+.title{display:inline-block;font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:7px;margin-left:5px;vertical-align:1px}
+.t1{background:linear-gradient(90deg,#f6c542,#ffdf7a);color:#6b4a00}.t2{background:linear-gradient(90deg,#c9d2de,#eef2f7);color:#46505e}.t3{background:linear-gradient(90deg,#d98b4e,#f3b78a);color:#5a2e10}
+@keyframes shine{0%{transform:translateX(-120%) rotate(20deg)}60%,100%{transform:translateX(260%) rotate(20deg)}}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 6px var(--g))}50%{filter:drop-shadow(0 0 16px var(--g))}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.crown{display:inline-block;animation:floaty 2.4s ease-in-out infinite}
+/* ── A 포디움 ── */
+.A .pod{display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:16px 16px 0;background:linear-gradient(#fff8e6,#fffdf8)}
+.A .pc{width:31%;text-align:center;position:relative}
+.A .pc .ava{width:64px;height:64px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;background:#fff;border:4px solid var(--m);box-shadow:0 0 0 4px #fff,0 0 22px var(--m);position:relative}
+.A .p1 .ava{width:84px;height:84px;font-size:44px;animation:glow 2.2s infinite;--g:#f6c542}
+.A .pc .cr{position:absolute;top:-26px;left:50%;transform:translateX(-50%);font-size:30px}
+.A .p1 .cr{top:-34px;font-size:40px}
+.A .pc .nm{font-weight:900;margin-top:8px;font-size:14px}.A .pc .v{font-size:12px;font-weight:800;color:#8a7f96}
+.A .blk{margin-top:8px;border-radius:14px 14px 0 0;color:#fff;font-weight:900;font-size:28px;display:flex;align-items:flex-start;justify-content:center;padding-top:8px;position:relative;overflow:hidden;text-shadow:0 2px 0 #0003}
+.A .blk::after{content:'';position:absolute;top:-20%;left:0;width:30%;height:140%;background:linear-gradient(90deg,#fff0,#fff8,#fff0);animation:shine 3.2s infinite}
+.A .p1 .blk{height:110px;background:linear-gradient(#ffd84d,#e8a91c)}.A .p2 .blk{height:80px;background:linear-gradient(#e4eaf2,#a9b4c4)}.A .p3 .blk{height:62px;background:linear-gradient(#f0a56a,#b86a32)}
+.A .p1{--m:#f6c542}.A .p2{--m:#c9d2de}.A .p3{--m:#d98b4e}
+/* ── B 트로피 카드 ── */
+.B .top{padding:6px 14px 10px;display:flex;flex-direction:column;gap:8px}
+.B .tc{position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;overflow:hidden;color:#3d2a00}
+.B .tc::after{content:'';position:absolute;top:-30%;left:0;width:22%;height:160%;background:linear-gradient(90deg,#fff0,#fffa,#fff0);animation:shine 3.6s infinite}
+.B .tc .rk{font-size:30px;font-weight:900;width:44px;text-align:center;text-shadow:0 2px 0 #fff8}
+.B .tc .tr{font-size:36px}
+.B .tc .nm{font-weight:900;font-size:16px}.B .tc .v{margin-left:auto;font-weight:900;font-size:18px;text-align:right}.B .tc .v small{display:block;font-size:10.5px;font-weight:700;opacity:.7}
+.B .g1{background:linear-gradient(110deg,#ffe58a,#f6c542 45%,#ffeeb0 60%,#e8a91c);box-shadow:0 0 0 3px #fff6cc inset,0 8px 24px #f6c54277;padding:16px 14px}
+.B .g1 .tr{font-size:46px}
+.B .g2{background:linear-gradient(110deg,#f4f7fb,#c9d2de 45%,#ffffff 60%,#a9b4c4);box-shadow:0 0 0 3px #fff inset;color:#2f3742}
+.B .g3{background:linear-gradient(110deg,#ffd2ad,#d98b4e 45%,#ffd9b8 60%,#b86a32);box-shadow:0 0 0 3px #ffe8d6 inset;color:#4a2208}
+.B .rw{font-size:11px;font-weight:800;background:#fff9;border-radius:8px;padding:2px 7px;display:inline-block;margin-top:3px}
+/* ── C 명예의 전당 사이드(게임 위) ── */
+.C{width:min(380px,100%);background:#1d2140ee;color:#fff;border:1px solid #ffffff22}
+.C .ph h2{color:#fff}.C .tabs b{background:#ffffff14;color:#cfd3ea}.C .tabs b.on{background:#fff;color:#1d2140}.C .cats b{border-color:#ffffff22;color:#cfd3ea}.C .cats b.on{border-color:#f6c542;color:#f6c542;background:#f6c54214}
+.C .sub{color:#9aa0c4}.C .row{border-top-color:#ffffff10}.C .row .v{color:#fff}.C .me{background:#ff9a5a22;border-top-color:#ff9a5a}
+.C .hof{display:flex;flex-direction:column;gap:6px;padding:4px 12px 10px}
+.C .h{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;background:linear-gradient(90deg,var(--c)33,#fff0);border:1.5px solid var(--c);position:relative}
+.C .h .ring{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;background:conic-gradient(from 0deg,var(--c),#fff,var(--c),#fff8,var(--c));padding:3px;animation:spin 4s linear infinite}
+.C .h .ring span{width:100%;height:100%;border-radius:50%;background:#1d2140;display:flex;align-items:center;justify-content:center;animation:spin 4s linear infinite reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.C .h .nm{font-weight:900}.C .h .v{margin-left:auto;font-weight:900;color:var(--c)}
+.C .h1{--c:#f6c542;padding:14px 12px;box-shadow:0 0 24px #f6c54255}.C .h1 .ring{width:56px;height:56px;font-size:30px}.C .h2{--c:#d6dde8}.C .h3{--c:#e39a62}
+/* ── D 시즌 리그 ── */
+.D .season{margin:0 14px 10px;padding:12px 14px;border-radius:16px;background:linear-gradient(120deg,#3d3548,#6a4f8a);color:#fff;display:flex;align-items:center;gap:12px}
+.D .season .tm{margin-left:auto;text-align:right;font-size:12px}.D .season .tm b{display:block;font-size:18px}
+.D .lg{display:flex;gap:6px;padding:0 14px 8px}.D .lg span{flex:1;text-align:center;font-size:11px;font-weight:800;padding:5px 0;border-radius:9px;background:#f1ede4;color:#8a8296}.D .lg span.on{background:linear-gradient(90deg,#b28bff,#ff8fc8);color:#fff}
+.D .rwd{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 14px 12px}
+.D .rwd div{border-radius:14px;padding:10px 8px;text-align:center;font-size:11.5px;font-weight:700;position:relative;overflow:hidden}
+.D .rwd div b{display:block;font-size:24px}
+.D .r1{background:linear-gradient(#fff3c2,#ffe08a);border:2px solid #f6c542}.D .r2{background:linear-gradient(#f6f8fb,#dde3ec);border:2px solid #c9d2de}.D .r3{background:linear-gradient(#ffe6d2,#f6c4a0);border:2px solid #d98b4e}
+.D .row .n.m1{color:#e8a91c;font-size:18px}.D .row .n.m2{color:#8a96a8;font-size:17px}.D .row .n.m3{color:#c0743c;font-size:16px}
+.D .row.top1{background:linear-gradient(90deg,#fff6d6,#fffdf8)}.D .row.top2{background:linear-gradient(90deg,#f2f5f9,#fffdf8)}.D .row.top3{background:linear-gradient(90deg,#fdeee2,#fffdf8)}
+/* ── 인게임 1위 표시 예시 ── */
+.ig{position:relative;width:min(640px,100%);aspect-ratio:16/9;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px #0006;background:url(ig-desktop.jpg) center/cover}
+.ig .cap{position:absolute;left:12px;top:10px;background:#000b;color:#fff;font-size:12px;font-weight:700;padding:5px 10px;border-radius:9px;z-index:3}
+.np{position:absolute;transform:translate(-50%,-100%);text-align:center;white-space:nowrap;z-index:2}
+.np .t{font-size:10.5px;font-weight:900;padding:2px 8px;border-radius:8px;display:inline-block;margin-bottom:3px}
+.np .nn{font-size:13px;font-weight:900;color:#fff;padding:3px 10px;border-radius:10px;background:#0008;display:inline-flex;align-items:center;gap:4px}
+.np .cw{display:block;font-size:26px;line-height:1;margin-bottom:2px;filter:drop-shadow(0 2px 4px #0006)}
+.np.k1 .nn{background:linear-gradient(90deg,#b8860b,#f6c542,#b8860b);color:#3a2600;box-shadow:0 0 14px #f6c542cc}
+.np.k1 .cw{font-size:32px;animation:floaty 2.2s ease-in-out infinite}
+.np.k2 .nn{background:linear-gradient(90deg,#7d8796,#dfe5ee,#7d8796);color:#222a34}
+.np.k3 .nn{background:linear-gradient(90deg,#8a4d22,#e39a62,#8a4d22);color:#2e1405}
+.aura{position:absolute;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;z-index:1}
+.aura.k1{width:150px;height:150px;background:radial-gradient(#ffe27a99,#f6c54233 50%,#f6c54200 70%);animation:pulse 2.2s infinite}
+.aura.k1::before,.aura.k1::after{content:'✦';position:absolute;color:#fff6b0;font-size:16px;animation:twk 1.8s infinite}
+.aura.k1::before{left:18%;top:20%}.aura.k1::after{right:16%;top:34%;animation-delay:.9s}
+.aura.k2{width:110px;height:110px;background:radial-gradient(#ffffff88,#dfe5ee22 55%,#fff0 70%)}
+.aura.k3{width:100px;height:100px;background:radial-gradient(#ffc69a77,#e39a6222 55%,#fff0 70%)}
+@keyframes pulse{0%,100%{opacity:.7;transform:translate(-50%,-50%) scale(.95)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}}
+@keyframes twk{0%,100%{opacity:0;transform:scale(.5)}50%{opacity:1;transform:scale(1.2)}}
+.ig .toastx{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);background:linear-gradient(90deg,#3d3548,#6a4f8a);color:#fff;font-size:12.5px;font-weight:700;padding:7px 14px;border-radius:12px;white-space:nowrap;z-index:3}
+@media(max-width:700px){.wrap{padding:14px 10px;gap:14px}.ig{background-image:url(ig-mobile.jpg);aspect-ratio:390/600;background-position:center 30%}.panel{border-radius:20px}.row{padding:8px 12px;font-size:13px}.A .p1 .ava{width:70px;height:70px}}
+</style></head><body>
+<div class="tagline"><span id="cap"></span></div>
+<div class="wrap" id="root"></div>
+<script>
+const V=(new URLSearchParams(location.search).get('v')||'a').toLowerCase(),MOB=innerWidth<700;
+const L=[['붕어왕','🧑‍🦱','132.5cm',0],['물멍러','👩','128.9cm',1],['밤낚시꾼','🧔','127.2cm',-1],['잉어사랑','👧','121.0cm',2],['찌맞춤','🧑','118.4cm',0],['초보강태공','👦','115.7cm',-2],['호수산책','👩‍🦰','112.3cm',1]];
+const ME=['나','🙂','98.6cm',3,42];
+const head=(title)=>`<div class="ph"><h2>${title}</h2><div class="tabs"><b class="on">🏠 낚멍-3 서버</b><b>🌏 전체 서버</b></div><div class="cats"><b class="on">📏 최대 크기</b><b>📖 도감</b><b>🪙 코인</b><b>📅 주간</b></div><div class="sub">붕어 최대 크기 기준 · 매일 00:00 갱신 · 서버 인원 87명</div></div>`;
+const ch=c=>c>0?`<span class="ch up">▲${c}</span>`:c<0?`<span class="ch dn">▼${-c}</span>`:`<span class="ch" style="color:#bbb">–</span>`;
+const rows=(from)=>L.slice(from).map((r,i)=>`<div class="row"><div class="n">${from+i+1}</div><div class="av">${r[1]}</div><div class="nm">${r[0]}</div>${ch(r[3])}<div class="v">${r[2]}</div></div>`).join('')+`<div class="row me"><div class="n">${ME[4]}</div><div class="av">${ME[1]}</div><div class="nm">${ME[0]} <small style="color:#e0703a">(나)</small></div>${ch(ME[3])}<div class="v">${ME[2]}</div></div>`;
+const TT=['👑 호수의 왕','🥈 은빛 낚시꾼','🥉 청동 강태공'];
+let P='',cap='';
+if(V==='a'){cap='시안 A · 포디움 시상대 — 1~3위를 금·은·동 단상 + 왕관 + 빛나는 테두리로';
+ const pc=(i,c)=>`<div class="pc p${i+1}"><div class="ava"><span class="cr crown">${['👑','🥈','🥉'][i]}</span>${L[i][1]}</div><div class="nm">${L[i][0]}</div><div class="v">${L[i][2]}</div><div><span class="title t${i+1}">${TT[i]}</span></div><div class="blk">${i+1}</div></div>`;
+ P=`<div class="panel A">${head('🏆 랭킹')}<div class="pod">${pc(1)}${pc(0)}${pc(2)}</div>${rows(3)}</div>`;}
+if(V==='b'){cap='시안 B · 트로피 카드 — 상위 3명은 금속 질감 카드 + 반짝임, 보상 칭호 표시';
+ P=`<div class="panel B">${head('🏆 랭킹')}<div class="top">${[0,1,2].map(i=>`<div class="tc g${i+1}"><div class="rk">${i+1}</div><div class="tr">${['🏆','🥈','🥉'][i]}</div><div><div class="nm">${L[i][0]} <span class="title t${i+1}">${TT[i]}</span></div><span class="rw">보상: ${['칭호 + 황금 왕관 + 상자 ×5','칭호 + 은빛 테두리 + 상자 ×3','칭호 + 청동 테두리 + 상자 ×2'][i]}</span></div><div class="v">${L[i][2]}<small>${['🔥 3일 연속 1위','',''][i]}</small></div></div>`).join('')}</div>${rows(3)}</div>`;}
+if(V==='c'){cap='시안 C · 명예의 전당 사이드 패널 — 게임 화면 위에 반투명, 회전하는 오라 링';
+ P=`<div class="panel C">${head('🌟 명예의 전당')}<div class="hof">${[0,1,2].map(i=>`<div class="h h${i+1}"><div class="ring"><span>${L[i][1]}</span></div><div><div class="nm">${['👑 ','🥈 ','🥉 '][i]}${L[i][0]}</div><span class="title t${i+1}">${TT[i]}</span></div><div class="v">${L[i][2]}</div></div>`).join('')}</div>${rows(3).replace(/<div class="row/g,'<div class="row')}</div>`;}
+if(V==='d'){cap='시안 D · 주간 시즌 리그 — 남은 시간·리그 단계·1~3위 보상을 먼저 보여 욕심을 자극';
+ P=`<div class="panel D">${head('📅 주간 리그')}<div class="season"><div style="font-size:30px">🏅</div><div><b>시즌 12 · 골드 리그</b><div style="font-size:12px;opacity:.85">상위 3명은 다음 주 칭호·왕관 유지</div></div><div class="tm">남은 시간<b>2일 14:32</b></div></div>
+ <div class="lg"><span>브론즈</span><span>실버</span><span class="on">골드</span><span>다이아</span><span>전설</span></div>
+ <div class="rwd"><div class="r1"><b>👑</b>1위<br>호수의 왕 칭호<br>황금 오라</div><div class="r2"><b>🥈</b>2위<br>은빛 낚시꾼<br>은빛 테두리</div><div class="r3"><b>🥉</b>3위<br>청동 강태공<br>청동 테두리</div></div>
+ ${L.map((r,i)=>`<div class="row ${i<3?'top'+(i+1):''}"><div class="n ${i<3?'m'+(i+1):''}">${i<3?['🥇','🥈','🥉'][i]:i+1}</div><div class="av">${r[1]}</div><div class="nm">${r[0]}${i<3?`<span class="title t${i+1}">${TT[i]}</span>`:''}</div>${ch(r[3])}<div class="v">${r[2]}</div></div>`).join('')}<div class="row me"><div class="n">${ME[4]}</div><div class="av">${ME[1]}</div><div class="nm">나 <small style="color:#e0703a">· 3위까지 12.6cm!</small></div>${ch(ME[3])}<div class="v">${ME[2]}</div></div></div>`;}
+// 인게임 표시 (공통): 원본 스크린샷 좌표(1280x720 / 390x844)를 비율로 배치
+const H=MOB?{w:390,h:844,p:[[195,339],[302,318],[78,325]],crop:[0,844*.3-0]}:{w:1280,h:720,p:[[640,276],[828,268],[434,258]]};
+const ord=[{i:0,k:1,name:L[0][0]},{i:1,k:2,name:L[1][0]},{i:2,k:3,name:L[2][0]}];
+let IG=`<div class="ig" id="ig"><div class="cap">인게임 표시 예시 · 서버 1~3위 닉네임 위 왕관·칭호·오라</div>`;
+ord.forEach(o=>{IG+=`<div class="aura k${o.k}" data-p="${o.i}" data-dy="62"></div><div class="np k${o.k}" data-p="${o.i}" data-dy="${MOB?30:0}"><span class="cw">${['👑','🥈','🥉'][o.k-1]}</span><span class="t t${o.k}">${TT[o.k-1]}</span><br><span class="nn">${o.k===1?'✨':''}${o.name}</span></div>`;});
+IG+=`<div class="toastx">👑 <b>붕어왕</b>님이 낚멍-3 서버 크기 랭킹 1위에 올랐어요!</div></div>`;
+document.getElementById('cap').textContent=cap;document.getElementById('root').innerHTML=P+IG;
+function place(){const ig=document.getElementById('ig'),r=ig.getBoundingClientRect();
+ // background-size:cover 매핑
+ const s=Math.max(r.width/H.w,r.height/H.h),ox=(r.width-H.w*s)/2,oy=MOB?(r.height-H.h*s)*.3:(r.height-H.h*s)/2;
+ ig.querySelectorAll('[data-p]').forEach(e=>{const [x,y]=H.p[+e.dataset.p];e.style.left=(ox+x*s)+'px';e.style.top=(oy+y*s+(+e.dataset.dy)*s)+'px';});}
+place();addEventListener('resize',place);
+window.READY=()=>document.fonts?document.fonts.status==='loaded':true;
+</script></body></html>
