@@ -1,0 +1,37 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>낚멍 v5 — 3D 로우폴리 파스텔</title><link rel="stylesheet" href="ui-v2.css"><script src="emoji.js"></script></head><body>
+<canvas id="world"></canvas>
+<div id="hud">
+  <div class="top">
+    <span class="logo">🎣 낚멍</span>
+    <span class="pill" id="coins">🪙 0</span>
+    <button id="bTime">🌗 낮</button><button id="bAuto" title="시간 흐름: ON이면 낮→노을→밤이 자동으로 순환(한 바퀴 약 2분 30초), OFF면 현재 시간대 고정. 🌗 버튼은 시간대를 수동으로 넘겨요">🕒 시간 흐름 ON</button>
+    <button id="bDex">📖 도감 <kbd>B</kbd></button><button id="bTank">🐠 내 어항 <kbd>F</kbd></button><button id="bShop">🛒 상점 <kbd>E</kbd></button>
+    <button id="bBag">🎒 가방</button><button id="bSet">⚙ 설정</button><button id="bSave">💾 저장</button><button id="bSound">🔊 사운드</button><button id="bSit">🪑 앉기</button>
+  </div>
+  <div id="equip" class="pill small"></div>
+  <div id="prompt"></div>
+  <button id="fishBtn">🎣 낚시 시작</button>
+  <div id="chat"><div id="log"></div><div class="row"><input id="msg" placeholder="채팅 입력 후 Enter"><span id="emo"></span></div></div>
+  <div id="joy"><i></i></div>
+  <div id="toast"></div>
+  <div id="dc"></div>
+</div>
+<div id="start" class="modal show"><div class="card center">
+  <h1>🎣 낚멍</h1><p>고즈넉한 호수에서 함께 낚시하는 힐링 메타버스 · 시안 A v2</p>
+  <p class="muted">캐릭터 선택</p><div id="charPick"></div>
+  <p class="muted small">WASD 이동 · 드래그 회전 · 휠 줌 · Space 낚시 · F 어항 · E 상점/구경 · B 도감</p>
+  <button id="go" class="big">탭해서 시작 (사운드 ON)</button>
+  <p id="loading" class="muted small">에셋 로딩 중…</p></div></div>
+<div id="dex" class="modal"></div>
+<div id="tank" class="modal"><div class="tankwrap"><canvas id="tankCv"></canvas><div id="tankSide"></div><button class="close" data-close="tank">×</button></div></div>
+<div id="shop" class="modal"></div>
+<div id="sound" class="modal"></div>
+<div id="bag" class="modal"></div>
+<div id="set" class="modal"></div>
+<div id="boxFx"></div>
+<div id="confirm" class="modal"></div>
+<div id="ribbons"></div>
+<script src="lib/three.min.js"></script><script src="lib/GLTFLoader.js"></script><script src="lib/SkeletonUtils.js"></script>
+<script src="assets/assets-data.js"></script><script src="game-data.js"></script><script src="game-data-v3.js"></script><script src="game-data-v4.js"></script><script src="game-data-v5.js"></script><script src="tank-ext.js"></script><script src="rod-3d.js"></script><script src="systems.js"></script><script src="sim-result.js"></script><script src="game-v2.js"></script>
+</body></html>

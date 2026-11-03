@@ -1,0 +1,67 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>v6 시안 · 가방(부적) UI</title><script>window.NK_EMOJI_BASE="../icons/emoji/";</script><script src="../emoji.js"></script>
+<style>
+*{box-sizing:border-box}img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;margin:0 .05em;display:inline-block}.small{font-size:12px}.muted{color:#8a8094}.gbadge{display:inline-block;background:var(--gc);color:#fff;border-radius:8px;padding:2px 8px;font-size:11px;font-weight:700}body{font-family:"Pretendard","Noto Sans KR",sans-serif;color:#3d3548;overflow:auto;background:linear-gradient(#cfe6ef,#e9f3e6);height:auto;min-height:100vh;touch-action:auto;margin:0}
+.wrap{max-width:1040px;margin:18px auto;background:#fffaf3;border-radius:26px;box-shadow:0 20px 60px #0003;padding:18px 22px;position:relative;box-sizing:border-box}
+h2{margin:0 0 4px}.tag{position:absolute;right:20px;top:16px;background:#3d3548;color:#fff;border-radius:10px;padding:4px 10px;font-size:12px}
+.tabs2{display:flex;gap:6px;margin:8px 0 12px;flex-wrap:wrap}.tabs2 span{padding:7px 14px;border-radius:12px;background:#f0e8dc;font-weight:700;font-size:13px}.tabs2 .on{background:#3d3548;color:#fff}
+.ci{min-width:0;max-width:100%;display:block;width:100%;height:100%;object-fit:contain}.T0{--c:#9aa4b0}.T1{--c:#5fc48a}.T2{--c:#4ea3ea}.T3{--c:#ef6f8f}.T4{--c:#f4a62a}.T5{--c:#b56cf2}
+.slots{align-self:start;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;background:#f4ece0;border-radius:18px;padding:12px}
+.slot{aspect-ratio:1;border-radius:16px;background:#fff;border:3px solid var(--c,#ddd);position:relative;padding:6px;box-shadow:inset 0 -4px 0 #0001;box-sizing:border-box}.slot.empty{border-style:dashed;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:26px}
+.slot .lv{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);background:var(--c);color:#fff;border-radius:8px;font-size:10px;padding:1px 7px;white-space:nowrap}
+.it{aspect-ratio:1;border-radius:14px;background:radial-gradient(circle at 50% 35%,#fff,color-mix(in srgb,var(--c) 22%,#fff));border:2px solid var(--c);padding:5px;position:relative;box-sizing:border-box}.it.sel{outline:3px solid #3d3548;outline-offset:2px}.it .k{position:absolute;right:3px;top:1px;font-size:12px}.it .eq{position:absolute;left:3px;top:3px;width:10px;height:10px;border-radius:50%;background:#5fc48a;border:2px solid #fff}
+/* 합산 패널 */
+.sum{background:#3d3548;color:#fff;border-radius:18px;padding:14px 16px}.sum h3{margin:0 0 8px;font-size:15px;display:flex;justify-content:space-between;align-items:center}.sum h3 small{font-weight:400;color:#cfc6dc;font-size:11px}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:9px 16px}.so{font-size:12px}.so .n{display:flex;justify-content:space-between;align-items:baseline}.so .n b{font-size:20px;color:#ffd97a}.so .n b.max{color:#7ee0a4}.so .n i{font-style:normal;color:#b9b0c8;font-size:11px}
+.gb{height:9px;border-radius:5px;background:#ffffff22;position:relative;overflow:hidden;margin-top:3px}.gb i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#f4a62a,#ffd97a)}.gb s{position:absolute;top:0;bottom:0;background:#c08cff}.gb.full i{background:linear-gradient(90deg,#3fbf7f,#7ee0a4)}
+.so.zero{opacity:.45}
+.dl{display:inline-block;font-size:11px;border-radius:6px;padding:0 5px;margin-left:4px}.dl.up{background:#5fc48a;color:#fff}.dl.dn{background:#ef6f8f;color:#fff}
+/* 리스트 영역 */
+.listbox{border:2px solid #eadfce;border-radius:18px;background:#fff;display:flex;flex-direction:column;overflow:hidden}
+.lhead{padding:10px 12px;border-bottom:2px solid #f0e8dc;display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:12px;background:#fffdf8}
+.lhead span{padding:3px 9px;border-radius:9px;background:#f0e8dc}.lhead .on{background:#3d3548;color:#fff}.lhead select{font:inherit;border-radius:9px;border:2px solid #eadfce;padding:3px 6px}
+.lscroll{overflow-y:auto;padding:12px;flex:1}.lscroll::-webkit-scrollbar{width:8px}.lscroll::-webkit-scrollbar-thumb{background:#d8ccb9;border-radius:4px}
+.inv{display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:9px}
+.lfoot{padding:8px 12px;border-top:2px solid #f0e8dc;font-size:12px;display:flex;justify-content:space-between;background:#fffdf8}
+.det{background:#fff;border-radius:18px;padding:14px;border:3px solid var(--c)}.det .big{width:96px;height:96px;margin:0 auto;display:block}.ob{margin:7px 0;font-size:13px}.ob .bar{height:8px;border-radius:4px;background:#eee;overflow:hidden;position:relative}.ob .bar i{position:absolute;inset:0 auto 0 0;background:var(--c)}.ob .bar u{position:absolute;top:0;bottom:0;border-left:2px dashed #3d354888}
+.btns{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:10px}.btns span{font-size:12px;padding:6px 10px;border-radius:9px;background:#f0e8dc}.btns .p{background:#5fc48a;color:#fff}
+/* A+ */
+.A .top .slots,.E .top .slots{grid-template-columns:repeat(3,minmax(0,1fr));padding:14px 22px;gap:12px 18px}.A .top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:14px;align-items:stretch}
+.A .bot{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:14px;margin-top:14px;height:380px}
+/* D: 세로 3단 */
+.D{display:grid;grid-template-columns:300px minmax(0,1fr);gap:14px;align-items:start}.D .listbox{height:690px}.D .col{display:flex;flex-direction:column;gap:12px;min-height:0}
+.D .slots{grid-template-columns:repeat(3,minmax(0,1fr))}.rowc{display:grid;grid-template-columns:48px 1fr auto;gap:10px;align-items:center;border-radius:12px;padding:6px 8px;margin:0 0 6px;border-left:6px solid var(--c);background:#fffaf3}.rowc>img{width:46px;height:46px}.chips span{display:inline-block;font-size:12px;background:color-mix(in srgb,var(--c) 15%,#fff);border-radius:8px;padding:2px 8px;margin:2px}.chips span.hl{background:#3d3548;color:#fff}
+/* E: 비교 */
+.E .top{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:14px}.E .bot{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:14px;margin-top:14px;height:360px}
+.cmp{display:grid;grid-template-columns:1fr 24px 1fr;gap:6px;align-items:center}.cmp .c{border:3px solid var(--c);border-radius:14px;padding:6px;text-align:center;font-size:11px;background:#fff}.cmp img{width:54px;height:54px}
+/* 모바일 */
+@media(max-width:600px){.D .listbox{height:auto}.A .top .slots,.E .top .slots{grid-template-columns:repeat(6,minmax(0,1fr));padding:8px;gap:6px}.wrap{margin:0;border-radius:0;padding:14px 12px}.tag{position:static;display:inline-block;margin-bottom:6px}
+.A .top,.A .bot,.E .top,.E .bot,.D{grid-template-columns:1fr;height:auto}.slots{gap:6px;padding:8px}.D .slots{grid-template-columns:repeat(6,minmax(0,1fr))}
+.lscroll{max-height:300px}.sg{gap:8px 12px}.so .n b{font-size:17px}.det{display:grid;grid-template-columns:72px 1fr;gap:8px;align-items:start}.det .big{width:72px;height:72px}.det .btns{grid-column:1/-1}
+.A .bot .det,.E .bot .det{order:-1}}
+</style></head><body><div id="root"></div>
+<script>
+const Q=new URLSearchParams(location.search),V=Q.get('v')||'a';const TN=['일반','고급','희귀','영웅','전설','신화'];
+const O={luck:['행운',25,40],treasure:['보물탐지',60,120],quick:['빠른입질',20,35],big:['대물사냥꾼',12,15],expert:['어종전문가',25,30],bait:['미끼전문가',40,60],merchant:['상인',15,20],appraise:['보물감정',30,50],master:['감정의달인',60,100]};
+const PAS={luck:2,treasure:7,quick:2,big:1,bait:4,master:4};
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;const band=[[.1,.25],[.2,.4],[.32,.55],[.45,.7],[.6,.85],[.78,1]],no=[1,1,2,2,3,3];
+const ch=[];for(let i=0;i<34;i++){const t=[5,4,4,3,3,3,2,2,2,2,1,1,1,1,1,0,0,0,0,0,0,0,1,2,3,0,1,0,2,4,1,0,2,3][i];const ks=Object.keys(O).sort(()=>rnd()-.5).slice(0,no[t]);ch.push({t,o:ks.map(k=>({k,v:Math.round(O[k][1]*(band[t][0]+(band[t][1]-band[t][0])*rnd())*10)/10})),eq:i<6&&i!==4,lock:i%7===0});}
+const img=t=>`<img class="ci" src="../img/charms/t${t}.png">`;const eq=ch.filter(c=>c.eq);
+const sumOf=list=>{const s={};Object.keys(O).forEach(k=>s[k]=0);list.forEach(c=>c.o.forEach(o=>s[o.k]+=o.v));return s};const sum=sumOf(eq);
+const head=(n,d)=>`<div class="tag">시안 ${n}</div><h2>🎒 가방</h2><div class="tabs2"><span>🎁 행운 상자</span><span class="on">🧿 행운 부적</span><span>🎣 장비·합성</span><span>⚒ 강화</span></div><div class="small muted" style="margin:-4px 0 10px">${d}</div>`;
+const sumPanel=(s,delta)=>`<div class="sum"><h3>✨ 합산 효과 <small>장착 ${eq.length}/6 · 프리셋 1 · 보라=패시브</small></h3><div class="sg">${Object.entries(O).map(([k,o])=>{const raw=s[k],v=Math.min(raw,o[2]),p=PAS[k]||0,full=raw>=o[2];const d=delta?Math.min(delta[k],o[2])-v:0;
+ return `<div class="so ${v||p?'':'zero'}"><div class="n"><span>${o[0]}${d?`<span class="dl ${d>0?'up':'dn'}">${d>0?'▲':'▼'}${Math.abs(d).toFixed(1)}</span>`:''}</span><span><b class="${full?'max':''}">+${v.toFixed(1)}%</b> <i>/${o[2]}${full?' MAX':''}</i></span></div><div class="gb ${full?'full':''}"><i style="width:${v/o[2]*100}%"></i><s style="left:${v/o[2]*100}%;width:${Math.min(p,o[2]-v)/o[2]*100}%"></s></div></div>`}).join('')}</div></div>`;
+const slots=()=>`<div class="slots">${eq.map(c=>`<div class="slot T${c.t}">${img(c.t)}<span class="lv">${TN[c.t]}</span></div>`).join('')}<div class="slot empty">＋</div></div>`;
+const lhead=()=>`<div class="lhead">🔎 <select><option>옵션: 전체</option></select> ${TN.map((n,i)=>`<span class="T${i}" style="border:2px solid var(--c)">${n}</span>`).join('')}<span>🔒 잠금만</span><span class="on">등급↓</span></div>`;
+const det=s=>`<div class="det T${s.t}"><img class="big" src="../img/charms/t${s.t}.png"><div><div style="text-align:center"><span class="gbadge" style="--gc:var(--c)">${TN[s.t]} 부적</span> <span class="small">보관중</span></div>
+ ${s.o.map(o=>`<div class="ob"><div style="display:flex;justify-content:space-between"><span>${O[o.k][0]}</span><b>+${o.v}%</b></div><div class="bar"><i style="width:${o.v/O[o.k][1]*100}%"></i><u style="left:${band[s.t][1]*100}%"></u></div></div>`).join('')}</div>
+ <div class="btns"><span>🔓 잠금</span><span class="p">장착</span><span>분해 🪙${[20,50,120,300,800,2000][s.t]}</span></div></div>`;
+let H='';const sel=ch[7];
+if(V==='a'){H=head('A+ · 합산 패널 강조 + 분리된 스크롤 리스트','합산 효과를 어두운 패널로 크게(상한 게이지·MAX 표시) · 부적 리스트는 자체 스크롤 박스 안에서만 움직여 다른 UI를 가리지 않음')+`<div class="A"><div class="top">${slots()}${sumPanel(sum)}</div>
+ <div class="bot"><div class="listbox">${lhead()}<div class="lscroll"><div class="inv">${ch.map((c,i)=>`<div class="it T${c.t} ${c===sel?'sel':''}">${img(c.t)}${c.lock?'<span class="k">🔒</span>':''}${c.eq?'<span class="eq"></span>':''}</div>`).join('')}</div></div><div class="lfoot"><span>${ch.length}개 · 장착 ${eq.length} · 🔒 ${ch.filter(c=>c.lock).length}</span><span>일괄 분해 ›</span></div></div>${det(sel)}</div></div>`;}
+if(V==='d'){H=head('D · 좌측 고정 대시보드 + 우측 리스트','왼쪽 열(슬롯·합산)은 항상 고정, 오른쪽 리스트만 스크롤 · 행마다 옵션 칩, 검색한 옵션은 진하게 강조')+`<div class="D"><div class="col">${slots()}${sumPanel(sum).replace('class="sg"','class="sg" style="grid-template-columns:1fr"')}</div>
+ <div class="listbox">${lhead().replace('옵션: 전체','옵션: 행운')}<div class="lscroll">${ch.slice(0,16).map(c=>`<div class="rowc T${c.t}">${img(c.t)}<div><b>${TN[c.t]} 부적</b>${c.eq?' <span class="gbadge" style="--gc:#5fc48a">장착</span>':''}${c.lock?' 🔒':''}<div class="chips">${c.o.map(o=>`<span class="${o.k==='luck'?'hl':''}">${O[o.k][0]} +${o.v}%</span>`).join('')}</div></div><div class="btns" style="margin:0"><span class="${c.eq?'':'p'}">${c.eq?'해제':'장착'}</span></div></div>`).join('')}</div><div class="lfoot"><span>${ch.length}개</span><span>일괄 분해 ›</span></div></div></div>`;}
+if(V==='e'){const after=sumOf(eq.filter(c=>c!==eq[4]).concat([sel]));H=head('E · 교체 미리보기(비교형)','리스트에서 부적을 고르면 "교체 시" 합산 변화(▲▼)를 즉시 표시 · 어떤 슬롯과 바꿀지 비교 카드로 확인')+`<div class="E"><div class="top">${slots()}${sumPanel(sum,after)}</div>
+ <div class="bot"><div class="listbox">${lhead()}<div class="lscroll"><div class="inv">${ch.map(c=>`<div class="it T${c.t} ${c===sel?'sel':''}">${img(c.t)}${c.lock?'<span class="k">🔒</span>':''}${c.eq?'<span class="eq"></span>':''}</div>`).join('')}</div></div></div>
+ <div class="det T${sel.t}"><b style="font-size:13px">🔁 교체 비교</b><div class="cmp" style="margin-top:8px"><div class="c T${eq[4].t}"><img src="../img/charms/t${eq[4].t}.png"><br>장착중 · ${TN[eq[4].t]}<br>${eq[4].o.map(o=>O[o.k][0]+' +'+o.v+'%').join('<br>')}</div><b style="text-align:center">→</b><div class="c T${sel.t}"><img src="../img/charms/t${sel.t}.png"><br>선택 · ${TN[sel.t]}<br>${sel.o.map(o=>O[o.k][0]+' +'+o.v+'%').join('<br>')}</div></div><div class="small muted" style="margin-top:8px">위 합산 패널의 ▲▼가 교체 후 변화량</div><div class="btns"><span class="p">이 슬롯과 교체</span><span>취소</span></div></div></div></div>`;}
+document.getElementById('root').innerHTML=`<div class="wrap">${H}</div>`;if(window.NKE)NKE.scan&&NKE.scan(document.body);window.READY=()=>true;
+</script></body></html>

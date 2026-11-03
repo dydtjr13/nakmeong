@@ -1,0 +1,67 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>v6 시안 · 초월 등급</title><link rel="stylesheet" href="../ui-v2.css">
+<script>window.NK_EMOJI_BASE="../icons/emoji/";</script><script src="../emoji.js"></script><script src="../game-data.js"></script><script src="../game-data-v3.js"></script><script src="../game-data-v4.js"></script><script src="../game-data-v5.js"></script><script src="../sim-result.js"></script>
+<style>
+body{overflow:auto;height:auto;touch-action:auto;background:linear-gradient(#cfe6ef,#e9f3e6)}.pg{width:1180px;margin:14px auto}
+h1{font-size:21px;margin:0 0 4px}.sub{font-size:13px;color:#6a6078;margin-bottom:10px}
+.row{display:grid;grid-template-columns:270px 330px 1fr;gap:18px;align-items:start}
+.lab{font-size:12px;font-weight:800;color:#6a6078;margin:0 0 6px}
+:root{--pk:#ff2d8a}
+/* 공통: 초월 테두리 */
+.tx{position:relative;border-radius:20px;isolation:isolate}
+.c-pink .tx{border:5px solid var(--pk);box-shadow:0 0 0 3px #ffd1e6,0 0 28px #ff2d8a99,inset 0 0 22px #ff2d8a33;animation:pkglow 2.4s ease-in-out infinite}
+@keyframes pkglow{50%{box-shadow:0 0 0 3px #ffd1e6,0 0 44px #ff2d8acc,inset 0 0 30px #ff2d8a55}}
+.c-rainbow .tx{border:5px solid transparent;background:var(--inbg,linear-gradient(#fff,#fff)) padding-box,conic-gradient(from var(--a,0deg),#ff6b6b,#ffc857,#00b8a9,#38bdf8,#a78bfa,#ff6b6b) border-box!important;animation:spin 2.4s linear infinite,rbglow 2.4s ease-in-out infinite}
+.c-rainbow .dc{--inbg:linear-gradient(160deg,#fff,#f4f2ff)}.c-rainbow .gc{--inbg:linear-gradient(#fffaf3,#fffaf3)}.c-rainbow .rib{--inbg:linear-gradient(90deg,#1e1636,#3a2a5e)}
+.c-rainbow .tx{box-shadow:0 0 16px #ff6b6b66,0 0 26px #38bdf866,0 0 36px #a78bfa55}@keyframes rbglow{50%{box-shadow:0 0 22px #ffc85788,0 0 34px #00b8a988,0 0 44px #a78bfa77}}
+@property --a{syntax:'<angle>';inherits:false;initial-value:0deg}@keyframes spin{to{--a:360deg}}
+.gtx{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:900;font-size:12px;color:#fff}
+.c-pink .gtx{background:linear-gradient(90deg,#ff2d8a,#ff6fb5)}.c-rainbow .gtx{background:linear-gradient(90deg,#ff6b6b,#ffc857,#00b8a9,#38bdf8,#a78bfa);text-shadow:0 1px 0 #0004}
+/* 도감 카드 */
+.dc{background:linear-gradient(160deg,#fff,#fdf3f8);padding:12px;min-height:250px}
+.dc img.f{width:100%;height:110px;object-fit:contain;filter:drop-shadow(0 6px 10px #ff2d8a44)}.c-rainbow .dc img.f{filter:drop-shadow(0 6px 10px #7a8affaa)}
+.dc .no{position:absolute;right:12px;top:8px;font-size:11px;color:#a89;font-weight:800}.dc .nm{font-weight:900;font-size:17px}
+.pips6{display:flex;gap:3px;margin:6px 0}.pips6 i{flex:1;height:7px;border-radius:4px}
+.sp{position:absolute;color:#fff;font-size:14px;text-shadow:0 0 6px #ff9fd0;animation:tw 1.6s ease-in-out infinite;z-index:2}.c-rainbow .sp{text-shadow:0 0 6px #9fd8ff}@keyframes tw{50%{opacity:.2;transform:scale(.6)}}
+/* 획득 카드 */
+.gc{background:#fffaf3;padding:16px 18px;text-align:center}.gc img{width:240px;height:120px;object-fit:contain}.gc .big{font-size:22px;font-weight:900;margin:4px 0}.gc .cm{font-size:30px;font-weight:900;color:var(--pk)}.c-rainbow .gc .cm{background:linear-gradient(90deg,#ff6b6b,#ffc857,#00b8a9,#38bdf8,#a78bfa);-webkit-background-clip:text;color:transparent}
+.gc .rec{font-size:12px;color:#6a6078}
+/* 컷인 */
+.scene{position:relative;height:250px;border-radius:18px;overflow:hidden;background:url(../shots/v5-01-deck-tank-rod.png) center/cover}
+.scene .dim{position:absolute;inset:0;background:radial-gradient(circle,transparent 30%,#000a)}
+.tband{position:absolute;left:-4%;right:-4%;top:60px;height:130px;transform:rotate(-3deg);display:flex;align-items:center;justify-content:center;gap:18px;color:#fff}
+.c-pink .tband{background:linear-gradient(90deg,transparent,#5a0030 10%,#ff2d8a 35%,#ffb3d6 50%,#ff2d8a 65%,#5a0030 90%,transparent);box-shadow:0 0 40px #ff2d8a}
+.c-rainbow .tband{background:linear-gradient(90deg,transparent,#1a1030 8%,#ff6b6b 22%,#ffc857 36%,#00b8a9 50%,#38bdf8 64%,#a78bfa 78%,#1a1030 92%,transparent);box-shadow:0 0 40px #a78bfa}
+.tband img{height:100px;filter:drop-shadow(0 0 12px #fff)}.tband .t{font-size:38px;font-weight:900;letter-spacing:3px;text-shadow:0 3px 0 #0006,0 0 20px #fff8}.tband .s{font-size:15px;font-weight:700;text-shadow:0 2px 0 #0006}
+.rays2{position:absolute;inset:-50%;background:repeating-conic-gradient(#ffffff22 0 6deg,transparent 6deg 18deg)}
+/* 리본 */
+.rib{display:flex;align-items:center;gap:10px;padding:8px 16px 8px 10px;border-radius:16px;background:#2a1a30;color:#fff;width:fit-content;margin:8px auto 0}
+.c-pink .rib{background:linear-gradient(90deg,#4a0a2c,#8a0f4f);border:3px solid var(--pk);box-shadow:0 0 18px #ff2d8a99}
+.rib img{height:44px}.rib small{opacity:.75}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;background:#fff;border-radius:12px;overflow:hidden}.tbl td,.tbl th{border-bottom:1px solid #eee;padding:4px 7px;text-align:left}.tbl th{background:#fbf6ee}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}.box{background:#fff;border-radius:14px;padding:10px 12px;font-size:13px}
+</style></head><body><div class="pg" id="pg"></div>
+<script>
+const Q=new URLSearchParams(location.search),C=Q.get('c')||'pink',D=window.NK_DATA,SM=window.NK_SIM;document.body.className='c-'+C;
+const TX={n:'초월',m:150,lo:1.15,hi:1.35,p:1/100000,boostMax:1.8};
+const F=D.FISH.find(f=>f.k==='catfish'),i=D.FISH.indexOf(F),cm=Math.round(F.max*1.27*10)/10;
+const GC=D.GRADES.map(g=>g.c).concat([C==='pink'?'#ff2d8a':'linear-gradient(90deg,#ff6b6b,#ffc857,#00b8a9,#38bdf8,#a78bfa)']);
+const sp=(l,t,d)=>`<span class="sp" style="left:${l}%;top:${t}%;animation-delay:${d}s">✦</span>`;
+const castsB=SM.rows[0].perHour/SM.rows[0].coin,castsF=SM.rows[SM.rows.length-1].perHour/SM.rows[SM.rows.length-1].coin;
+const hrs=(p,c)=>1/p/c;
+document.getElementById('pg').innerHTML=`<h1>✦ 신규 최상위 등급 '초월' 시안 — ${C==='pink'?'A안 · 진한 핑크 (#FF2D8A)':'B안 · 무지개 회전 테두리 (톡시도 레전드 링과 같은 색 순서·2.4초 회전)'}</h1>
+<div class="sub">게임 미적용 시안 · 신화 위 6번째 등급 · 현실 기록급을 넘는 크기 구간 · 극악 확률</div>
+<div class="row">
+ <div><p class="lab">① 도감 카드</p><div class="tx dc">${sp(8,6,0)+sp(88,40,.6)+sp(14,70,1.1)}<div class="no">No.${String(i+1).padStart(3,'0')}</div><img class="f" src="../${F.img}"><div class="nm">${F.n}</div>
+  <div class="small">최대 <b>${cm}cm</b> · 31마리 · 최고 <span class="gtx">초월</span></div><div class="pips6">${GC.map(c=>`<i style="background:${c}"></i>`).join('')}</div><div class="small muted">${F.min}cm ~ ${F.max}cm · 초월 ${Math.round(F.max*TX.lo)}~${Math.round(F.max*TX.hi)}cm</div></div></div>
+ <div><p class="lab">② 획득 카드 (내가 낚았을 때)</p><div class="tx gc">${sp(6,10,0)+sp(90,14,.4)+sp(86,78,.9)+sp(4,80,1.3)}<span class="gtx">✦ 초월 ✦</span><div class="big">${F.n}</div><img src="../${F.img}"><div class="cm">${cm}cm</div><div class="rec">국내 기록(약 ${F.max}cm)을 넘는 전설 속 크기 · 가치 ×${TX.m}</div></div></div>
+ <div><p class="lab">③ 내 알림 — 중앙 컷인 (화면 흔들림 + 3.5초)</p><div class="scene"><div class="dim"></div><div class="tband"><div class="rays2"></div><img src="../${F.img}"><div><div class="t">✦ 초월 출현 ✦</div><div class="s">나 · ${F.n} ${cm}cm · 서버 최초!</div></div></div></div>
+  <p class="lab" style="margin-top:12px">④ 다른 유저 알림 — 상단 리본 (6초, 전 서버)</p><div class="tx rib">${C==='rainbow'?'':''}<img src="../${F.img}"><div><div>🌈 <b>호수요정</b>님이 <span class="gtx">초월</span> <b>${F.n} ${cm}cm</b>를 낚았어요!</div><small>방금 전 · 전체 서버 공지</small></div></div></div>
+</div>
+<div class="grid2"><div class="box"><b>📐 확률 제안 · 시뮬 기대 획득 시간</b> (캐스팅/시간: 기본 ${castsB.toFixed(0)} · 최종 ${castsF.toFixed(0)}, v5 시뮬 기준)
+<table class="tbl"><tr><th>안</th><th>낚시 1회당</th><th>기본 장비</th><th>최종+보정 ×${TX.boostMax}</th></tr>
+${[[1/30000,'완화'],[1/100000,'추천'],[1/300000,'극악']].map(([p,n])=>`<tr><td>${n}</td><td>1/${Math.round(1/p).toLocaleString()} (${(p*100).toFixed(4)}%)</td><td>약 ${hrs(p,castsB).toFixed(0)}시간</td><td>약 ${hrs(p*TX.boostMax,castsF).toFixed(0)}시간</td></tr>`).join('')}</table>
+<p class="small muted">추천안: 등급 판정과 별개로 독립 굴림. 행운·감정의달인으로 최대 ×${TX.boostMax}까지만 오름 (상한). 초월은 판매가 ×${TX.m}, 첫 획득 시 서버 전체 공지·도감 칭호.</p></div>
+<div class="box"><b>📏 어종별 초월 크기 구간 (최대 기록 × ${TX.lo} ~ × ${TX.hi})</b><table class="tbl"><tr><th>어종</th><th>현행 최대</th><th>초월</th><th>어종</th><th>현행 최대</th><th>초월</th></tr>
+${(()=>{let h='';for(let j=0;j<D.FISH.length;j+=2){const a=D.FISH[j],b=D.FISH[j+1];const c=f=>f?`<td>${f.n}</td><td>${f.max}cm</td><td><b>${Math.round(f.max*TX.lo)}~${Math.round(f.max*TX.hi)}cm</b></td>`:'<td></td><td></td><td></td>';h+=`<tr>${c(a)}${c(b)}</tr>`;}return h;})()}</table></div></div>`;
+window.READY=()=>true;
+</script></body></html>

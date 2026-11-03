@@ -1,0 +1,23 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>v5 시안 · 물고기 에셋 비교</title>
+<script src="../lib/three.min.js"></script><script src="../lib/GLTFLoader.js"></script><script src="../assets/assets-data.js"></script><script src="../mockups-v4/fish-gen.js"></script><script src="cc0fish-data.js"></script>
+<style>body{margin:0;font-family:'Noto Sans KR',sans-serif;background:#f5efe6;color:#3d3548}h1{margin:10px 16px 0;font-size:20px}.row{display:flex;gap:10px;padding:8px 12px}.col{flex:1;background:#fff;border-radius:16px;padding:8px}.col h2{font-size:15px;margin:2px 4px}canvas{width:100%;height:300px;display:block;border-radius:12px;background:#dff1f2}.lb{display:flex;justify-content:space-around;font-size:11px}.lb span{flex:1;text-align:center}table{font-size:12px;border-collapse:collapse;margin:0 14px;width:calc(100% - 28px)}td,th{border:1px solid #e2d9cc;padding:4px 6px;text-align:left}th{background:#fbf6ee}a{color:#3a6ad8}</style></head><body>
+<h1>🐟 물고기 에셋 시안 비교 — A안: 코드 생성 19종 (자체 제작) vs B안: 무료 CC0 에셋</h1>
+<div class="row"><div class="col"><h2>A안 · 코드 생성(낚멍 전용, 19종 실제 어종 형태)</h2><canvas id="a"></canvas><div class="lb" id="la"></div></div>
+<div class="col"><h2>B안 · CC0 무료 모델 (Poly Pizza 다운로드본)</h2><canvas id="b"></canvas><div class="lb" id="lb"></div></div></div>
+<table><tr><th>안</th><th>출처·링크 (2026-11-03 확인)</th><th>라이선스</th><th>장점</th><th>단점</th></tr>
+<tr><td>A 코드 생성</td><td>mockups-v4/fish-gen.js (자체 제작)</td><td>자체 저작</td><td>한국 민물고기 19종 형태·무늬 재현, 파일 0KB 추가, 등급 색 적용 쉬움</td><td>디테일·애니메이션이 단순(꼬리 흔들기 코드)</td></tr>
+<tr><td>B-1 Quaternius</td><td><a href="https://quaternius.com/packs/cutefish.html">Animated Cute Fish Pack</a> (52종+낚싯대·루어) · <a href="https://quaternius.com/packs/animatedfish.html">Animated Fish Pack</a> (7종) · <a href="https://poly.pizza/m/Ymu8ftrmuT">Fish</a> · <a href="https://poly.pizza/m/ypEYhCImAB">Fish(2022)</a> · <a href="https://poly.pizza/m/6jO6q4uCdh">Zebra Clown Fish</a> · <a href="https://poly.pizza/m/D36zsP5ESu">Tang</a></td><td>CC0 (Public Domain)</td><td>리깅·수영 애니메이션 포함, 파스텔 로우폴리 톤 일치</td><td>대부분 바다/관상어 형태 → 붕어·메기 등 국내 어종과 다름, 색 리터칭 필요, 모델당 60~460KB</td></tr>
+<tr><td>B-2 Kenney</td><td><a href="https://www.kenney.nl/assets/fish-pack">Fish Pack</a>(2D 스프라이트) · <a href="https://poly.pizza/m/HkUAXudvBt">Fish (Survival Kit 3D)</a></td><td>CC0</td><td>극저폴리(24KB), 현재 Kenney 자연 에셋과 톤 동일</td><td>3D는 1종뿐(Fish Pack은 2D) → 어종 구분 불가</td></tr></table>
+<p style="margin:8px 16px;font-size:12px">※ 기존 안내의 "Quaternius Ultimate Fish" 페이지(quaternius.com/packs/ultimatefish.html)는 404 → 실제 팩 이름은 위 두 개. <b>추천: A안(코드 생성) 유지 + 수영 애니메이션만 Quaternius 방식(본 흔들기) 참고</b>. 어종 정확도가 도감 핵심이기 때문.</p>
+<script>
+function scene(cv){const r=new THREE.WebGLRenderer({canvas:cv,antialias:true});r.outputEncoding=THREE.sRGBEncoding;const w=cv.clientWidth,h=cv.clientHeight;r.setSize(w,h,false);const s=new THREE.Scene();s.background=new THREE.Color('#dff1f2');const c=new THREE.PerspectiveCamera(30,w/h,.1,100);c.position.set(0,1.2,13);c.lookAt(0,0,0);const dl=new THREE.DirectionalLight(0xffffff,.9);dl.position.set(3,5,6);s.add(new THREE.HemisphereLight(0xffffff,0x8ab,1),dl);return {r,s,c};}
+const A=scene(document.getElementById('a')),B=scene(document.getElementById('b'));
+const ks=['crucian','carp','catfish','mandarin','eel'],nm={crucian:'붕어',carp:'잉어',catfish:'메기',mandarin:'쏘가리',eel:'뱀장어'};
+ks.forEach((k,i)=>{const f=makeSpeciesFish(k);f.position.set((i-2)*2.6,0,0);f.rotation.y=-.5;const sc=1/Math.max(1,(FISH_SPECS[k].L||1)*.8);f.scale.setScalar(sc);A.s.add(f);});
+document.getElementById('la').innerHTML=ks.map(k=>`<span>${nm[k]}</span>`).join('');
+const names={Ymu8ftrmuT:'Fish (Quaternius)',ypEYhCImAB:'Fish 2022 (Quaternius)',HkUAXudvBt:'Fish (Kenney)',"6jO6q4uCdh":'Zebra Clown (Quaternius)',D36zsP5ESu:'Tang (Quaternius)'};
+const L=new THREE.GLTFLoader(),keys=Object.keys(CC0F);let done=0;
+keys.forEach((k,i)=>{const bin=Uint8Array.from(atob(CC0F[k]),c=>c.charCodeAt(0));L.parse(bin.buffer,'',g=>{const o=g.scene;const bb=new THREE.Box3().setFromObject(o),sz=bb.getSize(new THREE.Vector3()),ct=bb.getCenter(new THREE.Vector3());const sc=2/Math.max(sz.x,sz.y,sz.z);o.scale.setScalar(sc);o.position.set((i-2)*2.6-ct.x*sc,-ct.y*sc,-ct.z*sc);const w=new THREE.Group();w.add(o);w.rotation.y=sz.z>sz.x?-1.1:-.5;w.position.x=(i-2)*2.6;o.position.x-= (i-2)*2.6;B.s.add(w);done++;});});
+document.getElementById('lb').innerHTML=keys.map(k=>`<span>${names[k]}</span>`).join('');
+function loop(){A.r.render(A.s,A.c);B.r.render(B.s,B.c);requestAnimationFrame(loop);}loop();window.READY=()=>done===keys.length;
+</script></body></html>

@@ -1,0 +1,538 @@
+/* 낚멍 v2 — 3D 로우폴리 파스텔 (three.js r147, 일반 script 빌드: file:// 더블클릭 실행 가능) */
+(()=>{
+THREE.ColorManagement.legacyMode=false;
+const D=NK_DATA,$=id=>document.getElementById(id),qs=new URLSearchParams(location.search);
+const DECKS=Math.min(20,Math.max(2,+qs.get('decks')||D.DECK_COUNT_DEFAULT)),LR=24;
+const UP=new THREE.Vector3(0,1,0),V=new THREE.Vector3(),Q=new THREE.Quaternion(),SC=new THREE.Vector3(),M4=new THREE.Matrix4();
+const rand=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.random()*a.length|0];
+// ───────── 저장 데이터 ─────────
+const SKEY='nakmeong_v2';
+const S0={coins:D.START_COINS,tank:[],tankK:'s',tanks:['s'],rod:'bamboo',rods:['bamboo'],bait:'worm',baits:{worm:-1},dex:{},char:0,sDay:0,sNight:0,vol:.8,nid:1,caught:0,earned:0,gear:[],rodId:null,charms:[],equip:[],stones:0,enh:{},boxes:[],auto:null,nick:'',showG:{tree:1,grass:1,flower:1}};
+let S=Object.assign({},S0,JSON.parse(localStorage.getItem(SKEY)||'{}'));
+const SYS=window.NK_SYS;S.auto=S.auto||Object.assign({},D.AUTO_DEFAULT,{keepNew:false});if(!S.auto.v6){S.auto.v6=1;S.auto.keepNew=false;}const NICK=()=>S.nick||'나';SYS.migrate(D,S);let NIGHT=0;
+const save=()=>{S.savedAt=S.savedAt||Date.now();try{localStorage.setItem(SKEY,JSON.stringify(S));}catch(e){}};
+const sellP=f=>Math.round(f.v*SYS.mods(D,S,rod(),bait()).sell);
+const FI=k=>D.FISH.find(f=>f.k===k),rod=()=>SYS.gearStats(D,SYS.gearOf(S)),bait=()=>D.BAITS.find(b=>b.k===S.bait),cap=()=>D.TANKS.find(t=>t.k===S.tankK).cap;
+const gradeOf=(f,cm)=>{let g=0;f.g.forEach((t,i)=>{if(cm>=t)g=i+1;});return g;};
+const valueOf=(f,cm,g)=>Math.round(f.base*Math.pow(cm/f.min,1.5)*D.GRADES[g].m);
+function rollFish(r=rod(),b=bait()){const ws=SYS.weights(D,S,r,b,NIGHT),MO=SYS.mods(D,S,r,b);let s=Math.random()*ws.reduce((a,c)=>a+c,0),f=D.FISH[0];
+  for(let i=0;i<ws.length;i++){s-=ws[i];if(s<0){f=D.FISH[i];break;}}
+  const cm=Math.round(Math.min(f.max,f.min-Math.log(1-Math.random())*f.scale*MO.size)*10)/10,g=gradeOf(f,cm),v=valueOf(f,cm,g);
+  return {id:S.nid++,k:f.k,cm,g,v,price:Math.round(v*1.3),sale:false};}
+// ───────── UI 유틸 ─────────
+function toast(h,ms=1800){const t=$('toast');t.innerHTML=h;t.style.opacity=1;clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity=0,ms);}
+const bubbles={};
+function say(who,txt,me){const p=document.createElement('div');p.innerHTML=`<b style="color:${me?'#ffd58a':'#bfe6ff'}">${who}</b> ${txt}`;$('log').appendChild(p);$('log').scrollTop=1e6;bubbles[who]={txt,t:performance.now()};}
+const bubbleOf=w=>bubbles[w]&&performance.now()-bubbles[w].t<6000?bubbles[w].txt:'';
+const gc=g=>D.GRADES[g].c;
+function hud(){try{if(me){setCharRod(me,SYS.gearOf(S).k,rod().star);}updMyTankExt();}catch(e){}$('coins').textContent='🪙 '+S.coins.toLocaleString();const b=bait(),q=S.baits[S.bait];
+  $('equip').textContent=`🎣 ${rod().n}${rod().star?' ★'+rod().star:''}${rod().enh?' +'+rod().enh:''} · 🪱 ${b.n}${q>0?' ×'+q:''} · 🐠 ${S.tank.length}/${cap()}`;}
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeM(b.dataset.close));
+function openM(id){document.querySelectorAll('.modal.show').forEach(m=>{if(m.id!=='start')m.classList.remove('show');});$(id).classList.add('show');}
+function closeM(id){$(id).classList.remove('show');if(id==='tank')tankView.close();}
+const anyModal=()=>!!document.querySelector('.modal.show');
+// ───────── 렌더러/씬 ─────────
+const R=new THREE.WebGLRenderer({canvas:$('world'),antialias:devicePixelRatio<2,powerPreference:'high-performance'});
+R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.setSize(innerWidth,innerHeight);R.outputEncoding=THREE.sRGBEncoding;
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,.1,400);
+scene.fog=new THREE.Fog(0xcfe6ef,110,300); // 아주 약한 거리 포그만 (물안개 제거)
+const hemi=new THREE.HemisphereLight(0xffffff,0xb8d8a0,.9),sun=new THREE.DirectionalLight(0xffffff,1);sun.position.set(-40,60,25);scene.add(hemi,sun);
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
+const PAL=[{sky:'#bfe4f2',gnd:'#cfe6b0',sun:'#fff3dc',si:1.0,hemi:.95,deep:'#6fb6c6',shal:'#b2e0d8',fire:.7,lan:0},
+  {sky:'#f6c3a8',gnd:'#d8b8b8',sun:'#ffb17a',si:.85,hemi:.75,deep:'#8f93c6',shal:'#eec0b4',fire:1.5,lan:.6},
+  {sky:'#2e3768',gnd:'#2c3a4a',sun:'#a8b6ff',si:.32,hemi:.42,deep:'#26325e',shal:'#41598a',fire:3,lan:2.2}];
+const time={t:.05,auto:true,len:150};
+function lerpC(a,b,k){return new THREE.Color(a).lerp(new THREE.Color(b),k);}
+function palette(){const x=time.t*3,i=Math.floor(x)%3,j=(i+1)%3;let k=x-Math.floor(x);k=k<.65?0:(k-.65)/.35;k=k*k*(3-2*k);const o={};
+  for(const key in PAL[0])o[key]=typeof PAL[0][key]==='number'?PAL[i][key]*(1-k)+PAL[j][key]*k:lerpC(PAL[i][key],PAL[j][key],k);o.night=(i==2?1-k:0)+(j==2?k:0);o.name=['낮','노을','밤'][i];return o;}
+// ───────── 에셋 로딩 + 팔레트 통일 ─────────
+const G={},matCache={},texCache={};
+function pastelTex(tex){if(!tex||!tex.image)return tex;if(texCache[tex.uuid])return texCache[tex.uuid];const im=tex.image,c=document.createElement('canvas');c.width=im.width;c.height=im.height;const x=c.getContext('2d');x.drawImage(im,0,0);
+  const d=x.getImageData(0,0,c.width,c.height),p=d.data;for(let i=0;i<p.length;i+=4){const l=(p[i]+p[i+1]+p[i+2])/3;for(let j=0;j<3;j++)p[i+j]=Math.min(255,(p[i+j]*.82+l*.18)*.9+255*.1);}x.putImageData(d,0,0);
+  const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.flipY=tex.flipY;t.magFilter=THREE.NearestFilter;t.wrapS=tex.wrapS;t.wrapT=tex.wrapT;return texCache[tex.uuid]=t;}
+function pastelMat(m){if(matCache[m.uuid])return matCache[m.uuid];const c=m.color?m.color.clone():new THREE.Color(1,1,1),h={};c.getHSL(h);if(h.h>.36&&h.h<.55)h.h-=(h.h-.33)*.85;c.setHSL(h.h,h.s*.82,.08+h.l*.92);
+  const n=new THREE.MeshLambertMaterial({color:c,map:pastelTex(m.map),transparent:m.transparent,opacity:m.opacity,side:m.side});n.name=m.name;return matCache[m.uuid]=n;}
+function unify(root){root.traverse(o=>{if(o.isMesh){o.material=Array.isArray(o.material)?o.material.map(pastelMat):pastelMat(o.material);}});}
+function b64(s){const bin=atob(s),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u.buffer;}
+function loadAll(){const L=new THREE.GLTFLoader();return Promise.all(Object.keys(NK_GLB).map(k=>new Promise(res=>{try{L.parse(b64(NK_GLB[k]),'',g=>{G[k]=g;unify(g.scene);res();},e=>{console.warn(k,e);res();});}catch(e){console.warn(k,e);res();}})));}
+// 정적 소품 인스턴싱 (모델의 메쉬 수 = 드로우콜 수, 개수와 무관)
+const VG={tree:[],grass:[],flower:[]};const vgOf=k=>/^tree/.test(k)?'tree':/^(flower|mushroom)/.test(k)?'flower':/^(grass|plant_bush)/.test(k)?'grass':null;
+function inst(key,list,base=1){if(!G[key]||!list.length)return[];const root=G[key].scene;root.updateMatrixWorld(true);const out=[];
+  root.traverse(o=>{if(!o.isMesh)return;const im=new THREE.InstancedMesh(o.geometry,o.material,list.length);
+    list.forEach((p,i)=>{M4.compose(V.set(p[0],p[1],p[2]),Q.setFromAxisAngle(UP,p[3]||0),SC.setScalar((p[4]||1)*base));M4.multiply(o.matrixWorld);im.setMatrixAt(i,M4);});
+    im.frustumCulled=false;scene.add(im);out.push(im);const g=vgOf(key);if(g)VG[g].push(im);});return out;}
+function place(key,x,y,z,ry=0,s=1){if(!G[key])return new THREE.Group();const o=G[key].scene.clone();o.position.set(x,y,z);o.rotation.y=ry;o.scale.setScalar(s);scene.add(o);return o;}
+// ───────── 지형 ─────────
+const H=(x,z)=>{const r=Math.hypot(x,z);if(r<LR-1)return -2.2;if(r<LR+2)return -2.2+(r-LR+1)/3*2.5;return .3+Math.max(0,r-52)*.3*(1+Math.sin(x*.15)*Math.cos(z*.12))+Math.sin(x*.25)*Math.cos(z*.2)*.25;};
+function buildTerrain(){const g=new THREE.PlaneGeometry(220,220,80,80);g.rotateX(-Math.PI/2);const p=g.attributes.position,col=[],cs=['#b9dc9c','#acd38f','#c2e2a6'].map(c=>new THREE.Color(c)),sand=new THREE.Color('#f1e0b4'),wet=new THREE.Color('#d9c79a');
+  for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i),r=Math.hypot(x,z);p.setY(i,H(x,z));const c=r<LR+.3?wet:r<LR+3.2?sand:cs[(Math.abs(Math.sin(x*12.9+z*78.2))*3)|0];col.push(c.r,c.g,c.b);}
+  g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));const ng=g.toNonIndexed();ng.computeVertexNormals();scene.add(new THREE.Mesh(ng,new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true})));}
+// ───────── 물 셰이더 (잔물결 + 프레넬 반사 + 찌 파문) ─────────
+const wU={t:{value:0},deep:{value:new THREE.Color()},shal:{value:new THREE.Color()},sky:{value:new THREE.Color()},bob:{value:new THREE.Vector3(0,0,-99)},night:{value:0},R:{value:LR}};
+function buildWater(){const m=new THREE.ShaderMaterial({uniforms:wU,transparent:true,vertexShader:`varying vec3 wp;void main(){vec4 w=modelMatrix*vec4(position,1.);wp=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,
+fragmentShader:`uniform float t,night,R;uniform vec3 deep,shal,sky,bob;varying vec3 wp;
+void main(){vec2 p=wp.xz;float r=length(p);
+vec2 n=vec2(sin(p.x*1.1+t*1.1)+sin(p.y*1.6+p.x*.4+t*.8)*.7,cos(p.y*1.0+t)+sin(p.x*.7-p.y*1.2+t*.6)*.6)*.07;
+float bd=length(p-bob.xz);n+=normalize(p-bob.xz+1e-4)*sin(bd*6.-t*6.)*exp(-bd*.55)*.22*bob.y;
+vec3 nn=normalize(vec3(n.x,1.,n.y));vec3 v=normalize(cameraPosition-wp);float fr=pow(1.-max(dot(nn,v),0.),3.);
+vec3 c=mix(shal,deep,smoothstep(2.,12.,R-r));c=mix(c,sky,fr*.45+.05);
+float sp=pow(max(dot(reflect(-v,nn),normalize(vec3(-.5,.45,-.6))),0.),70.);c+=sp*mix(vec3(1.,.9,.75),vec3(.7,.8,1.),night)*.7;
+gl_FragColor=vec4(c,.9);
+#include <encodings_fragment>
+}`});const w=new THREE.Mesh(new THREE.CircleGeometry(LR+1.2,72).rotateX(-Math.PI/2),m);w.position.y=-.1;scene.add(w);}
+// ───────── 데크 (DECKS 값으로 자동 배치) ─────────
+const decks=[];
+function buildDecks(){const BOARDS=12,LEN=9,W=3,boardG=new THREE.BoxGeometry(W,.18,LEN/BOARDS-.06),wood=new THREE.MeshLambertMaterial({color:'#dcae80',flatShading:true});
+  const boards=new THREE.InstancedMesh(boardG,wood,DECKS*BOARDS),posts=new THREE.InstancedMesh(new THREE.CylinderGeometry(.13,.15,2.8,6),new THREE.MeshLambertMaterial({color:'#b88a62',flatShading:true}),DECKS*6);
+  const stand=new THREE.InstancedMesh(new THREE.BoxGeometry(1.3,.6,.7),new THREE.MeshLambertMaterial({color:'#c49468',flatShading:true}),DECKS);
+  const glass=new THREE.InstancedMesh(new THREE.BoxGeometry(1.2,.8,.6),new THREE.MeshLambertMaterial({color:'#bfeaf5',transparent:true,opacity:.55}),DECKS);
+  const lan=[],buck=[],plant=[];
+  for(let i=0;i<DECKS;i++){const a=-Math.PI/2+i*Math.PI*2/DECKS,ca=Math.cos(a),sa=Math.sin(a),cr=LR-2.5,cx=ca*cr,cz=sa*cr,ry=-a+Math.PI/2;
+    Q.setFromAxisAngle(UP,ry);
+    for(let b=0;b<BOARDS;b++){const o=-LEN/2+(b+.5)*LEN/BOARDS;M4.compose(V.set(cx-ca*o,.3+Math.sin(b*7.3+i)*.015,cz-sa*o),Q,SC.set(1,1,1));boards.setMatrixAt(i*BOARDS+b,M4);}
+    [[-1.35,-4],[1.35,-4],[-1.35,0],[1.35,0],[-1.35,4],[1.35,4]].forEach(([sx,o],k)=>{M4.compose(V.set(cx+ca*o-sa*sx*-1*0+(-sa)*sx,-.9,cz+sa*o+ca*sx),Q.identity(),SC.set(1,1,1));posts.setMatrixAt(i*6+k,M4);});
+    // 어항 위치(데크 측면 중앙)
+    const tx=cx+ca*.5-sa*1.0,tz=cz+sa*.5+ca*1.0;Q.setFromAxisAngle(UP,ry);M4.compose(V.set(tx,.7,tz),Q,SC.set(1,1,1));stand.setMatrixAt(i,M4);M4.compose(V.set(tx,1.4,tz),Q,SC.set(1,1,1));glass.setMatrixAt(i,M4);
+    if(i===0){myTankPos={x:tx,z:tz,ry};M4.compose(V.set(tx,-50,tz),Q,SC.set(.001,.001,.001));stand.setMatrixAt(0,M4);glass.setMatrixAt(0,M4);}
+    lan.push([cx-ca*3.9+sa*1.25,.38,cz-sa*3.9-ca*1.25,ry,1.3]);if(i%2)buck.push([cx+ca*2+sa*.9,.38,cz+sa*2-ca*.9,a,2.2]);else plant.push([cx+ca*2.5+sa*1,.38,cz+sa*2.5-ca*1,a,1.6]);
+    decks.push({i,a,cx,cz,ca,sa,tip:{x:ca*(LR-6.4),z:sa*(LR-6.4)},entry:{x:ca*(LR+3),z:sa*(LR+3)},tank:{x:tx,z:tz},lantern:{x:lan[i][0],z:lan[i][2]},owner:null});}
+  boards.frustumCulled=posts.frustumCulled=stand.frustumCulled=glass.frustumCulled=false;scene.add(boards,posts,stand,glass);stand.userData.tankPick=true;glass.userData.tankPick=true;tankPickers.push(stand,glass);
+  inst('ft-lantern',lan);lanGlow=new THREE.InstancedMesh(new THREE.SphereGeometry(.16,8,6),new THREE.MeshBasicMaterial({color:'#fff1c4'}),lan.length);lan.forEach((l,i)=>{M4.makeTranslation(l[0],l[1]+1.85,l[2]);lanGlow.setMatrixAt(i,M4);});lanGlow.frustumCulled=false;scene.add(lanGlow);inst('bucket',buck);inst('pottedPlant',plant);}
+const tankPickers=[];let myTankX=null,myTankPos=null,myTankK=null;
+function updMyTankExt(){if(!window.NK_TANKX||!myTankPos||myTankK===S.tankK)return;myTankK=S.tankK;if(myTankX){scene.remove(myTankX);const i=tankPickers.indexOf(myTankX);if(i>=0)tankPickers.splice(i,1);}const T=D.TANKS.find(t=>t.k===S.tankK),x=NK_TANKX(T.design,{W:3.2,H:1.9,D:1.5,y0:1.25,sh:1.25});const g=x.g;g.scale.setScalar(.42);g.position.set(myTankPos.x,.39,myTankPos.z);g.rotation.y=myTankPos.ry;g.traverse(m=>m.userData.myTank=true);scene.add(g);myTankX=g;tankPickers.push(g);}let lanGlow=null;
+const inDeck=(x,z)=>decks.some(d=>{const dx=x-d.cx,dz=z-d.cz,al=dx*d.ca+dz*d.sa,sd=-dx*d.sa+dz*d.ca;return Math.abs(al)<4.4&&Math.abs(sd)<1.4;});
+// 어항 안 작은 물고기 (월드 표시용, 인스턴싱)
+let worldFish=null;
+// ───────── 자연·소셜 공간 ─────────
+const obstacles=[];let SH,SHOP,fireL,fireMesh,lanL;
+function angGap(a){return decks.some(d=>{let x=Math.abs(((a-d.a)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI);return x<.16;});}
+function buildWorld(){const sa=-Math.PI/2+Math.PI/DECKS,sh=Math.PI/2+Math.PI/DECKS;SHOP={x:Math.cos(sa)*(LR+10),z:Math.sin(sa)*(LR+10)};SH={x:Math.cos(sh)*(LR+11),z:Math.sin(sh)*(LR+11)};
+  // 공용 쉼터: 모닥불 + 벤치 + 텐트 + 장작
+  place('campfire_stones',SH.x,.3,SH.z,0,5);place('campfire_logs',SH.x,.3,SH.z,0,5);
+  fireMesh=new THREE.Mesh(new THREE.ConeGeometry(.5,1.4,7),new THREE.MeshBasicMaterial({color:'#ffb469'}));fireMesh.position.set(SH.x,.95,SH.z);scene.add(fireMesh);
+  fireL=new THREE.PointLight(0xff9a50,1,22,1.6);fireL.position.set(SH.x,2,SH.z);scene.add(fireL);obstacles.push([SH.x,SH.z,1.3]);
+  const bl=[];for(let k=0;k<5;k++){const a=k/5*Math.PI*2+.3;bl.push([SH.x+Math.cos(a)*3.6,.3,SH.z+Math.sin(a)*3.6,-a+Math.PI/2,2]);obstacles.push([SH.x+Math.cos(a)*3.6,SH.z+Math.sin(a)*3.6,.8]);}inst('bench',bl);
+  const ta=Math.atan2(SH.z,SH.x);place('tent_detailedOpen',SH.x+Math.cos(ta)*7,.3,SH.z+Math.sin(ta)*7,-ta-Math.PI/2,5);obstacles.push([SH.x+Math.cos(ta)*7,SH.z+Math.sin(ta)*7,2.2]);
+  place('log_stack',SH.x+Math.cos(ta+.9)*6,.3,SH.z+Math.sin(ta+.9)*6,ta,4);place('lantern-hanging',SH.x,3.2,SH.z,0,0.01);
+  // 작은 상점: 노점 2동 + 수레 + 통 + 표지판 + 랜턴
+  const oa=Math.atan2(SHOP.z,SHOP.x),ry=-oa-Math.PI/2,ox=-Math.sin(oa),oz=Math.cos(oa);
+  place('stall-red',SHOP.x-ox*2.2,.3,SHOP.z-oz*2.2,ry,3.2);place('stall-green',SHOP.x+ox*2.2,.3,SHOP.z+oz*2.2,ry,3.2);
+  place('cart',SHOP.x+ox*6+Math.cos(oa)*1,.3,SHOP.z+oz*6+Math.sin(oa)*1,ry+.4,2.6);place('barrel',SHOP.x-ox*5,.3,SHOP.z-oz*5,0,3);place('barrel',SHOP.x-ox*5.8,.3,SHOP.z-oz*4.4,0,3);
+  place('signpost',SHOP.x-Math.cos(oa)*3.5,.3,SHOP.z-Math.sin(oa)*3.5,ry,3.5);place('ft-lantern',SHOP.x-Math.cos(oa)*2.5+ox*4.3,.3,SHOP.z-Math.sin(oa)*2.5+oz*4.3,0,1.4);
+  obstacles.push([SHOP.x-ox*2.2,SHOP.z-oz*2.2,1.7],[SHOP.x+ox*2.2,SHOP.z+oz*2.2,1.7],[SHOP.x+ox*6,SHOP.z+oz*6,1.6],[SHOP.x-ox*5.4,SHOP.z-oz*4.7,.9]);
+  lanL=new THREE.PointLight(0xffd08a,0,12,1.5);scene.add(lanL);
+  // 나무 (종류별 InstancedMesh)
+  const TT=['tree_oak','tree_default','tree_fat','tree_detailed','tree_pineRoundA','tree_pineDefaultA','tree_oak_fall','tree_default_fall','tree_cone'],TL={};TT.forEach(t=>TL[t]=[]);
+  let n=0;while(n<150){const a=Math.random()*Math.PI*2,r=LR+6+Math.pow(Math.random(),.7)*70,x=Math.cos(a)*r,z=Math.sin(a)*r;
+    if(Math.hypot(x-SH.x,z-SH.z)<11||Math.hypot(x-SHOP.x,z-SHOP.z)<11||(r<LR+16&&angGap(a))||Math.abs(x)>105||Math.abs(z)>105)continue;
+    const s=rand(4.2,6.5);TL[TT[n%TT.length]].push([x,H(x,z)-.1,z,Math.random()*6.3,s]);obstacles.push([x,z,.35*s*.5]);n++;}
+  TT.forEach(t=>inst(t,TL[t]));
+  const bush={plant_bush:[],plant_bushLarge:[],plant_bushSmall:[]};for(let i=0;i<60;i++){const a=Math.random()*6.3,r=LR+4+Math.random()*40;if(angGap(a))continue;bush[pick(Object.keys(bush))].push([Math.cos(a)*r,H(Math.cos(a)*r,Math.sin(a)*r)-.05,Math.sin(a)*r,a,rand(3,4.5)]);}
+  Object.keys(bush).forEach(k=>inst(k,bush[k]));
+  // 호숫가 바위
+  const RK={rock_largeA:[],rock_largeB:[],rock_smallA:[],rock_smallC:[],stone_largeA:[]};for(let i=0;i<46;i++){const a=Math.random()*6.3;if(angGap(a))continue;const r=LR+rand(-.3,2.6);RK[pick(Object.keys(RK))].push([Math.cos(a)*r,H(Math.cos(a)*r,Math.sin(a)*r)-.1,Math.sin(a)*r,Math.random()*6,rand(2.5,4.5)]);}
+  Object.keys(RK).forEach(k=>inst(k,RK[k]));
+  // 풀·꽃·버섯
+  const GF={grass:[],grass_large:[],grass_leafs:[],grass_leafsLarge:[],flower_purpleA:[],flower_redA:[],flower_yellowA:[],flower_yellowB:[],flower_purpleB:[],mushroom_red:[],mushroom_tanGroup:[]};const gk=Object.keys(GF);
+  for(let i=0;i<520;i++){const a=Math.random()*6.3,r=LR+2.5+Math.pow(Math.random(),1.4)*55,x=Math.cos(a)*r,z=Math.sin(a)*r;const k=i%3?gk[i%4]:gk[4+(i%7)];GF[k].push([x,H(x,z)-.03,z,Math.random()*6,rand(3,5)]);}
+  gk.forEach(k=>inst(k,GF[k]));
+  // 수련잎 + 카누
+  const LL={lily_large:[],lily_small:[]};for(let i=0;i<40;i++){const a=Math.random()*6.3,r=rand(LR-9,LR-1);if(angGap(a))continue;LL[i%2?'lily_large':'lily_small'].push([Math.cos(a)*r,-.12,Math.sin(a)*r,Math.random()*6,rand(4,6)]);}
+  Object.keys(LL).forEach(k=>inst(k,LL[k]));
+  const ca=sh+.5;place('canoe',Math.cos(ca)*(LR+1.5),-.25,Math.sin(ca)*(LR+1.5),-ca,4);
+  // 호수 속 물고기 그림자
+  if(G.fish){const fm=G.fish.scene.getObjectByProperty('isMesh',true);const sh2=new THREE.InstancedMesh(fm.geometry,new THREE.MeshBasicMaterial({color:'#20384a',transparent:true,opacity:.35}),16);sh2.frustumCulled=false;scene.add(sh2);
+    worldFish={m:sh2,d:[...Array(16)].map(()=>({r:rand(3,LR-3),a:Math.random()*6.3,s:rand(.05,.15)*(Math.random()<.5?-1:1),sz:rand(5,10)}))};}}
+// ───────── 캐릭터 (Kenney Mini Characters + 애니메이션) ─────────
+const KINDS=[{k:'character-male-a',n:'성인 남성',s:1},{k:'character-female-a',n:'성인 여성',s:1},{k:'character-male-c',n:'남자 어린이',s:.72},{k:'character-female-c',n:'여자 어린이',s:.72},
+  {k:'character-male-b',s:1},{k:'character-female-b',s:1},{k:'character-male-e',s:1},{k:'character-female-e',s:1}];
+const chars=[];
+function makeChar(ki,name){const K=KINDS[ki],src=G[K.k];const o=THREE.SkeletonUtils.clone(src.scene);o.scale.setScalar(2.6*K.s);scene.add(o);
+  const mixer=new THREE.AnimationMixer(o),acts={};src.animations.forEach(a=>acts[a.name]=mixer.clipAction(a));
+  const arm=o.getObjectByName('arm-right');const rodM=new THREE.Group();const rc=new THREE.Mesh(new THREE.CylinderGeometry(.006,.014,.95,5),new THREE.MeshLambertMaterial({color:'#7a5236'}));rc.position.y=.47;rodM.add(rc);
+  const reel=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.03,8),new THREE.MeshLambertMaterial({color:'#e8e2d8'}));reel.rotation.z=Math.PI/2;reel.position.y=.12;rodM.add(reel);
+  rodM.position.set(0,-.2,.05);rodM.rotation.x=1.15;rodM.visible=false;(arm||o).add(rodM);
+  const tip=new THREE.Object3D();tip.position.y=.95;rodM.add(tip);rc.visible=reel.visible=false;
+  const tag=makeTag(name);scene.add(tag);
+  const c={o,mixer,acts,cur:null,rod:rodM,tip,tag,name,h:1.9*K.s,dir:0};c.play=n=>{if(c.cur===n||!acts[n])return;const a=acts[n];a.reset().fadeIn(.2).play();if(c.cur&&acts[c.cur])acts[c.cur].fadeOut(.2);c.cur=n;};c.play('idle');chars.push(c);setCharRod(c,'bamboo',0);return c;}
+function setCharRod(c,k,star){if(!window.NK_ROD3D)return;if(c.rodK===k+star)return;c.rodK=k+star;if(c.rodMdl)c.rod.remove(c.rodMdl);const m=NK_ROD3D(k,star);c.rod.add(m);c.rodMdl=m;c.tip=m.userData.tip;}
+function makeTag(name){const cv=document.createElement('canvas');cv.width=320;cv.height=110;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false,transparent:true}));sp.scale.set(3.4,1.17,1);sp.renderOrder=9;sp.userData={cv,last:null,name};return sp;}
+function drawTag(sp,b){if(sp.userData.last===b)return;sp.userData.last=b;const x=sp.userData.cv.getContext('2d');x.clearRect(0,0,320,110);x.font='bold 26px sans-serif';x.textAlign='center';
+  if(b){const w=Math.min(300,x.measureText(b).width+30);x.fillStyle='#fffaf3';x.beginPath();if(x.roundRect)x.roundRect(160-w/2,2,w,48,18);else x.rect(160-w/2,2,w,48);x.fill();x.beginPath();x.moveTo(150,50);x.lineTo(170,50);x.lineTo(160,60);x.fill();x.fillStyle='#4a4058';NK_fillTextEmoji(x,[...b].length>14?[...b].slice(0,13).join('')+'…':b,160,36,26,()=>{sp.userData.last=null;});}
+  x.lineWidth=5;x.strokeStyle='#4a405888';x.strokeText(sp.userData.name,160,96);x.fillStyle='#fff';x.fillText(sp.userData.name,160,96);sp.material.map.needsUpdate=true;}
+// ───────── 충돌 ─────────
+function walk(x,z){const r=Math.hypot(x,z);if(r>90)return false;if(r<LR+.5&&!inDeck(x,z))return false;for(const o of obstacles)if((x-o[0])**2+(z-o[1])**2<o[2]*o[2])return false;
+  for(const d of decks){if(Math.hypot(x-d.tank.x,z-d.tank.z)<.55)return false;}return true;}
+// ───────── 사운드: 앰비언트(파일) + 효과음(합성) ─────────
+const snd={on:true,ctx:null,day:new Audio(),night:new Audio(),force:null,forceT:0};snd.day.loop=snd.night.loop=true;
+function setAmb(){const d=D.SOUNDS.day[S.sDay],n=D.SOUNDS.night[S.sNight];const ext=snd.day.canPlayType('audio/ogg')?'.ogg':'.mp3';
+  if(!snd.day.src.includes(d.f)){snd.day.src=d.f+ext;snd.on&&snd.day.play().catch(()=>{});}if(!snd.night.src.includes(n.f)){snd.night.src=n.f+ext;snd.on&&snd.night.play().catch(()=>{});}}
+function startAudio(){try{snd.ctx=new (window.AudioContext||window.webkitAudioContext)();snd.m=snd.ctx.createGain();snd.m.gain.value=.5;snd.m.connect(snd.ctx.destination);
+  const nb=snd.ctx.createBuffer(1,snd.ctx.sampleRate,snd.ctx.sampleRate),d=nb.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;snd.nb=nb;}catch(e){}setAmb();snd.day.play().catch(()=>{});snd.night.play().catch(()=>{});}
+function tone(f1,f2,dur,type='sine',g=.15,delay=0){if(!snd.ctx||!snd.on)return;const A=snd.ctx,t=A.currentTime+delay,o=A.createOscillator(),gn=A.createGain();o.type=type;o.frequency.setValueAtTime(f1,t);o.frequency.exponentialRampToValueAtTime(f2,t+dur);gn.gain.setValueAtTime(g,t);gn.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(gn).connect(snd.m);o.start(t);o.stop(t+dur+.05);}
+function splash(g=.3,f=1100){if(!snd.ctx||!snd.on)return;const A=snd.ctx,s=A.createBufferSource();s.buffer=snd.nb;const fl=A.createBiquadFilter();fl.type='bandpass';fl.frequency.value=f;fl.Q.value=.8;const gn=A.createGain();gn.gain.setValueAtTime(g,A.currentTime);gn.gain.exponentialRampToValueAtTime(.001,A.currentTime+.6);s.connect(fl).connect(gn).connect(snd.m);s.start();s.stop(A.currentTime+.6);}
+const sfx={cast(){tone(660,440,.22,'sine',.025);},bite(){tone(880,880,.12,'sine',.07);tone(1320,1320,.18,'sine',.05,.13);},
+  reel(){[523,659,784].forEach((f,i)=>tone(f,f,.3,'sine',.045,.1+i*.09));},
+  coin(){tone(1568,1568,.08,'square',.05);tone(2093,2093,.25,'square',.05,.08);},fail(){tone(400,200,.3,'sine',.08);}};
+function updAmb(p){const k=snd.force==='day'?0:snd.force==='night'?1:Math.min(1,p.night*1.15);const v=snd.on?S.vol:0;snd.day.volume=Math.max(0,Math.min(1,v*(1-k)));snd.night.volume=Math.max(0,Math.min(1,v*k));}
+// ───────── 게임 상태 ─────────
+let me,yaw=0,pitch=.38,dist=12,drag=null,fishing={state:'off'},nearSpot=null,bob=null,line=null,lineG,castT=-1,castTo=new THREE.Vector3();
+const bots=[];const BOT_NAMES=['물멍러','붕어왕','노을소녀','캠핑아재','꼬마강태공','밤낚시','호수요정','쏘가리헌터','루어장인'];
+const LINES=['안녕하세요~','오늘 입질 좋네요','노을 진짜 예쁘다','모닥불 쬐러 가요','🐟','😊','가물치 잡으신 분?','제 어항 구경 오세요!','소리 너무 힐링돼요','👍','떡밥 쓰니까 빨라요','월척 하고 싶다…'];
+function ringRoute(fx,fz,tx,tz){const pts=[],R0=LR+3.2,a0=Math.atan2(fz,fx),a1=Math.atan2(tz,tx);let da=((a1-a0)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI;
+  const steps=Math.max(1,Math.ceil(Math.abs(da)/.25));if(Math.hypot(fx,fz)<LR+2)pts.push({x:Math.cos(a0)*R0,z:Math.sin(a0)*R0});for(let i=1;i<=steps;i++){const a=a0+da*i/steps;pts.push({x:Math.cos(a)*R0,z:Math.sin(a)*R0});}pts.push({x:tx,z:tz});return pts;}
+function botGoal(b){const r=Math.random();let dest;
+  if(b.deck&&r<.55){b.goal='fish';const d=b.deck;b.path=ringRoute(b.c.o.position.x,b.c.o.position.z,d.entry.x,d.entry.z);b.path.push({x:d.cx+d.ca*.5,z:d.cz+d.sa*.5},{x:d.tip.x+d.ca*.6,z:d.tip.z+d.sa*.6});return;}
+  if(r<.8){b.goal='rest';const a=Math.random()*6.3;dest={x:SH.x+Math.cos(a)*2.6,z:SH.z+Math.sin(a)*2.6};}else{b.goal='shop';dest={x:SHOP.x-Math.cos(Math.atan2(SHOP.z,SHOP.x))*3+rand(-2,2),z:SHOP.z-Math.sin(Math.atan2(SHOP.z,SHOP.x))*3+rand(-2,2)};}
+  const p=b.c.o.position;b.path=(Math.hypot(p.x,p.z)<LR+2?[{x:b.deck?b.deck.entry.x:p.x,z:b.deck?b.deck.entry.z:p.z}]:[]).concat(ringRoute(b.deck&&Math.hypot(p.x,p.z)<LR+2?b.deck.entry.x:p.x,b.deck&&Math.hypot(p.x,p.z)<LR+2?b.deck.entry.z:p.z,dest.x,dest.z));}
+function makeBots(){const n=Math.min(BOT_NAMES.length,DECKS-1);for(let i=0;i<n;i++){const ki=[1,4,2,5,3,6,7,0,1][i];const c=makeChar(ki,BOT_NAMES[i]);const deck=i<Math.min(6,DECKS-1)?decks[i+1]:null;if(deck)deck.owner=BOT_NAMES[i];
+  const st=deck?deck.entry:{x:SH.x+rand(-3,3),z:SH.z+rand(-3,3)};c.o.position.set(st.x,H(st.x,st.z),st.z);
+  const tank=[];for(let k=0;k<3+(Math.random()*4|0);k++){const f=rollFish(D.RODS[1+(i%3)],D.BAITS[0]);f.price=Math.round(f.v*rand(1.1,1.6));f.sale=true;tank.push(f);}
+  for(let k=0;k<1+(i%2);k++)tank.push(comboFish());setCharRod(c,D.RODS[[1,2,3,4,5,0,6,2,7][i]%D.RODS.length].k,i%3);
+  bots.push({c,deck,path:[],wait:rand(0,4),goal:null,tank,chat:rand(4,14),fishT:0,tdes:D.TANKS[1+(i%5)].design});}}
+// v5: 조합용 어종을 봇이 판매 (유저 간 거래 유도). 등급은 낮을수록 흔함
+function comboFish(){const c=pick(D.COMBO.list),k=pick(c.ks),f=FI(k),bd=[f.min,...f.g,f.max];let x=Math.random(),g=x<.45?0:x<.75?1:x<.92?2:x<.99?3:4;const cm=Math.round((bd[g]+(bd[g+1]-bd[g])*rand(.05,.95))*10)/10,gg=gradeOf(f,cm),v=valueOf(f,cm,gg);return {id:S.nid++,k,cm,g:gg,v,price:Math.round(v*rand(1.2,1.8)),sale:true,combo:1};}
+let restockT=60;function botRestock(dt){restockT-=dt;if(restockT>0)return;restockT=rand(70,120);const b=pick(bots.filter(b=>b.deck));if(b&&b.tank.length<10){b.tank.push(comboFish());}}
+function updBots(dt,T){for(const b of bots){const c=b.c,p=c.o.position;b.chat-=dt;if(b.chat<0){b.chat=rand(10,24);say(c.name,pick(LINES));}
+  if(b.path.length){const t=b.path[0],dx=t.x-p.x,dz=t.z-p.z,l=Math.hypot(dx,dz);if(l<.25){b.path.shift();continue;}const s=Math.min(l,dt*3.2);p.x+=dx/l*s;p.z+=dz/l*s;c.dir=Math.atan2(dx,dz);c.play('walk');c.rod.visible=false;
+    if(!b.path.length){b.wait=b.goal==='fish'?rand(25,45):rand(8,18);if(b.goal==='fish'&&b.deck)c.dir=b.deck.a;if(b.goal==='rest'){c.dir=Math.atan2(SH.x-p.x,SH.z-p.z);}}}
+  else{b.wait-=dt;if(b.goal==='fish'){c.play('holding-right');c.rod.visible=true;b.fishT-=dt;if(b.fishT<0){b.fishT=rand(10,20);if(Math.random()<.6){const f=rollFish(D.RODS[1],D.BAITS[0]);f.price=Math.round(f.v*rand(1.1,1.6));f.sale=true;b.tank.push(f);if(b.tank.length>8)b.tank.shift();if(f.g>=2)say(c.name,`${FI(f.k).n} ${f.cm}cm (${D.GRADES[f.g].n}) 낚았어요! 🎉`);}}}
+    else if(b.goal==='rest'){c.play('sit');}else c.play('idle');if(b.wait<0)botGoal(b);}
+  p.y=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);turn(c,dt);}}
+function turn(c,dt){let d=((c.dir-c.o.rotation.y)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI;c.o.rotation.y+=d*Math.min(1,dt*10);}
+// 봇이 내 어항 물고기를 사는 시뮬레이션
+let buyT=rand(...D.BOT_BUY_INTERVAL);
+function botBuy(dt){buyT-=dt;if(buyT>0)return;buyT=rand(...D.BOT_BUY_INTERVAL);const forSale=S.tank.filter(f=>f.sale&&!f.lock);if(!forSale.length)return;const b=pick(bots);
+  for(const f of forSale){const r=f.price/f.v,p=r<=1?.85:r<=1.5?.45:r<=2.5?.12:0;if(Math.random()<p){S.tank=S.tank.filter(x=>x.id!==f.id);S.coins+=f.price;S.earned+=f.price;b.tank.push(Object.assign({},f,{price:Math.round(f.price*1.2)}));save();hud();sfx.coin();
+    toast(`💰 ${b.c.name}님이 ${FI(f.k).n} ${f.cm}cm를<br>${f.price.toLocaleString()}코인에 구매했어요!`,2600);say('시스템',`${b.c.name}님이 내 ${FI(f.k).n}(${D.GRADES[f.g].n})를 ${f.price}코인에 구매`);if($('tank').classList.contains('show'))tankView.refresh();return;}}
+  if(Math.random()<.3)say(b.c.name,'어항 구경 잘 했어요~ 가격이 좀 비싸네요 😅');}
+// ───────── 낚시 ─────────
+function canFishAt(d){return d&&(d.i===0||!d.owner);}
+function fishAction(){if(anyModal())return;
+  if(fishing.state==='off'){if(!nearSpot)return toast('데크 끝 낚시 포인트로 가세요<br><small>내 데크 또는 빈 데크</small>');
+    if(S.tank.length>=cap())toast('어항이 가득 찼어요! 잡으면 상점가 60%로 자동 판매돼요',2000);
+    const b=bait(),MO=SYS.mods(D,S,rod(),b);if(S.baits[S.bait]>0&&Math.random()<MO.ch.bait/100){toast('🧿 미끼전문가: 미끼를 아꼈어요!',900);}else if(S.baits[S.bait]>0){S.baits[S.bait]--;if(S.baits[S.bait]===0){toast(b.n+' 소진 → 지렁이로 교체');S.bait='worm';}save();hud();}
+    fishing={state:'cast',t:0,bite:rand(2,6)*MO.wait,d:nearSpot};castT=0;castTo.set(nearSpot.ca*(LR-12.5)+rand(-1.5,1.5)*-nearSpot.sa,-.05,nearSpot.sa*(LR-12.5)+rand(-1.5,1.5)*nearSpot.ca);me.dir=Math.atan2(castTo.x-me.o.position.x,castTo.z-me.o.position.z);sfx.cast();return;}
+  if(fishing.state==='cast'||fishing.state==='bite'){if(fishing.state==='bite'||Math.random()<.5)catchFish();else{toast('앗, 너무 빨랐어요! 다시 던져봐요');sfx.fail();endFish();}}}
+function endFish(){fishing={state:'off'};castT=-1;bob.visible=line.visible=false;wU.bob.value.y=0;}
+function catchFish(){const f=rollFish(),F=FI(f.k),G0=D.GRADES[f.g];S.caught++;const dx=S.dex[f.k]||(S.dex[f.k]={n:0,max:0,gr:[0,0,0,0,0]});const isNew=!dx.n,newG=!dx.gr[f.g],rec=f.cm>dx.max;dx.n++;dx.gr[f.g]=1;dx.max=Math.max(dx.max,f.cm);S.stats=S.stats||{g:[0,0,0,0,0]};S.stats.g[f.g]++;
+  let where;const AU=S.auto;if(AU.on&&f.v<AU.th&&!(AU.keepNew&&isNew)){const p=sellP(f);S.coins+=p;S.earned+=p;where=`⚙ 자동판매 (가치 ${f.v} < ${AU.th}) +${p}코인`;}
+  else if(S.tank.length<cap()){S.tank.push(f);where='🐠 내 어항에 넣었어요';}else{const p=sellP(f);S.coins+=p;where=`어항이 가득 차서 ${p}코인에 판매`;}
+  const bc=SYS.mods(D,S,rod(),bait()).box;if(Math.random()<bc){S.boxes.push(Date.now());setTimeout(()=>{toast('🎁 <b>행운 상자</b>를 발견했어요!<br><small>🎒 가방에서 열어보세요</small>',2600);sfx.coin();},3300);say('시스템','🎁 행운 상자 획득!');}
+  save();hud();sfx.reel();endFish();
+  toast(`<div style="background:#fffaf3;color:#4a4058;border-radius:20px;padding:14px 22px;border:5px solid ${G0.c};box-shadow:0 0 30px ${G0.c}"><span class="gbadge" style="--gc:${G0.c}">${G0.n}</span><br><img src="${F.img}" style="height:70px"><br>${F.n} <b>${f.cm}cm</b> · 🪙${f.v}<br><small>${isNew?'✨ 도감 신규 등록! ':''}${newG&&!isNew?'🏅 새 등급 슬롯! ':''}${rec&&!isNew?'📏 최대 크기 갱신! ':''}${where}</small></div>`,3200);
+  say('시스템',`${F.n} ${f.cm}cm (${G0.n})를 낚았어요!`);if(f.g>=3)setTimeout(()=>legendAlert(NICK(),f,true),600);achCheck(true);}
+function achCheck(t){const A=SYS.passives(D,S).ach.filter(a=>a.done).map(a=>a.a.id);if(!S.achSeen){S.achSeen=A;return;}A.filter(x=>!S.achSeen.includes(x)).forEach((id,j)=>{const a=D.ACH.find(x=>x.id===id);if(t)setTimeout(()=>{toast(`🏆 <b>도감 업적 달성!</b><br>${a.n} · ${effTxt(a.e)}`,3000);say('시스템',`🏆 업적 '${a.n}' 달성 (${effTxt(a.e)})`);},4200+j*900);});S.achSeen=A;}
+const effTxt=e=>Object.entries(e).map(([k,v])=>`${D.CHARM.opts[k].n} +${v}%`).join(', ');
+// ───────── 어항 관찰 뷰 (별도 3D 씬) ─────────
+function comboPanel(mine,L){const st=SYS.comboState(D,S.tank),M=D.COMBO.mult;
+ if(mine)return `<details class="combo" ${st.some(x=>x.on)?'open':''}><summary>🧩 어항 조합 패시브 <small>(${st.filter(x=>x.on).length}/${st.length} 활성)</small></summary><div class="small muted">어종을 모두 모으면 발동 · 효과 = 기본 × 조합 내 <b>최저 등급</b> 배율 (${D.GRADES.map((g,i)=>g.n+' ×'+M[i]).join(' · ')}) · 패시브 상한은 업적과 합산</div>${st.map(x=>`<div class="crow ${x.on?'on':''}" style="--gc:${x.on?D.GRADES[x.lv].c:'#ccc'}"><b>${x.c.n}</b> <span class="small">${x.have}/${x.c.ks.length}</span><div class="cks">${x.c.ks.map((k,i)=>`<span class="${x.best[i]>=0?'h':''}" style="--gc:${x.best[i]>=0?D.GRADES[x.best[i]].c:'#ddd'}">${FI(k).n}</span>`).join('')}</div><div class="small">${x.on?`✅ ${D.GRADES[x.lv].n} 조합 · ${effTxt(x.e)}`:`기본 ${effTxt(x.c.e)} → 신화 조합 시 ×${M[4]}`}</div></div>`).join('')}</details>`;
+ const need=new Set();st.forEach(x=>{if(!x.on||x.lv<4)x.c.ks.forEach((k,i)=>{if(x.best[i]<4)need.add(k);});});const n=L.filter(f=>f.sale&&need.has(f.k)).length;
+ return n?`<div class="combo small">🧩 내 어항 조합에 쓸 수 있는 물고기 <b>${n}</b>마리 판매 중 (🧩 표시)</div>`:'';}
+const tankView={r:null,open(owner){this.owner=owner;openM('tank');if(!this.r)this.init();this.build();this.refresh();this.on=true;},close(){this.on=false;},
+ init(){const cv=$('tankCv');this.r=new THREE.WebGLRenderer({canvas:cv,antialias:true});this.r.setPixelRatio(Math.min(devicePixelRatio,1.5));this.r.outputEncoding=THREE.sRGBEncoding;
+  const s=this.s=new THREE.Scene();s.background=new THREE.Color('#e9f6f4');this.cam=new THREE.PerspectiveCamera(40,1,.1,50);const dl=new THREE.DirectionalLight(0xfff2dd,.8);dl.position.set(2,5,3);s.add(new THREE.HemisphereLight(0xffffff,0x9ac6c0,1),dl);
+  const W=4,Hh=2.4,Dp=2;this.box={W,H:Hh,D:Dp};this.ext=new THREE.Group();s.add(this.ext);this.decoG=new THREE.Group();s.add(this.decoG);
+  const deco=(k,x,z,sc,ry=0)=>{if(!G[k])return;const o=G[k].scene.clone();o.position.set(x,.18,z);o.scale.setScalar(sc);o.rotation.y=ry;this.decoG.add(o);};
+  deco('rock_largeA',-1.2,-.4,1.6,.5);deco('rock_smallC',1.3,.3,1.8);deco('stone_largeA',.6,-.6,1.2,1);deco('grass_leafsLarge',-1.5,.4,3);deco('grass_leafs',1.6,-.6,3);deco('plant_flatTall',-.3,-.7,3.4);deco('plant_flatTall',1.0,-.75,2.8,1);deco('mushroom_tanGroup',-.8,.6,1.6);
+  this.fishG=new THREE.Group();s.add(this.fishG);this.yaw=0;this.dragging=null;
+  cv.addEventListener('pointerdown',e=>this.dragging=e.clientX);addEventListener('pointerup',()=>this.dragging=null);cv.addEventListener('pointermove',e=>{if(this.dragging!=null){this.yaw-=(e.clientX-this.dragging)*.006;this.dragging=e.clientX;}});
+  this.bub=new THREE.Points(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(90).map((v,i)=>i%3==1?Math.random()*2.2:(Math.random()-.5)*(i%3?1.8:3.8)),3)),new THREE.PointsMaterial({color:'#ffffff',size:.05,transparent:true,opacity:.7}));s.add(this.bub);},
+ list(){return this.owner==='me'?S.tank:this.owner.tank;},
+ build(){const des=this.owner==='me'?D.TANKS.find(t=>t.k===S.tankK).design:(this.owner.tdes||3);if(this.des!==des&&window.NK_TANKX){this.des=des;this.ext.clear();const cyl=des===3,x=NK_TANKX(des,cyl?{W:2.9,H:2.4,D:2.9,y0:0,sh:1.2}:{W:4,H:2.4,D:2,y0:0,sh:1.2});this.ext.add(x.g);this.box=cyl?{W:2.1,H:2.4,D:2.1}:{W:4,H:2.4,D:2};this.decoG.scale.set(cyl?.62:1,1,cyl?1.1:1);}
+  this.fishG.clear();this.fish=[];const fm=G.fish.scene;for(const f of this.list()){const F=FI(f.k),o=fm.clone(true);o.traverse(m=>{if(m.isMesh)m.material=new THREE.MeshLambertMaterial({color:F.col,flatShading:true,emissive:new THREE.Color(D.GRADES[f.g].c),emissiveIntensity:f.g>=3?.25:0});});
+   const sc=1.6+f.cm/100*7*(f.k==='snakehead'?.8:1);o.scale.set(sc*(f.k==='snakehead'?1.5:f.k==='eel'?2.2:f.k==='gangjunchi'||f.k==='trout'?1.25:1),sc,sc);const{W,H,D:Dp}=this.box;o.position.set(rand(-W/2+.5,W/2-.5),rand(.5,H*.8),rand(-Dp/2+.4,Dp/2-.4));this.fishG.add(o);
+   this.fish.push({o,f,t:o.position.clone(),v:new THREE.Vector3(rand(-.2,.2),0,rand(-.1,.1)),sp:rand(.25,.55),spT:rand(2,5),pause:0,ph:Math.random()*6,yaw:0,wig:0});}},
+ refresh(){const mine=this.owner==='me',L=this.list(),side=$('tankSide');
+  side.innerHTML=`<h2>${mine?'🐠 내 어항':'🐠 '+this.owner.c.name+'님의 어항'}</h2><div class="muted small">${mine?`${L.length}/${cap()}칸 · 판매 등록하면 다른 유저(봇)가 구매할 수 있어요`:`보유 코인 🪙${S.coins.toLocaleString()} · 내 어항 ${S.tank.length}/${cap()}`}</div><div style="height:8px"></div>`+comboPanel(mine,L)+
+   (L.length?'':'<p class="muted">아직 물고기가 없어요. 낚시를 해보세요!</p>')+L.map(f=>{const F=FI(f.k),g=D.GRADES[f.g];return `<div class="fcard ${f.lock?'locked':''}" style="--gc:${g.c}" data-id="${f.id}">${f.lock?'<span class="lockbadge" title="잠금됨">🔒</span>':''}<img src="${F.img}"><div class="meta"><b>${F.n}</b> <span class="gbadge" style="--gc:${g.c}">${g.n}</span>${D.COMBO.list.some(c=>c.ks.includes(f.k))?` <span class="ctag" data-tip="${D.COMBO.list.filter(c=>c.ks.includes(f.k)).map(c=>'🧩 '+c.n+': '+c.ks.map(k=>FI(k).n).join('+')).join('\n')}">🧩</span>`:''}<br>${f.cm}cm · 가치 🪙${f.v.toLocaleString()}<br>`+
+   (mine?`<button class="lockb ${f.lock?'on':''}" data-lock="${f.id}" title="잠금: 판매·등록·자동판매 불가">${f.lock?'🔒 잠금됨':'🔓 잠금'}</button> 판매가 <input type="number" min="1" value="${f.price}" data-price="${f.id}" ${f.lock?'disabled':''}> <label><input type="checkbox" data-sale="${f.id}" ${f.sale?'checked':''} ${f.lock?'disabled':''}> 판매중</label><br><button data-sell="${f.id}" ${f.lock?'disabled':''}>상점에 팔기 🪙${sellP(f)}</button>`
+   :`판매가 🪙<b>${f.price.toLocaleString()}</b> <button class="acc" data-buy="${f.id}" ${S.coins<f.price||S.tank.length>=cap()?'disabled':''}>구매</button>`)+`</div></div>`;}).join('');
+  side.querySelectorAll('[data-price]').forEach(i=>i.onchange=()=>{const f=S.tank.find(x=>x.id==i.dataset.price);f.price=Math.max(1,Math.round(+i.value||1));save();});
+  side.querySelectorAll('[data-lock]').forEach(b=>b.onclick=()=>{const f=S.tank.find(x=>x.id==b.dataset.lock);f.lock=!f.lock;if(f.lock)f.sale=false;save();this.refresh();});
+  side.querySelectorAll('[data-sale]').forEach(i=>i.onchange=()=>{S.tank.find(x=>x.id==i.dataset.sale).sale=i.checked;save();});
+  side.querySelectorAll('[data-sell]').forEach(b=>b.onclick=()=>{const f=S.tank.find(x=>x.id==b.dataset.sell);S.tank=S.tank.filter(x=>x!==f);const p=sellP(f);S.coins+=p;sfx.coin();save();hud();this.build();this.refresh();});
+  side.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{const L2=this.owner.tank,f=L2.find(x=>x.id==b.dataset.buy);if(S.coins<f.price||S.tank.length>=cap())return;S.coins-=f.price;this.owner.tank=L2.filter(x=>x!==f);
+   const nf=Object.assign({},f,{id:S.nid++,sale:false,price:Math.round(f.v*1.3)});S.tank.push(nf);const dx=S.dex[f.k]||(S.dex[f.k]={n:0,max:0,gr:[0,0,0,0,0]});dx.gr[f.g]=1;dx.n++;dx.max=Math.max(dx.max,f.cm);
+   save();hud();sfx.coin();toast(`🛍 ${FI(f.k).n} ${f.cm}cm 구매 완료!<br><small>도감에도 기록됐어요</small>`);say(this.owner.c.name,'구매 감사합니다~ 😊');this.build();this.refresh();});
+  side.querySelectorAll('.fcard').forEach(c=>c.onmouseenter=()=>{const x=this.fish.find(q=>q.f.id==c.dataset.id);if(x)x.hl=1.5;});},
+ frame(dt,T){if(!this.on)return;const cv=this.r.domElement,w=cv.clientWidth,h=cv.clientHeight;if(cv.width!==Math.floor(w*this.r.getPixelRatio())){this.r.setSize(w,h,false);this.cam.aspect=w/h;this.cam.updateProjectionMatrix();}
+  this.cam.position.set(Math.sin(this.yaw)*6.2,2.2,Math.cos(this.yaw)*6.2);this.cam.lookAt(0,1.05,0);const{W,H,D:Dp}=this.box;
+  for(const x of this.fish){const p=x.o.position,lim=[W/2-.45,H*.86,Dp/2-.32];
+   // 목표 갱신·속도 변화·가끔 멈춤
+   x.spT-=dt;if(x.spT<0){x.spT=rand(2,5);x.sp=rand(.2,.6);}
+   if(x.pause>0)x.pause-=dt;else if(p.distanceTo(x.t)<.3){x.t.set(rand(-lim[0],lim[0]),rand(.45,lim[1]),rand(-lim[2],lim[2]));if(Math.random()<.25)x.pause=rand(1,3);}
+   const want=V.subVectors(x.t,p).normalize().multiplyScalar(x.pause>0?0.03:x.sp);want.y*=.5;
+   // 벽 회피 (가까울수록 반대 방향으로 밀어냄)
+   const av=(c,lo,hi)=>c<lo+.35?(lo+.35-c)*3:c>hi-.35?-(c-hi+.35)*3:0;want.x+=av(p.x,-lim[0]-.1,lim[0]+.1);want.y+=av(p.y,.3,lim[1]+.1);want.z+=av(p.z,-lim[2]-.1,lim[2]+.1);
+   const st=want.sub(x.v),mf=.9*dt;if(st.length()>mf)st.setLength(mf);x.v.add(st);p.addScaledVector(x.v,dt);
+   p.x=THREE.MathUtils.clamp(p.x,-lim[0]-.1,lim[0]+.1);p.y=THREE.MathUtils.clamp(p.y,.3,lim[1]+.1);p.z=THREE.MathUtils.clamp(p.z,-lim[2]-.1,lim[2]+.1);
+   const sp=x.v.length(),hv=Math.hypot(x.v.x,x.v.z);
+   // 모델 머리 = -X 방향 → 진행방향으로 머리가 향하도록
+   if(hv>.02){const ty=Math.atan2(x.v.z,-x.v.x);let dd=((ty-x.yaw)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI;x.yaw+=dd*Math.min(1,dt*4);}
+   x.wig+=dt*(4+sp*18);const wig=Math.sin(x.wig+x.ph)*(.05+sp*.22);
+   x.o.rotation.set(0,x.yaw+wig,-Math.atan2(x.v.y,hv+1e-3)*.7);
+   if(x.pause>0)p.y+=Math.sin(T*2+x.ph)*.0015;}
+  const bp=this.bub.geometry.attributes.position;for(let i=0;i<bp.count;i++){let y=bp.getY(i)+dt*.4;if(y>2.15)y=.2;bp.setY(i,y);}bp.needsUpdate=true;this.r.render(this.s,this.cam);}};
+// ───────── 상점 ─────────
+let shopTab='rod';
+function renderShop(){const it=(x,owned,eq,price,onb,extra='')=>`<div class="item">${x._ico||''}<h4>${x.n}</h4><div class="small muted">${x.desc||extra}</div><div class="p">${price<0?'<span class="boxonly">🎁 행운 상자 전용</span>':price?'🪙 '+price.toLocaleString():'무료'}</div>${onb}</div>`;
+  let body='';
+  if(shopTab==='rod')body=D.RODS.map(r0=>{const r=Object.assign({},r0,{_ico:RIMG(r0.k,'sico')});const n=S.gear.filter(g=>g.k===r.k).length,eq=rod().k===r.k;return it(r,n,eq,r.boxOnly?-1:r.price,`<div class="small">보유 ${n}개${eq?' · 장착중':''} · 추가옵션 ${D.GEAR.slots[r.k]}슬롯</div>${r.boxOnly?'<span class="small muted">희귀 이상 상자에서 획득</span>':`<button class="acc" data-buyrod="${r.k}" ${S.coins<r.price||(!r.price&&n)?'disabled':''}>${n?'추가 구매 (합성 재료)':'구매'}</button>`}${n&&!eq?` <button class="ok" data-eqrod="${r.k}">장착</button>`:''}`,'');}).join('')+`<p class="small muted" style="grid-column:1/-1">황금·별빛·용왕 낚싯대는 행운 상자(희귀 이상)에서만 나와요. 상점 구매품은 ‘고급’ 등급 밴드(품질 ${D.GEAR.qBand[1].map(x=>Math.round(x*100)).join('~')}%)로 굴려지고, 추가옵션이 새로 굴려져요. 같은 낚싯대 2개 → 🎒 가방 › 장비·합성에서 ★ 합성</p>`;
+  if(shopTab==='bait')body=D.BAITS.map(b0=>{const b=Object.assign({},b0,{_ico:BIMG(b0.k,'sico')});const q=S.baits[b.k],own=q===-1||q>0,eq=S.bait===b.k;return it(b,own,eq,b.price,`<div class="small">보유: ${q===-1?'∞':q||0}</div>`+(eq?'<button disabled>사용중</button>':own?`<button class="ok" data-eqbait="${b.k}">사용</button>`:'')+(b.price&&q!==-1?` <button class="acc" data-buybait="${b.k}" ${S.coins<b.price?'disabled':''}>구매${b.qty?' ×'+b.qty:''}</button>`:''));}).join('');
+  if(shopTab==='tank')body=D.TANKS.map(t=>{const own=S.tanks.includes(t.k),eq=S.tankK===t.k;return it(t,own,eq,t.price,eq?'<button disabled>사용중</button>':own?`<button class="ok" data-eqtank="${t.k}" ${S.tank.length>t.cap?'disabled':''}>교체</button>`:`<button class="acc" data-buytank="${t.k}" ${S.coins<t.price?'disabled':''}>구매</button>`,`수용량 ${t.cap}마리`);}).join('');
+  if(shopTab==='sell')body=S.tank.length?S.tank.map(f=>{const F=FI(f.k),g=D.GRADES[f.g];return `<div class="fcard" style="--gc:${g.c}"><img src="${F.img}"><div class="meta"><b>${F.n}</b> <span class="gbadge" style="--gc:${g.c}">${g.n}</span> ${f.cm}cm</div>${f.lock?'<button disabled>🔒 잠금</button>':`<button data-sell="${f.id}">🪙${sellP(f)}</button>`}</div>`;}).join(''):'<p class="muted">팔 물고기가 없어요</p>';
+  if(shopTab==='bal')body=balanceTable();
+  $('shop').innerHTML=`<div class="card" style="width:min(900px,94vw)"><button class="close" data-close="shop">×</button><h2>🛒 호숫가 작은 상점 <span class="pill small">🪙 ${S.coins.toLocaleString()}</span></h2>
+   <div class="tabs">${[['rod','🎣 낚싯대'],['bait','🪱 미끼'],['tank','🐠 어항'],['sell','💰 판매'],['bal','📊 밸런스표']].map(([k,n])=>`<button class="${shopTab===k?'on':''}" data-tab="${k}">${n}</button>`).join('')}</div><div class="${shopTab==='bal'||shopTab==='sell'?'':'grid'}">${body}</div></div>`;
+  const q=s=>$('shop').querySelectorAll(s);q('[data-close]').forEach(b=>b.onclick=()=>closeM('shop'));q('[data-tab]').forEach(b=>b.onclick=()=>{shopTab=b.dataset.tab;renderShop();});
+  const buy=p=>{if(S.coins<p)return false;S.coins-=p;sfx.coin();return true;},done=()=>{save();hud();renderShop();};
+  q('[data-buyrod]').forEach(b=>b.onclick=()=>{const r=D.RODS.find(x=>x.k===b.dataset.buyrod);if(buy(r.price)){const g=SYS.makeGear(D,r.k,S.nid++);S.gear.push(g);if(!S.rods.includes(r.k))S.rods.push(r.k);const cur=rod();if(D.RODS.findIndex(x=>x.k===r.k)>D.RODS.findIndex(x=>x.k===cur.k)){S.rodId=g.id;S.rod=r.k;}toast(`🎣 ${r.n} 구매! 품질 ${(g.q*100).toFixed(1)}%${g.extra.length?' · '+g.extra.map(e=>D.CHARM.opts[e.k].n+' +'+e.v+'%').join(', '):''}`,2600);}done();});
+  q('[data-eqrod]').forEach(b=>b.onclick=()=>{const g=S.gear.filter(x=>x.k===b.dataset.eqrod).sort((a,c)=>c.star-a.star||c.enh-a.enh||c.q-a.q)[0];if(g){S.rodId=g.id;S.rod=g.k;}done();});
+  q('[data-buybait]').forEach(b=>b.onclick=()=>{const x=D.BAITS.find(y=>y.k===b.dataset.buybait);if(buy(x.price)){S.baits[x.k]=x.qty?(Math.max(0,S.baits[x.k]||0)+x.qty):-1;S.bait=x.k;toast('🪱 '+x.n+' 구매!');}done();});
+  q('[data-eqbait]').forEach(b=>b.onclick=()=>{S.bait=b.dataset.eqbait;done();});
+  q('[data-buytank]').forEach(b=>b.onclick=()=>{const t=D.TANKS.find(x=>x.k===b.dataset.buytank);if(buy(t.price)){S.tanks.push(t.k);S.tankK=t.k;toast('🐠 '+t.n+' 설치! ('+t.cap+'칸)');}done();});
+  q('[data-eqtank]').forEach(b=>b.onclick=()=>{S.tankK=b.dataset.eqtank;done();});
+  q('[data-sell]').forEach(b=>b.onclick=()=>{const f=S.tank.find(x=>x.id==b.dataset.sell);S.tank=S.tank.filter(x=>x!==f);S.coins+=sellP(f);sfx.coin();done();});}
+function balanceTable(){return `<h4>등급 기준 (cm)</h4><table class="bal"><tr><th>어종</th>${D.GRADES.map(g=>`<th style="color:${g.c}">${g.n}</th>`).join('')}<th>기본가</th></tr>`+
+  D.FISH.map(f=>{const b=[f.min,...f.g,f.max];return `<tr><td>${f.n}</td>${D.GRADES.map((g,i)=>`<td>${b[i]}~${b[i+1]}</td>`).join('')}<td>${f.base}</td></tr>`;}).join('')+`</table>
+  <p class="small muted">가격 = 기본가 × (크기/최소크기)^1.5 × 등급배수(${D.GRADES.map(g=>g.n+'×'+g.m).join(', ')}) · 상점 판매는 60%</p>
+  <h4>낚싯대</h4><table class="bal"><tr><th>이름</th><th>가격</th><th>크기배수</th><th>입질시간</th><th>희귀어종 보너스</th></tr>${D.RODS.map(r=>`<tr><td>${r.n}</td><td>${r.price}</td><td>×${r.size}</td><td>×${r.speed}</td><td>+${Math.round(r.luck*1000)/10}%p×10</td></tr>`).join('')}</table>
+  <h4>미끼</h4><table class="bal"><tr><th>이름</th><th>가격</th><th>수량</th><th>입질</th><th>크기</th><th>어종 보너스</th></tr>${D.BAITS.map(b=>`<tr><td>${b.n}</td><td>${b.price}</td><td>${b.qty||'∞'}</td><td>×${b.speed}</td><td>×${b.size}</td><td>${Object.entries(b.boost).map(([k,v])=>FI(k).n+'×'+v).join(', ')||'-'}</td></tr>`).join('')}</table>
+  <h4>어항</h4><table class="bal"><tr><th>이름</th><th>가격</th><th>수용</th></tr>${D.TANKS.map(t=>`<tr><td>${t.n}</td><td>${t.price}</td><td>${t.cap}</td></tr>`).join('')}</table>`+balanceV3()+balanceV5();}
+function balanceV5(){const C=D.CHARM,T=D.BOX.tiers,G=D.GEAR,O=C.opts,pc=x=>Math.round(x*100),SM=window.NK_SIM;
+ return `<h4>🎁 v5 상자 등급별 옵션 밴드 (높은 등급 = 평균·상한 ↑)</h4><table class="bal"><tr><th>항목</th>${T.map(t=>`<th style="color:${t.c}">${t.n}</th>`).join('')}</tr>
+ <tr><td>부적 옵션 (cap 대비)</td>${C.band.map(b=>`<td>${pc(b[0])}~${pc(b[1])}%<br><small>평균 ${pc((b[0]+b[1])/2)}%</small></td>`).join('')}</tr>
+ <tr><td>부적 옵션 수</td>${C.tierOpts.map(n=>`<td>${n}</td>`).join('')}</tr>
+ <tr><td>낚싯대 기본 품질</td>${G.qBand.map(b=>`<td>${pc(b[0])}~${pc(b[1])}%</td>`).join('')}</tr>
+ <tr><td>낚싯대 추가옵션 (cap 대비)</td>${G.xBand.map(b=>`<td>${pc(b[0])}~${pc(b[1])}%</td>`).join('')}</tr>
+ <tr><td>상자 낚싯대 풀</td>${D.BOX.rodPool.map(p=>`<td><small>${p.map(k=>D.RODS.find(r=>r.k===k).n.replace(' 낚싯대','')).join(', ')}</small></td>`).join('')}</tr>
+ <tr><td>합성 (→다음 등급)</td>${T.map((t,i)=>`<td>${i>=5?C.synth.mythNeed+'개→신화':C.synth.need+'개'}<br><small>🪙${C.synth.coin[i].toLocaleString()}</small></td>`).join('')}</tr></table>
+ <p class="small muted">상점 구매 낚싯대 = '고급' 밴드. 예) 행운 cap ${O.luck.cap}% → 일반 ${R1x(O.luck.cap*C.band[0][0])}~${R1x(O.luck.cap*C.band[0][1])}% / 신화 ${R1x(O.luck.cap*C.band[5][0])}~${O.luck.cap}%</p>
+ <h4>🏆 도감 업적 패시브 (${D.ACH.length}개)</h4><table class="bal"><tr><th>업적</th><th>조건</th><th>보상</th></tr>${D.ACH.map(a=>`<tr><td>${a.n}</td><td>${a.d}</td><td>${effTxt(a.e)}</td></tr>`).join('')}</table>
+ <h4>🧩 어항 조합 패시브 (최저 등급 배율 ${D.COMBO.mult.map((m,i)=>D.GRADES[i].n+'×'+m).join(' · ')})</h4><table class="bal"><tr><th>조합</th><th>어종</th><th>일반</th><th>신화</th></tr>${D.COMBO.list.map(c=>`<tr><td>${c.n}</td><td>${c.ks.map(k=>FI(k).n).join('+')}</td><td>${effTxt(c.e)}</td><td>${Object.entries(c.e).map(([k,v])=>O[k].n+' +'+R1x(v*D.COMBO.mult[4])+'%').join(', ')}</td></tr>`).join('')}</table>
+ <h4>🛡 패시브 상한 (업적+조합 합산, 부적 상한과 별도)</h4><table class="bal"><tr>${Object.keys(O).map(k=>`<th>${O[k].n}</th>`).join('')}</tr><tr>${Object.keys(O).map(k=>`<td>${D.PASSIVE.cap[k]}%</td>`).join('')}</tr></table>`+(SM&&SM.v5?`<h4>📈 v5 시뮬레이션</h4><table class="bal"><tr><th>구성</th><th>코인/회</th><th>기본 대비</th><th>희귀+</th><th>전설+</th><th>상자</th></tr>${SM.v5.map(r=>`<tr><td>${r.name}</td><td>${r.coin.toFixed(0)}</td><td>×${r.x.toFixed(2)}</td><td>${(r.rare*100).toFixed(1)}%</td><td>${(r.leg*100).toFixed(1)}%</td><td>${(r.box*100).toFixed(2)}%</td></tr>`).join('')}</table>`:'');}
+function balanceV3(){const C=D.CHARM,T=D.BOX.tiers,E=D.ENH,SM=window.NK_SIM;
+ return `<h4>🎁 행운 상자 (낚시 성공 1회당 ${D.BOX.base*100}%)</h4><table class="bal"><tr><th>상자 등급</th>${T.map(t=>`<th style="color:${t.c}">${t.n}</th>`).join('')}</tr><tr><td>확률</td>${T.map(t=>`<td>${t.w}%</td>`).join('')}</tr><tr><td>부적 옵션 수</td>${C.tierOpts.map(n=>`<td>${n}</td>`).join('')}</tr><tr><td>옵션 상한 배수</td>${C.tierMul.map(n=>`<td>${Math.round(n*100)}%</td>`).join('')}</tr><tr><td>강화석(20%)</td>${D.BOX.stones.map(n=>`<td>${n}</td>`).join('')}</tr><tr><td>동봉 코인</td>${D.BOX.coins.map(n=>`<td>${n}</td>`).join('')}</tr></table>
+ <h4>🧿 행운 부적 옵션 상한 (부적 1개 / 6개+장비 합산)</h4><table class="bal"><tr><th>옵션</th><th>분류</th><th>효과</th>${T.map(t=>`<th style="color:${t.c}">${t.n}</th>`).join('')}<th>합산 상한</th></tr>${Object.entries(C.opts).map(([k,o])=>`<tr><td>${o.n}</td><td>${o.cat}</td><td class="small">${o.d}</td>${C.tierMul.map(m=>`<td>${Math.round(o.cap*m*10)/10}%</td>`).join('')}<td><b>${o.total}%</b></td></tr>`).join('')}</table>
+ <p class="small muted">각 옵션은 (등급 상한)의 40~100% 범위에서 굴림 (신화는 75~100%). 같은 옵션 중복 장착 시 합산 상한에서 잘림. 최대 ${C.slots}개 장착. 분해: 🪙${D.CHARM.dismantle.coin.join('/')} · 💎${D.CHARM.dismantle.stone.join('/')}</p>
+ <h4>⚒ 낚싯대 강화 (+0 ~ +${E.max})</h4><table class="bal"><tr><th>시도</th>${E.rate.map((r,i)=>`<th>+${i}→${i+1}</th>`).join('')}</tr><tr><td>성공률</td>${E.rate.map(r=>`<td>${r}%</td>`).join('')}</tr><tr><td>강화석</td>${E.rate.map((r,i)=>`<td>${E.stone(i)}</td>`).join('')}</tr><tr><td>코인</td>${E.rate.map((r,i)=>`<td>${E.coin(i).toLocaleString()}</td>`).join('')}</tr><tr><td>실패 시</td>${E.rate.map((r,i)=>`<td>${i>=E.dropFrom?'50% 하락':'유지'}</td>`).join('')}</tr></table>
+ <p class="small muted">단계당 크기 +${E.size*100}% · 입질대기 -${E.speed*100}% (+10: 크기 +${E.size*1000}%, 대기 -${E.speed*1000}%) · 파괴 없음 · 강화석 상점가 ${E.stonePrice}코인</p>`+
+ `<h4>🎣 장비(낚싯대) 옵션·합성</h4><table class="bal"><tr><th>낚싯대</th><th>기본 추가옵션 슬롯</th><th>추가옵션 크기(부적 신화 상한 대비)</th><th>최대 슬롯(★4)</th><th>합성 비용 ★0→1 / ★4→5</th></tr>${D.RODS.map((r,i)=>`<tr><td>${r.n}</td><td>${D.GEAR.slots[r.k]}</td><td>${Math.round(D.GEAR.mul[r.k]*100)}% × 40~100%</td><td>${D.GEAR.slots[r.k]+D.GEAR.starSlot.length}</td><td>${D.GEAR.synthCoin(i,0).toLocaleString()} / ${D.GEAR.synthCoin(i,4).toLocaleString()}</td></tr>`).join('')}</table>
+ <p class="small muted">구매·상자 획득 시 기본옵션 품질 ${D.GEAR.q[0]*100}~${D.GEAR.q[1]*100}% 굴림 · 합성 ★당 기본옵션 +${D.GEAR.starBonus*100}% · 품질 +2%(최대 115%) · 추가옵션 ×${D.GEAR.starUp} · 추가옵션 풀: ${D.GEAR.pool.map(k=>D.CHARM.opts[k].n).join(', ')} (부적과 합산 상한 공유)<br>강화석 강화(+): 장비 1개에 귀속, 크기·입질 보정 · 합성(★): 같은 장비 2개 소모, 기본옵션·추가옵션 보정 → 두 축이 곱으로 적용</p>`+(SM?`<h4>📈 인플레이션 시뮬레이션 (각 20만 회 낚시, 전량 상점 판매 가정)</h4><table class="bal"><tr><th>구성</th><th>코인/회</th><th>코인/시간</th><th>기본 대비</th><th>희귀+</th><th>전설+</th><th>상자</th></tr>${SM.rows.map(r=>`<tr><td>${r.name}</td><td>${r.coin.toFixed(0)}</td><td>${Math.round(r.perHour).toLocaleString()}</td><td>×${r.x.toFixed(2)}</td><td>${(r.rare*100).toFixed(1)}%</td><td>${(r.leg*100).toFixed(1)}%</td><td>${(r.box*100).toFixed(2)}%</td></tr>`).join('')}</table>
+ <p class="small muted">+10 강화 기대 비용: 시도 ${SM.enh.tries.toFixed(0)}회 · 강화석 ${SM.enh.stones.toFixed(0)}개 · 코인 ${Math.round(SM.enh.coins).toLocaleString()} (+강화석 구매 시 ${Math.round(SM.enh.stoneCoin).toLocaleString()}) → 최종 장비 대비 강력한 코인 소각처</p>`:'');}
+// ───────── v3: 가방(상자·부적·강화) / 설정(저장·프로필·자동판매·그래픽) ─────────
+const TIER=i=>D.BOX.tiers[i];
+const charmHTML=c=>`<div class="charm" data-cid="${c.id}" style="--gc:${TIER(c.tier).c}"><div class="cico">${CIMG(c.tier)}</div><div class="meta"><span class="gbadge" style="--gc:${TIER(c.tier).c}">${TIER(c.tier).n} 부적</span>${c.lock?' 🔒':''}<br>${c.opts.map(o=>`<span class="opt" data-tip="${optTip(o.k,c.tier)}">${D.CHARM.opts[o.k].n} <b>+${o.v}%</b></span>`).join(' ')}</div>`;
+const gearHTML=(g,btns='')=>{const s=SYS.gearStats(D,g),sl=SYS.slotCount(D,g);return `<div class="charm gear" style="--gc:${['#aab4c0','#5fc48a','#4ea3ea','#3fb8b0','#ef8fb0','#f4a62a','#4a5ab8','#c46cf2'][D.RODS.findIndex(r=>r.k===g.k)]}"><div class="cico">${RIMG(g.k)}</div><div class="meta"><b>${s.n}</b> <span class="star">${'★'.repeat(g.star)}<i>${'☆'.repeat(D.GEAR.starMax-g.star)}</i></span> <span class="plus">+${g.enh}</span>${g.id===S.rodId?' <span class="gbadge" style="--gc:#5fc48a">장착중</span>':''}${g.lock?' 🔒':''}<br>
+ <span class="small">기본: 크기×${s.size.toFixed(3)} · 입질×${s.speed.toFixed(3)}${s.luck?` · 희귀 +${(s.luck*1000).toFixed(0)/10}%p`:''} · 품질 ${(g.q*100).toFixed(1)}%</span><br>${g.extra.map(e=>`<span class="opt" data-tip="${D.CHARM.opts[e.k].n}: ${D.CHARM.opts[e.k].d}
+낚싯대 추가옵션 (상자 등급 ${TIER(g.tier||1).n} 굴림)">${D.CHARM.opts[e.k].n} <b>+${e.v}%</b></span>`).join(' ')}${Array(Math.max(0,sl-g.extra.length)).fill('<span class="opt muted">빈 슬롯</span>').join('')}${sl<D.GEAR.slots[g.k]+D.GEAR.starSlot.length?`<span class="opt muted">🔒 ★${D.GEAR.starSlot.find(x=>x>g.star)} 해금</span>`:''}</div>${btns}</div>`;};
+const rewardHTML=(o,t)=>(o.bonus?'<div class="small">✨ 보물감정 추가 보상!</div>':'')+(o.type==='charm'?charmHTML(o.c)+'</div>':o.type==='rod'?gearHTML(o.g):o.type==='bait'?`<div class="charm" style="--gc:${t.c}"><div class="cico">${BIMG(o.k)}</div><div class="meta">${D.BAITS.find(b=>b.k===o.k).n} <b>×${o.n}</b></div></div>`:`<div class="charm" style="--gc:${t.c}"><div class="cico">💎</div><div class="meta">강화석 <b>×${o.st}</b> + 🪙 <b>${o.co}</b></div></div>`);
+const RIMG=(k,cls='rimg')=>`<img class="${cls}" src="img/rods/${k}.png" alt="" draggable="false">`,BIMG=(k,cls='rimg')=>`<img class="${cls}" src="img/baits/${k}.png" alt="" draggable="false">`;
+const CIMG=t=>`<img class="cimg" src="img/charms/t${t}.png" alt="" draggable="false">`;
+const BOXTINT=['grayscale(.75) brightness(1.08)','hue-rotate(80deg) saturate(.9)','hue-rotate(185deg) saturate(1.1)','hue-rotate(255deg) saturate(1.2)','sepia(.5) saturate(2) brightness(1.08)','hue-rotate(280deg) saturate(1.5) brightness(1.12) drop-shadow(0 0 6px #e9b6ff)'];
+const BOXIMG=(t,cls='bimg')=>{const d=S.boxDesign||1;return d===1?`<img class="${cls}" src="img/box/t${t}.png" alt="" draggable="false">`:`<img class="${cls}" src="img/box/d${d}.png" style="filter:${BOXTINT[t]}" alt="" draggable="false">`;};
+const optTip=(k,tier)=>{const o=D.CHARM.opts[k],b=D.CHARM.band[tier];return `${o.n}: ${o.d}\n${TIER(tier).n} 등급 범위 ${R1x(o.cap*b[0])}% ~ 최대 ${R1x(o.cap*b[1])}%\n(합산 상한 ${o.total}%${D.PASSIVE.cap[k]?` · 패시브 별도 +${D.PASSIVE.cap[k]}%까지`:''})`;};
+const R1x=v=>Math.round(v*10)/10;
+let bagTab='box',disT=1,synFx=null,CF={opt:'',tier:-1,only:''};
+const disOf=c=>({co:D.CHARM.dismantle.coin[c.tier],st:D.CHARM.dismantle.stone[c.tier]});
+function openBag(){renderBag();openM('bag');}
+function confirmBox(html,ok){const m=$('confirm');m.innerHTML=`<div class="card center" style="width:min(420px,92vw)">${html}<p><button id="cfNo">취소</button> <button class="acc" id="cfYes">확인</button></p></div>`;m.classList.add('show');$('cfNo').onclick=()=>m.classList.remove('show');$('cfYes').onclick=()=>{m.classList.remove('show');ok();};}
+function renderBag(){const _c=$('bag').querySelector('.card'),_st=_c?_c.scrollTop:0,_tb=_c&&_c.dataset.tab;const ch=SYS.charmSum(D,S),MO=SYS.mods(D,S,rod(),bait()),lv=SYS.enhLv(S),eqg=SYS.gearOf(S);let body='';
+ if(bagTab==='box')body=`<div class="boxrow"><div class="bigbox">${BOXIMG(Math.min(5,Math.floor(Date.now()/2500)%6))}</div><div><b>보유 행운 상자 ${S.boxes.length}개</b><br><span class="small muted">낚시 성공 시 ${(MO.box*100).toFixed(2)}% 확률로 획득 (기본 0.5%${ch.treasure?` · 보물탐지 +${ch.treasure}%`:''})</span><br>
+  <button class="acc" id="openBox" ${S.boxes.length?'':'disabled'}>1개 열기</button> <button class="acc" id="openBox10" ${S.boxes.length>=2?'':'disabled'}>${Math.min(10,S.boxes.length)>1?Math.min(10,S.boxes.length):10}개 열기</button> <button id="dbgBox" class="small">🧪 테스트 상자 +1</button> <button id="dbgBox10" class="small">🧪 +10</button></div></div>
+  <h4>상자 등급 확률 ${ch.master?`<small>(감정의달인 +${ch.master}% 적용)</small>`:''}</h4><div class="tierbar">${(()=>{const ws=D.BOX.tiers.map((t,i)=>t.w*(i>=2?1+ch.master/100:1)),sm=ws.reduce((a,b)=>a+b);return D.BOX.tiers.map((t,i)=>`<span style="--gc:${t.c}">${t.n}<b>${(ws[i]/sm*100).toFixed(ws[i]/sm<.01?2:1)}%</b></span>`).join('');})()}</div>
+  <p class="small muted">보상: 부적 55% · 낚싯대 10% · 미끼 묶음 15% · 강화석+코인 20% (모두 상자 등급 연동) · 보물감정 ${ch.appraise}% 확률로 보상 1회 추가</p>`;
+ if(bagTab==='charm'){body=`<p class="small">장착 ${S.equip.length}/${D.CHARM.slots} · 합산 효과 (부적 ${D.CHARM.slots}개 + 장착 낚싯대 추가옵션, 합산 상한 적용)</p><div class="sumgrid">${Object.entries(D.CHARM.opts).map(([k,o])=>`<span class="${ch[k]?'on':''}">${o.n} <b>${ch[k]}%</b><small>/${o.total}</small></span>`).join('')}</div>
+  <div class="presets">프리셋 ${[0,1,2].map(i=>`<button class="${S.preset===i?'on':''}" data-pre="${i}">${i+1}<small>${(S.presets[i]||[]).length}/${D.CHARM.slots}</small></button>`).join('')} <button id="preSave" title="현재 장착 상태를 선택된 프리셋에 저장">💾 현재 장착 → 프리셋 ${S.preset+1} 저장</button> <span class="small muted">전환 시 현재 장착이 자동 저장돼요</span></div>
+  <div class="synbar"><b>✨ 부적 합성</b> <span class="small muted">같은 등급 ${D.CHARM.synth.need}개 → 다음 등급 랜덤 1개 · 신화 ${D.CHARM.synth.mythNeed}개 → 다른 신화 1개 · 재료 제외: 🔒 잠금 ${S.charms.filter(c=>c.lock).length}개 · 장착/프리셋 등록 ${S.charms.filter(c=>!c.lock&&(S.equip.includes(c.id)||S.presets.some(p=>p.includes(c.id)))).length}개 · 옵션 합이 낮은 부적부터 소모</span><div class="synrow">${D.BOX.tiers.map((t,i)=>{const need=i>=5?D.CHARM.synth.mythNeed:D.CHARM.synth.need,n=SYS.synthPool(D,S,i).length,cost=D.CHARM.synth.coin[i];return `<button class="syn" style="--gc:${t.c}" data-csyn="${i}" ${n>=need&&S.coins>=cost?'':'disabled'}>${CIMG(i)}<span>${t.n} ${n}/${need}</span><small>→ ${TIER(Math.min(5,i+1)).n} · 🪙${cost.toLocaleString()}</small></button>`;}).join('')}</div></div>
+  <div class="disbar">일괄 분해: <select id="disT">${D.BOX.tiers.map((t,i)=>`<option value="${i}" ${i==disT?'selected':''}>${t.n} 이하</option>`).join('')}</select> <button id="disGo">분해</button> <span class="small" id="disPrev">${(()=>{const L=S.charms.filter(c=>c.tier<=disT&&!c.lock&&!S.equip.includes(c.id));return `예상 ${L.length}개 → 🪙 <b>${L.reduce((a,c)=>a+disOf(c).co,0).toLocaleString()}</b> · 💎 <b>${L.reduce((a,c)=>a+disOf(c).st,0)}</b>`;})()}</span> <span class="small muted">장착·잠금 부적 제외</span></div>${(()=>{const P=SYS.passives(D,S).sum,on=Object.entries(P).filter(([k,v])=>v>0);return on.length?`<p class="small">🏆 도감·어항 패시브 (부적 상한과 별도): ${on.map(([k,v])=>`${D.CHARM.opts[k].n} +${v}%`).join(' · ')}</p>`:'';})()}`+
+   `<div class="cfilter"><b>🔍 옵션 검색</b> <select id="cfOpt"><option value="">전체 옵션</option>${Object.entries(D.CHARM.opts).map(([k,o])=>`<option value="${k}" ${CF.opt===k?'selected':''}>${o.n}</option>`).join('')}</select>
+  <span class="tchips">${[-1,0,1,2,3,4,5].map(i=>`<button class="tc ${CF.tier===i?'on':''}" data-cft="${i}" style="--gc:${i<0?'#3d3548':TIER(i).c}">${i<0?'전체':TIER(i).n}</button>`).join('')}</span>
+  <select id="cfOnly"><option value="">모두</option><option value="eq" ${CF.only==='eq'?'selected':''}>장착중</option><option value="free" ${CF.only==='free'?'selected':''}>미장착</option><option value="lock" ${CF.only==='lock'?'selected':''}>잠금</option></select>
+  ${CF.opt||CF.tier>=0||CF.only?'<button id="cfReset" class="small">초기화</button>':''}<span class="small muted">${CF.opt?`'${D.CHARM.opts[CF.opt].n}' 값 높은 순`:'등급 높은 순'}</span></div>`+
+ (()=>{const L=S.charms.filter(c=>(!CF.opt||c.opts.some(o=>o.k===CF.opt))&&(CF.tier<0||c.tier===CF.tier)&&(!CF.only||(CF.only==='eq'?S.equip.includes(c.id):CF.only==='lock'?c.lock:!S.equip.includes(c.id))));
+  const v=c=>{const o=c.opts.find(o=>o.k===CF.opt);return o?o.v:0;};L.sort((a,b)=>CF.opt?v(b)-v(a):b.tier-a.tier);
+  return `<p class="small muted">${L.length}/${S.charms.length}개 표시</p>`+(L.length?L.map(c=>{const eq=S.equip.includes(c.id);return charmHTML(c)+`<div class="cbtn"><button class="lockb ${c.lock?'on':''}" data-clock="${c.id}">${c.lock?'🔒':'🔓'}</button>${eq?`<button class="ok" data-uneq="${c.id}">장착 해제</button>`:`<button data-eq="${c.id}" ${S.equip.length>=D.CHARM.slots?'disabled':''}>장착</button>`}<button data-sellc="${c.id}" ${eq||c.lock?'disabled':''} title="분해 시 획득">분해 <small>🪙${disOf(c).co.toLocaleString()} 💎${disOf(c).st}</small></button></div></div>`;}).join(''):`<p class="muted">${S.charms.length?'조건에 맞는 부적이 없어요.':'부적이 없어요. 행운 상자를 열어보세요!'}</p>`);})();}
+ if(bagTab==='gear'){const L=S.gear.slice().sort((a,b)=>D.RODS.findIndex(r=>r.k===b.k)-D.RODS.findIndex(r=>r.k===a.k)||b.star-a.star);
+  body=`<p class="small muted">같은 낚싯대 2개를 합성하면 ★+1 (최대 ★${D.GEAR.starMax}): 기본옵션 +${D.GEAR.starBonus*100}%/★, 품질 +2%, 추가옵션 ×${D.GEAR.starUp}, ★${D.GEAR.starSlot.join('·★')}에서 추가옵션 슬롯 해금. 강화석 강화(+)는 장비별로 유지되며 합성 시 높은 쪽을 이어받아요.</p>`+
+  L.map(g=>{const mats=S.gear.filter(m=>m!==g&&m.k===g.k&&!m.lock&&m.id!==S.rodId),cost=SYS.synthCost(D,g);return gearHTML(g,`<div class="cbtn"><button class="lockb ${g.lock?'on':''}" data-glock="${g.id}">${g.lock?'🔒':'🔓'}</button>${g.id===S.rodId?'':`<button class="ok" data-geq="${g.id}">장착</button>`}<button data-syn="${g.id}" ${mats.length&&g.star<D.GEAR.starMax&&S.coins>=cost?'':'disabled'} title="재료: 같은 종류 중 품질이 가장 낮은 1개">합성 🪙${cost.toLocaleString()}${mats.length?'':' (재료 없음)'}</button><button data-gsell="${g.id}" ${g.id===S.rodId||g.lock?'disabled':''}>판매 🪙${Math.round(SYS.gearStats(D,g).price*D.GEAR.sellRate)}</button></div>`);}).join('');}
+ if(bagTab==='enh'){const E=D.ENH,r=rod();body=`<div class="enh"><div class="rodbig">${RIMG(SYS.gearOf(S).k,"rbig")}</div><div><b>${r.n} ${'★'.repeat(r.star)} <span class="plus">+${lv}</span></b><br><span class="small">크기 +${(lv*E.size*100).toFixed(1)}% · 입질대기 -${(lv*E.speed*100).toFixed(0)}%</span><br>보유 강화석 💎 <b>${S.stones}</b> · 🪙 ${S.coins.toLocaleString()}</div></div>`+
+   (lv>=E.max?'<p><b>최대 강화 달성!</b></p>':`<p>+${lv} → +${lv+1} · 성공률 <b>${E.rate[lv]}%</b> · 비용 💎${E.stone(lv)} + 🪙${E.coin(lv).toLocaleString()}${lv>=E.dropFrom?` · <span style="color:#d55">실패 시 50% 확률로 1단계 하락</span>`:''}</p><button class="acc" id="enhGo" ${S.stones<E.stone(lv)||S.coins<E.coin(lv)?'disabled':''}>강화하기</button>`)+
+   ` <button id="buyStone" ${S.coins<E.stonePrice?'disabled':''}>강화석 구매 🪙${E.stonePrice}</button><p class="small muted">강화(+)는 장착 중인 낚싯대 1개에 적용 · 합성(★)과 별개 · 파괴 없음</p>`;}
+ $('bag').innerHTML=`<div class="card" data-tab="${bagTab}" style="width:min(780px,94vw)"><button class="close" data-close="bag">×</button><h2>🎒 가방 <span class="pill small">🎁 ${S.boxes.length} · 🧿 ${S.charms.length} · 🎣 ${S.gear.length} · 💎 ${S.stones}</span></h2>
+  <div class="tabs">${[['box','🎁 행운 상자'],['charm','🧿 행운 부적'],['gear','🎣 장비·합성'],['enh','⚒ 강화']].map(([k,n])=>`<button class="${bagTab===k?'on':''}" data-btab="${k}">${n}</button>`).join('')}</div>${body}</div>`;
+ if(_tb===bagTab)$('bag').querySelector('.card').scrollTop=_st;
+ const q=x=>$('bag').querySelectorAll(x),rr=()=>{save();hud();renderBag();};
+ q('[data-pre]').forEach(b=>b.onclick=()=>{const i=+b.dataset.pre;S.presets[S.preset]=S.equip.slice();S.preset=i;S.equip=(S.presets[i]||[]).filter(id=>S.charms.some(c=>c.id===id)).slice(0,D.CHARM.slots);toast(`🧿 프리셋 ${i+1} 적용 (${S.equip.length}개 장착)`);rr();});
+ const ps=$('preSave');if(ps)ps.onclick=()=>{S.presets[S.preset]=S.equip.slice();toast(`💾 프리셋 ${S.preset+1} 저장`);rr();};
+ q('[data-csyn]').forEach(b=>b.onclick=()=>{const t=+b.dataset.csyn,need=t>=5?D.CHARM.synth.mythNeed:D.CHARM.synth.need,used=SYS.synthPool(D,S,t).slice(0,need);
+  confirmBox(`<h3>부적 합성</h3><p><b style="color:${TIER(t).c}">${TIER(t).n}</b> 부적 ${need}개 → <b style="color:${TIER(Math.min(5,t+1)).c}">${TIER(Math.min(5,t+1)).n}</b> 랜덤 부적 1개<br>비용 🪙${D.CHARM.synth.coin[t].toLocaleString()}</p><div class="synprev">${used.map(c=>CIMG(c.tier)).join('')}</div><p class="small muted">옵션 합이 낮은 부적부터 소모 · 장착/잠금/프리셋 부적 제외</p>`,()=>{const r=SYS.charmSynth(D,S,t);if(r.r==='ok'){save();hud();renderBag();synthFx(r);}else toast('합성 재료/코인이 부족해요');});});
+ q('[data-close]').forEach(b=>b.onclick=()=>closeM('bag'));q('[data-btab]').forEach(b=>b.onclick=()=>{bagTab=b.dataset.btab;renderBag();});
+ const openN=n=>{const res=[];for(let i=0;i<n&&S.boxes.length;i++){S.boxes.shift();res.push(SYS.openBox(D,S));}rr();boxFx(res);const best=Math.max(...res.map(r=>r.tier));if(best>=4)setTimeout(()=>boxAlert(NICK(),best,true),n>1?1000:1400);};
+ const ob=$('openBox');if(ob)ob.onclick=()=>openN(1);const ob10=$('openBox10');if(ob10)ob10.onclick=()=>openN(10);
+ const d1=$('dbgBox');if(d1)d1.onclick=()=>{S.boxes.push(Date.now());rr();};const d2=$('dbgBox10');if(d2)d2.onclick=()=>{for(let i=0;i<10;i++)S.boxes.push(Date.now());rr();};
+ q('[data-eq]').forEach(b=>b.onclick=()=>{if(S.equip.length<D.CHARM.slots)S.equip.push(+b.dataset.eq);S.presets[S.preset]=S.equip.slice();rr();});
+ q('[data-uneq]').forEach(b=>b.onclick=()=>{S.equip=S.equip.filter(x=>x!=b.dataset.uneq);S.presets[S.preset]=S.equip.slice();rr();});
+ q('[data-clock]').forEach(b=>b.onclick=()=>{const c=S.charms.find(x=>x.id==b.dataset.clock);c.lock=!c.lock;rr();});
+ q('[data-sellc]').forEach(b=>b.onclick=()=>{const c=S.charms.find(x=>x.id==b.dataset.sellc);S.charms=S.charms.filter(x=>x!==c);S.presets.forEach((p,i)=>S.presets[i]=p.filter(x=>x!==c.id));S.coins+=D.CHARM.dismantle.coin[c.tier];S.stones+=D.CHARM.dismantle.stone[c.tier];sfx.coin();rr();});
+ const ds=$('disT');if(ds)ds.onchange=()=>{disT=+ds.value;renderBag();};
+ const co=$('cfOpt');if(co)co.onchange=()=>{CF.opt=co.value;renderBag();};const cn=$('cfOnly');if(cn)cn.onchange=()=>{CF.only=cn.value;renderBag();};q('[data-cft]').forEach(b=>b.onclick=()=>{CF.tier=+b.dataset.cft;renderBag();});const cr=$('cfReset');if(cr)cr.onclick=()=>{CF={opt:'',tier:-1,only:''};renderBag();};
+ const dg=$('disGo');if(dg)dg.onclick=()=>{const L=S.charms.filter(c=>c.tier<=disT&&!c.lock&&!S.equip.includes(c.id));if(!L.length)return toast('분해할 부적이 없어요');const co=L.reduce((a,c)=>a+D.CHARM.dismantle.coin[c.tier],0),st=L.reduce((a,c)=>a+D.CHARM.dismantle.stone[c.tier],0);
+  confirmBox(`<h3>부적 일괄 분해</h3><p><b>${TIER(disT).n} 이하</b> 부적 <b>${L.length}개</b>를 분해할까요?<br>획득: 🪙 ${co.toLocaleString()} · 💎 ${st}</p><p class="small muted">장착·잠금 부적은 제외됩니다</p>`,()=>{const r=SYS.dismantle(D,S,disT);sfx.coin();toast(`🧿 ${r.n}개 분해 → 🪙${r.co} · 💎${r.st}`);rr();});};
+ q('[data-glock]').forEach(b=>b.onclick=()=>{const g=S.gear.find(x=>x.id==b.dataset.glock);g.lock=!g.lock;rr();});
+ q('[data-geq]').forEach(b=>b.onclick=()=>{S.rodId=+b.dataset.geq;S.rod=SYS.gearOf(S).k;rr();});
+ q('[data-gsell]').forEach(b=>b.onclick=()=>{const g=S.gear.find(x=>x.id==b.dataset.gsell);S.gear=S.gear.filter(x=>x!==g);S.coins+=Math.round(SYS.gearStats(D,g).price*D.GEAR.sellRate);sfx.coin();rr();});
+ q('[data-syn]').forEach(b=>b.onclick=()=>{const g=S.gear.find(x=>x.id==b.dataset.syn),m=S.gear.filter(x=>x!==g&&x.k===g.k&&!x.lock&&x.id!==S.rodId).sort((a,b)=>a.star-b.star||a.q-b.q)[0];
+  confirmBox(`<h3>장비 합성</h3><p>${SYS.gearStats(D,g).n} ★${g.star} → <b>★${g.star+1}</b><br>재료: ★${m.star} 품질 ${(m.q*100).toFixed(1)}% (소멸)<br>비용 🪙${SYS.synthCost(D,g).toLocaleString()}</p>`,()=>{const r=SYS.synth(D,S,g.id,m.id);if(r.r==='ok'){sfx.coin();toast(`🎣 합성 성공! ★${r.star}${r.added?' · 추가옵션 슬롯 해금!':''}`);}rr();});});
+ const eg=$('enhGo');if(eg)eg.onclick=()=>{const r=SYS.enhTry(D,S);rr();if(r.r==='ok'){sfx.coin();toast(`⚒ 강화 성공! <b>+${r.lv}</b>`);}else if(r.r==='drop'){sfx.fail();toast(`💥 강화 실패… +${r.lv}로 하락`);}else if(r.r==='fail'){sfx.fail();toast('강화 실패 (단계 유지)');}};
+ const bs=$('buyStone');if(bs)bs.onclick=()=>{if(S.coins>=D.ENH.stonePrice){S.coins-=D.ENH.stonePrice;S.stones++;sfx.coin();}rr();};}
+function boxFx(list){const best=Math.max(...list.map(r=>r.tier)),t=TIER(best),fx=$('boxFx');fx.style.setProperty('--gc',t.c);fx.className='show t'+best+(list.length>1?' multi':'');
+ const body=list.length===1?`<h3 style="color:${t.c}">${t.n} 행운 상자</h3>`+list[0].out.map(o=>rewardHTML(o,t)).join(''):
+  `<h3 style="color:${t.c}">행운 상자 ${list.length}개 개봉 · 최고 ${t.n}</h3><div class="rgrid">${list.map(r=>{const tt=TIER(r.tier);return `<div class="rcell" style="--gc:${tt.c}"><span class="gbadge" style="--gc:${tt.c}">${tt.n}</span>${r.out.map(o=>`<div>${o.type==='charm'?CIMG(o.c.tier)+' 부적 '+o.c.opts.length+'옵':o.type==='rod'?RIMG(o.g.k,'cimg')+' '+D.RODS.find(x=>x.k===o.g.k).n.replace(' 낚싯대',''):o.type==='bait'?BIMG(o.k,'cimg')+' '+D.BAITS.find(b=>b.k===o.k).n+' ×'+o.n:'💎×'+o.st+' 🪙'+o.co}${o.bonus?' ✨':''}</div>`).join('')}</div>`;}).join('')}</div>
+  <div class="small">${(()=>{const a={charm:0,rod:0,bait:0,st:0,co:0};list.forEach(r=>r.out.forEach(o=>{if(o.type==='stone'){a.st+=o.st;a.co+=o.co;}else a[o.type]++;}));return `합계: 🧿 부적 ${a.charm} · 🎣 낚싯대 ${a.rod} · 🪱 미끼 ${a.bait} · 💎 ${a.st} · 🪙 ${a.co.toLocaleString()}`;})()}</div>`;
+ fx.innerHTML=`<div class="rays"></div><div class="fxbox">${BOXIMG(best,'fximg')}${list.length>1?'<small>×'+list.length+'</small>':''}</div><div class="fxres">${body}<button class="acc" id="fxOk">확인</button></div>`;
+ setTimeout(()=>{fx.classList.add('open');sfx.reel();if(best>=4)0;},list.length>1?900:1300);
+ $('fxOk').onclick=()=>{fx.className='';};}
+function synthFx(r){const fx=$('boxFx'),t=TIER(r.c.tier);fx.style.setProperty('--gc',t.c);fx.className='show syn t'+r.c.tier;
+ fx.innerHTML=`<div class="rays"></div><div class="synring">${r.used.map((c,i)=>`<div class="sp" style="--a:${i*360/r.used.length}deg">${CIMG(c.tier)}</div>`).join('')}<div class="core">${CIMG(r.c.tier)}</div></div><div class="fxres"><h3 style="color:${t.c}">✨ 합성 성공 · ${t.n} 부적!</h3>${charmHTML(r.c)}</div><button class="acc" id="fxOk">확인</button></div>`;
+ sfx.reel();setTimeout(()=>{fx.classList.add('open');sfx.coin();if(r.c.tier>=4)say('시스템',`✨ ${NICK()}님이 ${t.n} 부적을 합성했어요!`);},1500);$('fxOk').onclick=()=>{fx.className='';};}
+// ───────── 전설·신화 알림: 내 것 = 중앙 컷인(시안2), 다른 유저 = 상단 리본(시안1) ─────────
+function legendAlert(who,f,mine){if(f.g<3)return;const F=FI(f.k),G0=D.GRADES[f.g],M=f.g>=4,cls=M?'M':'L';
+ if(mine){const el=document.createElement('div');el.className='cutin '+cls;el.innerHTML=`<div class="band"><img src="${F.img}"><div><div class="t">${M?'✦ 신화 출현 ✦':'★ 전설 출현 ★'}</div><div class="sub">${who} · ${F.n} ${f.cm}cm</div></div></div>`;document.body.appendChild(el);
+  if(M)document.body.animate([{transform:'translate(0,0)'},{transform:'translate(6px,-4px)'},{transform:'translate(-5px,3px)'},{transform:'translate(0,0)'}],{duration:300,iterations:3});setTimeout(()=>el.classList.add('out'),3200);setTimeout(()=>el.remove(),3800);}
+ else{const box=$('ribbons'),el=document.createElement('div');el.className='ribbon '+cls;el.innerHTML=`<img src="${F.img}"><div><div class="big">${M?'🌌':'🏅'} <b>${who}</b>님이 <span class="gb">${G0.n}</span> <b>${F.n} ${f.cm}cm</b>를 낚았어요!</div><small>방금 전 · 같은 서버</small></div>`;box.appendChild(el);setTimeout(()=>el.classList.add('out'),4800);setTimeout(()=>el.remove(),5400);}
+ say('시스템',`📢 ${who}님이 ${G0.n} ${F.n} ${f.cm}cm를 낚았어요!`);}
+let botLT=rand(...D.ALERT.botTick);
+function boxAlert(who,tier,mine){const t=TIER(tier),M=tier>=5,cls=M?'M':'L';
+ if(mine){const el=document.createElement('div');el.className='cutin box '+cls;el.innerHTML=`<div class="band">${BOXIMG(tier,'bximg')}<div><div class="t">${M?'✦ 신화 상자 개봉 ✦':'★ 전설 상자 개봉 ★'}</div><div class="sub">${who} · ${t.n} 행운 상자</div></div></div>`;document.body.appendChild(el);setTimeout(()=>el.classList.add('out'),2800);setTimeout(()=>el.remove(),3400);}
+ else{const box=$('ribbons'),el=document.createElement('div');el.className='ribbon '+cls;el.innerHTML=`${BOXIMG(tier,'bximg')}<div><div class="big">🎁 <b>${who}</b>님이 <span class="gb">${t.n}</span> <b>행운 상자</b>를 열었어요!</div><small>방금 전 · 같은 서버</small></div>`;box.appendChild(el);setTimeout(()=>el.classList.add('out'),4800);setTimeout(()=>el.remove(),5400);}
+ say('시스템',`📢 ${who}님이 ${t.n} 행운 상자를 열었어요!`);}
+let botBT=rand(90,200);function botBoxAlert(dt,force){botBT-=dt;if(!force&&botBT>0)return;botBT=rand(90,200);const g=force!=null?force:Math.random()<.15?5:4;boxAlert(pick(bots).c.name,g,false);}
+function botLegend(dt,force){botLT-=dt;if(!force&&botLT>0)return;botLT=rand(...D.ALERT.botTick);const x=Math.random();const g=force!=null?force:x<D.ALERT.myth?4:x<D.ALERT.legend?3:-1;if(g<0)return;
+ const cand=D.FISH.filter(f=>f.w<=14),F=pick(cand),cm=Math.round((g===4?F.g[3]+(F.max-F.g[3])*Math.random():F.g[2]+(F.g[3]-F.g[2])*Math.random())*10)/10,b=pick(bots);legendAlert(b.c.name,{k:F.k,cm,g},false);}
+const autoTargets=()=>S.tank.filter(f=>!f.lock&&f.v<S.auto.th);const autoPrevTxt=()=>{const L=autoTargets();return `현재 어항 기준 미만: ${L.length}마리 (🪙${L.reduce((a,f)=>a+sellP(f),0).toLocaleString()})`;};
+function renderSet(){const A=S.auto,g=S.showG;
+ $('set').innerHTML=`<div class="card" style="width:min(620px,94vw)"><button class="close" data-close="set">×</button><h2>⚙ 설정 · 저장</h2>
+ <h4>👤 프로필 (로컬)</h4><p>닉네임 <input id="nick" maxlength="10" value="${S.nick||''}" placeholder="나"> <button id="nickOk">적용</button><br><span class="small muted">※ 현재는 이 브라우저에만 저장되는 로컬 프로필입니다. 실제 로그인/계정 연동은 서버 단계에서 구현 예정.</span></p>
+ <h4>💾 저장</h4><p><button class="acc" id="saveNow">지금 저장</button> <button id="exp">JSON 내보내기</button> <label class="btnlike">JSON 불러오기<input type="file" id="imp" accept=".json" hidden></label> <span class="small muted" id="lastSave">${S.savedAt?'마지막 저장 '+new Date(S.savedAt).toLocaleString('ko-KR'):''}</span></p>
+ <h4>⚙ 자동 판매</h4><p><label><input type="checkbox" id="auOn" ${A.on?'checked':''}> 자동판매 켜기</label> · 가치 <input type="number" id="auTh" min="1" value="${A.th}" style="width:70px"> 코인 미만 물고기<br><label><input type="checkbox" id="auNew" ${A.keepNew?'checked':''}> 처음 낚은 어종(도감 첫 등록)은 보관</label> <span class="small muted">· 🔒 잠금 물고기는 항상 제외 · 낚는 즉시 적용</span><br><span class="small" id="auPrev">${autoPrevTxt()}</span> <button id="auBulk">지금 어항에서 일괄 판매</button></p>
+ <h4>🌲 그래픽 테스트</h4><p>${[['tree','나무'],['grass','풀·덤불'],['flower','꽃·버섯']].map(([k,n])=>`<label><input type="checkbox" data-vg="${k}" ${g[k]?'checked':''}> ${n} (${VG[k].length} draw)</label>`).join(' ')}<br><span class="small muted">우하단 FPS · draw calls 표시로 비교하세요</span></p>
+ <h4>🎁 행운 상자 아이콘 (테스트)</h4><p>${[1,2,3,4].map(i=>`<label class="bdes"><input type="radio" name="bdes" value="${i}" ${(S.boxDesign||1)===i?'checked':''}> <img src="img/box/${i===1?'t3':'d'+i}.png"> 디자인 ${i}${i===1?' (기본·등급별 원화)':' (등급별 색조 필터)'}</label>`).join('')}</p>
+ <h4>🧪 디버그</h4><p><button id="dbMyL">내 전설 컷인</button> <button id="dbMyM">내 신화 컷인</button> <button id="dbBotL">봇 전설 리본</button> <button id="dbBotM">봇 신화 리본</button><br><button id="dbBox">행운 상자 +1</button> <button id="dbStone">강화석 +10</button> <button id="dbCoin">코인 +5000</button></p></div>`;
+ const rr=()=>{save();hud();renderSet();};$('set').querySelectorAll('[name=bdes]').forEach(r=>r.onchange=()=>{S.boxDesign=+r.value;toast('🎁 상자 아이콘 디자인 '+r.value);rr();});$('set').querySelector('[data-close]').onclick=()=>closeM('set');
+ $('nickOk').onclick=()=>{S.nick=$('nick').value.trim().slice(0,10);if(me){scene.remove(me.o);scene.remove(me.tag);const p=me.o.position.clone(),d=me.dir;const i=chars.indexOf(me);if(i>=0)chars.splice(i,1);me=makeChar(S.char,NICK());me.o.position.copy(p);me.dir=d;}toast('닉네임: '+NICK());rr();};
+ $('saveNow').onclick=()=>{S.savedAt=Date.now();save();toast('💾 저장 완료');renderSet();};
+ $('exp').onclick=()=>{S.savedAt=Date.now();save();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download=`nakmeong-save-${new Date().toISOString().slice(0,10)}.json`;a.click();};
+ $('imp').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const o=JSON.parse(t);if(typeof o.coins!=='number')throw 0;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,S0,o);SYS.migrate(D,S);save();hud();toast('📂 불러오기 완료');renderSet();}catch(_){toast('잘못된 세이브 파일');}});};
+ $('auOn').onchange=e=>{A.on=e.target.checked;rr();};$('auTh').oninput=e=>{A.th=Math.max(1,+e.target.value||1);save();const z=$('auPrev');if(z)z.textContent=autoPrevTxt();};$('auTh').onchange=e=>{A.th=Math.max(1,+e.target.value||1);rr();};
+ const ab=$('auBulk');if(ab)ab.onclick=()=>{const L=autoTargets();if(!L.length)return toast('기준 미만 물고기가 없어요');const sum=L.reduce((a,f)=>a+sellP(f),0);confirmBox(`<h3>어항 일괄 자동판매</h3><p>가치 <b>${A.th}</b>코인 미만 <b>${L.length}마리</b>를 상점가로 팔까요?<br>획득 🪙 <b>${sum.toLocaleString()}</b></p><p class="small muted">🔒 잠금 물고기는 제외</p>`,()=>{const ids=new Set(L.map(f=>f.id));S.tank=S.tank.filter(f=>!ids.has(f.id));S.coins+=sum;S.earned+=sum;sfx.coin();toast(`⚙ ${L.length}마리 일괄 판매 +${sum.toLocaleString()}`);rr();});};$('auNew').onchange=e=>{A.keepNew=e.target.checked;rr();};
+ $('set').querySelectorAll('[data-vg]').forEach(i=>i.onchange=()=>{g[i.dataset.vg]=i.checked?1:0;applyVG();rr();});
+ const myF=g=>{const F=pick(D.FISH.filter(f=>f.rare));return {k:F.k,g,cm:g===4?F.max:F.g[2]};};$('dbMyL').onclick=()=>{closeM('set');legendAlert(NICK(),myF(3),true);};$('dbMyM').onclick=()=>{closeM('set');legendAlert(NICK(),myF(4),true);};$('dbBotL').onclick=()=>{closeM('set');botLegend(0,3);};$('dbBotM').onclick=()=>{closeM('set');botLegend(0,4);};
+ $('dbBox').onclick=()=>{S.boxes.push(Date.now());toast('🎁 상자 +1');rr();};$('dbStone').onclick=()=>{S.stones+=10;rr();};$('dbCoin').onclick=()=>{S.coins+=5000;rr();};}
+function applyVG(){for(const k in VG)VG[k].forEach(m=>m.visible=!!S.showG[k]);}
+// ───────── 도감 (시안1 '카드 컬렉션' + 시안3 크기 눈금자 적용) ─────────
+let dexTab='dex';
+function renderDex(){if(dexTab==='ach')return renderAch();const tot=D.FISH.length*5,got=D.FISH.reduce((a,f)=>a+(S.dex[f.k]?S.dex[f.k].gr.reduce((x,y)=>x+y,0):0),0),sp=D.FISH.filter(f=>S.dex[f.k]).length;
+  $('dex').innerHTML=`<div class="card" style="width:min(1000px,95vw)"><button class="close" data-close="dex">×</button><div class="dexhead"><div class="ring" style="--p:${got/tot*100}"><span>${Math.round(got/tot*100)}%</span></div>
+  <div><div class="tabs dtabs"><button class="on" data-dtab="dex">📖 도감</button><button data-dtab="ach">🏆 업적·패시브</button></div><h2 style="margin:0">📖 낚멍 물고기 도감</h2><div class="small">어종 ${sp}/${D.FISH.length} · 등급 슬롯 ${got}/${tot} · 총 ${S.caught}마리 낚음</div><div class="pips" style="width:240px">${D.GRADES.map(g=>`<i class="on" style="--c:${g.c}" title="${g.n}"></i>`).join('')}</div><div class="small muted">${D.GRADES.map(g=>g.n).join(' · ')}</div></div></div>
+  <div class="dgrid">${D.FISH.map((f,i)=>{const d=S.dex[f.k];const best=d?d.gr.lastIndexOf(1):-1,c=best>=0?gc(best):'#d8d2ca',bounds=[f.min,...f.g,f.max],span=f.max-f.min;
+   return `<div class="dcard ${d?'g'+best:'unk'}" style="--gc:${c}"><div class="shine"></div><div class="no">No.${String(i+1).padStart(3,'0')}</div><img src="${d?f.img:f.img.replace('.png','_sil.png')}"><div class="nm">${d?f.n:'???'}</div>
+   <div class="small">${d?`최대 <b>${d.max}cm</b> · ${d.n}마리 · 최고 <span class="gbadge" style="--gc:${c}">${D.GRADES[best].n}</span>`:'아직 만나지 못한 물고기'}</div>
+   <div class="pips">${D.GRADES.map((g,j)=>`<i class="${d&&d.gr[j]?'on':''}" style="--c:${g.c}" title="${g.n} ${bounds[j]}~${bounds[j+1]}cm"></i>`).join('')}</div>
+   <div class="ruler">${D.GRADES.map((g,j)=>`<span style="width:${(bounds[j+1]-bounds[j])/span*100}%;background:${g.c};opacity:${d&&d.gr[j]?1:.28}"></span>`).join('')}${d?`<div class="mk" style="left:calc(${(d.max-f.min)/span*100}% - 1px)"></div>`:''}</div>
+   <div class="small muted">${f.min}cm ~ ${f.max}cm</div></div>`;}).join('')}</div><p class="small muted">크기 기준 출처: FishBase, 국립생물자원관, 경북 민물고기연구센터, 낚시춘추 한국 최대어 DB 등 (README 참고)</p></div>`;
+  $('dex').querySelector('[data-close]').onclick=()=>closeM('dex');dexTabs();}
+function dexTabs(){$('dex').querySelectorAll('[data-dtab]').forEach(b=>b.onclick=()=>{dexTab=b.dataset.dtab;renderDex();});}
+function renderAch(){const P=SYS.passives(D,S),A=P.ach,done=A.filter(a=>a.done).length,O=D.CHARM.opts;
+ $('dex').innerHTML=`<div class="card" style="width:min(1000px,95vw)"><button class="close" data-close="dex">×</button><div class="tabs dtabs"><button data-dtab="dex">📖 도감</button><button class="on" data-dtab="ach">🏆 업적·패시브</button></div>
+ <h2>🏆 도감 업적 <small class="pill">${done}/${A.length} 달성</small></h2><p class="small muted">업적·어항 조합 패시브는 부적 합산 상한과 <b>별도</b>로 더해지며, 패시브끼리 옵션별 상한이 있어요 (밸런스 보호).</p>
+ <div class="sumgrid">${Object.keys(O).map(k=>`<span class="${P.sum[k]?'on':''}" data-tip="${O[k].n}: ${O[k].d}
+업적+조합 원합계 ${R1x(P.raw[k])}% · 상한 ${D.PASSIVE.cap[k]}%">${O[k].n} <b>+${P.sum[k]}%</b><small>/${D.PASSIVE.cap[k]}</small></span>`).join('')}</div>
+ <div class="achgrid">${A.map(x=>`<div class="ach ${x.done?'done':''}"><div class="ai">${x.done?'🏆':'🔒'}</div><div><b>${x.a.n}</b><div class="small muted">${x.a.d}</div><div class="bar"><i style="width:${x.c/x.n*100}%"></i></div><div class="small">${x.c}/${x.n} · 보상 <b>${effTxt(x.a.e)}</b></div></div></div>`).join('')}</div>
+ <h3>🧩 어항 조합 (현재 내 어항 기준)</h3><div class="achgrid">${P.combo.map(x=>`<div class="ach ${x.on?'done':''}"><div class="ai">🧩</div><div><b>${x.c.n}</b><div class="small muted">${x.c.ks.map(k=>FI(k).n).join(' + ')}</div><div class="small">${x.on?`✅ ${D.GRADES[x.lv].n} 조합 · ${effTxt(x.e)}`:`${x.have}/${x.c.ks.length} · 기본 ${effTxt(x.c.e)}`}</div></div></div>`).join('')}</div></div>`;
+ $('dex').querySelector('[data-close]').onclick=()=>closeM('dex');dexTabs();}
+// ───────── 사운드 선택 UI ─────────
+function renderSound(){const row=(cat,i,s)=>{const sel=cat==='day'?S.sDay===i:S.sNight===i;return `<div class="snd ${sel?'on':''}"><span>${cat==='day'?'☀️':'🌙'} ${s.n}</span><span><button data-pv="${cat}:${i}">▶ 들어보기</button> ${sel?'<b>✔ 선택됨</b>':`<button class="ok" data-sel="${cat}:${i}">선택</button>`}</span></div>`;};
+  $('sound').innerHTML=`<div class="card" style="width:min(560px,94vw)"><button class="close" data-close="sound">×</button><h2>🔊 자연 사운드 시안</h2><p class="small muted">낮/밤 사운드는 시간에 따라 자동으로 크로스페이드돼요. '들어보기'는 15초 동안 해당 소리만 재생.</p>
+   <h4>☀️ 낮</h4>${D.SOUNDS.day.map((s,i)=>row('day',i,s)).join('')}<h4>🌙 밤</h4>${D.SOUNDS.night.map((s,i)=>row('night',i,s)).join('')}
+   <p>볼륨 <input type="range" min="0" max="1" step=".05" value="${S.vol}" id="vol"> <button id="mute">${snd.on?'🔇 끄기':'🔊 켜기'}</button></p><p class="small muted">출처: sounds/CREDITS.md (Wikimedia Commons CC0/PD/CC BY)</p></div>`;
+  const q=s=>$('sound').querySelectorAll(s);q('[data-close]').forEach(b=>b.onclick=()=>closeM('sound'));
+  q('[data-sel]').forEach(b=>b.onclick=()=>{const[c,i]=b.dataset.sel.split(':');if(c==='day')S.sDay=+i;else S.sNight=+i;save();setAmb();renderSound();});
+  q('[data-pv]').forEach(b=>b.onclick=()=>{const[c,i]=b.dataset.pv.split(':');if(c==='day')S.sDay=+i;else S.sNight=+i;save();setAmb();snd.force=c;snd.forceT=15;(c==='day'?snd.day:snd.night).currentTime=0;(c==='day'?snd.day:snd.night).play().catch(()=>{});renderSound();});
+  $('vol').oninput=e=>{S.vol=+e.target.value;save();};$('mute').onclick=()=>{snd.on=!snd.on;renderSound();};}
+// ───────── 입력 ─────────
+const keys={},joy={x:0,y:0};
+addEventListener('keydown',e=>{if(document.activeElement.tagName==='INPUT')return;keys[e.code]=1;
+  if(e.code==='Space'){fishAction();e.preventDefault();}if(e.code==='KeyF')anyModal()&&$('tank').classList.contains('show')?closeM('tank'):tankView.open('me');
+  if(e.code==='KeyB')$('dex').classList.contains('show')?closeM('dex'):(renderDex(),openM('dex'));if(e.code==='KeyE')interact();if(e.code==='Escape')document.querySelectorAll('.modal.show').forEach(m=>m.id!=='start'&&closeM(m.id));});
+addEventListener('keyup',e=>keys[e.code]=0);
+function interact(){if(anyModal())return;const p=me.o.position;if(Math.hypot(p.x-SHOP.x,p.z-SHOP.z)<7){renderShop();openM('shop');return;}
+  const d=decks.find(d=>Math.hypot(p.x-d.tank.x,p.z-d.tank.z)<2.6);if(d){openTankOf(d);return;}renderShop();openM('shop');}
+function openTankOf(d){if(d.i===0)return tankView.open('me');const b=bots.find(b=>b.deck===d);if(b)tankView.open(b);else toast('빈 데크예요. 여기서 낚시할 수 있어요!');}
+const ray=new THREE.Raycaster(),mv2=new THREE.Vector2();
+$('world').addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,m:0};});
+addEventListener('pointermove',e=>{if(!drag)return;if(e.pointerType==='touch'&&e.target.closest&&e.target.closest('#joy'))return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.m+=Math.abs(dx)+Math.abs(dy);yaw-=dx*.006;pitch=Math.max(.12,Math.min(1.25,pitch+dy*.004));drag.x=e.clientX;drag.y=e.clientY;});
+addEventListener('pointerup',e=>{if(drag&&drag.m<6&&e.target===$('world')){mv2.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(mv2,cam);const h=ray.intersectObjects(tankPickers,true)[0];
+  if(h&&h.object.userData.myTank)openTankOf(decks[0]);else if(h&&h.instanceId!=null)openTankOf(decks[h.instanceId]);else if(fishing.state!=='off')fishAction();}drag=null;});
+$('world').addEventListener('wheel',e=>{dist=Math.max(6,Math.min(26,dist+e.deltaY*.01));},{passive:true});
+if('ontouchstart' in window||navigator.maxTouchPoints>0){const j=$('joy'),k=j.firstElementChild;j.style.display='block';const mv=e=>{const t=e.targetTouches[0],r=j.getBoundingClientRect();let x=(t.clientX-r.left-58)/46,y=(t.clientY-r.top-58)/46;const l=Math.hypot(x,y);if(l>1){x/=l;y/=l;}joy.x=x;joy.y=y;k.style.left=36+x*36+'px';k.style.top=36+y*36+'px';e.preventDefault();e.stopPropagation();};
+  j.addEventListener('touchstart',mv,{passive:false});j.addEventListener('touchmove',mv,{passive:false});j.addEventListener('touchend',()=>{joy.x=joy.y=0;k.style.left=k.style.top='36px';});}
+$('fishBtn').onclick=e=>{e.stopPropagation();fishAction();};$('bDex').onclick=()=>{renderDex();openM('dex');};$('bTank').onclick=()=>tankView.open('me');$('bShop').onclick=()=>{renderShop();openM('shop');};
+$('bSound').onclick=()=>{renderSound();openM('sound');};$('bSit').onclick=()=>{sitting=!sitting;};$('bTime').onclick=()=>{time.t=((Math.floor(time.t*3)+1)%3)/3+.02;};$('bAuto').onclick=()=>{time.auto=!time.auto;$('bAuto').textContent='🕒 시간 흐름 '+(time.auto?'ON':'OFF');};
+['😊','👍','🐟','❤️','😴','🎉'].forEach(em=>{const b=document.createElement('button');b.textContent=em;b.onclick=()=>say(NICK(),em,true);$('emo').appendChild(b);});
+$('msg').onkeydown=e=>{if(e.isComposing||e.keyCode===229)return;if(e.key==='Enter'&&$('msg').value.trim()){say(NICK(),$('msg').value.trim(),true);$('msg').value='';$('msg').blur();}};
+let sitting=false;
+// ───────── 시작 화면 ─────────
+$('charPick').innerHTML=KINDS.slice(0,4).map((k,i)=>`<button data-ch="${i}" class="${S.char===i?'sel':''}">${['🧔','👩','👦','👧'][i]} ${k.n}</button>`).join('');
+$('charPick').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.char=+b.dataset.ch;save();$('charPick').querySelectorAll('button').forEach(x=>x.classList.toggle('sel',x===b));});
+$('go').disabled=true;
+// ───────── 메인 ─────────
+let fpsA=60,camOverride=null;let started=false,T=0,last=performance.now();
+function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;T+=dt;if(time.auto)time.t=(time.t+dt/time.len)%1;const p=palette();$('bTime').textContent='🌗 '+p.name;
+  if(snd.forceT>0){snd.forceT-=dt;if(snd.forceT<=0)snd.force=null;}NIGHT=p.night;updAmb(p);
+  scene.background=p.sky;scene.fog.color.copy(p.sky);sun.color.copy(p.sun);sun.intensity=p.si;hemi.intensity=p.hemi;hemi.groundColor.copy(p.gnd);wU.deep.value.copy(p.deep);wU.shal.value.copy(p.shal);wU.sky.value.copy(p.sky);wU.night.value=p.night;wU.t.value=T;
+  fireL.intensity=p.fire*(.85+Math.sin(T*13)*.08+Math.sin(T*7.1)*.07);fireMesh.scale.set(1+Math.sin(T*11)*.08,1+Math.sin(T*15)*.18,1);lanL.intensity=p.lan;if(lanGlow)lanGlow.material.color.copy(lerpC('#d8d2c4','#ffd27a',Math.min(1,p.night+p.lan*.3)));
+  if(worldFish){worldFish.d.forEach((f,i)=>{f.a+=f.s*dt;M4.compose(V.set(Math.cos(f.a)*f.r,-.85,Math.sin(f.a)*f.r),Q.setFromAxisAngle(UP,-f.a+(f.s>0?-Math.PI/2:Math.PI/2)),SC.setScalar(f.sz));worldFish.m.setMatrixAt(i,M4);});worldFish.m.instanceMatrix.needsUpdate=true;}
+  if(started&&me){// 이동
+    let mx=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+joy.x,my=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)-joy.y;const l=Math.hypot(mx,my);if(l>1){mx/=l;my/=l;}
+    const pp=me.o.position;let moving=false;
+    if((mx||my)&&fishing.state==='off'&&!anyModal()){sitting=false;const sx=Math.sin(yaw),cz=Math.cos(yaw),dx=-my*sx+mx*cz,dz=-my*cz-mx*sx,sp=5.2*dt;
+      if(walk(pp.x+dx*sp,pp.z))pp.x+=dx*sp;if(walk(pp.x,pp.z+dz*sp))pp.z+=dz*sp;me.dir=Math.atan2(dx,dz);moving=true;}
+    pp.y=inDeck(pp.x,pp.z)?.39:Math.max(H(pp.x,pp.z),.1);
+    me.play(fishing.state!=='off'?'holding-right':moving?'walk':sitting?'sit':'idle');me.rod.visible=fishing.state!=='off'||nearSpot!=null;turn(me,dt);
+    nearSpot=decks.find(d=>canFishAt(d)&&Math.hypot(pp.x-d.tip.x,pp.z-d.tip.z)<2.4)||null;
+    $('fishBtn').style.display=nearSpot||fishing.state!=='off'?'block':'none';$('fishBtn').textContent=fishing.state==='off'?'🎣 낚시 시작':fishing.state==='cast'?'⏳ 입질 대기… (탭=챔질)':'❗ 지금 낚아올리기!';
+    const nearShop=Math.hypot(pp.x-SHOP.x,pp.z-SHOP.z)<7,nd=decks.find(d=>Math.hypot(pp.x-d.tank.x,pp.z-d.tank.z)<2.6);
+    $('prompt').style.display=(nearShop||nd)&&fishing.state==='off'?'block':'none';$('prompt').textContent=nearShop?'E · 상점 열기':nd?(nd.i===0?'F/E · 내 어항 보기':nd.owner?`E · ${nd.owner}님 어항 구경·구매`:'빈 데크 · 낚시 가능'):'';
+    // 낚시 진행
+    if(fishing.state==='cast'){fishing.t+=dt;if(fishing.t>fishing.bite){fishing.state='bite';sfx.bite();toast('❗ 입질! 지금 클릭/Space!',1100);}}
+    else if(fishing.state==='bite'){fishing.t+=dt;if(fishing.t>fishing.bite+5){fishing.state='cast';fishing.bite=fishing.t+rand(2,4);toast('놓쳤어요… 다시 기다려요',1000);}}
+    if(castT>=0){castT=Math.min(1,castT+dt*1.4);const tip=me.tip.getWorldPosition(new THREE.Vector3());bob.visible=line.visible=true;const st=pp.clone().add(V.set(0,3,0));bob.position.lerpVectors(st,castTo,castT);bob.position.y+=Math.sin(castT*Math.PI)*3.5;
+      if(castT>=1){const bite=fishing.state==='bite';bob.position.y=-.05+(bite?Math.sin(T*22)*.12-.12:Math.sin(T*2)*.03);wU.bob.value.set(castTo.x,bite?1.6:.5,castTo.z);}
+      const a=lineG.attributes.position;a.setXYZ(0,tip.x,tip.y,tip.z);a.setXYZ(1,bob.position.x,bob.position.y,bob.position.z);a.needsUpdate=true;}
+    updBots(dt,T);botBuy(dt);botLegend(dt);botRestock(dt);botBoxAlert(dt);
+    cam.position.set(pp.x+Math.sin(yaw)*Math.cos(pitch)*dist,pp.y+1.6+Math.sin(pitch)*dist,pp.z+Math.cos(yaw)*Math.cos(pitch)*dist);cam.lookAt(pp.x,pp.y+1.6,pp.z);}
+  for(const c of chars){c.mixer.update(dt);c.tag.position.set(c.o.position.x,c.o.position.y+c.h*1.0+1.3,c.o.position.z);drawTag(c.tag,bubbleOf(c.name));}
+  if(camOverride){cam.position.set(camOverride[0],camOverride[1],camOverride[2]);cam.lookAt(camOverride[3],camOverride[4],camOverride[5]);}R.render(scene,cam);tankView.frame(dt,T);
+  fpsA=fpsA*.95+(1/Math.max(dt,1e-3))*.05;$('dc').textContent=`FPS ${fpsA.toFixed(0)} · draw calls ${R.info.render.calls} · tris ${(R.info.render.triangles/1000).toFixed(1)}k · decks ${DECKS}`;window.__nk={calls:R.info.render.calls,tris:R.info.render.triangles};requestAnimationFrame(frame);}
+loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyVG();setInterval(()=>{S.savedAt=Date.now();save();},30000);
+  bob=new THREE.Mesh(new THREE.SphereGeometry(.15,8,6),new THREE.MeshLambertMaterial({color:'#ff6a5a',emissive:'#ff3a2a',emissiveIntensity:.3}));bob.visible=false;scene.add(bob);
+  lineG=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);line=new THREE.Line(lineG,new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.7}));line.frustumCulled=false;line.visible=false;scene.add(line);
+  const d0=decks[0];lanL.position.set(d0.lantern.x,2.2,d0.lantern.z);
+  makeBots();$('loading').textContent='준비 완료!';$('go').disabled=false;
+  const cam0=()=>{yaw=Math.atan2(Math.cos(d0.a),Math.sin(d0.a));cam.position.set(0,30,-70);cam.lookAt(0,0,0);};cam0();
+  $('go').onclick=()=>{me=makeChar(S.char,NICK());me.o.position.set(d0.entry.x,.4,d0.entry.z);me.dir=d0.a+Math.PI;started=true;$('start').classList.remove('show');startAudio();hud();say('시스템','낚멍에 오신 걸 환영해요! 데크 끝에서 낚시를 시작해보세요 🎣');};
+  hud();requestAnimationFrame(frame);
+  $('bBag').onclick=openBag;$('bSet').onclick=()=>{renderSet();openM('set');};$('bSave').onclick=()=>{S.savedAt=Date.now();save();toast('💾 저장 완료');};
+  addEventListener('contextmenu',e=>e.preventDefault());
+  window.NKV2={botBuyNow:()=>{buyT=0;botBuy(0);},S,D,decks,bots,fishAction,catchFish,tankView,renderShop,renderDex,openM,closeM,time,me:()=>me,setPos:(x,z)=>{me.o.position.set(x,.4,z);},nearSpot:()=>nearSpot,fishing:()=>fishing,save,VG,bag:()=>openBag(),legendAlert,botLegend,boxAlert,botBoxAlert,bagTab:t=>{bagTab=t;renderBag();},openSet:()=>{renderSet();openM('set');},SYS,giveBox:(n=1)=>{for(let i=0;i<n;i++)S.boxes.push(Date.now());save();},setCam:(x,y,z,tx=0,ty=0,tz=0)=>{camOverride=x==null?null:[x,y,z,tx,ty,tz];},setDecks:n=>{},dexTab:t=>{dexTab=t;},synthFx,hud};});
+})();
+
+// ───────── v5 툴팁 (마우스 오버 / 모바일 탭) ─────────
+(function(){const tp=document.createElement('div');tp.id='tip';document.body.appendChild(tp);let cur=null,tt=0;
+ const show=(el,x,y)=>{cur=el;tp.textContent=el.dataset.tip;tp.className='show';const r=tp.getBoundingClientRect();tp.style.left=Math.max(6,Math.min(innerWidth-r.width-6,x+12))+'px';tp.style.top=Math.max(6,(y+18+r.height>innerHeight?y-r.height-12:y+18))+'px';};
+ const hide=()=>{cur=null;tp.className='';};
+ document.addEventListener('mouseover',e=>{const el=e.target.closest&&e.target.closest('[data-tip]');if(el)show(el,e.clientX,e.clientY);else if(cur)hide();});
+ document.addEventListener('mousemove',e=>{if(cur)show(cur,e.clientX,e.clientY);});
+ document.addEventListener('touchstart',e=>{const el=e.target.closest&&e.target.closest('[data-tip]');if(el){const t=e.touches[0];show(el,t.clientX,t.clientY);clearTimeout(tt);tt=setTimeout(hide,2600);}else hide();},{passive:true});})();

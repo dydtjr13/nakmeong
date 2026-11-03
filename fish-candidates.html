@@ -1,0 +1,30 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>낚멍 신규 어종 후보 12종</title><style>
+body{margin:0;background:#f6f1e8;font-family:Pretendard,system-ui,sans-serif;color:#4a4058;padding:28px}h1{margin:0 0 4px}p.s{opacity:.7;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}.c{background:#fffaf3;border-radius:18px;padding:14px;box-shadow:0 4px 14px #0001;border-top:6px solid var(--gc)}
+.c img{width:100%;height:120px;object-fit:contain;padding:6px;box-sizing:border-box;filter:drop-shadow(0 4px 5px #0002)}.c h3{margin:4px 0}.c small{opacity:.65}.gb{display:inline-block;padding:1px 9px;border-radius:99px;color:#fff;font-size:12px;font-weight:800;background:var(--gc)}
+.bar{display:flex;height:10px;border-radius:6px;overflow:hidden;margin:8px 0}.bar i{display:block}.st{color:#f0a030;letter-spacing:1px}
+table{border-collapse:collapse;width:100%;margin-top:26px;background:#fffaf3;border-radius:14px;overflow:hidden;font-size:13px}th,td{padding:7px 8px;border-bottom:1px solid #0001;text-align:left}th{background:#efe6d6}
+.f{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.f span{background:#efe9f6;border-radius:8px;padding:1px 7px;font-size:12px}
+</style></head><body>
+<h1>🐟 낚멍 신규 어종 후보 12종 (시안 · 게임 미적용)</h1><p class="s">실제 크기는 FishBase / 국내 기록 기준. 게임 크기·등급컷은 기존 7종과 같은 규칙(최소~최대, 4개 등급컷 → 일반/고급/희귀/전설/신화) · 일러스트는 기존 수채 파스텔 톤</p>
+<div class="grid" id="g"></div><table id="t"></table>
+<script>
+const GR=[['일반','#aab4c0'],['고급','#5fc48a'],['희귀','#4ea3ea'],['전설','#f4a62a'],['신화','#c46cf2']];
+const RAR={흔함:'#aab4c0',보통:'#5fc48a',희귀:'#4ea3ea',매우희귀:'#c46cf2'};
+const F=[
+['catfish','메기','Silurus asotus','최대 130cm · 흔히 37cm(SL) · 국내 기록 116cm',25,110,[45,65,85,100],'희귀',8,4,['야행성 (밤 출현 ×2)','묵직한 저항','지렁이·새우 선호']],
+['nuchi','누치','Hemibarbus labeo','최대 67cm · 흔히 33cm',15,65,[25,35,48,58],'보통',14,3,['강바닥 무리','초반 강한 당김','떡밥 선호']],
+['gangjunchi','강준치','Chanodichthys erythropterus','최대 102cm · 흔히 47cm · 국내 기록 103cm',25,100,[40,55,75,90],'보통',10,3,['표층 회유','루어 반응 좋음','길쭉한 은빛 몸']],
+['trout','무지개송어','Oncorhynchus mykiss','최대 123cm(강해형) · 흔히 60cm · 담수 양식 ~80cm',20,80,[35,45,60,72],'희귀',6,4,['새벽·밤 출현↑','점프 연출','루어 선호']],
+['kkeuri','끄리','Opsariichthys uncirostris','최대 44cm · 흔히 12cm(SL)',10,40,[18,25,32,37],'보통',14,3,['공격적 육식','빠른 입질','루어 선호']],
+['kkeokji','꺽지','Coreoperca herzi','최대 18cm · 흔히 8.5cm(SL) · 한국 고유종',8,20,[11,14,16,18],'희귀',6,3,['🇰🇷 한국 고유종','바위틈 서식','도감 보너스 후보']],
+['tteokbungeo','떡붕어','Carassius cuvieri','최대 35cm(SL) · 국내 기록 58cm',15,58,[25,35,45,52],'흔함',22,2,['붕어와 비슷 (구분 재미)','떡밥 ×2','초보 친화']],
+['donjagae','동자개','Tachysurus fulvidraco','최대 34.5cm · 흔히 8cm(SL)',8,34,[14,20,26,31],'보통',12,2,['"빠가빠가" 소리 연출','밤 출현↑','지렁이 선호']],
+['eel','뱀장어','Anguilla japonica','최대 150cm · 흔히 40cm(SL) · 국내 기록 126cm',35,126,[55,75,95,115],'매우희귀',3,5,['밤 전용','긴 파이팅','최고 기본가 후보']],
+['moraemuji','모래무지','Pseudogobio esocinus','최대 29.2cm',8,29,[12,17,22,26],'보통',12,2,['모래 속에 숨음','입질 짧음','중간 가격']],
+['pirami','피라미','Zacco platypus','최대 22.5cm · 흔히 13cm(SL)',6,22,[10,13,17,20],'흔함',28,1,['수면 반짝임','혼인색 수컷 (변이 후보)','저가·빠른 입질']],
+['chambungeo','참붕어','Pseudorasbora parva','최대 12.5cm · 흔히 8cm',4,12,[6,8,10,11],'흔함',30,1,['아주 작음','미끼고기 재활용 아이디어','도감 수집용']]];
+g.innerHTML=F.map(([k,n,sc,real,mn,mx,cut,rar,w,dif,feat])=>{const b=[mn,...cut,mx];return `<div class="c" style="--gc:${RAR[rar]}"><img src="img/fish-candidates/${k}.png"><h3>${n} <span class="gb">${rar}</span> <span class="st">${'★'.repeat(dif)}${'☆'.repeat(5-dif)}</span></h3><small><i>${sc}</i><br>${real}</small>
+ <div class="bar">${GR.map((x,i)=>`<i style="flex:${b[i+1]-b[i]};background:${x[1]}" title="${x[0]} ${b[i]}~${b[i+1]}"></i>`).join('')}</div><small>게임 ${mn}~${mx}cm · 등급컷 ${cut.join(' / ')}cm · 출현 가중치 ${w}</small><div class="f">${feat.map(x=>`<span>${x}</span>`).join('')}</div></div>`;}).join('');
+t.innerHTML=`<tr><th>어종</th><th>실제 크기</th><th>게임 범위</th>${GR.map(x=>`<th style="color:${x[1]}">${x[0]}</th>`).join('')}<th>제안 희귀도</th><th>가중치</th><th>난이도</th><th>특징</th></tr>`+F.map(([k,n,sc,real,mn,mx,cut,rar,w,dif,feat])=>{const b=[mn,...cut,mx];return `<tr><td><b>${n}</b></td><td>${real}</td><td>${mn}~${mx}</td>${GR.map((x,i)=>`<td>${b[i]}~${b[i+1]}</td>`).join('')}<td>${rar}</td><td>${w}</td><td>${dif}/5</td><td>${feat.join(', ')}</td></tr>`;}).join('');
+</script></body></html>

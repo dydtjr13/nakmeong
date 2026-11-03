@@ -1,0 +1,17 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>행운 상자 아이콘 시안</title><link rel="stylesheet" href="_base.css"><script>window.NK_EMOJI_BASE="../icons/emoji/"</script><script src="../emoji.js"></script><style>
+.big .cell{width:250px}.big .cell img{width:220px;height:220px}
+.idle{animation:bob 2.4s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-8px) rotate(-2deg)}}
+.shine{position:relative;overflow:hidden}.shine::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 40%,#fff8 50%,transparent 60%);transform:translateX(-100%);animation:sh 2.8s infinite}@keyframes sh{60%,100%{transform:translateX(100%)}}
+.t4 img{filter:drop-shadow(0 0 14px #f4a62a)}.t5 img{filter:drop-shadow(0 0 18px #c46cf2);animation:bob 2s ease-in-out infinite}
+.hud{display:flex;gap:16px;align-items:center;background:#2a2438;color:#fff;padding:14px 20px;border-radius:18px;width:fit-content}.hud img{width:72px;height:72px}.badge{background:#e0607e;border-radius:99px;padding:0 8px;font-weight:900;position:relative;left:-26px;top:-24px}
+</style></head><body>
+<h1>🎁 행운 상자 아이콘 고급화 시안 (게임 미적용)</h1><p class="s">"열어보고 싶은" 느낌: 빛 새어나옴 · 살짝 열린 뚜껑 · 반짝이는 하이라이트 · 둥실 애니메이션. 선택해 주시면 등급별 변형까지 맞춰 적용합니다.</p>
+<h2>디자인 4종</h2><div class="row big" id="D"></div>
+<h2>등급별 변형 (디자인 1 · 보물상자 기반) <span class="pick">추천</span></h2><p class="s">일반 철띠 → 고급 덩굴·에메랄드 → 희귀 파랑·은 → 영웅 장미·금 → 전설 열린 금상자 빛 → 신화 크리스탈·우주광. 물고기 모양 자물쇠 공통</p><div class="row" id="T"></div>
+<h2>HUD/가방 적용 예시</h2><div class="hud"><img src="img/box-t4.png" class="idle"><span class="badge">3</span><div><b>행운 상자 3개</b><br><small>탭해서 열기 · 최고 등급 미리 표시</small></div><img src="img/box-t5.png" class="idle" style="margin-left:30px"><span class="badge">1</span></div>
+<script>
+const N=[['보물상자','금띠 원목 + 새어나오는 금빛'],['보자기 함','한국풍 비단 보자기 + 매듭'],['유리병 캡슐','물 위에 떠 있는 병 속 물고기'],['리본 선물상자','뚜껑이 떠오르며 별빛 폭발']];
+D.innerHTML=N.map(([n,d],i)=>`<div class="cell shine"><img class="idle" src="img/box-d${i+1}.png" style="animation-delay:${i*.3}s"><b>${i+1}. ${n}</b><small>${d}</small></div>`).join('');
+const T0=[['일반','#aab4c0'],['고급','#5fc48a'],['희귀','#4ea3ea'],['영웅','#e0607e'],['전설','#f4a62a'],['신화','#c46cf2']];
+T.innerHTML=T0.map(([n,c],i)=>`<div class="cell t${i}" style="--gc:${c}"><img src="img/box-t${i}.png"><b>${n}</b></div>`).join('');
+</script></body></html>

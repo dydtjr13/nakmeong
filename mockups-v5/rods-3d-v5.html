@@ -1,0 +1,19 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>v5 시안 · 낚싯대 3D 외형 (희귀·고가 순)</title>
+<script src="../lib/three.min.js"></script><script src="../rod-3d.js"></script>
+<style>body{margin:0;font-family:'Noto Sans KR',sans-serif;background:#f5efe6;color:#3d3548}h1{font-size:19px;margin:10px 16px 2px}p{margin:2px 16px;font-size:12px}#w{position:relative}canvas{display:block}.lab{position:absolute;left:12px;font-size:12px;background:#fffd;border-radius:8px;padding:2px 8px;transform:translateY(-50%)}.lab b{font-size:13px}.new{color:#d2547a;font-weight:700}</style></head><body>
+<h1>🎣 낚싯대 3D 외형 시안 — 측면 카메라 (길이·릴·마디 비교) · 비싸고 희귀한 순</h1><p>★ = v5 추가 추천안(아직 게임 미적용) · 나머지 8종은 v5 게임에 적용됨 (rod-3d.js). 길이: 대나무 2.0 → 용왕 2.7 (게임 내 1/2.2 스케일)</p>
+<div id="w"></div>
+<script>
+const L=[['dragon2','★ 용왕 v2 · 휘감는 용 + 여의주','상자 신화 전용 추천'],['dragon','용왕의 낚싯대','상자 전설~신화'],['star2','★ 별빛 v2 · 은하 그라데이션 + 별 3개','상자 전설 추천'],['star','별빛 낚싯대','상자 전설~신화'],['gold2','★ 황금 v2 · 금박 링 + 루비 릴','상자 영웅 추천'],['gold','황금 낚싯대','상자 영웅~전설'],['sakura2','★ 벚꽃 v2 · 꽃잎 장식 + 분홍 라인','상점 4,000 대안'],['sakura','벚꽃 낚싯대','상점 4,000'],['coral','산호 낚싯대','상점 3,000'],['silver','은빛 낚싯대','상점 1,800'],['carbon','카본 낚싯대','상점 600'],['bamboo','대나무 낚싯대','기본']];
+const P=NK_ROD3D_P;P.dragon2=Object.assign({},P.dragon,{len:2.8});P.star2=Object.assign({},P.star,{len:2.65,seg:['#3a2a8a','#1a3a8a']});P.gold2=Object.assign({},P.gold,{reel:{c:'#c83a3a',r:.1}});P.sakura2=Object.assign({},P.sakura,{band:'#ff8fb0'});
+const W=1100,RH=62,H=RH*L.length+20,r=new THREE.WebGLRenderer({antialias:true});r.setSize(W,H);r.outputEncoding=THREE.sRGBEncoding;document.getElementById('w').appendChild(r.domElement);
+const s=new THREE.Scene();s.background=new THREE.Color('#f5efe6');const cam=new THREE.OrthographicCamera(-W/200,W/200,H/200,-H/200,.1,50);cam.position.set(0,0,10);s.add(new THREE.HemisphereLight(0xffffff,0xa89,1));const dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(2,3,5);s.add(dl);
+L.forEach(([k,n,src],i)=>{const g=NK_ROD3D(k,k.endsWith('2')?5:3);g.scale.setScalar(1.45);g.rotation.z=-Math.PI/2;g.rotation.x=.25;const y=H/200-(i+.6)*RH/100;g.position.set(-1.3,y,0);s.add(g);
+ const M=c=>new THREE.MeshLambertMaterial({color:c});
+ if(k==='dragon2'){for(let t=0;t<26;t++){const a=t*.7,m=new THREE.Mesh(new THREE.SphereGeometry(.035-.0008*t,6,4),M(t%2?'#3f9a6a':'#e8c45a'));m.position.set(Math.cos(a)*.08,.3+t*.09,Math.sin(a)*.08);g.add(m);}const hd=new THREE.Mesh(new THREE.ConeGeometry(.07,.18,5),M('#2f7a52'));hd.position.set(0,2.65,.06);hd.rotation.x=1.2;g.add(hd);}
+ if(k==='star2'){[.9,1.5,2.1].forEach(yy=>{const st=new THREE.Mesh(new THREE.OctahedronGeometry(.06),new THREE.MeshBasicMaterial({color:'#fff2a0'}));st.position.set(.05,yy,0);g.add(st);});}
+ if(k==='gold2'){for(let t=0;t<8;t++){const m=new THREE.Mesh(new THREE.TorusGeometry(.045,.01,5,12),M('#fff0a0'));m.rotation.x=Math.PI/2;m.position.y=.5+t*.25;g.add(m);}}
+ if(k==='sakura2'){for(let t=0;t<5;t++){const m=new THREE.Mesh(new THREE.CircleGeometry(.05,5),new THREE.MeshLambertMaterial({color:'#ffc0d4',side:2}));m.position.set(.05,.8+t*.32,0);m.rotation.y=1;g.add(m);}}
+ const lb=document.createElement('div');lb.className='lab';lb.style.top=((i+.6)*RH)+'px';lb.innerHTML=`<b class="${k.endsWith('2')?'new':''}">${i+1}. ${n}</b> · ${src} · 길이 ${P[k].len}`;document.getElementById('w').appendChild(lb);});
+s.traverse(o=>{});r.render(s,cam);window.READY=()=>true;
+</script></body></html>

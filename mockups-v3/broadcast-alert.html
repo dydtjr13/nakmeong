@@ -1,0 +1,50 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>낚멍 전설·신화 서버 알림 시안</title><style>
+*{box-sizing:border-box}body{margin:0;height:100vh;overflow:hidden;font-family:Pretendard,system-ui,sans-serif;background:#7fb9a8 url(../shots/v3-02-nick-water.png) center/cover}
+.L{--a:#f4a62a;--b:#ffe08a;--c:#b8741a}.M{--a:#c46cf2;--b:#7ae0ff;--c:#6a2a9a}
+#nav{position:fixed;right:12px;bottom:12px;display:flex;gap:4px;flex-wrap:wrap;z-index:9}#nav a{background:#0008;color:#fff;padding:5px 10px;border-radius:8px;text-decoration:none;font-size:12px}
+#lab{position:fixed;left:12px;bottom:12px;background:#000a;color:#fff;padding:8px 14px;border-radius:10px;z-index:9;font-size:13px}
+.fish{height:64px;filter:drop-shadow(0 0 10px var(--b))}.gb{display:inline-block;padding:2px 10px;border-radius:99px;font-weight:900;color:#fff;background:linear-gradient(90deg,var(--a),var(--c))}
+.M .gb{background:linear-gradient(90deg,#c46cf2,#7ae0ff,#ff8ad8,#c46cf2);background-size:300%;animation:holo 2s linear infinite}@keyframes holo{to{background-position:300%}}
+/* 1 상단 리본 */
+.d1{position:fixed;top:64px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:10px 28px;border-radius:18px;background:linear-gradient(180deg,#fffaf0,#fff2d0);border:4px solid var(--a);box-shadow:0 0 30px var(--a),0 10px 30px #0004;animation:drop .6s cubic-bezier(.3,1.6,.5,1);color:#4a4058;font-weight:700}
+.M.d1{background:linear-gradient(135deg,#2a1840,#3a1f5c);color:#fff;border-image:linear-gradient(90deg,#c46cf2,#7ae0ff,#ff8ad8) 1;border-radius:0}
+.d1 .big{font-size:22px}.d1 small{opacity:.7}@keyframes drop{from{transform:translate(-50%,-140px)}}
+/* 2 중앙 컷인 */
+.d2{position:fixed;left:-5%;right:-5%;top:38%;height:150px;transform:rotate(-4deg);background:linear-gradient(90deg,transparent,var(--c) 15%,var(--a) 50%,var(--c) 85%,transparent);display:flex;align-items:center;justify-content:center;gap:24px;color:#fff;animation:cut .5s ease-out;box-shadow:0 0 60px var(--a)}
+.d2 .t{font-size:40px;font-weight:900;text-shadow:0 3px 0 #0005;letter-spacing:2px}.d2 .fish{height:110px;animation:swim 1.4s ease-in-out infinite alternate}.d2 .sub{font-size:18px;opacity:.9}
+.d2::before{content:'';position:fixed;inset:-50vh -10vw;background:radial-gradient(circle,transparent 30%,#0006);z-index:-1}
+.M.d2{background:linear-gradient(90deg,transparent,#3a1f5c 12%,#c46cf2 35%,#7ae0ff 50%,#ff8ad8 65%,#3a1f5c 88%,transparent)}
+.M.d2 .t{background:linear-gradient(90deg,#fff,#ffe6ff,#fff);-webkit-background-clip:text;color:transparent;filter:drop-shadow(0 0 8px #fff)}
+@keyframes cut{from{transform:rotate(-4deg) translateX(110%)}}@keyframes swim{to{transform:translateX(20px) rotate(-4deg)}}
+/* 3 폭죽 + 하단 카드 */
+#fw{position:fixed;inset:0;pointer-events:none}.d3{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);width:min(520px,92vw);border-radius:24px;padding:16px 20px;display:flex;gap:16px;align-items:center;background:#fffaf3ee;border:5px solid var(--a);color:#4a4058;box-shadow:0 0 40px var(--a);animation:rise .6s}
+.M.d3{background:linear-gradient(135deg,#ffffffee,#f1e2ffee);border-color:transparent;background-clip:padding-box;outline:5px solid #c46cf2;animation:rise .6s,glow 1.5s infinite alternate}.d3 .fish{height:80px}
+@keyframes rise{from{transform:translate(-50%,120px);opacity:0}}@keyframes glow{to{outline-color:#7ae0ff;box-shadow:0 0 60px #7ae0ff}}
+/* 4 빛기둥 + 채팅 */
+.beam{position:fixed;left:62%;bottom:28%;width:90px;height:80vh;transform:translateX(-50%);background:linear-gradient(0deg,var(--b),transparent);opacity:.75;filter:blur(6px);animation:pulse 1.6s infinite alternate;mix-blend-mode:screen}
+.M .beam,.M.beam{background:linear-gradient(0deg,#ff8ad8,#7ae0ff 40%,#c46cf2 70%,transparent)}
+.ring{position:fixed;left:62%;bottom:26%;width:240px;height:60px;transform:translateX(-50%);border:5px solid var(--b);border-radius:50%;animation:ripple 1.6s infinite;opacity:.9}
+.chat{position:fixed;left:16px;bottom:120px;width:340px;background:#0007;border-radius:14px;padding:10px;color:#fff;font-size:13px}.chat .hl{margin-top:6px;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,var(--c),var(--a));font-weight:800;animation:rise2 .5s}
+.tag4{position:fixed;left:62%;top:14%;transform:translateX(-50%);color:#fff;font-weight:900;font-size:22px;text-shadow:0 0 12px var(--a),0 2px 0 #0008;text-align:center}
+@keyframes pulse{to{opacity:.4;width:70px}}@keyframes ripple{from{transform:translateX(-50%) scale(.4);opacity:1}to{transform:translateX(-50%) scale(1.4);opacity:0}}@keyframes rise2{from{transform:translateX(-30px);opacity:0}}
+</style></head><body>
+<div id="lab"></div><div id="nav"></div><canvas id="fw"></canvas><div id="root"></div>
+<script>
+const Q=new URLSearchParams(location.search),d=+(Q.get('d')||1),g=Q.get('g')||'L',M=g==='M';
+const info={L:{n:'전설',fish:'../img/fish/snakehead.png',f:'가물치',cm:'98.2cm'},M:{n:'신화',fish:'../img/fish/mandarin.png',f:'쏘가리',cm:'67.1cm'}}[g],who='물멍러버';
+const names={1:'상단 리본 배너',2:'중앙 컷인 (화면 전체 연출)',3:'폭죽 + 하단 카드',4:'호수 빛기둥 + 채팅 하이라이트'};
+document.getElementById('lab').innerHTML=`시안 ${d} · ${names[d]} · <b>${info.n}</b> ${M?'(무지개 홀로그램·별 파티클·화면 진동)':'(금빛·불꽃 파티클)'}`;
+document.getElementById('nav').innerHTML=[1,2,3,4].flatMap(i=>['L','M'].map(x=>`<a href="?d=${i}&g=${x}">${i}-${x==='L'?'전설':'신화'}</a>`)).join('');
+const B=`<span class="gb">${info.n}</span>`,msg=`<b>${who}</b>님이 ${B} <b>${info.f} ${info.cm}</b>를 낚았어요!`;
+const H={1:`<div class="d1 ${g}"><img class="fish" src="${info.fish}"><div><div class="big">${M?'🌌':'🏆'} ${msg}</div><small>3번 데크 · 방금 전 · 클릭하면 구경 가기</small></div></div>`,
+ 2:`<div class="d2 ${g}"><img class="fish" src="${info.fish}"><div><div class="t">${M?'✦ 신화 출현 ✦':'★ 전설 출현 ★'}</div><div class="sub">${who}님 · ${info.f} ${info.cm}</div></div></div>`,
+ 3:`<div class="d3 ${g}"><img class="fish" src="${info.fish}"><div>${B}<br><b style="font-size:18px">${info.f} ${info.cm}</b><br><small>${who}님이 서버 최초 ${info.n} 기록! · 5번 데크</small></div></div>`,
+ 4:`<div class="${g}"><div class="beam"></div><div class="ring"></div><div class="tag4">${M?'🌌 신화!':'🏆 전설!'}<br><small>${who} · ${info.f} ${info.cm}</small></div><div class="chat"><div>숲속곰: 오늘 붕어만 나오네요</div><div>낚시왕: 😊</div><div class="hl">📢 ${msg}</div></div></div>`}[d];
+document.getElementById('root').innerHTML=H;document.body.className=g;if(M&&d===2)document.body.animate([{transform:'translate(0,0)'},{transform:'translate(6px,-4px)'},{transform:'translate(-5px,3px)'},{transform:'translate(0,0)'}],{duration:300,iterations:3});
+// 파티클
+const c=document.getElementById('fw'),x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;const P=[];
+const burst=(cx,cy)=>{for(let i=0;i<(M?90:60);i++){const a=Math.random()*6.28,s=2+Math.random()*5;P.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,l:1,c:M?`hsl(${Math.random()*360},90%,75%)`:`hsl(${35+Math.random()*20},95%,${60+Math.random()*20}%)`,st:M&&Math.random()<.4});}};
+let k=0;(function f(){x.clearRect(0,0,c.width,c.height);if(k++%(d===3?28:70)===0&&(d!==4))burst(Math.random()*c.width,c.height*(.15+Math.random()*.35));
+ for(const p of P){p.x+=p.vx;p.y+=p.vy;p.vy+=.06;p.l-=.012;if(p.l<=0)continue;x.globalAlpha=p.l;x.fillStyle=p.c;if(p.st){x.font='14px sans-serif';x.fillText('✦',p.x,p.y);}else{x.beginPath();x.arc(p.x,p.y,2.5,0,7);x.fill();}}
+ for(let i=P.length-1;i>=0;i--)if(P[i].l<=0)P.splice(i,1);requestAnimationFrame(f);})();burst(c.width/2,c.height*.3);
+</script></body></html>

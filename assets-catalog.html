@@ -1,0 +1,32 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 에셋 카탈로그 (Kenney 단일 시리즈 · CC0)</title>
+<link rel="stylesheet" href="ui-v2.css"><style>body{overflow:auto;background:linear-gradient(#cfe9f0,#f6e7d8) fixed;padding:24px;touch-action:auto;user-select:auto}
+.wrap{max-width:1200px;margin:auto}.sec{background:var(--bg);border-radius:22px;padding:18px;margin-bottom:16px;box-shadow:0 10px 30px #0001}
+.ag{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px}.a{background:#fff;border-radius:14px;padding:6px;text-align:center;font-size:11px}.a img{width:100%;aspect-ratio:1;object-fit:contain;background:radial-gradient(#fff,#eef3ec);border-radius:10px}
+.a b{display:block;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.cat{margin:16px 0 8px;font-weight:900}
+.sw{display:flex;gap:6px;flex-wrap:wrap}.sw span{width:64px;height:48px;border-radius:10px;display:flex;align-items:flex-end;justify-content:center;font-size:10px;color:#4a4058;padding:2px;box-shadow:inset 0 0 0 1px #0001}
+.kits{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}.kit{background:#fff;border-radius:14px;overflow:hidden}.kit img{width:100%;height:150px;object-fit:cover}.kit div{padding:8px 10px;font-size:13px}
+.tog{float:right}</style></head><body><div class="wrap">
+<div class="sec"><h1>🎨 낚멍 에셋 카탈로그</h1><p>톤앤매너 통일을 위해 <b>Kenney(kenney.nl) 단일 제작자 시리즈</b>만 사용 — 전부 <b>CC0</b>(상업 이용·수정 자유, 크레딧 선택). 런타임에서 모든 머티리얼에 <b>공통 파스텔 변환</b>(채도 ×0.82, 명도 리프트, 청록→초록 보정, Kenney 공용 colormap 텍스처 동일 처리)을 적용해 하나의 팔레트로 맞췄습니다.
+<button class="tog" id="tog">원본 색 보기</button></p><div class="sw" id="pal"></div></div>
+<div class="sec"><h2>📦 게임에 적용된 에셋 <span id="cnt" class="pill small"></span></h2><div id="grid">렌더링 중…</div></div>
+<div class="sec"><h2>🔗 사용한 키트 (접속 확인 2026-11-03, 모두 CC0)</h2><div class="kits" id="kits"></div></div>
+<div class="sec"><h2>➕ 같은 톤 추천 키트 (추가 확장용)</h2><div class="kits" id="rec"></div><p class="small muted">톤 통일을 위해 다른 제작자(Quaternius/KayKit 등)는 일부러 섞지 않았습니다. 섞을 경우 동일 파스텔 변환 + 공용 팔레트 텍스처로 리맵 필요.</p></div>
+</div>
+<script src="lib/three.min.js"></script><script src="lib/GLTFLoader.js"></script><script src="assets/assets-data.js"></script><script>
+THREE.ColorManagement.legacyMode=false;
+const KITS=[['nature-kit','Nature Kit','나무·바위·풀·꽃·버섯·수련·카누·모닥불·텐트·장작',330],['survival-kit','Survival Kit','물고기·양동이·통·표지판·모닥불 받침',80],['fantasy-town-kit','Fantasy Town Kit','상점 노점·랜턴·수레·벤치',160],['holiday-kit','Holiday Kit','벤치·걸이 랜턴',100],['furniture-kit','Furniture Kit','화분·소형 식물',140],['mini-characters','Mini Characters','캐릭터(성인남/여·어린이) + 걷기·앉기·들기 애니메이션',25],['food-kit','Food Kit','물고기(요리용)',200]];
+const REC=[['watercraft-kit','Watercraft Kit','보트·카약·부표 — 호수 보트 탈것/장식',45],['pirate-kit','Pirate Kit','부두·말뚝·통·나무 상자 — 데크/선착장 디테일',70]];
+const kc=(L,id)=>document.getElementById(id).innerHTML=L.map(([k,n,d,c])=>`<div class="kit"><img src="assets/kit-previews/${k}.png"><div><b>${n}</b> (${c} assets) · CC0<br>${d}<br><a href="https://kenney.nl/assets/${k}" target="_blank">kenney.nl/assets/${k}</a></div></div>`).join('');kc(KITS,'kits');kc(REC,'rec');
+const PAL=[['#bfe4f2','하늘(낮)'],['#f6c3a8','하늘(노을)'],['#2e3768','하늘(밤)'],['#b9dc9c','잔디'],['#f1e0b4','모래'],['#b2e0d8','얕은 물'],['#6fb6c6','깊은 물'],['#dcae80','데크 목재'],['#f29e6b','UI 포인트'],['#8fc7c0','UI 보조'],['#fffaf3','UI 바탕'],['#aab4c0','일반'],['#5fc48a','고급'],['#4ea3ea','희귀'],['#f4a62a','전설'],['#c46cf2','신화']];
+document.getElementById('pal').innerHTML=PAL.map(([c,n])=>`<span style="background:${c};color:${['#2e3768'].includes(c)?'#fff':'#4a4058'}">${n}</span>`).join('');
+const R=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true,alpha:true});R.setSize(256,256);R.outputEncoding=THREE.sRGBEncoding;
+const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(30,1,.01,100);const dl=new THREE.DirectionalLight(0xffffff,.9);dl.position.set(2,4,3);sc.add(new THREE.HemisphereLight(0xffffff,0xb8d8a0,.95),dl);
+const mc={},tc={};function pt(t){if(!t||!t.image)return t;if(tc[t.uuid])return tc[t.uuid];const c=document.createElement('canvas');c.width=t.image.width;c.height=t.image.height;const x=c.getContext('2d');x.drawImage(t.image,0,0);const d=x.getImageData(0,0,c.width,c.height),p=d.data;for(let i=0;i<p.length;i+=4){const l=(p[i]+p[i+1]+p[i+2])/3;for(let j=0;j<3;j++)p[i+j]=Math.min(255,(p[i+j]*.82+l*.18)*.9+25.5);}x.putImageData(d,0,0);const n=new THREE.CanvasTexture(c);n.encoding=THREE.sRGBEncoding;n.flipY=t.flipY;n.magFilter=THREE.NearestFilter;return tc[t.uuid]=n;}
+function pm(m){if(mc[m.uuid])return mc[m.uuid];const c=m.color.clone(),h={};c.getHSL(h);if(h.h>.36&&h.h<.55)h.h-=(h.h-.33)*.85;c.setHSL(h.h,h.s*.82,.08+h.l*.92);return mc[m.uuid]=new THREE.MeshLambertMaterial({color:c,map:pt(m.map)});}
+const L=new THREE.GLTFLoader(),keys=Object.keys(NK_GLB),out={},orig={};const b64=s=>{const b=atob(s),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u.buffer;};
+function shot(obj){sc.add(obj);const bb=new THREE.Box3().setFromObject(obj),s=bb.getSize(new THREE.Vector3()),c=bb.getCenter(new THREE.Vector3()),r=Math.max(s.x,s.y,s.z);cam.position.set(c.x+r*1.6,c.y+r*1.1,c.z+r*2.1);cam.lookAt(c);R.render(sc,cam);const u=R.domElement.toDataURL();sc.remove(obj);return u;}
+(async()=>{for(const k of keys){await new Promise(res=>L.parse(b64(NK_GLB[k]),'',g=>{orig[k]=shot(g.scene.clone());g.scene.traverse(o=>{if(o.isMesh)o.material=pm(o.material);});out[k]=shot(g.scene);res();},()=>res()));}
+ let raw=false;const draw=()=>{const cats={};keys.forEach(k=>{const m=NK_META[k];(cats[m.cat]=cats[m.cat]||[]).push(k);});
+ document.getElementById('grid').innerHTML=Object.entries(cats).map(([c,ks])=>`<div class="cat">${c} (${ks.length})</div><div class="ag">${ks.map(k=>`<div class="a"><img src="${raw?orig[k]:out[k]}"><b>${k}</b>${NK_META[k].kit}<br><span class="muted">CC0 · Kenney</span></div>`).join('')}</div>`).join('');document.getElementById('cnt').textContent=keys.length+'종';};
+ draw();document.getElementById('tog').onclick=e=>{raw=!raw;e.target.textContent=raw?'파스텔 통일 보기':'원본 색 보기';draw();};window.__done=true;})();
+</script></body></html>

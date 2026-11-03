@@ -1,0 +1,15 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>낚싯대·미끼 시안</title><link rel="stylesheet" href="_base.css"><style>.cell{width:170px}.cell img{width:150px;height:110px}.new{background:#e0607e;color:#fff;border-radius:99px;padding:0 7px;font-size:11px}</style>
+<script>window.NK_EMOJI_BASE='../icons/emoji/'</script><script src="../emoji.js"></script></head><body>
+<h1>🎣 낚싯대·미끼 추가 후보 시안 (게임 미적용)</h1><p class="s">기존 5종 낚싯대·5종 미끼 + 신규 후보. 아이콘은 같은 파스텔 클레이 톤 · 3D 장착 외형은 <a href="rods-3d.html">rods-3d.html</a></p>
+<h2>낚싯대 8종</h2><div class="row" id="R"></div><table id="RT"></table>
+<h2>미끼 8종</h2><div class="row" id="B"></div><table id="BT"></table>
+<script>
+const R=[['bamboo','대나무 낚싯대',0,1.00,1.00,0,0,'기본','갈색 마디 · 릴 없음'],['carbon','카본 낚싯대',300,1.15,.92,0,1,'','검정 + 파랑 릴'],['silver','은빛 릴낚싯대',1500,1.30,.85,.03,1,'','크롬 릴 · 은색 마디'],['gold','황금 낚싯대',6000,1.50,.78,.06,2,'','금색 + 빨강 손잡이 · 끝 반짝임'],['dragon','용왕의 낚싯대',20000,1.75,.70,.10,2,'','비취 비늘 · 용머리 · 여의주 빛'],
+ ['sakura','벚꽃 낚싯대',4000,1.25,.80,.02,2,'낮 입질 −10% · 봄 이벤트','분홍 + 꽃잎 파티클',1],['star','별빛 낚싯대',9000,1.40,.82,.05,2,'밤 희귀 어종 +20%','남색 + 별 끝 발광 · 별가루',1],['coral','산호 낚싯대',3000,1.22,.88,.02,1,'미끼 미소모 +10%','청록 + 조개 릴',1]];
+const B=[['worm','지렁이',0,'∞',1,1,'기본'],['paste','떡밥',100,20,.7,1,'붕어·잉어·향어·떡붕어 ×2'],['shrimp','민물새우',150,20,.85,1.05,'쏘가리 ×2.5, 배스·가물치·꺽지 ×2'],['lure','스푼 루어',800,'영구',.9,1.1,'배스·가물치 ×3, 강준치·끄리 ×2.5'],['golden','황금 떡밥',600,10,.5,1.2,'입질 2배, 크기 +20%'],
+ ['corn','옥수수',120,20,.9,1,'잉어 ×1.6, 향어 ×1.4, 떡붕어 ×1.4',1],['nightlure','야광 미노우 루어',1200,'영구',.9,1.1,'밤에만: 메기·뱀장어·송어 ×1.5 (낮엔 효과 없음)',1],['frog','개구리 루어',1500,'영구',.95,1.15,'가물치 ×2.5, 배스 ×1.5, 그 외 ×0.6',1]];
+document.getElementById('R').innerHTML=R.map(r=>`<div class="cell"><img src="img/rod-${r[0]}.png"><b>${r[1]} ${r[9]?'<span class="new">NEW</span>':''}</b><small>${r[8]}</small></div>`).join('');
+RT.innerHTML='<tr><th>낚싯대</th><th>가격</th><th>크기</th><th>입질</th><th>희귀 보너스</th><th>추가옵션 슬롯</th><th>특수</th><th>외형</th></tr>'+R.map(r=>`<tr><td>${r[1]}${r[9]?' 🆕':''}</td><td>${r[2].toLocaleString()}</td><td>×${r[3]}</td><td>×${r[4]}</td><td>+${r[5]*100}%</td><td>${r[6]}</td><td>${r[7]||'-'}</td><td>${r[8]}</td></tr>`).join('');
+document.getElementById('B').innerHTML=B.map(b=>`<div class="cell"><img src="img/bait-${b[0]}.png"><b>${b[1]} ${b[7]?'<span class="new">NEW</span>':''}</b><small>${b[6]}</small></div>`).join('');
+BT.innerHTML='<tr><th>미끼</th><th>가격</th><th>수량</th><th>입질</th><th>크기</th><th>어종 보너스</th></tr>'+B.map(b=>`<tr><td>${b[1]}${b[7]?' 🆕':''}</td><td>${b[2]}</td><td>${b[3]}</td><td>×${b[4]}</td><td>×${b[5]}</td><td>${b[6]}</td></tr>`).join('');
+</script></body></html>

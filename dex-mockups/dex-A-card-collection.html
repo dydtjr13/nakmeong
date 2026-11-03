@@ -1,0 +1,15 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>도감 시안 A · 카드 컬렉션</title>
+<link rel="stylesheet" href="../ui-v2.css"><style>body{overflow:auto;background:linear-gradient(#cfe9f0,#f6e7d8);padding:24px;touch-action:auto;user-select:auto}.card{margin:auto}
+.filters{display:flex;gap:6px;margin:10px 0}.filters button.on{background:var(--acc2);color:#fff}.dcard{min-height:250px}.dcard:hover{transform:translateY(-4px) rotate(-.5deg);transition:.2s}
+.stamp{position:absolute;left:10px;top:8px;font-size:11px;font-weight:900;color:#fff;background:var(--gc);padding:2px 8px;border-radius:10px}</style></head><body>
+<div class="card" style="width:min(1060px,96vw)"><div id="root"></div></div>
+<script src="../game-data.js"></script><script src="_sample.js"></script><script>
+const D=NK_DATA,S=SAMPLE;let filt=-1;
+function draw(){const tot=35,got=D.FISH.reduce((a,f)=>a+(S[f.k]?S[f.k].gr.reduce((x,y)=>x+y,0):0),0);
+document.getElementById('root').innerHTML=`<div class="dexhead"><div class="ring" style="--p:${got/tot*100}"><span>${Math.round(got/tot*100)}%</span></div><div><h2 style="margin:0">📖 시안 A — 카드 컬렉션</h2><div class="small">등급 슬롯 ${got}/${tot} · 테두리 색 = 최고 등급 · 전설/신화는 반짝임 + 글로우 · 미발견은 실루엣</div></div></div>
+<div class="filters">${[['-1','전체'],...D.GRADES.map(g=>[g.id,g.n])].map(([k,n])=>`<button class="${filt==k?'on':''}" onclick="filt=${k};draw()">${n}</button>`).join('')}</div>
+<div class="dgrid">${D.FISH.filter(f=>filt<0||(S[f.k]&&S[f.k].gr[filt])).map((f,i)=>{const d=S[f.k],best=d?d.gr.lastIndexOf(1):-1,c=best>=0?D.GRADES[best].c:'#d8d2ca',b=[f.min,...f.g,f.max],sp=f.max-f.min;
+return `<div class="dcard ${d?'g'+best:'unk'}" style="--gc:${c}"><div class="shine"></div>${d?`<div class="stamp">${D.GRADES[best].n}</div>`:''}<div class="no">No.${String(D.FISH.indexOf(f)+1).padStart(3,'0')}</div><img src="../${d?f.img:f.img.replace('.png','_sil.png')}"><div class="nm">${d?f.n:'???'}</div>
+<div class="small">${d?`최대 <b>${d.max}cm</b> · ${d.n}마리`:'힌트: '+(f.k==='snakehead'?'밤에 루어로…':'바위 근처, 새우 미끼')}</div><div class="pips">${D.GRADES.map((g,j)=>`<i class="${d&&d.gr[j]?'on':''}" style="--c:${g.c}"></i>`).join('')}</div>
+<div class="ruler">${D.GRADES.map((g,j)=>`<span style="width:${(b[j+1]-b[j])/sp*100}%;background:${g.c};opacity:${d&&d.gr[j]?1:.25}"></span>`).join('')}${d?`<div class="mk" style="left:${(d.max-f.min)/sp*100}%"></div>`:''}</div><div class="small muted">${f.min}~${f.max}cm</div></div>`;}).join('')}</div>`;}
+draw();</script></body></html>

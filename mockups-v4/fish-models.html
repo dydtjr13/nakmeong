@@ -1,0 +1,17 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>어항 물고기 3D 모델 개선 시안</title><style>body{margin:0;overflow:hidden;font-family:Pretendard,'Malgun Gothic',sans-serif;background:#e9f4f2}canvas{display:block}
+.lb{position:fixed;transform:translate(-50%,0);color:#4a4058;font-size:13px;font-weight:800;text-shadow:0 1px 0 #fff}#t{position:fixed;left:16px;top:12px;background:#fffaf3e8;padding:8px 14px;border-radius:12px;color:#4a4058}</style></head><body>
+<div id="t"><b>어항 물고기 3D 모델 개선 시안 (19종)</b><br><small>현재: Kenney 물고기 1개 모델에 색만 변경 → 제안: 어종별 체형·지느러미·수염·무늬 (로우폴리 파스텔 톤 유지)</small></div>
+<script src="../lib/three.min.js"></script><script src="../lib/GLTFLoader.js"></script><script src="../assets/assets-data.js"></script><script src="fish-gen.js"></script>
+<script>
+const V=new URLSearchParams(location.search).get('v')||'grid';THREE.ColorManagement.legacyMode=false;const R=new THREE.WebGLRenderer({antialias:true});R.outputEncoding=THREE.sRGBEncoding;R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(innerWidth,innerHeight);document.body.appendChild(R.domElement);
+const S=new THREE.Scene();S.background=new THREE.Color('#e9f4f2');S.add(new THREE.HemisphereLight(0xffffff,0xa8c8c0,1.1));const dl=new THREE.DirectionalLight(0xfff2dd,.9);dl.position.set(2,5,6);S.add(dl);
+const cam=new THREE.OrthographicCamera(-1,1,1,-1,.1,100);const F=[];const ks=Object.keys(FISH_SPECS);
+if(V==='grid'){const cols=5;ks.forEach((k,i)=>{const f=makeSpeciesFish(k);const x=(i%cols-(cols-1)/2)*3.1,y=-(Math.floor(i/cols)-1.5)*2.2;f.position.set(x,y,0);const sc=1/Math.max(1,(FISH_SPECS[k].L||1)*.85);f.scale.setScalar(sc);S.add(f);F.push({f,k,x,y});
+  const lb=document.createElement('div');lb.className='lb';lb.textContent=FISH_SPECS[k].n;document.body.appendChild(lb);F[F.length-1].lb=lb;});}
+else{// 비교: 현재 Kenney 단일 모델 vs 제안
+ new THREE.GLTFLoader().parse(Uint8Array.from(atob(NK_GLB.fish),c=>c.charCodeAt(0)).buffer,'',g=>{['crucian','snakehead','catfish','eel','mandarin'].forEach((k,i)=>{const o=g.scene.clone(true);o.traverse(m=>{if(m.isMesh)m.material=new THREE.MeshLambertMaterial({color:FISH_SPECS[k].back,flatShading:true});});o.scale.setScalar(11);o.position.set((i-2)*3.2,1.8,0);S.add(o);F.push({f:o,x:0,y:0});
+   const n=makeSpeciesFish(k);n.position.set((i-2)*3.2,-1.6,0);n.scale.setScalar(1/Math.max(1,(FISH_SPECS[k].L||1)*.8));S.add(n);F.push({f:n});const lb=document.createElement('div');lb.className='lb';lb.style.left=(50+(i-2)*3.2/16*100)+'%';lb.style.top='88%';lb.textContent=FISH_SPECS[k].n;document.body.appendChild(lb);});
+  const a=document.createElement('div');a.className='lb';a.style.cssText='left:8%;top:24%';a.textContent='현재 (색만 다름)';document.body.appendChild(a);const b=document.createElement('div');b.className='lb';b.style.cssText='left:8%;top:62%';b.textContent='제안 (어종별 형태)';document.body.appendChild(b);});}
+const fit=()=>{const a=innerWidth/innerHeight,h=V==='grid'?5:4.6;cam.left=-h*a;cam.right=h*a;cam.top=h;cam.bottom=-h;cam.updateProjectionMatrix();cam.position.set(0,0,20);cam.lookAt(0,0,0);};fit();
+let T=0;(function f(){T+=.016;F.forEach((q,i)=>{q.f.rotation.y=-.45+Math.sin(T*.6+i)*.25;q.f.rotation.x=.12;if(q.lb){const p=new THREE.Vector3(q.x,q.y-.95,0).project(cam);q.lb.style.left=(p.x*.5+.5)*innerWidth+'px';q.lb.style.top=(-p.y*.5+.5)*innerHeight+'px';}});R.render(S,cam);requestAnimationFrame(f);})();
+</script></body></html>

@@ -1,0 +1,66 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>낚멍 어항 디자인 시안</title>
+<style>body{margin:0;background:#1d2330;font-family:Pretendard,system-ui,sans-serif;color:#fff;overflow:hidden}canvas{display:block;width:100vw;height:100vh}
+#lab{position:fixed;left:24px;top:20px;background:#0007;padding:10px 16px;border-radius:14px}#lab b{font-size:20px}#nav{position:fixed;right:20px;top:20px;display:flex;gap:6px}#nav a{color:#fff;background:#0006;padding:6px 12px;border-radius:10px;text-decoration:none}</style></head><body>
+<canvas id="c"></canvas><div id="lab"></div><div id="nav"><a href="?d=1">1 자연수초</a><a href="?d=2">2 이와구미</a><a href="?d=3">3 야간 루미</a><a href="?d=4">4 원목 캐비닛</a></div>
+<script src="../lib/three.min.js"></script><script src="../lib/GLTFLoader.js"></script><script src="../assets/assets-data.js"></script>
+<script>
+const DS={1:{n:'시안 1 · 자연 수초 (네이처 아쿠아리움)',d:'유목 + 빽빽한 후경 수초 + 밝은 자갈. 기본 어항 업그레이드 추천안',bg:'#e9f4ef',water:'#7fd0c8',wood:'#9b6a43',light:0xfff2dd,gravel:['#e8d9b8','#cdb894','#f4ead2'],plants:40,stones:3,drift:true,moss:false,night:false},
+ 2:{n:'시안 2 · 이와구미 (바위 + 이끼 카펫)',d:'큰 바위 3개 구도 + 낮은 카펫 수초. 미니멀·고급형',bg:'#eef1f4',water:'#9ad8e6',wood:'#3b3b40',light:0xffffff,gravel:['#d6d2c8','#b9b4a8','#ebe7df'],plants:10,stones:7,drift:false,moss:true,night:false},
+ 3:{n:'시안 3 · 야간 루미 (발광 수초 + 푸른 조명)',d:'밤 시간대 전용 · 발광 수초/버블 · 전설 등급 어항 스킨',bg:'#0d1424',water:'#1d5c86',wood:'#2c2030',light:0x8fc8ff,gravel:['#3b4660','#2a3248','#56617d'],plants:26,stones:3,drift:true,moss:false,night:true},
+ 4:{n:'시안 4 · 원목 캐비닛 (가구형)',d:'두꺼운 원목 프레임 + 상단 조명 후드 + 받침장. 데크 소품 일체형',bg:'#f6ecdf',water:'#8ccfd6',wood:'#b07a4c',light:0xffe6c0,gravel:['#cfa77b','#e2c39a','#a88360'],plants:24,stones:4,drift:true,moss:true,night:false,cab:true}};
+const D=DS[+(new URLSearchParams(location.search).get('d')||1)];document.getElementById('lab').innerHTML=`<b>${D.n}</b><br><small>${D.d}</small>`;
+THREE.ColorManagement.legacyMode=false;const R=new THREE.WebGLRenderer({canvas:c,antialias:true});R.outputEncoding=THREE.sRGBEncoding;R.setPixelRatio(Math.min(devicePixelRatio,2));R.shadowMap.enabled=true;
+const S=new THREE.Scene();S.background=new THREE.Color(D.bg);const cam=new THREE.PerspectiveCamera(36,1,.1,60);
+S.add(new THREE.HemisphereLight(D.night?0x6f8fd0:0xffffff,D.night?0x101830:0xb0c8c0,D.night?.6:1));const dl=new THREE.DirectionalLight(D.light,D.night?1.2:1);dl.position.set(1,6,2);dl.castShadow=true;S.add(dl);
+const W=4.4,H=2.6,Dp=2.2,rnd=(a,b)=>a+Math.random()*(b-a),L=c=>new THREE.MeshStandardMaterial({color:c,roughness:.8});
+// 원목 프레임
+const wood=L(D.wood),fr=.09;[[W+fr*2,fr*1.6,Dp+fr*2,0,H+fr*.8,0],[W+fr*2,fr*1.6,Dp+fr*2,0,-fr*.8,0]].forEach(a=>{const m=new THREE.Mesh(new THREE.BoxGeometry(a[0],a[1],a[2]),wood);m.position.set(a[3],a[4],a[5]);m.castShadow=true;S.add(m);});
+[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(([x,z])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(fr,H,fr),wood);m.position.set(x*W/2,H/2,z*Dp/2);S.add(m);});
+if(D.cab){const cb=new THREE.Mesh(new THREE.BoxGeometry(W+.5,1.4,Dp+.4),L('#8a5a35'));cb.position.y=-.85;S.add(cb);for(let i=-1;i<=1;i+=2){const d=new THREE.Mesh(new THREE.BoxGeometry(W/2-.1,1.1,.04),L('#a8724a'));d.position.set(i*W/4,-.85,Dp/2+.21);S.add(d);}
+ const hood=new THREE.Mesh(new THREE.BoxGeometry(W+.3,.28,Dp+.3),L('#8a5a35'));hood.position.y=H+.3;S.add(hood);}
+else{const st=new THREE.Mesh(new THREE.BoxGeometry(W+.4,.35,Dp+.4),L(D.night?'#1a1420':'#c8a27a'));st.position.y=-.35;S.add(st);}
+// 유리 + 물
+const glass=new THREE.Mesh(new THREE.BoxGeometry(W,H,Dp),new THREE.MeshPhysicalMaterial({color:'#dff6ff',transparent:true,opacity:.12,roughness:0,side:THREE.BackSide}));glass.position.y=H/2;S.add(glass);
+const water=new THREE.Mesh(new THREE.BoxGeometry(W-.02,H*.9,Dp-.02),new THREE.MeshStandardMaterial({color:D.water,transparent:true,opacity:D.night?.35:.2,depthWrite:false}));water.position.y=H*.45;S.add(water);
+const surf=new THREE.Mesh(new THREE.PlaneGeometry(W-.02,Dp-.02,24,12),new THREE.MeshStandardMaterial({color:'#ffffff',transparent:true,opacity:.25,roughness:.1}));surf.rotation.x=-Math.PI/2;surf.position.y=H*.9;S.add(surf);
+// 바닥 + 코스틱(캔버스 애니메이션 텍스처)
+const ccv=document.createElement('canvas');ccv.width=ccv.height=256;const cx=ccv.getContext('2d'),ctex=new THREE.CanvasTexture(ccv);ctex.wrapS=ctex.wrapT=THREE.RepeatWrapping;ctex.repeat.set(2,1);
+function caustic(t){cx.clearRect(0,0,256,256);cx.strokeStyle=D.night?'rgba(140,210,255,.55)':'rgba(255,255,255,.7)';cx.lineWidth=3;for(let i=0;i<14;i++){cx.beginPath();for(let x=0;x<=256;x+=8){const y=(i*19+Math.sin(x*.05+t*1.3+i)*10+Math.sin(x*.11-t*.9+i*2)*6)%256;x?cx.lineTo(x,y):cx.moveTo(x,y);}cx.stroke();}
+ for(let i=0;i<14;i++){cx.beginPath();for(let y=0;y<=256;y+=8){const x=(i*19+Math.sin(y*.06+t*1.1+i)*10)%256;y?cx.lineTo(x,y):cx.moveTo(x,y);}cx.stroke();}ctex.needsUpdate=true;}
+const floor=new THREE.Mesh(new THREE.BoxGeometry(W-.02,.12,Dp-.02),L(D.gravel[0]));floor.position.y=.06;floor.receiveShadow=true;S.add(floor);
+const cau=new THREE.Mesh(new THREE.PlaneGeometry(W-.05,Dp-.05),new THREE.MeshBasicMaterial({map:ctex,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,opacity:.5}));cau.rotation.x=-Math.PI/2;cau.position.y=.21;S.add(cau);
+// 자갈 (인스턴스)
+const gg=new THREE.IcosahedronGeometry(.045,0);D.gravel.forEach((col,ci)=>{const n=700,im=new THREE.InstancedMesh(gg,L(col),n),m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler();
+ for(let i=0;i<n;i++){const x=rnd(-W/2+.05,W/2-.05),z=rnd(-Dp/2+.05,Dp/2-.05),s=rnd(.6,1.6);q.setFromEuler(e.set(rnd(0,3),rnd(0,3),0));m.compose(new THREE.Vector3(x,.13+(z<0?(-z)*.12:0)+Math.random()*.03,z),q,new THREE.Vector3(s,s*.7,s));im.setMatrixAt(i,m);}im.receiveShadow=true;S.add(im);});
+// 바위
+for(let i=0;i<D.stones;i++){const big=i<3,g=new THREE.DodecahedronGeometry(big?rnd(.32,.5):rnd(.1,.18),1);const p=g.attributes.position;for(let k=0;k<p.count;k++)p.setXYZ(k,p.getX(k)*rnd(.85,1.15),p.getY(k)*rnd(.8,1.3),p.getZ(k)*rnd(.85,1.1));g.computeVertexNormals();
+ const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:D.night?'#4a5470':'#a9a49a',roughness:.9,flatShading:true}));m.position.set(big?[-1.1,.25,1.2][i]:rnd(-1.8,1.8),big?.35:.18,big?[-.3,-.5,.1][i]:rnd(-.8,.6));m.rotation.set(rnd(0,1),rnd(0,6),0);m.castShadow=true;S.add(m);}
+// 유목
+if(D.drift){const dm=new THREE.MeshStandardMaterial({color:D.night?'#4a3a40':'#7a5636',roughness:1,flatShading:true});const br=(p,dir,len,r,dep)=>{const e=p.clone().addScaledVector(dir,len);const g=new THREE.CylinderGeometry(r*.6,r,len,6);const m=new THREE.Mesh(g,dm);m.position.copy(p).lerp(e,.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.clone().normalize());m.castShadow=true;S.add(m);
+  if(dep<3)for(let i=0;i<2;i++){const nd=dir.clone().add(new THREE.Vector3(rnd(-.7,.7),rnd(-.1,.5),rnd(-.5,.5))).normalize();br(e,nd,len*.65,r*.6,dep+1);}};br(new THREE.Vector3(.5,.15,-.2),new THREE.Vector3(-.6,1,-.2).normalize(),1.1,.09,0);}
+// 수초 (흔들림 셰이더)
+const sway=[];const pm=(col,emi)=>{const m=new THREE.MeshStandardMaterial({color:col,side:THREE.DoubleSide,roughness:.7,emissive:emi||0,emissiveIntensity:emi?.9:0});m.onBeforeCompile=sh=>{sh.uniforms.t={value:0};sway.push(sh.uniforms.t);sh.vertexShader='uniform float t;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nfloat k=position.y*position.y;transformed.x+=sin(t*1.4+instanceMatrix[3].x*3.)*.09*k;transformed.z+=cos(t*1.1+instanceMatrix[3].z*4.)*.05*k;');};return m;};
+const blade=new THREE.PlaneGeometry(.06,1,1,6);blade.translate(0,.5,0);const pc=D.night?[['#2f8f7a','#36ffd0'],['#2a6f9a','#5ac8ff'],['#6a3a9a','#d08aff']]:[['#5fb36a'],['#88c95a'],['#3f8f55'],['#b9d86a'],['#c86a5a']];
+pc.forEach((cc,ci)=>{const n=Math.round(D.plants*14/pc.length),im=new THREE.InstancedMesh(blade,pm(cc[0],cc[1]),n),m=new THREE.Matrix4(),q=new THREE.Quaternion();for(let i=0;i<n;i++){const back=Math.random()<.75,x=rnd(-W/2+.15,W/2-.15),z=back?rnd(-Dp/2+.1,-Dp/2+.6):rnd(-.4,Dp/2-.15),h=back?rnd(.9,2.1):rnd(.25,.6);
+ q.setFromAxisAngle(new THREE.Vector3(0,1,0),rnd(0,6));m.compose(new THREE.Vector3(x,.14,z),q,new THREE.Vector3(rnd(.8,1.6),h,1));im.setMatrixAt(i,m);}S.add(im);});
+if(D.moss){const mm=new THREE.InstancedMesh(new THREE.SphereGeometry(.06,6,4),L(D.night?'#2f6a5a':'#5fae58'),1800),m=new THREE.Matrix4();for(let i=0;i<1800;i++){const s=rnd(.6,1.3);m.compose(new THREE.Vector3(rnd(-W/2+.1,W/2-.1),.15,rnd(-.2,Dp/2-.1)),new THREE.Quaternion(),new THREE.Vector3(s,s*.5,s));mm.setMatrixAt(i,m);}S.add(mm);}
+// 기포
+const NB=260,bg=new THREE.BufferGeometry(),bp=new Float32Array(NB*3);for(let i=0;i<NB;i++){const s=i%2;bp[i*3]=s?1.7+rnd(-.05,.05):rnd(-1.8,1.8);bp[i*3+1]=rnd(.2,H*.88);bp[i*3+2]=s?-.8:rnd(-.8,.8);}bg.setAttribute('position',new THREE.BufferAttribute(bp,3));
+const bub=new THREE.Points(bg,new THREE.PointsMaterial({color:'#ffffff',size:.045,transparent:true,opacity:.8}));S.add(bub);
+const stone=new THREE.Mesh(new THREE.CylinderGeometry(.06,.07,.1,8),L('#eeeeee'));stone.position.set(1.7,.2,-.8);S.add(stone);
+if(D.night){const pl=new THREE.PointLight(0x58c8ff,1.5,6);pl.position.set(0,H+.2,0);S.add(pl);}
+// 물고기 (Kenney fish, 머리 -X)
+const fish=[];const cols=['#e6b45a','#c99a5a','#9fb06a','#7aa0c8','#e08a5a','#8f7a5a'];
+new THREE.GLTFLoader().parse(Uint8Array.from(atob(NK_GLB.fish),c=>c.charCodeAt(0)).buffer,'',g=>{for(let i=0;i<7;i++){const o=g.scene.clone(true),col=cols[i%cols.length];o.traverse(m=>{if(m.isMesh){m.material=new THREE.MeshStandardMaterial({color:col,roughness:.6,flatShading:true,emissive:D.night?col:0,emissiveIntensity:D.night?.25:0});m.castShadow=true;}});
+ o.scale.setScalar(rnd(1.8,3.2));o.position.set(rnd(-1.5,1.5),rnd(.6,2),rnd(-.6,.6));S.add(o);fish.push({o,v:new THREE.Vector3(rnd(-.3,.3),0,rnd(-.1,.1)),t:new THREE.Vector3(),sp:rnd(.25,.5),yaw:0,w:Math.random()*6});}});
+let yaw=0,drag=null;c.onpointerdown=e=>drag=e.clientX;onpointerup=()=>drag=null;c.onpointermove=e=>{if(drag!=null){yaw-=(e.clientX-drag)*.005;drag=e.clientX;}};
+const V=new THREE.Vector3();let last=performance.now(),T=0;
+function frame(){const now=performance.now(),dt=Math.min(.05,(now-last)/1000);last=now;T+=dt;const w=innerWidth,h=innerHeight;if(c.width!==Math.floor(w*R.getPixelRatio())){R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();}
+ cam.position.set(Math.sin(yaw)*7.4,2.5,Math.cos(yaw)*7.4);cam.lookAt(0,1.15,0);caustic(T);sway.forEach(u=>u.value=T);
+ for(let i=0;i<NB;i++){let y=bp[i*3+1]+dt*(i%2?.7:.25);if(y>H*.88)y=.2;bp[i*3+1]=y;}bg.attributes.position.needsUpdate=true;
+ const sp=surf.geometry.attributes.position;for(let i=0;i<sp.count;i++)sp.setZ(i,Math.sin(sp.getX(i)*3+T*2)*.015+Math.cos(sp.getY(i)*4+T*1.6)*.015);sp.needsUpdate=true;
+ for(const f of fish){const p=f.o.position;if(p.distanceTo(f.t)<.3||!f.t.lengthSq())f.t.set(rnd(-1.7,1.7),rnd(.6,2.1),rnd(-.6,.7));const wa=V.subVectors(f.t,p).normalize().multiplyScalar(f.sp);const st=wa.sub(f.v);st.clampLength(0,.8*dt);f.v.add(st);p.addScaledVector(f.v,dt);
+  const hv=Math.hypot(f.v.x,f.v.z);const ty=Math.atan2(f.v.z,-f.v.x);let dd=((ty-f.yaw)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI;f.yaw+=dd*Math.min(1,dt*4);f.w+=dt*(4+f.v.length()*18);f.o.rotation.set(0,f.yaw+Math.sin(f.w)*.12,-Math.atan2(f.v.y,hv+1e-3)*.7);}
+ R.render(S,cam);requestAnimationFrame(frame);}
+frame();
+</script></body></html>

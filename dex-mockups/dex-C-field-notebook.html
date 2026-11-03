@@ -1,0 +1,22 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>도감 시안 C · 낚시 수첩</title>
+<link rel="stylesheet" href="../ui-v2.css"><style>body{overflow:auto;background:#8fbfa8;padding:24px;touch-action:auto;user-select:auto}
+.book{display:flex;width:min(1080px,96vw);margin:auto;min-height:600px;filter:drop-shadow(0 20px 40px #0004)}
+.pg{flex:1;background:repeating-linear-gradient(#fdf8ee 0 31px,#e9e1d1 31px 32px);padding:28px 30px;position:relative}
+.pg.l{border-radius:22px 4px 4px 22px;box-shadow:inset -18px 0 30px -18px #0003}.pg.r{border-radius:4px 22px 22px 4px;box-shadow:inset 18px 0 30px -18px #0003}
+.li{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:12px;cursor:pointer;font-weight:800}.li:hover,.li.on{background:#fff9}.li img{width:60px;height:34px;object-fit:contain}.li .gb{margin-left:auto}
+.big{width:100%;height:200px;object-fit:contain;filter:drop-shadow(0 8px 10px #0003)}.tape{position:absolute;top:14px;right:40px;width:110px;height:28px;background:#f4d58a99;transform:rotate(6deg)}
+.stampc{position:absolute;right:34px;top:200px;width:96px;height:96px;border-radius:50%;border:4px double var(--gc);color:var(--gc);display:grid;place-items:center;font-weight:900;transform:rotate(-14deg);text-align:center;font-size:13px;background:#fff8}
+.rul{position:relative;height:42px;margin:16px 0 6px;border-radius:8px;overflow:hidden;display:flex}.rul span{height:100%;display:grid;place-items:center;font-size:11px;font-weight:800;color:#fff}
+.mk{position:absolute;top:-6px;bottom:-6px;width:4px;background:#4a4058}.facts{font-size:13px;line-height:1.9}</style></head><body>
+<div class="book"><div class="pg l" id="L"></div><div class="pg r" id="R"></div></div>
+<script src="../game-data.js"></script><script src="_sample.js"></script><script>
+const D=NK_DATA,S=SAMPLE;let cur='crucian';
+function draw(){document.getElementById('L').innerHTML=`<h2>📒 시안 C — 나의 낚시 수첩</h2><p class="small muted">손글씨 수첩 감성. 왼쪽 목록, 오른쪽 상세(크기 눈금자 · 기록 · 등급 도장)</p>`+
+D.FISH.map((f,i)=>{const d=S[f.k],b=d?d.gr.lastIndexOf(1):-1;return `<div class="li ${cur===f.k?'on':''}" onclick="cur='${f.k}';draw()"><span class="muted">${String(i+1).padStart(2,'0')}</span><img src="../${d?f.img:f.img.replace('.png','_sil.png')}">${d?f.n:'???'}${d?`<span class="gbadge gb" style="--gc:${D.GRADES[b].c}">${D.GRADES[b].n}</span>`:''}</div>`;}).join('');
+const f=D.FISH.find(x=>x.k===cur),d=S[cur],best=d?d.gr.lastIndexOf(1):-1,bd=[f.min,...f.g,f.max],sp=f.max-f.min,c=best>=0?D.GRADES[best].c:'#aaa';
+document.getElementById('R').innerHTML=`<div class="tape"></div><h1 style="font-size:34px">${d?f.n:'???'}</h1><div class="small muted">No.${String(D.FISH.indexOf(f)+1).padStart(3,'0')} · ${f.min}~${f.max}cm</div>
+<img class="big" src="../${d?f.img:f.img.replace('.png','_sil.png')}">${d?`<div class="stampc" style="--gc:${c}">최고 등급<br>${D.GRADES[best].n}</div>`:''}
+<div class="rul">${D.GRADES.map((g,j)=>`<span style="width:${(bd[j+1]-bd[j])/sp*100}%;background:${g.c};opacity:${d&&d.gr[j]?1:.3}">${g.n}</span>`).join('')}${d?`<div class="mk" style="left:${(d.max-f.min)/sp*100}%"></div>`:''}</div>
+<div class="small" style="display:flex;justify-content:space-between">${bd.map(x=>`<span>${x}</span>`).join('')}</div>
+<div class="facts">${d?`📏 최대 기록 <b>${d.max}cm</b><br>🎣 낚은 횟수 <b>${d.n}마리</b><br>🏅 등급 슬롯 ${d.gr.map((x,j)=>x?'<span class="gbadge" style="--gc:'+D.GRADES[j].c+'">'+D.GRADES[j].n+'</span>':'').join(' ')}`:'아직 기록이 없어요. 수첩의 빈 페이지를 채워보세요!'}<br><span class="small muted">📚 ${f.src}</span></div>`;}
+draw();</script></body></html>

@@ -1,0 +1,12 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>v6 시안 · 낚싯대 3D 재디자인</title><script src="../lib/three.min.js"></script><script>window.NK_LIN=1;</script><script src="rod3d-v6.js"></script>
+<style>body{margin:0;font-family:'Noto Sans KR',sans-serif;background:#f3ede4;color:#3d3548}h1{font-size:19px;margin:10px 16px 2px}p{margin:2px 16px 6px;font-size:12px}#w{position:relative}.lab{position:absolute;left:14px;font-size:12px;background:#fff;border-radius:10px;padding:5px 10px;transform:translateY(-50%);box-shadow:0 2px 6px #0001;width:255px}.lab b{font-size:14px}.lab i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:2px;vertical-align:-1px}</style></head><body>
+<h1>🎣 낚싯대 3D 재디자인 시안 (v6) — 측면 클로즈업 · 희귀·고가 순</h1><p>색 조합 + 손잡이·릴(베이트/스피닝/조개)·가이드·팁 장식·발광을 모두 다르게. 게임 미적용.</p><div id="w"></div>
+<script>
+const L=[['dragon','용왕의 낚싯대','빨강+초록 비늘 · 금 가이드 · 용머리 팁 + 여의주 · 붉은 보주 릴',['#b3202a','#1f7a4a','#e8c45a']],['star','별빛 낚싯대','무광 검정 + 황금 · 별 장식 3개 · 별 팁 발광 · 스피닝 릴',['#141418','#f2c94c']],['gold','황금 낚싯대','금속 금 블랭크 · 루비 밴드·팁 · 와인색 그립',['#e8b830','#c0182a']],['sakura','벚꽃 낚싯대','연분홍 + 흰 그립 · 꽃 장식 · 꽃 팁',['#f8c8d8','#c2185b','#fff']],['coral','산호 낚싯대','청록→산호 그라데이션 · 조개 릴 · 진주 팁',['#2bb3a8','#ff8a65']],['silver','은빛 낚싯대','크롬 블랭크 · 스피닝 릴 · 고무 그립',['#d8dde4','#2a2f36']],['carbon','카본 낚싯대','카본 블랙 · 파란 밴드·릴',['#2a2a30','#2f6fd8']],['bamboo','대나무 낚싯대','대나무 마디 · 실 감은 손잡이 · 릴 없음',['#c9a060','#7a5a30']]];
+const W=1200,RH=92,H=RH*L.length+10,r=new THREE.WebGLRenderer({antialias:true});r.setPixelRatio(1.5);r.setSize(W,H);r.outputEncoding=THREE.sRGBEncoding;document.getElementById('w').appendChild(r.domElement);
+const s=new THREE.Scene();s.background=new THREE.Color('#f3ede4');const cam=new THREE.OrthographicCamera(-W/260,W/260,H/260,-H/260,.1,50);cam.position.set(0,0,10);
+s.add(new THREE.HemisphereLight(0xffffff,0x8a7a90,.9));const dl=new THREE.DirectionalLight(0xffffff,.9);dl.position.set(2,4,6);s.add(dl);const dl2=new THREE.DirectionalLight(0xffeedd,.4);dl2.position.set(-3,-2,4);s.add(dl2);
+L.forEach(([k,n,d,cs],i)=>{const g=NK_ROD3D_V6(k);g.scale.setScalar(1.75);g.rotation.z=-Math.PI/2;g.rotation.y=.15;g.rotation.x=.12;const y=H/260-(i+.55)*RH/130;g.position.set(-1.35,y,0);s.add(g);
+ const lb=document.createElement('div');lb.className='lab';lb.style.top=((i+.55)*RH)+'px';lb.innerHTML=`<b>${i+1}. ${n}</b><br>${cs.map(c=>`<i style="background:${c}"></i>`).join('')} ${d}`;document.getElementById('w').appendChild(lb);});
+r.render(s,cam);window.READY=()=>true;
+</script></body></html>

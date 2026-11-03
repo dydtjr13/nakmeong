@@ -1,0 +1,19 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>도감 시안 B · 등급 슬롯 매트릭스</title>
+<link rel="stylesheet" href="../ui-v2.css"><style>body{overflow:auto;background:#2e3768;padding:24px;touch-action:auto;user-select:auto}.card{margin:auto;background:#fffaf3}
+.mx{display:grid;grid-template-columns:160px repeat(5,1fr) 90px;gap:8px;align-items:center}.hd{font-weight:900;text-align:center;font-size:13px}
+.sp{display:flex;gap:8px;align-items:center;font-weight:800}.sp img{width:56px;height:34px;object-fit:contain}
+.slot{height:74px;border-radius:16px;background:#f0ebe4;display:grid;place-items:center;position:relative;border:3px dashed #0001}
+.slot img{width:70%;max-height:44px;object-fit:contain;opacity:.18;filter:grayscale(1)}.slot.on{background:radial-gradient(circle,#fff 30%,color-mix(in srgb,var(--c) 30%,#fff));border:3px solid var(--c);box-shadow:0 0 14px color-mix(in srgb,var(--c) 60%,transparent)}
+.slot.on img{opacity:1;filter:none}.slot .cm{position:absolute;bottom:3px;font-size:10px;font-weight:700;opacity:.7}.slot.on.g4{animation:hue 3s linear infinite}@keyframes hue{to{filter:hue-rotate(360deg)}}
+.done{font-size:12px;font-weight:900;color:#fff;background:#f4a62a;border-radius:12px;padding:4px 8px;text-align:center}.prog{font-size:12px;text-align:center}
+.miles{display:flex;gap:0;margin:14px 0 18px;position:relative;height:14px;border-radius:7px;background:#0001}.miles .fill{background:linear-gradient(90deg,#5fc48a,#4ea3ea,#c46cf2);border-radius:7px}
+.ms{position:absolute;top:-26px;transform:translateX(-50%);font-size:11px;font-weight:800;text-align:center}.ms b{display:block;font-size:16px}</style></head><body>
+<div class="card" style="width:min(1060px,96vw)"><div id="root"></div></div>
+<script src="../game-data.js"></script><script src="_sample.js"></script><script>
+const D=NK_DATA,S=SAMPLE;const got=D.FISH.reduce((a,f)=>a+(S[f.k]?S[f.k].gr.reduce((x,y)=>x+y,0):0),0);
+const ms=[[5,'🪱 떡밥 ×20'],[12,'🎣 카본 낚싯대'],[20,'🐠 중형 어항'],[28,'🏅 칭호 "호수의 달인"'],[35,'👑 용왕의 낚싯대']];
+document.getElementById('root').innerHTML=`<h2>📖 시안 B — 등급 슬롯 매트릭스 <span class="pill small">${got}/35 슬롯</span></h2><p class="small muted">어종 × 5등급 = 35칸 빙고. 한 줄을 다 채우면 어종 마스터 배지, 진행도 마일스톤마다 보상.</p>
+<div style="height:24px"></div><div class="miles"><div class="fill" style="width:${got/35*100}%"></div>${ms.map(([n,r])=>`<div class="ms" style="left:${Math.min(94,n/35*100)}%"><b>${got>=n?'✅':'🎁'}</b>${n}칸<br><span class="muted">${r}</span></div>`).join('')}</div><div style="height:30px"></div>
+<div class="mx"><div></div>${D.GRADES.map(g=>`<div class="hd" style="color:${g.c}">${g.n}<br><span class="small muted">가격 ×${g.m}</span></div>`).join('')}<div class="hd">완성</div>
+${D.FISH.map(f=>{const d=S[f.k],b=[f.min,...f.g,f.max],n=d?d.gr.reduce((x,y)=>x+y,0):0;return `<div class="sp"><img src="../${d?f.img:f.img.replace('.png','_sil.png')}">${d?f.n:'???'}</div>`+D.GRADES.map((g,j)=>`<div class="slot ${d&&d.gr[j]?'on g'+j:''}" style="--c:${g.c}"><img src="../${f.img}"><span class="cm">${b[j]}~${b[j+1]}cm</span></div>`).join('')+(n===5?'<div class="done">👑 마스터</div>':`<div class="prog">${n}/5<br><span class="muted">${d?'최대 '+d.max+'cm':''}</span></div>`);}).join('')}</div>`;
+</script></body></html>

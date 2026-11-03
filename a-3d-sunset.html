@@ -1,0 +1,136 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>낚멍 시안 A - 3D 로우폴리 파스텔</title><style>html,body{margin:0;height:100%;overflow:hidden;background:#000;touch-action:none}canvas{display:block}#dc{position:fixed;right:10px;bottom:150px;color:#fff8;font:11px monospace;z-index:10}</style>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js"}}</script></head><body><div id="dc"></div>
+<script src="common.js"></script>
+<script type="module">
+import * as THREE from 'three';
+NK.init({style:'시안 A · 3D 로우폴리 파스텔 (Three.js)'});
+const R=new THREE.WebGLRenderer({antialias:devicePixelRatio<2});R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.setSize(innerWidth,innerHeight);document.body.prepend(R.domElement);
+const S=new THREE.Scene();const cam=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,300);
+S.fog=new THREE.Fog(0xffc9a8,30,120);
+const hemi=new THREE.HemisphereLight(0xffffff,0x556644,.8);S.add(hemi);const sun=new THREE.DirectionalLight(0xffffff,1);sun.position.set(-30,40,20);S.add(sun);
+const LR=22;const P=[ // 낮, 노을, 밤
+ {sky:'#9fd3f0',fog:'#cfe8f2',sun:'#fff6e0',si:1.1,hemi:.9,deep:'#2f7f8f',shal:'#7cc4c0',fire:1.2},
+ {sky:'#f7a68a',fog:'#ffc9a8',sun:'#ff9a5c',si:.9,hemi:.6,deep:'#4a4a72',shal:'#b88a90',fire:2},
+ {sky:'#141c3a',fog:'#1d2747',sun:'#8aa0ff',si:.25,hemi:.25,deep:'#0b1a30',shal:'#24406a',fire:3.5}];
+// 지형 (플랫셰이딩, 정점 색)
+const g=new THREE.PlaneGeometry(160,160,60,60);g.rotateX(-Math.PI/2);const pos=g.attributes.position,col=[];const c1=new THREE.Color('#8fbf6a'),c2=new THREE.Color('#d8c48a'),c3=new THREE.Color('#6a9a5a');
+const H=(x,z)=>{const r=Math.hypot(x,z);if(r<LR-1)return -2;if(r<LR+2)return -2+(r-LR+1)/3*2.3;return .3+Math.max(0,r-45)*.25*(1+Math.sin(x*.2)*Math.cos(z*.15))+Math.sin(x*.3)*Math.cos(z*.25)*.3;};
+for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i);pos.setY(i,H(x,z));const r=Math.hypot(x,z);const c=r<LR+3?c2:(Math.random()<.3?c3:c1);col.push(c.r,c.g,c.b);}
+g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.computeVertexNormals();
+S.add(new THREE.Mesh(g.toNonIndexed(),new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true})));
+// 물 셰이더 (잔물결 + 프레넬 반사 + 찌 파문)
+const wU={t:{value:0},deep:{value:new THREE.Color()},shal:{value:new THREE.Color()},sky:{value:new THREE.Color()},bob:{value:new THREE.Vector3(0,0,-99)},fogC:{value:new THREE.Color()},night:{value:0}};
+const wm=new THREE.ShaderMaterial({uniforms:wU,transparent:true,vertexShader:`varying vec3 wp;void main(){vec4 w=modelMatrix*vec4(position,1.);wp=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,
+fragmentShader:`uniform float t,night;uniform vec3 deep,shal,sky,bob,fogC;varying vec3 wp;
+void main(){vec2 p=wp.xz;float r=length(p);
+vec2 n=vec2(sin(p.x*1.3+t*1.2)+sin(p.y*1.7+p.x*.5+t*.9)*.7,cos(p.y*1.1+t*1.1)+sin(p.x*.8-p.y*1.3+t*.7)*.6)*.08;
+float bd=length(p-bob.xz);n+=normalize(p-bob.xz+1e-4)*sin(bd*6.-t*6.)*exp(-bd*.6)*.25*bob.y;
+vec3 nn=normalize(vec3(n.x,1.,n.y));vec3 v=normalize(cameraPosition-wp);float fr=pow(1.-max(dot(nn,v),0.),3.);
+vec3 c=mix(shal,deep,smoothstep(8.,20.,22.-r<0.?0.:22.-r+8.));c=mix(c,sky,fr*.5+.04);
+float sp=pow(max(dot(reflect(-v,nn),normalize(vec3(-.5,.4,-.6))),0.),60.);c+=sp*mix(vec3(1.,.8,.6),vec3(.6,.7,1.),night)*.8;
+float edge=smoothstep(21.3,21.9,r)*(.5+.5*sin(t*2.+atan(p.y,p.x)*20.));c=mix(c,vec3(1.),edge*.4);
+float d=length(cameraPosition-wp);c=mix(c,fogC,smoothstep(30.,120.,d));gl_FragColor=vec4(c,.88);}`});
+const water=new THREE.Mesh(new THREE.CircleGeometry(LR+1,64).rotateX(-Math.PI/2),wm);water.position.y=-.1;S.add(water);
+// 수중 물고기 그림자 (Instanced)
+const fishI=new THREE.InstancedMesh(new THREE.ConeGeometry(.25,1,4).rotateX(Math.PI/2),new THREE.MeshBasicMaterial({color:0x1a2a2a,transparent:true,opacity:.5}),14);S.add(fishI);
+const fishD=[...Array(14)].map(()=>({r:4+Math.random()*14,a:Math.random()*6.3,s:(.1+Math.random()*.2)*(Math.random()<.5?-1:1)}));
+// 나무 & 바위 (InstancedMesh → 드로우콜 3)
+const M4=new THREE.Matrix4(),Q=new THREE.Quaternion(),V=new THREE.Vector3(),SC=new THREE.Vector3();
+const tN=140,trunk=new THREE.InstancedMesh(new THREE.CylinderGeometry(.15,.25,1.5,5),new THREE.MeshLambertMaterial({color:'#7a5a3a',flatShading:true}),tN);
+const leaf=new THREE.InstancedMesh(new THREE.ConeGeometry(1.4,3.2,6),new THREE.MeshLambertMaterial({color:'#ffffff',flatShading:true}),tN);
+const leafC=['#5f9a5a','#7fb069','#e7a0a0','#f2c48d','#4f8a6a'].map(c=>new THREE.Color(c));const trees=[];
+for(let i=0;i<tN;i++){let x,z;do{x=(Math.random()-.5)*150;z=(Math.random()-.5)*150;}while(Math.hypot(x,z)<LR+5||Math.hypot(x-28,z-8)<8||Math.hypot(x+28,z-8)<8||Math.abs(x)<3&&z<-20);
+ const s=.7+Math.random()*.9,y=H(x,z);trees.push([x,z,.6*s]);M4.compose(V.set(x,y+.75*s,z),Q,SC.set(s,s,s));trunk.setMatrixAt(i,M4);M4.compose(V.set(x,y+2.8*s,z),Q,SC.set(s,s,s));leaf.setMatrixAt(i,M4);leaf.setColorAt(i,leafC[i%5]);}
+S.add(trunk,leaf);
+const rock=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(.6,0),new THREE.MeshLambertMaterial({color:'#9a9a8f',flatShading:true}),40);
+for(let i=0;i<40;i++){const a=Math.random()*6.3,r=LR+.5+Math.random()*2.5,s=.5+Math.random();M4.compose(V.set(Math.cos(a)*r,-.5,Math.sin(a)*r),Q.setFromEuler(new THREE.Euler(a,a*2,0)),SC.set(s,s*.7,s));rock.setMatrixAt(i,M4);}S.add(rock);Q.identity();
+// 데크 (여러 개, 각도) – 하나의 머지 지오메트리처럼 Instanced 보드
+const wood=new THREE.MeshLambertMaterial({color:'#b98a5a',flatShading:true});const decks=[];const DA=[-Math.PI/2,-Math.PI/2+1.1,-Math.PI/2-1.1,Math.PI/2-.6,Math.PI/2+.6];
+const board=new THREE.InstancedMesh(new THREE.BoxGeometry(3,.2,9),wood,DA.length);const post=new THREE.InstancedMesh(new THREE.CylinderGeometry(.12,.12,2.5,5),wood,DA.length*4);
+DA.forEach((a,i)=>{const cx=Math.cos(a)*(LR-2.5),cz=Math.sin(a)*(LR-2.5);M4.compose(V.set(cx,.3,cz),Q.setFromAxisAngle(new THREE.Vector3(0,1,0),-a+Math.PI/2),SC.set(1,1,1));board.setMatrixAt(i,M4);
+ for(let k=0;k<4;k++){const ox=k%2?1.3:-1.3,oz=k<2?-4:4;const lx=cx+Math.cos(a)*oz+Math.sin(a)*ox,lz=cz+Math.sin(a)*oz-Math.cos(a)*ox;M4.compose(V.set(lx,-.6,lz),Q.identity(),SC.set(1,1,1));post.setMatrixAt(i*4+k,M4);}
+ decks.push({a,cx,cz,tip:{x:Math.cos(a)*(LR-6.3),z:Math.sin(a)*(LR-6.3)}});});S.add(board,post);
+const inDeck=(x,z)=>decks.some(d=>{const dx=x-d.cx,dz=z-d.cz;const along=dx*Math.cos(d.a)+dz*Math.sin(d.a),side=-dx*Math.sin(d.a)+dz*Math.cos(d.a);return Math.abs(along)<4.4&&Math.abs(side)<1.4;});
+// 어항 (내 데크)
+const my=decks[0];const tank=new THREE.Group();tank.add(new THREE.Mesh(new THREE.BoxGeometry(1.2,.8,.7),new THREE.MeshLambertMaterial({color:'#9fe0ff',transparent:true,opacity:.45})));
+const tf=new THREE.Mesh(new THREE.ConeGeometry(.08,.25,4).rotateZ(Math.PI/2),new THREE.MeshBasicMaterial({color:'#ff8a3a'}));tank.add(tf);tank.position.set(my.cx+1,.8,my.cz+1);S.add(tank);
+// 공용 쉼터: 모닥불 + 벤치
+const SH=new THREE.Vector3(28,0,8);const fireL=new THREE.PointLight(0xff8a3a,2,18,1.5);fireL.position.set(SH.x,1.5,SH.z);S.add(fireL);
+const logs=new THREE.InstancedMesh(new THREE.CylinderGeometry(.15,.15,1.4,5),new THREE.MeshLambertMaterial({color:'#5a3a22'}),4);for(let i=0;i<4;i++){M4.compose(V.set(SH.x,.4,SH.z),Q.setFromEuler(new THREE.Euler(1.1,i*1.57,0)),SC.set(1,1,1));logs.setMatrixAt(i,M4);}S.add(logs);
+const flame=new THREE.Mesh(new THREE.ConeGeometry(.45,1.3,6),new THREE.MeshBasicMaterial({color:'#ffb347'}));flame.position.set(SH.x,.9,SH.z);S.add(flame);
+const bench=new THREE.InstancedMesh(new THREE.BoxGeometry(2.6,.25,.7),wood,4);[[0,3],[0,-3],[3,0],[-3,0]].forEach(([x,z],i)=>{M4.compose(V.set(SH.x+x,.5,SH.z+z),Q.setFromAxisAngle(new THREE.Vector3(0,1,0),x?Math.PI/2:0),SC.set(1,1,1));bench.setMatrixAt(i,M4);});S.add(bench);
+// 작은 상점
+const shop=new THREE.Group();shop.add(new THREE.Mesh(new THREE.BoxGeometry(4,2.6,3),new THREE.MeshLambertMaterial({color:'#f3dcb8',flatShading:true})));const roof=new THREE.Mesh(new THREE.ConeGeometry(3.4,1.8,4),new THREE.MeshLambertMaterial({color:'#d96b5a',flatShading:true}));roof.position.y=2.2;roof.rotation.y=Math.PI/4;shop.add(roof);
+shop.position.set(-28,1.3,8);S.add(shop);
+// 랜턴 (발광 + 플레이어 데크만 실광원)
+const lantI=new THREE.InstancedMesh(new THREE.SphereGeometry(.2,6,4),new THREE.MeshBasicMaterial({color:'#ffd27a'}),DA.length+2);
+DA.forEach((a,i)=>{M4.compose(V.set(decks[i].cx-Math.sin(a)*1.3,1.4,decks[i].cz+Math.cos(a)*1.3),Q.identity(),SC.set(1,1,1));lantI.setMatrixAt(i,M4);});
+M4.setPosition(-26,2,6.4);lantI.setMatrixAt(DA.length,M4);M4.setPosition(-30,2,6.4);lantI.setMatrixAt(DA.length+1,M4);S.add(lantI);
+const lantL=new THREE.PointLight(0xffc870,0,10,1.5);lantL.position.set(my.cx-Math.sin(my.a)*1.3,1.6,my.cz+Math.cos(my.a)*1.3);S.add(lantL);
+// 물안개 + 반딧불 파티클
+const mkPts=(n,f,size,color)=>{const p=new Float32Array(n*3);for(let i=0;i<n;i++)f(p,i);const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.BufferAttribute(p,3));
+ const cv=document.createElement('canvas');cv.width=cv.height=64;const x=cv.getContext('2d'),gr=x.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'#fff');gr.addColorStop(1,'#fff0');x.fillStyle=gr;x.fillRect(0,0,64,64);
+ const m=new THREE.PointsMaterial({size,map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false,color,opacity:.5});const o=new THREE.Points(gg,m);S.add(o);return o;};
+const mist=mkPts(220,(p,i)=>{const a=Math.random()*6.3,r=Math.random()*LR*1.1;p[i*3]=Math.cos(a)*r;p[i*3+1]=Math.random()*1.5;p[i*3+2]=Math.sin(a)*r;},9,0xffffff);
+const flies=mkPts(80,(p,i)=>{p[i*3]=(Math.random()-.5)*80;p[i*3+1]=.5+Math.random()*3;p[i*3+2]=(Math.random()-.5)*80;},.6,0xfff27a);
+// 캐릭터 (성인남/여, 남아/여아)
+const KIND=[{s:1,c:'#5a7fb0',hair:'#3a2a1a'},{s:1,c:'#d98a9a',hair:'#5a3a2a',long:1},{s:.7,c:'#6ab06a',hair:'#2a1a0a'},{s:.7,c:'#f0c05a',hair:'#7a4a2a',long:1}];
+const skin=new THREE.MeshLambertMaterial({color:'#f5d0b0'});
+function makeChar(k){const K=KIND[k],gp=new THREE.Group(),body=new THREE.Group();gp.add(body);
+ const torso=new THREE.Mesh(new THREE.CylinderGeometry(.32,.42,1,6),new THREE.MeshLambertMaterial({color:K.c,flatShading:true}));torso.position.y=1.1;body.add(torso);
+ const head=new THREE.Mesh(new THREE.IcosahedronGeometry(.33,0),skin);head.position.y=1.9;body.add(head);
+ const hair=new THREE.Mesh(new THREE.IcosahedronGeometry(.35,0),new THREE.MeshLambertMaterial({color:K.hair,flatShading:true}));hair.position.set(0,2,-.06);hair.scale.set(1,K.long?1.15:.8,1);body.add(hair);
+ const legs=[-.15,.15].map(x=>{const l=new THREE.Mesh(new THREE.BoxGeometry(.18,.6,.2),new THREE.MeshLambertMaterial({color:'#4a4a5a'}));l.position.set(x,.3,0);l.geometry.translate(0,-.25,0);l.position.y=.55;body.add(l);return l;});
+ const rod=new THREE.Mesh(new THREE.CylinderGeometry(.02,.04,3,4),new THREE.MeshLambertMaterial({color:'#3a2a1a'}));rod.geometry.translate(0,1.5,0);rod.position.set(.35,1.1,.2);rod.rotation.x=.9;rod.visible=false;body.add(rod);
+ gp.scale.setScalar(K.s);gp.userData={body,legs,rod,torso};return gp;}
+const me=makeChar(0);S.add(me);me.position.set(my.cx+Math.cos(my.a)*3.5,.4,my.cz+Math.sin(my.a)*3.5);let meDir=0;
+// 이름표/말풍선 스프라이트
+function tag(name){const cv=document.createElement('canvas');cv.width=256;cv.height=96;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false,transparent:true}));sp.scale.set(3,1.1,1);sp.userData={cv,last:'',name};return sp;}
+function drawTag(sp,b){if(sp.userData.last===(b||''))return;sp.userData.last=b||'';const x=sp.userData.cv.getContext('2d');x.clearRect(0,0,256,96);x.font='bold 26px sans-serif';x.textAlign='center';
+ if(b){x.fillStyle='#fffe';x.beginPath();x.roundRect(20,0,216,46,16);x.fill();x.fillStyle='#333';x.fillText(b.slice(0,12),128,33);}x.fillStyle='#fff';x.strokeStyle='#0008';x.lineWidth=4;x.strokeText(sp.userData.name,128,84);x.fillText(sp.userData.name,128,84);sp.material.map.needsUpdate=true;}
+const meTag=tag('나');S.add(meTag);
+// 봇
+const walk=(x,z)=>{const r=Math.hypot(x,z);if(r>70)return false;if(r<LR+.6&&!inDeck(x,z))return false;if(Math.hypot(x+28,z-8)<2.8)return false;return !trees.some(t=>Math.hypot(x-t[0],z-t[1])<t[2]);};
+const spots=[...decks.slice(1).map(d=>({x:d.cx-Math.cos(d.a)*2,y:d.cz-Math.sin(d.a)*2})),{x:SH.x+2,y:SH.z+2},{x:SH.x-2,y:SH.z-2},{x:-25,y:5},{x:0,y:30},{x:-30,y:-15}];
+const bots=NK.makeBots(6,i=>spots[i]).map((b,i)=>{b.mesh=makeChar(b.kind);b.tag=tag(b.name);S.add(b.mesh,b.tag);return b;});
+// 찌 & 낚싯줄
+const bobber=new THREE.Mesh(new THREE.SphereGeometry(.15,6,4),new THREE.MeshBasicMaterial({color:'#ff4a3a'}));bobber.visible=false;S.add(bobber);
+const lineG=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);const line=new THREE.Line(lineG,new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.6}));line.visible=false;S.add(line);
+let castT=-1,castTo=new THREE.Vector3();
+NK.onCast=()=>{castT=0;const d=my;castTo.set(Math.cos(d.a)*(LR-13),-.05,Math.sin(d.a)*(LR-13));meDir=Math.atan2(castTo.x-me.position.x,castTo.z-me.position.z);};
+NK.onReel=()=>{castT=-1;bobber.visible=line.visible=false;wU.bob.value.y=0;};
+// 카메라 드래그
+let yaw=Math.atan2(Math.cos(my.a),Math.sin(my.a)),pitch=.32,drag=null;
+R.domElement.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};
+ const ray=new THREE.Raycaster();ray.setFromCamera(new THREE.Vector2(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1),cam);if(ray.intersectObject(tank,true).length){NK.toast('🐠 내 어항: '+(Object.keys(NK.dex).join(', ')||'아직 비어있어요')+'<br><small>다른 유저는 여기서 구경·거래 가능</small>',2500);}
+ else if(NK.fishing.state!=='off'&&!e.target.closest('#nk'))NK.fishing.action();});
+addEventListener('pointermove',e=>{if(!drag||e.pointerType==='touch'&&e.clientX>innerWidth*.6&&e.clientY>innerHeight*.6)return;yaw-=(e.clientX-drag.x)*.006;pitch=Math.max(.1,Math.min(1.2,pitch+(e.clientY-drag.y)*.004));drag={x:e.clientX,y:e.clientY};});
+addEventListener('pointerup',()=>drag=null);
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
+function animChar(c,moving,t,dir,sit,fishing){const u=c.userData;c.rotation.y+=((dir-c.rotation.y+Math.PI*3)%(Math.PI*2)-Math.PI)*.2;const sw=moving?Math.sin(t*10)*.6:0;u.legs[0].rotation.x=sit?-1.4:sw;u.legs[1].rotation.x=sit?-1.4:-sw;u.body.position.y=sit?-.45:(moving?Math.abs(Math.sin(t*10))*.06:0);u.rod.visible=fishing;}
+const clock=new THREE.Clock();let T=0;const tmpC=new THREE.Color();
+function loop(){const dt=Math.min(clock.getDelta(),.05);T+=dt;NK.time.update(dt);NK.fishing.update(dt);const p=NK.palette(P);
+ S.background=tmpC.set(p.sky).clone();S.fog.color.set(p.fog);sun.color.set(p.sun);sun.intensity=p.si;hemi.intensity=p.hemi;wU.deep.value.set(p.deep);wU.shal.value.set(p.shal);wU.sky.value.set(p.sky);wU.fogC.value.set(p.fog);wU.night.value=p.night;wU.t.value=T;
+ fireL.intensity=p.fire*(.8+Math.sin(T*13)*.1+Math.sin(T*7.3)*.1);flame.scale.y=1+Math.sin(T*15)*.15;lantL.intensity=p.night*3;flies.material.opacity=p.night*.9;mist.material.opacity=.12+p.night*.12;
+ const mp=mist.geometry.attributes.position;for(let i=0;i<mp.count;i++){mp.setX(i,mp.getX(i)+Math.sin(T*.2+i)*.01);}mp.needsUpdate=true;flies.position.y=Math.sin(T)*.3;flies.rotation.y=T*.02;
+ fishD.forEach((f,i)=>{f.a+=f.s*dt;M4.compose(V.set(Math.cos(f.a)*f.r,-.7,Math.sin(f.a)*f.r),Q.setFromAxisAngle(new THREE.Vector3(0,1,0),-f.a+(f.s>0?Math.PI:0)),SC.set(1,1,1+Math.sin(T*4+i)*.1));fishI.setMatrixAt(i,M4);});fishI.instanceMatrix.needsUpdate=true;
+ tf.position.x=Math.sin(T)*.4;tf.rotation.y=Math.cos(T)>0?0:Math.PI;
+ // 이동
+ const mv=NK.move();const fishingNow=NK.fishing.state!=='off';let moving=false;
+ if((mv.x||mv.y)&&!fishingNow){NK.sitting=false;const sx=Math.sin(yaw),cz=Math.cos(yaw);const dx=-mv.y*sx+mv.x*cz,dz=-mv.y*cz-mv.x*sx;const sp=6*dt;const nx=me.position.x+dx*sp,nz=me.position.z+dz*sp;
+  if(walk(nx,me.position.z))me.position.x=nx;if(walk(me.position.x,nz))me.position.z=nz;meDir=Math.atan2(dx,dz);moving=true;}
+ const onD=inDeck(me.position.x,me.position.z);me.position.y=onD?.4:Math.max(H(me.position.x,me.position.z),.1);
+ window._me=me.position;NK.nearSpot=decks.some(d=>Math.hypot(me.position.x-d.tip.x,me.position.z-d.tip.z)<2.2);
+ animChar(me,moving,T,meDir,NK.sitting||fishingNow,fishingNow);meTag.position.set(me.position.x,me.position.y+2.9,me.position.z);drawTag(meTag,NK.lastBubble('나'));
+ // 캐스팅
+ if(castT>=0){castT=Math.min(1,castT+dt*1.5);const tip=new THREE.Vector3(.35,1.1,.2).add(new THREE.Vector3(0,2.6,1.4));me.localToWorld(tip);const st=me.position.clone().add(new THREE.Vector3(0,3,0));
+  bobber.visible=line.visible=true;bobber.position.lerpVectors(st,castTo,castT);bobber.position.y+=Math.sin(castT*Math.PI)*3;
+  if(castT>=1){const bite=NK.fishing.state==='bite';bobber.position.y=-.05+(bite?Math.sin(T*20)*.12-.1:Math.sin(T*2)*.03);wU.bob.value.set(castTo.x,bite?1.5:.5,castTo.z);}
+  lineG.attributes.position.setXYZ(0,tip.x,tip.y,tip.z);lineG.attributes.position.setXYZ(1,bobber.position.x,bobber.position.y,bobber.position.z);lineG.attributes.position.needsUpdate=true;}
+ NK.updateBots(dt,()=>spots[Math.random()*spots.length|0],walk);
+ bots.forEach(b=>{b.mesh.position.set(b.x,inDeck(b.x,b.y)?.4:Math.max(H(b.x,b.y),.1),b.y);animChar(b.mesh,b.moving,T+b.kind,b.dir,!b.moving&&b.wait>2,!b.moving&&inDeck(b.x,b.y));b.tag.position.set(b.x,b.mesh.position.y+2.9*KIND[b.kind].s+.3,b.y);drawTag(b.tag,NK.lastBubble(b.name));});
+ cam.position.set(me.position.x+Math.sin(yaw)*Math.cos(pitch)*12,me.position.y+1.5+Math.sin(pitch)*12,me.position.z+Math.cos(yaw)*Math.cos(pitch)*12);cam.lookAt(me.position.x,me.position.y+1.5,me.position.z);
+ R.render(S,cam);document.getElementById('dc').textContent='draw calls: '+R.info.render.calls+' · tris: '+R.info.render.triangles;requestAnimationFrame(loop);}
+loop();
+</script></body></html>

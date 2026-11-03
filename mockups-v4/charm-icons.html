@@ -1,0 +1,18 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>행운 부적 아이콘 시안</title><link rel="stylesheet" href="_base.css"><script>window.NK_EMOJI_BASE="../icons/emoji/"</script><script src="../emoji.js"></script><style>
+.svgset .cell svg{width:110px;height:110px}.tiers{--t0:#aab4c0;--t1:#5fc48a;--t2:#4ea3ea;--t3:#e0607e;--t4:#f4a62a;--t5:#c46cf2}
+.combo{position:relative;width:120px;height:120px;margin:auto}.combo img.f{position:absolute;inset:0;width:120px;height:120px}.combo img.o{position:absolute;width:56px;height:56px;left:32px;top:40px;filter:drop-shadow(0 2px 2px #0004)}
+.glow5{animation:g 2s infinite alternate}@keyframes g{to{filter:drop-shadow(0 0 12px #c46cf2)}}</style></head><body>
+<h1>🧿 행운 부적 아이템 이미지 시안 (게임 미적용)</h1><p class="s">현재 게임은 모든 부적이 같은 아이콘 → 옵션별 / 등급별로 한눈에 구분되도록 4가지 방식 제안. 등급 색: 일반 회색 · 고급 초록 · 희귀 파랑 · 영웅 장미 · 전설 금 · 신화 보라</p>
+<h2>세트 A · 옵션별 아이콘 (9종) <span class="pick">추천: 주 옵션 표시용</span></h2><p class="s">부적의 첫 번째(가장 높은) 옵션 아이콘을 사용. 등급은 카드 테두리 색으로 표시</p><div class="row" id="A"></div>
+<h2>세트 B · 등급별 복주머니 (6단계)</h2><p class="s">한국적 복주머니 + 물고기 자수. 등급이 오를수록 비단·금사·보석·홀로그램</p><div class="row" id="B"></div>
+<h2>세트 C · 등급별 잉어 메달리온 (6단계)</h2><p class="s">강돌 → 옥 → 사파이어 → 루비 → 호박 → 오팔. 전설·신화는 후광</p><div class="row" id="C"></div>
+<h2>세트 D · 조합형 (등급 메달리온 + 옵션 문양) <span class="pick">최종 추천</span></h2><p class="s">세트 C 프레임 위에 세트 A의 옵션 문양을 얹음 → 등급과 주 옵션을 동시에 표현 (예: 6등급 × 9옵션 = 54 조합을 이미지 15장으로)</p><div class="row" id="D"></div>
+<script>
+const O=[['luck','행운'],['treasure','보물탐지'],['quick','빠른입질'],['big','대물사냥꾼'],['expert','어종전문가'],['bait','미끼전문가'],['merchant','상인'],['appraise','보물감정'],['master','감정의달인']];
+const T=[['일반','#aab4c0'],['고급','#5fc48a'],['희귀','#4ea3ea'],['영웅','#e0607e'],['전설','#f4a62a'],['신화','#c46cf2']];
+A.innerHTML=O.map(([k,n],i)=>`<div class="cell" style="--gc:${T[i%6][1]}"><img src="img/charmA-${k}.png"><b>${n}</b><small>옵션 아이콘</small></div>`).join('');
+B.innerHTML=T.map(([n,c],i)=>`<div class="cell" style="--gc:${c}"><img src="img/charmB-t${i}.png" class="${i==5?'glow5':''}"><b>${n}</b><small>복주머니</small></div>`).join('');
+C.innerHTML=T.map(([n,c],i)=>`<div class="cell" style="--gc:${c}"><img src="img/charmC-t${i}.png" class="${i==5?'glow5':''}"><b>${n}</b><small>메달리온</small></div>`).join('');
+const ex=[[0,'luck'],[1,'quick'],[2,'treasure'],[3,'merchant'],[4,'big'],[5,'master'],[5,'luck'],[4,'appraise']];
+D.innerHTML=ex.map(([t,k])=>`<div class="cell" style="--gc:${T[t][1]}"><div class="combo"><img class="f ${t==5?'glow5':''}" src="img/charmC-t${t}.png"><img class="o" src="img/charmA-${k}.png"></div><b>${T[t][0]} · ${O.find(o=>o[0]==k)[1]}</b><small>조합형</small></div>`).join('');
+</script></body></html>
