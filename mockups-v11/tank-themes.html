@@ -1,0 +1,17 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v11 시안 — 어항 배경 테마</title>
+<style>body{margin:0;font-family:'Pretendard','Noto Sans KR',system-ui,sans-serif;background:#fbf7ef;color:#3d3548}
+header{padding:22px 24px 6px}h1{margin:0;font-size:24px}header p{margin:6px 0 0;color:#7a7286;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(520px,1fr));gap:18px;padding:16px 24px 30px}
+.th{background:#fff;border-radius:20px;box-shadow:0 6px 22px #3d354814;padding:14px}
+.th h2{margin:0 0 10px;font-size:17px;display:flex;align-items:center;gap:8px}.th h2 small{font-weight:600;color:#8a8296;font-size:12px}
+.sw{width:18px;height:18px;border-radius:6px;background:linear-gradient(var(--a),var(--b))}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pair figure{margin:0}.pair img{width:100%;border-radius:14px;display:block}
+.pair figcaption{font-size:12.5px;margin-top:6px}.pair b{display:inline-block;background:#3d3548;color:#fff;border-radius:7px;padding:0 7px;margin-right:5px;font-size:11px}
+.how{font-size:12px;color:#8a8296;margin-top:8px}
+@media(max-width:600px){.grid{grid-template-columns:1fr;padding:12px}.pair{grid-template-columns:1fr}}</style></head><body>
+<header><h1>🖼️ 수집 목표 보상 · 어항 배경 테마 시안</h1><p>실제 게임 어항(3D)에 배경을 적용해 캡처했어요. 테마마다 <b>A(분위기형)</b> / <b>B(풍경형)</b> 2종 — 파스텔·로우폴리 톤 통일. 마음에 드는 쪽을 골라주시면 게임에 적용해요.</p></header>
+<div class="grid" id="g"></div>
+<script src="theme-paint.js"></script><script>
+const BASE={mint:['민트 연못','기본 테마',"#e9f6f4","#cfeee8"],sunset:['노을 호수','붕어 삼형제 · 신화 컬렉션',"#ffd9b0","#f6a6a0"],deep:['깊은 물속','잉어의 왕 · 신화 컬렉션',"#5aa7d8","#1e4f86"],sakura:['벚꽃 연못','어종 19종 발견',"#ffe6ef","#f7c3d6"],night:['별밤 어항','첫 신화',"#1d2550","#0b1030"],gold:['황금 수조','호수의 맹어 · 신화 컬렉션',"#fff4c8","#f0c860"]};
+document.getElementById('g').innerHTML=Object.entries(BASE).map(([k,[n,how,a,b]])=>{const vs=TH_VARIANTS.filter(v=>v.base===k);return `<div class="th"><h2><span class="sw" style="--a:${a};--b:${b}"></span>${n} <small>획득: ${how}</small></h2><div class="pair">${vs.map(v=>`<figure><img src="tank-${v.k}.jpg" alt=""><figcaption><b>${v.v}</b>${v.d}</figcaption></figure>`).join('')}</div></div>`}).join('');
+let n=0;const imgs=[...document.images];imgs.forEach(i=>i.complete?n++:i.onload=()=>n++);window.READY=()=>n>=imgs.length;</script></body></html>

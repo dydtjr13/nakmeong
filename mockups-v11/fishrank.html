@@ -1,0 +1,66 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v11 시안 — 어종별 최대 크기 랭킹</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:'Pretendard','Noto Sans KR',system-ui,sans-serif;color:#3d3548;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#7aa58a url(../mockups-v10/ig-desktop.jpg) center/cover}
+body:before{content:'';position:fixed;inset:0;background:rgba(60,45,70,.35);backdrop-filter:blur(3px)}
+@media(max-width:600px){body{background-image:url(../mockups-v10/ig-mobile.jpg)}}
+.card{position:relative;width:min(540px,94vw);background:#fffdf8;border-radius:26px;box-shadow:0 20px 60px #0005;padding:18px;overflow:hidden}
+.x{position:absolute;right:14px;top:14px;width:32px;height:32px;border-radius:50%;background:#fff;box-shadow:0 2px 8px #0002;display:grid;place-items:center;font-weight:900}
+.hd{display:flex;gap:12px;align-items:center}.hd img{width:96px;height:64px;object-fit:contain;filter:drop-shadow(0 4px 6px #0002)}.hd h2{margin:0;font-size:19px}.hd small{color:#8a8296;font-size:12px}
+.tabs{display:flex;gap:6px;margin:12px 0 8px}.tabs span{padding:6px 13px;border-radius:12px;background:#f4f1ea;font-weight:800;font-size:13px}.tabs .on{background:#8fd0c4;color:#fff}
+.g{display:inline-block;font-size:11px;font-weight:800;color:#fff;border-radius:8px;padding:1px 7px;background:var(--c)}
+.my{--c:#b56cf0}.lg{--c:#f5a524}.ra{--c:#3f9ae0}
+.medal{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:900;color:#fff;font-size:14px;box-shadow:inset 0 -3px 0 #0002}
+.m1{background:radial-gradient(circle at 35% 30%,#fff3a8,#f6c542 55%,#d99b22)}.m2{background:radial-gradient(circle at 35% 30%,#fff,#c7d0dc 55%,#97a3b3)}.m3{background:radial-gradient(circle at 35% 30%,#ffe0c8,#e5a06e 55%,#b9713f)}
+.gap{margin-top:10px;border-radius:14px;padding:11px 13px;background:linear-gradient(90deg,#3d3548,#6a4f8a);color:#fff;font-size:13.5px}.gap b{color:#ffd86b}
+.me{background:#fff4ec!important;box-shadow:0 0 0 2px #ffb98a inset}
+/* E: 시상대 */
+.pod{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:18px 0 8px;height:200px}
+.pd{width:31%;text-align:center}.pd .av{font-weight:800;font-size:14px}.pd .cm{font-weight:900;font-size:18px;margin:2px 0 6px}
+.pd .bl{border-radius:14px 14px 4px 4px;display:grid;place-items:center;font-size:30px;font-weight:900;color:#fff8;position:relative;overflow:hidden}
+.pd.p1 .bl{height:120px;background:linear-gradient(#ffe48a,#f2b632)}.pd.p2 .bl{height:90px;background:linear-gradient(#eef2f7,#b7c2d0)}.pd.p3 .bl{height:70px;background:linear-gradient(#ffd8bd,#e09a66)}
+.pd.p1 .av:before{content:'';display:block;width:34px;height:22px;margin:0 auto 4px;background:#f6c542;clip-path:polygon(0 100%,0 20%,25% 60%,50% 0,75% 60%,100% 20%,100% 100%);filter:drop-shadow(0 0 6px #ffd86b);animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px)}}
+.bl:after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,#fff8 50%,transparent 70%);transform:translateX(-120%);animation:sh 2.8s infinite}
+@keyframes sh{60%,100%{transform:translateX(120%)}}
+.rows .r{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;font-size:14px}.rows .r:nth-child(odd){background:#f8f5ee}
+.r .n{width:30px;text-align:center;font-weight:900;color:#9a93a6}.r .nm{flex:1;font-weight:700}.r .c{font-weight:900;min-width:66px;text-align:right}
+/* F: 트로피 카드 */
+.tops{display:grid;gap:8px;margin-top:6px}
+.tc{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;position:relative;overflow:hidden}
+.tc .nm{flex:1;font-weight:800;font-size:15px}.tc .c{font-size:20px;font-weight:900}
+.tc.t1{background:linear-gradient(120deg,#fff1b8,#ffd86b 60%,#ffeaa0);box-shadow:0 0 0 2px #f6c542 inset,0 8px 22px #f6c54255}
+.tc.t2{background:linear-gradient(120deg,#f6f8fb,#d6dde7);box-shadow:0 0 0 2px #b7c2d0 inset}
+.tc.t3{background:linear-gradient(120deg,#fff0e4,#f3c19c);box-shadow:0 0 0 2px #e5a06e inset}
+.tc:after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,#fff9 50%,transparent 65%);transform:translateX(-120%);animation:sh 3s infinite}
+.tc.t2:after{animation-delay:.4s}.tc.t3:after{animation-delay:.8s}
+.sp{position:absolute;width:8px;height:8px;background:#fff;clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%);animation:tw 1.8s infinite}
+@keyframes tw{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:1;transform:scale(1)}}
+/* G: 추격 레이스 */
+.race{margin:12px 0 4px;padding:14px;border-radius:18px;background:linear-gradient(#eef8f6,#dff1ec)}
+.track{position:relative;height:96px;margin:30px 8px 6px;border-bottom:3px dashed #8fd0c4}
+.pin{position:absolute;bottom:-3px;transform:translateX(-50%);text-align:center;font-size:11px;font-weight:800;white-space:nowrap}
+.pin i{display:block;width:14px;height:14px;border-radius:50%;margin:3px auto 0;border:3px solid #fff;box-shadow:0 2px 6px #0003}
+.pin.mepin{color:#e0703a}.pin.mepin i{background:#ff9a5a;width:20px;height:20px;animation:pulse 1.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 #ff9a5a88}100%{box-shadow:0 0 0 12px #ff9a5a00}}
+.seg{position:absolute;bottom:8px;height:8px;border-radius:5px;background:repeating-linear-gradient(90deg,#ffb98a 0 8px,#ffd9bd 8px 14px)}
+.sum{display:flex;justify-content:space-between;font-size:12.5px;color:#5c5468}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}.mini div{border-radius:12px;padding:8px;text-align:center;font-size:12px;font-weight:700}.mini b{display:block;font-size:16px}
+.vlabel{position:fixed;left:16px;top:12px;z-index:2;background:#3d3548;color:#fff;border-radius:10px;padding:6px 12px;font-weight:800;font-size:13px}
+</style></head><body><div class="vlabel" id="vl"></div><div class="card" id="c"></div>
+<script>
+const v=(new URLSearchParams(location.search).get('v')||'e').toLowerCase();
+const L=[['호수요정',39.9,'my','낚멍-1'],['호수산책',39.6,'my','낚멍-2'],['물멍러',39.5,'my','낚멍-1'],['월척꿈나무',38.5,'my','낚멍-3'],['찌맞춤',37.4,'my','낚멍-1'],['새벽입질',37.2,'my','낚멍-2'],['밤낚시',36.6,'lg','낚멍-1'],['루어장인',36.5,'lg','낚멍-3'],['잉어사랑',35.7,'lg','낚멍-1'],['고요한호수',35.1,'lg','낚멍-2']];
+const ME={rk:13,cm:34.2,g:'lg'},gap=(L[2][1]-ME.cm).toFixed(1);const GN={my:'신화',lg:'전설',ra:'희귀'};
+const head=`<div class="x">×</div><div class="hd"><img src="../img/fish/bluegill.png"><div><h2>블루길 최대 크기 랭킹</h2><small>최대 41cm · 신화 37.2cm 이상</small></div></div><div class="tabs"><span class="on">내 서버</span><span>전체 서버</span></div>`;
+const row=(x,i)=>`<div class="r"><div class="n">${i+1}</div><div class="nm">${x[0]}</div><span class="g ${x[2]}">${GN[x[2]]}</span><div class="c">${x[1]}cm</div></div>`;
+const meRow=`<div class="r me"><div class="n">${ME.rk}</div><div class="nm">나</div><span class="g lg">전설</span><div class="c">${ME.cm}cm</div></div>`;
+const gapBox=`<div class="gap">🥉 3위까지 <b>${gap}cm</b> 남았어요 · 내 기록 ${ME.cm}cm (${ME.rk}위)</div>`.replace('🥉','<span class="medal m3" style="display:inline-grid;width:20px;height:20px;font-size:11px;vertical-align:-4px;margin-right:4px">3</span>');
+const V={
+e:['E · 시상대형',()=>head+`<div class="pod">${[1,0,2].map(i=>`<div class="pd p${i+1}"><div class="av">${L[i][0]}</div><div class="cm">${L[i][1]}cm</div><div class="bl">${i+1}</div></div>`).join('')}</div><div class="rows">${L.slice(3,8).map((x,i)=>row(x,i+3)).join('')}</div><div class="rows" style="margin-top:6px">${meRow}</div>${gapBox}`],
+f:['F · 트로피 카드형',()=>{const sp=()=>Array.from({length:5},()=>`<i class="sp" style="left:${Math.random()*95}%;top:${Math.random()*80}%;animation-delay:${(Math.random()*1.8).toFixed(2)}s"></i>`).join('');
+ return head+`<div class="tops">${L.slice(0,3).map((x,i)=>`<div class="tc t${i+1}">${i==0?sp():''}<div class="medal m${i+1}">${i+1}</div><div class="nm">${x[0]}<br><span class="g ${x[2]}">${GN[x[2]]}</span> <small style="color:#8a8296">${x[3]}</small></div><div class="c">${x[1]}<small style="font-size:12px">cm</small></div></div>`).join('')}</div><div class="rows" style="margin-top:8px">${L.slice(3,8).map((x,i)=>row(x,i+3)).join('')}${meRow}</div>${gapBox}`;}],
+g:['G · 추격 레이스형',()=>{const lo=30,hi=41,X=c=>((c-lo)/(hi-lo)*100).toFixed(1)+'%';
+ return head+`<div class="race"><b style="font-size:14px">🏁 3위 추격까지 ${gap}cm</b><div class="track"><div class="seg" style="left:${X(ME.cm)};width:calc(${X(L[2][1])} - ${X(ME.cm)})"></div>${L.slice(0,3).map((x,i)=>`<div class="pin" style="left:${X(x[1])};bottom:${[60,30,0][i]}px">${i+1}위 ${x[1]}<i class="m${i+1}"></i></div>`).join('')}<div class="pin mepin" style="left:${X(ME.cm)}">나 ${ME.cm}<i></i></div></div><div class="sum"><span>${lo}cm</span><span>최대 ${hi}cm</span></div></div>
+ <div class="mini">${L.slice(0,3).map((x,i)=>`<div class="tc t${i+1}" style="display:block;padding:8px"><div class="medal m${i+1}" style="margin:0 auto 4px;width:24px;height:24px;font-size:12px">${i+1}</div>${x[0]}<b>${x[1]}cm</b></div>`).join('')}</div><div class="rows" style="margin-top:8px">${L.slice(3,6).map((x,i)=>row(x,i+3)).join('')}${meRow}</div>${gapBox}`;}]};
+document.getElementById('vl').textContent='시안 '+V[v][0];document.getElementById('c').innerHTML=V[v][1]();
+window.READY=()=>[...document.images].every(i=>i.complete);</script></body></html>

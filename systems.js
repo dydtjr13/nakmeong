@@ -8,7 +8,9 @@ SYS.slotCount=(D,g)=>D.GEAR.slots[g.k]+D.GEAR.starSlot.filter(s=>g.star>=s).leng
 SYS.extraMax=(D,g,ok)=>D.CHARM.opts[ok].cap*D.GEAR.mul[g.k];
 SYS.addExtra=(D,g,rnd=Math.random)=>{const pool=D.GEAR.pool.filter(k=>!g.extra.some(e=>e.k===k));if(!pool.length)return;const k=pool[Math.floor(rnd()*pool.length)];const xb=D.GEAR.xBand?D.GEAR.xBand[g.tier==null?1:g.tier]:[.4,1];g.extra.push({k,v:R1(SYS.extraMax(D,g,k)*(xb[0]+(xb[1]-xb[0])*rnd()))});};
 SYS.gearStats=(D,g)=>{const r=D.RODS.find(x=>x.k===(g?g.k:'bamboo')),m=g?g.q*(1+D.GEAR.starBonus*g.star):1;
-  return {k:r.k,n:r.n,id:g&&g.id,star:g?g.star:0,enh:g?g.enh:0,q:g?g.q:1,size:1+(r.size-1)*m,speed:1-(1-r.speed)*m,luck:r.luck*m,price:r.price};};
+  const B=SYS.enhBonus(D,g?g.enh:0);return {k:r.k,n:r.n,id:g&&g.id,star:g?g.star:0,enh:g?g.enh:0,q:g?g.q:1,size:(1+(r.size-1)*m)*(1+B.size),speed:1-(1-r.speed)*m,luck:r.luck*m+B.luck,coin:(r.coin||0)*m+B.coin,box:(r.box||0)+B.box,price:r.price,bt:B};};
+// v11 강화 돌파 보너스(+5/+10/+15/+20 누적)
+SYS.enhBonus=(D,lv)=>{const o={size:0,luck:0,coin:0,box:0};((D.ENH&&D.ENH.bt)||[]).forEach(b=>{if(lv>=b.lv)for(const k in o)o[k]+=b[k]||0;});return o;};
 SYS.charmSum=(D,S,noPassive)=>{const o={};for(const k in D.CHARM.opts)o[k]=0;(S.equip||[]).forEach(id=>{const c=(S.charms||[]).find(x=>x.id===id);if(c)c.opts.forEach(p=>o[p.k]+=p.v);});
   const g=SYS.gearOf(S);if(g){g.extra.forEach(e=>o[e.k]+=e.v);const fx=(D.RODS.find(r=>r.k===g.k)||{}).fixed;if(fx)for(const k in fx)o[k]+=fx[k];}
   for(const k in o)o[k]=R1(Math.min(o[k],D.CHARM.opts[k].total));
@@ -29,7 +31,7 @@ SYS.enhLv=S=>{const g=SYS.gearOf(S);return g?g.enh:0;};
 SYS.enhTry=(D,S,rnd=Math.random)=>{const g=SYS.gearOf(S);if(!g)return {r:'none'};const lv=g.enh,E=D.ENH;if(lv>=E.max)return {r:'max'};const st=E.stone(lv),co=E.coin(lv);
   if((S.stones||0)<st||S.coins<co)return {r:'lack',st,co};S.stones-=st;S.coins-=co;
   if(rnd()*100<E.rate[lv]){g.enh=lv+1;return {r:'ok',lv:lv+1};}
-  if(lv>=E.dropFrom&&rnd()<E.dropChance){g.enh=lv-1;return {r:'drop',lv:lv-1};}return {r:'fail',lv};};
+  const F=E.fail?E.fail(lv):{p:lv>=E.dropFrom?E.dropChance:0,floor:0};if(F.p>0&&lv-1>=F.floor&&rnd()<F.p){g.enh=lv-1;return {r:'drop',lv:lv-1};}return {r:'fail',lv};};
 // 합성: 같은 종류 낚싯대 2개 → 대상 ★+1, 품질 상승, 추가옵션 강화/슬롯 해금. 재료의 강화(+)는 대상에 높은 쪽 유지
 SYS.synthCost=(D,g)=>D.GEAR.synthCoin(D.RODS.findIndex(r=>r.k===g.k),g.star);
 SYS.synth=(D,S,tid,mid,rnd=Math.random)=>{const t=S.gear.find(g=>g.id===tid),m=S.gear.find(g=>g.id===mid),G=D.GEAR;
@@ -40,7 +42,7 @@ SYS.dismantle=(D,S,maxTier)=>{const L=S.charms.filter(c=>c.tier<=maxTier&&!c.loc
   S.charms=S.charms.filter(c=>!L.includes(c));S.coins+=co;S.stones+=st;return {n:L.length,co,st};};
 SYS.mods=(D,S,rod,bait)=>{const ch=SYS.charmSum(D,S),lv=rod.enh||0;
   return {ch,size:rod.size*bait.size*(1+lv*D.ENH.size)*(1+ch.big/100),wait:bait.speed*rod.speed*(1-lv*D.ENH.speed)*(1-ch.quick/100),
-   sell:D.SHOP_SELL_RATE*(1+ch.merchant/100),box:SYS.boxChance(D,ch)};};
+   sell:D.SHOP_SELL_RATE*(1+ch.merchant/100)*(1+(rod.coin||0)),box:SYS.boxChance(D,ch)*(1+(rod.box||0))};};
 SYS.progress=(D,S,rod)=>{const G=D.GATE;if(!G)return 1;const ri=Math.max(0,D.RODS.findIndex(r=>r.k===rod.k)),rr=ri/(D.RODS.length-1);return Math.min(1,G.wRod*rr+G.wEnh*Math.min(1,(rod.enh||0)/10)+G.wCaught*Math.min(1,(S.caught||0)/G.caughtMax));};
 SYS.gateMul=(D,f,P)=>{const G=D.GATE;if(!G||!G.on)return 1;const e=f.base>=G.hi.base?G.hi.e:f.base>=G.mid.base?G.mid.e:1;return e+(1-e)*P;};
 SYS.weights=(D,S,rod,bait,night=0)=>{const ch=SYS.charmSum(D,S),N=night>.5,bb=bait.nightOnly&&!N?{}:bait.boost,P=SYS.progress(D,S,rod);return D.FISH.map(f=>{if(f.nightOnly&&!N)return 0;return SYS.gateMul(D,f,P)*f.w*(bb[f.k]||1)*(f.rare?(1+rod.luck*10)*(1+ch.luck/100):1)*(f.expert?1+ch.expert/100:1)*(N&&f.night?f.night:1);});};
