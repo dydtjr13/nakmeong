@@ -69,7 +69,13 @@ function inst(key,list,base=1){if(!G[key]||!list.length)return[];const root=G[ke
   root.traverse(o=>{if(!o.isMesh)return;const im=new THREE.InstancedMesh(o.geometry,o.material,list.length);
     list.forEach((p,i)=>{M4.compose(V.set(p[0],p[1],p[2]),Q.setFromAxisAngle(UP,p[3]||0),SC.setScalar((p[4]||1)*base));M4.multiply(o.matrixWorld);im.setMatrixAt(i,M4);});
     im.frustumCulled=false;scene.add(im);out.push(im);const g=vgOf(key);if(g)VG[g].push(im);});return out;}
-function place(key,x,y,z,ry=0,s=1){if(!G[key])return new THREE.Group();const o=G[key].scene.clone();o.position.set(x,y,z);o.rotation.y=ry;o.scale.setScalar(s);scene.add(o);return o;}
+function place(key,x,y,z,ry=0,s=1){if(!G[key])return new THREE.Group();const o=G[key].scene.clone();o.position.set(x,y,z);o.rotation.y=ry;o.scale.setScalar(s);o.userData.prop=1;scene.add(o);return o;}
+// v17: 카메라-캐릭터 사이 소품 반투명
+const OCC={t:0,on:new Set(),rc:new THREE.Raycaster()};
+function occFade(dt,pp){OCC.t-=dt;if(OCC.t>0)return;OCC.t=.12;const tg=new THREE.Vector3(pp.x,pp.y+1.3,pp.z),d=tg.clone().sub(cam.position),L=d.length();d.normalize();OCC.rc.set(cam.position,d);OCC.rc.far=L-.6;
+ const cand=scene.children.filter(o=>o.visible&&o.userData.prop&&o.position.distanceTo(cam.position)<L+14);const hit=new Set();for(const o of cand){if(!o.userData.bb)o.userData.bb=new THREE.Box3().setFromObject(o);if(o.userData.bb.distanceToPoint(cam.position)<4.5)hit.add(o);}for(const h of OCC.rc.intersectObjects(cand,true)){let o=h.object;while(o.parent&&o.parent!==scene)o=o.parent;hit.add(o);}
+ const setOp=(o,a)=>o.traverse(m=>{if(!m.isMesh)return;if(!m.userData.fm){m.material=Array.isArray(m.material)?m.material.map(x=>x.clone()):m.material.clone();m.userData.fm=1;}(Array.isArray(m.material)?m.material:[m.material]).forEach(x=>{x.transparent=a<1;x.opacity=a;x.depthWrite=a>=1;});});
+ hit.forEach(o=>{if(!OCC.on.has(o)){setOp(o,.28);OCC.on.add(o);}});OCC.on.forEach(o=>{if(!hit.has(o)){setOp(o,1);OCC.on.delete(o);}});}
 // ───────── 지형 ─────────
 const H=(x,z)=>{const r=Math.hypot(x,z);if(r<LR-1)return -2.2;if(r<LR+2)return -2.2+(r-LR+1)/3*2.5;return .3+Math.max(0,r-52)*.3*(1+Math.sin(x*.15)*Math.cos(z*.12))+Math.sin(x*.25)*Math.cos(z*.2)*.25;};
 function buildTerrain(){const g=new THREE.PlaneGeometry(220,220,80,80);g.rotateX(-Math.PI/2);const p=g.attributes.position,col=[],cs=['#b9dc9c','#acd38f','#c2e2a6'].map(c=>new THREE.Color(c)),sand=new THREE.Color('#f1e0b4'),wet=new THREE.Color('#d9c79a');
@@ -152,7 +158,7 @@ function buildWorld(){const sa=-Math.PI/2+Math.PI/DECKS,sh=Math.PI/2+Math.PI/DEC
   if(G.fish){const fm=G.fish.scene.getObjectByProperty('isMesh',true);const sh2=new THREE.InstancedMesh(fm.geometry,new THREE.MeshBasicMaterial({color:'#20384a',transparent:true,opacity:.35}),16);sh2.frustumCulled=false;scene.add(sh2);
     worldFish={m:sh2,d:[...Array(16)].map(()=>({r:rand(3,LR-3),a:Math.random()*6.3,s:rand(.05,.15)*(Math.random()<.5?-1:1),sz:rand(5,10)}))};}}
 // ───────── 캐릭터 (Kenney Mini Characters + 애니메이션) ─────────
-const KINDS=[{k:'character-male-a',n:'성인 남성',s:1},{k:'character-female-a',n:'성인 여성',s:1},{k:'character-male-c',n:'남자 어린이',s:.72},{k:'character-female-c',n:'여자 어린이',s:.72},
+const KINDS=[{k:'character-male-a',n:'성인 남성',s:1},{k:'character-female-a',n:'성인 여성',s:1},{k:'character-male-a',n:'남자 어린이',s:.72,rc:{'11,6':'#ff7a2a','3,5':'#ff7a2a','3,4':'#ff7a2a'}},{k:'character-female-c',n:'여자 어린이',s:.72},
   {k:'character-male-b',s:1},{k:'character-female-b',s:1},{k:'character-male-e',s:1},{k:'character-female-e',s:1},{k:'character-male-b',n:'밀짚모자 낚시꾼',s:1,hat:'straw',rc:{'11,6':'#5fa8e0','11,7':'#3a78b8'}}];
 const chars=[];
 // v16: 캐릭터 옷 색 바꾸기(같은 모델·텍스처 칸만 교체) + 밀짚모자
@@ -175,7 +181,7 @@ function domBub(c,bb,dd){c.bub.visible=false;if(!BUBS){BUBS=document.createEleme
   let el=c.dbub;if(!bb){if(el)el.style.display='none';return;}
   if(!el){el=c.dbub=document.createElement('div');el.className='bub3';el.innerHTML='<div class="bt"></div>';BUBS.appendChild(el);}
   if(el._t!==bb.t){el._t=bb.t;el.classList.toggle('emo',!!bb.emo);const t=el.firstChild;t.textContent=bb.txt;}
-  _bv.set(c.o.position.x,c.o.position.y+c.h+1.68,c.o.position.z).project(cam);
+  _bv.set(c.o.position.x,c.o.position.y+c.h+1.12,c.o.position.z).project(cam);
   if(_bv.z>1||Math.abs(_bv.x)>1.2||Math.abs(_bv.y)>1.2){el.style.display='none';return;}
   const ag=(performance.now()-bb.t)/BUB_MS,op=ag>.85?(1-ag)/.15:Math.min(1,ag*12),k=Math.max(.62,Math.min(1.1,13/dd));
   el.style.display='';el.style.opacity=op.toFixed(3);const by=c.rkUp&&c.rkTop!=null?c.rkTop-2:Math.round((1-_bv.y)/2*innerHeight);el.style.transform=`translate(${Math.round((_bv.x+1)/2*innerWidth)}px,${by}px) translate(-50%,-100%) scale(${k.toFixed(3)})`;el.style.zIndex=String(1000-Math.round(dd));}
@@ -728,7 +734,7 @@ $('go').disabled=true;
 let fpsA=60,camOverride=null;let started=false,T=0,last=performance.now();
 function frame(now){if(S.fpsCap&&now-last<1000/S.fpsCap-1.5){requestAnimationFrame(frame);return;}const dt=Math.min((now-last)/1000,.05);last=now;T+=dt;if(time.auto)time.t=(time.t+dt/time.len)%1;const p=palette();setMB('bTime','🌗',p.name);
   if(snd.forceT>0){snd.forceT-=dt;if(snd.forceT<=0)snd.force=null;}NIGHT=p.night;updAmb(p);
-  scene.background=p.sky;scene.fog.color.copy(p.sky);sun.color.copy(p.sun);sun.intensity=p.si;hemi.intensity=p.hemi;hemi.groundColor.copy(p.gnd);wU.deep.value.copy(p.deep);wU.shal.value.copy(p.shal);wU.sky.value.copy(p.sky);wU.night.value=p.night;wU.t.value=T;
+  scene.background=p.sky;scene.fog.color.copy(p.sky);sun.color.copy(p.sun);sun.intensity=p.si;hemi.intensity=p.hemi;hemi.groundColor.copy(p.gnd);wU.deep.value.copy(p.deep);wU.shal.value.copy(p.shal);wU.sky.value.copy(p.sky);wU.night.value=p.night;wU.t.value=T;if(window.NKGRADE)window.NKGRADE(p);
   fireL.intensity=p.fire*(.85+Math.sin(T*13)*.08+Math.sin(T*7.1)*.07);fireMesh.scale.set(1+Math.sin(T*11)*.08,1+Math.sin(T*15)*.18,1);lanL.intensity=p.lan;if(lanGlow)lanGlow.material.color.copy(lerpC('#d8d2c4','#ffd27a',Math.min(1,p.night+p.lan*.3)));
   if(worldFish){worldFish.d.forEach((f,i)=>{f.a+=f.s*dt;M4.compose(V.set(Math.cos(f.a)*f.r,-.85,Math.sin(f.a)*f.r),Q.setFromAxisAngle(UP,-f.a+(f.s>0?-Math.PI/2:Math.PI/2)),SC.setScalar(f.sz));worldFish.m.setMatrixAt(i,M4);});worldFish.m.instanceMatrix.needsUpdate=true;}
   if(started&&me){// 이동
@@ -751,8 +757,8 @@ function frame(now){if(S.fpsCap&&now-last<1000/S.fpsCap-1.5){requestAnimationFra
       if(castT>=1){const bite=fishing.state==='bite';bob.position.y=-.05+(bite?Math.sin(T*22)*.12-.12:Math.sin(T*2)*.03);wU.bob.value.set(castTo.x,bite?1.6:.5,castTo.z);}
       const a=lineG.attributes.position;a.setXYZ(0,tip.x,tip.y,tip.z);a.setXYZ(1,bob.position.x,bob.position.y,bob.position.z);a.needsUpdate=true;}
     updBots(dt,T);botBuy(dt);botLegend(dt);botRestock(dt);botBoxAlert(dt);
-    if(distT!=null){dist+=(distT-dist)*Math.min(1,dt*10);if(Math.abs(distT-dist)<.01){dist=distT;distT=null;}}cam.position.set(pp.x+Math.sin(yaw)*Math.cos(pitch)*dist,pp.y+1.6+Math.sin(pitch)*dist,pp.z+Math.cos(yaw)*Math.cos(pitch)*dist);cam.lookAt(pp.x,pp.y+1.6,pp.z);}
-  for(const c of chars){if(!c.offline&&!(c.simp&&c.simp.visible))c.mixer.update(dt);poseRod(c,dt);c.tag.position.set(c.o.position.x,c.o.position.y+c.h*1.0+1.3,c.o.position.z);const dd=cam.position.distanceTo(c.tag.position),far=V14.farLOD(c,dd);const rk=S.rankTag!==false&&!c.offline?tagRank(c):0;V14.layer();const rs=rk?V14.rankDom(c,rk,dd):V14.rankDom(c,0,dd);c.tag.visible=!rs&&!c.offline&&!far;if(!rs)drawTag(c.tag,null,0);c.rkUp=rs;const bb=c.offline||c.muted?null:bubbleOf(c);domBub(c,dd<70?bb:null,dd);}V14.tick(dt,p);
+    if(distT!=null){dist+=(distT-dist)*Math.min(1,dt*10);if(Math.abs(distT-dist)<.01){dist=distT;distT=null;}}cam.position.set(pp.x+Math.sin(yaw)*Math.cos(pitch)*dist,pp.y+1.6+Math.sin(pitch)*dist,pp.z+Math.cos(yaw)*Math.cos(pitch)*dist);cam.lookAt(pp.x,pp.y+1.6,pp.z);occFade(dt,pp);}
+  for(const c of chars){if(!c.offline&&!(c.simp&&c.simp.visible))c.mixer.update(dt);poseRod(c,dt);c.tag.position.set(c.o.position.x,c.o.position.y+c.h*1.0+.62,c.o.position.z);const dd=cam.position.distanceTo(c.tag.position),far=V14.farLOD(c,dd);const rk=S.rankTag!==false&&!c.offline?tagRank(c):0;V14.layer();const rs=rk?V14.rankDom(c,rk,dd):V14.rankDom(c,0,dd);c.tag.visible=!rs&&!c.offline&&!far;if(!rs)drawTag(c.tag,null,0);c.rkUp=rs;const bb=c.offline||c.muted?null:bubbleOf(c);domBub(c,dd<70?bb:null,dd);}V14.tick(dt,p);
   if(camOverride){cam.position.set(camOverride[0],camOverride[1],camOverride[2]);cam.lookAt(camOverride[3],camOverride[4],camOverride[5]);}R.render(scene,cam);tankView.frame(dt,T);
   fpsA=fpsA*.95+(1/Math.max(dt,1e-3))*.05;$('dc').textContent=`FPS ${fpsA.toFixed(0)} · draw calls ${R.info.render.calls} · tris ${(R.info.render.triangles/1000).toFixed(1)}k · decks ${DECKS}`;window.__nk={calls:R.info.render.calls,tris:R.info.render.triangles};requestAnimationFrame(frame);}
 loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyVG();setInterval(()=>{S.savedAt=Date.now();save();},30000);
@@ -836,20 +842,20 @@ V14=(()=>{
  function rankDom(c,rk,dd){let el=c.rkEl;if(!rk||dd>60){if(el)el.style.display='none';return false;}
   if(!el){el=c.rkEl=document.createElement('div');el.className='rk10';BUBS_.appendChild(el);}
   if(el._rk!==rk){el._rk=rk;el.className='rk10 k'+rk;el.innerHTML=`<div class="au"></div><img class="cw" src="icons/emoji-png/${CW[rk-1]}.png"><span class="t">${TT[rk-1]}</span><span class="nn">${c.name===NICK()||c===me?NICK():c.name}</span>`;}
-  _bv.set(c.o.position.x,c.o.position.y+c.h+1.05,c.o.position.z).project(cam);if(_bv.z>1||Math.abs(_bv.x)>1.2||Math.abs(_bv.y)>1.2){el.style.display='none';return false;}
+  _bv.set(c.o.position.x,c.o.position.y+c.h+.5,c.o.position.z).project(cam);if(_bv.z>1||Math.abs(_bv.x)>1.2||Math.abs(_bv.y)>1.2){el.style.display='none';return false;}
   const k=Math.max(.6,Math.min(1.1,13/dd));c.rkTop=Math.round((1-_bv.y)/2*innerHeight-el.offsetHeight*k);el.style.display='';el.style.transform=`translate(${Math.round((_bv.x+1)/2*innerWidth)}px,${Math.round((1-_bv.y)/2*innerHeight)}px) translate(-50%,-100%) scale(${k.toFixed(2)})`;el.style.zIndex=String(900-Math.round(dd));return true;}
  let BUBS_;function layer(){if(!BUBS_){BUBS_=document.createElement('div');BUBS_.id='rkL';const H=document.getElementById('hud');H.parentNode.insertBefore(BUBS_,H);}}
  // ── 멀리 있는 캐릭터 간략화 ──
  const FAR=30,simpleGeo=new THREE.CylinderGeometry(.32,.38,1.1,6),headGeo=new THREE.IcosahedronGeometry(.36,0);
  function farLOD(c,dd){if(S.farLOD===false){if(c.simp){c.simp.visible=false;c.o.visible=true;}return false;}const far=dd>FAR&&c!==me;if(far&&!c.simp){const g=new THREE.Group(),col=new THREE.Color().setHSL((c.name.length*.13)%1,.45,.62);const b=new THREE.Mesh(simpleGeo,new THREE.MeshLambertMaterial({color:col}));b.position.y=.55;const h=new THREE.Mesh(headGeo,new THREE.MeshLambertMaterial({color:0xf2d2b6}));h.position.y=1.4;g.add(b,h);scene.add(g);c.simp=g;}
-  if(c.simp){c.simp.visible=far&&c.o.visible!==false&&!c.offline;c.simp.position.copy(c.o.position);}c.o.visible=!far&&!c.offline;return far;}
+  if(c.simp){c.simp.visible=far&&!c.offline;c.simp.position.copy(c.o.position);}c.o.visible=!far&&!c.offline;return far;}
  // ── 데크 점유 (접속 중일 때만) + 봇 접속/퇴장 시뮬 ──
  function presence(dt){for(const b of bots){b.on=b.on==null?true:b.on;b.pt=(b.pt==null?rand(120,480):b.pt)-dt;if(b.pt>0)continue;b.pt=b.on?rand(40,140):rand(120,480);b.on=!b.on;b.c.offline=!b.on;
    if(!b.on){if(b.deck){b.deck.owner=null;b.deck=null;}b.path=[];b.c.o.visible=false;if(b.c.dbub)b.c.dbub.style.display='none';if(b.c.rkEl)b.c.rkEl.style.display='none';b.c.tag.visible=false;}
    else{b.c.tag.visible=true;const free=decks.filter(d=>d.i!==0&&!d.owner);if(free.length&&Math.random()<.85){const d=pick(free);d.owner=b.c.name;b.deck=d;}b.wait=0;}}}
  // ── 채널 ──
  const CH={n:Math.max(1,Math.min(8,+(CFG.chN||3))),me:Math.max(1,+(CFG.ch||1))};
- const chPop=()=>Array.from({length:CH.n},(_,i)=>i+1===CH.me?bots.filter(b=>b.on!==false).length+1:Math.round(18+((i*37+KST().getUTCHours()*11)%31)));
+ const chPop=()=>Array.from({length:CH.n},(_,i)=>i+1===CH.me?chars.filter(c=>!c.offline).length:Math.round(18+((i*37+KST().getUTCHours()*11)%31)));
  let annT=rand(40,90);function serverAnn(dt){annT-=dt;if(annT>0||CH.n<2)return;annT=rand(70,160);const ch=pick(Array.from({length:CH.n},(_,i)=>i+1).filter(i=>i!==CH.me)),f=pick(D.FISH.filter(f=>!f.limited)),nm=pick(['바다사나이','달빛낚시','물비늘','강태공K','여울소년','호수지기']);say('시스템',`📣 [서버 전체] 채널 ${ch} ${nm}님이 주간 ${f.n} 랭킹 ${1+(Math.random()*3|0)}위에 올랐어요!`);}
  // ── 낚아 올리는 모션 (2D 오버레이) ──
  let rc,rx,reels=[];
@@ -881,7 +887,7 @@ V14=(()=>{
   el.innerHTML=v==='A'?`<div class="gA"><img src="icons/emoji-png/1f3c6.png"><div><h4>${kind==='ach'?'업적 달성':'수집 목표 달성'}</h4><b>${title}</b><div class="pg"><i></i></div><p>${rw||sub}</p></div></div>`:
    v==='B'?`<div class="gB"><h4>${title}</h4><p>${rw||sub}</p><div class="stamp">달성<br>완료</div></div>`:
    v==='C'?`<div class="gC"><div class="rib">${kind==='ach'?'업적 달성!':'수집 목표 달성!'}</div><div class="rw"><div>${title}</div><div>${rw||sub}</div></div></div>`:
-   `<div class="gD"><div class="fl"><div class="fr"></div><div class="bk"><img src="icons/emoji-png/${ic}.png"><h4>${kind==='ach'?'업적 패시브 해금':'수집 목표 달성'}</h4><div class="ef">${rw||''}</div><p>${title}</p></div></div></div>`;
+   `<div class="gD"><div class="fl"><div class="fr"></div><div class="bk"><img src="icons/emoji-png/${ic}.png"><p class="lb">${kind==='ach'?'업적 패시브 해금':'수집 목표 달성'}</p><h4>${title}</h4><div class="ef">${(rw||'').split(' · ').join('<br>')}</div></div></div></div>`;
   el.onclick=()=>el.remove();document.body.appendChild(el);setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),500);},v==='D'?3200:2800);}
  // ── 효과음 (상자=A 차임, 낚음=C 마림바 기본) ──
  let AC,AM,AR;function ac(){if(AC)return AC;AC=new (window.AudioContext||window.webkitAudioContext)();AM=AC.createGain();AM.connect(AC.destination);AR=AC.createConvolver();const L=AC.sampleRate*2,bf=AC.createBuffer(2,L,AC.sampleRate);for(let c=0;c<2;c++){const d=bf.getChannelData(c);for(let i=0;i<L;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/L,3);}AR.buffer=bf;const rg=AC.createGain();rg.gain.value=.3;AR.connect(rg);rg.connect(AM);return AC;}
@@ -906,7 +912,7 @@ V14=(()=>{
  const alog=t=>{AD.log.unshift(KST().toISOString().slice(5,16).replace('T',' ')+' · '+t);AD.log=AD.log.slice(0,80);localStorage.setItem('nk_admin_log',JSON.stringify(AD.log));};
  function admin(){let m=$('admin');if(!m){m=document.createElement('div');m.id='admin';m.className='modal';document.body.appendChild(m);}
   const tabs=[['dash','대시보드'],['user','유저'],['op','운영자'],['time','시간·날씨'],['map','맵'],['bal','밸런스'],['ev','이벤트·공지'],['prof','비속어'],['deck','데크 배치']];const B=JSON.parse(localStorage.getItem('nk_admin_bal')||'{}');let body='';
-  if(AD.tab==='dash'){const pop=chPop();body=`<div class="adgrid"><div><b>${pop.reduce((a,b)=>a+b,0)}</b><span>서버 접속자 (채널 ${CH.n}개)</span></div><div><b>${bots.filter(b=>b.on!==false).length+1}</b><span>현재 채널 ${CH.me} 인원</span></div><div><b>${(S.earned||0).toLocaleString()}</b><span>내 누적 코인</span></div><div><b>${S.boxes.length}</b><span>미개봉 상자</span></div><div><b>${WX[S.__wx]||'-'}</b><span>현재 날씨 (${SN[season()]})</span></div><div><b>${time.len}s</b><span>하루 길이</span></div></div><h4>채널별 인원</h4><p>${pop.map((n,i)=>`채널 ${i+1}: ${n}/50`).join(' · ')}</p><h4>작업 로그</h4><div class="adlog">${AD.log.map(x=>`<div>${x}</div>`).join('')||'<div>기록 없음</div>'}</div>`;}
+  if(AD.tab==='dash'){const pop=chPop();body=`<div class="adgrid"><div><b>${pop.reduce((a,b)=>a+b,0)}</b><span>서버 접속자 (채널 ${CH.n}개)</span></div><div><b>${chars.filter(c=>!c.offline).length}</b><span>현재 채널 ${CH.me} 인원</span></div><div><b>${(S.earned||0).toLocaleString()}</b><span>내 누적 코인</span></div><div><b>${S.boxes.length}</b><span>미개봉 상자</span></div><div><b>${WX[S.__wx]||'-'}</b><span>현재 날씨 (${SN[season()]})</span></div><div><b>${time.len}s</b><span>하루 길이</span></div></div><h4>채널별 인원</h4><p>${pop.map((n,i)=>`채널 ${i+1}: ${n}/50`).join(' · ')}</p><h4>작업 로그</h4><div class="adlog">${AD.log.map(x=>`<div>${x}</div>`).join('')||'<div>기록 없음</div>'}</div>`;}
   if(AD.tab==='user'){body=`<table class="adt"><tr><th>닉네임</th><th>상태</th><th>데크</th><th>작업</th></tr><tr><td>${NICK()} (나)</td><td>접속</td><td>1</td><td><button data-ad="coin">코인 +10,000</button><button data-ad="stone">강화석 +50</button><button data-ad="box">상자 +10</button></td></tr>${bots.map((b,i)=>`<tr><td>${b.c.name}</td><td>${b.on===false?'오프라인':b.c.adMuted?'채팅 금지':'접속'}</td><td>${b.deck?b.deck.i+1:'-'}</td><td><button data-ad="mute" data-i="${i}">${b.c.adMuted?'채팅 허용':'채팅 금지'}</button><button data-ad="kick" data-i="${i}">${b.on===false?'접속시키기':'강제 퇴장'}</button></td></tr>`).join('')}</table>`;}
   if(AD.tab==='op'){body=`<table class="adt"><tr><th>운영자</th><th>역할</th><th></th></tr>${AD.ops.map((o,i)=>`<tr><td>${o.n}</td><td><select data-opr="${i}">${['최고관리자','운영자','모니터'].map(r=>`<option ${o.r===r?'selected':''}>${r}</option>`).join('')}</select></td><td>${i?`<button data-ad="opdel" data-i="${i}">삭제</button>`:''}</td></tr>`).join('')}</table><p><input id="opN" placeholder="닉네임"> <button data-ad="opadd">운영자 추가</button></p><p class="small">권한: 최고관리자 = 전체 · 운영자 = 유저/시간/맵/이벤트 · 모니터 = 조회만</p>`;}
   if(AD.tab==='time'){body=`<p>하루 길이(초) <input type="number" id="adLen" value="${time.len}" style="width:80px"> <button data-ad="len">적용</button> <span class="small">현재 ${time.len}초 = 실제 ${(time.len/60).toFixed(1)}분</span></p><p>현재 시각 <button data-ad="t" data-v=".1">낮</button><button data-ad="t" data-v=".4">노을</button><button data-ad="t" data-v=".75">밤</button> · 시간 흐름 <button data-ad="auto">${time.auto?'ON → 멈추기':'OFF → 흐르기'}</button></p><p>날씨 강제 <select id="adWx"><option value="auto">자동</option>${Object.entries(WX).concat([['sunset','노을 색조만']]).map(([k,n])=>`<option value="${k}" ${S.wxOv===k?'selected':''}>${n}</option>`).join('')}</select> 계절 <select id="adSe"><option value="auto">실제 날짜</option>${SEASONS.map(k=>`<option value="${k}" ${S.seasonOv===k?'selected':''}>${SN[k]}</option>`).join('')}</select></p>`;}
@@ -966,7 +972,7 @@ V15=(()=>{S.blocked=S.blocked||[];const RC=new THREE.Raycaster(),NV=new THREE.Ve
  $('log').addEventListener('contextmenu',e=>{const b=e.target.closest('b[data-who]');if(b&&b.dataset.who){e.preventDefault();show(e.clientX,e.clientY,b.dataset.who);}});
  apply();return {block,unblock,isB,apply,list:()=>S.blocked.slice()};})();
 
-window.NKV2={V15,V14,S,chars,decks,ROD_POSE,scene,THREE,openFishRank,miniToast,boxGot,calcRK3,RK3:()=>RK3,project:a=>{const v=new THREE.Vector3(a[0],a[1],a[2]).project(cam);return [Math.round((v.x+1)/2*innerWidth),Math.round((1-v.y)/2*innerHeight)];},snd:()=>snd,emote,applyMenu,botBuyNow:()=>{buyT=0;botBuy(0);},S,D,decks,bots,fishAction,catchFish,tankView,renderShop,renderDex,openM,closeM,time,me:()=>me,setPos:(x,z)=>{me.o.position.set(x,.4,z);},nearSpot:()=>nearSpot,fishing:()=>fishing,save,VG,bag:()=>openBag(),legendAlert,botLegend,boxAlert,botBoxAlert,bagTab:t=>{bagTab=t;renderBag();},openSet:()=>{renderSet();openM('set');},SYS,giveBox:(n=1)=>{for(let i=0;i<n;i++)S.boxes.push(Date.now());save();},setCam:(x,y,z,tx=0,ty=0,tz=0)=>{camOverride=x==null?null:[x,y,z,tx,ty,tz];},setDecks:n=>{},dexTab:t=>{dexTab=t;},synthFx,hud};});
+window.NKV2={R,cam,hemi,sun,wU,V15,V14,S,chars,decks,ROD_POSE,scene,THREE,openFishRank,miniToast,boxGot,calcRK3,RK3:()=>RK3,project:a=>{const v=new THREE.Vector3(a[0],a[1],a[2]).project(cam);return [Math.round((v.x+1)/2*innerWidth),Math.round((1-v.y)/2*innerHeight)];},snd:()=>snd,emote,applyMenu,botBuyNow:()=>{buyT=0;botBuy(0);},S,D,decks,bots,fishAction,catchFish,tankView,renderShop,renderDex,openM,closeM,time,me:()=>me,setPos:(x,z)=>{me.o.position.set(x,.4,z);},nearSpot:()=>nearSpot,fishing:()=>fishing,save,VG,bag:()=>openBag(),legendAlert,botLegend,boxAlert,botBoxAlert,bagTab:t=>{bagTab=t;renderBag();},openSet:()=>{renderSet();openM('set');},SYS,giveBox:(n=1)=>{for(let i=0;i<n;i++)S.boxes.push(Date.now());save();},setCam:(x,y,z,tx=0,ty=0,tz=0)=>{camOverride=x==null?null:[x,y,z,tx,ty,tz];},setDecks:n=>{},dexTab:t=>{dexTab=t;},synthFx,hud};});
 })();
 
 // ───────── v5 툴팁 (마우스 오버 / 모바일 탭) ─────────

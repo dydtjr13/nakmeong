@@ -579,3 +579,19 @@ html,body{overscroll-behavior:none}#world,#world canvas{touch-action:none}
 .adm2 header .hb,.adm2 header .hb:hover{background:#ffffff33!important;color:#fff!important;white-space:nowrap;width:auto!important;height:auto!important;min-width:0;box-shadow:none;border:0;padding:6px 12px!important;font-size:12.5px}
 #fishBtn.fb14.vF b,#fishBtn.fb14.vF small{display:block;text-align:center}#fishBtn.fb14.vF .gg{display:block;margin:6px auto 0}
 #fishBtn.fb14{position:absolute!important}
+
+/* v17 */
+.gfx .gD .bk .lb{margin:0;font-size:13px;font-weight:700;letter-spacing:.12em;color:#8a7fa0}
+.gfx .gD .bk h4{margin:0;font-size:26px;line-height:1.2;color:#3a3048;word-break:keep-all}
+.gfx .gD .bk .ef{font-size:16px;font-weight:800;color:#6a4fc0;background:#efe7ff;padding:6px 12px;border-radius:12px;word-break:keep-all}
+body:has(.modal.show) #chat,body:has(.modal.show) #bubs{visibility:hidden}
+@media (max-width:700px){
+ #set .card.setA .slay,.adm2 .alay{flex-direction:column!important}
+ #set .card.setA .slay>nav,#set .card.setA .slay>aside,.adm2 aside{width:auto!important;min-width:0!important;max-width:none!important;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;overflow-x:auto!important;gap:6px!important;padding:8px!important;border-right:0!important;border-bottom:1px solid #0001}
+ #set .card.setA .slay>nav button,#set .card.setA .slay>aside button,.adm2 aside button{flex:0 0 auto!important;width:auto!important;white-space:nowrap!important;margin:0!important}
+ .adm2 aside .tip,.adm2 aside>div:not(:has(button)){display:none!important}
+ .adm2 .alay{min-height:0}
+ #set .card.setA .slay>main,#set .card.setA .slay>div,.adm2 main{min-width:0!important;width:auto!important}
+ #set .card.setA input[type=text],#set .card.setA input:not([type]){max-width:100%;box-sizing:border-box}
+}
+#set .card.setA .close{color:#c0603a!important;font-size:22px!important;line-height:1!important;display:flex;align-items:center;justify-content:center}

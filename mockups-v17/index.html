@@ -1,0 +1,25 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v17 시안 모음</title><link rel="stylesheet" href="common.css"><style>
+.sec{background:#fff;border-radius:18px;padding:18px 20px;margin:18px 0;box-shadow:0 4px 18px #4a405814}.sec h2{margin:0 0 6px}.no{display:inline-block;background:#6a4fc0;color:#fff;border-radius:10px;padding:2px 9px;font-size:13px;margin-right:6px}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;margin-top:10px}.gal.w{grid-template-columns:1fr}figure{margin:0}figure img{width:100%;border-radius:10px;display:block;box-shadow:0 2px 8px #0002;cursor:zoom-in}figcaption{font-size:12.5px;color:#6a6076;margin-top:5px;line-height:1.4}
+.btn{display:inline-block;background:#ff8a5c;color:#fff;text-decoration:none;font-weight:700;padding:7px 14px;border-radius:12px;font-size:13.5px}p{font-size:14px;color:#6a6076;margin:6px 0}
+@media(max-width:640px){.gal{grid-template-columns:1fr}}
+</style></head><body><div class="wrap" style="max-width:1150px;margin:auto;padding:16px"><h1>낚멍 v17 시안 모음</h1><p>이미지를 누르면 크게 볼 수 있어요 (←/→ 이동, ESC 닫기). 모두 실제 게임 화면이나 게임 모델로 찍은 정지 이미지예요.</p>
+<div class="sec"><h2><span class="no">1</span>호수 물 퀄리티</h2><p>추가 파일 없이 Three.js 기본 기능 + 직접 만든 셰이더로 만든 안이에요. 위는 호수 전경, 아래는 물가 가까이에서 본 모습이에요.</p><div class="gal" id="g1"></div></div>
+<div class="sec"><h2><span class="no">2</span>낮 시간 밝기</h2><p>조명 세기·하늘색·화면 색감만 바꿨어요. 0이 지금 화면이에요.</p><div class="gal" id="g2"></div></div>
+<div class="sec"><h2><span class="no">3</span>레벨 시스템</h2><p>기획안: <a class="btn" href="../docs/v17-레벨-기획.md">레벨 기획안 보기</a> — XP 얻는 곳, 레벨 보상, 레벨로 여는 콘텐츠, 칭호</p><div class="gal" id="g3"></div></div>
+<div class="sec"><h2><span class="no">4</span>내 어항 물고기 목록 (조합 패시브 반영)</h2><p>조합에 쓰이는 물고기를 표시하고 자동으로 보호해요. 팔면 패시브가 꺼지는 경우엔 경고해요.</p><div class="gal" id="g4"></div></div>
+<div class="sec"><h2><span class="no">5</span>3D 어항 + 2D 그림 물고기</h2><p>어항은 지금 3D 그대로 두고, 안의 물고기만 도감 그림(B안 스타일)으로 바꿔 천천히 헤엄치게 했어요.</p><div class="gal" id="g5"></div></div>
+<div class="sec"><h2><span class="no">6</span>데크 2자리 A안 (의자 2개 + 거치대 2개) · 어항 위치</h2><div class="gal" id="g6"></div></div>
+<div class="sec"><h2><span class="no">7</span>캐릭터 — 사람 13종 (모자는 밀짚모자 아저씨만)</h2><p>v13 컨셉 12종을 지금 게임 캐릭터 모델 위에 옷 색과 소품으로 만들었어요. 설명은 화면에 실제로 보이는 색 기준이에요.</p><div class="gal w" id="g7"></div></div>
+<div class="sec"><h2><span class="no">8</span>캐릭터 — 동물 10종 (다시 만듦)</h2><p>귀·주둥이·꼬리·무늬·몸 모양으로 종을 구분할 수 있게 다시 만들었어요.</p><div class="gal w" id="g8"></div></div>
+</div><script>
+const G={g1:[['w-0','0 지금 물'],['w-1','1 잔물결 + 반짝이는 햇빛'],['w-2','2 툰 스타일 (색 단계 + 물가 거품 띠)'],['w-3','3 얕은 물 빛무늬(커스틱)'],['w-4','4 하늘 반사 + 햇빛 길'],['w-5','5 추천: 1+3+부드러운 물가 거품'],['w-0s','0 지금 · 물가'],['w-1s','1 · 물가'],['w-2s','2 · 물가'],['w-3s','3 · 물가'],['w-4s','4 · 물가'],['w-5s','5 · 물가'],['w-5b','5 · 데크에서 가까이']],
+g2:[['day-0','0 지금'],['day-1','1 조명 크게 낮춤 + 채도 보정'],['day-2','2 조명만 약하게 (가장 자연스러움)'],['day-3','3 따뜻한 오후 햇살'],['day-4','4 시원한 하늘색 톤'],['day-5','5 진한 하늘 + 살짝 대비']],
+g3:[['lA','상단 HUD 레벨 배지 + XP 바 · 이름표 Lv · +XP 토스트'],['lB','레벨업 팝업'],['lC','레벨 보상 로드'],['lD','모바일 HUD + 레벨업 알림']],
+g4:[['tA','A 카드형: 조합 테두리·배지, 조합 물고기는 🛡 자동 보호'],['tB','B 조합별 묶음: 진행도·빈칸·조합 외 일괄 판매'],['tC','C 목록형: 조합 칸 + 선택 판매'],['tD','D 판매 경고: 패시브가 꺼질 때 확인']],
+g5:[['f2d-0','지금 (3D 물고기)'],['f2d-A','A 그림 물고기'],['f2d-B','B 그림 물고기 + 흰 테두리·바닥 그림자']],
+g6:[['deck-Vn','세로 어항 2개를 데크 양쪽에'],['deck-Vw','세로 어항 · 전체'],['deck-Gn','데크 뒤 땅에 어항 2개'],['deck-Gw','땅 어항 · 전체']],
+g7:[['chars-h1','1 노인 어부(노란 우비·수염·낚싯대) · 2 잠자리채 소녀(흰 셔츠·뜰채) · 3 구명조끼 소년(주황 조끼·태클박스) · 4 호숫가 할머니(분홍 가디건) · 5 생선 요리사(흰 조리복·쏘가리) · 6 공원 레인저(올리브 셔츠·낚싯대) · 7 항구 선원(노란 셔츠·남색 줄무늬 바지·밧줄)'],['chars-h2','8 헤드폰 소녀(보라 후드·헤드폰) · 9 한복 소녀(민트 저고리·양동이) · 10 스노클 다이버(남색 슈트·물안경·작살) · 11 멜빵 소년(흰 셔츠·빨간 멜빵·컵) · 12 선글라스 아저씨(카키 조끼·선글라스) · 13 밀짚모자 낚시꾼(지금 그대로)']],
+g8:[['chars-a1','고양이(줄무늬·뾰족 귀·수염·휜 꼬리) · 수달(흰 주둥이·굵은 꼬리·붕어) · 펭귄(흑백·주황 부리·목도리) · 곰(둥근 귀·체크 셔츠) · 오리(납작 부리·물갈퀴)'],['chars-a2','개구리(튀어나온 눈·넓은 입) · 여우(검은 귀 끝·큰 꼬리) · 토끼(긴 귀·솜꼬리) · 너구리(눈 마스크·줄무늬 꼬리·랜턴) · 물범(지느러미·수염·양동이)']]};
+for(const id in G)document.getElementById(id).innerHTML=G[id].map(([f,c])=>`<figure><img src="${f}.jpg" alt="${c}" loading="lazy"><figcaption>${c}</figcaption></figure>`).join('');
+</script><script src="lb.js"></script></body></html>
