@@ -5,7 +5,7 @@ THREE.ColorManagement.legacyMode=false;
 const D=NK_DATA,$=id=>document.getElementById(id),qs=new URLSearchParams(location.search);
 // v12 시안용 숨김 파라미터: ?mock30&decks=30&lr=32&lay=ring|alt|bay (기본 게임은 20데크·LR 24 그대로)
 const CFG=Object.assign({lay:'a',bots:9},JSON.parse(localStorage.getItem('nk_cfg')||'{}'));const LAYS={a:['ring',32],b:['alt',26],c:['bay',29],o:['ring',24]};
-const MOCK30=qs.has('mock30'),LK=MOCK30?null:(LAYS[CFG.lay]?CFG.lay:'a'),LAY=MOCK30?(qs.get('lay')||'ring'):LAYS[LK][0],DECKS=Math.min(30,Math.max(2,+qs.get('decks')||(MOCK30||LK==='o'?D.DECK_COUNT_DEFAULT:(CFG.decks||25)))),LR=MOCK30?(+qs.get('lr')||24):LAYS[LK][1];
+const MOCK30=qs.has('mock30'),LK=MOCK30?null:(LAYS[CFG.lay]?CFG.lay:'a'),LAY=MOCK30?(qs.get('lay')||'ring'):LAYS[LK][0],DECKS=Math.min(30,Math.max(2,+qs.get('decks')||(MOCK30||LK==='o'?D.DECK_COUNT_DEFAULT:(CFG.decks||25)))),DW=(window.NK_DECKW||{})[CFG.deckW]||null,LR=(MOCK30?(+qs.get('lr')||24):LAYS[LK][1])+(DW?DW.lr:0);
 function deckAng(i){if(LAY==='bay'){const G=6,per=Math.ceil(DECKS/G),g=Math.floor(i/per),j=i%per,gw=Math.PI*2/G,sp=gw*.72/per;return -Math.PI/2+g*gw+(j-(per-1)/2)*sp;}return -Math.PI/2+i*Math.PI*2/DECKS;}
 const deckOff=i=>LAY==='alt'&&i%2?2.6:0;
 const UP=new THREE.Vector3(0,1,0),V=new THREE.Vector3(),Q=new THREE.Quaternion(),SC=new THREE.Vector3(),M4=new THREE.Matrix4();
@@ -77,7 +77,7 @@ function occFade(dt,pp){OCC.t-=dt;if(OCC.t>0)return;OCC.t=.12;const tg=new THREE
  const setOp=(o,a)=>o.traverse(m=>{if(!m.isMesh)return;if(!m.userData.fm){m.material=Array.isArray(m.material)?m.material.map(x=>x.clone()):m.material.clone();m.userData.fm=1;}(Array.isArray(m.material)?m.material:[m.material]).forEach(x=>{x.transparent=a<1;x.opacity=a;x.depthWrite=a>=1;});});
  hit.forEach(o=>{if(!OCC.on.has(o)){setOp(o,.28);OCC.on.add(o);}});OCC.on.forEach(o=>{if(!hit.has(o)){setOp(o,1);OCC.on.delete(o);}});}
 // ───────── 지형 ─────────
-const H=(x,z)=>{const r=Math.hypot(x,z);if(r<LR-1)return -2.2;if(r<LR+2)return -2.2+(r-LR+1)/3*2.5;return .3+Math.max(0,r-52)*.3*(1+Math.sin(x*.15)*Math.cos(z*.12))+Math.sin(x*.25)*Math.cos(z*.2)*.25;};
+const H=(x,z)=>{const r=Math.hypot(x,z);if(r<LR-1)return -2.2;if(r<LR+2)return -2.2+(r-LR+1)/3*2.5;return .3+Math.max(0,r-(DW?LR+20:52))*.3*(1+Math.sin(x*.15)*Math.cos(z*.12))+Math.sin(x*.25)*Math.cos(z*.2)*.25;};
 function buildTerrain(){const g=new THREE.PlaneGeometry(220,220,80,80);g.rotateX(-Math.PI/2);const p=g.attributes.position,col=[],cs=['#b9dc9c','#acd38f','#c2e2a6'].map(c=>new THREE.Color(c)),sand=new THREE.Color('#f1e0b4'),wet=new THREE.Color('#d9c79a');
   for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i),r=Math.hypot(x,z);p.setY(i,H(x,z));const c=r<LR+.3?wet:r<LR+3.2?sand:cs[(Math.abs(Math.sin(x*12.9+z*78.2))*3)|0];col.push(c.r,c.g,c.b);}
   g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));const ng=g.toNonIndexed();ng.computeVertexNormals();scene.add(new THREE.Mesh(ng,new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true})));}
@@ -122,18 +122,28 @@ function buildDecks(){const BOARDS=12,LEN=9,W=3,boardG=new THREE.BoxGeometry(W,.
   const lan=[],buck=[],plant=[];
   for(let i=0;i<DECKS;i++){const a=deckAng(i),ca=Math.cos(a),sa=Math.sin(a),cr=LR-2.5+deckOff(i),cx=ca*cr,cz=sa*cr,ry=-a+Math.PI/2;
     Q.setFromAxisAngle(UP,ry);
-    for(let b=0;b<BOARDS;b++){const o=-LEN/2+(b+.5)*LEN/BOARDS;M4.compose(V.set(cx-ca*o,.3+Math.sin(b*7.3+i)*.015,cz-sa*o),Q,SC.set(1,1,1));boards.setMatrixAt(i*BOARDS+b,M4);}
+    for(let b=0;b<BOARDS;b++){const o=-LEN/2+(b+.5)*LEN/BOARDS;M4.compose(V.set(cx-ca*o,.3+Math.sin(b*7.3+i)*.015,cz-sa*o),Q,SC.set(DW?DW.w/W:1,1,1));boards.setMatrixAt(i*BOARDS+b,M4);}
     [[-1.35,-4],[1.35,-4],[-1.35,0],[1.35,0],[-1.35,4],[1.35,4]].forEach(([sx,o],k)=>{M4.compose(V.set(cx+ca*o-sa*sx*-1*0+(-sa)*sx,-.9,cz+sa*o+ca*sx),Q.identity(),SC.set(1,1,1));posts.setMatrixAt(i*6+k,M4);});
     // 어항 위치(데크 측면 중앙)
-    const tx=cx+ca*.5-sa*1.0,tz=cz+sa*.5+ca*1.0;Q.setFromAxisAngle(UP,ry);M4.compose(V.set(tx,.7,tz),Q,SC.set(1,1,1));stand.setMatrixAt(i,M4);M4.compose(V.set(tx,1.4,tz),Q,SC.set(1,1,1));glass.setMatrixAt(i,M4);
+    const LW=(x,z)=>[cx-ca*z-sa*x,cz-sa*z+ca*x];const [tx,tz]=DW?LW(DW.tank[0][0],DW.tank[0][1]):[cx+ca*.5-sa*1.0,cz+sa*.5+ca*1.0];if(DW)DWX.push({i,LW,ry});Q.setFromAxisAngle(UP,ry);M4.compose(V.set(tx,.7,tz),Q,SC.set(1,1,1));stand.setMatrixAt(i,M4);M4.compose(V.set(tx,1.4,tz),Q,SC.set(DW&&DW.tw?DW.tw:1,DW&&DW.tw?.8:1,1));glass.setMatrixAt(i,M4);
     if(i===0){myTankPos={x:tx,z:tz,ry};M4.compose(V.set(tx,-50,tz),Q,SC.set(.001,.001,.001));stand.setMatrixAt(0,M4);glass.setMatrixAt(0,M4);}
-    lan.push([cx-ca*3.9+sa*1.25,.38,cz-sa*3.9-ca*1.25,ry,1.3]);if(i%2)buck.push([cx+ca*2+sa*.9,.38,cz+sa*2-ca*.9,a,2.2]);else plant.push([cx+ca*2.5+sa*1,.38,cz+sa*2.5-ca*1,a,1.6]);
+    if(DW){const lx=DW.lan,l=LW(lx[0],lx[1]),q=LW(DW.prop[0],DW.prop[1]);lan.push([l[0],.38,l[1],ry,1.3]);if(i%2)buck.push([q[0],.38,q[1],a,2.2]);else plant.push([q[0],.38,q[1],a,1.6]);}else{lan.push([cx-ca*3.9+sa*1.25,.38,cz-sa*3.9-ca*1.25,ry,1.3]);if(i%2)buck.push([cx+ca*2+sa*.9,.38,cz+sa*2-ca*.9,a,2.2]);else plant.push([cx+ca*2.5+sa*1,.38,cz+sa*2.5-ca*1,a,1.6]);}
     decks.push({i,a,cx,cz,ca,sa,tip:{x:ca*(cr-3.9),z:sa*(cr-3.9)},entry:{x:ca*(LR+3),z:sa*(LR+3)},tank:{x:tx,z:tz},lantern:{x:lan[i][0],z:lan[i][2]},owner:null});}
+  if(DW)buildDW(wood);
   boards.frustumCulled=posts.frustumCulled=stand.frustumCulled=glass.frustumCulled=false;scene.add(boards,posts,stand,glass);stand.userData.tankPick=true;glass.userData.tankPick=true;tankPickers.push(stand,glass);
   inst('ft-lantern',lan);lanGlow=new THREE.InstancedMesh(new THREE.SphereGeometry(.16,8,6),new THREE.MeshBasicMaterial({color:'#fff1c4'}),lan.length);lan.forEach((l,i)=>{M4.makeTranslation(l[0],l[1]+1.85,l[2]);lanGlow.setMatrixAt(i,M4);});lanGlow.frustumCulled=false;scene.add(lanGlow);inst('bucket',buck);inst('pottedPlant',plant);}
+// v19: 넓힌 데크 W1~W4 (설정에서 선택, 호수 반지름 +DW.lr). 좌표: x=데크 옆(+는 오른쪽), z=데크 길이(+는 호수 쪽 끝)
+const DWX=[];function buildDW(wood){const ex=DW.ext,nE=ex.length*DWX.length,n=DWX.length;const M=(c)=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
+  if(nE){const pl=new THREE.InstancedMesh(new THREE.BoxGeometry(1,.18,1),wood,nE);let k=0;DWX.forEach(d=>{Q.setFromAxisAngle(UP,d.ry);ex.forEach(([x0,x1,z0,z1])=>{const c=d.LW((x0+x1)/2,(z0+z1)/2);M4.compose(V.set(c[0],.3,c[1]),Q,SC.set(x1-x0,1,z1-z0));pl.setMatrixAt(k++,M4);});});pl.frustumCulled=false;scene.add(pl);
+   const ps=new THREE.InstancedMesh(new THREE.CylinderGeometry(.11,.13,2.4,6),M('#b88a62'),nE*2);k=0;DWX.forEach(d=>ex.forEach(([x0,x1,z0,z1])=>{const x=x0<0?x0+.15:x1-.15;[z0+.2,z1-.2].forEach(z=>{const c=d.LW(x,z);M4.makeTranslation(c[0],-.8,c[1]);ps.setMatrixAt(k++,M4);});}));ps.frustumCulled=false;scene.add(ps);}
+  const seat=new THREE.InstancedMesh(new THREE.CylinderGeometry(.32,.34,.12,10),M('#ffffff'),n*2),leg=new THREE.InstancedMesh(new THREE.CylinderGeometry(.07,.09,.5,6),M('#8a6a4a'),n*2),cols=['#ff9a6a','#6ab0e8'];
+  const st2=new THREE.InstancedMesh(new THREE.BoxGeometry(1.3,.6,.7),M('#c49468'),n),gl2=new THREE.InstancedMesh(new THREE.BoxGeometry(1.2,.8,.6),new THREE.MeshLambertMaterial({color:'#bfeaf5',transparent:true,opacity:.55}),n);
+  DWX.forEach((d,j)=>{Q.setFromAxisAngle(UP,d.ry);DW.stool.forEach(([x,z],m)=>{const c=d.LW(x,z);M4.makeTranslation(c[0],.92,c[1]);seat.setMatrixAt(j*2+m,M4);seat.setColorAt(j*2+m,new THREE.Color(cols[m]));M4.makeTranslation(c[0],.62,c[1]);leg.setMatrixAt(j*2+m,M4);});
+   const t=d.LW(DW.tank[1][0],DW.tank[1][1]),tw=DW.tw||1;M4.compose(V.set(t[0],.7,t[1]),Q,SC.set(tw,1,1));st2.setMatrixAt(j,M4);M4.compose(V.set(t[0],1.4,t[1]),Q,SC.set(tw,tw>1?.8:1,1));gl2.setMatrixAt(j,M4);});
+  [seat,leg,st2,gl2].forEach(m=>{m.frustumCulled=false;scene.add(m);});}
 const tankPickers=[];let myTankX=null,myTankPos=null,myTankK=null;
 function updMyTankExt(){if(!window.NK_TANKX||!myTankPos||myTankK===S.tankK)return;myTankK=S.tankK;if(myTankX){scene.remove(myTankX);const i=tankPickers.indexOf(myTankX);if(i>=0)tankPickers.splice(i,1);}const T=D.TANKS.find(t=>t.k===S.tankK),x=NK_TANKX(T.design,{W:3.2,H:1.9,D:1.5,y0:1.25,sh:1.25});const g=x.g;g.scale.setScalar(.42);g.position.set(myTankPos.x,.39,myTankPos.z);g.rotation.y=myTankPos.ry;g.traverse(m=>m.userData.myTank=true);scene.add(g);myTankX=g;tankPickers.push(g);}let lanGlow=null;
-const inDeck=(x,z)=>decks.some(d=>{const dx=x-d.cx,dz=z-d.cz,al=dx*d.ca+dz*d.sa,sd=-dx*d.sa+dz*d.ca;return Math.abs(al)<4.4&&Math.abs(sd)<1.4;});
+const inDeck=(x,z)=>decks.some(d=>{const dx=x-d.cx,dz=z-d.cz,al=dx*d.ca+dz*d.sa,sd=-dx*d.sa+dz*d.ca;if(!DW)return Math.abs(al)<4.4&&Math.abs(sd)<1.4;const zz=-al;if(Math.abs(al)<4.4&&Math.abs(sd)<DW.w/2-.1)return true;return DW.ext.some(([x0,x1,z0,z1])=>sd>x0+.1&&sd<x1-.1&&zz>z0&&zz<z1);});
 // 어항 안 작은 물고기 (월드 표시용, 인스턴싱)
 let worldFish=null;
 // ───────── 자연·소셜 공간 ─────────
@@ -250,7 +260,7 @@ const sfx={cast(){tone(660,440,.22,'sine',.025);},bite(){tone(880,880,.12,'sine'
   drop(){if(!snd.on)return;if(snd.dropBuf&&snd.ctx){const b=snd.ctx.createBufferSource(),g=snd.ctx.createGain();b.buffer=snd.dropBuf;g.gain.value=1.6;b.connect(g).connect(snd.m);b.start();return;}try{const a=sfxDrop.cloneNode();a.volume=Math.max(0,Math.min(1,(S.vol==null?.5:S.vol)*1.2));a.play().catch(()=>{});}catch(e){}}};
 const FISH_IMG={};D.FISH.forEach(f=>{const im=new Image();im.decoding='async';im.src=f.img;FISH_IMG[f.k]=im;if(im.decode)im.decode().catch(()=>{});});
 const sfxDrop=new Audio('sounds/sfx/splash-drop.wav');sfxDrop.preload='auto';
-function updAmb(p){const k=snd.force==='day'?0:snd.force==='night'?1:Math.min(1,p.night*1.15);const v=snd.on?S.vol:0,cl=x=>Math.max(0,Math.min(1,x));if(snd.wa){snd.day.volume=snd.night.volume=1;snd.gDay.gain.value=cl(v*(1-k));snd.gNight.gain.value=cl(v*k);}else{snd.day.volume=cl(v*(1-k));snd.night.volume=cl(v*k);}if(snd.m)snd.m.gain.value=cl(v*.625);}
+function updAmb(p){const k=snd.force==='day'?0:snd.force==='night'?1:S.ambOne==='day'?0:S.ambOne==='night'?1:Math.min(1,p.night*1.15);const v=snd.on?S.vol:0,cl=x=>Math.max(0,Math.min(1,x));if(snd.wa){snd.day.volume=snd.night.volume=1;snd.gDay.gain.value=cl(v*(1-k));snd.gNight.gain.value=cl(v*k);}else{snd.day.volume=cl(v*(1-k));snd.night.volume=cl(v*k);}if(snd.m)snd.m.gain.value=cl(v*.625);}
 // ───────── 게임 상태 ─────────
 let me,yaw=0,pitch=.38,dist=12,drag=null,fishing={state:'off'},nearSpot=null,bob=null,line=null,lineG,castT=-1,castTo=new THREE.Vector3();
 const bots=[];const BOT_NAMES=['물멍러','붕어왕','노을소녀','캠핑아재','꼬마강태공','밤낚시','호수요정','쏘가리헌터','루어장인','은빛여울','새벽입질','낚시하는곰','월척꿈나무','바람의찌','모래무지씨','고요한호수','릴감는소리','물안개','별밤조사','떡밥장인','강준치헌터','찌맞춤','초보강태공','손맛중독','잉어사랑','호수산책','물결소리','갈대숲','연잎위개구리','버들치','송사리','물총새','왜가리','청둥오리','노을빛찌','달빛낚시','파란버킷','캠핑의자','모닥불지기','붕어빵','민물요정','손맛장인','느긋한오후','바람개비','연못지기','물수제비','고양이낚시꾼','대물사냥꾼','초록찌','소풍가방'];
@@ -662,7 +672,7 @@ function _renderSet(){const A=S.auto,g=S.showG;
   <p>이동 속도 <input type="range" id="mvS" min="1" max="1.5" step=".05" value="${S.moveMul||1.35}"> <b id="mvV">+${Math.round(((S.moveMul||1.35)-1)*100)}%</b> <span class="small muted">(기본 +35%, 범위 +0~50%)</span></p>
   <p><label><input type="checkbox" id="rkTag" ${S.rankTag!==false?'checked':''}> 서버 1~3위 닉네임 메달 표시 (시안 D)</label></p>
   <p>프레임 상한 ${[[60,'60'],[120,'120'],[144,'144 (기본)'],[0,'제한 없음']].map(([v,n])=>`<label><input type="radio" name="fpsC" value="${v}" ${(S.fpsCap==null?0:S.fpsCap)==v?'checked':''}> ${n}</label>`).join(' ')}<br><span class="small muted">모니터 주사율보다 높게는 나오지 않아요 (60Hz 모니터 = 최대 60)</span></p>
-  <p>데크 배치 ${[['a','A 큰 원형 (기본·'+(CFG.decks||25)+'데크)'],['b','B 지그재그 2열'],['c','C 만(灣)형 6마을'],['o','기존 20데크']].map(([k,n])=>`<label><input type="radio" name="dLay" value="${k}" ${CFG.lay===k?'checked':''}> ${n}</label>`).join(' ')}</p>
+  <p>데크 모양 ${[['','현행 (기본)'],['W1','W1 전체 넓게'],['W2','W2 끝만 넓은 T자'],['W3','W3 옆 발코니'],['W4','W4 넓게+가로 어항']].map(([k,n])=>`<label><input type="radio" name="dW" value="${k}" ${(CFG.deckW||'')===k?'checked':''}> ${n}</label>`).join(' ')}<br><small class="muted">W1~W4는 데크끼리 닿지 않게 호수가 커져요 (적용 시 새로고침)</small></p><p>데크 배치 ${[['a','A 큰 원형 (기본·'+(CFG.decks||25)+'데크)'],['b','B 지그재그 2열'],['c','C 만(灣)형 6마을'],['o','기존 20데크']].map(([k,n])=>`<label><input type="radio" name="dLay" value="${k}" ${CFG.lay===k?'checked':''}> ${n}</label>`).join(' ')}</p>
   <p>테스트 봇 <input type="number" id="botN" min="0" max="50" value="${CFG.bots}" style="width:60px">명 (최대 50) <button id="cfgApply">적용 (새로고침)</button><br><span class="small muted">데크 배치·봇 수는 새로고침 후 적용돼요. 진행 상황은 먼저 저장돼요.</span></p></div>
  <h4>🚫 차단 목록</h4><div class="blk">${(S.blocked||[]).length?S.blocked.map(n=>`<span class="pchip">${n}<button data-unb="${encodeURIComponent(n)}" title="차단 해제">해제</button></span>`).join(''):'<span class="muted small">차단한 유저가 없어요 · 캐릭터나 채팅 닉네임을 우클릭하면 차단할 수 있어요</span>'}</div>
  <h4>🧪 v14 시안 테스트</h4><div class="tset">
@@ -684,7 +694,7 @@ function _renderSet(){const A=S.auto,g=S.showG;
  $('mvS').oninput=e=>{S.moveMul=+e.target.value;$('mvV').textContent='+'+Math.round((S.moveMul-1)*100)+'%';save();};
  $('rkTag').onchange=e=>{S.rankTag=e.target.checked;save();};
  $('set').querySelectorAll('[name=fpsC]').forEach(r=>r.onchange=()=>{S.fpsCap=+r.value||0;save();toast('프레임 상한: '+(S.fpsCap||'제한 없음'));});
- $('cfgApply').onclick=()=>{const lay=($('set').querySelector('[name=dLay]:checked')||{}).value||CFG.lay,bots=Math.max(0,Math.min(50,Math.round(+$('botN').value||0)));localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},CFG,{lay,bots})));S.savedAt=Date.now();save();location.reload();};
+ $('cfgApply').onclick=()=>{const lay=($('set').querySelector('[name=dLay]:checked')||{}).value||CFG.lay,bots=Math.max(0,Math.min(50,Math.round(+$('botN').value||0)));const deckW=($('set').querySelector('[name=dW]:checked')||{}).value||'';localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},CFG,{lay,bots,deckW})));S.savedAt=Date.now();save();location.reload();};
  $('saveNow').onclick=()=>{S.savedAt=Date.now();save();toast('💾 저장 완료');renderSet();};
  $('exp').onclick=()=>{S.savedAt=Date.now();save();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download=`nakmeong-save-${new Date().toISOString().slice(0,10)}.json`;a.click();};
  $('imp').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const o=JSON.parse(t);if(typeof o.coins!=='number')throw 0;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,S0,o);SYS.migrate(D,S);save();hud();toast('📂 불러오기 완료');renderSet();}catch(_){toast('잘못된 세이브 파일');}});};
@@ -721,10 +731,10 @@ function _renderAch(){const P=SYS.passives(D,S),A=P.ach,done=A.filter(a=>a.done)
 function renderSound(){return keepScroll('sound',_renderSound);}
 function _renderSound(){const row=(cat,i,s)=>{const sel=cat==='day'?S.sDay===i:S.sNight===i;return `<div class="snd ${sel?'on':''}"><span>${cat==='day'?'☀️':'🌙'} ${s.n}</span><span><button data-pv="${cat}:${i}">▶ 들어보기</button> ${sel?'<b>✔ 선택됨</b>':`<button class="ok" data-sel="${cat}:${i}">선택</button>`}</span></div>`;};
   $('sound').innerHTML=`<div class="card" style="width:min(560px,94vw)"><button class="close" data-close="sound">×</button><h2>🔊 자연 사운드 시안</h2><p class="small muted">낮/밤 사운드는 시간에 따라 자동으로 크로스페이드돼요. '들어보기'는 15초 동안 해당 소리만 재생.</p>
-   <h4>☀️ 낮</h4>${D.SOUNDS.day.map((s,i)=>row('day',i,s)).join('')}<h4>🌙 밤</h4>${D.SOUNDS.night.map((s,i)=>row('night',i,s)).join('')}
+   <h4>🎚 낮·밤 사운드</h4><div class="ambone">${[['auto','시간 따라 자동 전환'],['day','낮 소리로 통일'],['night','밤 소리로 통일']].map(([v,n])=>`<label><input type="radio" name="ambOne" value="${v}" ${(S.ambOne||'auto')===v?'checked':''}> ${n}</label>`).join(' ')}</div><h4>☀️ 낮</h4>${D.SOUNDS.day.map((s,i)=>row('day',i,s)).join('')}<h4>🌙 밤</h4>${D.SOUNDS.night.map((s,i)=>row('night',i,s)).join('')}
    <p>볼륨 <input type="range" min="0" max="1" step=".05" value="${S.vol}" id="vol"> <button id="mute">${snd.on?'🔇 끄기':'🔊 켜기'}</button></p><p class="small muted">출처: sounds/CREDITS.md (Wikimedia Commons CC0/PD/CC BY)</p></div>`;
   const q=s=>$('sound').querySelectorAll(s);q('[data-close]').forEach(b=>b.onclick=()=>closeM('sound'));
-  q('[data-sel]').forEach(b=>b.onclick=()=>{const[c,i]=b.dataset.sel.split(':');if(c==='day')S.sDay=+i;else S.sNight=+i;save();setAmb();renderSound();});
+  q('[name=ambOne]').forEach(r=>r.onchange=()=>{S.ambOne=r.value;save();});q('[data-sel]').forEach(b=>b.onclick=()=>{const[c,i]=b.dataset.sel.split(':');if(c==='day')S.sDay=+i;else S.sNight=+i;save();setAmb();renderSound();});
   q('[data-pv]').forEach(b=>b.onclick=()=>{const[c,i]=b.dataset.pv.split(':');if(c==='day')S.sDay=+i;else S.sNight=+i;save();setAmb();snd.force=c;snd.forceT=15;(c==='day'?snd.day:snd.night).currentTime=0;(c==='day'?snd.day:snd.night).play().catch(()=>{});renderSound();});
   $('vol').oninput=e=>{S.vol=+e.target.value;save();};$('mute').onclick=()=>{snd.on=!snd.on;renderSound();};}
 // ───────── 입력 ─────────
@@ -757,7 +767,18 @@ let sitting=false;
 {const grp=i=>KINDS[i].grp||'b',tabs=[['b','기본'],['h','사람'],['a','동물']];let tab=grp(S.char||0);
  const drawCP=()=>{$('charPick').innerHTML=`<div class="cpt">${tabs.map(([k,n])=>`<span data-cpt="${k}" class="${tab===k?'on':''}">${n} ${KINDS.filter((x,i)=>grp(i)===k&&(i<4||i>7)).length}</span>`).join('')}</div><div class="cpg">${KINDS.map((k,i)=>[i,k]).filter(([i,k])=>grp(i)===tab&&(i<4||i>7)).map(([i,k])=>`<button data-ch="${i}" class="${S.char===i?'sel':''}" title="${k.n}">${k.th?`<img src="img/chars/${k.th}.jpg" alt="">`:`<i>${['🧔','👩','👦','👧'][i]||'🙂'}</i>`}<span>${k.n}</span></button>`).join('')}</div>`;
   $('charPick').querySelectorAll('[data-cpt]').forEach(b=>b.onclick=()=>{tab=b.dataset.cpt;drawCP();});
-  $('charPick').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.char=+b.dataset.ch;save();$('charPick').querySelectorAll('button').forEach(x=>x.classList.toggle('sel',x===b));});};drawCP();}
+  $('charPick').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.char=+b.dataset.ch;save();$('charPick').querySelectorAll('button').forEach(x=>x.classList.toggle('sel',x===b));stUpd();});};drawCP();
+
+ // v19: 시작 화면 B(데스크톱) / D(모바일 단계형). 닉네임·서버·캐릭터는 localStorage에 기억
+ const stEl=document.querySelector('#start .stB'),mob=()=>innerWidth<700;
+ const stUpd=()=>{if(!V14)return;const K=KINDS[S.char]||KINDS[0];$('stImg').src=K.th?`img/chars/${K.th}.jpg`:'img/chars/b0.jpg';$('stName').textContent=K.n;$('stDesc').textContent=K.d||'';const ch=V14.CH;$('go').textContent=mob()?`${K.n}(으)로 시작`:`시작하기 (호숫가 ${ch.me})`;};
+ const srvDraw=()=>{const ch=V14.CH,pop=V14.chPop().map((n,i)=>i+1===ch.me?Math.max(n,(+CFG.bots||9)+1):n),cap=40;$('stSrv').innerHTML=pop.map((n,i)=>{const r=Math.min(1,n/cap),full=r>=1;return `<button class="sv ${ch.me===i+1?'on':''}" data-sv="${i+1}" ${full?'disabled':''}><b>호숫가 ${i+1}</b><span class="bar"><i class="${r>.8?'hi':''}" style="width:${Math.round(r*100)}%"></i></span><small>${full?'가득':r>.8?'혼잡':i===0?'추천':n+'명'}</small></button>`;}).join('');
+  $('stSrv').querySelectorAll('[data-sv]').forEach(b=>b.onclick=()=>{ch.me=+b.dataset.sv;CFG.ch=ch.me;localStorage.setItem('nk_cfg',JSON.stringify(CFG));srvDraw();stUpd();});};
+ const nickChk=()=>{const v=$('stNick').value.trim();$('stNickOk').textContent=v?`"${v}" (으)로 표시돼요`:"비워 두면 '나'로 표시돼요";};
+ $('stNick').value=S.nick||'';$('stNick').oninput=()=>{S.nick=$('stNick').value.trim().slice(0,10);save();nickChk();};nickChk();
+ const step=n=>{stEl.dataset.step=n;stEl.querySelectorAll('.stSteps span').forEach(x=>x.className=+x.dataset.s<n?'done':+x.dataset.s===n?'on':'');};
+ stEl.querySelectorAll('.stNext').forEach(b=>b.onclick=()=>step(+b.dataset.to));
+ step(S.nick&&mob()?3:1);const stInit=()=>{if(!V14)return setTimeout(stInit,80);srvDraw();stUpd();};stInit();addEventListener('resize',stUpd);}
 $('go').disabled=true;
 // ───────── 메인 ─────────
 let fpsA=60,camOverride=null;let started=false,T=0,last=performance.now();
@@ -787,7 +808,7 @@ function frame(now){if(S.fpsCap&&now-last<1000/S.fpsCap-1.5){requestAnimationFra
       const a=lineG.attributes.position;a.setXYZ(0,tip.x,tip.y,tip.z);a.setXYZ(1,bob.position.x,bob.position.y,bob.position.z);a.needsUpdate=true;}
     updBots(dt,T);botBuy(dt);botLegend(dt);botRestock(dt);botBoxAlert(dt);
     if(distT!=null){dist+=(distT-dist)*Math.min(1,dt*10);if(Math.abs(distT-dist)<.01){dist=distT;distT=null;}}cam.position.set(pp.x+Math.sin(yaw)*Math.cos(pitch)*dist,pp.y+1.6+Math.sin(pitch)*dist,pp.z+Math.cos(yaw)*Math.cos(pitch)*dist);cam.lookAt(pp.x,pp.y+1.6,pp.z);occFade(dt,pp);}
-  for(const c of chars){if(!c.offline&&!(c.simp&&c.simp.visible))c.mixer.update(dt);poseRod(c,dt);c.tag.position.set(c.o.position.x,c.o.position.y+c.h*1.0+.62,c.o.position.z);const dd=cam.position.distanceTo(c.tag.position),far=V14.farLOD(c,dd);const rk=S.rankTag!==false&&!c.offline?tagRank(c):0;V14.layer();const rs=rk?V14.rankDom(c,rk,dd):V14.rankDom(c,0,dd);c.tag.visible=!rs&&!c.offline&&!far;if(!rs)drawTag(c.tag,null,0);c.rkUp=rs;const bb=c.offline||c.muted?null:bubbleOf(c);domBub(c,dd<70?bb:null,dd);}V14.tick(dt,p);
+  for(const c of chars){if(!c._fc){c._fc=1;c.o.traverse(m=>{if(m.isMesh)m.frustumCulled=false;});}if(!c.offline&&!(c.simp&&c.simp.visible))c.mixer.update(dt);poseRod(c,dt);c.tag.position.set(c.o.position.x,c.o.position.y+c.h*1.0+.62,c.o.position.z);const dd=cam.position.distanceTo(c.tag.position),far=V14.farLOD(c,dd);const rk=S.rankTag!==false&&!c.offline?tagRank(c):0;V14.layer();const rs=rk?V14.rankDom(c,rk,dd):V14.rankDom(c,0,dd);c.tag.visible=!rs&&!c.offline&&!far;if(!rs)drawTag(c.tag,null,0);c.rkUp=rs;const bb=c.offline||c.muted?null:bubbleOf(c);domBub(c,dd<70?bb:null,dd);}V14.tick(dt,p);
   if(camOverride){cam.position.set(camOverride[0],camOverride[1],camOverride[2]);cam.lookAt(camOverride[3],camOverride[4],camOverride[5]);}R.render(scene,cam);tankView.frame(dt,T);
   fpsA=fpsA*.95+(1/Math.max(dt,1e-3))*.05;$('dc').textContent=`FPS ${fpsA.toFixed(0)} · draw calls ${R.info.render.calls} · tris ${(R.info.render.triangles/1000).toFixed(1)}k · decks ${DECKS}`;window.__nk={calls:R.info.render.calls,tris:R.info.render.triangles};requestAnimationFrame(frame);}
 loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyVG();setInterval(()=>{S.savedAt=Date.now();save();},30000);
@@ -876,12 +897,12 @@ V14=(()=>{
  let BUBS_;function layer(){if(!BUBS_){BUBS_=document.createElement('div');BUBS_.id='rkL';const H=document.getElementById('hud');H.parentNode.insertBefore(BUBS_,H);}}
  // ── 멀리 있는 캐릭터 간략화 ──
  const FAR=30,simpleGeo=new THREE.CylinderGeometry(.32,.38,1.1,6),headGeo=new THREE.IcosahedronGeometry(.36,0);
- function farLOD(c,dd){if(S.farLOD===false){if(c.simp){c.simp.visible=false;c.o.visible=true;}return false;}const far=dd>FAR&&c!==me;if(far&&!c.simp){const g=new THREE.Group(),col=new THREE.Color().setHSL((c.name.length*.13)%1,.45,.62);const b=new THREE.Mesh(simpleGeo,new THREE.MeshLambertMaterial({color:col}));b.position.y=.55;const h=new THREE.Mesh(headGeo,new THREE.MeshLambertMaterial({color:0xf2d2b6}));h.position.y=1.4;g.add(b,h);scene.add(g);c.simp=g;}
+ function farLOD(c,dd){if(S.farLOD===false){if(c.simp)c.simp.visible=false;c.o.visible=!c.offline;return false;}const far=dd>FAR&&c!==me;if(far&&!c.simp){const g=new THREE.Group(),col=new THREE.Color().setHSL((c.name.length*.13)%1,.45,.62);const b=new THREE.Mesh(simpleGeo,new THREE.MeshLambertMaterial({color:col}));b.position.y=.55;const h=new THREE.Mesh(headGeo,new THREE.MeshLambertMaterial({color:0xf2d2b6}));h.position.y=1.4;g.add(b,h);scene.add(g);c.simp=g;}
   if(c.simp){c.simp.visible=far&&!c.offline;c.simp.position.copy(c.o.position);}c.o.visible=!far&&!c.offline;return far;}
  // ── 데크 점유 (접속 중일 때만) + 봇 접속/퇴장 시뮬 ──
  function presence(dt){for(const b of bots){b.on=b.on==null?true:b.on;b.pt=(b.pt==null?rand(120,480):b.pt)-dt;if(b.pt>0)continue;b.pt=b.on?rand(40,140):rand(120,480);b.on=!b.on;b.c.offline=!b.on;
    if(!b.on){if(b.deck){b.deck.owner=null;b.deck=null;}b.path=[];b.c.o.visible=false;if(b.c.dbub)b.c.dbub.style.display='none';if(b.c.rkEl)b.c.rkEl.style.display='none';b.c.tag.visible=false;}
-   else{b.c.tag.visible=true;const free=decks.filter(d=>d.i!==0&&!d.owner);if(free.length&&Math.random()<.85){const d=pick(free);d.owner=b.c.name;b.deck=d;}b.wait=0;}}}
+   else{b.c.tag.visible=true;b.c.o.visible=true;const free=decks.filter(d=>d.i!==0&&!d.owner);if(free.length&&Math.random()<.85){const d=pick(free);d.owner=b.c.name;b.deck=d;}b.wait=0;}}}
  // ── 채널 ──
  const CH={n:Math.max(1,Math.min(8,+(CFG.chN||3))),me:Math.max(1,+(CFG.ch||1))};
  const chPop=()=>Array.from({length:CH.n},(_,i)=>i+1===CH.me?chars.filter(c=>!c.offline).length:Math.round(18+((i*37+KST().getUTCHours()*11)%31)));
@@ -1010,7 +1031,7 @@ V15=(()=>{S.blocked=S.blocked||[];const RC=new THREE.Raycaster(),NV=new THREE.Ve
   g.scale.setScalar((.55+F.f.cm/100*1.4)/(F.o.scale.x||1));F.o.add(g);F.s2d=g;});};
  const _q=new THREE.Quaternion(),_p=new THREE.Vector3();
  tankView.frame=function(dt,t){f0(dt,t);if(!this.on||!this.fish)return;this.fish.forEach(F=>{const g=F.s2d;if(!g)return;F.o.getWorldQuaternion(_q);g.quaternion.copy(_q.invert().multiply(this.cam.quaternion));g.children[0].rotation.z=Math.sin(t*2+F.ph)*.05;F.o.getWorldPosition(_p);_p.applyMatrix4(this.cam.matrixWorldInverse);if(F.px!=null){const dx=_p.x-F.px;if(Math.abs(dx)>.0015)g.scale.x=Math.abs(g.scale.x)*(dx>0?-1:1);}F.px=_p.x;if(g.userData.sh){F.o.getWorldPosition(_p);g.userData.sh.position.y=-(_p.y-.2)/(g.scale.y*F.o.scale.y);}});};}
-window.NKV2={R,cam,hemi,sun,wU,V15,V14,S,chars,decks,ROD_POSE,scene,THREE,openFishRank,miniToast,boxGot,calcRK3,RK3:()=>RK3,project:a=>{const v=new THREE.Vector3(a[0],a[1],a[2]).project(cam);return [Math.round((v.x+1)/2*innerWidth),Math.round((1-v.y)/2*innerHeight)];},snd:()=>snd,emote,applyMenu,botBuyNow:()=>{buyT=0;botBuy(0);},S,D,decks,bots,fishAction,catchFish,tankView,renderShop,renderDex,openM,closeM,time,me:()=>me,setPos:(x,z)=>{me.o.position.set(x,.4,z);},nearSpot:()=>nearSpot,fishing:()=>fishing,save,VG,bag:()=>openBag(),legendAlert,botLegend,boxAlert,botBoxAlert,bagTab:t=>{bagTab=t;renderBag();},openSet:()=>{renderSet();openM('set');},SYS,giveBox:(n=1)=>{for(let i=0;i<n;i++)S.boxes.push(Date.now());save();},setCam:(x,y,z,tx=0,ty=0,tz=0)=>{camOverride=x==null?null:[x,y,z,tx,ty,tz];},setDecks:n=>{},dexTab:t=>{dexTab=t;},synthFx,hud};});
+window.NKV2={_n:{catchCard,toast,boxFx,synthFx,FI,GR,TIER,confirmBox,say,openBox:()=>SYS.openBox(D,S,Math.random,null),achCheck},DW,inDeck,R,cam,hemi,sun,wU,V15,V14,S,chars,decks,ROD_POSE,scene,THREE,openFishRank,miniToast,boxGot,calcRK3,RK3:()=>RK3,project:a=>{const v=new THREE.Vector3(a[0],a[1],a[2]).project(cam);return [Math.round((v.x+1)/2*innerWidth),Math.round((1-v.y)/2*innerHeight)];},snd:()=>snd,emote,applyMenu,botBuyNow:()=>{buyT=0;botBuy(0);},S,D,decks,bots,fishAction,catchFish,tankView,renderShop,renderDex,openM,closeM,time,me:()=>me,setPos:(x,z)=>{me.o.position.set(x,.4,z);},nearSpot:()=>nearSpot,fishing:()=>fishing,save,VG,bag:()=>openBag(),legendAlert,botLegend,boxAlert,botBoxAlert,bagTab:t=>{bagTab=t;renderBag();},openSet:()=>{renderSet();openM('set');},SYS,giveBox:(n=1)=>{for(let i=0;i<n;i++)S.boxes.push(Date.now());save();},setCam:(x,y,z,tx=0,ty=0,tz=0)=>{camOverride=x==null?null:[x,y,z,tx,ty,tz];},setDecks:n=>{},dexTab:t=>{dexTab=t;},synthFx,hud};});
 })();
 
 // ───────── v5 툴팁 (마우스 오버 / 모바일 탭) ─────────

@@ -1,5 +1,5 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>낚멍 v18 — 3D 로우폴리 파스텔</title><link rel="stylesheet" href="ui-v2.css?v18"><script src="emoji.js?v18"></script></head><body>
+<title>낚멍 v19 — 3D 로우폴리 파스텔</title><link rel="stylesheet" href="ui-v2.css?v19"><script src="emoji.js?v19"></script></head><body>
 <canvas id="world"></canvas>
 <div id="hud">
   <div class="top">
@@ -17,12 +17,16 @@
   <div id="toast"></div>
   <div id="dc"></div>
 </div>
-<div id="start" class="modal show"><div class="card center">
-  <h1>🎣 낚멍</h1><p>고즈넉한 호수에서 함께 낚시하는 힐링 메타버스 · 시안 A v2</p>
-  <p class="muted">캐릭터 선택</p><div id="charPick"></div>
-  <p class="muted small">WASD 이동 · 드래그 회전 · 휠 줌 · Space 낚시 · F 어항 · E 상점/구경 · B 도감</p>
-  <button id="go" class="big">탭해서 시작 (사운드 ON)</button>
-  <p id="loading" class="muted small">에셋 로딩 중…</p></div></div>
+<div id="start" class="modal show"><div class="stB" data-step="1">
+ <div class="card st1"><h1>🎣 낚멍</h1><p class="muted small">고즈넉한 호수에서 함께 낚시하는 힐링 메타버스</p>
+  <div class="stSteps"><span data-s="1">1 닉네임</span><span data-s="2">2 서버</span><span data-s="3">3 캐릭터</span></div>
+  <div class="stA"><div class="lbl">닉네임</div><input id="stNick" maxlength="10" placeholder="최대 10자" autocomplete="off"><small id="stNickOk" class="muted"></small><button class="big stNext" data-to="2">다음</button></div>
+  <div class="stS"><div class="lbl">서버</div><div id="stSrv"></div><div class="note">로그인 없이 이 브라우저에 저장돼요. 다음에 오면 고른 닉네임·서버·캐릭터가 그대로 남아 있어요.</div><div class="stNav"><button class="stNext ghost" data-to="1">이전</button><button class="big stNext" data-to="3">다음</button></div></div></div>
+ <div class="card st2"><div class="stPrev"><img id="stImg" alt=""></div><b id="stName"></b><small id="stDesc" class="muted"></small>
+  <button id="go" class="big">탭해서 시작 (사운드 ON)</button><p id="loading" class="muted small">에셋 로딩 중…</p>
+  <p class="muted small stKeys">WASD 이동 · 드래그 회전 · 휠 줌 · Space 낚시 · F 어항 · E 상점/구경 · B 도감</p><button class="stNext ghost stBack" data-to="2">이전</button></div>
+ <div class="card st3"><div class="lbl">캐릭터 선택</div><div id="charPick"></div></div>
+</div></div>
 <div id="dex" class="modal"></div>
 <div id="tank" class="modal"><div class="tankwrap"><canvas id="tankCv"></canvas><button id="tankBig" onclick="NKV2.tankView.toggleBig()">⤢ 크게 보기</button><div id="tankHint">드래그: 회전 · 휠/핀치: 확대·축소 · 클릭: 크게 보기</div><div id="tankSide"></div><button class="close" data-close="tank">×</button></div></div>
 <div id="shop" class="modal"></div>
@@ -34,5 +38,5 @@
 <div id="ribbons"></div>
 <script src="lib/three.min.js"></script><script src="lib/GLTFLoader.js"></script><script src="lib/SkeletonUtils.js"></script>
 <script src="assets/assets-data.js"></script><script src="game-data.js"></script><script src="game-data-v3.js"></script><script src="game-data-v4.js"></script><script src="game-data-v5.js"></script><script src="game-data-v7.js"></script><script src="game-data-v8.js"></script><script src="game-data-v9.js"></script><script src="game-data-v10.js"></script><script src="game-data-v11.js"></script><script src="game-data-v12.js"></script><script src="tank-themes-v12.js"></script><script src="game-data-v13.js"></script>
-<script src="game-data-v14.js"></script><script src="game-data-v18.js"></script><script src="profanity-v15.js"></script><script src="tank-ext.js"></script><script src="rod-3d.js"></script><script src="systems.js?v18"></script><script src="sim-result.js"></script><script src="chars-v18.js?v18"></script><script src="game-v2.js?v18"></script>
+<script src="game-data-v14.js"></script><script src="game-data-v18.js"></script><script src="game-data-v19.js"></script><script src="profanity-v15.js"></script><script src="tank-ext.js"></script><script src="rod-3d.js"></script><script src="systems.js?v19"></script><script src="sim-result.js"></script><script src="chars-v18.js?v19"></script><script src="game-v2.js?v19"></script>
 </body></html>

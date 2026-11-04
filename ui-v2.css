@@ -602,3 +602,23 @@ body:has(.modal.show) #chat,body:has(.modal.show) #bubs{visibility:hidden}
 #charPick .cpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;max-height:236px;overflow:auto;padding:4px}
 #charPick .cpg button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border-radius:14px;font-size:11.5px;line-height:1.2;background:#fff;border:2px solid transparent}#charPick .cpg button img{width:64px;height:72px;object-fit:cover;border-radius:10px;background:#efe6d8}#charPick .cpg button i{font-style:normal;font-size:40px;height:72px;display:flex;align-items:center}
 #charPick .cpg button.sel{border-color:var(--acc2);background:#fff4ee!important;color:inherit!important}
+.ambone{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13.5px;margin:4px 0 8px}.ambone label{cursor:pointer}
+/* v19 시작 화면 B (데스크톱) / D (모바일) */
+#start .stB{display:grid;grid-template-columns:minmax(260px,320px) minmax(300px,420px) minmax(300px,380px);gap:18px;align-items:stretch;max-width:1180px;width:96vw;max-height:94vh}
+#start .stB .card{position:relative;margin:0;width:auto;max-width:none;padding:20px 20px 18px;display:flex;flex-direction:column;gap:6px;text-align:left;overflow:auto}
+#start .stB h1{margin:0}#start .lbl{font-weight:800;font-size:13px;color:#6a6076;margin-top:10px}
+#stNick{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:2px solid #ece4da;outline:0}#stNick:focus{border-color:var(--acc2)}
+#stSrv{display:flex;flex-direction:column;gap:7px}#stSrv .sv{display:grid;grid-template-columns:72px 1fr 44px;align-items:center;gap:8px;padding:9px 11px;border-radius:12px;background:#f7f3ee;border:2px solid transparent;text-align:left;font-size:13px}
+#stSrv .sv.on{border-color:var(--acc2);background:#fff4ee}#stSrv .sv:disabled{opacity:.5}#stSrv .bar{height:7px;border-radius:9px;background:#e6dfd6;overflow:hidden}#stSrv .bar i{display:block;height:100%;background:#6cc28a}#stSrv .bar i.hi{background:#f0a050}#stSrv small{color:#8a8094;font-size:11.5px;text-align:right}
+#start .note{font-size:12px;color:#6a6076;background:#f7f3ee;border-radius:12px;padding:9px 11px;margin-top:10px;line-height:1.45}
+#start .st2{align-items:center;text-align:center!important}#start .stPrev{width:100%;flex:1;min-height:260px;border-radius:18px;background:radial-gradient(circle at 50% 40%,#fff,#efe7dc);display:flex;align-items:center;justify-content:center;overflow:hidden}#start .stPrev img{max-height:340px;max-width:92%;border-radius:18px}
+#start .st2 b{font-size:18px;margin-top:6px}#start .st2 #go{width:100%;margin-top:8px}
+#start .st3 #charPick{margin:4px 0 0;max-width:none}#start .st3 #charPick .cpg{max-height:none;grid-template-columns:repeat(4,1fr)}
+#start .stSteps,#start .stNext,#start .stBack{display:none}#start .ghost{background:#f3eee6;color:#4a4058}
+@media (max-width:699px){#start .stB{grid-template-columns:1fr;width:94vw;max-height:none;gap:10px}#start .stB .card{padding:16px}
+ #start .stSteps{display:flex;gap:6px;margin:6px 0}#start .stSteps span{flex:1;text-align:center;padding:6px 4px;border-radius:10px;background:#f3eee6;font-size:12px;font-weight:800;color:#8a8094}#start .stSteps span.on{background:var(--acc2);color:#fff}#start .stSteps span.done{background:#d8efe0;color:#3a7a52}
+ #start .stNext,#start .stBack{display:block}#start .stNav{display:flex;gap:8px;margin-top:10px}#start .stNav .big{flex:1}#start .stA .big{margin-top:12px}
+ #start [data-step="1"] .stS,#start [data-step="2"] .stA,#start [data-step="1"] .st2,#start [data-step="2"] .st2,#start [data-step="1"] .st3,#start [data-step="2"] .st3{display:none}
+ #start [data-step="3"] .st1 .stA,#start [data-step="3"] .st1 .stS,#start [data-step="3"] .st1 h1+p{display:none}#start [data-step="3"] .st1{padding-bottom:8px}
+ #start [data-step="3"]{display:flex;flex-direction:column}#start [data-step="3"] .st3{order:2}#start [data-step="3"] .st2{order:3}
+ #start .stPrev{min-height:180px;flex:none;height:200px}#start .stPrev img{max-height:190px}#start .stKeys{display:none}#start .st3 #charPick .cpg{grid-template-columns:repeat(5,1fr)}#start .st3 #charPick .cpg button img{width:100%;height:auto;aspect-ratio:8/9}#start .st3 #charPick .cpg button span{font-size:10px}}

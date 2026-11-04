@@ -1,0 +1,13 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v19 시안 모음</title><link rel="stylesheet" href="common.css"><style>
+.sec{background:#fff;border-radius:18px;padding:18px 20px;margin:18px 0;box-shadow:0 4px 18px #4a405814}.sec h2{margin:0 0 6px}.no{display:inline-block;background:#6a4fc0;color:#fff;border-radius:10px;padding:2px 9px;font-size:13px;margin-right:6px}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px;margin-top:10px}figure{margin:0}figure img{width:100%;border-radius:10px;display:block;box-shadow:0 2px 8px #0002;cursor:zoom-in}figcaption{font-size:12.5px;color:#6a6076;margin-top:5px;line-height:1.4}
+.btn{display:inline-block;background:#ff8a5c;color:#fff;text-decoration:none;font-weight:700;padding:8px 16px;border-radius:12px;font-size:14px;margin:4px 6px 4px 0}p{font-size:14px;color:#6a6076;margin:6px 0}
+</style></head><body><div class="wrap" style="max-width:1200px;margin:auto;padding:16px"><h1>낚멍 v19 시안 모음</h1><p>이미지를 누르면 크게 볼 수 있어요 (←/→ 이동, ESC 닫기).</p>
+<div class="sec"><h2><span class="no">1</span>알림창 모아보기 · 빗소리</h2><a class="btn" href="notifications.html">🔔 알림창 전체 보기 (실제 화면 46장)</a><a class="btn" href="sfx-rain.html">🌧 빗소리 시안 듣기 (7종)</a></div>
+<div class="sec"><h2><span class="no">2</span>물고기 배틀 (친선전 · 3마리)</h2><p>B1 수중 아레나 기술 연출 · B2 매칭 VS 화면 · B3 승리·보상 공개 · B4 카드 배틀 (모바일용). 보상은 칭호·리그 점수·꾸미기만, 물고기·코인은 걸지 않아요.</p><div class="gal" id="gB"></div></div>
+<div class="sec"><h2><span class="no">3</span>물고기 모험</h2><p>A1 모험 지도 · A2 여정 중 (뗏목 횡스크롤 + 이벤트) · A3 귀환 엽서 + 보상 카드 뒤집기 · A4 장소 선택 카드.</p><div class="gal" id="gA"></div></div>
+</div><script>
+const G={gB:[['B1','B1 수중 아레나 — 기술 이펙트·데미지·상성 배율'],['B2','B2 매칭 VS 스플래시 — 캐릭터·팀 3마리·리그'],['B3','B3 승리 — 칭호·리그 점수·상자 조각 공개'],['B4','B4 카드 배틀 테이블 — 호수 위 테이블, 콤보']],
+gA:[['A1','A1 모험 지도 — 점선 경로를 헤엄쳐 가는 물고기'],['A2','A2 여정 중 — 뗏목 탐험대, 이벤트 팝업, 여행 일지'],['A3','A3 귀환 — 엽서와 보상 카드 뒤집기'],['A4','A4 장소 선택 — 추천 물고기 보상 +30%']]};
+for(const id in G)document.getElementById(id).innerHTML=G[id].map(([f,c])=>`<figure><img src="${f}.jpg" alt="${c}" loading="lazy"><figcaption>${c}</figcaption></figure>`).join('');
+</script><script src="lb.js"></script><script>window.NK_EMOJI_BASE="../icons/emoji/";</script><script src="../emoji.js"></script></body></html>

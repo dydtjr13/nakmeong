@@ -1,0 +1,20 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v19 · 빗소리 시안</title><link rel="stylesheet" href="common.css"><style>
+.sec{background:#fff;border-radius:18px;padding:16px 18px;margin:16px 0;box-shadow:0 4px 18px #4a405814}.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.c{border:2px solid #eee4d8;border-radius:16px;padding:14px}.c.on{border-color:#ff8a5c;background:#fff6f0}.c b{font-size:16px}.c p{font-size:13px;color:#6a6076;margin:6px 0 10px}
+button{font:inherit;font-weight:800;border:0;border-radius:12px;padding:8px 14px;cursor:pointer;background:#ff8a5c;color:#fff}button.st{background:#3b3346}label{font-size:14px}small{color:#8a8094}
+</style></head><body><div class="wrap" style="max-width:1100px;margin:auto;padding:16px"><h1>🌧 빗소리 시안 (비 올 때 환경음)</h1>
+<p>버튼을 누르면 45~60초 루프로 재생돼요. 게임에서는 비·폭풍 날씨일 때 지금 호수 소리 위에 겹쳐 재생하는 방식으로 넣을 예정이에요. 마음에 드는 번호(예: R2, T3)를 알려 주세요. <a href="index.html">← 시안 목록</a></p>
+<div class="sec"><label><input type="checkbox" id="mix" checked> 지금 게임 호수 소리(낮 1번)도 같이 듣기</label> · 빗소리 볼륨 <input type="range" id="vol" min="0" max="1" step=".05" value=".8"> <button class="st" id="stop">■ 모두 정지</button></div>
+<div class="sec"><h2>☔ 빗소리만</h2><div class="g" id="gR"></div></div>
+<div class="sec"><h2>⛈ 빗소리 + 천둥</h2><div class="g" id="gT"></div></div>
+<p><small>출처: Wikimedia Commons — Public domain / CC0 원본만 사용 (상업 사용·수정 자유). R1 "Rain (1).ogg" ezwa (PD) · R2 "Rain against the window.ogg" cori (PD) · R3 "Listening to Raindrops (heavy loop)" NASA (PD) · T1 "Light Rain Distant Thunder July 5th 2016" (CC0) · T2 "Rain and thunder (1).ogg" (PD) · T3 "Thunder and rain on a v.ogg" (PD) · T4 "Rain thunder and birds.ogg" (PD). 끊김 없이 반복되도록 끝과 처음을 3초 크로스페이드, 음량 평준화.</small></p></div>
+<script>
+const R=[['r1','R1 부슬비','잔잔하고 고른 빗소리. 오래 들어도 편안해요.'],['r2','R2 창가 빗소리','유리창·처마에 떨어지는 빗방울. 가까운 느낌.'],['r3','R3 굵은 빗방울','조금 더 세고 촘촘한 비. 소나기 느낌.']],
+T=[['t1','T1 보슬비 + 먼 천둥','아주 멀리서 가끔 우르릉. 가장 차분한 천둥.'],['t2','T2 소나기 + 천둥','빗소리와 또렷한 천둥이 섞인 기본형.'],['t3','T3 처마 비 + 천둥','베란다/처마 아래에서 듣는 비와 천둥.'],['t4','T4 비 + 천둥 + 새소리','비 사이로 새소리가 들려 덜 무거워요.']];
+const ext=new Audio().canPlayType('audio/ogg')?'.ogg':'.mp3';let cur=null,el=null;const amb=new Audio('../sounds/day1_morning_birds_lake'+ext);amb.loop=true;amb.volume=.35;
+const card=([k,n,d])=>`<div class="c" id="c-${k}"><b>${n}</b><p>${d}</p><button data-k="${k}">▶ 들어보기</button></div>`;
+gR.innerHTML=R.map(card).join('');gT.innerHTML=T.map(card).join('');
+const stop=()=>{if(el){el.pause();el=null;}amb.pause();document.querySelectorAll('.c').forEach(c=>c.classList.remove('on'));document.querySelectorAll('[data-k]').forEach(b=>b.textContent='▶ 들어보기');cur=null;};
+document.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{const k=b.dataset.k;if(cur===k)return stop();stop();el=new Audio('rain/'+k+ext);el.loop=true;el.volume=+vol.value;el.play();if(mix.checked){amb.currentTime=0;amb.play();}cur=k;b.textContent='■ 정지';document.getElementById('c-'+k).classList.add('on');});
+vol.oninput=()=>{if(el)el.volume=+vol.value;};mix.onchange=()=>{if(!el)return;mix.checked?amb.play():amb.pause();};document.getElementById('stop').onclick=stop;
+</script><script>window.NK_EMOJI_BASE="../icons/emoji/";</script><script src="../emoji.js"></script></body></html>
