@@ -1,0 +1,14 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v18 시안 모음</title><link rel="stylesheet" href="common.css"><style>
+.sec{background:#fff;border-radius:18px;padding:18px 20px;margin:18px 0;box-shadow:0 4px 18px #4a405814}.sec h2{margin:0 0 6px}.no{display:inline-block;background:#6a4fc0;color:#fff;border-radius:10px;padding:2px 9px;font-size:13px;margin-right:6px}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px;margin-top:10px}figure{margin:0}figure img{width:100%;border-radius:10px;display:block;box-shadow:0 2px 8px #0002;cursor:zoom-in}figcaption{font-size:12.5px;color:#6a6076;margin-top:5px;line-height:1.4}
+.btn{display:inline-block;background:#ff8a5c;color:#fff;text-decoration:none;font-weight:700;padding:7px 14px;border-radius:12px;font-size:13.5px}p{font-size:14px;color:#6a6076;margin:6px 0}
+</style></head><body><div class="wrap" style="max-width:1150px;margin:auto;padding:16px"><h1>낚멍 v18 시안 모음</h1><p>이미지를 누르면 크게 볼 수 있어요 (←/→ 이동, ESC 닫기).</p>
+<div class="sec"><h2><span class="no">1</span>시작 화면</h2><p>닉네임·서버·캐릭터 선택. 모두 이 브라우저(localStorage)에 기억해서 다시 오면 바로 시작. 추가 제안: 캐릭터 미리보기 회전, 설정, 공지·패치노트, 세이브 코드 불러오기, 게스트 안내, 출석 보상.</p><div class="gal" id="g1"></div></div>
+<div class="sec"><h2><span class="no">2</span>넓힌 데크 (의자 2개 확정 + 양쪽 어항)</h2><p>참고: 데크 25개가 원형으로 붙어 있어 넓히면 옆 데크와 가까워져요. 데크 수를 줄이거나 호수를 키우는 것과 같이 정해야 해요.</p><div class="gal" id="g2"></div></div>
+<div class="sec"><h2><span class="no">3</span>추가 콘텐츠 콘셉트 (구현 전)</h2><p>기획안: <a class="btn" href="../docs/v18-추가콘텐츠-기획.html">추가 콘텐츠 기획안 보기</a></p><div class="gal" id="g3"></div></div>
+</div><script>
+const G={g1:[['sA','A 단계형: 닉네임 → 서버 → 캐릭터 (큰 미리보기 회전)'],['sB','B 한 화면: 왼쪽 닉네임·서버(인원 막대) · 가운데 미리보기 · 오른쪽 캐릭터'],['sC','C 다시 왔을 때: 바로 시작 + 공지·패치노트 + 출석 보상'],['sD','D 모바일 단계형']],
+g2:[['deck-W1n','W1 데크 전체를 넓게 (폭 4.6)'],['deck-W1w','W1 전체'],['deck-W2n','W2 끝만 넓은 T자 (의자·어항 모두 끝에)'],['deck-W2w','W2 전체'],['deck-W3n','W3 옆에 작은 발코니 (어항 자리만 튀어나옴)'],['deck-W3w','W3 전체'],['deck-W4n','W4 넓게 + 가로 어항 2개를 데크 안쪽에'],['deck-W4w','W4 전체']],
+g3:[['cBat','물고기 배틀 (3마리 친선전)'],['cAdv','물고기 모험 (탐험 보내기)'],['cDig','미끼 캐기 (기본 삽 타이밍)'],['cCook','모닥불 요리 (버프)'],['cFarm','데크 뒤 텃밭 (요리 재료)']]};
+for(const id in G)document.getElementById(id).innerHTML=G[id].map(([f,c])=>`<figure><img src="${f}.jpg" alt="${c}" loading="lazy"><figcaption>${c}</figcaption></figure>`).join('');
+</script><script src="lb.js"></script></body></html>

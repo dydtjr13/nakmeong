@@ -1,7 +1,7 @@
 // node tools/sim-time.js [players=300] → 플레이 시간별(10분/30분/1시간/24시간) 기대치 표 (v9 데이터 기준)
 // 가상 플레이어 정책: 잡은 물고기 전량 판매, 상자 즉시 개봉, 부적은 등급 높은 6개 장착(나머지 분해),
 // 다음 낚싯대 살 돈이 생기면 구매·장착, 남는 코인/강화석으로 강화(비용 2배 이상 보유 시), 미끼는 지렁이 고정.
-global.window={};['game-data','game-data-v3','game-data-v4','game-data-v5','game-data-v7','game-data-v8','game-data-v9','game-data-v10','game-data-v11','game-data-v12','game-data-v13','game-data-v14'].forEach(f=>require('../'+f+'.js'));
+global.window={};['game-data','game-data-v3','game-data-v4','game-data-v5','game-data-v7','game-data-v8','game-data-v9','game-data-v10','game-data-v11','game-data-v12','game-data-v13','game-data-v14','game-data-v18'].forEach(f=>require('../'+f+'.js'));
 const D=window.NK_DATA,SYS=require('../systems.js'),rnd=Math.random,NP=+(process.argv[2]||300);
 const GT={},ENHT={5:[],10:[],15:[],20:[]};const MARK=[[600,'10분'],[1800,'30분'],[3600,'1시간'],[28800,'8시간'],[86400,'24시간'],[432000,'120시간']].filter(m=>m[0]<=(+process.env.MAXH||120)*3600),AUTO=!!process.env.AUTO,FIRST={gold:[],star:[],dragon:[],sakura:[],coral:[]},RI=k=>D.RODS.findIndex(r=>r.k===k);
 const acc=MARK.map(()=>({g:[0,0,0,0,0],tx:0,txAny:0,box:[0,0,0,0,0,0],coin:0,earned:0,rod:{},enh:0,P:0,charmT:0}));

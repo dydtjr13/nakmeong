@@ -1,0 +1,152 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v18 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>낚멍 v18 보고서</h1>
+<h2>적용</h2>
+<ol>
+<li>부적 합산 효과 비교: 교체·해제 시 떨어지는 옵션도 <strong>빨간색 ▼ −수치%</strong> 와 빨간 막대로 표시</li>
+<li>부적 교체 대상 자동 선택: 교체 후 합산 효과가 가장 큰(=잃는 게 가장 적은) 슬롯, 같으면 낮은 등급 슬롯</li>
+<li>상자 기본 확률 0.5% → <strong>1.8%</strong></li>
+<li>강화 실패 하락 확률: 레벨이 오를수록 높게 (+0~+7은 하락 없음)</li>
+<li>호수 물: 시안 5 기본, 설정에서 1·3·4 선택</li>
+<li>낮 밝기: 시안 2 기본, 설정에서 1·3·5·기존 선택</li>
+<li>어항: 지금 3D 물고기 기본, 설정에서 A·B(그림 물고기) 선택</li>
+<li>캐릭터 선택: 기본 5 + 사람 12 + 동물 10 = 27종 (탭·썸네일). <code>chars-v18.js</code> 모듈로 분리 — 나중에 진짜 에셋으로 교체 가능
+- 보류: 레벨 시스템, 어항 물고기 목록</li>
+</ol>
+<h2>상자 확률 (보물탐지 300% = 확률 ×4, 직접 낚시 시간당 209마리)</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>기본 확률</td>
+<td><strong>1.8%</strong> (300%에서 7.2%)</td>
+</tr>
+<tr>
+<td>시간당 상자</td>
+<td>낚시 드롭 15.0 + 연속 상자 2.1 = <strong>약 17.1개</strong></td>
+</tr>
+<tr>
+<td>100개</td>
+<td>5.8시간</td>
+</tr>
+<tr>
+<td>500개</td>
+<td>29.2시간</td>
+</tr>
+<tr>
+<td>1000개</td>
+<td>58.3시간</td>
+</tr>
+</tbody>
+</table>
+<p>연속 상자 하루 10개 제한 이후(하루 약 4.8시간 넘게)는 시간당 15.0개 → 100·500·1000개에 6.6·33·67시간. 보물탐지 0%면 시간당 약 3.8+2.1개.</p>
+<h2>강화 표 (성공률 / 실패 시 1단계 하락 확률)</h2>
+<table>
+<thead>
+<tr>
+<th>단계</th>
+<th>성공</th>
+<th>하락</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+0~+4</td>
+<td>100~80%</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>+5</td>
+<td>70%</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>+6</td>
+<td>62%</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>+7</td>
+<td>55%</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>+8</td>
+<td>48%</td>
+<td>5%</td>
+</tr>
+<tr>
+<td>+9</td>
+<td>42%</td>
+<td>10%</td>
+</tr>
+<tr>
+<td>+10</td>
+<td>35%</td>
+<td>15%</td>
+</tr>
+<tr>
+<td>+11</td>
+<td>30%</td>
+<td>20%</td>
+</tr>
+<tr>
+<td>+12</td>
+<td>26%</td>
+<td>25%</td>
+</tr>
+<tr>
+<td>+13</td>
+<td>22%</td>
+<td>30%</td>
+</tr>
+<tr>
+<td>+14</td>
+<td>18%</td>
+<td>35%</td>
+</tr>
+<tr>
+<td>+15</td>
+<td>15%</td>
+<td>40%</td>
+</tr>
+<tr>
+<td>+16</td>
+<td>12%</td>
+<td>45%</td>
+</tr>
+<tr>
+<td>+17</td>
+<td>10%</td>
+<td>50%</td>
+</tr>
+<tr>
+<td>+18</td>
+<td>8%</td>
+<td>55%</td>
+</tr>
+<tr>
+<td>+19</td>
+<td>6%</td>
+<td>60%</td>
+</tr>
+</tbody>
+</table>
+<p>이전: +11~14 30%, +16~19 50%, +10·+15는 안전 구간(바닥)이라 낮은 쪽이 상대적으로 더 자주 떨어져 보였음.</p>
+<h2>시안</h2>
+<p><a href="https://dydtjr13.github.io/nakmeong/mockups-v18/">https://dydtjr13.github.io/nakmeong/mockups-v18/</a> — 시작 화면 4안, 넓힌 데크 4안, 추가 콘텐츠 콘셉트 5장
+기획안: <a href="v18-추가콘텐츠-기획.html">v18-추가콘텐츠-기획</a></p>
+<h2>참고</h2>
+<ul>
+<li>데크 25개가 원형으로 붙어 있어 데크를 넓히면 옆 데크와 거의 닿아요. 넓힌 안을 쓰려면 데크 수를 줄이거나(예: 20개) 호수를 키워야 해요.</li>
+</ul></main></body></html>

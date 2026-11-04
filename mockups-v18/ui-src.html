@@ -1,0 +1,91 @@
+<!doctype html><meta charset="utf-8"><style>
+body{margin:0;background:#e9e2d6;font-family:system-ui,'Noto Sans KR',sans-serif;color:#3a3048}.shot{display:inline-block;vertical-align:top;padding:20px}
+img.em{width:1.15em;height:1.15em;vertical-align:-.2em}
+.scr{width:1280px;height:720px;position:relative;background:url(bg.jpg) center/cover;border-radius:18px;overflow:hidden}.scr:before{content:'';position:absolute;inset:0;background:#fff3;backdrop-filter:blur(2px)}
+.mob{width:390px;height:780px;position:relative;background:url(bg.jpg) 40% center/cover;border-radius:30px;overflow:hidden}.mob:before{content:'';position:absolute;inset:0;background:#fff4;backdrop-filter:blur(2px)}
+.card{position:absolute;background:#fffdf8f2;border-radius:24px;box-shadow:0 20px 60px #3a304840;padding:22px}
+h1{margin:0;font-size:30px}.sub{color:#7a6f86;font-size:14px}.lbl{font-size:12.5px;font-weight:800;color:#8a7f96;margin:14px 0 6px;letter-spacing:.05em}
+.in{border:2px solid #eadfd0;border-radius:14px;padding:11px 14px;font-size:16px;background:#fff;display:flex;justify-content:space-between;align-items:center}.in small{color:#5fb07a;font-weight:700}
+.srv{display:flex;flex-direction:column;gap:6px}.sv{display:flex;align-items:center;gap:10px;background:#fff;border:2px solid #eee4d6;border-radius:14px;padding:9px 12px;font-size:14px}.sv.on{border-color:#ff8a5c;background:#fff4ee}.sv .bar{flex:1;height:7px;border-radius:5px;background:#efe6da;overflow:hidden}.sv .bar i{display:block;height:100%;background:#5fc48a}.sv .bar i.hi{background:#f4a62a}.sv .bar i.full{background:#e0605a}.tag{font-size:11px;font-weight:800;color:#fff;background:#5fc48a;border-radius:7px;padding:1px 7px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.ch{background:#fff;border:2px solid transparent;border-radius:14px;padding:5px;text-align:center;font-size:11px}.ch img{width:100%;border-radius:10px;display:block}.ch.on{border-color:#ff8a5c;background:#fff4ee}
+.tabs{display:flex;gap:6px;margin-bottom:8px}.tabs span{padding:5px 12px;border-radius:999px;background:#f3eee6;font-size:13px;font-weight:700}.tabs span.on{background:#ff8a5c;color:#fff}
+.go{display:block;text-align:center;background:linear-gradient(90deg,#ff8a5c,#ff6a7a);color:#fff;font-weight:900;font-size:19px;border-radius:18px;padding:15px;box-shadow:0 8px 20px #ff6a7a55}
+.lnk{font-size:13px;color:#6a6076;display:flex;gap:14px;justify-content:center;margin-top:10px}.pill{position:absolute;background:#fffffff0;border-radius:999px;padding:8px 14px;font-weight:700;font-size:13.5px;box-shadow:0 4px 12px #0002}
+.prev{position:relative;border-radius:20px;background:radial-gradient(circle at 50% 70%,#fff,#f1e7d8);display:flex;align-items:flex-end;justify-content:center;overflow:hidden}.prev img{height:92%;}.prev .rot{position:absolute;bottom:12px;left:0;right:0;display:flex;justify-content:center;gap:10px}.prev .rot span{background:#fff;border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px #0002;font-weight:900}
+.steps{display:flex;gap:8px;margin:14px 0}.steps div{flex:1;text-align:center;padding:8px;border-radius:12px;background:#f3eee6;font-size:13px;font-weight:700;color:#8a7f96}.steps div.on{background:#3a3048;color:#fff}.steps div.done{background:#d8f0e0;color:#3a8a5a}
+.note{font-size:12.5px;color:#7a6f86;background:#f6f1ea;border-radius:12px;padding:9px 12px;line-height:1.55}
+.pn{font-size:13px;line-height:1.6}.pn b{color:#6a4fc0}
+/* concept */
+.cp{width:1100px;height:620px;border-radius:22px;overflow:hidden;position:relative;box-shadow:0 18px 50px #3a304833}
+.hp{height:9px;border-radius:6px;background:#0002;overflow:hidden}.hp i{display:block;height:100%;background:linear-gradient(90deg,#5fc48a,#9ae0a0)}
+.fc{background:#fff;border-radius:16px;padding:10px;text-align:center;box-shadow:0 6px 16px #0002;width:150px}.fc img{width:130px;height:60px;object-fit:contain}.fc b{font-size:14px;display:block;white-space:nowrap}.ty{font-size:11px;font-weight:800;color:#fff;border-radius:7px;padding:1px 7px}
+.btn{display:inline-block;background:#ff8a5c;color:#fff;font-weight:800;border-radius:12px;padding:9px 16px;font-size:14px}.btn.g{background:#3a3048}
+</style><body>
+<!-- S-A wizard -->
+<div class="shot" id="sA"><div class="scr"><div class="pill" style="right:20px;top:18px">⚙ 설정</div><div class="pill" style="right:110px;top:18px">📢 공지 · v18 패치노트</div>
+<div class="card" style="left:170px;top:70px;width:900px;height:560px;display:flex;gap:24px;padding:26px">
+<div class="prev" style="width:340px;height:100%"><img src="../img/chars/fox.jpg" style="height:80%;margin-bottom:60px;border-radius:20px"><div class="rot"><span>◀</span><span>▶</span></div></div>
+<div style="flex:1;display:flex;flex-direction:column"><h1>🎣 낚멍</h1><div class="sub">호숫가에서 함께 낚시하는 힐링 메타버스</div>
+<div class="steps"><div class="done">✅ 1 닉네임</div><div class="done">✅ 2 서버</div><div class="on">3 캐릭터</div></div>
+<div class="tabs"><span>기본 5</span><span>사람 12</span><span class="on">동물 10</span></div>
+<div class="grid" id="gA"></div>
+<div style="flex:1"></div><div style="display:flex;gap:10px;align-items:center"><span class="btn g">← 이전</span><span class="go" style="flex:1">여우로 시작하기</span></div>
+<div class="note" style="margin-top:10px">💾 이 브라우저에 닉네임·서버·캐릭터를 기억해 둬요. 다음엔 바로 시작할 수 있어요.</div></div></div></div></div>
+<!-- S-B one page -->
+<div class="shot" id="sB"><div class="scr">
+<div class="card" style="left:40px;top:60px;width:330px;height:560px"><h1>🎣 낚멍</h1><div class="sub">닉네임과 서버를 골라 주세요</div>
+<div class="lbl">닉네임</div><div class="in"><span>물멍러</span><small>✓ 사용 가능</small></div>
+<div class="lbl">서버</div><div class="srv"><div class="sv on"><b>호숫가 1</b><div class="bar"><i style="width:62%"></i></div><span class="tag">추천</span></div><div class="sv"><b>호숫가 2</b><div class="bar"><i class="hi" style="width:86%"></i></div><small>혼잡</small></div><div class="sv"><b>별밤 3</b><div class="bar"><i class="full" style="width:100%"></i></div><small>가득</small></div><div class="sv"><b>친구 서버</b><div class="bar"><i style="width:20%"></i></div><small>코드 입장</small></div></div>
+<div class="lbl">게스트 안내</div><div class="note">로그인 없이 이 브라우저에 저장돼요. 다른 기기로 옮기려면 <b>세이브 코드</b>를 쓰세요.</div></div>
+<div class="card" style="left:395px;top:60px;width:440px;height:560px;padding:16px"><div class="prev" style="height:420px"><img src="../img/chars/h1.jpg" style="height:86%;border-radius:20px;margin-bottom:40px"><div class="rot"><span>◀</span><span>🎣</span><span>👋</span><span>▶</span></div></div><div style="text-align:center;margin-top:10px"><b style="font-size:18px">노인 어부</b><div class="sub">노란 우비 · 수염 · 낚싯대</div></div><div class="go" style="margin-top:12px">시작하기 (호숫가 1)</div></div>
+<div class="card" style="left:860px;top:60px;width:380px;height:560px"><div class="tabs"><span>기본</span><span class="on">사람</span><span>동물</span></div><div class="grid" id="gB" style="grid-template-columns:repeat(4,1fr)"></div>
+<div class="lnk" style="margin-top:14px"><span>📥 세이브 코드 불러오기</span><span>⚙ 그래픽·소리</span><span>📢 공지</span></div></div></div></div>
+<!-- S-C returning -->
+<div class="shot" id="sC"><div class="scr">
+<div class="card" style="left:300px;top:110px;width:440px;height:480px;text-align:center"><div class="sub" style="font-weight:700">다시 오셨네요!</div><h1 style="margin:4px 0 10px">물멍러 님</h1>
+<div class="prev" style="height:250px;width:250px;margin:0 auto;border-radius:50%"><img src="../img/chars/h13.jpg" style="height:100%"></div>
+<div class="sub" style="margin:10px 0">밀짚모자 낚시꾼 · 호숫가 1 · 마지막 접속 어제 21:40</div><div class="go">▶ 바로 시작</div><div class="lnk"><span>닉네임 변경</span><span>서버 변경</span><span>캐릭터 변경</span></div></div>
+<div class="card" style="left:770px;top:110px;width:300px;height:480px"><b style="font-size:16px">📢 공지 · 패치노트</b><div class="pn" style="margin-top:10px"><b>v18</b> 물이 더 맑아졌어요 · 캐릭터 27종 · 강화 하락 조정<br><br><b>이벤트</b> 주말 상자 드롭 +10% (토·일)<br><br><b>점검</b> 11/12 04:00~05:00</div><div style="position:absolute;bottom:20px;left:20px;right:20px" class="note">🎁 오늘 출석 보상: 지렁이 ×10 <span class="btn" style="padding:4px 10px;font-size:12px;float:right">받기</span></div></div></div></div>
+<!-- S-D mobile -->
+<div class="shot" id="sD"><div class="mob"><div class="card" style="left:14px;right:14px;top:40px;bottom:30px;padding:18px"><h1 style="font-size:24px">🎣 낚멍</h1><div class="steps" style="margin:10px 0"><div class="done">1</div><div class="done">2</div><div class="on">3 캐릭터</div></div>
+<div class="prev" style="height:240px"><img src="../img/chars/penguin.jpg" style="height:90%;border-radius:16px;margin-bottom:20px"><div class="rot"><span>◀</span><span>▶</span></div></div>
+<div class="tabs" style="margin-top:10px"><span>기본</span><span>사람</span><span class="on">동물</span></div><div class="grid" id="gD" style="grid-template-columns:repeat(5,1fr);gap:5px"></div>
+<div class="go" style="position:absolute;left:18px;right:18px;bottom:18px">펭귄으로 시작</div></div></div></div>
+<!-- concept: battle -->
+<div class="shot" id="cBat"><div class="cp" style="background:linear-gradient(#bfe6f0,#9fd4e4)"><div style="position:absolute;left:0;right:0;top:0;padding:14px 22px;display:flex;justify-content:space-between;font-weight:800"><span>🐟 물고기 대결 · 친선전</span><span>3라운드 중 2</span><span>⏱ 12</span></div>
+<div style="position:absolute;left:60px;top:90px;display:flex;flex-direction:column;gap:14px" id="bL"></div><div style="position:absolute;right:60px;top:90px;display:flex;flex-direction:column;gap:14px" id="bR"></div>
+<div style="position:absolute;left:330px;right:330px;top:200px;text-align:center"><div style="font-size:54px;font-weight:900;color:#fff;text-shadow:0 4px 0 #3a78b8">VS</div><div class="card" style="position:relative;margin-top:14px;padding:14px;font-size:14px">쏘가리의 <b>물살 가르기!</b><br><span style="color:#e0605a">배스 −24</span> · 상성: 바위 ▶ 흙 <b>×1.3</b></div>
+<div style="display:flex;gap:8px;justify-content:center;margin-top:14px"><span class="btn">물살 가르기</span><span class="btn g">버티기</span><span class="btn g">교체</span></div></div>
+<div style="position:absolute;bottom:14px;left:22px;right:22px" class="note">물고기는 다치거나 사라지지 않아요(친선전). 보상은 칭호·전적·상자 조각뿐 — 도박 요소 없음</div></div></div>
+<!-- concept: adventure -->
+<div class="shot" id="cAdv"><div class="cp" style="background:linear-gradient(#e8f4e0,#cfe8c8)"><div style="padding:16px 22px;font-weight:800;font-size:17px">🗺 물고기 모험 — 탐험 보내기 (3칸)</div>
+<div style="position:absolute;left:22px;top:60px;width:620px;height:520px;border-radius:18px;background:url(bg.jpg) center/cover;box-shadow:inset 0 0 0 4px #fff">
+<div class="pill" style="left:60px;top:80px">🏞 얕은 개울 · 30분</div><div class="pill" style="left:300px;top:200px">🌊 깊은 호수 · 2시간</div><div class="pill" style="left:120px;top:360px">🌙 별빛 동굴 · 8시간 (Lv20)</div></div>
+<div style="position:absolute;right:22px;top:60px;width:400px;display:flex;flex-direction:column;gap:12px" id="adv"></div></div></div>
+<!-- concept: dig -->
+<div class="shot" id="cDig"><div class="cp" style="background:url(bg.jpg) center 70%/cover"><div class="card" style="left:22px;top:22px;padding:14px 18px"><b>⛏ 미끼 캐기</b><div class="sub">물가 모래밭 · 기본 삽 (내구도 무제한)</div></div>
+<div style="position:absolute;left:380px;top:250px;width:340px;height:200px;border-radius:50%;background:radial-gradient(#b08a5a,#8a6a44);box-shadow:0 10px 30px #0004"></div><div style="position:absolute;left:520px;top:200px;font-size:70px">⛏</div>
+<div class="card" style="left:410px;top:470px;width:280px;padding:12px;text-align:center"><div style="font-weight:800">타이밍에 맞춰 탭!</div><div class="hp" style="height:16px;margin:8px 0;background:linear-gradient(90deg,#eee 0 40%,#5fc48a 40% 55%,#eee 55%)"><i style="width:47%;background:transparent;border-right:4px solid #3a3048"></i></div><small>성공: 지렁이 ×3 · 대성공: 떡밥 ×1</small></div>
+<div class="card" style="right:22px;top:22px;width:260px;padding:14px"><b>오늘 캔 미끼</b><div class="pn">🪱 지렁이 ×18<br>🦐 새우 ×4<br>✨ 반짝 구더기 ×1 (희귀)</div><div class="note" style="margin-top:8px">자리마다 하루 5번 · 비 온 뒤엔 2배</div></div></div></div>
+<!-- concept: cook -->
+<div class="shot" id="cCook"><div class="cp" style="background:linear-gradient(#fff1dc,#f6dcc0)"><div style="padding:16px 22px;font-weight:800;font-size:17px">🍳 모닥불 요리</div>
+<div style="position:absolute;left:40px;top:70px;width:460px;height:500px;border-radius:24px;background:#3a3048;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#fff"><div style="font-size:120px">🍲</div><b style="font-size:22px">매운탕</b><div style="opacity:.8">붕어 ×1 + 고추 ×2 + 파 ×1</div><div class="hp" style="width:300px;margin-top:16px;height:14px;background:#fff3"><i style="width:70%;background:linear-gradient(90deg,#f4a62a,#e0605a)"></i></div><small style="margin-top:6px">끓이는 중 · 70%</small></div>
+<div style="position:absolute;left:540px;top:70px;right:40px" id="rec"></div></div></div>
+<!-- concept: farm -->
+<div class="shot" id="cFarm"><div class="cp" style="background:linear-gradient(#e6f2d8,#d4e8c0)"><div style="padding:16px 22px;font-weight:800;font-size:17px">🌱 데크 뒤 텃밭 (3×3 · 칸 확장 구매)</div>
+<div style="position:absolute;left:40px;top:70px;display:grid;grid-template-columns:repeat(3,150px);gap:12px" id="farm"></div>
+<div class="card" style="right:40px;top:70px;width:380px;padding:18px"><b>씨앗 가방</b><div class="pn" style="margin-top:6px">🌶 고추 씨앗 ×6 · 2시간<br>🧅 파 씨앗 ×4 · 1시간<br>🥔 감자 씨앗 ×3 · 3시간<br>🍓 딸기 씨앗 ×1 · 6시간 (상자 전용)</div><div class="note" style="margin-top:10px">💧 물 주기: 호수 물 1번이면 성장 +20%<br>🐟 비료: 판매하기 아까운 일반 물고기 → 비료</div><div style="margin-top:12px"><span class="btn">수확하기 (3)</span> <span class="btn g">요리로 보내기</span></div></div></div></div>
+<script>
+const CH=['b0','b1','b2','b3','h13','h1','h2','h3','h4','h5','h6','h7','h8','h9','h10','h11','h12'],AN=['cat','otter','penguin','bear','duck','frog','fox','rabbit','raccoon','seal'];
+const g=(id,ls,on)=>{document.getElementById(id).innerHTML=ls.map(k=>`<div class="ch ${k===on?'on':''}"><img src="../img/chars/${k}.jpg"></div>`).join('');};
+g('gA',AN,'fox');g('gB',CH.slice(5,17),'h1');g('gD',AN,'penguin');
+const F=[['mandarin','쏘가리','바위','#8a7a6a',80],['bluegill','블루길','물','#4ea3ea',55],['catfish','메기','흙','#a0703a',100]],E=[['bass','배스','흙','#a0703a',40],['carp','잉어','물','#4ea3ea',90],['snakehead','가물치','바위','#8a7a6a',70]];
+const fc=(f)=>`<div class="fc"><img src="../img/fish/${f[0]}.png"><b>${f[1]}</b> <span class="ty" style="background:${f[3]}">${f[2]}</span><div class="hp" style="margin-top:6px"><i style="width:${f[4]}%"></i></div></div>`;
+document.getElementById('bL').innerHTML='<b>나 · 물멍러</b>'+F.map(fc).join('');document.getElementById('bR').innerHTML='<b style="text-align:right">별밤조사</b>'+E.map(fc).join('');
+document.getElementById('adv').innerHTML=[['trout','무지개송어','깊은 호수','1:12 남음',40],['kkeokji','꺽지','얕은 개울','완료!',100],[null,'빈 칸','','물고기를 골라 보내기',0]].map(([k,n,w,t,p])=>`<div class="card" style="position:relative;padding:12px;display:flex;gap:12px;align-items:center">${k?`<img src="../img/fish/${k}.png" style="width:110px;height:54px;object-fit:contain">`:'<div style="width:110px;height:54px;border:2px dashed #d8cfc2;border-radius:12px"></div>'}<div style="flex:1"><b>${n}</b> <small>${w}</small><div class="hp" style="margin:6px 0"><i style="width:${p}%"></i></div><small>${t}</small></div>${p===100?'<span class="btn">보상 받기</span>':''}</div>`).join('')+'<div class="note">보상: 미끼·강화석·소품·지도 조각 · 모험 중인 물고기는 어항 조합에서 잠시 빠짐</div>';
+document.getElementById('rec').innerHTML=[['🍲','매운탕','붕어+고추+파','입질 속도 +10% · 20분'],['🍢','꼬치구이','아무 물고기 ×2','상자 드롭 +5% · 15분'],['🥘','송어 감자조림','무지개송어+감자','대어 확률 +8% · 30분'],['🍓','딸기 빙수','딸기+빙어','이동 속도 +15% · 10분']].map(([e,n,i,b])=>`<div class="card" style="position:relative;padding:12px 14px;margin-bottom:10px;display:flex;gap:12px;align-items:center"><span style="font-size:40px">${e}</span><div style="flex:1"><b>${n}</b><div class="sub">${i}</div><small style="color:#3a8a5a;font-weight:700">${b}</small></div><span class="btn" style="font-size:12px;padding:6px 10px">요리</span></div>`).join('');
+document.getElementById('farm').innerHTML=['🌱','🌿','🌶','🌶','🧅','🥔','🟫','🟫','🔒'].map((e,i)=>`<div style="height:150px;border-radius:18px;background:${e==='🔒'?'#c8bca8':'#a07a52'};display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:50px;box-shadow:inset 0 -6px 0 #0002">${e}<small style="font-size:12px;color:#fff;font-weight:700">${['새싹 1:20','자라는 중 0:40','수확!','수확!','수확!','자라는 중 2:10','빈 땅','빈 땅','🪙 2,000 확장'][i]}</small></div>`).join('');
+const RX=/(?:[\u{1F000}-\u{1FAFF}\u2699\u26A0-\u26FF\u2705\u2B06\u2B50]\uFE0F?)/gu;const cp=e=>[...e].map(c=>c.codePointAt(0)).filter(c=>c!==0xfe0f).map(c=>c.toString(16)).join('-');
+const W=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);const ns=[];while(W.nextNode()){RX.lastIndex=0;if(RX.test(W.currentNode.textContent))ns.push(W.currentNode);}
+ns.forEach(n=>{RX.lastIndex=0;const s=document.createElement('span');s.innerHTML=n.textContent.replace(/[<>&]/g,'').replace(RX,e=>`<img class="em" src="../icons/emoji-png/${cp(e)}.png">`);n.replaceWith(s);});
+</script>

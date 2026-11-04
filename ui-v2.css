@@ -595,3 +595,10 @@ body:has(.modal.show) #chat,body:has(.modal.show) #bubs{visibility:hidden}
  #set .card.setA input[type=text],#set .card.setA input:not([type]){max-width:100%;box-sizing:border-box}
 }
 #set .card.setA .close{color:#c0603a!important;font-size:22px!important;line-height:1!important;display:flex;align-items:center;justify-content:center}
+
+/* v18 */
+.dl.dn{background:#e0485a!important}.bgb s{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(45deg,#ff8a9a 0 4px,#e0485a 4px 8px);opacity:.9}
+#charPick{display:block!important;margin:8px auto 14px;max-width:560px}#charPick .cpt{display:flex;gap:6px;justify-content:center;margin-bottom:8px}#charPick .cpt span{padding:5px 12px;border-radius:999px;background:#f3eee6;font-size:13px;cursor:pointer;font-weight:700}#charPick .cpt span.on{background:var(--acc2);color:#fff}
+#charPick .cpg{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;max-height:236px;overflow:auto;padding:4px}
+#charPick .cpg button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;border-radius:14px;font-size:11.5px;line-height:1.2;background:#fff;border:2px solid transparent}#charPick .cpg button img{width:64px;height:72px;object-fit:cover;border-radius:10px;background:#efe6d8}#charPick .cpg button i{font-style:normal;font-size:40px;height:72px;display:flex;align-items:center}
+#charPick .cpg button.sel{border-color:var(--acc2);background:#fff4ee!important;color:inherit!important}

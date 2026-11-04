@@ -1,0 +1,18 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0"><canvas id="c"></canvas>
+<script src="../lib/three.min.js"></script><script src="../lib/GLTFLoader.js"></script><script src="../lib/SkeletonUtils.js"></script><script src="../chars-v18.js"></script><script>
+// 캐릭터 선택 썸네일 생성용 (node tools/... 에서 playwright로 열어 img/chars/*.jpg 저장)
+const W=192,H=216;const R=new THREE.WebGLRenderer({canvas:c,antialias:true,preserveDrawingBuffer:true});R.setSize(W,H);R.setClearColor(0xefe6d8);R.outputEncoding=THREE.sRGBEncoding;
+const S=new THREE.Scene();const cam=new THREE.PerspectiveCamera(30,W/H,.1,100);S.add(new THREE.HemisphereLight(0xffffff,0xc9b89c,.9));const L=new THREE.DirectionalLight(0xffffff,.85);L.position.set(4,8,8);S.add(L);
+const LD=new THREE.GLTFLoader();const get=k=>new Promise(r=>LD.load('../assets/kenney/'+k+'.glb',r));
+function recolor(o,map){o.traverse(m=>{if(!m.isMesh||m.name!=='body-mesh')return;const mt=m.material.clone();const img=mt.map.image;const cv=document.createElement('canvas');cv.width=img.width;cv.height=img.height;const x=cv.getContext('2d');x.drawImage(img,0,0);const cw=img.width/16,ch=img.height/8;
+ for(const k in map){const [cx,cy]=k.split(',').map(Number);const d=x.getImageData(cx*cw,cy*ch,cw,ch);const t=new THREE.Color(map[k]);let av=0;for(let i=0;i<d.data.length;i+=4)av+=d.data[i]+d.data[i+1]+d.data[i+2];av/=d.data.length/4;for(let i=0;i<d.data.length;i+=4){const l=(d.data[i]+d.data[i+1]+d.data[i+2])/av;d.data[i]=Math.min(255,t.r*255*l);d.data[i+1]=Math.min(255,t.g*255*l);d.data[i+2]=Math.min(255,t.b*255*l);}x.putImageData(d,cx*cw,cy*ch);}
+ const tx=new THREE.CanvasTexture(cv);tx.flipY=mt.map.flipY;tx.encoding=mt.map.encoding;tx.magFilter=mt.map.magFilter;tx.minFilter=mt.map.minFilter;mt.map=tx;m.material=mt;});}
+const B=[['b0','character-male-a',1,null],['b1','character-female-a',1,null],['b2','character-male-a',.72,{'11,6':'#ff7a2a','3,5':'#ff7a2a','3,4':'#ff7a2a'}],['b3','character-female-c',.72,null]];
+window.OUT={};
+(async()=>{const list=[...B.map(b=>({id:b[0],base:b[1],s:b[2],rc:b[3]})),...NK_CHARS.humans,...NK_CHARS.animals.map(a=>({id:a.id,animal:1}))];
+ for(const h of list){while(S.children.length>2)S.remove(S.children[2]);let o;
+  if(h.animal){o=NK_CHARS.buildAnimal(h.id);S.add(o);}else{const g=await get(h.base);o=THREE.SkeletonUtils.clone(g.scene);o.scale.setScalar(2.6*h.s);S.add(o);const mx=new THREE.AnimationMixer(o);const cl=g.animations.find(a=>/idle/i.test(a.name));if(cl){mx.clipAction(cl).play();mx.update(.6);}o.updateMatrixWorld(true);if(h.rc)recolor(o,h.rc);if(h.prop==='straw')NK_CHARS.straw(o);else if(h.prop)NK_CHARS.addProp(o,h.prop);}
+  o.rotation.y=-.35;S.updateMatrixWorld(true);const bb=new THREE.Box3().setFromObject(o);const hh=h.animal?1.9:2.3*(h.s||1);const cy=hh*.52;cam.position.set(0,cy+.3,hh*2.1+1.2);cam.lookAt(0,cy,0);
+  await new Promise(r=>setTimeout(r,250));R.render(S,cam);OUT[h.id]=c.toDataURL('image/jpeg',.88);}
+ document.title='done';})();
+</script>
