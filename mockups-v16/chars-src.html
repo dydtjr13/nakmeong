@@ -1,0 +1,50 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#f6efe4"><canvas id="c"></canvas>
+<script src="../lib/three.min.js"></script><script src="../lib/GLTFLoader.js"></script><script src="../lib/SkeletonUtils.js"></script><script>
+const W=1900,H=560;const R=new THREE.WebGLRenderer({canvas:c,antialias:true,preserveDrawingBuffer:true});R.setSize(W,H);R.setClearColor(0xf6efe4);R.outputEncoding=THREE.sRGBEncoding;R.shadowMap.enabled=true;
+const S=new THREE.Scene();const cam=new THREE.PerspectiveCamera(26,W/H,.1,100);cam.position.set(0,2.6,15);cam.lookAt(0,1.45,0);
+S.add(new THREE.HemisphereLight(0xffffff,0xc9b89c,.9));const L=new THREE.DirectionalLight(0xffffff,.9);L.position.set(5,9,7);L.castShadow=true;L.shadow.mapSize.set(2048,2048);Object.assign(L.shadow.camera,{left:-14,right:14,top:6,bottom:-3});S.add(L);
+const gr=new THREE.Mesh(new THREE.PlaneGeometry(60,20).rotateX(-Math.PI/2),new THREE.MeshLambertMaterial({color:0xeadfca}));gr.receiveShadow=true;S.add(gr);
+const LD=new THREE.GLTFLoader();const get=k=>new Promise(r=>LD.load('../assets/kenney/'+k+'.glb',r));
+function recolor(o,map){if(!map)return;o.traverse(m=>{if(!m.isMesh||m.name!=='body-mesh')return;const mt=m.material.clone();const img=mt.map.image;const cv=document.createElement('canvas');cv.width=img.width;cv.height=img.height;const x=cv.getContext('2d');x.drawImage(img,0,0);
+ const cw=img.width/16,ch=img.height/8;for(const k in map){const [cx,cy]=k.split(',').map(Number);const d=x.getImageData(cx*cw,cy*ch,cw,ch);const t=new THREE.Color(map[k]);let av=0;for(let i=0;i<d.data.length;i+=4)av+=d.data[i]+d.data[i+1]+d.data[i+2];av/=d.data.length/4;
+  for(let i=0;i<d.data.length;i+=4){const l=(d.data[i]+d.data[i+1]+d.data[i+2])/av;d.data[i]=Math.min(255,t.r*255*l);d.data[i+1]=Math.min(255,t.g*255*l);d.data[i+2]=Math.min(255,t.b*255*l);}x.putImageData(d,cx*cw,cy*ch);}
+ const tx=new THREE.CanvasTexture(cv);tx.flipY=mt.map.flipY;tx.encoding=mt.map.encoding;tx.magFilter=mt.map.magFilter;tx.minFilter=mt.map.minFilter;mt.map=tx;m.material=mt;});}
+const MAT=c=>new THREE.MeshStandardMaterial({color:new THREE.Color(c).convertSRGBToLinear(),roughness:.85,metalness:0,flatShading:true});
+function hat(o,kind,col){const h=o.getObjectByName('head');const hm=o.getObjectByName('head-mesh');const bb=new THREE.Box3().setFromObject(hm);const sz=bb.getSize(new THREE.Vector3()),top=bb.max.y;
+ const g=new THREE.Group();const wp=h.getWorldPosition(new THREE.Vector3());const s=1/o.scale.x;const r=sz.x*.5*s;const y=(top-wp.y)*s-r*.12;
+ if(kind==='straw'){const b=new THREE.Mesh(new THREE.CylinderGeometry(r*1.55,r*1.6,r*.08,10),MAT(col));b.position.y=y-r*.32;g.add(b);const t=new THREE.Mesh(new THREE.CylinderGeometry(r*.86,r*.98,r*.48,10),MAT(col));t.position.y=y-r*.08;g.add(t);const bd=new THREE.Mesh(new THREE.CylinderGeometry(r*1,r*1,r*.12,10),MAT(0xd0503a));bd.position.y=y-r*.24;g.add(bd);}
+ if(kind==='beanie'){const t=new THREE.Mesh(new THREE.CylinderGeometry(r*.92,r*1.04,r*.62,8),MAT(col));t.position.y=y-r*.12;g.add(t);const rb=new THREE.Mesh(new THREE.CylinderGeometry(r*1.07,r*1.07,r*.2,8),MAT(new THREE.Color(col).multiplyScalar(.8)));rb.position.y=y-r*.38;g.add(rb);const p=new THREE.Mesh(new THREE.IcosahedronGeometry(r*.2,0),MAT(0xfffaf0));p.position.y=y+r*.28;g.add(p);}
+ if(kind==='cap'){const t=new THREE.Mesh(new THREE.CylinderGeometry(r*.95,r*1.05,r*.4,8),MAT(col));t.position.y=y-r*.12;g.add(t);const v=new THREE.Mesh(new THREE.BoxGeometry(r*1.3,r*.07,r*.8),MAT(col));v.position.set(0,y-r*.3,r*1.05);g.add(v);}
+ g.traverse(m=>{if(m.isMesh)m.castShadow=true;});h.add(g);}
+
+function animal(o){const g=new THREE.Group();const M=c=>new THREE.MeshStandardMaterial({color:new THREE.Color(c).convertSRGBToLinear(),roughness:.9,flatShading:true});
+ const bx=(w,h,d,c,x,y,z,p=g)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c));m.position.set(x,y,z);m.castShadow=true;p.add(m);return m;};
+ const B=o.body,L=o.belly||B;
+ // 몸 (Kenney 미니 캐릭터 비율: 큰 머리, 짧은 몸)
+ bx(.72,.62,.55,B,0,.72,0);bx(.5,.42,.06,L,0,.7,.28);
+ [-.2,.2].forEach(x=>{bx(.22,.36,.26,o.leg||B,x,.2,.04);bx(.2,.32,.22,B,x*2.1,.78,0).rotation.z=x>0?-.25:.25;});
+ const h=new THREE.Group();h.position.y=1.42;g.add(h);bx(1.0,.86,.84,B,0,0,0,h);if(o.face)bx(.62,.42,.06,o.face,0,-.14,.43,h);
+ bx(.1,.14,.04,0x2a2230,-.2,.06,.43,h);bx(.1,.14,.04,0x2a2230,.2,.06,.43,h);bx(.12,.08,.06,o.nose||0x3a2a2a,0,-.08,.46,h);
+ bx(.12,.06,.03,0xf29a8a,-.34,-.1,.43,h);bx(.12,.06,.03,0xf29a8a,.34,-.1,.43,h);
+ if(o.ears==='cat'||o.ears==='fox'){[-.32,.32].forEach(x=>{const e=new THREE.Mesh(new THREE.ConeGeometry(.17,.34,4),M(B));e.position.set(x,.56,0);e.rotation.y=Math.PI/4;h.add(e);});}
+ if(o.ears==='dog'){[-.52,.52].forEach(x=>bx(.12,.42,.3,o.ear||B,x,.05,0,h));}
+ if(o.ears==='bear'){[-.36,.36].forEach(x=>bx(.24,.22,.14,B,x,.48,0,h));}
+ if(o.ears==='bunny'){[-.2,.2].forEach(x=>{bx(.16,.62,.12,B,x,.72,0,h);bx(.08,.48,.04,0xffc9d4,x,.72,.07,h);});}
+ if(o.ears==='peng'){bx(.16,.1,.18,0xf0a020,0,-.06,.5,h);}
+ if(o.tail==='long')bx(.1,.1,.6,B,0,.7,-.5).rotation.x=-.6;if(o.tail==='puff')bx(.22,.22,.18,0xffffff,0,.6,-.34);if(o.tail==='fox'){bx(.26,.26,.62,B,0,.62,-.56).rotation.x=-.5;bx(.2,.2,.16,0xffffff,0,.85,-.86);}if(o.tail==='dog')bx(.12,.12,.36,B,0,.88,-.36).rotation.x=-.9;
+ g.scale.setScalar(.95);return g;}
+(async()=>{const P=new URLSearchParams(location.search).get('k')||'h';const N=P==='h'?[
+ ['character-male-a',null,null,'현행 · 성인 남성'],
+ ['character-female-b',null,null,'1 · 캠퍼 (모자 없음)'],
+ ['character-male-e',{'9,6':'#7cc48a','9,7':'#4f9a62'},null,'2 · 초록 셔츠 소년 (모자 없음)'],
+ ['character-female-e',null,null,'3 · 여름 산책 (모자 없음)'],
+ ['character-male-c',{'1,6':'#e8789a','1,7':'#c85a7a'},null,'4 · 어린이 (모자 없음)'],
+ ['character-female-a',{'11,4':'#f6c542','11,5':'#d8a020'},null,'5 · 노란 재킷 (신규)'],
+ ['character-male-b',{'11,6':'#7a6a9a','11,7':'#5a4a7a'},null,'6 · 보라 작업복 (신규)'],
+ ['character-female-c',{'11,7':'#5fa8e0','11,6':'#8fc8f0'},null,'7 · 하늘색 원피스 어린이 (신규)']]:[['character-female-a',null,null,'현행 · 성인 여성']];
+ const gl=await Promise.all(N.map(n=>get(n[0])));const all=[];
+ N.forEach((n,i)=>{const o=THREE.SkeletonUtils.clone(gl[i].scene);const s=n[0].endsWith('-c')?.72:1;o.scale.setScalar(2.6*s);o.traverse(m=>{if(m.isMesh)m.castShadow=true;});S.add(o);const mx=new THREE.AnimationMixer(o);const cl=gl[i].animations.find(a=>/idle/i.test(a.name))||gl[i].animations[0];if(cl){mx.clipAction(cl).play();mx.update(.6);}o.updateMatrixWorld(true);recolor(o,n[1]);all.push(o);});
+ if(P!=='h'){[{body:'#f0a860',belly:'#fff1dc',face:'#fff1dc',ears:'cat',tail:'long'},{body:'#e8a060',belly:'#fff6ea',face:'#fff6ea',ears:'fox',tail:'dog',nose:'#2a2230'},{body:'#9a6a44',face:'#d8b088',ears:'bear'},{body:'#f4efe8',ears:'bunny',tail:'puff'},{body:'#e8783a',belly:'#ffffff',face:'#ffffff',ears:'fox',tail:'fox'},{body:'#2e3440',belly:'#ffffff',face:'#ffffff',ears:'peng'},{body:'#c8b8a8',belly:'#efe6dc',face:'#efe6dc',ears:'dog',ear:'#8a6a4a',tail:'dog'}].forEach(o=>{const a=animal(o);S.add(a);all.push(a);});}
+ all.forEach((o,i)=>{o.position.x=(i-(all.length-1)/2)*2.3+(i===0?-.5:0);o.rotation.y=-.15;});
+ window.LABELS=N.map(n=>n[3]);S.updateMatrixWorld(true);R.render(S,cam);document.title='done';})();
+</script>
