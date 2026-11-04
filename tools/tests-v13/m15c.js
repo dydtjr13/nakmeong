@@ -1,0 +1,2 @@
+const pw=require('playwright-core');(async()=>{const b=await pw.chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const p=await b.newPage({viewport:{width:1800,height:640}});p.on('pageerror',e=>console.log('ERR',e.message));
+await p.goto('http://localhost:8787/mockups-v15/chars-src.html');await p.waitForFunction(()=>document.title==='done',null,{timeout:90000});await p.waitForTimeout(500);await p.screenshot({path:'/workspace/nakmeong/mockups-v15/chars.jpg',type:'jpeg',quality:90});await b.close();})();

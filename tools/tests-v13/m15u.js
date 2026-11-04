@@ -1,0 +1,3 @@
+const pw=require('playwright-core');(async()=>{const b=await pw.chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--use-gl=swiftshader']});const p=await b.newPage({viewport:{width:1400,height:900}});
+for(const [f,ids] of [['wx-src.html',['wA','wB','wC','wD']],['ui-src.html',['aA','aB','aC','sA','sB','sC']]]){await p.goto('http://localhost:8787/mockups-v15/'+f);await p.waitForTimeout(800);
+for(const id of ids){const el=await p.$('#'+id+(f.startsWith('wx')?' .gw':' .ad'));await el.screenshot({path:'/workspace/nakmeong/mockups-v15/'+id+'.jpg',type:'jpeg',quality:88});}}await b.close();})();

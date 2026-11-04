@@ -530,3 +530,21 @@ html,body{overscroll-behavior:none}#world,#world canvas{touch-action:none}
 @keyframes up{from{opacity:0;transform:translate(-50%,20px)}to{opacity:1;transform:translate(-50%,0)}}
 #fishBtn.fb14{left:0;right:0;margin:0 auto;width:max-content;transform:none}
 #fishBtn.fb14.vB{transform:none}
+/* v15 */
+#coins{height:30px;box-sizing:border-box;padding:0 12px;display:inline-flex;align-items:center;gap:5px;font-size:15px}#coins img.emj{width:18px;height:18px}
+*{scrollbar-width:thin;scrollbar-color:#d8cbe0 transparent}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#d8cbe0;border-radius:8px}::-webkit-scrollbar-thumb:hover{background:#c3b2d0}
+#ctxM{position:fixed;z-index:60;display:none;min-width:150px;background:#fffdf8;border-radius:12px;box-shadow:0 8px 28px #3a304833;padding:6px}
+#ctxM .cm-h{font-size:12px;color:#8a7f96;padding:6px 10px 4px;font-weight:700}
+#ctxM button{display:block;width:100%;text-align:left;background:none;color:#3a3048;padding:8px 10px;border-radius:8px;font-size:14px}#ctxM button:hover{background:#f3ece2}
+#log b[data-who]:not([data-who=""]){cursor:context-menu}
+.adrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px}.adrow input:not([type]){flex:1;min-width:180px;padding:8px 12px;border-radius:10px;border:1px solid #e6dccf}
+.pres{font-size:13px;padding:6px 10px;border-radius:8px;background:#f3ece2}
+.pcols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.pcol h4{margin:4px 0 8px}.pcol h4 small{color:#9a8fa6;font-weight:600}
+.pchips{display:flex;flex-wrap:wrap;gap:6px;max-height:300px;overflow:auto;padding:2px}
+.pchip{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 10px;border-radius:999px;background:#f3ece2;font-size:13px}
+.pchip button{padding:0 7px;border-radius:999px;background:#0000;color:#9a6a6a;font-size:13px;line-height:18px}.pchip button:hover{background:#ffdcd6}
+.blk{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.dopt{display:flex;flex-direction:column;gap:4px;padding:14px;border-radius:14px;border:2px solid #eee4d8;cursor:pointer}.dopt.on{border-color:var(--acc)}.dopt span{font-size:12.5px;color:#7a6f86}
+@media(max-width:700px){.pcols{grid-template-columns:1fr}}
+.dopt input{display:none}

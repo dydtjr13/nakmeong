@@ -1,0 +1,5 @@
+const {chromium}=require('playwright-core');(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});
+const p=await b.newPage({viewport:{width:1280,height:760}});
+await p.goto('http://localhost:8787/nakmeong.html');await p.evaluate(()=>{localStorage.clear();localStorage.setItem('nk_cfg',JSON.stringify({lay:'a',bots:9}));});await p.reload();await p.waitForFunction(()=>!document.getElementById('go').disabled,null,{timeout:180000});await p.click('#go');await p.waitForTimeout(2500);
+console.log(await p.evaluate(()=>[...document.querySelectorAll('body *')].filter(e=>{const r=e.getBoundingClientRect();return r.top<40&&r.height>14&&r.height<60&&r.left<800&&r.width<400&&getComputedStyle(e).display!=='none'&&e.children.length<6;}).map(e=>e.tagName+'#'+e.id+'.'+e.className+' '+Math.round(e.getBoundingClientRect().height)+' '+Math.round(e.getBoundingClientRect().left)).join('\n')));
+await p.screenshot({path:'/tmp/top15.png',clip:{x:0,y:0,width:800,height:40}});await b.close();})();

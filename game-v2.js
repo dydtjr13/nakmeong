@@ -1,11 +1,11 @@
 /* 낚멍 v2 — 3D 로우폴리 파스텔 (three.js r147, 일반 script 빌드: file:// 더블클릭 실행 가능) */
 (()=>{
-let V14=null;
+let V14=null,V15=null;
 THREE.ColorManagement.legacyMode=false;
 const D=NK_DATA,$=id=>document.getElementById(id),qs=new URLSearchParams(location.search);
 // v12 시안용 숨김 파라미터: ?mock30&decks=30&lr=32&lay=ring|alt|bay (기본 게임은 20데크·LR 24 그대로)
 const CFG=Object.assign({lay:'a',bots:9},JSON.parse(localStorage.getItem('nk_cfg')||'{}'));const LAYS={a:['ring',32],b:['alt',26],c:['bay',29],o:['ring',24]};
-const MOCK30=qs.has('mock30'),LK=MOCK30?null:(LAYS[CFG.lay]?CFG.lay:'a'),LAY=MOCK30?(qs.get('lay')||'ring'):LAYS[LK][0],DECKS=Math.min(30,Math.max(2,+qs.get('decks')||(MOCK30||LK==='o'?D.DECK_COUNT_DEFAULT:30))),LR=MOCK30?(+qs.get('lr')||24):LAYS[LK][1];
+const MOCK30=qs.has('mock30'),LK=MOCK30?null:(LAYS[CFG.lay]?CFG.lay:'a'),LAY=MOCK30?(qs.get('lay')||'ring'):LAYS[LK][0],DECKS=Math.min(30,Math.max(2,+qs.get('decks')||(MOCK30||LK==='o'?D.DECK_COUNT_DEFAULT:(CFG.decks||25)))),LR=MOCK30?(+qs.get('lr')||24):LAYS[LK][1];
 function deckAng(i){if(LAY==='bay'){const G=6,per=Math.ceil(DECKS/G),g=Math.floor(i/per),j=i%per,gw=Math.PI*2/G,sp=gw*.72/per;return -Math.PI/2+g*gw+(j-(per-1)/2)*sp;}return -Math.PI/2+i*Math.PI*2/DECKS;}
 const deckOff=i=>LAY==='alt'&&i%2?2.6:0;
 const UP=new THREE.Vector3(0,1,0),V=new THREE.Vector3(),Q=new THREE.Quaternion(),SC=new THREE.Vector3(),M4=new THREE.Matrix4();
@@ -28,9 +28,9 @@ function rollFish(r=rod(),b=bait()){const AU0=arguments.length===0&&S.autoFish,w
 // ───────── UI 유틸 ─────────
 function toast(h,ms=1800){const t=$('toast');t.innerHTML=h;t.style.opacity=1;clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity=0,ms);}
 const bubbles={};
-function say(who,txt,mine){const p=document.createElement('div');p.className=who==='시스템'?'lg-sys':'lg-chat';p.innerHTML=`<b style="color:${mine?'#ffd58a':'#bfe6ff'}">${who}</b> ${txt}`;$('log').appendChild(p);$('log').scrollTop=1e6;setBub(mine?'__me':who,txt,false);}
+function say(who,txt,mine){if(!mine&&who!=='시스템'&&(S.blocked||[]).includes(who))return;if(who!=='시스템'&&window.NK_PROF)txt=NK_PROF.mask(txt);const p=document.createElement('div');p.className=who==='시스템'?'lg-sys':'lg-chat';p.innerHTML=`<b data-who="${mine?'':who}" style="color:${mine?'#ffd58a':'#bfe6ff'}">${who}</b> ${txt}`;$('log').appendChild(p);$('log').scrollTop=1e6;setBub(mine?'__me':who,txt,false);}
 const BUB_MS=5000;function setBub(key,txt,emo){bubbles[key]={txt,emo,t:performance.now()};}
-function emote(who,em,mine){const p=document.createElement('div');p.className='lg-chat';p.innerHTML=`<b style="color:${mine?'#ffd58a':'#bfe6ff'}">${who}</b> ${em}`;$('log').appendChild(p);$('log').scrollTop=1e6;setBub(mine?'__me':who,em,true);}
+function emote(who,em,mine){if(!mine&&(S.blocked||[]).includes(who))return;const p=document.createElement('div');p.className='lg-chat';p.innerHTML=`<b style="color:${mine?'#ffd58a':'#bfe6ff'}">${who}</b> ${em}`;$('log').appendChild(p);$('log').scrollTop=1e6;setBub(mine?'__me':who,em,true);}
 const bubbleOf=c=>{const k=c===me?'__me':c.name,b=bubbles[k];if(!b)return null;if(performance.now()-b.t>=BUB_MS){delete bubbles[k];return null;}return b;};
 const gc=g=>GR(g).c;
 function hud(){try{updStreak();updAutoBtn();}catch(e){}try{if(me){setCharRod(me,SYS.gearOf(S).k,rod().star);}updMyTankExt();}catch(e){}$('coins').textContent='🪙 '+S.coins.toLocaleString();const b=bait(),q=S.baits[S.bait];
@@ -168,10 +168,10 @@ function domBub(c,bb,dd){c.bub.visible=false;if(!BUBS){BUBS=document.createEleme
   let el=c.dbub;if(!bb){if(el)el.style.display='none';return;}
   if(!el){el=c.dbub=document.createElement('div');el.className='bub3';el.innerHTML='<div class="bt"></div>';BUBS.appendChild(el);}
   if(el._t!==bb.t){el._t=bb.t;el.classList.toggle('emo',!!bb.emo);const t=el.firstChild;t.textContent=bb.txt;}
-  _bv.set(c.o.position.x,c.o.position.y+c.h+(c.rkUp?3.05:2.05),c.o.position.z).project(cam);
+  _bv.set(c.o.position.x,c.o.position.y+c.h+1.68,c.o.position.z).project(cam);
   if(_bv.z>1||Math.abs(_bv.x)>1.2||Math.abs(_bv.y)>1.2){el.style.display='none';return;}
   const ag=(performance.now()-bb.t)/BUB_MS,op=ag>.85?(1-ag)/.15:Math.min(1,ag*12),k=Math.max(.62,Math.min(1.1,13/dd));
-  el.style.display='';el.style.opacity=op.toFixed(3);el.style.transform=`translate(${Math.round((_bv.x+1)/2*innerWidth)}px,${Math.round((1-_bv.y)/2*innerHeight)}px) translate(-50%,-100%) scale(${k.toFixed(3)})`;el.style.zIndex=String(1000-Math.round(dd));}
+  el.style.display='';el.style.opacity=op.toFixed(3);const by=c.rkUp&&c.rkTop!=null?c.rkTop-2:Math.round((1-_bv.y)/2*innerHeight);el.style.transform=`translate(${Math.round((_bv.x+1)/2*innerWidth)}px,${by}px) translate(-50%,-100%) scale(${k.toFixed(3)})`;el.style.zIndex=String(1000-Math.round(dd));}
 function makeChar(ki,name){const K=KINDS[ki],src=G[K.k];const o=THREE.SkeletonUtils.clone(src.scene);o.scale.setScalar(2.6*K.s);scene.add(o);
   const mixer=new THREE.AnimationMixer(o),acts={};src.animations.forEach(a=>acts[a.name]=mixer.clipAction(a));
   const arm=o.getObjectByName('arm-right');const rodM=new THREE.Group();const rc=new THREE.Mesh(new THREE.CylinderGeometry(.006,.014,.95,5),new THREE.MeshLambertMaterial({color:'#7a5236'}));rc.position.y=.47;rodM.add(rc);
@@ -267,7 +267,7 @@ function catchCard(f,F,G0,o){const st=S.cardStyle||'d',v='🪙 '+f.v.toLocaleStr
  return `<div class="ccw" style="--g:${G0.c}">${h}</div>`;}
 // ───────── v10 낚시 10회 상자 진행 · 자동 낚시 · 수집 목표 · 어항 테마 ─────────
 function updStreak(){let el=$('streak');if(!el){const st=$('mStat');if(!st)return;el=document.createElement('div');el.id='streak';el.className='pill';el.title='낚시 '+D.BOX.streakEvery+'회마다 행운 상자 1개';st.insertBefore(el,$('equip'));}
-  const n=S.streak||0,N=D.BOX.streakEvery,C=D.BOX.dailyCap,g=(S.gDay===new Date().toDateString()?S.gN:0)||0,full=C&&g>=C,k=n+'|'+g;if(el._n===k)return;el._n=k;el.title=`낚시 성공 ${N}회마다 선물 상자 1개 · 하루 최대 ${C}개`;el.classList.toggle('full',!!full);el.innerHTML=full?`<span class="sk-i">🎁</span><b>오늘 선물 ${C}/${C} 완료</b>`:`<span class="sk-i">🎁</span><span class="sk-bar"><i style="width:${n/N*100}%"></i></span><b>${n}/${N}</b><small class="sk-d">오늘 ${g}/${C}</small>`;}
+  const n=S.streak||0,N=D.BOX.streakEvery,C=D.BOX.dailyCap,g=(S.gDay===new Date().toDateString()?S.gN:0)||0,full=C&&g>=C,k=n+'|'+g;if(el._n===k)return;el._n=k;el.title=`낚시 성공 ${N}회마다 선물 상자 1개 · 하루 최대 ${C}개`;el.classList.toggle('full',!!full);el.innerHTML=full?`<span class="sk-i">🎁</span><b>선물 ${C}/${C} 완료</b>`:`<span class="sk-i">🎁</span><span class="sk-bar"><i style="width:${n/N*100}%"></i></span><b>${n}/${N}</b><small class="sk-d">${g}/${C}</small>`;}
 const autoOK=()=>D.AUTO.gate!=='sub'||S.sub===true;
 function updAutoBtn(){const b=$('bAutoFish');if(!b)return;const on=!!S.autoFish,k=on+'|'+autoOK();if(b._k===k)return;b._k=k;b.classList.toggle('on',on);b.innerHTML=`<b class="mi">🤖</b><small class="ml">자동 ${on?'ON':'OFF'}</small>`;b.title=autoOK()?'자동 낚시: 캐스팅→입질→릴링 자동 (효율 약 80%)':'자동 낚시는 구독 전용이에요';}
 let autoCD=0;
@@ -312,7 +312,7 @@ function fishRank(k,scope,wk){const f=FI(k),L=[],W=wk||S.wk||{id:wkId(),best:{}}
   [...new Set(base)].forEach(n=>{const r=seedR(n+'|'+k+'|'+W.id);if(r()<.25)return;const q=Math.pow(r(),.7);const cm=Math.round((f.min+(f.max-f.min)*(.3+.66*q))*10)/10;L.push({n:n.replace(/#\d/,''),cm,srv:n.includes('#')?'낚멍-'+n.slice(-1):'낚멍-1',g:gradeOf(f,cm)});});
   const b=W.best[k];if(b)L.push({n:NICK(),cm:b.cm,me:true,srv:'낚멍-1',g:b.g});L.sort((a,b)=>b.cm-a.cm);L.forEach((x,i)=>x.rk=i+1);return L;}
 let frScope='srv';
-function openFishRank(k){wkRoll();const f=FI(k),prev=frScope==='prev',W=prev?S.wkPrev:S.wk;
+function openFishRank(k){wkRoll();const f0=FI(k),f=S.dex[k]?f0:Object.assign({},f0,{n:'???',img:f0.img.replace('.png','_sil.png')}),prev=frScope==='prev',W=prev?S.wkPrev:S.wk;
  let ov=$('frank');if(!ov){ov=document.createElement('div');ov.id='frank';ov.className='modal';document.body.appendChild(ov);}
  const L=W?fishRank(k,prev?'srv':frScope,W):[],me=L.find(x=>x.me),third=L[2],allTime=(S.dex[k]||{}).max;
  const gb=g=>`<span class="gbadge" style="--gc:${GR(Math.max(0,g)).c}">${GR(Math.max(0,g)).n}</span>`;
@@ -612,8 +612,9 @@ function _renderSet(){const A=S.auto,g=S.showG;
   <p>이동 속도 <input type="range" id="mvS" min="1" max="1.5" step=".05" value="${S.moveMul||1.35}"> <b id="mvV">+${Math.round(((S.moveMul||1.35)-1)*100)}%</b> <span class="small muted">(기본 +35%, 범위 +0~50%)</span></p>
   <p><label><input type="checkbox" id="rkTag" ${S.rankTag!==false?'checked':''}> 서버 1~3위 닉네임 메달 표시 (시안 D)</label></p>
   <p>프레임 상한 ${[[60,'60'],[120,'120'],[144,'144 (기본)'],[0,'제한 없음']].map(([v,n])=>`<label><input type="radio" name="fpsC" value="${v}" ${(S.fpsCap==null?0:S.fpsCap)==v?'checked':''}> ${n}</label>`).join(' ')}<br><span class="small muted">모니터 주사율보다 높게는 나오지 않아요 (60Hz 모니터 = 최대 60)</span></p>
-  <p>데크 배치 ${[['a','A 큰 원형 (기본·30데크)'],['b','B 지그재그 2열'],['c','C 만(灣)형 6마을'],['o','기존 20데크']].map(([k,n])=>`<label><input type="radio" name="dLay" value="${k}" ${CFG.lay===k?'checked':''}> ${n}</label>`).join(' ')}</p>
+  <p>데크 배치 ${[['a','A 큰 원형 (기본·'+(CFG.decks||25)+'데크)'],['b','B 지그재그 2열'],['c','C 만(灣)형 6마을'],['o','기존 20데크']].map(([k,n])=>`<label><input type="radio" name="dLay" value="${k}" ${CFG.lay===k?'checked':''}> ${n}</label>`).join(' ')}</p>
   <p>테스트 봇 <input type="number" id="botN" min="0" max="50" value="${CFG.bots}" style="width:60px">명 (최대 50) <button id="cfgApply">적용 (새로고침)</button><br><span class="small muted">데크 배치·봇 수는 새로고침 후 적용돼요. 진행 상황은 먼저 저장돼요.</span></p></div>
+ <h4>🚫 차단 목록</h4><div class="blk">${(S.blocked||[]).length?S.blocked.map(n=>`<span class="pchip">${n}<button data-unb="${encodeURIComponent(n)}" title="차단 해제">해제</button></span>`).join(''):'<span class="muted small">차단한 유저가 없어요 · 캐릭터나 채팅 닉네임을 우클릭하면 차단할 수 있어요</span>'}</div>
  <h4>🧪 v14 시안 테스트</h4><div class="tset">
   ${[['reelFx','낚아 올리는 모션',[['E','E 등급별 (기본)'],['A','A 포물선'],['B','B 줄에 매달림'],['C','C 슬로우'],['D','D 들어 올리기'],['off','끄기']]],
      ['fishBtnS','낚시 버튼',[['F','F 정보형 (기본)'],['A','A 젤리'],['B','B 원형 링'],['C','C 나무'],['D','D 물결'],['E','E 네온']]],
@@ -628,11 +629,12 @@ function _renderSet(){const A=S.auto,g=S.showG;
  const rr=()=>{save();hud();renderSet();};$('set').querySelectorAll('[name=bdes]').forEach(r=>r.onchange=()=>{S.boxDesign=+r.value;toast('🎁 상자 아이콘 디자인 '+r.value);rr();});$('set').querySelector('[data-close]').onclick=()=>closeM('set');
  $('nickOk').onclick=()=>{S.nick=$('nick').value.trim().slice(0,10);if(me){scene.remove(me.o);scene.remove(me.tag);const p=me.o.position.clone(),d=me.dir;const i=chars.indexOf(me);if(i>=0)chars.splice(i,1);me=makeChar(S.char,NICK());me.o.position.copy(p);me.dir=d;}toast('닉네임: '+NICK());rr();};
  $('set').querySelectorAll('[data-v14]').forEach(el=>el.onchange=()=>{S[el.dataset.v14]=el.value;if(el.dataset.v14==='mapTheme')V14.applyMap(el.value);if(el.dataset.v14==='catchSfx')V14.catchSfx(3);if(el.dataset.v14==='goalFx')V14.goalFx('미리보기','',"판매가 +3%",'goal');save();});
+ $('set').querySelectorAll('[data-unb]').forEach(b=>b.onclick=()=>{V15.unblock(decodeURIComponent(b.dataset.unb));keepScroll('set',renderSet);});
  $('farLOD').onchange=e=>{S.farLOD=e.target.checked;save();};$('wxOn').onchange=e=>{S.wxOn=e.target.checked;save();};$('adminBtn').onclick=()=>{closeM('set');V14.admin();};
  $('mvS').oninput=e=>{S.moveMul=+e.target.value;$('mvV').textContent='+'+Math.round((S.moveMul-1)*100)+'%';save();};
  $('rkTag').onchange=e=>{S.rankTag=e.target.checked;save();};
  $('set').querySelectorAll('[name=fpsC]').forEach(r=>r.onchange=()=>{S.fpsCap=+r.value||0;save();toast('프레임 상한: '+(S.fpsCap||'제한 없음'));});
- $('cfgApply').onclick=()=>{const lay=($('set').querySelector('[name=dLay]:checked')||{}).value||CFG.lay,bots=Math.max(0,Math.min(50,Math.round(+$('botN').value||0)));localStorage.setItem('nk_cfg',JSON.stringify({lay,bots}));S.savedAt=Date.now();save();location.reload();};
+ $('cfgApply').onclick=()=>{const lay=($('set').querySelector('[name=dLay]:checked')||{}).value||CFG.lay,bots=Math.max(0,Math.min(50,Math.round(+$('botN').value||0)));localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},CFG,{lay,bots})));S.savedAt=Date.now();save();location.reload();};
  $('saveNow').onclick=()=>{S.savedAt=Date.now();save();toast('💾 저장 완료');renderSet();};
  $('exp').onclick=()=>{S.savedAt=Date.now();save();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download=`nakmeong-save-${new Date().toISOString().slice(0,10)}.json`;a.click();};
  $('imp').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const o=JSON.parse(t);if(typeof o.coins!=='number')throw 0;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,S0,o);SYS.migrate(D,S);save();hud();toast('📂 불러오기 완료');renderSet();}catch(_){toast('잘못된 세이브 파일');}});};
@@ -810,7 +812,7 @@ V14=(()=>{
   if(!el){el=c.rkEl=document.createElement('div');el.className='rk10';BUBS_.appendChild(el);}
   if(el._rk!==rk){el._rk=rk;el.className='rk10 k'+rk;el.innerHTML=`<div class="au"></div><img class="cw" src="icons/emoji-png/${CW[rk-1]}.png"><span class="t">${TT[rk-1]}</span><span class="nn">${c.name===NICK()||c===me?NICK():c.name}</span>`;}
   _bv.set(c.o.position.x,c.o.position.y+c.h+1.05,c.o.position.z).project(cam);if(_bv.z>1||Math.abs(_bv.x)>1.2||Math.abs(_bv.y)>1.2){el.style.display='none';return false;}
-  const k=Math.max(.6,Math.min(1.1,13/dd));el.style.display='';el.style.transform=`translate(${Math.round((_bv.x+1)/2*innerWidth)}px,${Math.round((1-_bv.y)/2*innerHeight)}px) translate(-50%,-100%) scale(${k.toFixed(2)})`;el.style.zIndex=String(900-Math.round(dd));return true;}
+  const k=Math.max(.6,Math.min(1.1,13/dd));c.rkTop=Math.round((1-_bv.y)/2*innerHeight-el.offsetHeight*k);el.style.display='';el.style.transform=`translate(${Math.round((_bv.x+1)/2*innerWidth)}px,${Math.round((1-_bv.y)/2*innerHeight)}px) translate(-50%,-100%) scale(${k.toFixed(2)})`;el.style.zIndex=String(900-Math.round(dd));return true;}
  let BUBS_;function layer(){if(!BUBS_){BUBS_=document.createElement('div');BUBS_.id='rkL';const H=document.getElementById('hud');H.parentNode.insertBefore(BUBS_,H);}}
  // ── 멀리 있는 캐릭터 간략화 ──
  const FAR=30,simpleGeo=new THREE.CylinderGeometry(.32,.38,1.1,6),headGeo=new THREE.IcosahedronGeometry(.36,0);
@@ -878,22 +880,35 @@ V14=(()=>{
  const AD={log:JSON.parse(localStorage.getItem('nk_admin_log')||'[]'),ops:JSON.parse(localStorage.getItem('nk_admin_ops')||'[{"n":"나","r":"최고관리자"}]'),tab:'dash',ev:JSON.parse(localStorage.getItem('nk_admin_ev')||'{}')};
  const alog=t=>{AD.log.unshift(KST().toISOString().slice(5,16).replace('T',' ')+' · '+t);AD.log=AD.log.slice(0,80);localStorage.setItem('nk_admin_log',JSON.stringify(AD.log));};
  function admin(){let m=$('admin');if(!m){m=document.createElement('div');m.id='admin';m.className='modal';document.body.appendChild(m);}
-  const tabs=[['dash','대시보드'],['user','유저'],['op','운영자'],['time','시간·날씨'],['map','맵'],['bal','밸런스'],['ev','이벤트·공지']];const B=JSON.parse(localStorage.getItem('nk_admin_bal')||'{}');let body='';
+  const tabs=[['dash','대시보드'],['user','유저'],['op','운영자'],['time','시간·날씨'],['map','맵'],['bal','밸런스'],['ev','이벤트·공지'],['prof','비속어'],['deck','데크 배치']];const B=JSON.parse(localStorage.getItem('nk_admin_bal')||'{}');let body='';
   if(AD.tab==='dash'){const pop=chPop();body=`<div class="adgrid"><div><b>${pop.reduce((a,b)=>a+b,0)}</b><span>서버 접속자 (채널 ${CH.n}개)</span></div><div><b>${bots.filter(b=>b.on!==false).length+1}</b><span>현재 채널 ${CH.me} 인원</span></div><div><b>${(S.earned||0).toLocaleString()}</b><span>내 누적 코인</span></div><div><b>${S.boxes.length}</b><span>미개봉 상자</span></div><div><b>${WX[S.__wx]||'-'}</b><span>현재 날씨 (${SN[season()]})</span></div><div><b>${time.len}s</b><span>하루 길이</span></div></div><h4>채널별 인원</h4><p>${pop.map((n,i)=>`채널 ${i+1}: ${n}/50`).join(' · ')}</p><h4>작업 로그</h4><div class="adlog">${AD.log.map(x=>`<div>${x}</div>`).join('')||'<div>기록 없음</div>'}</div>`;}
-  if(AD.tab==='user'){body=`<table class="adt"><tr><th>닉네임</th><th>상태</th><th>데크</th><th>작업</th></tr><tr><td>${NICK()} (나)</td><td>접속</td><td>1</td><td><button data-ad="coin">코인 +10,000</button><button data-ad="stone">강화석 +50</button><button data-ad="box">상자 +10</button></td></tr>${bots.map((b,i)=>`<tr><td>${b.c.name}</td><td>${b.on===false?'오프라인':b.c.muted?'채팅 금지':'접속'}</td><td>${b.deck?b.deck.i+1:'-'}</td><td><button data-ad="mute" data-i="${i}">${b.c.muted?'채팅 허용':'채팅 금지'}</button><button data-ad="kick" data-i="${i}">${b.on===false?'접속시키기':'강제 퇴장'}</button></td></tr>`).join('')}</table>`;}
+  if(AD.tab==='user'){body=`<table class="adt"><tr><th>닉네임</th><th>상태</th><th>데크</th><th>작업</th></tr><tr><td>${NICK()} (나)</td><td>접속</td><td>1</td><td><button data-ad="coin">코인 +10,000</button><button data-ad="stone">강화석 +50</button><button data-ad="box">상자 +10</button></td></tr>${bots.map((b,i)=>`<tr><td>${b.c.name}</td><td>${b.on===false?'오프라인':b.c.adMuted?'채팅 금지':'접속'}</td><td>${b.deck?b.deck.i+1:'-'}</td><td><button data-ad="mute" data-i="${i}">${b.c.adMuted?'채팅 허용':'채팅 금지'}</button><button data-ad="kick" data-i="${i}">${b.on===false?'접속시키기':'강제 퇴장'}</button></td></tr>`).join('')}</table>`;}
   if(AD.tab==='op'){body=`<table class="adt"><tr><th>운영자</th><th>역할</th><th></th></tr>${AD.ops.map((o,i)=>`<tr><td>${o.n}</td><td><select data-opr="${i}">${['최고관리자','운영자','모니터'].map(r=>`<option ${o.r===r?'selected':''}>${r}</option>`).join('')}</select></td><td>${i?`<button data-ad="opdel" data-i="${i}">삭제</button>`:''}</td></tr>`).join('')}</table><p><input id="opN" placeholder="닉네임"> <button data-ad="opadd">운영자 추가</button></p><p class="small">권한: 최고관리자 = 전체 · 운영자 = 유저/시간/맵/이벤트 · 모니터 = 조회만</p>`;}
   if(AD.tab==='time'){body=`<p>하루 길이(초) <input type="number" id="adLen" value="${time.len}" style="width:80px"> <button data-ad="len">적용</button> <span class="small">현재 ${time.len}초 = 실제 ${(time.len/60).toFixed(1)}분</span></p><p>현재 시각 <button data-ad="t" data-v=".1">낮</button><button data-ad="t" data-v=".4">노을</button><button data-ad="t" data-v=".75">밤</button> · 시간 흐름 <button data-ad="auto">${time.auto?'ON → 멈추기':'OFF → 흐르기'}</button></p><p>날씨 강제 <select id="adWx"><option value="auto">자동</option>${Object.entries(WX).concat([['sunset','노을 색조만']]).map(([k,n])=>`<option value="${k}" ${S.wxOv===k?'selected':''}>${n}</option>`).join('')}</select> 계절 <select id="adSe"><option value="auto">실제 날짜</option>${SEASONS.map(k=>`<option value="${k}" ${S.seasonOv===k?'selected':''}>${SN[k]}</option>`).join('')}</select></p>`;}
   if(AD.tab==='map'){body=`<p>맵 테마 <label><input type="radio" name="adMap" value="base" ${(S.mapTheme||'base')==='base'?'checked':''}> 기본</label> <label><input type="radio" name="adMap" value="xmas" ${S.mapTheme==='xmas'?'checked':''}> 크리스마스(지형만)</label></p><p>데크 배치 (새로고침) ${[['a','A 원형'],['b','B 지그재그'],['c','C 만형']].map(([k,n])=>`<button data-ad="lay" data-v="${k}">${n}${CFG.lay===k?' ✓':''}</button>`).join('')}</p><p>채널 수 <input type="number" id="adCh" min="1" max="8" value="${CH.n}" style="width:60px"> 봇/채널 <input type="number" id="adBots" min="0" max="49" value="${CFG.bots}" style="width:60px"> <button data-ad="chap">적용 (새로고침)</button></p>`;}
   if(AD.tab==='bal'){const tiers=D.BOX.tiers;body=`<p>상자 기본 드롭 <input id="bBase" type="number" step=".001" value="${D.BOX.base}" style="width:80px"> · 초월 확률 <input id="bTx" type="number" step=".00001" value="${D.TX.p}" style="width:100px"></p><p>상자 등급 가중치 ${tiers.map((t,i)=>`${t.n} <input class="bT" data-i="${i}" type="number" step=".05" value="${t.w}" style="width:60px">`).join(' ')}</p><p>옵션 상한 ${Object.entries(D.CHARM.opts).map(([k,o])=>`${o.n} <input class="bC" data-k="${k}" type="number" value="${o.total}" style="width:60px">`).join(' ')}</p><details><summary>어종 가중치·기본가</summary><table class="adt">${D.FISH.map(f=>`<tr><td>${f.n}</td><td>가중치 <input class="bFw" data-k="${f.k}" type="number" step=".5" value="${f.w}" style="width:60px"></td><td>기본가 <input class="bFb" data-k="${f.k}" type="number" step=".5" value="${f.base}" style="width:70px"></td></tr>`).join('')}</table></details><p><button data-ad="balsave" class="acc">저장 후 새로고침</button> <button data-ad="balreset">기본값으로</button> <button data-ad="balexp">JSON 내보내기</button></p><p class="small">저장 값은 이 브라우저(localStorage nk_admin_bal)에만 적용돼요. 서버 연동 시 같은 JSON을 서버 설정으로 올리면 돼요.</p>`;}
   if(AD.tab==='ev'){body=`<p>코인 배율 <select id="evCoin">${[1,1.5,2,3].map(x=>`<option ${AD.ev.coin==x?'selected':''}>${x}</option>`).join('')}</select> 상자 드롭 배율 <select id="evBox">${[1,1.5,2].map(x=>`<option ${AD.ev.box==x?'selected':''}>${x}</option>`).join('')}</select> <button data-ad="evsave">적용</button></p><p>서버 공지 <input id="evMsg" style="width:60%" placeholder="공지 내용"> <button data-ad="ann">전체 공지</button></p><p>보상 일괄 지급 (전 유저): <button data-ad="giftall">상자 3개 + 코인 3,000</button></p>`;}
+  if(AD.tab==='prof'){const P=NK_PROF.conf(),f=(AD.pq||'').trim(),L=k=>P[k].filter(w=>!f||w.includes(f)),tr=AD.ptest||'';
+   body=`<div class="adrow"><label class="sw"><input type="checkbox" id="pOn" ${P.enabled?'checked':''}> 비속어 필터 사용</label><span class="muted small">금칙어 ${P.words.length}개 · 허용어 ${P.allow.length}개 · 출처: 톡시도 필터 (띄어쓰기·기호·숫자 끼워넣기·반복·초성·리트 우회 대응)</span></div>
+   <div class="adrow"><input id="pTest" placeholder="문장을 넣어 필터 테스트" value="${tr.replace(/"/g,'&quot;')}"><button id="pTestB">테스트</button>${tr?`<span class="pres">${NK_PROF.check(tr).hit?'차단 → '+NK_PROF.mask(tr).replace(/</g,'&lt;'):'통과'}</span>`:''}</div>
+   <div class="adrow"><input id="pQ" placeholder="목록 검색" value="${f}"><button id="pReset" class="ghost">기본 목록으로 되돌리기</button></div>
+   <div class="pcols">${[['words','금칙어'],['allow','허용어 (오탐 예외)']].map(([k,n])=>`<div class="pcol"><h4>${n} <small>${L(k).length}</small></h4><div class="adrow"><input data-padd="${k}" placeholder="${n} 추가 후 Enter"></div><div class="pchips">${L(k).slice(0,300).map(w=>`<span class="pchip">${w.replace(/</g,'&lt;')}<button data-pdel="${k}" data-w="${encodeURIComponent(w)}" title="삭제">×</button></span>`).join('')}${L(k).length>300?`<span class="muted small">외 ${L(k).length-300}개 · 검색으로 좁혀 보세요</span>`:''}</div></div>`).join('')}</div>`;}
+  if(AD.tab==='deck'){const cur=CFG.decks||25;body=`<p class="muted">데크 수를 바꾸면 새로고침 후 적용돼요. 데크마다 2자리예요.</p><div class="adgrid">${[[25,'25데크 × 2자리 = 50명 (기본)'],[30,'30데크 × 2자리 = 60자리 (여유 10)']].map(([n,t])=>`<label class="dopt ${cur===n?'on':''}"><input type="radio" name="adDeck" value="${n}" ${cur===n?'checked':''}> <b>${n}데크</b><span>${t}</span></label>`).join('')}</div><p><button id="adDeckApply">적용 (새로고침)</button> <span class="muted small">현재 ${DECKS}데크</span></p>`;}
   m.innerHTML=`<div class="card adm"><button class="close" data-close="admin">×</button><h2>🛠 관리자 모드 <small class="muted">로컬 테스트용 · ${AD.ops[0].r}</small></h2><div class="adtabs">${tabs.map(([k,n])=>`<button data-at="${k}" class="${AD.tab===k?'on':''}">${n}</button>`).join('')}</div><div class="adb">${body}</div></div>`;
   const q=s=>m.querySelectorAll(s),g=id=>m.querySelector('#'+id);q('[data-close]').forEach(b=>b.onclick=()=>closeM('admin'));q('[data-at]').forEach(b=>b.onclick=()=>{AD.tab=b.dataset.at;keepScroll('admin',admin);});
+  if(AD.tab==='prof'){const re=()=>keepScroll('admin',admin);g('pOn').onchange=e=>{NK_PROF.setOn(e.target.checked);alog('비속어 필터 '+(e.target.checked?'켬':'끔'));re();};
+   g('pTestB').onclick=()=>{AD.ptest=g('pTest').value;re();};g('pTest').onkeydown=e=>{if(e.key==='Enter'){AD.ptest=e.target.value;re();}};
+   g('pQ').oninput=e=>{AD.pq=e.target.value;clearTimeout(AD._pq);AD._pq=setTimeout(()=>{re();const i=$('admin').querySelector('#pQ');if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length);}},250);};
+   g('pReset').onclick=()=>{if(confirm('금칙어·허용어를 기본 목록으로 되돌릴까요?')){NK_PROF.reset();alog('비속어 목록 초기화');re();}};
+   q('[data-padd]').forEach(i=>i.onkeydown=e=>{if(e.key==='Enter'&&i.value.trim()){if(NK_PROF.add(i.dataset.padd,i.value))alog((i.dataset.padd==='words'?'금칙어':'허용어')+' 추가: '+i.value.trim());re();}});
+   q('[data-pdel]').forEach(b=>b.onclick=()=>{const w=decodeURIComponent(b.dataset.w);NK_PROF.del(b.dataset.pdel,w);alog((b.dataset.pdel==='words'?'금칙어':'허용어')+' 삭제: '+w);re();});}
+  if(AD.tab==='deck'){g('adDeckApply').onclick=()=>{const v=+(m.querySelector('[name=adDeck]:checked')||{}).value||25;localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},CFG,{decks:v})));alog('데크 배치 '+v+'데크로 변경');S.savedAt=Date.now();save();location.reload();};}
   q('[data-opr]').forEach(s=>s.onchange=()=>{AD.ops[+s.dataset.opr].r=s.value;localStorage.setItem('nk_admin_ops',JSON.stringify(AD.ops));alog(`운영자 ${AD.ops[+s.dataset.opr].n} 역할 → ${s.value}`);});
   if(g('adWx'))g('adWx').onchange=e=>{S.wxOv=e.target.value;save();alog('날씨 강제: '+e.target.value);};if(g('adSe'))g('adSe').onchange=e=>{S.seasonOv=e.target.value;save();alog('계절: '+e.target.value);};
   q('[name=adMap]').forEach(r=>r.onchange=()=>{S.mapTheme=r.value;applyMap(r.value);save();alog('맵 테마: '+r.value);});
   q('[data-ad]').forEach(b=>b.onclick=()=>{const a=b.dataset.ad,i=+b.dataset.i,bt=bots[i];
    if(a==='coin'){S.coins+=10000;alog('내 코인 +10,000');}if(a==='stone'){S.stones=(S.stones||0)+50;alog('강화석 +50');}if(a==='box'){for(let j=0;j<10;j++)S.boxes.push(Date.now());S.newBox=(S.newBox||0)+10;updBagBadge();alog('상자 +10');}
-   if(a==='mute'){bt.c.muted=!bt.c.muted;alog(`${bt.c.name} 채팅 ${bt.c.muted?'금지':'허용'}`);}if(a==='kick'){bt.pt=0;presence(0);alog(`${bt.c.name} ${bt.on?'접속':'강제 퇴장'}`);}
+   if(a==='mute'){bt.c.adMuted=!bt.c.adMuted;bt.c.muted=bt.c.adMuted||(S.blocked||[]).includes(bt.c.name);alog(`${bt.c.name} 채팅 ${bt.c.muted?'금지':'허용'}`);}if(a==='kick'){bt.pt=0;presence(0);alog(`${bt.c.name} ${bt.on?'접속':'강제 퇴장'}`);}
    if(a==='opadd'){const n=(g('opN').value||'').trim();if(n){AD.ops.push({n,r:'모니터'});localStorage.setItem('nk_admin_ops',JSON.stringify(AD.ops));alog('운영자 추가: '+n);}}if(a==='opdel'){alog('운영자 삭제: '+AD.ops[i].n);AD.ops.splice(i,1);localStorage.setItem('nk_admin_ops',JSON.stringify(AD.ops));}
    if(a==='len'){time.len=Math.max(30,+g('adLen').value||150);S.dayLen=time.len;alog('하루 길이 '+time.len+'초');}if(a==='t'){time.t=+b.dataset.v;alog('시각 변경');}if(a==='auto'){time.auto=!time.auto;alog('시간 흐름 '+(time.auto?'ON':'OFF'));}
    if(a==='lay'||a==='chap'){const c=JSON.parse(localStorage.getItem('nk_cfg')||'{}');if(a==='lay')c.lay=b.dataset.v;else{c.chN=Math.max(1,Math.min(8,+g('adCh').value||1));c.bots=Math.max(0,Math.min(49,+g('adBots').value||0));}localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({lay:CFG.lay,bots:CFG.bots},c)));alog('맵/채널 설정 변경 → 새로고침');save();location.reload();return;}
@@ -907,7 +922,24 @@ V14=(()=>{
  return {tick(dt,p){tick(dt,p);if(S.mapTheme&&S.mapTheme!==theme&&started)applyMap(S.mapTheme);presence(dt);serverAnn(dt);reelTick(dt);},rankDom,layer,farLOD,fx,reelFx,fishBtn,goalFx,catchSfx,boxSfx,admin:()=>{admin();openM('admin');},evMul,WX,SN,season,CH,chPop,applyMap};
 })();
 
-window.NKV2={V14,S,chars,ROD_POSE,scene,THREE,openFishRank,miniToast,boxGot,calcRK3,RK3:()=>RK3,project:a=>{const v=new THREE.Vector3(a[0],a[1],a[2]).project(cam);return [Math.round((v.x+1)/2*innerWidth),Math.round((1-v.y)/2*innerHeight)];},snd:()=>snd,emote,applyMenu,botBuyNow:()=>{buyT=0;botBuy(0);},S,D,decks,bots,fishAction,catchFish,tankView,renderShop,renderDex,openM,closeM,time,me:()=>me,setPos:(x,z)=>{me.o.position.set(x,.4,z);},nearSpot:()=>nearSpot,fishing:()=>fishing,save,VG,bag:()=>openBag(),legendAlert,botLegend,boxAlert,botBoxAlert,bagTab:t=>{bagTab=t;renderBag();},openSet:()=>{renderSet();openM('set');},SYS,giveBox:(n=1)=>{for(let i=0;i<n;i++)S.boxes.push(Date.now());save();},setCam:(x,y,z,tx=0,ty=0,tz=0)=>{camOverride=x==null?null:[x,y,z,tx,ty,tz];},setDecks:n=>{},dexTab:t=>{dexTab=t;},synthFx,hud};});
+// ═════════ v15: 차단 (캐릭터·채팅 닉네임 우클릭) ═════════
+V15=(()=>{S.blocked=S.blocked||[];const RC=new THREE.Raycaster(),NV=new THREE.Vector2();
+ const isB=n=>S.blocked.includes(n);
+ function apply(){chars.forEach(c=>{if(c!==me)c.muted=isB(c.name)||!!c.adMuted;});}
+ function block(n){if(!n||isB(n))return;S.blocked.push(n);save();apply();miniToast(`🚫 <b>${n}</b> 님을 차단했어요 · 설정에서 해제할 수 있어요`,2600);}
+ function unblock(n){S.blocked=S.blocked.filter(x=>x!==n);save();apply();}
+ let menu;function show(x,y,n){if(!menu){menu=document.createElement('div');menu.id='ctxM';document.body.appendChild(menu);document.addEventListener('pointerdown',e=>{if(menu&&!menu.contains(e.target))menu.style.display='none';},true);}
+  menu.innerHTML=`<div class="cm-h">${n}</div><button data-cm="${isB(n)?'un':'bl'}">${isB(n)?'✅ 차단 해제':'🚫 차단하기'}</button>`;menu.style.display='block';menu.style.left=Math.min(x,innerWidth-170)+'px';menu.style.top=Math.min(y,innerHeight-90)+'px';
+  menu.querySelector('[data-cm]').onclick=e=>{e.target.dataset.cm==='un'?unblock(n):block(n);menu.style.display='none';};}
+ function hit(e){const r=e.target.getBoundingClientRect();NV.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);RC.setFromCamera(NV,cam);let best=null,bd=1e9;
+  for(const c of chars){if(c===me||c.offline||!c.o.visible)continue;const hs=RC.intersectObject(c.o,true);if(hs.length&&hs[0].distance<bd){bd=hs[0].distance;best=c;}
+   if(!best){const p=c.o.position.clone();p.y+=c.h*.6;const d=RC.ray.distanceToPoint(p);if(d<.9&&RC.ray.origin.distanceTo(p)<bd){bd=RC.ray.origin.distanceTo(p);best=c;}}}
+  return best;}
+ $('world').addEventListener('contextmenu',e=>{const c=hit(e);if(c){e.preventDefault();show(e.clientX,e.clientY,c.name);}});
+ $('log').addEventListener('contextmenu',e=>{const b=e.target.closest('b[data-who]');if(b&&b.dataset.who){e.preventDefault();show(e.clientX,e.clientY,b.dataset.who);}});
+ apply();return {block,unblock,isB,apply,list:()=>S.blocked.slice()};})();
+
+window.NKV2={V15,V14,S,chars,ROD_POSE,scene,THREE,openFishRank,miniToast,boxGot,calcRK3,RK3:()=>RK3,project:a=>{const v=new THREE.Vector3(a[0],a[1],a[2]).project(cam);return [Math.round((v.x+1)/2*innerWidth),Math.round((1-v.y)/2*innerHeight)];},snd:()=>snd,emote,applyMenu,botBuyNow:()=>{buyT=0;botBuy(0);},S,D,decks,bots,fishAction,catchFish,tankView,renderShop,renderDex,openM,closeM,time,me:()=>me,setPos:(x,z)=>{me.o.position.set(x,.4,z);},nearSpot:()=>nearSpot,fishing:()=>fishing,save,VG,bag:()=>openBag(),legendAlert,botLegend,boxAlert,botBoxAlert,bagTab:t=>{bagTab=t;renderBag();},openSet:()=>{renderSet();openM('set');},SYS,giveBox:(n=1)=>{for(let i=0;i<n;i++)S.boxes.push(Date.now());save();},setCam:(x,y,z,tx=0,ty=0,tz=0)=>{camOverride=x==null?null:[x,y,z,tx,ty,tz];},setDecks:n=>{},dexTab:t=>{dexTab=t;},synthFx,hud};});
 })();
 
 // ───────── v5 툴팁 (마우스 오버 / 모바일 탭) ─────────
