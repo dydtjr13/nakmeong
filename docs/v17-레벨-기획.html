@@ -1,0 +1,120 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 레벨 시스템 기획안 (v17 제안)</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>낚멍 레벨 시스템 기획안 (v17 제안)</h1>
+<h2>왜 넣나</h2>
+<p>지금은 코인·도감·업적이 진행도 전부라, 오래 한 사람도 겉으로 드러나는 게 칭호/랭킹뿐이에요. 레벨은 "오늘도 조금 컸다"는 느낌을 주고, 콘텐츠를 천천히 열어 주는 장치예요. 힐링 게임이라 <strong>레벨이 낮아도 손해는 없고, 높으면 볼거리가 늘어나는</strong> 방향이 맞아요.</p>
+<h2>XP 얻는 곳</h2>
+<table>
+<thead>
+<tr>
+<th>행동</th>
+<th>XP</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>물고기 낚기</td>
+<td>등급별 10 / 18 / 30 / 60 / 120 / 250</td>
+<td>크기 보너스 최대 +30%</td>
+</tr>
+<tr>
+<td>새 물고기 첫 포획</td>
+<td>+50</td>
+<td>도감 등록</td>
+</tr>
+<tr>
+<td>수집 목표·업적 달성</td>
+<td>+100~500</td>
+<td></td>
+</tr>
+<tr>
+<td>상자 열기</td>
+<td>+5</td>
+<td></td>
+</tr>
+<tr>
+<td>어항 조합 완성</td>
+<td>+80</td>
+<td>처음 1회</td>
+</tr>
+<tr>
+<td>다른 사람 어항 구경·이모지</td>
+<td>+2 (하루 50까지)</td>
+<td>교류 유도</td>
+</tr>
+<tr>
+<td>자동 낚시</td>
+<td>×0.6</td>
+<td>직접 플레이 우대</td>
+</tr>
+</tbody>
+</table>
+<p>필요 XP: <code>Lv n → n+1 = 100 × n^1.35</code> (Lv10까지 약 1.5시간, Lv30 약 40시간 목표)</p>
+<h2>레벨 보상</h2>
+<ul>
+<li>매 레벨: 코인 <code>100×Lv</code></li>
+<li>5레벨마다: 행운 상자 1개 (10레벨마다 등급 +1)</li>
+<li>칭호: Lv5 새내기 낚시꾼 · Lv12 호숫가 단골 · Lv20 별밤 조사 · Lv30 호수의 주인 · Lv50 전설의 강태공</li>
+</ul>
+<h2>레벨로 여는 콘텐츠</h2>
+<table>
+<thead>
+<tr>
+<th>Lv</th>
+<th>열리는 것</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>미끼 상점 2단</td>
+</tr>
+<tr>
+<td>5</td>
+<td>어항 꾸미기 소품</td>
+</tr>
+<tr>
+<td>8</td>
+<td>자동 낚시 (지금은 처음부터 → 레벨로 옮기면 초반 몰입이 좋아짐)</td>
+</tr>
+<tr>
+<td>10</td>
+<td>밤낚시 전용 어종 표시</td>
+</tr>
+<tr>
+<td>15</td>
+<td>어항 칸 +2, 데크 2자리(친구와 같이 낚시)</td>
+</tr>
+<tr>
+<td>20</td>
+<td>밤 전설 어종, 계절 한정 목표</td>
+</tr>
+<tr>
+<td>25</td>
+<td>캐릭터 추가(동물) 선택</td>
+</tr>
+<tr>
+<td>30</td>
+<td>칭호 테두리·이름표 색</td>
+</tr>
+</tbody>
+</table>
+<h2>화면에 들어가는 것</h2>
+<ul>
+<li>상단 HUD: 원형 게이지 + Lv 숫자 + XP 바 + 칭호 (시안 lA, 모바일 lD)</li>
+<li>이름표 옆 Lv 배지 (다른 사람 레벨이 보임)</li>
+<li>낚을 때마다 작은 <code>+35 XP</code> 토스트</li>
+<li>레벨업 팝업: 큰 숫자 + 보상 3칸 + 다음 보상 예고 (시안 lB)</li>
+<li>설정/프로필의 보상 로드 (시안 lC)</li>
+</ul>
+<h2>주의</h2>
+<ul>
+<li>레벨이 판매가·확률에 직접 영향을 주면 격차가 커지니, <strong>콘텐츠/외형 중심</strong>으로 두는 걸 추천해요.</li>
+<li>기존 플레이어는 누적 포획 수로 첫 레벨을 계산해 소급 적용하면 돼요.</li>
+</ul></main></body></html>

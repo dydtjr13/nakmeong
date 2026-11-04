@@ -1,0 +1,329 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v17 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>낚멍 v17 보고서</h1>
+<h2>고친 것 (v16 점검 7건 + 닉네임)</h2>
+<ol>
+<li>원거리 간략화 ON이면 30m 밖 유저가 안 보이던 문제 → 순서 버그 수정 (먼 유저 17/17 표시)</li>
+<li>모바일 설정·관리자 옆 탭이 내용을 가리던 문제 → 모바일에선 위쪽 가로 스크롤 탭</li>
+<li>수집 목표 알림 → 목표 이름이 가장 크게, 보상은 작은 칩으로 줄바꿈</li>
+<li>모바일에서 창 뒤로 채팅이 비치던 문제 → 창이 열리면 채팅·말풍선 숨김</li>
+<li>시작 화면 빨간 천막 → 카메라 가까이·시야를 가리는 소품은 반투명 처리</li>
+<li>접속자 수 불일치 → 채널 인원·대시보드 모두 실제 접속 캐릭터 기준</li>
+<li>캐릭터 시안 색 설명 → 실제 렌더 색을 보고 다시 씀 (v17 시안)
+- 닉네임을 머리 바로 위로 내리고, 말풍선은 그 바로 위로
+- 남자 어린이 캐릭터의 경찰 모자 제거 (모자는 밀짚모자 낚시꾼만)
+- 설정창 닫기(×) 버튼이 안 보이던 것 수정</li>
+</ol>
+<h2>상자 확률 계산 (보물탐지 300% = 확률 ×4)</h2>
+<p>시뮬(<code>tools/sim-time.js</code>, 400명) 기준 시간당 포획: 직접 <strong>209마리</strong>, 자동 <strong>164마리</strong>(자동은 상자 ×0.8). 연속 낚시 상자: 100마리마다 1개, 하루 10개까지.</p>
+<table>
+<thead>
+<tr>
+<th>목표</th>
+<th>직접 낚시 기본 확률</th>
+<th>자동 낚시 기본 확률</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>시간당 10개</td>
+<td><strong>0.95%</strong> (연속 상자 포함) / 1.20% (미포함)</td>
+<td>1.60%</td>
+</tr>
+<tr>
+<td>시간당 20개</td>
+<td><strong>2.14%</strong> / 2.39%</td>
+<td>3.51%</td>
+</tr>
+</tbody>
+</table>
+<p>현재 기본값 0.5% → 300%면 시간당 약 4.2개 + 연속 상자 2.1개.</p>
+<table>
+<thead>
+<tr>
+<th>상자 수</th>
+<th>시간당 10개</th>
+<th>시간당 20개</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>100개</td>
+<td>10시간</td>
+<td>5시간</td>
+</tr>
+<tr>
+<td>500개</td>
+<td>50시간</td>
+<td>25시간</td>
+</tr>
+<tr>
+<td>1000개</td>
+<td>100시간</td>
+<td>50시간</td>
+</tr>
+</tbody>
+</table>
+<p>하루 약 4.8시간 넘게 하면 연속 상자(하루 10개 제한)가 멈춰서 그 뒤로는 7.9개/17.9개 → 100·500·1000개에 각각 12.6·63·126시간 / 5.6·28·56시간.</p>
+<h2>무료 물 에셋·셰이더 (링크 모두 200 확인, 2026-11-04)</h2>
+<table>
+<thead>
+<tr>
+<th>이름</th>
+<th>링크</th>
+<th>라이선스</th>
+<th>맞는 정도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>three.js Water (Water.js)</td>
+<td><a href="https://github.com/mrdoob/three.js/blob/dev/examples/jsm/objects/Water.js">https://github.com/mrdoob/three.js/blob/dev/examples/jsm/objects/Water.js</a></td>
+<td>MIT</td>
+<td>반사+노멀맵 바다, 지금 r147에 바로 넣을 수 있음</td>
+</tr>
+<tr>
+<td>three.js Water2 (Water2.js)</td>
+<td><a href="https://github.com/mrdoob/three.js/blob/dev/examples/jsm/objects/Water2.js">https://github.com/mrdoob/three.js/blob/dev/examples/jsm/objects/Water2.js</a></td>
+<td>MIT</td>
+<td>반사+굴절+흐름, 잔잔한 호수에 가장 잘 맞음</td>
+</tr>
+<tr>
+<td>three.js 물 노멀맵</td>
+<td><a href="https://github.com/mrdoob/three.js/tree/dev/examples/textures/water">https://github.com/mrdoob/three.js/tree/dev/examples/textures/water</a></td>
+<td>MIT</td>
+<td>Water2용 노멀맵 2장</td>
+</tr>
+<tr>
+<td>waternormals.jpg</td>
+<td><a href="https://github.com/mrdoob/three.js/blob/dev/examples/textures/waternormals.jpg">https://github.com/mrdoob/three.js/blob/dev/examples/textures/waternormals.jpg</a></td>
+<td>MIT</td>
+<td>Water.js용 노멀맵</td>
+</tr>
+<tr>
+<td>Ocean 예제</td>
+<td><a href="https://threejs.org/examples/webgl_shaders_ocean.html">https://threejs.org/examples/webgl_shaders_ocean.html</a></td>
+<td>MIT</td>
+<td>실사 바다 느낌, 귀여운 화풍엔 과함</td>
+</tr>
+<tr>
+<td>WebGPU Water 예제</td>
+<td><a href="https://threejs.org/examples/webgpu_water.html">https://threejs.org/examples/webgpu_water.html</a></td>
+<td>MIT</td>
+<td>WebGPU 필요, 지금은 어려움</td>
+</tr>
+<tr>
+<td>Reflector / Refractor</td>
+<td><a href="https://github.com/mrdoob/three.js/blob/dev/examples/jsm/objects/Reflector.js">https://github.com/mrdoob/three.js/blob/dev/examples/jsm/objects/Reflector.js</a></td>
+<td>MIT</td>
+<td>물에 데크·나무 반사 (성능 비용 큼)</td>
+</tr>
+<tr>
+<td>Sky.js</td>
+<td><a href="https://github.com/mrdoob/three.js/blob/dev/examples/jsm/objects/Sky.js">https://github.com/mrdoob/three.js/blob/dev/examples/jsm/objects/Sky.js</a></td>
+<td>MIT</td>
+<td>하늘 그라데이션, 물 반사 색 맞추기</td>
+</tr>
+<tr>
+<td>Uber Stylized Water (three.js 포트)</td>
+<td><a href="https://github.com/norio/three-stylized-water">https://github.com/norio/three-stylized-water</a></td>
+<td>MIT</td>
+<td>거품·커스틱·물가 파도까지 최고 품질, WebGPU/TSL(r185) 필요</td>
+</tr>
+<tr>
+<td>위 데모</td>
+<td><a href="https://genex.games/stylized-water">https://genex.games/stylized-water</a></td>
+<td>MIT</td>
+<td>8가지 프리셋 미리보기</td>
+</tr>
+<tr>
+<td>thaslle/stylized-water</td>
+<td><a href="https://github.com/thaslle/stylized-water">https://github.com/thaslle/stylized-water</a></td>
+<td>MIT</td>
+<td>만화풍 물, R3F 기반이라 셰이더만 가져오면 됨</td>
+</tr>
+<tr>
+<td>데모</td>
+<td><a href="https://stylized-water.vercel.app">https://stylized-water.vercel.app</a></td>
+<td>MIT</td>
+<td></td>
+</tr>
+<tr>
+<td>roombawulf/toon-water-shader</td>
+<td><a href="https://github.com/roombawulf/toon-water-shader">https://github.com/roombawulf/toon-water-shader</a></td>
+<td>표기 없음</td>
+<td>작은 툰 물 예제, 참고용</td>
+</tr>
+<tr>
+<td>yampy/threejs-water-caustics</td>
+<td><a href="https://github.com/yampy/threejs-water-caustics">https://github.com/yampy/threejs-water-caustics</a></td>
+<td>기타(확인 필요)</td>
+<td>커스틱 빛무늬</td>
+</tr>
+<tr>
+<td>evanw/webgl-water</td>
+<td><a href="https://github.com/evanw/webgl-water">https://github.com/evanw/webgl-water</a></td>
+<td>MIT</td>
+<td>물결·커스틱 고전 데모</td>
+</tr>
+<tr>
+<td>martinRenou/threejs-water</td>
+<td><a href="https://github.com/martinRenou/threejs-water">https://github.com/martinRenou/threejs-water</a></td>
+<td>MIT</td>
+<td>위 데모의 three.js 포트</td>
+</tr>
+<tr>
+<td>jbouny/ocean</td>
+<td><a href="https://github.com/jbouny/ocean">https://github.com/jbouny/ocean</a></td>
+<td>MIT</td>
+<td>구형 바다 셰이더</td>
+</tr>
+<tr>
+<td>THREE-CustomShaderMaterial</td>
+<td><a href="https://github.com/FarazzShaikh/THREE-CustomShaderMaterial">https://github.com/FarazzShaikh/THREE-CustomShaderMaterial</a></td>
+<td>MIT</td>
+<td>기존 재질에 물 효과 덧붙이기</td>
+</tr>
+<tr>
+<td>pmndrs/postprocessing</td>
+<td><a href="https://github.com/pmndrs/postprocessing">https://github.com/pmndrs/postprocessing</a></td>
+<td>Zlib</td>
+<td>블룸·톤매핑 (낮 밝기 조절)</td>
+</tr>
+<tr>
+<td>drei MeshReflectorMaterial</td>
+<td><a href="https://github.com/pmndrs/drei#meshreflectormaterial">https://github.com/pmndrs/drei#meshreflectormaterial</a></td>
+<td>MIT</td>
+<td>흐린 반사 (R3F 전용)</td>
+</tr>
+<tr>
+<td>Roystan 툰 물 강좌</td>
+<td><a href="https://roystan.net/articles/toon-water/">https://roystan.net/articles/toon-water/</a></td>
+<td>강좌 (코드 참고)</td>
+<td>거품 띠 원리</td>
+</tr>
+<tr>
+<td>IronWarrior/ToonWaterShader</td>
+<td><a href="https://github.com/IronWarrior/ToonWaterShader">https://github.com/IronWarrior/ToonWaterShader</a></td>
+<td>MIT</td>
+<td>Unity, 셰이더 수식 참고</td>
+</tr>
+<tr>
+<td>Nugget8/Three.js-Ocean-Scene</td>
+<td><a href="https://github.com/Nugget8/Three.js-Ocean-Scene">https://github.com/Nugget8/Three.js-Ocean-Scene</a></td>
+<td>확인 필요</td>
+<td>스타일 바다 장면</td>
+</tr>
+<tr>
+<td>ambientCG 물 텍스처</td>
+<td><a href="https://ambientcg.com/list?q=water">https://ambientcg.com/list?q=water</a></td>
+<td>CC0</td>
+<td>노멀맵·물결 텍스처</td>
+</tr>
+<tr>
+<td>ambientCG 라이선스</td>
+<td><a href="https://ambientcg.com/license">https://ambientcg.com/license</a></td>
+<td>CC0</td>
+<td></td>
+</tr>
+<tr>
+<td>Poly Haven 텍스처</td>
+<td><a href="https://polyhaven.com/textures">https://polyhaven.com/textures</a></td>
+<td>CC0</td>
+<td>모래·돌 노멀맵 (물가)</td>
+</tr>
+<tr>
+<td>Poly Haven 하늘 HDRI</td>
+<td><a href="https://polyhaven.com/hdris/skies">https://polyhaven.com/hdris/skies</a></td>
+<td>CC0</td>
+<td>물 반사용 하늘</td>
+</tr>
+<tr>
+<td>Poly Haven 라이선스</td>
+<td><a href="https://polyhaven.com/license">https://polyhaven.com/license</a></td>
+<td>CC0</td>
+<td></td>
+</tr>
+<tr>
+<td>Kenney Nature Kit</td>
+<td><a href="https://kenney.nl/assets/nature-kit">https://kenney.nl/assets/nature-kit</a></td>
+<td>CC0</td>
+<td>지금 쓰는 팩 (물가 돌·갈대)</td>
+</tr>
+<tr>
+<td>Kenney Pirate Kit</td>
+<td><a href="https://kenney.nl/assets/pirate-kit">https://kenney.nl/assets/pirate-kit</a></td>
+<td>CC0</td>
+<td>물 타일·배</td>
+</tr>
+<tr>
+<td>Kenney Survival Kit</td>
+<td><a href="https://kenney.nl/assets/survival-kit">https://kenney.nl/assets/survival-kit</a></td>
+<td>CC0</td>
+<td>모닥불·통</td>
+</tr>
+<tr>
+<td>Kenney Particle Pack</td>
+<td><a href="https://kenney.nl/assets/particle-pack">https://kenney.nl/assets/particle-pack</a></td>
+<td>CC0</td>
+<td>물방울·반짝이</td>
+</tr>
+<tr>
+<td>Kenney Fish Pack</td>
+<td><a href="https://kenney.nl/assets/fish-pack">https://kenney.nl/assets/fish-pack</a></td>
+<td>CC0</td>
+<td>2D 물고기</td>
+</tr>
+<tr>
+<td>Quaternius Ultimate Nature</td>
+<td><a href="https://quaternius.com/packs/ultimatenature.html">https://quaternius.com/packs/ultimatenature.html</a></td>
+<td>CC0</td>
+<td>연잎·갈대·돌</td>
+</tr>
+<tr>
+<td>Quaternius Stylized Nature MegaKit</td>
+<td><a href="https://quaternius.com/packs/stylizednaturemegakit.html">https://quaternius.com/packs/stylizednaturemegakit.html</a></td>
+<td>CC0</td>
+<td>물가 소품</td>
+</tr>
+<tr>
+<td>Quaternius Cute Fish</td>
+<td><a href="https://quaternius.com/packs/cutefish.html">https://quaternius.com/packs/cutefish.html</a></td>
+<td>CC0</td>
+<td>3D 물고기</td>
+</tr>
+<tr>
+<td>Poly Pizza</td>
+<td><a href="https://poly.pizza/">https://poly.pizza/</a></td>
+<td>모델별 CC0/CC-BY</td>
+<td>로우폴리 검색</td>
+</tr>
+<tr>
+<td>cgbookcase</td>
+<td><a href="https://www.cgbookcase.com/textures/">https://www.cgbookcase.com/textures/</a></td>
+<td>CC0</td>
+<td>텍스처</td>
+</tr>
+<tr>
+<td>FreePBR</td>
+<td><a href="https://freepbr.com/">https://freepbr.com/</a></td>
+<td>무료 (조건 확인)</td>
+<td>PBR 텍스처</td>
+</tr>
+<tr>
+<td>OpenGameArt 물</td>
+<td><a href="https://opengameart.org/art-search?keys=water">https://opengameart.org/art-search?keys=water</a></td>
+<td>항목별</td>
+<td>물 타일·효과</td>
+</tr>
+</tbody>
+</table>
+<h2>시안</h2>
+<p><a href="https://dydtjr13.github.io/nakmeong/mockups-v17/">https://dydtjr13.github.io/nakmeong/mockups-v17/</a> — 물 6안, 낮 밝기 6안, 레벨(기획안+4), 어항 목록 4안, 2D 그림 물고기 2안, 데크 2자리 어항 2안, 사람 13종, 동물 10종</p>
+<h2>회귀</h2>
+<p>t18·t19·t30 통과, 데스크톱·모바일 오류 0.</p></main></body></html>

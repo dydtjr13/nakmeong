@@ -1,0 +1,166 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v11 보고서 (2026-11-03)</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>낚멍 v11 보고서 (2026-11-03)</h1>
+<h2>게임 반영</h2>
+<ol>
+<li>도감 물고기 클릭 → 어종별 최대 크기 랭킹 (내 서버/전체 서버 탭, 상위 10, 내 기록 하단 고정, "3위까지 n cm")</li>
+<li>어항 정렬: 최근순 / 가격 높은·낮은순 / 등급 높은·낮은순</li>
+<li>선물 상자: 낚시 성공 100회마다 1개, 하루 최대 10개 (HUD에 "오늘 n/10")</li>
+<li>낚싯대 개성 재설계 (아래 표)</li>
+<li>자동 낚시: 깜빡임 제거, 메뉴를 연 상태에서도 계속 낚시, 결과 카드 2.5초, 메뉴 중에는 우하단 미니 알림</li>
+<li>채팅 탭: 전체 / 대화 / 시스템</li>
+<li>도감에 초월 칸 추가 (분홍/무지개 설정 따름)</li>
+<li>수집 목표 → 어항 테마 선택 후 창 닫기 안 되던 버그 수정</li>
+<li>상점 강화석 구매 제거</li>
+<li>강화 +20까지 확장 + 돌파 보너스 (아래 표)</li>
+<li>입질 시간 11~23초(최소 5초, 장비로 단축) + 가짜 입질(찌 흔들림, 이때 당기면 실패)</li>
+</ol>
+<h2>낚싯대</h2>
+<table>
+<thead>
+<tr>
+<th>낚싯대</th>
+<th>크기</th>
+<th>입질대기</th>
+<th>행운</th>
+<th>판매가</th>
+<th>상자</th>
+<th>성격</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>대나무</td>
+<td>×1.00</td>
+<td>×1.00</td>
+<td>0</td>
+<td>–</td>
+<td>–</td>
+<td>기본</td>
+</tr>
+<tr>
+<td>카본</td>
+<td>×1.05</td>
+<td>×0.90</td>
+<td>0</td>
+<td>–</td>
+<td>–</td>
+<td>입질형</td>
+</tr>
+<tr>
+<td>은빛 릴</td>
+<td>×1.30</td>
+<td>×0.96</td>
+<td>+1%</td>
+<td>–</td>
+<td>–</td>
+<td>크기형</td>
+</tr>
+<tr>
+<td>산호</td>
+<td>×1.12</td>
+<td>×0.88</td>
+<td>+1%</td>
+<td>+15%</td>
+<td>–</td>
+<td>코인형 (미끼 10 고정)</td>
+</tr>
+<tr>
+<td>벚꽃</td>
+<td>×1.15</td>
+<td>×0.76</td>
+<td>+2%</td>
+<td>+5%</td>
+<td>–</td>
+<td>속도형 (빠른입질 5 고정)</td>
+</tr>
+<tr>
+<td>황금</td>
+<td>×1.45</td>
+<td>×0.84</td>
+<td>+4%</td>
+<td>+25%</td>
+<td>+10%</td>
+<td>대어·코인</td>
+</tr>
+<tr>
+<td>별빛</td>
+<td>×1.30</td>
+<td>×0.66</td>
+<td>+12%</td>
+<td>+10%</td>
+<td>+20%</td>
+<td>행운·속도 (행운 10 고정)</td>
+</tr>
+<tr>
+<td>용왕</td>
+<td>×1.70</td>
+<td>×0.60</td>
+<td>+12%</td>
+<td>+30%</td>
+<td>+25%</td>
+<td>최종</td>
+</tr>
+</tbody>
+</table>
+<h2>강화 (+1당 크기 +1%, 입질 -1.2%)</h2>
+<table>
+<thead>
+<tr>
+<th>단계</th>
+<th>성공률</th>
+<th>강화석</th>
+<th>코인</th>
+<th>실패 시</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>+0→1 ~ +4→5</td>
+<td>100/95/90/85/80%</td>
+<td>1/1/2/2/3</td>
+<td>150~3,750</td>
+<td>유지</td>
+</tr>
+<tr>
+<td>+5→6 ~ +9→10</td>
+<td>70/62/55/48/42%</td>
+<td>3/4/5/6/7</td>
+<td>5,400~15,000</td>
+<td>유지</td>
+</tr>
+<tr>
+<td>+10→11 ~ +14→15</td>
+<td>35/30/26/22/18%</td>
+<td>9/10/12/14/16</td>
+<td>18,150~33,750</td>
+<td>30% 확률 1단계 하락 (+10 아래로는 안 떨어짐)</td>
+</tr>
+<tr>
+<td>+15→16 ~ +19→20</td>
+<td>15/12/10/8/6%</td>
+<td>18/21/24/27/30</td>
+<td>38,400~60,000</td>
+<td>50% 확률 1단계 하락 (+15 아래로는 안 떨어짐)</td>
+</tr>
+</tbody>
+</table>
+<p>돌파 보너스: +5 행운 +2% · +10 판매가 +10% · +15 상자 확률 +15% · +20 크기 +10%·판매가 +10%·행운 +3%</p>
+<h2>시뮬레이션 (500명, 수동, 하루 8시간 기준)</h2>
+<ul>
+<li>첫 획득 중앙값: 산호 0.3h · 벚꽃 0.9h · 황금 6.7h(약 1일) · 별빛 27.9h(약 3.5일) · 용왕 120h에 50%(약 15일)</li>
+<li>강화: +5 2.3h · +10 14.5h(약 2일) · +15 120h에 36% · +20 장기 목표(120h 내 0%)</li>
+<li>자동(24h): 황금 78%(9.7h), 별빛 29%, +10 68%(20.3h)</li>
+<li>수집 목표: 쉬운 목표 0.1~5h, 신화 컬렉션 15~40h, 30,000마리 99h</li>
+<li>상세: docs/sim-manual.txt, docs/sim-auto.txt</li>
+</ul>
+<h2>시안 (mockups-v11/)</h2>
+<ul>
+<li>tank-themes.html: 6테마 × A/B, 실제 어항 캡처</li>
+<li>fishrank.html?v=e|f|g: 시상대 / 트로피 카드 / 추격 레이스</li>
+</ul></main></body></html>

@@ -1,0 +1,77 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v16 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>낚멍 v16 보고서</h1>
+<h2>적용</h2>
+<ul>
+<li>날씨 표시 D(카드형 <code>#wxCard</code>), 날씨 변경 토스트 제거</li>
+<li>관리자 모드 개편: A 라이트(기본) / B 다크 토글</li>
+<li>설정창 A: 사이드 탭 + 릴 모션·낚시 버튼·수집 알림 호버 미리보기 이미지(15장)</li>
+<li>빙어 이미지 B 교체</li>
+<li>밀짚모자 낚시꾼 캐릭터 추가(시작 화면 5번째, 봇 순환 포함)</li>
+<li>버그 수정: 낚시 버튼 B/D 화면 밖 렌더링, 관리자 헤더 버튼 흰 박스</li>
+<li>시안: <a href="https://dydtjr13.github.io/nakmeong/mockups-v16/">https://dydtjr13.github.io/nakmeong/mockups-v16/</a> (어항 목록, 어항 대체안, 2자리 데크, 신규 캐릭터/동물)</li>
+</ul>
+<h2>2자리 데크</h2>
+<p>미구현. 현재 데크마다 <code>owner</code> 1명, 찌 1개라 '2자리'는 표시용 정원이었음. 시안에서 방식 비교.</p>
+<h2>점검 (수정 안 함) — 스크린샷 <code>shots/audit-v16/</code></h2>
+<table>
+<thead>
+<tr>
+<th>심각도</th>
+<th>위치</th>
+<th>내용</th>
+<th>스크린샷</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>높음</td>
+<td>월드(데스크톱·모바일)</td>
+<td>원거리 단순화 ON이면 30m 밖 유저가 전부 안 보임(데스크톱 17/17, 모바일 18/18 안 보임). 원인: <code>c.o.visible=false</code>를 먼저 넣고 <code>simp.visible</code>이 <code>c.o.visible!==false</code>를 검사함. OFF면 20/20 보임</td>
+<td>d-01-hud, m-01-hud</td>
+</tr>
+<tr>
+<td>높음</td>
+<td>설정·관리자(모바일)</td>
+<td>사이드 탭이 폭의 절반을 차지해 본문 입력칸/카드가 오른쪽에서 잘림</td>
+<td>m-07-set, m-08-admin</td>
+</tr>
+<tr>
+<td>중간</td>
+<td>수집 목표 알림</td>
+<td>보상 문구(판매가 +3%…)가 제목보다 훨씬 크고 2줄로 줄바꿈 → 위계 역전. 목표 이름이 가장 작음</td>
+<td>d-02-goal, m-02-goal</td>
+</tr>
+<tr>
+<td>중간</td>
+<td>모달 전반(모바일)</td>
+<td>모달 아래 채팅 로그가 흐리게 비쳐 겹쳐 보임</td>
+<td>m-03~06</td>
+</tr>
+<tr>
+<td>낮음</td>
+<td>데스크톱 시점</td>
+<td>시작 위치에서 빨간 천막 지붕이 화면 왼쪽 아래 1/3을 가림</td>
+<td>d-02-goal</td>
+</tr>
+<tr>
+<td>낮음</td>
+<td>오프라인 봇</td>
+<td>presence()로 숨겨져 접속자 수와 보이는 인원이 다를 수 있음</td>
+<td>-</td>
+</tr>
+<tr>
+<td>낮음</td>
+<td>시안 chars-h</td>
+<td>5~7번 리컬러 라벨이 실제 색과 다를 수 있음</td>
+<td>mockups-v16/chars-h.jpg</td>
+</tr>
+</tbody>
+</table>
+<h2>회귀</h2>
+<p>t18(설정 라디오 클릭은 탭 구조에 맞게 수정)·t19·t30 통과, 페이지 오류 0건.</p></main></body></html>
