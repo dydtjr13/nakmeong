@@ -410,3 +410,19 @@ body.menu-b #mMain #bAutoFish.on{background:linear-gradient(135deg,#7fd4a8,#3fb0
 .fr-row:nth-child(even){background:#f8f5ee}
 .cswap img,.ctag2 img,.cslot small img{width:1.15em!important;height:1.15em!important;vertical-align:-.2em}
 @media(max-width:700px){#tankHint{bottom:auto;top:calc(45% - 30px);font-size:10.5px}#tank.big #tankHint{top:auto;bottom:12px}}
+
+/* ───────── v13 ───────── */
+.boxget{position:fixed;left:50%;bottom:118px;transform:translateX(-50%);z-index:9000;display:flex;align-items:center;gap:12px;padding:10px 20px 10px 12px;border-radius:22px;background:linear-gradient(120deg,#fff6d8,#ffe08a 55%,#ffd0a0);box-shadow:0 0 0 3px #f6c542,0 12px 34px #f6a54266,0 0 40px #ffd86b88;animation:bgIn .55s cubic-bezier(.2,1.6,.4,1) both;pointer-events:none;overflow:hidden}
+.boxget.gift{background:linear-gradient(120deg,#ffeaf2,#ffc6dc 55%,#ffd9b8);box-shadow:0 0 0 3px #ff8fb6,0 12px 34px #ff8fb666,0 0 40px #ffb8d088}
+.boxget img{width:64px;height:64px;object-fit:contain;animation:bgBox 1s ease-in-out infinite;filter:drop-shadow(0 4px 6px #0003)}
+.boxget .bg-t{display:flex;flex-direction:column}.boxget b{font-size:19px;color:#5a3a12;font-weight:900}.boxget b small{font-size:12px;color:#a0602a;margin-left:6px}.boxget .bg-t>small{font-size:12px;color:#7a5a3a}
+.boxget .bg-rays{position:absolute;left:-30px;top:50%;width:140px;height:140px;margin-top:-70px;background:repeating-conic-gradient(#fff8 0 10deg,transparent 10deg 30deg);border-radius:50%;animation:bgSpin 4s linear infinite;opacity:.7}
+.boxget.out{animation:bgOut .45s ease-in forwards}
+@keyframes bgIn{from{opacity:0;transform:translate(-50%,40px) scale(.6)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+@keyframes bgOut{to{opacity:0;transform:translate(-50%,-30px) scale(.9)}}
+@keyframes bgBox{0%,100%{transform:rotate(-6deg) scale(1)}50%{transform:rotate(6deg) scale(1.08)}}@keyframes bgSpin{to{transform:rotate(360deg)}}
+#bBag{position:relative}#bBag[data-new]::after{content:attr(data-new);position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#ff5a5a;color:#fff;font-size:12px;font-weight:900;line-height:20px;text-align:center;box-shadow:0 0 0 2px #fff;animation:bdgP 1.2s ease-in-out infinite}
+@keyframes bdgP{50%{transform:scale(1.2)}}
+#toast:has(.cc.B){top:calc(26% - 8.5vh)}
+.tset p{margin:6px 0}.tset label{margin-right:8px;white-space:nowrap}
+@media(max-width:700px){.boxget{bottom:150px;padding:8px 14px 8px 8px}.boxget img{width:48px;height:48px}.boxget b{font-size:16px}}

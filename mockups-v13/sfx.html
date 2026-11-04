@@ -1,0 +1,13 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v13 · 효과음 시안 (1·32)</title><link rel="stylesheet" href="common.css"><style>
+.row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.g{border:0;border-radius:10px;padding:7px 11px;font-weight:800;font-size:12.5px;cursor:pointer;color:#fff}
+.g0{background:#9aa4b0}.g1{background:#5cb85c}.g2{background:#4a8fe0}.g3{background:#a35ce0}.g4{background:#f0a020}.g5{background:#ff4f8a}.seq{background:#3b3346}
+</style></head><body><header><h1>🔊 효과음 시안 — 행운 상자 개봉(1) · 물고기 낚음(32)</h1><div class="sub">모두 브라우저에서 바로 합성되는 소리예요(파일 다운로드 없음 → 게임 용량 0). 버튼을 눌러 등급별로 들어보세요. <b>“전체 연속”</b>은 낮은 등급 → 높은 등급 순으로 이어 재생해 화려함 차이를 비교할 수 있어요.<br>※ 휴대폰은 무음 모드를 해제해야 들려요. <a href="index.html">← 시안 목록</a></div></header><main>
+<h2>1. 행운 상자 개봉음 (등급이 높을수록 화려하게)</h2><div class="grid" id="box"></div>
+<h2>32. 물고기 낚았을 때 효과음</h2><div class="grid" id="catch"></div>
+<p class="sub">추천: 상자 = <b>A 차임</b>(기본) 또는 <b>E 드럼롤</b>(연출 강조) · 낚음 = <b>A 첨벙+팅</b>(가장 자주 들리므로 짧고 피로 적음). 고르시면 그대로 게임 synthFx에 이식할게요.</p>
+</main><script src="sfx.js"></script><script>
+const GB=['일반','고급','희귀','영웅','전설','신화'],GC=['일반','고급','희귀','전설','신화','초월'];
+function mk(id,set,names){const el=document.getElementById(id);Object.entries(set).forEach(([k,s])=>{const c=document.createElement('div');c.className='card';c.innerHTML=`<h3>${id==='box'?'상자':'낚음'} ${k} · ${s.n}</h3><p>${s.d}</p><div class="row">${names.map((n,g)=>`<button class="g g${g}" data-g="${g}">${n}</button>`).join('')}<button class="g seq">전체 연속 ▶</button></div>`;
+ c.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>SFX.play(set,k,+b.dataset.g));c.querySelector('.seq').onclick=()=>names.forEach((_,g)=>setTimeout(()=>SFX.play(set,k,g),g*(id==='box'?2200:1300)));el.appendChild(c);});}
+mk('box',SFX.BOX,GB);mk('catch',SFX.CATCH,GC);
+</script><script src="lb.js"></script></body></html>

@@ -44,7 +44,7 @@ SYS.mods=(D,S,rod,bait)=>{const ch=SYS.charmSum(D,S),lv=rod.enh||0;
   return {ch,size:rod.size*bait.size*(1+lv*D.ENH.size)*(1+ch.big/100),wait:bait.speed*rod.speed*(1-lv*D.ENH.speed)*(1-ch.quick/100),
    sell:D.SHOP_SELL_RATE*(1+ch.merchant/100)*(1+(rod.coin||0)),box:SYS.boxChance(D,ch)*(1+(rod.box||0))};};
 SYS.progress=(D,S,rod)=>{const G=D.GATE;if(!G)return 1;const ri=Math.max(0,D.RODS.findIndex(r=>r.k===rod.k)),rr=ri/(D.RODS.length-1);return Math.min(1,G.wRod*rr+G.wEnh*Math.min(1,(rod.enh||0)/10)+G.wCaught*Math.min(1,(S.caught||0)/G.caughtMax));};
-SYS.gateMul=(D,f,P)=>{const G=D.GATE;if(!G||!G.on)return 1;const e=f.base>=G.hi.base?G.hi.e:f.base>=G.mid.base?G.mid.e:1;return e+(1-e)*P;};
+SYS.gateMul=(D,f,P)=>{const G=D.GATE;if(!G||!G.on)return 1;const fb=f.gb!=null?f.gb:f.base,e=fb>=G.hi.base?G.hi.e:fb>=G.mid.base?G.mid.e:1;return e+(1-e)*P;};
 SYS.weights=(D,S,rod,bait,night=0)=>{const ch=SYS.charmSum(D,S),N=night>.5,bb=bait.nightOnly&&!N?{}:bait.boost,P=SYS.progress(D,S,rod);return D.FISH.map(f=>{if(f.nightOnly&&!N)return 0;return SYS.gateMul(D,f,P)*f.w*(bb[f.k]||1)*(f.rare?(1+rod.luck*10)*(1+ch.luck/100):1)*(f.expert?1+ch.expert/100:1)*(N&&f.night?f.night:1);});};
 // 구버전 세이브 이관
 SYS.migrate=(D,S)=>{S.gear=S.gear||[];if(!S.gear.length){(S.rods||['bamboo']).forEach(k=>{const g=SYS.makeGear(D,k,S.nid++);g.q=1;g.enh=(S.enh||{})[k]||0;S.gear.push(g);if(k===S.rod)S.rodId=g.id;});}

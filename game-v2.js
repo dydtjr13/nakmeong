@@ -3,14 +3,15 @@
 THREE.ColorManagement.legacyMode=false;
 const D=NK_DATA,$=id=>document.getElementById(id),qs=new URLSearchParams(location.search);
 // v12 시안용 숨김 파라미터: ?mock30&decks=30&lr=32&lay=ring|alt|bay (기본 게임은 20데크·LR 24 그대로)
-const MOCK30=qs.has('mock30'),LAY=qs.get('lay')||'ring',DECKS=Math.min(MOCK30?30:20,Math.max(2,+qs.get('decks')||D.DECK_COUNT_DEFAULT)),LR=MOCK30?(+qs.get('lr')||24):24;
+const CFG=Object.assign({lay:'a',bots:9},JSON.parse(localStorage.getItem('nk_cfg')||'{}'));const LAYS={a:['ring',32],b:['alt',26],c:['bay',29],o:['ring',24]};
+const MOCK30=qs.has('mock30'),LK=MOCK30?null:(LAYS[CFG.lay]?CFG.lay:'a'),LAY=MOCK30?(qs.get('lay')||'ring'):LAYS[LK][0],DECKS=Math.min(30,Math.max(2,+qs.get('decks')||(MOCK30||LK==='o'?D.DECK_COUNT_DEFAULT:30))),LR=MOCK30?(+qs.get('lr')||24):LAYS[LK][1];
 function deckAng(i){if(LAY==='bay'){const G=6,per=Math.ceil(DECKS/G),g=Math.floor(i/per),j=i%per,gw=Math.PI*2/G,sp=gw*.72/per;return -Math.PI/2+g*gw+(j-(per-1)/2)*sp;}return -Math.PI/2+i*Math.PI*2/DECKS;}
 const deckOff=i=>LAY==='alt'&&i%2?2.6:0;
 const UP=new THREE.Vector3(0,1,0),V=new THREE.Vector3(),Q=new THREE.Quaternion(),SC=new THREE.Vector3(),M4=new THREE.Matrix4();
 const rand=(a,b)=>a+Math.random()*(b-a),pick=a=>a[Math.random()*a.length|0];
 // ───────── 저장 데이터 ─────────
 const SKEY='nakmeong_v2';
-const S0={coins:D.START_COINS,tank:[],tankK:'s',tanks:['s'],rod:'bamboo',rods:['bamboo'],bait:'worm',baits:{worm:-1},dex:{},char:0,sDay:0,sNight:0,vol:.3,nid:1,caught:0,earned:0,gear:[],rodId:null,charms:[],equip:[],stones:0,enh:{},boxes:[],auto:null,nick:'',showG:{tree:1,grass:1,flower:1}};
+const S0={coins:D.START_COINS,tank:[],tankK:'s',tanks:['s'],rod:'bamboo',rods:['bamboo'],bait:'worm',baits:{worm:-1},dex:{},char:0,sDay:0,sNight:2,vol:.2,fpsCap:144,moveMul:1.35,rankTag:true,nid:1,caught:0,earned:0,gear:[],rodId:null,charms:[],equip:[],stones:0,enh:{},boxes:[],auto:null,nick:'',showG:{tree:1,grass:1,flower:1}};
 let S=Object.assign({},S0,JSON.parse(localStorage.getItem(SKEY)||'{}'));
 const SYS=window.NK_SYS;S.auto=S.auto||Object.assign({},D.AUTO_DEFAULT,{keepNew:false});if(!S.auto.v6){S.auto.v6=1;S.auto.keepNew=false;}const NICK=()=>S.nick||'나';SYS.migrate(D,S);let NIGHT=0;setTimeout(()=>{try{cslotInit();wkRoll();}catch(e){}},0);
 const save=()=>{S.savedAt=S.savedAt||Date.now();try{localStorage.setItem(SKEY,JSON.stringify(S));}catch(e){}};
@@ -186,9 +187,11 @@ function drawBub(sp,b){const key=b?(b.emo?'e:':'t:')+b.txt+b.t:'';if(sp.userData
   else{x.font='bold 34px sans-serif';const t=[...b.txt].length>16?[...b.txt].slice(0,15).join('')+'…':b.txt;const w=Math.min(496,x.measureText(t).width+48);rr(256-w/2,40,w,76,30);x.fill();x.shadowColor='transparent';x.beginPath();x.moveTo(242,114);x.lineTo(270,114);x.lineTo(256,138);x.fill();x.strokeStyle='#e6dccb';x.lineWidth=2;rr(256-w/2,40,w,76,30);x.stroke();x.fillStyle='#4a4058';x.textAlign='center';NK_fillTextEmoji(x,t,256,90,34,()=>{sp.userData.last=null;});}
   sp.material.map.needsUpdate=true;}
 function makeTag(name){const cv=document.createElement('canvas');cv.width=320;cv.height=110;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false,transparent:true}));sp.scale.set(3.4,1.17,1);sp.renderOrder=9;sp.userData={cv,last:null,name};return sp;}
-function drawTag(sp,b){if(sp.userData.last===b)return;sp.userData.last=b;const x=sp.userData.cv.getContext('2d');x.clearRect(0,0,320,110);x.font='bold 26px sans-serif';x.textAlign='center';
+function drawTag(sp,b,rk=0){if(sp.userData.last===b&&sp.userData.lrk===rk)return;sp.userData.last=b;sp.userData.lrk=rk;const x=sp.userData.cv.getContext('2d');x.clearRect(0,0,320,110);x.font='bold 26px sans-serif';x.textAlign='center';
   if(b){const w=Math.min(300,x.measureText(b).width+30);x.fillStyle='#fffaf3';x.beginPath();if(x.roundRect)x.roundRect(160-w/2,2,w,48,18);else x.rect(160-w/2,2,w,48);x.fill();x.beginPath();x.moveTo(150,50);x.lineTo(170,50);x.lineTo(160,60);x.fill();x.fillStyle='#4a4058';NK_fillTextEmoji(x,[...b].length>14?[...b].slice(0,13).join('')+'…':b,160,36,26,()=>{sp.userData.last=null;});}
-  x.lineWidth=5;x.strokeStyle='#4a405888';x.strokeText(sp.userData.name,160,96);x.fillStyle='#fff';x.fillText(sp.userData.name,160,96);sp.material.map.needsUpdate=true;}
+  if(rk){const M=['','#f6c542','#b9c4d4','#e5a06e'][rk],nm=sp.userData.name,w=x.measureText(nm).width,cx=160-12,L=cx-w/2-26;x.save();x.shadowColor=M;x.shadowBlur=18;x.fillStyle='#fffdf8';x.beginPath();if(x.roundRect)x.roundRect(L-10,72,w+56,34,17);else x.rect(L-10,72,w+56,34);x.fill();x.restore();x.lineWidth=2.5;x.strokeStyle=M;x.stroke();
+   const g=x.createRadialGradient(L+10,85,2,L+13,89,13);g.addColorStop(0,'#fff');g.addColorStop(1,M);x.fillStyle=g;x.beginPath();x.arc(L+13,89,12,0,7);x.fill();x.lineWidth=2;x.strokeStyle=['','#b8860b','#7d8898','#a8643a'][rk];x.stroke();x.fillStyle=['','#7a5200','#4a5464','#6e3a18'][rk];x.font='900 16px sans-serif';x.fillText(rk,L+13,94.5);x.font='bold 26px sans-serif';x.fillStyle='#4a4058';x.fillText(nm,cx+14,98);}
+  else{x.lineWidth=5;x.strokeStyle='#4a405888';x.strokeText(sp.userData.name,160,96);x.fillStyle='#fff';x.fillText(sp.userData.name,160,96);}sp.material.map.needsUpdate=true;}
 // ───────── 충돌 ─────────
 function walk(x,z){const r=Math.hypot(x,z);if(r>90)return false;if(r<LR+.5&&!inDeck(x,z))return false;for(const o of obstacles)if((x-o[0])**2+(z-o[1])**2<o[2]*o[2])return false;
   for(const d of decks){if(Math.hypot(x-d.tank.x,z-d.tank.z)<.55)return false;}return true;}
@@ -213,7 +216,7 @@ const sfxDrop=new Audio('sounds/sfx/splash-drop.wav');sfxDrop.preload='auto';
 function updAmb(p){const k=snd.force==='day'?0:snd.force==='night'?1:Math.min(1,p.night*1.15);const v=snd.on?S.vol:0,cl=x=>Math.max(0,Math.min(1,x));if(snd.wa){snd.day.volume=snd.night.volume=1;snd.gDay.gain.value=cl(v*(1-k));snd.gNight.gain.value=cl(v*k);}else{snd.day.volume=cl(v*(1-k));snd.night.volume=cl(v*k);}if(snd.m)snd.m.gain.value=cl(v*.625);}
 // ───────── 게임 상태 ─────────
 let me,yaw=0,pitch=.38,dist=12,drag=null,fishing={state:'off'},nearSpot=null,bob=null,line=null,lineG,castT=-1,castTo=new THREE.Vector3();
-const bots=[];const BOT_NAMES=['물멍러','붕어왕','노을소녀','캠핑아재','꼬마강태공','밤낚시','호수요정','쏘가리헌터','루어장인'];
+const bots=[];const BOT_NAMES=['물멍러','붕어왕','노을소녀','캠핑아재','꼬마강태공','밤낚시','호수요정','쏘가리헌터','루어장인','은빛여울','새벽입질','낚시하는곰','월척꿈나무','바람의찌','모래무지씨','고요한호수','릴감는소리','물안개','별밤조사','떡밥장인','강준치헌터','찌맞춤','초보강태공','손맛중독','잉어사랑','호수산책','물결소리','갈대숲','연잎위개구리','버들치','송사리','물총새','왜가리','청둥오리','노을빛찌','달빛낚시','파란버킷','캠핑의자','모닥불지기','붕어빵','민물요정','손맛장인','느긋한오후','바람개비','연못지기','물수제비','고양이낚시꾼','대물사냥꾼','초록찌','소풍가방'];
 const LINES=['안녕하세요~','오늘 입질 좋네요','노을 진짜 예쁘다','모닥불 쬐러 가요','🐟','😊','가물치 잡으신 분?','제 어항 구경 오세요!','소리 너무 힐링돼요','👍','떡밥 쓰니까 빨라요','월척 하고 싶다…'];
 function ringRoute(fx,fz,tx,tz){const pts=[],R0=LR+3.2,a0=Math.atan2(fz,fx),a1=Math.atan2(tz,tx);let da=((a1-a0)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI;
   const steps=Math.max(1,Math.ceil(Math.abs(da)/.25));if(Math.hypot(fx,fz)<LR+2)pts.push({x:Math.cos(a0)*R0,z:Math.sin(a0)*R0});for(let i=1;i<=steps;i++){const a=a0+da*i/steps;pts.push({x:Math.cos(a)*R0,z:Math.sin(a)*R0});}pts.push({x:tx,z:tz});return pts;}
@@ -221,11 +224,11 @@ function botGoal(b){const r=Math.random();let dest;
   if(b.deck&&r<.55){b.goal='fish';const d=b.deck;b.path=ringRoute(b.c.o.position.x,b.c.o.position.z,d.entry.x,d.entry.z);b.path.push({x:d.cx+d.ca*.5,z:d.cz+d.sa*.5},{x:d.tip.x+d.ca*.6,z:d.tip.z+d.sa*.6});return;}
   if(r<.8){b.goal='rest';const a=Math.random()*6.3;dest={x:SH.x+Math.cos(a)*2.6,z:SH.z+Math.sin(a)*2.6};}else{b.goal='shop';dest={x:SHOP.x-Math.cos(Math.atan2(SHOP.z,SHOP.x))*3+rand(-2,2),z:SHOP.z-Math.sin(Math.atan2(SHOP.z,SHOP.x))*3+rand(-2,2)};}
   const p=b.c.o.position;b.path=(Math.hypot(p.x,p.z)<LR+2?[{x:b.deck?b.deck.entry.x:p.x,z:b.deck?b.deck.entry.z:p.z}]:[]).concat(ringRoute(b.deck&&Math.hypot(p.x,p.z)<LR+2?b.deck.entry.x:p.x,b.deck&&Math.hypot(p.x,p.z)<LR+2?b.deck.entry.z:p.z,dest.x,dest.z));}
-function makeBots(){const n=Math.min(BOT_NAMES.length,DECKS-1);for(let i=0;i<n;i++){const ki=[1,4,2,5,3,6,7,0,1][i];const c=makeChar(ki,BOT_NAMES[i]);const deck=i<Math.min(6,DECKS-1)?decks[i+1]:null;if(deck)deck.owner=BOT_NAMES[i];
+function makeBots(){const n=Math.min(BOT_NAMES.length,Math.max(0,Math.min(50,+CFG.bots||9))),own=n>9?DECKS-1:Math.min(6,DECKS-1);for(let i=0;i<n;i++){const ki=[1,4,2,5,3,6,7,0][i%8];const c=makeChar(ki,BOT_NAMES[i]);const deck=i<own?decks[i+1]:null;if(deck)deck.owner=BOT_NAMES[i];
   const st=deck?deck.entry:{x:SH.x+rand(-3,3),z:SH.z+rand(-3,3)};c.o.position.set(st.x,H(st.x,st.z),st.z);
   const tank=[];for(let k=0;k<3+(Math.random()*4|0);k++){const f=rollFish(D.RODS[1+(i%3)],D.BAITS[0]);f.price=Math.round(f.v*rand(1.1,1.6));f.sale=true;tank.push(f);}
-  for(let k=0;k<1+(i%2);k++)tank.push(comboFish());setCharRod(c,D.RODS[[1,2,3,4,5,0,6,2,7][i]%D.RODS.length].k,i%3);
-  bots.push({c,deck,path:[],wait:rand(0,4),goal:null,tank,chat:rand(4,14),fishT:0,tdes:D.TANKS[1+(i%5)].design});}}
+  for(let k=0;k<1+(i%2);k++)tank.push(comboFish());setCharRod(c,D.RODS[[1,2,3,4,5,0,6,2,7][i%9]%D.RODS.length].k,i%3);
+  bots.push({c,deck,path:[],wait:rand(0,4),goal:null,tank,chat:rand(4,14),fishT:0,tdes:(D.TANKS[1+(i%5)]||D.TANKS[0]).design});}}
 // v5: 조합용 어종을 봇이 판매 (유저 간 거래 유도). 등급은 낮을수록 흔함
 function comboFish(){const c=pick(D.COMBO.list),k=pick(c.ks),f=FI(k),bd=[f.min,...f.g,f.max];let x=Math.random(),g=x<.45?0:x<.75?1:x<.92?2:x<.99?3:4;const cm=Math.round((bd[g]+(bd[g+1]-bd[g])*rand(.05,.95))*10)/10,gg=gradeOf(f,cm),v=valueOf(f,cm,gg);return {id:S.nid++,k,cm,g:gg,v,price:Math.round(v*rand(1.2,1.8)),sale:true,combo:1};}
 let restockT=60;function botRestock(dt){restockT-=dt;if(restockT>0)return;restockT=rand(70,120);const b=pick(bots.filter(b=>b.deck));if(b&&b.tank.length<10){b.tank.push(comboFish());}}
@@ -244,7 +247,7 @@ function botBuy(dt){buyT-=dt;if(buyT>0)return;buyT=rand(...D.BOT_BUY_INTERVAL);c
   if(Math.random()<.3)say(b.c.name,'어항 구경 잘 했어요~ 가격이 좀 비싸네요 😅');}
 // ───────── 낚시 ─────────
 function canFishAt(d){return d&&(d.i===0||!d.owner);}
-function fishAction(auto){if(!auto&&anyModal())return;
+function fishAction(auto){if(!auto&&anyModal())return;if(!auto&&S.autoFish){if(!fishAction._t||performance.now()-fishAction._t>2500){fishAction._t=performance.now();miniToast('🤖 자동 낚시 중이에요 · 직접 낚으려면 자동 OFF',1800);}return;}
   if(fishing.state==='off'){if(!auto){document.querySelectorAll('.cutin').forEach(e=>e.remove());const t=$('toast');clearTimeout(t._t);t.style.transition='none';t.style.opacity=0;void t.offsetWidth;t.style.transition='';}if(!nearSpot)return toast('데크 끝 낚시 포인트로 가세요<br><small>내 데크 또는 빈 데크</small>');
     if(S.tank.length>=cap())toast('어항이 가득 찼어요! 잡으면 상점가 60%로 자동 판매돼요',2000);
     const b=bait(),MO=SYS.mods(D,S,rod(),b);if(S.baits[S.bait]>0&&Math.random()<MO.ch.bait/100){toast('🧿 미끼전문가: 미끼를 아꼈어요!',900);}else if(S.baits[S.bait]>0){S.baits[S.bait]--;if(S.baits[S.bait]===0){toast(b.n+' 소진 → 지렁이로 교체');S.bait='worm';}save();hud();}
@@ -276,7 +279,8 @@ function checkGoals(){S.goals=S.goals||{};const nw=D.GOALS.filter(g=>!S.goals[g.
     setTimeout(()=>{toast(`🎯 <b>수집 목표 달성!</b><br>${g.n}<br><small>${rwTxt(r)}</small>`,2600);sfx.coin();say('시스템',`🎯 ${NICK()}님이 수집 목표 「${g.n}」 달성!`);},i*2700+300);});save();hud();}
 const rwTxt=r=>[r.co?'🪙 '+r.co.toLocaleString():'',r.st?'💎 강화석 '+r.st:'',r.bx?'🎁 상자 '+r.bx:'',r.th?'🖼️ 어항 테마 「'+D.TANK_THEMES.find(t=>t.k===r.th).n+'」':''].filter(Boolean).join(' · ');
 let goalCat='전체';
-function renderGoals(){S.goals=S.goals||{};const cats=['전체','세트','도감','누적','등급'],L=D.GOALS.filter(g=>goalCat==='전체'||g.cat===goalCat),done=D.GOALS.filter(g=>S.goals[g.id]).length,TH=S.themes||['mint'];
+function renderGoals(){const same=renderDex._t===dexTab;renderDex._t=dexTab;return same?keepScroll('dex',_renderGoals):_renderGoals();}
+function _renderGoals(){S.goals=S.goals||{};const cats=['전체','세트','도감','누적','등급'],L=D.GOALS.filter(g=>goalCat==='전체'||g.cat===goalCat),done=D.GOALS.filter(g=>S.goals[g.id]).length,TH=S.themes||['mint'];
  $('dex').innerHTML=`<div class="card" style="width:min(1000px,95vw)"><button class="close" data-close="dex">×</button><div class="tabs dtabs"><button data-dtab="dex">📖 도감</button><button data-dtab="ach">🏆 업적·패시브</button><button class="on" data-dtab="goal">🎯 수집 목표</button></div>
  <h2>🎯 수집 목표 <small class="pill">${done}/${D.GOALS.length} 달성</small></h2><p class="small muted">도감 세트를 등급별로 모으고 누적 목표를 채우면 코인·강화석·상자·어항 테마를 받아요. 달성 즉시 자동 지급!</p>
  <div class="gthemes"><b>🖼️ 어항 테마</b>${D.TANK_THEMES.map(t=>{const has=TH.includes(t.k);return `<button class="gth ${has?'':'lock'} ${(S.tankTheme||'mint')===t.k?'on':''}" data-theme="${t.k}" ${has?'':'disabled'} style="--a:${t.top};--b:${t.bot}"><i></i>${t.n}${has?'':' 🔒'}</button>`;}).join('')}</div>
@@ -332,19 +336,31 @@ function cslotSwap(id){const f=S.tank.find(x=>x.id==id);if(!f||!comboKs().includ
 document.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('[data-frank]');if(c&&$('dex').contains(c))openFishRank(c.dataset.frank);});
 (function chatTabs(){const ch=$('chat');if(!ch||$('chTabs'))return;const t=document.createElement('div');t.id='chTabs';t.innerHTML=[['all','전체'],['chat','대화'],['sys','시스템']].map(([k,n],i)=>`<button data-chf="${k}" class="${i?'':'on'}">${n}</button>`).join('');ch.insertBefore(t,ch.firstChild);
  t.onclick=e=>{const b=e.target.closest('[data-chf]');if(!b)return;t.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));ch.dataset.f=b.dataset.chf;$('log').scrollTop=1e6;};})();
+// ───────── v13: 상자 획득 알림 · 스크롤 유지 · 서버 1~3위 닉네임(D) ─────────
+function boxGot(kind){const n=S.boxes.length;S.newBox=(S.newBox||0)+1;updBagBadge();
+ const el=document.createElement('div');el.className='boxget '+(kind==='gift'?'gift':'');el.innerHTML=`<div class="bg-rays"></div><img src="img/box/t3.png" alt=""><div class="bg-t"><b>${kind==='gift'?`선물 상자 도착! <small>오늘 ${S.gN}/${D.BOX.dailyCap}</small>`:'행운 상자 획득!'}</b><small>가방에서 열 수 있어요 · 보유 ${n}개</small></div>`;
+ document.body.appendChild(el);setTimeout(()=>el.classList.add('out'),2600);setTimeout(()=>el.remove(),3100);
+ if(snd.ctx&&snd.on){[784,988,1175,1568].forEach((f,i)=>tone(f,f*1.01,.35,'triangle',.07,i*.08));tone(2093,2093,.6,'sine',.04,.34);}}
+function updBagBadge(){const b=$('bBag');if(!b)return;const n=S.newBox||0;if(n)b.dataset.new=n>9?'9+':n;else delete b.dataset.new;b.classList.toggle('hasnew',!!n);}
+function keepScroll(id,fn){const m=$(id);const sv=m?[...m.querySelectorAll('*')].filter(e=>e.scrollTop>0).map(e=>[e.className+'|'+(e.id||''),e.scrollTop]):[];const r=fn();
+ if(m&&sv.length){const all=[...m.querySelectorAll('*')];sv.forEach(([k,t])=>{const e=all.find(x=>x.className+'|'+(x.id||'')===k);if(e)e.scrollTop=t;});}return r;}
+// 서버 1~3위: 이번 주 어종별 기록 점수(크기/최대 합) 상위 3명 → 닉네임 메달+글로우 (시안 D)
+let RK3={},rk3T=0;function calcRK3(){const sc={};D.FISH.forEach(f=>{fishRank(f.k,'srv').forEach(x=>{const k=x.me?'__me':x.n;sc[k]=(sc[k]||0)+x.cm/f.max;});});
+ const top=Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,3);RK3={};top.forEach(([k],i)=>RK3[k]=i+1);}
+function tagRank(c){if(S.rankTag===false)return 0;return RK3[c===me?'__me':c.name]||0;}
 function catchFish(){const f=rollFish(),F=FI(f.k),G0=GR(f.g);S.caught++;const _td=new Date().toDateString();if(S.gDay!==_td){S.gDay=_td;S.gN=0;}let streakBox=false;if(!(D.BOX.dailyCap&&S.gN>=D.BOX.dailyCap)){S.streak=(S.streak||0)+1;if(D.BOX.streakEvery&&S.streak>=D.BOX.streakEvery){S.streak=0;S.gN=(S.gN||0)+1;S.boxes.push(-Date.now());streakBox=true;}}const dx=S.dex[f.k]||(S.dex[f.k]={n:0,max:0,gr:[0,0,0,0,0]});const isNew=!dx.n,newG=!dx.gr[f.g],rec=f.cm>dx.max;dx.n++;dx.gr[f.g]=1;dx.max=Math.max(dx.max,f.cm);wkRec(f);S.stats=S.stats||{g:[0,0,0,0,0]};S.stats.g[f.g]=(S.stats.g[f.g]||0)+1;
   let where;const AU=S.auto;cslotInit();if(comboKs().includes(f.k)&&!S.cslot[f.k]){S.cslot[f.k]=f;where='🧩 조합 보관함에 보관했어요 (어항 칸 차지 안 함)';}
   else if(AU.on&&f.v<AU.th&&!(AU.keepNew&&isNew)){const p=sellP(f);S.coins+=p;S.earned+=p;where=`⚙ 자동판매 (가치 ${f.v} < ${AU.th}) +${p}코인`;}
   else if(S.tank.length<cap()){S.tank.push(f);where='🐠 내 어항에 넣었어요';}else{const p=sellP(f);S.coins+=p;where=`어항이 가득 차서 ${p}코인에 판매`;}
-  const bc=SYS.mods(D,S,rod(),bait()).box*(S.autoFish?D.AUTO.boxMul:1);if(Math.random()<bc){S.boxes.push(Date.now());setTimeout(()=>{toast('🎁 <b>행운 상자</b>를 발견했어요!<br><small>🎒 가방에서 열어보세요</small>',2600);sfx.coin();},3300);say('시스템','🎁 행운 상자 획득!');}
-  if(streakBox)setTimeout(()=>{(anyModal()?miniToast:toast)(`🎁 <b>낚시 ${D.BOX.streakEvery}회 선물 상자!</b> (오늘 ${S.gN}/${D.BOX.dailyCap})<br><small>🎒 가방에서 열어보세요</small>`,2200);sfx.coin();},3400);setTimeout(checkGoals,600);save();hud();sfx.reel();me.reelT=.7;me.rod.visible=true;endFish();
+  const bc=SYS.mods(D,S,rod(),bait()).box*(S.autoFish?D.AUTO.boxMul:1);if(Math.random()<bc){S.boxes.push(Date.now());setTimeout(()=>boxGot('luck'),S.autoFish?900:1400);say('시스템','🎁 행운 상자 획득!');}
+  if(streakBox)setTimeout(()=>boxGot('gift'),1600);setTimeout(checkGoals,600);save();hud();sfx.reel();me.reelT=.7;me.rod.visible=true;endFish();
   if(S.autoFish)autoCD=2.6;if(anyModal())miniToast(`${f.g<2?'🐟':'✨'} <b>${F.n}</b> ${f.cm}cm · <span style="color:${G0.c}">${G0.n}</span> · 🪙${f.v.toLocaleString()}`);else if(f.g<3)toast(catchCard(f,F,G0,{isNew,newG,rec,where}),S.autoFish?2500:3200);
   say('시스템',`${F.n} ${f.cm}cm (${G0.n})를 낚았어요! · ${where}`);if(f.g>=3)legendAlert(NICK(),f,true,{isNew,rec});achCheck(true);}
 function achCheck(t){const A=SYS.passives(D,S).ach.filter(a=>a.done).map(a=>a.a.id);if(!S.achSeen){S.achSeen=A;return;}A.filter(x=>!S.achSeen.includes(x)).forEach((id,j)=>{const a=D.ACH.find(x=>x.id===id);if(t)setTimeout(()=>{toast(`🏆 <b>도감 업적 달성!</b><br>${a.n} · ${effTxt(a.e)}`,3000);say('시스템',`🏆 업적 '${a.n}' 달성 (${effTxt(a.e)})`);},4200+j*900);});S.achSeen=A;}
 const effTxt=e=>Object.entries(e).map(([k,v])=>`${D.CHARM.opts[k].n} +${v}%`).join(', ');
 // ───────── 어항 관찰 뷰 (별도 3D 씬) ─────────
 function comboPanel(mine,L){cslotInit();const st=SYS.comboState(D,Object.values(S.cslot)),M=D.COMBO.mult;
- if(mine)return `<details class="combo" ${st.some(x=>x.on)?'open':''}><summary>🧩 어항 조합 패시브 <small>(${st.filter(x=>x.on).length}/${st.length} 활성)</small></summary><div class="small muted">조합에 쓰인 물고기는 <b>조합 보관함</b>에 따로 보관돼요(어항 칸 차지 안 함, 판매 불가) · 더 좋은 개체가 오면 🔄 교체 · 어종을 모두 모으면 발동 · 효과 = 기본 × 조합 내 <b>최저 등급</b> 배율 (${D.GRADES.map((g,i)=>g.n+' ×'+M[i]).join(' · ')}) · 패시브 상한은 업적과 합산</div>${st.map(x=>`<div class="crow ${x.on?'on':''}" style="--gc:${x.on?GR(x.lv).c:'#ccc'}"><b>${x.c.n}</b> <span class="small">${x.have}/${x.c.ks.length}</span><div class="cks2">${x.c.ks.map(k=>{const sf=S.cslot[k],up=S.tank.filter(f=>f.k===k&&better(f,sf)).sort((a,b)=>b.g-a.g||b.cm-a.cm)[0];return `<div class="cslot ${sf?'h':''}" style="--gc:${sf?GR(sf.g).c:'#ddd'}"><img src="${FI(k).img}" class="${sf?'':'sil'}"><b>${FI(k).n}</b><small>${sf?`${GR(sf.g).n} · ${sf.cm}cm`:'비어 있음'}</small>${up?`<button class="cswap" data-cswap="${up.id}" title="${GR(up.g).n} ${up.cm}cm로 교체">🔄 ${GR(up.g).n} ${up.cm}cm</button>`:''}</div>`;}).join('')}</div><div class="small">${x.on?`✅ ${GR(x.lv).n} 조합 · ${effTxt(x.e)}`:`기본 ${effTxt(x.c.e)} → 신화 조합 시 ×${M[4]}`}</div></div>`).join('')}</details>`;
+ if(mine)return `<details class="combo" ${(tankView.comboOpen==null?st.some(x=>x.on):tankView.comboOpen)?'open':''}><summary>🧩 어항 조합 패시브 <small>(${st.filter(x=>x.on).length}/${st.length} 활성)</small></summary><div class="small muted">조합에 쓰인 물고기는 <b>조합 보관함</b>에 따로 보관돼요(어항 칸 차지 안 함, 판매 불가) · 더 좋은 개체가 오면 🔄 교체 · 어종을 모두 모으면 발동 · 효과 = 기본 × 조합 내 <b>최저 등급</b> 배율 (${D.GRADES.map((g,i)=>g.n+' ×'+M[i]).join(' · ')}) · 패시브 상한은 업적과 합산</div>${st.map(x=>`<div class="crow ${x.on?'on':''}" style="--gc:${x.on?GR(x.lv).c:'#ccc'}"><b>${x.c.n}</b> <span class="small">${x.have}/${x.c.ks.length}</span><div class="cks2">${x.c.ks.map(k=>{const sf=S.cslot[k],up=S.tank.filter(f=>f.k===k&&better(f,sf)).sort((a,b)=>b.g-a.g||b.cm-a.cm)[0];return `<div class="cslot ${sf?'h':''}" style="--gc:${sf?GR(sf.g).c:'#ddd'}"><img src="${FI(k).img}" class="${sf?'':'sil'}"><b>${FI(k).n}</b><small>${sf?`${GR(sf.g).n} · ${sf.cm}cm`:'비어 있음'}</small>${up?`<button class="cswap" data-cswap="${up.id}" title="${GR(up.g).n} ${up.cm}cm로 교체">🔄 ${GR(up.g).n} ${up.cm}cm</button>`:''}</div>`;}).join('')}</div><div class="small">${x.on?`✅ ${GR(x.lv).n} 조합 · ${effTxt(x.e)}`:`기본 ${effTxt(x.c.e)} → 신화 조합 시 ×${M[4]}`}</div></div>`).join('')}</details>`;
  const need=new Set();st.forEach(x=>{if(!x.on||x.lv<4)x.c.ks.forEach((k,i)=>{if(x.best[i]<4)need.add(k);});});const n=L.filter(f=>f.sale&&need.has(f.k)).length;
  return n?`<div class="combo small">🧩 내 어항 조합에 쓸 수 있는 물고기 <b>${n}</b>마리 판매 중 (🧩 표시)</div>`:'';}
 const tankView={r:null,open(owner){this.owner=owner;openM('tank');if(!this.r)this.init();this.build();this.refresh();this.on=true;},close(){this.on=false;},
@@ -362,16 +378,18 @@ const tankView={r:null,open(owner){this.owner=owner;openM('tank');if(!this.r)thi
   this.bub=new THREE.Points(new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(90).map((v,i)=>i%3==1?Math.random()*2.2:(Math.random()-.5)*(i%3?1.8:3.8)),3)),new THREE.PointsMaterial({color:'#ffffff',size:.05,transparent:true,opacity:.7}));this.root.add(this.bub);},
  list(){return this.owner==='me'?S.tank:this.owner.tank;},
  toggleBig(){const t=$('tank');t.classList.toggle('big');const b=$('tankBig');if(b)b.textContent=t.classList.contains('big')?'↙ 원래대로':'⤢ 크게 보기';},
- sizeF(){if(this.owner!=='me')return 1;const i=Math.max(0,D.TANKS.findIndex(t=>t.k===S.tankK));return [.78,.88,.98,1.08,1.18,1.3][i]||1;},
+ sizeF(){if(this.owner!=='me')return 1;const i=Math.max(0,D.TANKS.findIndex(t=>t.k===S.tankK));return [.95,1.1,1.25,1.42,1.6,1.8][i]||1;},
  build(){const des=this.owner==='me'?D.TANKS.find(t=>t.k===S.tankK).design:(this.owner.tdes||3);if(this.des!==des&&window.NK_TANKX){this.des=des;this.ext.clear();const cyl=des===3,x=NK_TANKX(des,cyl?{W:2.9,H:2.4,D:2.9,y0:0,sh:1.2}:{W:4,H:2.4,D:2,y0:0,sh:1.2});this.ext.add(x.g);this.box=cyl?{W:2.1,H:2.4,D:2.1}:{W:4,H:2.4,D:2};this.decoG.scale.set(cyl?.62:1,1,cyl?1.1:1);}
   this.sf=this.sizeF();this.root.scale.setScalar(this.sf);this.fishG.clear();this.fish=[];const fm=G.fish.scene;for(const f of this.list()){const F=FI(f.k),o=fm.clone(true);o.traverse(m=>{if(m.isMesh)m.material=new THREE.MeshLambertMaterial({color:F.col,flatShading:true,emissive:new THREE.Color(GR(f.g).c),emissiveIntensity:f.g>=3?.25:0});});
-   const sc=1.6+f.cm/100*7*(f.k==='snakehead'?.8:1);o.scale.set(sc*(f.k==='snakehead'?1.5:f.k==='eel'?2.2:f.k==='gangjunchi'||f.k==='trout'?1.25:1),sc,sc);const{W,H,D:Dp}=this.box;o.position.set(rand(-W/2+.5,W/2-.5),rand(.5,H*.8),rand(-Dp/2+.4,Dp/2-.4));this.fishG.add(o);
+   const sc=(1.6+f.cm/100*7*(f.k==='snakehead'?.8:1))/Math.pow(this.sf||1,.55);o.scale.set(sc*(f.k==='snakehead'?1.5:f.k==='eel'?2.2:f.k==='gangjunchi'||f.k==='trout'?1.25:1),sc,sc);const{W,H,D:Dp}=this.box;o.position.set(rand(-W/2+.5,W/2-.5),rand(.5,H*.8),rand(-Dp/2+.4,Dp/2-.4));this.fishG.add(o);
    this.fish.push({o,f,t:o.position.clone(),v:new THREE.Vector3(rand(-.2,.2),0,rand(-.1,.1)),sp:rand(.25,.55),spT:rand(2,5),pause:0,ph:Math.random()*6,yaw:0,wig:0});}},
  refresh(){const mine=this.owner==='me',L=tankSorted(this.list()),side=$('tankSide');if(this.s)this.s.background=mine?themeBg(S.tankTheme||'mint'):new THREE.Color('#e9f6f4');
+  const _st=side.scrollTop;
   side.innerHTML=`<h2>${mine?'🐠 내 어항':'🐠 '+this.owner.c.name+'님의 어항'}</h2><div class="muted small">${mine?`${L.length}/${cap()}칸 · 판매 등록하면 다른 유저(봇)가 구매할 수 있어요`:`보유 코인 🪙${S.coins.toLocaleString()} · 내 어항 ${S.tank.length}/${cap()}`}</div><div style="height:8px"></div>`+(L.length>1?`<div class="tsort"><span class="small muted">정렬</span>${TSORT.map(([k,n])=>`<button class="${(S.tankSort||'new')===k?'on':''}" data-tsort="${k}">${n}</button>`).join('')}</div>`:'')+comboPanel(mine,L)+
    (L.length?'':'<p class="muted">아직 물고기가 없어요. 낚시를 해보세요!</p>')+L.map(f=>{const F=FI(f.k),g=GR(f.g);return `<div class="fcard ${f.lock?'locked':''}" style="--gc:${g.c}" data-id="${f.id}">${f.lock?'<span class="lockbadge" title="잠금됨">🔒</span>':''}<img src="${F.img}"><div class="meta"><b>${F.n}</b> <span class="gbadge" style="--gc:${g.c}">${g.n}</span>${mine&&cslotUp(f)?` <button class="ctag2" data-cswap="${f.id}" data-tip="조합 보관함의 ${S.cslot[f.k].cm}cm(${GR(S.cslot[f.k].g).n})보다 좋아요">🧩🔄 조합 교체</button>`:''}<br>${f.cm}cm · 가치 🪙${f.v.toLocaleString()}<br>`+
    (mine?`<button class="lockb ${f.lock?'on':''}" data-lock="${f.id}" title="잠금: 판매·등록·자동판매 불가">${f.lock?'🔒 잠금됨':'🔓 잠금'}</button> 판매가 <input type="number" min="1" value="${f.price}" data-price="${f.id}" ${f.lock?'disabled':''}> <label><input type="checkbox" data-sale="${f.id}" ${f.sale?'checked':''} ${f.lock?'disabled':''}> 판매중</label><br><button data-sell="${f.id}" ${f.lock?'disabled':''}>상점에 팔기 🪙${sellP(f)}</button>`
    :`판매가 🪙<b>${f.price.toLocaleString()}</b> <button class="acc" data-buy="${f.id}" ${S.coins<f.price||S.tank.length>=cap()?'disabled':''}>구매</button>`)+`</div></div>`;}).join('');
+  side.scrollTop=_st;{const dc=side.querySelector('details.combo');if(dc)dc.ontoggle=()=>{tankView.comboOpen=dc.open;};}
   side.querySelectorAll('[data-cswap]').forEach(b=>b.onclick=e=>{e.stopPropagation();cslotSwap(b.dataset.cswap);this.build();this.refresh();});
   side.querySelectorAll('[data-tsort]').forEach(b=>b.onclick=()=>{S.tankSort=b.dataset.tsort;save();this.refresh();});
   side.querySelectorAll('[data-price]').forEach(i=>i.onchange=()=>{const f=S.tank.find(x=>x.id==i.dataset.price);f.price=Math.max(1,Math.round(+i.value||1));save();});
@@ -383,7 +401,7 @@ const tankView={r:null,open(owner){this.owner=owner;openM('tank');if(!this.r)thi
    save();hud();sfx.coin();toast(`🛍 ${FI(f.k).n} ${f.cm}cm 구매 완료!<br><small>도감에도 기록됐어요</small>`);say(this.owner.c.name,'구매 감사합니다~ 😊');this.build();this.refresh();});
   side.querySelectorAll('.fcard').forEach(c=>c.onmouseenter=()=>{const x=this.fish.find(q=>q.f.id==c.dataset.id);if(x)x.hl=1.5;});},
  frame(dt,T){if(!this.on)return;const cv=this.r.domElement,w=cv.clientWidth,h=cv.clientHeight;if(cv.width!==Math.floor(w*this.r.getPixelRatio())){this.r.setSize(w,h,false);this.cam.aspect=w/h;this.cam.updateProjectionMatrix();}
-  {const sf=this.sf||1,dist=(4.2+3*sf)*this.zoom*Math.max(1,1.45/this.cam.aspect);this.cam.position.set(Math.sin(this.yaw)*dist,2.2*sf*Math.max(.6,this.zoom),Math.cos(this.yaw)*dist);this.cam.lookAt(0,1.05*sf,0);}const{W,H,D:Dp}=this.box;
+  {const sf=this.sf||1,dist=(3.6+3.1*sf)*this.zoom*Math.max(1,1.45/this.cam.aspect);this.cam.position.set(Math.sin(this.yaw)*dist,2.2*sf*Math.max(.6,this.zoom),Math.cos(this.yaw)*dist);this.cam.lookAt(0,1.05*sf,0);}const{W,H,D:Dp}=this.box;
   for(const x of this.fish){const p=x.o.position,lim=[W/2-.45,H*.86,Dp/2-.32];
    // 목표 갱신·속도 변화·가끔 멈춤
    x.spT-=dt;if(x.spT<0){x.spT=rand(2,5);x.sp=rand(.2,.6);}
@@ -402,7 +420,8 @@ const tankView={r:null,open(owner){this.owner=owner;openM('tank');if(!this.r)thi
   const bp=this.bub.geometry.attributes.position;for(let i=0;i<bp.count;i++){let y=bp.getY(i)+dt*.4;if(y>2.15)y=.2;bp.setY(i,y);}bp.needsUpdate=true;this.r.render(this.s,this.cam);}};
 // ───────── 상점 ─────────
 let shopTab='rod';
-function renderShop(){const it=(x,owned,eq,price,onb,extra='')=>`<div class="item">${x._ico||''}<h4>${x.n}</h4><div class="small muted">${x.desc||extra}</div><div class="p">${price<0?'<span class="boxonly">🎁 행운 상자 전용</span>':price?'🪙 '+price.toLocaleString():'무료'}</div>${onb}</div>`;
+function renderShop(){return keepScroll('shop',_renderShop);}
+function _renderShop(){const it=(x,owned,eq,price,onb,extra='')=>`<div class="item">${x._ico||''}<h4>${x.n}</h4><div class="small muted">${x.desc||extra}</div><div class="p">${price<0?'<span class="boxonly">🎁 행운 상자 전용</span>':price?'🪙 '+price.toLocaleString():'무료'}</div>${onb}</div>`;
   let body='';
   if(shopTab==='rod')body=D.RODS.map(r0=>{const r=Object.assign({},r0,{_ico:RIMG(r0.k,'sico')});const n=S.gear.filter(g=>g.k===r.k).length,eq=rod().k===r.k;return it(r,n,eq,r.boxOnly?-1:r.price,`<div class="small">보유 ${n}개${eq?' · 장착중':''} · 추가옵션 ${D.GEAR.slots[r.k]}슬롯</div>${r.boxOnly?'<span class="small muted">희귀 이상 상자에서 획득</span>':`<button class="acc" data-buyrod="${r.k}" ${S.coins<r.price||(!r.price&&n)?'disabled':''}>${n?'추가 구매 (합성 재료)':'구매'}</button>`}${n&&!eq?` <button class="ok" data-eqrod="${r.k}">장착</button>`:''}`,'');}).join('')+`<p class="small muted" style="grid-column:1/-1">황금·별빛·용왕 낚싯대는 행운 상자(희귀 이상)에서만 나와요. 상점 구매품은 ‘고급’ 등급 밴드(품질 ${D.GEAR.qBand[1].map(x=>Math.round(x*100)).join('~')}%)로 굴려지고, 추가옵션이 새로 굴려져요. 같은 낚싯대 2개 → 🎒 가방 › 장비·합성에서 ★ 합성</p>`;
   if(shopTab==='bait')body=D.BAITS.map(b0=>{const b=Object.assign({},b0,{_ico:BIMG(b0.k,'sico')});const q=S.baits[b.k],own=q===-1||q>0,eq=S.bait===b.k;return it(b,own,eq,b.price,`<div class="small">보유: ${q===-1?'∞':q||0}</div>`+(eq?'<button disabled>사용중</button>':own?`<button class="ok" data-eqbait="${b.k}">사용</button>`:'')+(b.price&&q!==-1?` <button class="acc" data-buybait="${b.k}" ${S.coins<b.price?'disabled':''}>구매${b.qty?' ×'+b.qty:''}</button>`:''));}).join('');
@@ -462,7 +481,7 @@ const optTip=(k,tier)=>{const o=D.CHARM.opts[k],b=D.CHARM.band[tier];return `${o
 const R1x=v=>Math.round(v*10)/10;
 let bagTab='box',disT=1,synFx=null,CF={opt:'',tier:-1,only:''};let CSEL=null,CSWAP=null;
 const disOf=c=>({co:D.CHARM.dismantle.coin[c.tier],st:D.CHARM.dismantle.stone[c.tier]});
-function openBag(){renderBag();openM('bag');}
+function openBag(){S.newBox=0;updBagBadge();renderBag();openM('bag');}
 function confirmBox(html,ok){const m=$('confirm');m.innerHTML=`<div class="card center" style="width:min(420px,92vw)">${html}<p><button id="cfNo">취소</button> <button class="acc" id="cfYes">확인</button></p></div>`;m.classList.add('show');$('cfNo').onclick=()=>m.classList.remove('show');$('cfYes').onclick=()=>{m.classList.remove('show');ok();};}
 // v8: 부적 드래그 (마우스 즉시 / 터치는 길게 눌러서) — 리스트→슬롯 장착·교체, 슬롯→리스트 해제, 슬롯↔슬롯 순서 교체
 let DRG=null,dragJustEnded=0;
@@ -486,7 +505,8 @@ addEventListener('pointerup',e=>{const d=DRG;if(!d||e.pointerId!==d.pid)return;c
  else if(d.from==='slot'&&t.type==='slot'){if(t.id!=null&&t.id!==d.id){const i=EQ.indexOf(d.id),j=EQ.indexOf(t.id);[EQ[i],EQ[j]]=[EQ[j],EQ[i]];msg='🔁 슬롯 위치 교체';}else if(t.id==null){const i=EQ.indexOf(d.id);EQ.splice(i,1);EQ.push(d.id);msg='↪ 슬롯 이동';}}
  else if(d.from==='slot'&&t.type==='list'){S.equip=EQ.filter(x=>x!==d.id);msg='장착 해제';}
  if(!msg)return;S.presets[S.preset]=S.equip.slice();CSEL=d.id;CSWAP=null;toast(msg,900);save();hud();renderBag();});
-function renderBag(){const _c=$('bag').querySelector('.card'),_st=_c?_c.scrollTop:0,_tb=_c&&_c.dataset.tab;const ch=SYS.charmSum(D,S),MO=SYS.mods(D,S,rod(),bait()),lv=SYS.enhLv(S),eqg=SYS.gearOf(S);let body='';
+function renderBag(){return keepScroll('bag',_renderBag);}
+function _renderBag(){const _c=$('bag').querySelector('.card'),_st=_c?_c.scrollTop:0,_tb=_c&&_c.dataset.tab;const ch=SYS.charmSum(D,S),MO=SYS.mods(D,S,rod(),bait()),lv=SYS.enhLv(S),eqg=SYS.gearOf(S);let body='';
  if(bagTab==='box')body=`<div class="boxrow"><div class="bigbox">${BOXIMG(Math.min(5,Math.floor(Date.now()/2500)%6))}</div><div><b>보유 행운 상자 ${S.boxes.length}개</b><br><span class="small muted">낚시 성공 시 ${(MO.box*100).toFixed(2)}% 확률로 획득 (기본 0.5%${ch.treasure?` · 보물탐지 +${ch.treasure}%`:''})</span><br>
   <button class="acc" id="openBox" ${S.boxes.length?'':'disabled'}>1개 열기</button> <button class="acc" id="openBox10" ${S.boxes.length>=2?'':'disabled'}>${Math.min(10,S.boxes.length)>1?Math.min(10,S.boxes.length):10}개 열기</button> <button id="dbgBox" class="small">🧪 테스트 상자 +1</button> <button id="dbgBox10" class="small">🧪 +10</button></div></div>
   <h4>상자 등급 확률 ${ch.master?`<small>(감정의달인 +${ch.master}% 적용)</small>`:''}</h4><div class="tierbar">${(()=>{const ws=D.BOX.tiers.map((t,i)=>t.w*(i>=2?1+ch.master/100:1)),sm=ws.reduce((a,b)=>a+b);return D.BOX.tiers.map((t,i)=>`<span style="--gc:${t.c}">${t.n}<b>${(ws[i]/sm*100).toFixed(ws[i]/sm<.01?2:1)}%</b></span>`).join('');})()}</div>
@@ -576,7 +596,8 @@ let botBT=rand(90,200);function botBoxAlert(dt,force){botBT-=dt;if(!force&&botBT
 function botLegend(dt,force){botLT-=dt;if(!force&&botLT>0)return;botLT=rand(...D.ALERT.botTick);const x=Math.random();const g=force!=null?force:x<D.ALERT.myth*D.TX.botRate?5:x<D.ALERT.myth?4:x<D.ALERT.legend?3:-1;if(g<0)return;
  const cand=D.FISH.filter(f=>f.w<=14),F=pick(cand),cm=Math.round((g===5?F.max*(D.TX.lo+(D.TX.hi-D.TX.lo)*Math.random()):g===4?F.g[3]+(F.max-F.g[3])*Math.random():F.g[2]+(F.g[3]-F.g[2])*Math.random())*10)/10,b=pick(bots);legendAlert(b.c.name,{k:F.k,cm,g},false);}
 const autoTargets=()=>S.tank.filter(f=>!f.lock&&f.v<S.auto.th);const autoPrevTxt=()=>{const L=autoTargets();return `현재 어항 기준 미만: ${L.length}마리 (🪙${L.reduce((a,f)=>a+sellP(f),0).toLocaleString()})`;};
-function renderSet(){const A=S.auto,g=S.showG;
+function renderSet(){return keepScroll('set',_renderSet);}
+function _renderSet(){const A=S.auto,g=S.showG;
  $('set').innerHTML=`<div class="card" style="width:min(620px,94vw)"><button class="close" data-close="set">×</button><h2>⚙ 설정 · 저장</h2>
  <h4>👤 프로필 (로컬)</h4><p>닉네임 <input id="nick" maxlength="10" value="${S.nick||''}" placeholder="나"> <button id="nickOk">적용</button><br><span class="small muted">※ 현재는 이 브라우저에만 저장되는 로컬 프로필입니다. 실제 로그인/계정 연동은 서버 단계에서 구현 예정.</span></p>
  <h4>💾 저장</h4><p><button class="acc" id="saveNow">지금 저장</button> <button id="exp">JSON 내보내기</button> <label class="btnlike">JSON 불러오기<input type="file" id="imp" accept=".json" hidden></label> <span class="small muted" id="lastSave">${S.savedAt?'마지막 저장 '+new Date(S.savedAt).toLocaleString('ko-KR'):''}</span></p>
@@ -586,9 +607,19 @@ function renderSet(){const A=S.auto,g=S.showG;
  <h4>✦ 초월 등급 테두리</h4><p><label><input type="radio" name="txs" value="pink" ${S.txStyle!=='rainbow'?'checked':''}> <span class="txsw pk"></span> 진한 핑크 (기본)</label> &nbsp; <label><input type="radio" name="txs" value="rainbow" ${S.txStyle==='rainbow'?'checked':''}> <span class="txsw rb"></span> 무지개 회전</label><br><span class="small muted">초월 등급 도감 카드·컷인·알림 리본에 적용 · 출현 확률 ${(D.TX.p*100).toFixed(4)}% (≈1/${Math.round(1/D.TX.p).toLocaleString()}), 행운 보정 최대 ×${D.TX.boostMax}</span></p>
  <h4>🌲 그래픽 테스트</h4><p>${[['tree','나무'],['grass','풀·덤불'],['flower','꽃·버섯']].map(([k,n])=>`<label><input type="checkbox" data-vg="${k}" ${g[k]?'checked':''}> ${n} (${VG[k].length} draw)</label>`).join(' ')}<br><span class="small muted">우하단 FPS · draw calls 표시로 비교하세요</span></p>
  <h4>🎁 행운 상자 아이콘 (테스트)</h4><p>${[1,2,3,4].map(i=>`<label class="bdes"><input type="radio" name="bdes" value="${i}" ${(S.boxDesign||1)===i?'checked':''}> <img src="img/box/${i===1?'t3':'d'+i}.png"> 디자인 ${i}${i===1?' (기본·등급별 원화)':' (등급별 색조 필터)'}</label>`).join('')}</p>
+ <h4>🧪 테스트 설정</h4><div class="tset">
+  <p>이동 속도 <input type="range" id="mvS" min="1" max="1.5" step=".05" value="${S.moveMul||1.35}"> <b id="mvV">+${Math.round(((S.moveMul||1.35)-1)*100)}%</b> <span class="small muted">(기본 +35%, 범위 +0~50%)</span></p>
+  <p><label><input type="checkbox" id="rkTag" ${S.rankTag!==false?'checked':''}> 서버 1~3위 닉네임 메달 표시 (시안 D)</label></p>
+  <p>프레임 상한 ${[[60,'60'],[120,'120'],[144,'144 (기본)'],[0,'제한 없음']].map(([v,n])=>`<label><input type="radio" name="fpsC" value="${v}" ${(S.fpsCap==null?0:S.fpsCap)==v?'checked':''}> ${n}</label>`).join(' ')}<br><span class="small muted">모니터 주사율보다 높게는 나오지 않아요 (60Hz 모니터 = 최대 60)</span></p>
+  <p>데크 배치 ${[['a','A 큰 원형 (기본·30데크)'],['b','B 지그재그 2열'],['c','C 만(灣)형 6마을'],['o','기존 20데크']].map(([k,n])=>`<label><input type="radio" name="dLay" value="${k}" ${CFG.lay===k?'checked':''}> ${n}</label>`).join(' ')}</p>
+  <p>테스트 봇 <input type="number" id="botN" min="0" max="50" value="${CFG.bots}" style="width:60px">명 (최대 50) <button id="cfgApply">적용 (새로고침)</button><br><span class="small muted">데크 배치·봇 수는 새로고침 후 적용돼요. 진행 상황은 먼저 저장돼요.</span></p></div>
  <h4>🧪 디버그</h4><p><button id="dbMyL">내 전설 컷인</button> <button id="dbMyM">내 신화 컷인</button> <button id="dbBotL">봇 전설 리본</button> <button id="dbBotM">봇 신화 리본</button><br><button id="dbBox">행운 상자 +1</button> <button id="dbStone">강화석 +10</button> <button id="dbCoin">코인 +5000</button></p></div>`;
  const rr=()=>{save();hud();renderSet();};$('set').querySelectorAll('[name=bdes]').forEach(r=>r.onchange=()=>{S.boxDesign=+r.value;toast('🎁 상자 아이콘 디자인 '+r.value);rr();});$('set').querySelector('[data-close]').onclick=()=>closeM('set');
  $('nickOk').onclick=()=>{S.nick=$('nick').value.trim().slice(0,10);if(me){scene.remove(me.o);scene.remove(me.tag);const p=me.o.position.clone(),d=me.dir;const i=chars.indexOf(me);if(i>=0)chars.splice(i,1);me=makeChar(S.char,NICK());me.o.position.copy(p);me.dir=d;}toast('닉네임: '+NICK());rr();};
+ $('mvS').oninput=e=>{S.moveMul=+e.target.value;$('mvV').textContent='+'+Math.round((S.moveMul-1)*100)+'%';save();};
+ $('rkTag').onchange=e=>{S.rankTag=e.target.checked;save();};
+ $('set').querySelectorAll('[name=fpsC]').forEach(r=>r.onchange=()=>{S.fpsCap=+r.value||0;save();toast('프레임 상한: '+(S.fpsCap||'제한 없음'));});
+ $('cfgApply').onclick=()=>{const lay=($('set').querySelector('[name=dLay]:checked')||{}).value||CFG.lay,bots=Math.max(0,Math.min(50,Math.round(+$('botN').value||0)));localStorage.setItem('nk_cfg',JSON.stringify({lay,bots}));S.savedAt=Date.now();save();location.reload();};
  $('saveNow').onclick=()=>{S.savedAt=Date.now();save();toast('💾 저장 완료');renderSet();};
  $('exp').onclick=()=>{S.savedAt=Date.now();save();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download=`nakmeong-save-${new Date().toISOString().slice(0,10)}.json`;a.click();};
  $('imp').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const o=JSON.parse(t);if(typeof o.coins!=='number')throw 0;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,S0,o);SYS.migrate(D,S);save();hud();toast('📂 불러오기 완료');renderSet();}catch(_){toast('잘못된 세이브 파일');}});};
@@ -600,7 +631,8 @@ function renderSet(){const A=S.auto,g=S.showG;
 function applyVG(){for(const k in VG)VG[k].forEach(m=>m.visible=!!S.showG[k]);}
 // ───────── 도감 (시안1 '카드 컬렉션' + 시안3 크기 눈금자 적용) ─────────
 let dexTab='dex';
-function renderDex(){if(dexTab==='ach')return renderAch();if(dexTab==='goal')return renderGoals();const tot=D.FISH.length*6,got=D.FISH.reduce((a,f)=>a+(S.dex[f.k]?S.dex[f.k].gr.slice(0,6).reduce((x,y)=>x+(y||0),0):0),0),sp=D.FISH.filter(f=>S.dex[f.k]).length;
+function renderDex(){const same=renderDex._t===dexTab;renderDex._t=dexTab;return same?keepScroll('dex',_renderDex):_renderDex();}
+function _renderDex(){if(dexTab==='ach')return renderAch();if(dexTab==='goal')return renderGoals();const tot=D.FISH.length*6,got=D.FISH.reduce((a,f)=>a+(S.dex[f.k]?S.dex[f.k].gr.slice(0,6).reduce((x,y)=>x+(y||0),0):0),0),sp=D.FISH.filter(f=>S.dex[f.k]).length;
   $('dex').innerHTML=`<div class="card" style="width:min(1000px,95vw)"><button class="close" data-close="dex">×</button><div class="dexhead"><div class="ring" style="--p:${got/tot*100}"><span>${Math.round(got/tot*100)}%</span></div>
   <div><div class="tabs dtabs"><button class="on" data-dtab="dex">📖 도감</button><button data-dtab="ach">🏆 업적·패시브</button><button data-dtab="goal">🎯 수집 목표</button></div><h2 style="margin:0">📖 낚멍 물고기 도감</h2><div class="small">어종 ${sp}/${D.FISH.length} · 등급 슬롯 ${got}/${tot} · 총 ${S.caught}마리 낚음</div><div class="pips" style="width:270px">${D.GRADES.map(g=>`<i class="on" style="--c:${g.c}" title="${g.n}"></i>`).join('')}<i class="txpip on" title="초월"></i></div><div class="small muted">${D.GRADES.map(g=>g.n).join(' · ')} · <span class="txname">초월</span> (어종별 초월 ${D.FISH.filter(f=>S.dex[f.k]&&S.dex[f.k].gr[5]).length}/${D.FISH.length})</div></div></div>
   <div class="dgrid">${D.FISH.map((f,i)=>{const d=S.dex[f.k];const best=d?d.gr.lastIndexOf(1):-1,c=best>=0?gc(best):'#d8d2ca',bounds=[f.min,...f.g,f.max],span=f.max-f.min;
@@ -611,7 +643,8 @@ function renderDex(){if(dexTab==='ach')return renderAch();if(dexTab==='goal')ret
    <div class="small muted">${f.min}cm ~ ${f.max}cm${d&&d.gr[5]?` · <b class="txt">초월 ${Math.round(f.max*D.TX.lo)}~${Math.round(f.max*D.TX.hi)}cm</b>`:''}</div>${best===5?'<span class="sp" style="left:8%;top:6%">✦</span><span class="sp" style="left:86%;top:40%;animation-delay:.6s">✦</span><span class="sp" style="left:14%;top:70%;animation-delay:1.1s">✦</span>':''}</div>`;}).join('')}</div><p class="small muted">크기 기준 출처: FishBase, 국립생물자원관, 경북 민물고기연구센터, 낚시춘추 한국 최대어 DB 등 (README 참고)</p></div>`;
   $('dex').querySelector('[data-close]').onclick=()=>closeM('dex');dexTabs();}
 function dexTabs(){$('dex').querySelectorAll('[data-dtab]').forEach(b=>b.onclick=()=>{dexTab=b.dataset.dtab;renderDex();});}
-function renderAch(){const P=SYS.passives(D,S),A=P.ach,done=A.filter(a=>a.done).length,O=D.CHARM.opts;
+function renderAch(){const same=renderDex._t===dexTab;renderDex._t=dexTab;return same?keepScroll('dex',_renderAch):_renderAch();}
+function _renderAch(){const P=SYS.passives(D,S),A=P.ach,done=A.filter(a=>a.done).length,O=D.CHARM.opts;
  $('dex').innerHTML=`<div class="card" style="width:min(1000px,95vw)"><button class="close" data-close="dex">×</button><div class="tabs dtabs"><button data-dtab="dex">📖 도감</button><button class="on" data-dtab="ach">🏆 업적·패시브</button><button data-dtab="goal">🎯 수집 목표</button></div>
  <h2>🏆 도감 업적 <small class="pill">${done}/${A.length} 달성</small></h2><p class="small muted">업적·어항 조합 패시브는 부적 합산 상한과 <b>별도</b>로 더해지며, 패시브끼리 옵션별 상한이 있어요 (밸런스 보호).</p>
  <div class="sumgrid">${Object.keys(O).map(k=>`<span class="${P.sum[k]?'on':''}" data-tip="${O[k].n}: ${O[k].d}
@@ -620,7 +653,8 @@ function renderAch(){const P=SYS.passives(D,S),A=P.ach,done=A.filter(a=>a.done).
  <h3>🧩 어항 조합 (현재 내 어항 기준)</h3><div class="achgrid">${P.combo.map(x=>`<div class="ach ${x.on?'done':''}"><div class="ai">🧩</div><div><b>${x.c.n}</b><div class="small muted">${x.c.ks.map(k=>FI(k).n).join(' + ')}</div><div class="small">${x.on?`✅ ${GR(x.lv).n} 조합 · ${effTxt(x.e)}`:`${x.have}/${x.c.ks.length} · 기본 ${effTxt(x.c.e)}`}</div></div></div>`).join('')}</div></div>`;
  $('dex').querySelector('[data-close]').onclick=()=>closeM('dex');dexTabs();}
 // ───────── 사운드 선택 UI ─────────
-function renderSound(){const row=(cat,i,s)=>{const sel=cat==='day'?S.sDay===i:S.sNight===i;return `<div class="snd ${sel?'on':''}"><span>${cat==='day'?'☀️':'🌙'} ${s.n}</span><span><button data-pv="${cat}:${i}">▶ 들어보기</button> ${sel?'<b>✔ 선택됨</b>':`<button class="ok" data-sel="${cat}:${i}">선택</button>`}</span></div>`;};
+function renderSound(){return keepScroll('sound',_renderSound);}
+function _renderSound(){const row=(cat,i,s)=>{const sel=cat==='day'?S.sDay===i:S.sNight===i;return `<div class="snd ${sel?'on':''}"><span>${cat==='day'?'☀️':'🌙'} ${s.n}</span><span><button data-pv="${cat}:${i}">▶ 들어보기</button> ${sel?'<b>✔ 선택됨</b>':`<button class="ok" data-sel="${cat}:${i}">선택</button>`}</span></div>`;};
   $('sound').innerHTML=`<div class="card" style="width:min(560px,94vw)"><button class="close" data-close="sound">×</button><h2>🔊 자연 사운드 시안</h2><p class="small muted">낮/밤 사운드는 시간에 따라 자동으로 크로스페이드돼요. '들어보기'는 15초 동안 해당 소리만 재생.</p>
    <h4>☀️ 낮</h4>${D.SOUNDS.day.map((s,i)=>row('day',i,s)).join('')}<h4>🌙 밤</h4>${D.SOUNDS.night.map((s,i)=>row('night',i,s)).join('')}
    <p>볼륨 <input type="range" min="0" max="1" step=".05" value="${S.vol}" id="vol"> <button id="mute">${snd.on?'🔇 끄기':'🔊 켜기'}</button></p><p class="small muted">출처: sounds/CREDITS.md (Wikimedia Commons CC0/PD/CC BY)</p></div>`;
@@ -660,7 +694,7 @@ $('charPick').querySelectorAll('button').forEach(b=>b.onclick=()=>{S.char=+b.dat
 $('go').disabled=true;
 // ───────── 메인 ─────────
 let fpsA=60,camOverride=null;let started=false,T=0,last=performance.now();
-function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;T+=dt;if(time.auto)time.t=(time.t+dt/time.len)%1;const p=palette();setMB('bTime','🌗',p.name);
+function frame(now){if(S.fpsCap&&now-last<1000/S.fpsCap-1.5){requestAnimationFrame(frame);return;}const dt=Math.min((now-last)/1000,.05);last=now;T+=dt;if(time.auto)time.t=(time.t+dt/time.len)%1;const p=palette();setMB('bTime','🌗',p.name);
   if(snd.forceT>0){snd.forceT-=dt;if(snd.forceT<=0)snd.force=null;}NIGHT=p.night;updAmb(p);
   scene.background=p.sky;scene.fog.color.copy(p.sky);sun.color.copy(p.sun);sun.intensity=p.si;hemi.intensity=p.hemi;hemi.groundColor.copy(p.gnd);wU.deep.value.copy(p.deep);wU.shal.value.copy(p.shal);wU.sky.value.copy(p.sky);wU.night.value=p.night;wU.t.value=T;
   fireL.intensity=p.fire*(.85+Math.sin(T*13)*.08+Math.sin(T*7.1)*.07);fireMesh.scale.set(1+Math.sin(T*11)*.08,1+Math.sin(T*15)*.18,1);lanL.intensity=p.lan;if(lanGlow)lanGlow.material.color.copy(lerpC('#d8d2c4','#ffd27a',Math.min(1,p.night+p.lan*.3)));
@@ -668,7 +702,7 @@ function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;T+=dt;if(tim
   if(started&&me){// 이동
     let mx=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+joy.x,my=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)-joy.y;const l=Math.hypot(mx,my);if(l>1){mx/=l;my/=l;}
     const pp=me.o.position;let moving=false;
-    if((mx||my)&&fishing.state==='off'&&!anyModal()){sitting=false;const sx=Math.sin(yaw),cz=Math.cos(yaw),dx=-my*sx+mx*cz,dz=-my*cz-mx*sx,sp=5.2*dt;
+    if((mx||my)&&fishing.state==='off'&&!anyModal()){sitting=false;const sx=Math.sin(yaw),cz=Math.cos(yaw),dx=-my*sx+mx*cz,dz=-my*cz-mx*sx,sp=5.2*(S.moveMul||1.35)*dt;
       if(walk(pp.x+dx*sp,pp.z))pp.x+=dx*sp;if(walk(pp.x,pp.z+dz*sp))pp.z+=dz*sp;me.dir=Math.atan2(dx,dz);moving=true;}
     pp.y=inDeck(pp.x,pp.z)?.39:Math.max(H(pp.x,pp.z),.1);
     me.play(fishing.state!=='off'?'holding-right':moving?'walk':sitting?'sit':'idle');me.rod.visible=fishing.state!=='off'||nearSpot!=null;turn(me,dt);
@@ -686,7 +720,7 @@ function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;T+=dt;if(tim
       const a=lineG.attributes.position;a.setXYZ(0,tip.x,tip.y,tip.z);a.setXYZ(1,bob.position.x,bob.position.y,bob.position.z);a.needsUpdate=true;}
     updBots(dt,T);botBuy(dt);botLegend(dt);botRestock(dt);botBoxAlert(dt);
     cam.position.set(pp.x+Math.sin(yaw)*Math.cos(pitch)*dist,pp.y+1.6+Math.sin(pitch)*dist,pp.z+Math.cos(yaw)*Math.cos(pitch)*dist);cam.lookAt(pp.x,pp.y+1.6,pp.z);}
-  for(const c of chars){c.mixer.update(dt);poseRod(c,dt);c.tag.position.set(c.o.position.x,c.o.position.y+c.h*1.0+1.3,c.o.position.z);drawTag(c.tag,null);const bb=bubbleOf(c),dd=cam.position.distanceTo(c.tag.position);domBub(c,dd<70?bb:null,dd);}
+  for(const c of chars){c.mixer.update(dt);poseRod(c,dt);c.tag.position.set(c.o.position.x,c.o.position.y+c.h*1.0+1.3,c.o.position.z);drawTag(c.tag,null,tagRank(c));const bb=bubbleOf(c),dd=cam.position.distanceTo(c.tag.position);domBub(c,dd<70?bb:null,dd);}
   if(camOverride){cam.position.set(camOverride[0],camOverride[1],camOverride[2]);cam.lookAt(camOverride[3],camOverride[4],camOverride[5]);}R.render(scene,cam);tankView.frame(dt,T);
   fpsA=fpsA*.95+(1/Math.max(dt,1e-3))*.05;$('dc').textContent=`FPS ${fpsA.toFixed(0)} · draw calls ${R.info.render.calls} · tris ${(R.info.render.triangles/1000).toFixed(1)}k · decks ${DECKS}`;window.__nk={calls:R.info.render.calls,tris:R.info.render.triangles};requestAnimationFrame(frame);}
 loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyVG();setInterval(()=>{S.savedAt=Date.now();save();},30000);
@@ -696,7 +730,7 @@ loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyV
   makeBots();$('loading').textContent='준비 완료!';$('go').disabled=false;
   const cam0=()=>{yaw=Math.atan2(Math.cos(d0.a),Math.sin(d0.a));cam.position.set(0,30,-70);cam.lookAt(0,0,0);};cam0();
   $('go').onclick=()=>{me=makeChar(S.char,NICK());me.o.position.set(d0.entry.x,.4,d0.entry.z);me.dir=d0.a+Math.PI;started=true;$('start').classList.remove('show');startAudio();hud();say('시스템','낚멍에 오신 걸 환영해요! 데크 끝에서 낚시를 시작해보세요 🎣');};
-  hud();requestAnimationFrame(frame);
+  hud();requestAnimationFrame(frame);setTimeout(()=>{try{calcRK3();}catch(e){}},1500);setInterval(()=>{try{calcRK3();}catch(e){}},30000);updBagBadge();
   $('bBag').onclick=openBag;$('bSet').onclick=()=>{renderSet();openM('set');};$('bSave').onclick=()=>{S.savedAt=Date.now();save();toast('💾 저장 완료');};
   addEventListener('contextmenu',e=>e.preventDefault());
   ;(function(){const ap=()=>document.body.classList.toggle('tx-rainbow',S.txStyle==='rainbow');ap();document.addEventListener('change',e=>{if(e.target&&e.target.name==='txs'){S.txStyle=e.target.value;save();ap();}});})();
@@ -715,7 +749,7 @@ applyMenu();
 function applyCard(){document.body.dataset.card=S.cardStyle||'d';}applyCard();
 document.addEventListener('change',e=>{if(e.target&&e.target.name==='menuS'){S.menuStyle=e.target.value;save();applyMenu();}if(e.target&&e.target.name==='cardS'){S.cardStyle=e.target.value;save();applyCard();}});
 document.addEventListener('click',e=>{if(e.target&&e.target.id==='cardPrev'){const F=D.FISH[7],G0=D.GRADES[2];closeM('set');toast(catchCard({cm:47.2,v:186},F,G0,{isNew:true,newG:false,rec:false,where:'🐠 내 어항에 넣었어요'}),2600);}});
-window.NKV2={ROD_POSE,openFishRank,miniToast,project:a=>{const v=new THREE.Vector3(a[0],a[1],a[2]).project(cam);return [Math.round((v.x+1)/2*innerWidth),Math.round((1-v.y)/2*innerHeight)];},snd:()=>snd,emote,applyMenu,botBuyNow:()=>{buyT=0;botBuy(0);},S,D,decks,bots,fishAction,catchFish,tankView,renderShop,renderDex,openM,closeM,time,me:()=>me,setPos:(x,z)=>{me.o.position.set(x,.4,z);},nearSpot:()=>nearSpot,fishing:()=>fishing,save,VG,bag:()=>openBag(),legendAlert,botLegend,boxAlert,botBoxAlert,bagTab:t=>{bagTab=t;renderBag();},openSet:()=>{renderSet();openM('set');},SYS,giveBox:(n=1)=>{for(let i=0;i<n;i++)S.boxes.push(Date.now());save();},setCam:(x,y,z,tx=0,ty=0,tz=0)=>{camOverride=x==null?null:[x,y,z,tx,ty,tz];},setDecks:n=>{},dexTab:t=>{dexTab=t;},synthFx,hud};});
+window.NKV2={ROD_POSE,scene,THREE,openFishRank,miniToast,boxGot,calcRK3,RK3:()=>RK3,project:a=>{const v=new THREE.Vector3(a[0],a[1],a[2]).project(cam);return [Math.round((v.x+1)/2*innerWidth),Math.round((1-v.y)/2*innerHeight)];},snd:()=>snd,emote,applyMenu,botBuyNow:()=>{buyT=0;botBuy(0);},S,D,decks,bots,fishAction,catchFish,tankView,renderShop,renderDex,openM,closeM,time,me:()=>me,setPos:(x,z)=>{me.o.position.set(x,.4,z);},nearSpot:()=>nearSpot,fishing:()=>fishing,save,VG,bag:()=>openBag(),legendAlert,botLegend,boxAlert,botBoxAlert,bagTab:t=>{bagTab=t;renderBag();},openSet:()=>{renderSet();openM('set');},SYS,giveBox:(n=1)=>{for(let i=0;i<n;i++)S.boxes.push(Date.now());save();},setCam:(x,y,z,tx=0,ty=0,tz=0)=>{camOverride=x==null?null:[x,y,z,tx,ty,tz];},setDecks:n=>{},dexTab:t=>{dexTab=t;},synthFx,hud};});
 })();
 
 // ───────── v5 툴팁 (마우스 오버 / 모바일 탭) ─────────
