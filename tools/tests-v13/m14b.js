@@ -1,0 +1,3 @@
+const pw=require('playwright-core');(async()=>{const b=await pw.chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--use-gl=swiftshader'],ignoreDefaultArgs:['--hide-scrollbars']});const p=await b.newPage({viewport:{width:1200,height:900}});
+await p.goto('http://localhost:8787/mockups-v14/ui-src.html');await p.waitForTimeout(800);await p.evaluate(()=>document.querySelectorAll('.lst').forEach(l=>{l.scrollTop=120;l.classList.add('x')}));await p.hover('.sC');
+for(const id of ['sb','deck','fish']){await (await p.$('#'+id)).screenshot({path:'/workspace/nakmeong/mockups-v14/'+id+'.jpg',type:'jpeg',quality:88});}await b.close();})();

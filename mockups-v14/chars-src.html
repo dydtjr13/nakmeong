@@ -1,0 +1,42 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#f6efe4"><canvas id="c"></canvas><script src="../lib/three.min.js"></script><script>
+const kind=new URLSearchParams(location.search).get('k')||'human';const W=1600,H=520;
+const R=new THREE.WebGLRenderer({canvas:c,antialias:true,preserveDrawingBuffer:true});R.setSize(W,H);R.shadowMap.enabled=true;R.setClearColor(0xf6efe4);
+const S=new THREE.Scene();const cam=new THREE.PerspectiveCamera(30,W/H,.1,100);cam.position.set(0,2.2,11.5);cam.lookAt(0,1.25,0);
+S.add(new THREE.HemisphereLight(0xfff6ea,0xb7a48c,.85));const L=new THREE.DirectionalLight(0xffffff,.8);L.position.set(4,8,6);L.castShadow=true;L.shadow.mapSize.set(2048,2048);Object.assign(L.shadow.camera,{left:-10,right:10,top:6,bottom:-4});S.add(L);
+const gr=new THREE.Mesh(new THREE.CircleGeometry(12,48).rotateX(-Math.PI/2),new THREE.MeshLambertMaterial({color:0xe9dcc6}));gr.receiveShadow=true;S.add(gr);
+const M=c=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
+function m(g,c,x,y,z,p){const o=new THREE.Mesh(g,M(c));o.position.set(x,y,z);o.castShadow=true;(p||S).add(o);return o;}
+const B=(w,h,d)=>new THREE.BoxGeometry(w,h,d),Sp=(r,d=1)=>new THREE.IcosahedronGeometry(r,d),Cy=(a,b,h,n=7)=>new THREE.CylinderGeometry(a,b,h,n),Co=(r,h,n=6)=>new THREE.ConeGeometry(r,h,n);
+function eyes(g,y,z,s=.07,dx=.17){m(Sp(s,0),0x2a2230,-dx,y,z,g);m(Sp(s,0),0x2a2230,dx,y,z,g);}
+function human(o){const g=new THREE.Group();S.add(g);
+ m(Cy(.14,.16,.7),o.pants,-.17,.35,0,g);m(Cy(.14,.16,.7),o.pants,.17,.35,0,g);m(B(.3,.14,.42),0x4a3a30,-.17,.07,.06,g);m(B(.3,.14,.42),0x4a3a30,.17,.07,.06,g);
+ const t=m(Cy(.36,.42,.85,8),o.shirt,0,1.12,0,g);if(o.vest)m(Cy(.39,.44,.6,8),o.vest,0,1.2,0,g);
+ const a1=m(Cy(.1,.11,.72),o.shirt,-.5,1.12,0,g);a1.rotation.z=.25;const a2=m(Cy(.1,.11,.72),o.shirt,.5,1.12,0,g);a2.rotation.z=-.25;m(Sp(.11,0),o.skin,-.6,.76,0,g);m(Sp(.11,0),o.skin,.6,.76,0,g);
+ m(Sp(.5,1),o.skin,0,1.95,0,g);eyes(g,1.97,.45);m(Sp(.06,0),0xf29a8a,-.28,1.86,.4,g);m(Sp(.06,0),0xf29a8a,.28,1.86,.4,g);
+ const h=m(Sp(.53,1),o.hair,0,2.08,-.06,g);h.scale.set(1,.75,1);
+ if(o.hat==='cap'){m(Cy(.52,.54,.28,10),o.hatC,0,2.36,0,g);m(B(.6,.06,.4),o.hatC,0,2.25,.45,g);}
+ if(o.hat==='straw'){m(Cy(.9,.9,.06,14),0xe8c26a,0,2.32,0,g);m(Cy(.42,.5,.35,12),0xe8c26a,0,2.5,0,g);m(Cy(.51,.51,.08,12),0xd0503a,0,2.38,0,g);}
+ if(o.hat==='bun'){m(Sp(.24,1),o.hair,0,2.6,-.15,g);}
+ if(o.hat==='beanie'){m(Sp(.55,1),o.hatC,0,2.25,0,g).scale.set(1,.7,1);m(Sp(.14,0),0xffffff,0,2.68,0,g);}
+ if(o.rod){const r=m(Cy(.025,.04,2.6,5),0x8a5a2a,.75,1.6,.2,g);r.rotation.z=-.5;}
+ if(o.bag)m(B(.5,.55,.25),0x6a8a4a,0,1.15,-.42,g);
+ return g;}
+function animal(o){const g=new THREE.Group();S.add(g);const b=o.body;
+ const bd=m(Sp(.62,1),b,0,.85,0,g);bd.scale.set(1,.95,1.05);if(o.belly)m(Sp(.45,1),o.belly,0,.78,.3,g).scale.set(1,1,.6);
+ [-.3,.3].forEach(x=>{m(Cy(.13,.15,.4),b,x,.22,.18,g);m(Cy(.13,.15,.4),b,x,.22,-.25,g);});
+ const hd=m(Sp(.5,1),b,0,1.65,.15,g);eyes(g,1.72,.6,.065,.18);m(Sp(.08,0),0x3a2a2a,0,1.58,.64,g);
+ if(o.ears==='cat'){[-.28,.28].forEach(x=>m(Co(.16,.35,4),b,x,2.1,.1,g));}
+ if(o.ears==='bear'){[-.33,.33].forEach(x=>m(Sp(.16,0),b,x,2.05,.05,g));}
+ if(o.ears==='bunny'){[-.17,.17].forEach(x=>{const e=m(Cy(.1,.12,.75,6),b,x,2.35,.05,g);e.rotation.z=x>0?-.12:.12;m(Cy(.05,.07,.55,6),0xffc9d4,x,2.35,.12,g).rotation.z=x>0?-.12:.12;});}
+ if(o.ears==='fox'){[-.28,.28].forEach(x=>m(Co(.18,.42,4),b,x,2.12,.05,g));m(Co(.22,.45,5),0xffffff,0,1.52,.62,g).rotation.x=Math.PI/2;}
+ if(o.ears==='peng'){m(Co(.12,.25,4),0xf0a020,0,1.6,.7,g).rotation.x=Math.PI/2;[-.62,.62].forEach(x=>m(B(.1,.7,.35),b,x,.9,0,g));}
+ if(o.tail==='long'){const t=m(Cy(.07,.1,.9,5),b,0,.95,-.75,g);t.rotation.x=-.8;}
+ if(o.tail==='puff')m(Sp(.2,0),0xffffff,0,.75,-.62,g);
+ if(o.tail==='fox'){const t=m(Co(.28,1,6),b,0,.85,-.85,g);t.rotation.x=-1.9;m(Sp(.15,0),0xffffff,0,1.05,-1.3,g);}
+ if(o.hat)m(Cy(.34,.38,.22,10),o.hat,0,2.08,.12,g);
+ [-.3,.3].forEach(x=>m(Sp(.06,0),0xf29a8a,x,1.55,.55,g));return g;}
+const HU=[{skin:0xf2c9a4,hair:0x3a2a22,shirt:0x5fa8e0,pants:0x3a4a6a,hat:'cap',hatC:0xff7a45,rod:1},{skin:0xe8b48a,hair:0x8a4a2a,shirt:0xf6c542,pants:0x6a5a4a,hat:'straw',vest:0x7a9a5a},{skin:0xf7d6b8,hair:0x1e1a22,shirt:0xf08fb0,pants:0x5a4a7a,hat:'bun',bag:1},{skin:0xc98a62,hair:0x2a1a14,shirt:0x6fbf8a,pants:0x3a3a3a,hat:'beanie',hatC:0x6a4fc0,rod:1},{skin:0xf2c9a4,hair:0xd8d0c8,shirt:0xa07a5a,pants:0x4a4038,hat:'straw',vest:0x5a7a9a}];
+const A=[{body:0xf0a860,belly:0xfff1dc,ears:'cat',tail:'long'},{body:0x9a6a44,belly:0xe8c9a0,ears:'bear',hat:0xff7a45},{body:0xf4efe8,ears:'bunny',tail:'puff'},{body:0xe8783a,belly:0xffffff,ears:'fox',tail:'fox'},{body:0x2e3440,belly:0xffffff,ears:'peng'}];
+const L5=kind==="human"?HU:A;L5.forEach((o,i)=>{const g=(kind==='human'?human:animal)(o);g.position.x=(i-2)*2.7;g.rotation.y=(i-2)*-.12;});
+R.render(S,cam);document.title='done';
+</script>

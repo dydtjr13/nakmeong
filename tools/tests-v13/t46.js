@@ -1,0 +1,11 @@
+const {chromium}=require('playwright-core');(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});
+const p=await b.newPage({viewport:{width:1280,height:760}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://localhost:8787/nakmeong.html');await p.evaluate(()=>{localStorage.clear();localStorage.setItem('nk_cfg',JSON.stringify({lay:'a',bots:20}));});await p.reload();await p.waitForFunction(()=>!document.getElementById('go').disabled,null,{timeout:180000});await p.click('#go');await p.waitForTimeout(3000);await p.addStyleTag({content:'#dc{visibility:hidden}'});
+const sh=async n=>{await p.screenshot({path:'/workspace/nakmeong/shots/v14-'+n+'.png'});};
+const rk=()=>p.evaluate(()=>{const R=NKV2.RK3();for(const k in R)delete R[k];R.__me=1;const bs=NKV2.chars.filter(c=>c!==NKV2.me()&&!c.offline);const me=NKV2.me().o.position;bs.sort((a,b)=>a.o.position.distanceTo(me)-b.o.position.distanceTo(me));if(bs[0])R[bs[0].name]=2;if(bs[1])R[bs[1].name]=3;});
+await rk();await p.evaluate(()=>{const f=document.getElementById('fishBtn');f.style.display='block';});await p.waitForTimeout(800);await rk();await p.waitForTimeout(400);await sh('7-rank-btnF');
+await p.evaluate(()=>{NKV2.time.auto=false;NKV2.time.t=.78;NKV2.S.wxOv='aurora';});await p.waitForTimeout(3000);await rk();await p.waitForTimeout(300);await sh('8-night-aurora');
+await p.evaluate(()=>{NKV2.S.wxOv='firefly';});await p.waitForTimeout(2500);await sh('9-firefly');
+await p.evaluate(()=>{NKV2.time.t=.6;NKV2.S.wxOv='sunset';NKV2.openM&&0;document.getElementById('bSet')&&document.getElementById('bSet').click();});await p.waitForTimeout(1000);
+await p.evaluate(()=>{const c=document.querySelector('#set .card');const h=[...c.querySelectorAll('h4')].find(x=>x.textContent.includes('v14'));if(h)c.scrollTop=h.offsetTop-20;});await p.waitForTimeout(300);await sh('10-settings');
+console.log(JSON.stringify(errs.slice(0,5)),await p.evaluate(()=>[...document.querySelectorAll('.rk10')].filter(e=>e.style.display!=='none').length));await b.close();})();
