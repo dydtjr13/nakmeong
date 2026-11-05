@@ -1,0 +1,26 @@
+/* 피쉬레스트 v25 튜토리얼 퀘스트 */
+#tq25{position:fixed;z-index:44;pointer-events:none;font-family:inherit;color:#3a3048}
+#tq25 [data-tq]{pointer-events:auto;cursor:pointer}
+#tq25 .npc{display:flex;align-items:flex-end;gap:10px}
+#tq25.pc.p-bc{transform:translateX(-50%)}
+#tq25 .npc img{width:76px;height:86px;object-fit:cover;border-radius:18px;box-shadow:0 4px 14px #0003;background:#efe6d8;border:3px solid #fffdf8;flex:none;transition:transform .15s}
+#tq25 .npc img:hover{transform:translateY(-2px)}
+#tq25 .bb{position:relative;background:#fffdf8f5;border-radius:18px;padding:11px 14px;width:290px;box-shadow:0 8px 22px #0003;font-size:13px;pointer-events:auto}
+#tq25 .bb::before{content:'';position:absolute;left:-8px;bottom:20px;border:8px solid transparent;border-right-color:#fffdf8;border-left:0}
+#tq25 .who{display:flex;font-size:11.5px;color:#9a7a5a;margin-bottom:3px}#tq25 .who small{margin-left:auto;color:#c0602a;font-weight:900}
+#tq25 .bb p{margin:0 0 7px;line-height:1.5}#tq25 .bb p b,#tq25 .nx b{color:#c0602a}
+#tq25 .goal{font-weight:800;font-size:12.5px;margin-bottom:5px}#tq25 em{font-style:normal;color:#c0602a}
+#tq25 .pg{height:5px;background:#efe6da;border-radius:4px;overflow:hidden}#tq25 .pg i{display:block;height:100%;background:linear-gradient(90deg,#ff8a4c,#ffc46a);transition:width .4s}
+#tq25 .rw{display:inline-block;margin-top:6px;font-size:11px;background:#fff1e2;color:#c0602a;border-radius:8px;padding:1px 7px;font-weight:800}
+#tq25 .dot{align-self:flex-start;background:#ff8a4c;color:#fff;font-size:11px;font-weight:900;border-radius:10px;padding:2px 8px;margin-left:-22px;box-shadow:0 2px 6px #0003}
+#tq25 img.emj{width:1.15em!important;height:1.15em!important;vertical-align:-.2em;border:0!important;border-radius:0!important;box-shadow:none!important;background:none!important}
+#tq25 .sh{background:#fffdf8f2;border-radius:16px;padding:9px 12px;box-shadow:0 6px 18px #0002;font-size:12.5px;width:270px;pointer-events:auto}
+#tq25 .sh .hd{display:flex;gap:9px;align-items:center}#tq25 .sh .ic{font-size:22px}#tq25 .sh small{display:block;color:#9a90a6;font-size:11px}
+#tq25 .sh .rw{margin:0 0 0 auto;white-space:nowrap}#tq25 .sh .pg{margin:7px 0 5px}#tq25 .sh .nx{font-size:11.5px;color:#6a6076;line-height:1.45}
+#tq25.m .npc img{width:52px;height:58px;border-radius:14px;border-width:2px}
+#tq25.m .bb{width:calc(100vw - 92px);box-sizing:border-box;font-size:12px;padding:9px 11px}#tq25.m .bb::before{bottom:auto;top:18px}#tq25.m .npc{align-items:flex-start}
+#tq25.m .bb p{margin-bottom:5px}#tq25.m .rw{margin-top:4px}
+#tq25.m .sh{width:230px;padding:7px 10px;font-size:11.5px}#tq25.m .sh .rw{display:none}#tq25.m .sh .ic{font-size:18px}
+#tq25.fold .sh .pg{margin-bottom:0}
+body.menu-open #tq25{opacity:0}
+#tq25.hid{opacity:0;visibility:hidden}

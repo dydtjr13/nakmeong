@@ -860,3 +860,5 @@ body:has(.modal.show) #chat,body:has(.modal.show) #bubs{visibility:hidden}
 .pfx{display:flex;gap:8px;align-items:stretch;margin:4px 0 2px}.pfx input{flex:1;min-width:0;height:40px;margin:0!important;box-sizing:border-box}.pfx button{height:40px;padding:0 16px!important;border-radius:12px!important;background:#ff8a4c!important;color:#fff!important;font-weight:800;margin:0!important;white-space:nowrap}
 /* 게시판 창 */
 #boardOv{position:fixed;inset:0;z-index:160}#boardOv iframe{width:100%;height:100%;border:0;background:transparent}#boardOv.v5{left:auto;width:440px}#boardOv.v2,#boardOv.v3,#boardOv.vm{background:#f6efe4}
+/* v25 XP 알림 A2: 어두운 알약 (낚시 카드 아래) */
+#xpF.a2{background:#3b3346e6;color:#fff}#xpF.a2 b{color:#ffd27a}

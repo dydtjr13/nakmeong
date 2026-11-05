@@ -35,3 +35,25 @@
  addEventListener('message',e=>{if(e.data==='nkBoardClose')close();});addEventListener('keydown',e=>{if(e.key==='Escape'&&ov)close();});
  const add=()=>{const sy=document.getElementById('mSys');if(!sy){setTimeout(add,500);return;}if(document.getElementById('bBoard'))return;const b=document.createElement('button');b.id='bBoard';b.title='게시판';b.innerHTML='<b class="mi">📋</b><small class="ml">게시판</small>';b.onclick=e=>{e.stopPropagation();open();};sy.insertBefore(b,sy.firstChild);if(window.NK_EMOJI)try{NK_EMOJI.parse(b);}catch(_){}};add();
  window.NK_BOARD={open,close};})();
+
+// v25: 날씨 카드 정렬 — PC는 낚시 정보 줄(#equip)과 같은 왼쪽·폭, 모바일은 코인 알약~메뉴 버튼 폭에 맞춤. 간격은 레벨창↔정보줄 간격 +2px
+(function(){const $=id=>document.getElementById(id);
+ function al(){const w=$('wxCard');if(!w||!w.offsetParent)return;const B=document.body;if(B.classList.contains('vshort')){['left','top','width','right','transform'].forEach(k=>w.style.removeProperty(k));return;}
+  const set=(k,v)=>w.style.setProperty(k,v,'important');
+  if(innerWidth>=700){const e=$('equip'),s=$('mStat');if(!e||!s)return;const r=e.getBoundingClientRect(),q=s.getBoundingClientRect();if(!r.width)return;const gap=Math.max(4,r.top-q.bottom)+2;
+   set('left',r.left+'px');set('right','auto');set('top',(r.bottom+gap)+'px');set('width',Math.max(196,r.width)+'px');set('transform','none');set('box-sizing','border-box');}
+  else{const pills=[...document.querySelectorAll('#mStat .pill')].filter(p=>p.offsetWidth),m=$('bMore'),lv=document.querySelector('#mStat .lvb'),c=$('chatBtn');if(!pills.length||!m)return;const L=Math.min(...pills.map(p=>p.getBoundingClientRect().left)),R=m.getBoundingClientRect().right,bt=Math.max(m.getBoundingClientRect().bottom,...pills.map(p=>p.getBoundingClientRect().bottom));const gap=(lv&&c)?Math.max(4,c.getBoundingClientRect().top-lv.getBoundingClientRect().bottom)+2:12,sc=.82;
+   set('left',L+'px');set('right','auto');set('top',(bt+gap)+'px');set('transform',`scale(${sc})`);set('transform-origin','top left');set('width',((R-L)/sc)+'px');set('box-sizing','border-box');}}
+ setInterval(al,700);addEventListener('resize',()=>setTimeout(al,50));})();
+
+// v25: UI 설정 저장소 (XP 알림 위치·튜토리얼 위치 등) — localStorage nk_ui25
+window.NK_UI25=(function(){const K='nk_ui25',D0={xp:'A2',tutPC:'D2',tutM:'D2',tutFold:0,tutHide:0};let o;try{o=Object.assign({},D0,JSON.parse(localStorage.getItem(K)||'{}'));}catch(e){o=Object.assign({},D0);}
+ return {get:k=>o[k],set:(k,v)=>{o[k]=v;localStorage.setItem(K,JSON.stringify(o));document.dispatchEvent(new CustomEvent('nkui25',{detail:{k,v}}));},all:()=>o};})();
+// v25: XP 알림 위치 — A2(낚시 카드 바로 아래 가운데, 기본) / A4(PC 하단 메뉴 위, 모바일 낚시 버튼 왼쪽)
+(function(){const $=id=>document.getElementById(id);
+ function place(){const x=$('xpF');if(!x)return;const m=innerWidth<700,v=NK_UI25.get('xp'),set=(k,val)=>x.style.setProperty(k,val,'important');const w=x.offsetWidth||120;
+  if(v==='A4'){if(x.classList.contains('a2'))x.classList.remove('a2');const tops=['mMain','fishBtn','bSit','sitBtn'].map(id=>$(id)).filter(e=>e&&e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden'&&e.getBoundingClientRect().height).map(e=>e.getBoundingClientRect().top).filter(t=>t>innerHeight*.4),T=tops.length?Math.min(...tops):innerHeight-92;
+   if(m){set('left',(innerWidth-w-10)+'px');set('top',(T-(x.offsetHeight||26)-10)+'px');}else{set('left',((innerWidth-w)/2)+'px');set('top',(T-(x.offsetHeight||26)-10)+'px');}set('bottom','auto');set('right','auto');return;}
+  const t=$('toast');let y=innerHeight*.26+(m?96:118);if(t){const r=t.getBoundingClientRect(),op=+getComputedStyle(t).opacity;if(op>.05&&r.height)y=r.bottom+8;}
+  set('left',((innerWidth-w)/2)+'px');set('top',y+'px');set('bottom','auto');set('right','auto');if(!x.classList.contains('a2'))x.classList.add('a2');}
+ let att=null;const hook=x=>{if(att===x)return;att=x;new MutationObserver(()=>{if(x.classList.contains('on'))place();}).observe(x,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});if(x.classList.contains('on'))place();};const go=()=>{const x=$('xpF');if(x)return hook(x);const mo=new MutationObserver(()=>{const y=$('xpF');if(y){mo.disconnect();hook(y);}});mo.observe(document.body,{childList:true});};document.body?go():addEventListener('DOMContentLoaded',go);})();
