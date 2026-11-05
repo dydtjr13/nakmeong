@@ -1,5 +1,6 @@
 # 🎣 낚멍 v2 (시안 A · 3D 로우폴리 파스텔)
 
+- v21: 레벨 시스템(Lv99), 모닥불 C2, 모바일 M3, G2/T2 알림, 동물 걷기, 입력·의자 버그 수정, 시안 → mockups-v21/index.html, docs/v21-보고서.html
 - v20: 의자 앉기 낚시, 모닥불 개선, draw call 최적화, 시안 → mockups-v20/index.html, docs/v20-보고서.html
 
 ## v15 (2026-11-04)

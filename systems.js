@@ -20,7 +20,7 @@ SYS.makeCharm=(D,tier,id,rnd=Math.random)=>{const C=D.CHARM,keys=Object.keys(C.o
   return {id,tier,opts,lock:false};};
 SYS.rollTier=(D,masterPct=0,rnd=Math.random)=>{const ws=D.BOX.tiers.map((t,i)=>t.w*(i>=2?1+masterPct/100:1));let s=rnd()*ws.reduce((a,b)=>a+b,0);for(let i=0;i<ws.length;i++){s-=ws[i];if(s<0)return i;}return 0;};
 SYS.boxChance=(D,ch)=>D.BOX.base*(1+ch.treasure/100);
-SYS.openBox=(D,S,rnd=Math.random,src)=>{const ch=SYS.charmSum(D,S),tier=src==='streak'&&D.BOX.streakTiers?SYS.rollTier({BOX:{tiers:D.BOX.streakTiers.map(w=>({w}))}},ch.master,rnd):SYS.rollTier(D,ch.master,rnd),out=[],RW=src==='streak'&&D.BOX.streakReward||D.BOX.reward;
+SYS.openBox=(D,S,rnd=Math.random,src)=>{const ch=SYS.charmSum(D,S),tier=src==='streak'&&D.BOX.streakTiers?SYS.rollTier({BOX:{tiers:D.BOX.streakTiers.map(w=>({w}))}},ch.master,rnd):Math.max(typeof src==='string'&&src.slice(0,2)==='lv'?+src.slice(2):0,SYS.rollTier(D,ch.master,rnd)),out=[],RW=src==='streak'&&D.BOX.streakReward||D.BOX.reward;
   const one=()=>{let x=rnd();
     if((x-=RW.charm)<0){const c=SYS.makeCharm(D,tier,S.nid++,rnd);S.charms.push(c);out.push({type:'charm',c});return;}
     if((x-=RW.rod)<0){const k=SYS.boxRod(D,tier,rnd),g=SYS.makeGear(D,k,S.nid++,rnd,tier);S.gear.push(g);out.push({type:'rod',g});return;}

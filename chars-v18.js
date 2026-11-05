@@ -30,7 +30,7 @@ const PROPS={
 function eyes(h,y,z,sp=.2,s=1){[-sp,sp].forEach(x=>{const e=box(.1*s,.15*s,.04,'#221a26',h,x,y,z);box(.04*s,.05*s,.02,'#ffffff',h,x+.025*s,y+.04*s,z+.025);});}
 function blush(h,y,z,sp=.32){[-sp,sp].forEach(x=>box(.12,.06,.02,'#f29a8a',h,x,y,z));}
 function whisk(h,y,z,c='#ffffff'){[-1,1].forEach(s=>[0,1].forEach(k=>{const w=box(.3,.015,.015,c,h,s*.42,y+k*.05-.02,z);w.rotation.z=s*(k?.12:-.08);}));}
-function legs(g,c,w=.22,h=.34,sp=.2){[-sp,sp].forEach(x=>box(w,h,w+.04,c,g,x,h/2,0));}
+function legs(g,c,w=.22,h=.34,sp=.2){[-sp,sp].forEach(x=>{const p=new THREE.Group();p.name='leg';p.position.set(x,h,0);g.add(p);box(w,h,w+.04,c,p,0,-h/2,0);});}
 function arms(g,c,y=.8){[-.44,.44].forEach(x=>{const a=box(.18,.36,.2,c,g,x,y,.02);a.rotation.z=x>0?-.28:.28;});}
 const AN={
  cat:g=>{legs(g,'#8a8f98');box(.7,.6,.52,'#9aa0aa',g,0,.66,0);box(.42,.4,.04,'#f2efe8',g,0,.64,.27);arms(g,'#9aa0aa');const h=new THREE.Group();h.position.y=1.38;g.add(h);box(1.0,.82,.8,'#9aa0aa',h,0,0,0);[-.2,0,.2].forEach(x=>box(.08,.22,.02,'#6a707a',h,x,.3,.41));box(.5,.3,.04,'#f2efe8',h,0,-.2,.41);
@@ -44,7 +44,7 @@ const AN={
   [-.56,.56].forEach(x=>{const w=box(.1,.52,.26,'#22262e',g,x,.72,0);w.rotation.z=x>0?.25:-.25;});const sc=cyl(.4,.44,.14,'#d0402e',g,0,1.12,0,10);box(.14,.42,.06,'#d0402e',g,.18,.9,.4);},
  bear:g=>{legs(g,'#5a3a22',.26,.36,.2);box(.84,.66,.6,'#7a4e2e',g,0,.68,0);[[0,'#c0302a'],[1,'#2a1e1e']].forEach(([i,c])=>{for(let k=0;k<4;k++)box(.86,.06,.62,k%2?'#2a1e1e':'#d8443a',g,0,.48+k*.14,0);});arms(g,'#7a4e2e',.78);const h=new THREE.Group();h.position.y=1.42;g.add(h);box(1.02,.84,.82,'#7a4e2e',h,0,0,0);
   [-.38,.38].forEach(x=>{box(.28,.26,.16,'#7a4e2e',h,x,.5,0);box(.14,.13,.04,'#c8a07a',h,x,.5,.09);});box(.44,.3,.18,'#d8b088',h,0,-.16,.46);box(.18,.12,.06,'#221a1a',h,0,-.06,.56);eyes(h,.12,.42,.24);blush(h,-.12,.42,.36);},
- duck:g=>{[-.18,.18].forEach(x=>{cyl(.13,.13,.3,'#f2c230',g,x,.15,0,8);box(.2,.08,.3,'#f2a030',g,x,.02,.08);});const b=ball(.48,'#fff3b0',g,0,.66,0,1);b.scale.set(1.1,.95,1.15);const h=new THREE.Group();h.position.y=1.34;g.add(h);ball(.42,'#fff3b0',h,0,0,0,1);
+ duck:g=>{[-.18,.18].forEach(x=>{const p=new THREE.Group();p.name='leg';p.position.set(x,.3,0);g.add(p);cyl(.13,.13,.3,'#f2c230',p,0,-.15,0,8);box(.2,.08,.3,'#f2a030',p,0,-.28,.08);});const b=ball(.48,'#fff3b0',g,0,.66,0,1);b.scale.set(1.1,.95,1.15);const h=new THREE.Group();h.position.y=1.34;g.add(h);ball(.42,'#fff3b0',h,0,0,0,1);
   const bl=box(.42,.1,.3,'#f09030',h,0,-.08,.46);box(.36,.06,.24,'#e07a20',h,0,-.16,.42);eyes(h,.08,.38,.17);blush(h,-.06,.36,.3);[-.48,.48].forEach(x=>{const w=box(.1,.34,.4,'#ffe890',g,x,.7,-.02);w.rotation.z=x>0?-.3:.3;});const t=cone(.14,.3,'#fff3b0',g,0,.82,-.5,4);t.rotation.x=-2.0;ball(.08,'#fff3b0',h,0,.42,0,0).scale.set(.6,1.6,.6);},
  frog:g=>{const b=ball(.5,'#5aa040',g,0,.45,0,1);b.scale.set(1.2,.8,1);const be=ball(.38,'#d8e8a0',g,0,.42,.2,1);be.scale.set(1.1,.8,.6);[-.4,.4].forEach(x=>{const l=box(.34,.14,.5,'#4a8a34',g,x,.12,.05);[-.1,0,.1].forEach(t=>box(.06,.04,.12,'#4a8a34',g,x+t,.05,.34));});
   const h=new THREE.Group();h.position.y=.95;g.add(h);const hd=ball(.46,'#5aa040',h,0,0,0,1);hd.scale.set(1.35,.75,1);[-.32,.32].forEach(x=>{ball(.19,'#5aa040',h,x,.3,.12,1);ball(.13,'#ffffff',h,x,.33,.25,1);box(.1,.12,.04,'#1a1a1a',h,x,.33,.37);});

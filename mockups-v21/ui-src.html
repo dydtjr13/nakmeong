@@ -1,0 +1,131 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><style>
+body{margin:0;background:#e9e2d6;font-family:system-ui,'Noto Sans KR',sans-serif;color:#3a3048}.shot{display:inline-block;vertical-align:top;padding:16px}
+img.em{width:1.15em;height:1.15em;vertical-align:-.2em}
+.D{width:1280px;height:720px;position:relative;overflow:hidden;background:url(../mockups-v20/ui/d-clean.jpg) center/cover;border-radius:14px}
+.M{width:390px;height:844px;position:relative;overflow:hidden;background:url(../mockups-v20/ui/m-clean.jpg) center/cover;border-radius:28px}
+.dim::before{content:'';position:absolute;inset:0;background:#3a304866}
+.a{position:absolute}.fx{display:flex;align-items:center}.g{background:#fffdf8ee;border-radius:16px;box-shadow:0 4px 14px #3a304826}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;background:#fffdf8ee;font-weight:800;font-size:13px;box-shadow:0 2px 8px #3a304820}
+.note{position:absolute;background:#3b3346;color:#fff;font-size:12px;padding:6px 10px;border-radius:10px;max-width:280px;line-height:1.4;z-index:5}
+.bar{height:7px;border-radius:6px;background:#efe6da;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#ffb36a,#ff8a5c)}
+.ring{width:38px;height:38px;border-radius:50%;background:conic-gradient(#ff8a5c 0 var(--p),#f1e6da var(--p));display:flex;align-items:center;justify-content:center;flex:none}.ring span{width:30px;height:30px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#c0603a}
+.ttl{font-size:10.5px;font-weight:800;color:#fff;background:#6a4fc0;border-radius:8px;padding:1px 7px}
+.rwc{background:#fff;border-radius:14px;padding:10px 6px;width:100px;font-size:12px;font-weight:700;box-shadow:0 6px 14px #0001;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}.rwc .em{width:30px;height:30px}
+.ib{width:44px;height:44px;border-radius:50%;background:#fffdf8ee;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 3px 10px #0003}
+.fishb{border-radius:50%;width:84px;height:84px;background:linear-gradient(#fff,#fff3e8);box-shadow:0 6px 18px #3a304840,0 0 0 4px #ff8a5c inset;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:13px}
+.nd{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11.5px;text-align:center;width:92px}.nd .o{width:52px;height:52px;border-radius:50%;background:#fff;border:4px solid #eee4d6;display:flex;align-items:center;justify-content:center;font-size:22px}.nd.done .o{border-color:#ff8a5c}.nd.cur .o{border-color:#6a4fc0;box-shadow:0 0 0 6px #6a4fc033}
+.card{background:#fbf8f3;border-radius:22px;box-shadow:0 18px 50px #3a304844;padding:18px 22px}
+</style></head><body>
+<!-- ===== 레벨업 팝업 LU1~LU4 ===== -->
+<div class="shot" id="LU1"><div class="D dim">
+ <div class="a card" style="left:50%;top:50%;transform:translate(-50%,-50%);width:440px;text-align:center;padding:0;overflow:hidden;z-index:2">
+  <div style="background:linear-gradient(135deg,#ff9a6a,#ffc46a);padding:18px 0 34px;color:#fff;position:relative"><div style="font-size:13px;font-weight:900;letter-spacing:.3em">LEVEL UP</div><div style="font-size:15px;font-weight:800;margin-top:4px">Lv.11 → </div><div style="font-size:72px;font-weight:900;line-height:.9;text-shadow:0 4px 0 #e0703a">12</div>
+   <div style="position:absolute;left:0;right:0;bottom:-1px;height:22px;background:#fbf8f3;border-radius:50% 50% 0 0/100% 100% 0 0"></div></div>
+  <div style="padding:4px 22px 18px"><span class="ttl" style="font-size:12px;padding:3px 10px">🏷 새 칭호 「호숫가 단골」</span>
+   <div class="fx" style="gap:10px;justify-content:center;margin-top:14px"><div class="rwc">🪙<span>코인 1,200</span></div><div class="rwc">🧑<span>캐릭터 「항구 선원」</span></div><div class="rwc">🎣<span>은빛 릴낚싯대 착용</span></div></div>
+   <div style="margin-top:14px;font-size:12.5px;color:#8a6a50">다음: Lv.15 🎁 행운 상자 · 부적 칸 4개 (Lv.18)</div><div style="margin-top:12px;display:flex;gap:8px;justify-content:center"><span class="chip" style="background:#f3eee6">보상 로드 보기</span><span class="chip" style="background:#ff8a5c;color:#fff">확인</span></div></div></div>
+ <div class="note" style="left:20px;top:20px">LU1 헤더 카드형 · 위쪽 컬러 헤더에 큰 숫자, 아래에 칭호·보상 3칸·다음 보상. 버튼 2개로 닫기/로드 이동</div></div></div>
+
+<div class="shot" id="LU2"><div class="D">
+ <div class="a g" style="left:50%;bottom:110px;transform:translateX(-50%);width:560px;padding:12px 16px;display:grid;grid-template-columns:70px 1fr auto;gap:14px;align-items:center;box-shadow:0 0 0 3px #ffc46a,0 10px 30px #3a304844">
+  <div style="width:70px;height:70px;border-radius:18px;background:linear-gradient(135deg,#ff9a6a,#ffc46a);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900"><small style="font-size:10px;letter-spacing:.2em">LEVEL</small><span style="font-size:32px;line-height:1">12</span></div>
+  <div><b style="font-size:16px">레벨 업! 「호숫가 단골」</b><div class="fx" style="gap:6px;margin-top:6px;flex-wrap:wrap"><span class="chip">🪙 1,200</span><span class="chip">🧑 항구 선원</span><span class="chip">🎣 은빛 릴낚싯대</span></div></div>
+  <span style="font-size:12px;color:#8a8094;font-weight:700">5초 후 닫힘 ×</span></div>
+ <div class="note" style="left:20px;top:20px">LU2 하단 배너형 · 화면을 가리지 않고 낚시 계속 가능. 자동 낚시 중에도 방해 없음</div></div></div>
+
+<div class="shot" id="LU3"><div class="D dim">
+ <div class="a card" style="left:50%;top:50%;transform:translate(-50%,-50%);width:640px;display:grid;grid-template-columns:220px 1fr;gap:18px;z-index:2">
+  <div style="border-radius:18px;background:radial-gradient(circle at 50% 40%,#fff,#ffe8cc);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px"><div class="ring" style="--p:100%;width:120px;height:120px;background:conic-gradient(#ff8a5c,#ffc46a,#ff8a5c)"><span style="width:100px;height:100px;font-size:44px">12</span></div><b style="margin-top:10px">물멍러</b><span class="ttl" style="margin-top:4px">호숫가 단골</span></div>
+  <div><div style="font-size:12px;font-weight:900;letter-spacing:.2em;color:#c0703a">LEVEL UP</div><h3 style="margin:4px 0 10px">새로 열린 것 3개</h3>
+   <div style="display:flex;flex-direction:column;gap:8px">
+    <div class="fx g" style="gap:10px;padding:8px 10px;box-shadow:none;background:#fff"><span style="font-size:24px">🪙</span><div style="flex:1"><b>코인 1,200</b><br><small style="color:#8a8094">매 레벨 100×Lv</small></div></div>
+    <div class="fx g" style="gap:10px;padding:8px 10px;box-shadow:none;background:#fff"><span style="font-size:24px">🧑</span><div style="flex:1"><b>캐릭터 「항구 선원」</b><br><small style="color:#8a8094">캐릭터 선택에서 바꿀 수 있어요</small></div><span class="chip" style="background:#ff8a5c;color:#fff">바로 바꾸기</span></div>
+    <div class="fx g" style="gap:10px;padding:8px 10px;box-shadow:none;background:#fff"><span style="font-size:24px">🎣</span><div style="flex:1"><b>은빛 릴낚싯대 착용 가능</b><br><small style="color:#8a8094">상점 🪙 2,000</small></div><span class="chip" style="background:#f3eee6">상점</span></div></div>
+   <div style="margin-top:12px;font-size:12px;color:#8a6a50">다음 보상까지 1,940 XP · Lv.15 행운 상자</div></div></div>
+ <div class="note" style="left:20px;top:20px">LU3 해금 리스트형 · 열린 것마다 바로가기 버튼(캐릭터 바꾸기/상점). 레벨업이 실제 행동으로 이어짐</div></div></div>
+
+<div class="shot" id="LU4"><div class="D" style="background:#1e1a2a">
+ <div class="a" style="inset:0;background:radial-gradient(circle at 50% 46%,#ffcf7a55,transparent 45%),url(../mockups-v20/ui/d-clean.jpg) center/cover;filter:brightness(.55)"></div>
+ <div class="a" style="left:50%;top:44%;transform:translate(-50%,-50%);text-align:center;color:#fff;z-index:2">
+  <div style="width:220px;height:220px;border-radius:50%;margin:0 auto;background:conic-gradient(from 0deg,#ffc46a,#ff8a5c,#c08cff,#5fc8f0,#ffc46a);display:flex;align-items:center;justify-content:center;box-shadow:0 0 60px #ffc46a99"><div style="width:184px;height:184px;border-radius:50%;background:#2a2238;display:flex;flex-direction:column;align-items:center;justify-content:center"><small style="letter-spacing:.3em;font-weight:900;color:#ffc46a">LEVEL</small><span style="font-size:84px;font-weight:900;line-height:1">12</span></div></div>
+  <div style="margin-top:14px;font-size:18px;font-weight:900">「호숫가 단골」</div>
+  <div class="fx" style="gap:10px;justify-content:center;margin-top:14px"><div class="rwc" style="background:#ffffff1f;color:#fff;box-shadow:0 0 0 1px #ffffff33">🪙<span>1,200</span></div><div class="rwc" style="background:#ffffff1f;color:#fff;box-shadow:0 0 0 1px #ffffff33">🧑<span>항구 선원</span></div><div class="rwc" style="background:#ffffff1f;color:#fff;box-shadow:0 0 0 1px #ffffff33">🎣<span>은빛 릴낚싯대</span></div></div>
+  <div style="margin-top:12px;font-size:12px;color:#ffffffaa">화면을 누르면 닫혀요</div></div>
+ <div class="note" style="left:20px;top:20px">LU4 연출형(밤하늘) · 5·10레벨 같은 큰 고비에만 쓰고, 평소엔 LU2를 쓰는 조합 추천</div></div></div>
+
+<!-- ===== 보상 로드 RD1~RD4 ===== -->
+<div class="shot" id="RD1"><div class="D dim"><div class="a card" style="left:50%;top:50%;transform:translate(-50%,-50%);width:520px;height:600px;z-index:2;display:flex;flex-direction:column">
+ <h3 style="margin:0">🎣 레벨 보상 로드</h3><div style="font-size:12.5px;color:#6a6076;margin:4px 0 10px">Lv.12 호숫가 단골 · 다음 레벨까지 320 XP</div><div class="bar" style="height:9px"><i style="width:68%"></i></div>
+ <div style="flex:1;overflow:hidden;margin-top:12px;position:relative;padding-left:34px"><div class="a" style="left:15px;top:0;bottom:0;width:4px;background:#eee4d6"></div><div class="a" style="left:15px;top:0;height:42%;width:4px;background:#ff8a5c"></div>
+<div id="rd1"></div></div></div>
+ <div class="note" style="left:20px;top:20px">RD1 세로 타임라인 · 레벨마다 한 줄, 지난 보상은 흐리게, 지금 위치는 보라 테두리. 모바일에서도 그대로 스크롤</div></div></div>
+
+<div class="shot" id="RD2"><div class="D dim"><div class="a card" style="left:50%;top:50%;transform:translate(-50%,-50%);width:1000px;height:440px;z-index:2;overflow:hidden">
+ <h3 style="margin:0">🗺 호숫가 여행 지도 <small style="font-size:13px;color:#8a8094">Lv.12 / 99</small></h3>
+ <svg class="a" style="left:0;top:60px" width="1000" height="360"><path d="M40 300 C 160 300,160 80,300 80 S 440 300,580 300 S 720 80,860 80 S 980 200,980 200" fill="none" stroke="#eee4d6" stroke-width="14" stroke-linecap="round" stroke-dasharray="2 22"/><path d="M40 300 C 160 300,160 80,300 80 S 440 300,500 300" fill="none" stroke="#ff8a5c" stroke-width="14" stroke-linecap="round" stroke-dasharray="2 22"/></svg>
+ <div id="rd2"></div></div>
+ <div class="note" style="left:20px;top:20px">RD2 보드게임 지도형 · 구불구불한 길 위 노드, 내 캐릭터가 현재 위치에 서 있음. 10레벨 단위로 지도 페이지 넘김</div></div></div>
+
+<div class="shot" id="RD3"><div class="D dim"><div class="a card" style="left:50%;top:50%;transform:translate(-50%,-50%);width:860px;z-index:2">
+ <h3 style="margin:0 0 10px">📖 레벨 챕터</h3><div class="fx" style="gap:6px;flex-wrap:wrap" id="rd3t"></div>
+ <div style="margin-top:14px;display:grid;grid-template-columns:repeat(5,1fr);gap:10px" id="rd3"></div></div>
+ <div class="note" style="left:20px;top:20px">RD3 챕터 탭형 · 1~10, 11~20… 챕터별 진행도. 한 챕터(10레벨)만 보여서 99레벨도 부담 없음</div></div></div>
+
+<div class="shot" id="RD4"><div class="D dim"><div class="a card" style="left:50%;top:50%;transform:translate(-50%,-50%);width:1060px;z-index:2">
+ <h3 style="margin:0">🏷 레벨 패스 <small style="font-size:13px;color:#8a8094">Lv.12 · 다음 320 XP</small></h3>
+ <div style="display:grid;grid-template-columns:90px repeat(8,1fr);gap:8px;margin-top:12px;align-items:center" id="rd4"></div></div>
+ <div class="note" style="left:20px;top:20px">RD4 패스형 2줄 · 위=코인·상자(매 레벨 보상), 아래=해금(캐릭터·장비·칸). 받기 버튼으로 직접 수령하는 재미</div></div></div>
+
+<!-- ===== 레벨 적용 후 상단 HUD: PC HP1~HP3 ===== -->
+<div class="shot" id="HP1"><div class="D">
+ <div class="a g fx" style="left:10px;top:10px;padding:6px 12px 6px 6px;gap:10px"><div class="ring" style="--p:68%"><span>12</span></div><div style="width:190px"><div class="fx" style="justify-content:space-between;font-size:11px;font-weight:800;color:#7a6f86"><span>Lv.12 <span class="ttl">호숫가 단골</span></span><span>680/1,000</span></div><div class="bar" style="margin-top:3px"><i style="width:68%"></i></div></div>
+  <span style="width:1px;height:30px;background:#e8e0d6"></span><b style="font-size:14px">🪙 12,480</b><span style="width:1px;height:30px;background:#e8e0d6"></span><div style="width:120px"><div style="font-size:11px;font-weight:800">🎁 30/100 <small style="color:#8a8094">오늘 2/10</small></div><div class="bar" style="margin-top:3px"><i style="width:30%;background:linear-gradient(90deg,#8cd8a0,#ffd060)"></i></div></div></div>
+ <div class="a g" style="left:10px;top:66px;padding:7px 12px;font-size:12.5px;font-weight:700">🎣 대나무 낚싯대 · 🪱 지렁이 · 🐠 3/10 · 🌦 입질 −5%</div>
+ <div class="a fx" style="right:10px;top:10px;gap:6px"><span class="chip">💾</span><span class="chip">🔊</span><span class="chip">⚙️</span><span class="chip">🌗 낮</span></div>
+ <div class="note" style="left:20px;top:120px">HP1 한 덩어리 상태 카드 · 레벨·코인·상자 진행을 한 줄로 묶고, 장비·날씨는 그 아래 한 줄. 흩어진 정보가 왼쪽 위에 모임</div></div></div>
+
+<div class="shot" id="HP2"><div class="D">
+ <div class="a" style="left:0;right:0;top:0;height:5px;background:#efe6da"><i style="display:block;height:100%;width:68%;background:linear-gradient(90deg,#ffb36a,#ff8a5c)"></i></div>
+ <div class="a fx" style="left:10px;top:14px;gap:8px"><div class="g fx" style="padding:4px 12px 4px 4px;gap:8px;border-radius:999px"><div class="ring" style="--p:68%"><span>12</span></div><b style="font-size:13px">물멍러</b><span class="ttl">호숫가 단골</span></div><span class="chip">🪙 12,480</span><span class="chip">🎁 30/100</span></div>
+ <div class="a chip" style="left:50%;top:12px;transform:translateX(-50%);font-size:11.5px">680 / 1,000 XP · 다음: Lv.15 🎁</div>
+ <div class="a fx" style="right:10px;top:14px;gap:6px"><span class="chip">💾</span><span class="chip">🔊</span><span class="chip">⚙️</span><span class="chip">🌗 낮</span></div>
+ <div class="note" style="left:20px;top:70px">HP2 화면 맨 위 얇은 XP 바 · 게이지는 화면 폭 전체로, 배지는 작게. 화면을 거의 안 가림</div></div></div>
+
+<div class="shot" id="HP3"><div class="D">
+ <div class="a g" style="left:10px;top:10px;width:250px;padding:10px;display:grid;grid-template-columns:56px 1fr;gap:10px;align-items:center"><div style="width:56px;height:56px;border-radius:16px;background:url(../img/chars/b0.jpg) center/cover;position:relative"><span class="a" style="right:-6px;bottom:-6px;background:#ff8a5c;color:#fff;border-radius:9px;font-size:11px;font-weight:900;padding:1px 6px;box-shadow:0 0 0 2px #fff">12</span></div>
+  <div><b>물멍러</b> <span class="ttl">호숫가 단골</span><div class="bar" style="margin-top:6px"><i style="width:68%"></i></div><small style="font-size:10.5px;color:#8a8094">680/1,000 XP</small></div></div>
+ <div class="a fx" style="right:10px;top:10px;gap:6px"><span class="chip">🪙 12,480</span><span class="chip">🎁 30/100</span><span class="chip">💾</span><span class="chip">🔊</span><span class="chip">⚙️</span></div>
+ <div class="note" style="left:20px;top:100px">HP3 프로필 카드 · 내 캐릭터 얼굴+레벨을 왼쪽 위에, 재화는 오른쪽 위 시스템 옆으로. 캐릭터 해금과 잘 어울림</div></div></div>
+
+<!-- ===== 모바일 (M3 기준) HM1~HM3 ===== -->
+<div class="shot" id="HM1"><div class="M">
+ <div class="a g fx" style="left:8px;right:8px;top:8px;padding:5px 8px;gap:6px"><div class="ring" style="--p:68%;width:30px;height:30px"><span style="width:23px;height:23px;font-size:11px">12</span></div><div style="width:58px"><div style="font-size:9.5px;font-weight:800;color:#7a6f86">Lv.12</div><div class="bar" style="height:5px"><i style="width:68%"></i></div></div><span class="chip" style="box-shadow:none;padding:3px 8px">🪙 12,480</span><div style="flex:1"><div style="font-size:10px;font-weight:800">🎁 30/100</div><div class="bar" style="height:5px"><i style="width:30%;background:linear-gradient(90deg,#8cd8a0,#ffd060)"></i></div></div></div>
+ <div class="a g fx" style="left:8px;top:56px;padding:0 10px;height:40px;border-radius:12px;font-size:16px">💬</div><div class="a g fx" style="right:8px;top:56px;width:40px;height:40px;border-radius:12px;justify-content:center;font-size:18px">≡</div>
+ <div class="a" style="right:24px;bottom:40px"><div class="fishb">🎣<small style="font-size:10px">낚시</small></div></div><div class="a" style="left:18px;bottom:34px;width:116px;height:116px;border-radius:50%;background:#fff5;box-shadow:inset 0 0 0 3px #fff9"></div>
+ <div class="note" style="left:10px;top:110px;max-width:240px">HM1 (지금 적용) · 한 줄 바에 레벨 링+미니 XP·코인·상자 진행. 칭호는 레벨 배지를 누르면 보임</div></div></div>
+
+<div class="shot" id="HM2"><div class="M">
+ <div class="a" style="left:0;right:0;top:0;height:4px;background:#efe6da"><i style="display:block;height:100%;width:68%;background:linear-gradient(90deg,#ffb36a,#ff8a5c)"></i></div>
+ <div class="a fx" style="left:8px;right:8px;top:10px;gap:6px"><div class="g fx" style="padding:3px 10px 3px 3px;gap:6px;border-radius:999px"><div class="ring" style="--p:68%;width:30px;height:30px"><span style="width:23px;height:23px;font-size:11px">12</span></div><span class="ttl">호숫가 단골</span></div><span style="flex:1"></span><span class="chip">🪙 12,480</span><span class="chip">🎁 30</span></div>
+ <div class="a g fx" style="left:8px;top:56px;padding:0 10px;height:40px;border-radius:12px;font-size:16px">💬</div><div class="a g fx" style="right:8px;top:56px;width:40px;height:40px;border-radius:12px;justify-content:center;font-size:18px">≡</div>
+ <div class="a" style="right:24px;bottom:40px"><div class="fishb">🎣<small style="font-size:10px">낚시</small></div></div>
+ <div class="note" style="left:10px;top:110px;max-width:240px">HM2 맨 위 4px XP 바 + 떠 있는 칩 · 배경 바 없이 칩만 띄워 하늘이 더 보임</div></div></div>
+
+<div class="shot" id="HM3"><div class="M">
+ <div class="a fx" style="left:8px;top:8px;gap:8px"><div style="position:relative;width:52px;height:52px;border-radius:50%;background:conic-gradient(#ff8a5c 0 68%,#f1e6da 68%);padding:4px;box-sizing:border-box"><div style="width:44px;height:44px;border-radius:50%;background:url(../img/chars/b0.jpg) center/cover"></div><span class="a" style="right:-4px;bottom:-4px;background:#ff8a5c;color:#fff;border-radius:9px;font-size:11px;font-weight:900;padding:1px 6px;box-shadow:0 0 0 2px #fff">12</span></div>
+  <div class="g" style="padding:5px 10px"><b style="font-size:12.5px">물멍러</b><br><span class="ttl">호숫가 단골</span></div></div>
+ <div class="a fx" style="right:8px;top:10px;gap:6px"><span class="chip">🪙 12,480</span><div style="width:40px;height:40px;border-radius:50%;background:conic-gradient(#8cd8a0 0 30%,#efe6da 30%);display:flex;align-items:center;justify-content:center"><span style="width:32px;height:32px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center">🎁</span></div></div>
+ <div class="a g fx" style="left:8px;top:70px;padding:0 10px;height:40px;border-radius:12px;font-size:16px">💬</div><div class="a g fx" style="right:8px;top:58px;width:40px;height:40px;border-radius:12px;justify-content:center;font-size:18px">≡</div>
+ <div class="a" style="right:24px;bottom:40px"><div class="fishb">🎣<small style="font-size:10px">낚시</small></div></div>
+ <div class="note" style="left:10px;top:122px;max-width:240px">HM3 프로필 링형 · 캐릭터 얼굴 둘레가 XP 링, 상자 진행도 링 아이콘으로. 가장 게임다운 느낌</div></div></div>
+<script>
+const LVN=[[10,'🤖','자동 낚시'],[11,''],[12,'🎣','은빛 릴낚싯대'],[13,''],[14,''],[15,'🎁','행운 상자'],[16,''],[18,'🧿','부적 칸 4개'],[20,'🐠','어항 칸 +5']];
+document.getElementById('rd1').innerHTML=[[9,'🧑','캐릭터 「구명조끼 소년」','done'],[10,'🤖','자동 낚시 · 어항 칸 +5 · 🎁','done'],[12,'🎣','은빛 릴낚싯대 착용 · 🪙 1,200','cur'],[13,'🪙','코인 1,300',''],[15,'🎁','행운 상자 · 캐릭터 「항구 선원」 · 칭호 「호숫가 단골」',''],[18,'🧿','부적 칸 4개 · 캐릭터',''],[20,'🐠','어항 칸 +5 · 🎁 희귀↑',''],[22,'🌸','벚꽃 낚싯대','']].map(([l,i,t,c])=>`<div class="fx" style="gap:12px;margin:0 0 12px -34px;opacity:${c==='done'?.55:1}"><div style="width:34px;height:34px;border-radius:50%;background:#fff;border:4px solid ${c==='cur'?'#6a4fc0':c?'#ff8a5c':'#eee4d6'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;z-index:1;flex:none">${l}</div><div class="g fx" style="flex:1;gap:8px;padding:8px 10px;box-shadow:${c==='cur'?'0 0 0 2px #6a4fc0':'none'};background:#fff"><span style="font-size:20px">${i}</span><b style="font-size:13px">${t}</b>${c==='done'?'<span style="margin-left:auto;font-size:11px;color:#5fc48a;font-weight:900">받음</span>':''}</div></div>`).join('');
+const P2=[[40,300,1,'🪙','done'],[150,190,5,'🎁','done'],[300,80,10,'🤖','done'],[420,190,12,'🎣','cur'],[580,300,15,'🎁',''],[700,190,18,'🧿',''],[860,80,20,'🐠',''],[960,190,22,'🌸','']];
+document.getElementById('rd2').innerHTML=P2.map(([x,y,l,i,c])=>`<div class="a nd ${c}" style="left:${x-46}px;top:${y+60-30}px"><div class="o">${i}</div><b>Lv.${l}</b></div>`).join('')+`<div class="a" style="left:${420-26}px;top:${190+60-96}px;width:52px;height:58px;border-radius:14px;background:url(../img/chars/b0.jpg) center/cover;box-shadow:0 0 0 3px #fff,0 6px 14px #0003"></div>`;
+document.getElementById('rd3t').innerHTML=['1~10','11~20','21~30','31~40','41~50','51~60','61~70','71~80','81~90','91~99'].map((t,i)=>`<span class="chip" style="${i===1?'background:#6a4fc0;color:#fff':i===0?'background:#d8efe0':''}">${t}${i===0?' 완료':''}</span>`).join('');
+document.getElementById('rd3').innerHTML=[[11,'🪙','1,100','done'],[12,'🎣','은빛 릴낚싯대','cur'],[13,'🪙','1,300',''],[14,'🪙','1,400',''],[15,'🎁','상자·캐릭터·칭호',''],[16,'🪙','1,600',''],[17,'🪙','1,700',''],[18,'🧿','부적 칸 4',''],[19,'🪙','1,900',''],[20,'🐠','어항 +5·🎁','']].map(([l,i,t,c])=>`<div class="g" style="padding:10px;text-align:center;background:#fff;box-shadow:${c==='cur'?'0 0 0 3px #6a4fc0':'0 2px 8px #0001'};opacity:${c==='done'?.55:1}"><b style="font-size:12px;color:#8a8094">Lv.${l}</b><div style="font-size:28px;margin:4px 0">${i}</div><div style="font-size:12px;font-weight:700">${t}</div></div>`).join('');
+const C=[11,12,13,14,15,16,17,18];document.getElementById('rd4').innerHTML='<b style="font-size:12px;color:#8a8094">레벨</b>'+C.map(l=>`<div style="text-align:center;font-weight:900;color:${l===12?'#6a4fc0':'#8a8094'}">Lv.${l}</div>`).join('')+'<b style="font-size:12px">매 레벨<br>보상</b>'+C.map(l=>`<div class="g" style="padding:10px 4px;text-align:center;background:${l<12?'#f3eee6':'#fff'};box-shadow:${l===12?'0 0 0 3px #6a4fc0':'0 2px 8px #0001'}">${l%5?'🪙':'🎁'}<div style="font-size:11.5px;font-weight:800">${l%5?(l*100).toLocaleString():'행운 상자'}</div>${l<12?'<small style="color:#5fc48a;font-weight:900">받음</small>':l===12?'<span class="chip" style="background:#ff8a5c;color:#fff;padding:2px 8px;font-size:11px;margin-top:3px">받기</span>':''}</div>`).join('')+'<b style="font-size:12px">해금</b>'+C.map(l=>{const u={12:['🎣','은빛 릴'],15:['🧑','항구 선원'],18:['🧿','부적 칸 4']}[l];return `<div class="g" style="padding:10px 4px;text-align:center;background:${u?'#fff8ec':'#faf7f2'};box-shadow:none;min-height:56px">${u?u[0]+'<div style="font-size:11.5px;font-weight:800">'+u[1]+'</div>':'<span style="color:#d0c8bc">—</span>'}</div>`;}).join('');
+(()=>{const RX=/(?:[\u{1F000}-\u{1FAFF}\u2600-\u27BF\u2B00-\u2BFF]\uFE0F?(?:\u200D[\u{1F000}-\u{1FAFF}\u2600-\u27BF]\uFE0F?)*)/gu;const code=e=>{let c=[...e].map(x=>x.codePointAt(0));if(!c.includes(0x200D))c=c.filter(x=>x!==0xFE0F);return c.map(x=>x.toString(16)).join('-');};
+const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);const ns=[];while(w.nextNode())ns.push(w.currentNode);ns.forEach(n=>{if(n.parentElement.tagName==='SCRIPT'||n.parentElement.tagName==='STYLE')return;if(!RX.test(n.nodeValue))return;RX.lastIndex=0;const s=document.createElement('span');s.innerHTML=n.nodeValue.replace(RX,e=>`<img class="em" src="../icons/emoji-png/${code(e)}.png" alt="${e}">`);n.replaceWith(s);});})();
+</script></body></html>
