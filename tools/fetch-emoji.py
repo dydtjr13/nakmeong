@@ -5,7 +5,7 @@ FILES=['nakmeong.html','game-v2.js','game-data.js','game-data-v3.js','game-data-
 RX=r'(?:[\U0001F000-\U0001FAFF\u2600-\u27BF\u2B00-\u2BFF\u2300-\u23FF\u25A0-\u25FF\u3297\u3299]\uFE0F?(?:\u200D[\U0001F000-\U0001FAFF\u2600-\u27BF]\uFE0F?)*)'
 import glob
 FILES+=glob.glob('mockups-v*/*.html')
-FILES+=glob.glob('game-data-v*.js')+glob.glob('*-v2[0-9].js')+glob.glob('board-v*.html')+glob.glob('mockups-v*/src/*.js')
+FILES+=glob.glob('game-data-v*.js')+glob.glob('*-v2[0-9].js')+glob.glob('board-v*.html')+glob.glob('mockups-v*/src/*.js')+glob.glob('mockups-v*/src/*.html')
 txt=''.join(open(f,encoding='utf8').read() for f in FILES if os.path.exists(f))
 TXT=set('★☆✦✧■□▲▼◆●○▶◀')
 em=sorted(set(re.findall(RX,txt))-TXT)

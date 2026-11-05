@@ -30,7 +30,7 @@
   if(v==='D4')el.innerHTML=`<div class="sh" data-tq="fold"><div class="hd"><span class="ic">${st.ic}</span><div><small>지금 할 일 · ${P.i+1}/${STEPS.length}</small><b>${st.t}${cnt}</b></div><span class="rw">${rwTxt(st.rw)}</span></div><div class="pg"><i style="width:${Math.max(4,pc)}%"></i></div>${fold?'':`<div class="nx">${st.say}</div>`}</div>`;
   else el.innerHTML=`<div class="npc"><img data-tq="npc" src="img/chars/h1.jpg" alt="노인 어부" title="눌러서 ${m()?'말풍선 닫기/열기':'목표 접기/펴기'}">${fold?`<span class="dot">${P.i+1}/${STEPS.length}</span>`:`<div class="bb"><b class="who">노인 어부 할아버지 <small>${P.i+1}/${STEPS.length}</small></b><p>${st.say}</p><div class="goal">${st.ic} ${st.t}${cnt}</div><div class="pg"><i style="width:${Math.max(4,pc)}%"></i></div><span class="rw">보상 ${rwTxt(st.rw)}</span></div>`}</div>`;
   emo(el);place();}
- function place(){if(!el||el.style.display==='none')return;el.classList.toggle('hid',!!document.querySelector('.modal.show:not(#start)'));const set=(k,v)=>el.style.setProperty(k,v);['top','bottom','left','right'].forEach(k=>el.style.removeProperty(k));
+ function place(){if(!el||el.style.display==='none')return;el.classList.toggle('hid',!!document.querySelector('.modal.show:not(#start),.cutin:not(.box)'));const set=(k,v)=>el.style.setProperty(k,v);['top','bottom','left','right'].forEach(k=>el.style.removeProperty(k));
   const vis=id=>{const e=$(id);if(!e||!e.getClientRects().length||getComputedStyle(e).visibility==='hidden')return null;const r=e.getBoundingClientRect();return r.height&&+getComputedStyle(e).opacity>.05?r:null;};
   if(m()){const v=el.classList.contains('d4');const cb=vis('chatBtn'),an=vis('annBar');let top=(cb?cb.bottom:100)+8;
    if(v){set('left','8px');set('top',top+'px');return;}
