@@ -17,7 +17,8 @@
  Object.assign(D.GEAR.slots,RAND);Object.assign(D.GEAR.mul,{galaxy:.285,abyss:.33,heaven:.36,fire:.36});
  // 상자: 전설 상자에 은하수, 신화 상자에 은하수·용왕·심해·천룡·화룡 (천룡·화룡은 극악)
  D.BOX.rodPool[4]=['gold','star','galaxy'];
- D.BOX.rodPool[5]=['galaxy','dragon','abyss','heaven','fire'];
+ D.BOX.rodPool[5]=['galaxy','dragon','abyss'];
+ D.BOX.txRod=1/10000; // v27: 천룡·화룡 각각 상자 1만 개당 1개 (상자 등급과 별개 굴림)
  Object.assign(D.BOX.rodKeep,{galaxy:.35,galaxy_fb:'star',dragon:.3,dragon_fb:'galaxy',abyss:.1,abyss_fb:'dragon',heaven:.05,heaven_fb:'dragon',fire:.05,fire_fb:'dragon'});
  // 초월 물고기: 천룡·화룡·심해 장착 시 기본 확률 0.0066% → 0.066% (행운 보정 최대 ×1.8은 그대로)
  D.TX.rodP={abyss:.00066,heaven:.00066,fire:.00066};

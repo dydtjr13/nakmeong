@@ -1,7 +1,7 @@
 // 피쉬레스트 v26: 러버덕 — 하늘에서 떨어져 첨벙! 후 호수를 둥둥 유영. 설정: 생성 간격·최대 수(최대 30)
 // 3D 모델: JDSherbert "3D Rubber Duck Asset Pack" (상업 이용 가능 · 작가 표기 필수)
 (function(){const U=()=>window.NK_UI25,G=()=>window.NKV2;let T,scene,IM=[],ducks=[],fx=[],last=0,nextT=0,rMax=8,ok=false;const MAX=30;
- const conf=()=>({on:U().get('duckOn')!==0,every:+(U().get('duckEvery')||45),max:Math.min(MAX,Math.max(0,+(U().get('duckMax')??8)))});
+ const conf=()=>({on:U().get('duckOn')!==0,every:+(U().get('duckEvery')||45),max:Math.min(MAX,Math.max(0,+(U().get('duckMax')??8))),size:+(U().get('duckSize')||1),speed:+(U().get('duckSpeed')??1),snd:U().get('duckSnd')!==0});
  function geo(){const M=window.NK_DUCK_MESH,b=atob(M.pos),p=new Float32Array(M.n*3),dv=new DataView(new ArrayBuffer(b.length));for(let i=0;i<b.length;i++)dv.setUint8(i,b.charCodeAt(i));for(let i=0;i<M.n*3;i++)p[i]=dv.getInt16(i*2,true)/32767;
   const out={};for(const k in M.g){const s=atob(M.g[k]),d=new DataView(new ArrayBuffer(s.length));for(let i=0;i<s.length;i++)d.setUint8(i,s.charCodeAt(i));const idx=new Uint16Array(s.length/2);for(let i=0;i<idx.length;i++)idx[i]=d.getUint16(i*2,true);
    const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(p,3));g.setIndex(new T.BufferAttribute(idx,1));g.computeVertexNormals();out[k]=g;}return out;}
@@ -13,7 +13,7 @@
  function splash(x,z){const ring=new T.Mesh(new T.RingGeometry(.2,.32,28).rotateX(-Math.PI/2),new T.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.8,depthWrite:false}));ring.position.set(x,WY+.03,z);scene.add(ring);
   const n=14,pg=new T.BufferGeometry(),pa=new Float32Array(n*3),vel=[];for(let i=0;i<n;i++){pa[i*3]=x;pa[i*3+1]=WY;pa[i*3+2]=z;const a=Math.random()*6.28,s=rnd(.8,1.8);vel.push([Math.cos(a)*s,rnd(2.2,3.6),Math.sin(a)*s]);}pg.setAttribute('position',new T.BufferAttribute(pa,3));
   const pts=new T.Points(pg,new T.PointsMaterial({color:'#e8f6ff',size:.12,transparent:true,opacity:.9,depthWrite:false}));scene.add(pts);fx.push({ring,pts,vel,t:0});
-  try{const ac=window.__duckAC||(window.__duckAC=new (window.AudioContext||window.webkitAudioContext)()),o=ac.createOscillator(),gn=ac.createGain(),vol=(G().S&&G().S.vol!=null?G().S.vol:.2);o.type='sine';o.frequency.setValueAtTime(520,ac.currentTime);o.frequency.exponentialRampToValueAtTime(140,ac.currentTime+.18);gn.gain.setValueAtTime(.25*vol,ac.currentTime);gn.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.25);o.connect(gn).connect(ac.destination);o.start();o.stop(ac.currentTime+.26);}catch(e){}}
+  if(U().get('duckSnd')!==0)try{const ac=window.__duckAC||(window.__duckAC=new (window.AudioContext||window.webkitAudioContext)()),o=ac.createOscillator(),gn=ac.createGain(),vol=(G().S&&G().S.vol!=null?G().S.vol:.2);o.type='sine';o.frequency.setValueAtTime(520,ac.currentTime);o.frequency.exponentialRampToValueAtTime(140,ac.currentTime+.18);gn.gain.setValueAtTime(.25*vol,ac.currentTime);gn.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.25);o.connect(gn).connect(ac.destination);o.start();o.stop(ac.currentTime+.26);}catch(e){}}
  const mtx=()=>new T.Matrix4(),q=()=>new T.Quaternion();let M4,Q4,E4,S4,P4;
  function step(t){requestAnimationFrame(step);if(!ok){ok=init();if(!ok)return;M4=mtx();Q4=q();E4=new T.Euler();S4=new T.Vector3();P4=new T.Vector3();last=t;}
   const dt=Math.min(.05,(t-last)/1000);last=t;const c=conf(),go=document.getElementById('go'),started=go&&!go.offsetParent;
@@ -22,8 +22,8 @@
   for(const d of ducks){if(d.st==='fall'){d.vy-=18*dt;d.y+=d.vy*dt;d.yaw+=d.spin*dt;if(d.y<=WY){d.y=WY;d.st='sink';d.sv=d.vy*.12;splash(d.x,d.z);}}
    else if(d.st==='sink'){d.sv+=9*dt;d.y+=d.sv*dt;if(d.y>=WY&&d.sv>0){d.y=WY;d.st='swim';}}
    else{d.ph+=dt;if(Math.random()<dt*.25)d.tY=d.yaw+rnd(-1.4,1.4);const r=Math.hypot(d.x,d.z);if(r>rMax*.9)d.tY=Math.atan2(-d.x,-d.z);for(const e of ducks){if(e===d)continue;const dx=d.x-e.x,dz=d.z-e.z,l=Math.hypot(dx,dz);if(l<1.1&&l>0)d.tY=Math.atan2(dx,dz);}
-    let da=((d.tY-d.yaw+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;d.yaw+=da*Math.min(1,dt*1.2);d.x+=Math.sin(d.yaw)*d.sp*dt;d.z+=Math.cos(d.yaw)*d.sp*dt;d.y=WY-.04+Math.sin(d.ph*2.1)*.035;}}
-  ducks.forEach((d,i)=>{const sw=d.st==='swim';E4.set(sw?Math.sin(d.ph*2.1+1)*.08:(d.st==='fall'?Math.sin(t/120)*.3:0),d.yaw,sw?Math.sin(d.ph*1.7)*.07:0);Q4.setFromEuler(E4);S4.set(d.s,d.s,d.s);P4.set(d.x,d.y,d.z);M4.compose(P4,Q4,S4);IM.forEach(m=>m.setMatrixAt(i,M4));});
+    let da=((d.tY-d.yaw+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;d.yaw+=da*Math.min(1,dt*1.2);d.x+=Math.sin(d.yaw)*d.sp*c.speed*dt;d.z+=Math.cos(d.yaw)*d.sp*c.speed*dt;d.y=WY-.04+Math.sin(d.ph*2.1)*.035;}}
+  ducks.forEach((d,i)=>{const sw=d.st==='swim';E4.set(sw?Math.sin(d.ph*2.1+1)*.08:(d.st==='fall'?Math.sin(t/120)*.3:0),d.yaw,sw?Math.sin(d.ph*1.7)*.07:0);Q4.setFromEuler(E4);S4.set(d.s*c.size,d.s*c.size,d.s*c.size);P4.set(d.x,d.y,d.z);M4.compose(P4,Q4,S4);IM.forEach(m=>m.setMatrixAt(i,M4));});
   IM.forEach(m=>{m.count=ducks.length;m.instanceMatrix.needsUpdate=true;});
   for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.t+=dt;const k=f.t/.9;f.ring.scale.setScalar(1+k*5);f.ring.material.opacity=.8*(1-k);const a=f.pts.geometry.attributes.position;for(let j=0;j<f.vel.length;j++){f.vel[j][1]-=9*dt;a.array[j*3]+=f.vel[j][0]*dt;a.array[j*3+1]=Math.max(WY,a.array[j*3+1]+f.vel[j][1]*dt);a.array[j*3+2]+=f.vel[j][2]*dt;}a.needsUpdate=true;f.pts.material.opacity=.9*(1-k);
    if(k>=1){scene.remove(f.ring,f.pts);f.ring.geometry.dispose();f.ring.material.dispose();f.pts.geometry.dispose();f.pts.material.dispose();fx.splice(i,1);}}}
