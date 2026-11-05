@@ -838,3 +838,25 @@ body:has(.modal.show) #chat,body:has(.modal.show) #bubs{visibility:hidden}
 }
 .bslot .cpin{z-index:3;font-size:15px;top:3px;right:4px}.bslot .cpin img{width:16px;height:16px}
 @media(max-width:700px){#annBar{left:8px;right:8px;transform:none;max-width:none;width:auto;padding:8px 8px 8px 12px;gap:8px}#annBar b{font-size:12px}}
+/* ═════════ v24 ═════════ */
+/* 컷인: 클릭하면 닫힘 (다른 창이 떠 있어도 맨 위) */
+.cutin{pointer-events:auto!important;cursor:pointer;z-index:500!important}
+/* 랭킹 1~3위 이름표 레벨 */
+.rk10 .nn .rlv{font-size:10px;font-weight:900;background:#ffffffcc;color:#7a5a00;border-radius:7px;padding:0 5px;margin-right:5px;vertical-align:1px}
+/* 모바일 메뉴가 날씨 카드에 가리지 않게 */
+#wxCard{z-index:5}body.menu-open #mSys,body.menu-open #bMore{z-index:60!important}body.menu-open #wxCard{opacity:.0;transition:opacity .15s}
+/* 모바일 자동 낚시 버튼 A5 (낚시 버튼 둘레 원형) */
+@media(max-width:699px){body.m3 #mMain #bBag{right:86px;bottom:-18px}body.m3 #mMain #bTank{right:95px;bottom:30px}body.m3 #mMain #bAutoFish{right:74px;bottom:74px}body.m3 #mMain #bShop{right:30px;bottom:95px}body.m3 #mMain #bDex{right:-18px;bottom:86px}}
+/* X1: 가용 높이가 부족할 때(주소창이 남는 브라우저) 날씨를 한 줄 칩으로, 낚시 카드는 살짝 아래로 */
+@media(max-width:699px){body.vshort #wxCard{width:auto!important;padding:5px 10px!important;border-radius:999px!important;top:48px!important;right:8px!important;transform:none!important}body.vshort #wxCard .e,body.vshort #wxCard .bar{display:none!important}body.vshort #toast{top:calc(26% + 44px)!important}}
+/* C1: 모바일 카테고리 바 작게 + 수량 배지 안 잘리게 */
+@media(max-width:699px){#bag .tabs,#shop .tabs{padding-top:8px!important;overflow-y:visible}#bag .tabs>*,#shop .tabs>*,.rdt>*,#set .slay>aside>*{font-size:12px!important;padding:5px 10px!important;min-height:30px!important;height:30px!important;border-radius:15px!important;gap:4px!important;position:relative!important;overflow:visible!important}
+ #bag .tabs .tico img,#shop .tabs img,#set .slay>aside img{width:15px!important;height:15px!important}#bag .tabs .tico{position:static!important;margin-right:2px}#bag .tabs .tico em{position:absolute!important;top:-6px!important;right:-4px!important;left:auto!important;transform:scale(.85)}}
+.tabs .tico em.zero{display:none!important}
+/* 상자 1개 열기 / 10개 열기 한 줄 */
+.obx{display:flex;gap:6px;flex-wrap:nowrap;margin-top:8px}.obx button{white-space:nowrap;margin:0!important}.obx:not(.t) button{flex:1;min-width:0;padding:7px 10px!important;font-size:13px!important}.obx.t button{font-size:11.5px!important;padding:5px 9px!important}
+@media(max-width:699px){.obx:not(.t) button{font-size:12.5px!important;padding:6px 8px!important}}
+/* 프로필 닉네임 + 적용 버튼 */
+.pfx{display:flex;gap:8px;align-items:stretch;margin:4px 0 2px}.pfx input{flex:1;min-width:0;height:40px;margin:0!important;box-sizing:border-box}.pfx button{height:40px;padding:0 16px!important;border-radius:12px!important;background:#ff8a4c!important;color:#fff!important;font-weight:800;margin:0!important;white-space:nowrap}
+/* 게시판 창 */
+#boardOv{position:fixed;inset:0;z-index:160}#boardOv iframe{width:100%;height:100%;border:0;background:transparent}#boardOv.v5{left:auto;width:440px}#boardOv.v2,#boardOv.v3,#boardOv.vm{background:#f6efe4}

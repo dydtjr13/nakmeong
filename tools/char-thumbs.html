@@ -4,10 +4,10 @@
 const W=192,H=216;const R=new THREE.WebGLRenderer({canvas:c,antialias:true,preserveDrawingBuffer:true});R.setSize(W,H);R.setClearColor(0xefe6d8);R.outputEncoding=THREE.sRGBEncoding;
 const S=new THREE.Scene();const cam=new THREE.PerspectiveCamera(30,W/H,.1,100);S.add(new THREE.HemisphereLight(0xffffff,0xc9b89c,.9));const L=new THREE.DirectionalLight(0xffffff,.85);L.position.set(4,8,8);S.add(L);
 const LD=new THREE.GLTFLoader();const get=k=>new Promise(r=>LD.load('../assets/kenney/'+k+'.glb',r));
-function recolor(o,map){o.traverse(m=>{if(!m.isMesh||m.name!=='body-mesh')return;const mt=m.material.clone();const img=mt.map.image;const cv=document.createElement('canvas');cv.width=img.width;cv.height=img.height;const x=cv.getContext('2d');x.drawImage(img,0,0);const cw=img.width/16,ch=img.height/8;
+function recolor(o,map){o.traverse(m=>{if(!m.isMesh||!/body-mesh|head-mesh/.test(m.name))return;const mt=m.material.clone();const img=mt.map.image;const cv=document.createElement('canvas');cv.width=img.width;cv.height=img.height;const x=cv.getContext('2d');x.drawImage(img,0,0);const cw=img.width/16,ch=img.height/8;
  for(const k in map){const [cx,cy]=k.split(',').map(Number);const d=x.getImageData(cx*cw,cy*ch,cw,ch);const t=new THREE.Color(map[k]);let av=0;for(let i=0;i<d.data.length;i+=4)av+=d.data[i]+d.data[i+1]+d.data[i+2];av/=d.data.length/4;for(let i=0;i<d.data.length;i+=4){const l=(d.data[i]+d.data[i+1]+d.data[i+2])/av;d.data[i]=Math.min(255,t.r*255*l);d.data[i+1]=Math.min(255,t.g*255*l);d.data[i+2]=Math.min(255,t.b*255*l);}x.putImageData(d,cx*cw,cy*ch);}
  const tx=new THREE.CanvasTexture(cv);tx.flipY=mt.map.flipY;tx.encoding=mt.map.encoding;tx.magFilter=mt.map.magFilter;tx.minFilter=mt.map.minFilter;mt.map=tx;m.material=mt;});}
-const B=[['b0','character-male-a',1,null],['b1','character-female-a',1,null],['b2','character-male-a',.72,{'11,6':'#ff7a2a','3,5':'#ff7a2a','3,4':'#ff7a2a'}],['b3','character-female-c',.72,null]];
+const B=[['p1','character-male-a',1,{'12,6':'#f2bf99','13,6':'#f2bf99','12,7':'#e6ae87','13,7':'#e6ae87'}],['b0','character-male-a',1,null],['b1','character-female-a',1,null],['b2','character-male-a',.72,{'11,6':'#ff7a2a','3,5':'#ff7a2a','3,4':'#ff7a2a'}],['b3','character-female-c',.72,null]];
 window.OUT={};
 (async()=>{const list=[...B.map(b=>({id:b[0],base:b[1],s:b[2],rc:b[3]})),...NK_CHARS.humans,...NK_CHARS.animals.map(a=>({id:a.id,animal:1}))];
  for(const h of list){while(S.children.length>2)S.remove(S.children[2]);let o;
