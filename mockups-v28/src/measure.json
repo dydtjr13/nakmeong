@@ -1,0 +1,107 @@
+{
+ "eqAll": {
+  "n": 40,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "eqSets": {
+  "n": 40,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "set1": {
+  "n": 4,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "set10": {
+  "n": 4,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "set20": {
+  "n": 4,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "set30": {
+  "n": 4,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "set40": {
+  "n": 4,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "set50": {
+  "n": 4,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "set60": {
+  "n": 4,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "set70": {
+  "n": 4,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "set80": {
+  "n": 4,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "set90": {
+  "n": 4,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "bagG1": {
+  "n": 24,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "bagG1m": {
+  "n": 16,
+  "maxCenterErr": 0.01,
+  "overlap": 0
+ },
+ "bagG2": {
+  "n": 25,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "bagG3": {
+  "n": 18,
+  "maxCenterErr": 0,
+  "overlap": 0
+ },
+ "boxX1": {
+  "n": 16,
+  "maxCenterErr": 0.01,
+  "overlap": 0
+ },
+ "boxX2": {
+  "n": 16,
+  "maxCenterErr": 0.01,
+  "overlap": 0
+ },
+ "boxX3": {
+  "n": 16,
+  "maxCenterErr": 0.01,
+  "overlap": 0
+ },
+ "boxX2m": {
+  "n": 16,
+  "maxCenterErr": 0.01,
+  "overlap": 0
+ },
+ "boxX1m": {
+  "n": 4,
+  "maxCenterErr": 0,
+  "overlap": 0
+ }
+}
