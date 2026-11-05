@@ -1,0 +1,6 @@
+<!doctype html><body style="margin:0"><canvas id=c width=520 height=420></canvas><script src="../../lib/three.min.js"></script><script src="duck-lp.js"></script><script>
+const v=location.search.slice(1),r=new THREE.WebGLRenderer({canvas:c,antialias:true,preserveDrawingBuffer:true}),s=new THREE.Scene();s.background=new THREE.Color('#9fd6ee');
+const cam=new THREE.PerspectiveCamera(35,520/420,.1,100);cam.position.set(3.2,2.6,4.2);cam.lookAt(0,1,0);
+s.add(new THREE.HemisphereLight("#fff","#476",.55));const d=new THREE.DirectionalLight("#fff",.8);d.position.set(4,8,5);s.add(d);
+const w=new THREE.Mesh(new THREE.CircleGeometry(9,24),new THREE.MeshStandardMaterial({color:'#3aa6c9',flatShading:true,roughness:.3}));w.rotation.x=-Math.PI/2;w.position.y=.35;s.add(w);
+const g=NK_DUCKLP(THREE,v);g.rotation.y=-.3;s.add(g);r.render(s,cam);document.title='ok'</script>
