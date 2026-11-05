@@ -1,0 +1,163 @@
+<!doctype html><meta charset="utf-8"><style>
+body{margin:0;background:#e9e2d6;font-family:system-ui,'Noto Sans KR',sans-serif;color:#3a3048}.shot{display:inline-block;vertical-align:top;padding:16px}
+img.em{width:1.15em;height:1.15em;vertical-align:-.2em}
+.D{width:1280px;height:720px;position:relative;overflow:hidden;background:url(ui/d-clean.jpg) center/cover;border-radius:14px}
+.M{width:390px;height:844px;position:relative;overflow:hidden;background:url(ui/m-clean.jpg) center/cover;border-radius:28px}
+.a{position:absolute}.fx{display:flex;align-items:center}.g{background:#fffdf8ee;border-radius:16px;box-shadow:0 4px 14px #3a304826;backdrop-filter:blur(6px)}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:999px;background:#fffdf8ee;font-weight:800;font-size:13px;box-shadow:0 2px 8px #3a304820}
+.ib{width:38px;height:38px;border-radius:12px;background:#fffdf8ee;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 8px #3a304820}
+.dock{display:flex;gap:4px;padding:6px 10px}.dock div{width:62px;text-align:center;font-size:11.5px;font-weight:700}.dock div span{display:block;font-size:24px}
+.fish{background:linear-gradient(#fff,#fff3e8);border-radius:18px;padding:10px 26px;text-align:center;font-weight:900;font-size:18px;box-shadow:0 6px 18px #3a304840,0 0 0 3px #ff8a5c inset}.fish small{display:block;font-size:11px;color:#8a8094;font-weight:700}
+.badge{position:absolute;top:-2px;right:6px;min-width:14px;height:14px;border-radius:7px;background:#ff5a5a;color:#fff;font-size:8.5px;line-height:14px;font-weight:900;text-align:center;box-shadow:0 0 0 2px #fff}
+.note{position:absolute;background:#3b3346;color:#fff;font-size:12px;padding:6px 10px;border-radius:10px;max-width:260px;line-height:1.4}
+.bar{height:6px;border-radius:6px;background:#e8e0d6;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#8cd8a0,#ffd060)}
+.chat{font-size:12px;line-height:1.5;padding:8px 10px}
+/* goal styles */
+.rw{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;background:#f7f1e6;font-weight:800;font-size:12.5px;color:#5a4a3a}
+/* toast styles */
+.tq{width:300px;border-radius:14px;background:#fffdf8f4;box-shadow:0 8px 24px #3a304840;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.4}.tq b{font-size:13.5px}.tq small{color:#8a8094;font-size:11.5px}.tq .ic{font-size:22px;line-height:1}
+</style>
+
+<!-- ============ PC P1: 상단 한 줄 통합 ============ -->
+<div class="shot" id="P1"><div class="D">
+ <div class="a g fx" style="left:12px;top:10px;right:12px;height:52px;padding:0 12px;gap:10px;border-radius:18px">
+  <b style="font-size:18px">🎣 낚멍</b><span class="chip">🪙 200</span><span class="chip">🎁 상자 3 <span style="width:70px" class="bar"><i style="width:30%"></i></span> 30/100</span><span class="chip">🎋 대나무 낚싯대 · 🪱 지렁이 0/5</span>
+  <span style="flex:1"></span><span class="chip" style="background:#e8f4ff">🌦 이슬비 · 입질 대기 −5% · 3:12</span><span class="chip">☀️ 낮 · 흐름 ON</span>
+  <div class="ib">🔊</div><div class="ib">💾</div><div class="ib">⚙️</div></div>
+ <div class="a" style="left:50%;bottom:96px;transform:translateX(-50%)"><div class="fish">🎣 낚시 시작<small>Space · 탭해서 찌 던지기</small></div></div>
+ <div class="a g dock" style="left:50%;bottom:14px;transform:translateX(-50%)"><div><span>📖</span>도감</div><div><span>🐠</span>어항</div><div><span>🤖</span>자동</div><div><span>🛒</span>상점</div><div style="position:relative"><span>🎒</span>가방<i class="badge">3</i></div><div><span>🪑</span>앉기</div></div>
+ <div class="a g" style="left:12px;bottom:14px;width:300px"><div class="fx" style="gap:6px;padding:8px 10px 0;font-size:12px;font-weight:800"><span class="chip" style="padding:3px 9px">전체</span><span>대화</span><span>시스템</span><span style="flex:1"></span><span>▾ 접기</span></div><div class="chat">시스템 · 낚멍에 오신 걸 환영해요!<br>바다사나이 · 오늘 붕어 잘 무네요 ㅎㅎ</div><div style="margin:0 8px 8px;padding:7px 10px;border-radius:10px;background:#f3eee6;font-size:12px;color:#8a8094">채팅 입력 후 Enter · 😊</div></div>
+ <div class="note" style="right:16px;top:74px">P1 · 상태 정보(코인·상자·장비·날씨·시간)를 상단 한 줄로 통합. 시스템 버튼 6개 → 3개(나머지는 ⚙ 안으로). 앉기는 하단 메뉴로. FPS 표시는 설정에서만.</div>
+</div></div>
+
+<!-- ============ PC P2: 좌측 상태 카드 + 우측 채팅 ============ -->
+<div class="shot" id="P2"><div class="D">
+ <div class="a g" style="left:12px;top:12px;width:250px;padding:12px">
+  <div class="fx" style="gap:8px"><img src="../img/chars/b1.jpg" style="width:40px;height:40px;border-radius:12px;object-fit:cover"><div><b>물멍러</b><div style="font-size:12px;color:#8a8094">호숫가 1 · 채널 1</div></div><span style="flex:1"></span><span class="chip">🪙 200</span></div>
+  <div style="margin-top:10px;font-size:12px;font-weight:800">🎁 다음 선물 상자 30/100</div><div class="bar" style="margin-top:4px"><i style="width:30%"></i></div>
+  <div class="fx" style="gap:6px;margin-top:10px;flex-wrap:wrap"><span class="chip">🎋 대나무</span><span class="chip">🪱 지렁이 ∞</span><span class="chip" style="background:#e8f4ff">🌦 이슬비 −5%</span></div></div>
+ <div class="a fx" style="right:12px;top:12px;gap:6px"><div class="ib">☀️</div><div class="ib">🔊</div><div class="ib">⚙️</div></div>
+ <div class="a g" style="right:12px;bottom:14px;width:300px;height:170px"><div class="chat">시스템 · 낚멍에 오신 걸 환영해요!<br>바다사나이 · 오늘 붕어 잘 무네요 ㅎㅎ<br>📢 달빛낚시님이 전설 메기를 낚았어요!</div><div class="a" style="left:8px;right:8px;bottom:8px;padding:7px 10px;border-radius:10px;background:#f3eee6;font-size:12px;color:#8a8094">채팅 · Enter</div></div>
+ <div class="a g dock" style="left:50%;bottom:14px;transform:translateX(-50%)"><div><span>📖</span>도감</div><div><span>🐠</span>어항</div><div><span>🛒</span>상점</div><div style="position:relative"><span>🎒</span>가방<i class="badge">3</i></div></div>
+ <div class="a" style="left:50%;bottom:100px;transform:translateX(-50%)" ><div class="fx" style="gap:10px"><div class="fish">🎣 낚시 시작<small>Space</small></div><div class="fish" style="font-size:15px;padding:10px 16px;box-shadow:0 6px 18px #3a304840">🤖 자동<small>OFF</small></div></div></div>
+ <div class="note" style="left:280px;top:16px">P2 · 내 정보는 왼쪽 카드 1장에. 채팅은 오른쪽 아래로 옮겨 캐릭터·데크를 안 가림. 낚시·자동 버튼을 한 묶음으로.</div>
+</div></div>
+
+<!-- ============ PC P3: 미니멀 + 펼침 메뉴 ============ -->
+<div class="shot" id="P3"><div class="D">
+ <div class="a fx" style="left:14px;top:12px;gap:6px"><span class="chip" style="font-size:14px">🪙 200</span><span class="chip">🎁 30/100</span><span class="chip" style="background:#e8f4ff">🌦 −5%</span></div>
+ <div class="a fx" style="right:14px;top:12px;gap:6px"><div class="ib" style="width:auto;padding:0 12px;font-size:14px;font-weight:800">≡ 메뉴</div></div>
+ <div class="a g" style="right:14px;top:58px;width:220px;padding:8px"><div style="font-size:12px;color:#8a8094;font-weight:800;padding:4px 8px">펼친 메뉴 예시</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"></div></div>
+ <div class="a" style="left:50%;bottom:24px;transform:translateX(-50%)" ><div class="fx" style="gap:10px;align-items:flex-end">
+  <div class="g fx" style="gap:2px;padding:6px;border-radius:999px"><div class="ib" style="border-radius:50%">📖</div><div class="ib" style="border-radius:50%">🐠</div></div>
+  <div class="fish" style="border-radius:999px;padding:16px 30px;font-size:20px">🎣 낚시<small>Space</small></div>
+  <div class="g fx" style="gap:2px;padding:6px;border-radius:999px"><div class="ib" style="border-radius:50%">🛒</div><div class="ib" style="border-radius:50%;position:relative">🎒<i class="badge" style="right:-2px">3</i></div></div></div></div>
+ <div class="a fx" style="left:14px;bottom:24px;gap:6px"><div class="ib" style="width:auto;padding:0 12px;font-size:13px;font-weight:800">💬 채팅 2</div></div>
+ <div class="note" style="left:14px;top:58px">P3 · 화면을 가장 넓게. 꼭 필요한 것(코인·상자·날씨, 낚시)만 상시 표시하고 나머지는 ≡ 메뉴에. 채팅은 버튼으로 열기(새 글 수 표시).</div>
+</div></div>
+
+<!-- ============ Mobile M1: 상단 콤팩트 + 더보기 ============ -->
+<div class="shot" id="M1"><div class="M">
+ <div class="a g fx" style="left:8px;right:8px;top:8px;height:44px;padding:0 8px;gap:6px"><b>🎣</b><span class="chip" style="padding:4px 8px">🪙 200</span><span class="chip" style="padding:4px 8px">🎁 30%</span><span class="chip" style="padding:4px 8px;background:#e8f4ff">🌦 −5%</span><span style="flex:1"></span><div class="ib" style="width:34px;height:34px">⋯</div></div>
+ <div class="a" style="left:50%;top:180px;transform:translateX(-50%)"><div class="chip" style="font-size:14px;padding:8px 14px;background:#fff">❗ 입질! 지금 탭!</div></div>
+ <div class="a" style="right:14px;bottom:110px"><div class="fish" style="border-radius:50%;width:96px;height:96px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center">🎣<small>낚시</small></div></div>
+ <div class="a" style="left:18px;bottom:120px;width:110px;height:110px;border-radius:50%;background:#fff5;box-shadow:inset 0 0 0 3px #fff9"><div class="a" style="left:35px;top:35px;width:40px;height:40px;border-radius:50%;background:#fffc"></div></div>
+ <div class="a g dock" style="left:8px;right:8px;bottom:10px;justify-content:space-around;padding:6px 4px"><div><span>📖</span>도감</div><div><span>🐠</span>어항</div><div><span>💬</span>채팅</div><div><span>🛒</span>상점</div><div style="position:relative"><span>🎒</span>가방<i class="badge">3</i></div></div>
+ <div class="note" style="left:10px;top:60px;max-width:250px">M1 · 상단 1줄(아이콘 6개 → ⋯ 더보기). 낚시 버튼은 오른손 엄지 자리, 조이스틱은 왼쪽. 채팅은 하단 탭으로 열기 → 화면 가림 0.</div>
+</div></div>
+
+<!-- ============ Mobile M2: 바텀시트 채팅 ============ -->
+<div class="shot" id="M2"><div class="M">
+ <div class="a fx" style="left:8px;top:8px;gap:5px"><span class="chip">🪙 200</span><span class="chip">🎁 30/100</span></div><div class="a fx" style="right:8px;top:8px;gap:5px"><span class="chip" style="background:#e8f4ff">🌦</span><div class="ib" style="width:34px;height:34px">⚙️</div></div>
+ <div class="a" style="left:50%;bottom:262px;transform:translateX(-50%)"><div class="fish">🎣 낚시 시작</div></div>
+ <div class="a g" style="left:0;right:0;bottom:0;height:238px;border-radius:22px 22px 0 0;padding:8px 12px">
+  <div style="width:40px;height:5px;border-radius:3px;background:#d8d0c6;margin:0 auto 8px"></div>
+  <div class="fx" style="gap:6px;font-size:12px;font-weight:800"><span class="chip" style="padding:3px 9px">전체</span><span>대화</span><span>시스템</span></div>
+  <div class="chat" style="padding:6px 0">바다사나이 · 오늘 붕어 잘 무네요 ㅎㅎ<br>📢 달빛낚시님이 전설 메기!</div>
+  <div class="fx" style="justify-content:space-around;margin-top:6px" ><div class="ib">📖</div><div class="ib">🐠</div><div class="ib">🤖</div><div class="ib">🛒</div><div class="ib" style="position:relative">🎒<i class="badge" style="right:-3px">3</i></div></div>
+  <div style="margin-top:10px;padding:8px 10px;border-radius:12px;background:#f3eee6;font-size:12px;color:#8a8094">채팅 입력…</div></div>
+ <div class="note" style="left:10px;top:56px;max-width:240px">M2 · 메뉴+채팅을 아래 시트 하나로 묶음(끌어 내리면 접힘). 위쪽은 코인·상자·날씨만.</div>
+</div></div>
+
+<!-- ============ Mobile M3: 원터치 링 메뉴 ============ -->
+<div class="shot" id="M3"><div class="M">
+ <div class="a g fx" style="left:8px;right:8px;top:8px;padding:6px 8px;gap:6px"><span class="chip" style="padding:3px 8px">🪙 200</span><div style="flex:1"><div style="font-size:10.5px;font-weight:800">🎁 30/100</div><div class="bar"><i style="width:30%"></i></div></div><span class="chip" style="padding:3px 8px;background:#e8f4ff">🌦 −5%</span></div>
+ <div class="a" style="right:24px;bottom:40px;width:150px;height:150px">
+  <div class="a fish" style="right:0;bottom:0;border-radius:50%;width:84px;height:84px;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center">🎣<small>낚시</small></div>
+  <div class="a ib" style="right:96px;bottom:6px;border-radius:50%">🎒<i class="badge" style="right:-3px">3</i></div><div class="a ib" style="right:86px;bottom:56px;border-radius:50%">🐠</div><div class="a ib" style="right:44px;bottom:94px;border-radius:50%">🛒</div><div class="a ib" style="right:-2px;bottom:100px;border-radius:50%">📖</div></div>
+ <div class="a" style="left:20px;bottom:50px;width:110px;height:110px;border-radius:50%;background:#fff5;box-shadow:inset 0 0 0 3px #fff9"></div>
+ <div class="a ib" style="left:10px;top:64px;width:auto;padding:0 10px;font-size:12px;font-weight:800">💬 2</div><div class="a ib" style="right:10px;top:64px">≡</div>
+ <div class="note" style="left:10px;top:110px;max-width:240px">M3 · 게임패드식: 왼쪽 조이스틱, 오른쪽 낚시 버튼 둘레에 자주 쓰는 4개. 하단 바 없음 → 화면 가장 넓음.</div>
+</div></div>
+
+<!-- ============ 수집 목표 달성 G1~G4 ============ -->
+<div class="shot" id="G1"><div class="D">
+ <div class="a g fx" style="left:50%;top:70px;transform:translateX(-50%);gap:14px;padding:12px 18px 12px 12px;border-radius:20px;box-shadow:0 0 0 3px #f6c542,0 12px 30px #3a304840">
+  <div style="width:54px;height:54px;border-radius:16px;background:linear-gradient(#fff3c8,#ffd76a);display:flex;align-items:center;justify-content:center;font-size:30px">🏆</div>
+  <div><div style="font-size:11.5px;font-weight:900;color:#c08010;letter-spacing:.08em">수집 목표 달성</div><div style="font-size:18px;font-weight:900">붕어 박사</div></div>
+  <div class="fx" style="gap:6px;margin-left:10px"><span class="rw">🪙 5,000</span><span class="rw">🎁 ×2</span></div></div>
+ <div class="note" style="left:20px;top:20px">G1 상단 가운데 알약형 · 아이콘 칸(54px) / 제목 / 보상 칩 순서 고정</div></div></div>
+
+<div class="shot" id="G2"><div class="D">
+ <div class="a" style="right:18px;top:80px;width:300px;display:flex;flex-direction:column;gap:10px">
+  <div class="g" style="padding:12px;border-left:6px solid #f6c542"><div class="fx" style="gap:10px"><span style="font-size:28px">🏆</span><div style="flex:1"><div style="font-size:11px;font-weight:900;color:#c08010">수집 목표 달성</div><b style="font-size:16px">붕어 박사</b></div></div><div class="fx" style="gap:6px;margin-top:8px"><span class="rw">🪙 5,000</span><span class="rw">🎁 ×2</span></div><div class="bar" style="margin-top:8px;height:4px"><i style="width:65%;background:#f6c542"></i></div></div>
+  <div class="g" style="padding:12px;border-left:6px solid #9a7ae8;opacity:.85"><div class="fx" style="gap:10px"><span style="font-size:28px">👑</span><div style="flex:1"><div style="font-size:11px;font-weight:900;color:#7a5ad8">업적 달성</div><b style="font-size:16px">첫 전설</b></div></div><div class="fx" style="gap:6px;margin-top:8px"><span class="rw">⏱ 입질 대기 −3%</span></div></div></div>
+ <div class="note" style="left:20px;top:20px">G2 오른쪽 카드 쌓기 · 목표=금색, 업적=보라 띠. 여러 개 동시 달성 시 위로 쌓이고 시간 막대로 사라짐</div></div></div>
+
+<div class="shot" id="G3"><div class="D">
+ <div class="a fx" style="left:50%;bottom:110px;transform:translateX(-50%);gap:0;border-radius:999px;overflow:hidden;box-shadow:0 10px 30px #3a304850">
+  <div style="width:64px;height:64px;background:#3b3346;display:flex;align-items:center;justify-content:center;font-size:32px">🏆</div>
+  <div style="background:#3b3346ee;color:#fff;padding:0 22px 0 6px;height:64px;display:flex;flex-direction:column;justify-content:center"><div style="font-size:11.5px;opacity:.75;font-weight:800">수집 목표 달성 · 붕어 박사</div><div style="font-size:15px;font-weight:900">🪙 5,000 · 🎁 상자 2</div></div></div>
+ <div class="note" style="left:20px;top:20px">G3 콘솔 업적 스타일 · 아래 가운데 한 줄, 어두운 바탕 1종으로 통일 (게임 화면과 덜 겹침)</div></div></div>
+
+<div class="shot" id="G4"><div class="D">
+ <div class="a" style="left:0;right:0;top:120px;height:110px;background:linear-gradient(90deg,#fff0,#fffdf8f0 20%,#fffdf8f0 80%,#fff0);display:flex;align-items:center;justify-content:center;gap:22px">
+  <div style="font-size:54px">🏆</div><div style="text-align:left"><div style="font-size:12px;font-weight:900;color:#c08010;letter-spacing:.2em">COLLECTION COMPLETE</div><div style="font-size:28px;font-weight:1000">붕어 박사</div><div style="font-size:12.5px;color:#8a8094">붕어 등급 5종을 모두 낚았어요</div></div>
+  <div style="width:2px;height:60px;background:#e8dcc8"></div><div style="display:grid;grid-template-columns:auto auto;gap:6px 10px;font-weight:900"><span>🪙</span><span>5,000</span><span>🎁</span><span>상자 ×2</span></div></div>
+ <div class="note" style="left:20px;top:20px">G4 가로 띠(리본) · 아이콘 | 제목·설명 | 보상 표 — 3칸 격자로 정렬. 큰 목표(세트 완성)용</div></div></div>
+
+<!-- ============ 토스트 T0~T4 ============ -->
+<div class="shot" id="T0"><div class="D">
+ <div class="a" style="left:50%;top:22%;transform:translate(-50%,-50%);font-size:17px;font-weight:800;color:#fff;text-shadow:0 2px 8px #0009;text-align:center">❗ 입질! 지금 클릭/Space!</div>
+ <div class="a" style="left:50%;top:34%;transform:translate(-50%,-50%);font-size:24px;font-weight:900;color:#fff;text-shadow:0 3px 12px #0008;text-align:center;opacity:.45">(현재 24px)</div>
+ <div class="note" style="left:20px;top:20px">T0 지금 위치 유지 + 글자 24px → 17px, 굵기 900 → 800 (가장 작은 변경)</div></div></div>
+
+<div class="shot" id="T1"><div class="D">
+ <div class="a" style="right:18px;bottom:96px;display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+  <div class="tq" style="opacity:.7"><span class="ic">💾</span><div><b>저장 완료</b><br><small>방금</small></div></div>
+  <div class="tq"><span class="ic">🧿</span><div><b>미끼전문가</b><br>미끼를 아꼈어요! <small>· 방금</small></div></div>
+  <div class="tq" style="box-shadow:0 0 0 2px #ff8a5c,0 8px 24px #3a304840"><span class="ic">❗</span><div><b>입질!</b><br>지금 클릭 / Space</div></div></div>
+ <div class="note" style="left:20px;top:20px">T1 오른쪽 아래 카드 쌓기 · 새 알림이 아래에 들어오고 위는 흐려지며 사라짐 (최대 3장)</div></div></div>
+
+<div class="shot" id="T2"><div class="D">
+ <div class="a" style="right:18px;bottom:96px;display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+  <div class="tq" style="width:auto;padding:8px 12px;border-left:5px solid #5cb85c">✅ <b>강화 성공! +9</b></div>
+  <div class="tq" style="width:auto;padding:8px 12px;border-left:5px solid #4a8fe0">ℹ️ 데크 끝 낚시 포인트로 가세요</div>
+  <div class="tq" style="width:auto;padding:8px 12px;border-left:5px solid #f0a020">⚠️ 어항이 가득 찼어요 · 60%로 자동 판매</div>
+  <div class="tq" style="width:auto;padding:8px 12px;border-left:5px solid #e05050">⛔ 합성 재료/코인이 부족해요</div></div>
+ <div class="note" style="left:20px;top:20px">T2 한 줄 알약형 · 종류별 색 띠(성공 초록 / 안내 파랑 / 주의 주황 / 오류 빨강)로 한눈에 구분</div></div></div>
+
+<div class="shot" id="T3"><div class="D">
+ <div class="a" style="right:18px;bottom:96px;display:flex;flex-direction:column;gap:8px">
+  <div class="tq" style="width:320px;position:relative;overflow:hidden;padding-bottom:14px"><span class="ic">💥</span><div style="flex:1"><b>강화 실패… +11로 하락</b><br><small>다음 단계 성공 30% · 하락 20%</small></div><span style="color:#a09aa8;font-weight:900">×</span><i class="a" style="left:0;bottom:0;height:3px;width:60%;background:#ff8a5c"></i></div>
+  <div class="tq" style="width:320px;position:relative;overflow:hidden;padding-bottom:14px"><span class="ic">🛍</span><div style="flex:1"><b>메기 82cm 구매 완료!</b><br><small>도감에도 기록됐어요</small></div><span style="color:#a09aa8;font-weight:900">×</span><i class="a" style="left:0;bottom:0;height:3px;width:25%;background:#ff8a5c"></i></div></div>
+ <div class="note" style="left:20px;top:20px">T3 닫기(×)+남은 시간 막대 · 긴 내용은 제목/설명 두 줄로. 마우스를 올리면 멈춤</div></div></div>
+
+<div class="shot" id="T4"><div class="D">
+ <div class="a" style="left:50%;top:30%;transform:translate(-50%,-50%)"><div class="chip" style="font-size:16px;padding:10px 18px;background:#fff;box-shadow:0 0 0 3px #ff8a5c,0 8px 20px #0003">❗ 입질! 지금 클릭 / Space</div></div>
+ <div class="a" style="right:18px;bottom:96px"><div class="tq"><span class="ic">💾</span><div><b>저장 완료</b><br><small>방금</small></div></div></div>
+ <div class="note" style="left:20px;top:20px">T4 혼합형 · 낚시 타이밍처럼 바로 반응해야 하는 것만 가운데(작게), 나머지는 오른쪽 아래 카드</div></div></div>
+
+<div class="shot" id="TM"><div class="M">
+ <div class="a" style="left:10px;right:10px;bottom:84px;display:flex;flex-direction:column;gap:6px">
+  <div class="tq" style="width:auto;padding:8px 12px;border-left:5px solid #4a8fe0;font-size:12.5px">ℹ️ 데크 끝 낚시 포인트로 가세요</div>
+  <div class="tq" style="width:auto;padding:8px 12px;border-left:5px solid #5cb85c;font-size:12.5px">✅ 저장 완료</div></div>
+ <div class="a" style="left:50%;top:200px;transform:translateX(-50%)"><div class="chip" style="font-size:14px;padding:8px 14px;background:#fff;box-shadow:0 0 0 3px #ff8a5c">❗ 입질! 지금 탭!</div></div>
+ <div class="note" style="left:10px;top:60px;max-width:250px">모바일 · 오른쪽 아래는 조이스틱/낚시 버튼 자리라, 하단 메뉴 바로 위 전체 폭으로. 'Space' 문구는 모바일에서 '탭'으로.</div></div></div>
+
+<script>
+document.querySelector('#P3 [style*="grid-template-columns:1fr 1fr"]').innerHTML=[['📖','도감'],['🐠','어항'],['🛒','상점'],['🎒','가방'],['🤖','자동'],['🪑','앉기'],['🔊','사운드'],['💾','저장'],['⚙️','설정'],['☀️','시간']].map(([i,n])=>`<div class="fx" style="gap:6px;padding:7px 8px;border-radius:10px;background:#f7f1e6;font-size:13px;font-weight:700">${i} ${n}</div>`).join('');
+(()=>{const RX=/(?:[\u{1F000}-\u{1FAFF}\u2600-\u27BF\u2B00-\u2BFF]\uFE0F?(?:\u200D[\u{1F000}-\u{1FAFF}\u2600-\u27BF]\uFE0F?)*)/gu;const code=e=>{let c=[...e].map(x=>x.codePointAt(0));if(!c.includes(0x200D))c=c.filter(x=>x!==0xFE0F);return c.map(x=>x.toString(16)).join('-');};
+const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);const ns=[];while(w.nextNode())ns.push(w.currentNode);ns.forEach(n=>{if(n.parentElement.tagName==='SCRIPT'||n.parentElement.tagName==='STYLE')return;if(!RX.test(n.nodeValue))return;RX.lastIndex=0;const s=document.createElement('span');s.innerHTML=n.nodeValue.replace(RX,e=>`<img class="em" src="../icons/emoji-png/${code(e)}.png" alt="${e}">`);n.replaceWith(s);});})();
+</script>

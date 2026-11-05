@@ -1,0 +1,46 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v20 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>낚멍 v20 보고서</h1>
+<h2>적용 내용</h2>
+<ul>
+<li>가방 배지 30% 축소 (20→14px)</li>
+<li>W1~W4 데크: 의자에 앉아야 낚시 가능 (가까이 가면 '앉기' 버튼). 모닥불 벤치 앉기 가능 (넓은 벤치 2명). 봇도 같은 규칙, 빈자리 2개 이상일 때만 벤치 사용</li>
+<li>모닥불 벤치가 불을 바라보게 회전. 모닥불 개선 (불꽃 스프라이트·숯·불씨·바닥 빛·깜빡임)</li>
+<li>빗소리 기본값: 부슬비 R1, 비+천둥 T1. 설정(사운드)에서 변경·10초 미리듣기 가능</li>
+</ul>
+<h2>Draw calls (1280×720)</h2>
+<table>
+<thead>
+<tr>
+<th>상황</th>
+<th>v19</th>
+<th>v20</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>먼 거리 단순화 ON, 봇 50 + W1</td>
+<td>175</td>
+<td>108</td>
+</tr>
+<tr>
+<td>단순화 OFF, 봇 50</td>
+<td>584</td>
+<td>263</td>
+</tr>
+<tr>
+<td>단순화 OFF, 봇 50 + W1</td>
+<td>589</td>
+<td>276</td>
+</tr>
+</tbody>
+</table>
+<p>안전 기준: PC 300~500 이하, 모바일 150~200 이하. 원인: 동물 캐릭터 1마리당 메시 약 46개, 낚싯대 약 11개.
+최적화: 움직이지 않는 부품 합치기, 먼 캐릭터 단순화 모형을 인스턴싱으로 2번에 그림, 모닥불 합치기.</p>
+<h2>회귀 테스트</h2>
+<p>t18b, t19, t30, t31(PC·모바일), t32(새 앉기 테스트) 통과</p></main></body></html>

@@ -39,3 +39,15 @@ v5에서 CC BY·CC BY-SA 소스를 모두 제거했습니다. 아래 원본은 �
 ## v8 변경
 - 밤 트랙의 '괴수 음성'처럼 들리던 저음 울음 제거: night3에서 **n_edible(식용개구리 울음)** 레이어 삭제.
 - 남은 밤 생물음(n_peeper·n_country·n_chorus·n_grass·n_nacht)에 350Hz 하이패스 적용 → 배경의 낮은 그르렁/웅웅 성분 제거. 모닥불 합성음(night4)은 유지.
+
+## v20 빗소리 (Wikimedia Commons, Public domain / CC0)
+| 키 | 원본 | 라이선스 |
+|---|---|---|
+| rain_r1 | Rain (1).ogg — ezwa | Public domain |
+| rain_r2 | Rain against the window.ogg — cori | Public domain |
+| rain_r3 | Listening to Raindrops (1035382 - heavy loop).mp3 — NASA | Public domain |
+| rain_t1 | Light Rain Distant Thunder July 5th 2016.wav | CC0 |
+| rain_t2 | Rain and thunder (1).ogg | Public domain |
+| rain_t3 | Thunder and rain on a v.ogg | Public domain |
+| rain_t4 | Rain thunder and birds.ogg | Public domain |
+끝 3초 크로스페이드로 이음새 없는 루프, 음량 평준화.

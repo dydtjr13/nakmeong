@@ -421,7 +421,7 @@ body.menu-b #mMain #bAutoFish.on{background:linear-gradient(135deg,#7fd4a8,#3fb0
 @keyframes bgIn{from{opacity:0;transform:translate(-50%,40px) scale(.6)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
 @keyframes bgOut{to{opacity:0;transform:translate(-50%,-30px) scale(.9)}}
 @keyframes bgBox{0%,100%{transform:rotate(-6deg) scale(1)}50%{transform:rotate(6deg) scale(1.08)}}@keyframes bgSpin{to{transform:rotate(360deg)}}
-#bBag{position:relative}#bBag[data-new]::after{content:attr(data-new);position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#ff5a5a;color:#fff;font-size:12px;font-weight:900;line-height:20px;text-align:center;box-shadow:0 0 0 2px #fff;animation:bdgP 1.2s ease-in-out infinite}
+#bBag{position:relative}#bBag[data-new]::after{content:attr(data-new);position:absolute;top:-3px;right:-3px;min-width:14px;height:14px;padding:0 3.5px;border-radius:7px;background:#ff5a5a;color:#fff;font-size:8.5px;font-weight:900;line-height:14px;text-align:center;box-shadow:0 0 0 2px #fff;animation:bdgP 1.2s ease-in-out infinite}
 @keyframes bdgP{50%{transform:scale(1.2)}}
 #toast:has(.cc.B){top:calc(26% - 8.5vh)}
 .tset p{margin:6px 0}.tset label{margin-right:8px;white-space:nowrap}
@@ -622,3 +622,7 @@ body:has(.modal.show) #chat,body:has(.modal.show) #bubs{visibility:hidden}
  #start [data-step="3"] .st1 .stA,#start [data-step="3"] .st1 .stS,#start [data-step="3"] .st1 h1+p{display:none}#start [data-step="3"] .st1{padding-bottom:8px}
  #start [data-step="3"]{display:flex;flex-direction:column}#start [data-step="3"] .st3{order:2}#start [data-step="3"] .st2{order:3}
  #start .stPrev{min-height:180px;flex:none;height:200px}#start .stPrev img{max-height:190px}#start .stKeys{display:none}#start .st3 #charPick .cpg{grid-template-columns:repeat(5,1fr)}#start .st3 #charPick .cpg button img{width:100%;height:auto;aspect-ratio:8/9}#start .st3 #charPick .cpg button span{font-size:10px}}
+
+/* v20 앉기 버튼 */
+#sitBtn{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:30;border:0;border-radius:999px;padding:10px 20px;font:inherit;font-weight:800;font-size:15px;background:#fffdf8;color:#4a4058;box-shadow:0 6px 18px #3a304840,0 0 0 3px #ff8a5c inset;cursor:pointer}#sitBtn:active{transform:translateX(-50%) scale(.96)}
+#bSit.ready{box-shadow:0 0 0 3px #ff8a5c inset}

@@ -1,0 +1,29 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v20 시안 모음</title><link rel="stylesheet" href="common.css"><style>
+.sec{background:#fff;border-radius:18px;padding:18px 20px;margin:18px 0;box-shadow:0 4px 18px #4a405814}.sec h2{margin:0 0 6px}.no{display:inline-block;background:#6a4fc0;color:#fff;border-radius:10px;padding:2px 9px;font-size:13px;margin-right:6px}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-top:10px}.gal.m{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}figure{margin:0}figure img{width:100%;border-radius:10px;display:block;box-shadow:0 2px 8px #0002;cursor:zoom-in}figcaption{font-size:12.5px;color:#6a6076;margin-top:5px;line-height:1.4}
+p,li,td{font-size:14px;color:#4a4058}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #eee4d8;padding:6px 8px;text-align:left;vertical-align:top;font-size:13.5px}th{background:#f7f1e6}
+</style></head><body><div class="wrap" style="max-width:1200px;margin:auto;padding:16px"><h1>낚멍 v20 시안 모음</h1><p>이미지를 누르면 크게 볼 수 있어요 (←/→, ESC). 모두 실제 게임 화면을 바탕으로 만들었고, UI·알림 시안은 게임에 적용하지 않았어요.</p>
+
+<div class="sec"><h2><span class="no">1</span>모닥불 비교 (낮 / 밤)</h2><p>C0 기존 · <b>C1 직접 개선 (게임에 적용됨)</b> · C2 Quaternius "Bonfire" (CC0) · C3 reyshapes "Camp Fire Rocks" (CC0). C2·C3도 불꽃·불씨는 C1 것을 같이 씀. 벤치는 모두 모닥불을 바라보게 돌렸어요.</p><div class="gal" id="gF"></div></div>
+
+<div class="sec"><h2><span class="no">2</span>UI 점검 결과 (현재 화면)</h2><div class="gal" id="gC"></div>
+<table style="margin-top:12px"><tr><th>#</th><th>PC</th><th>모바일</th></tr>
+<tr><td>1 흩어짐</td><td>코인·상자 진행·장비·미끼(왼쪽 위)와 날씨 카드(그 아래), 낮/시간 흐름(오른쪽 위)이 서로 다른 곳에 있음</td><td>상단에 아이콘 7개가 몰려 시간 버튼이 2줄째로 밀림</td></tr>
+<tr><td>2 가림</td><td>채팅창+이모지 줄이 왼쪽 아래 데크·봇을 가림. 낚시 버튼이 내 캐릭터 바로 아래 데크를 가림</td><td>날씨 카드가 왼쪽 위 화면을 가림. 채팅이 화면 아래 1/4을 차지. 조이스틱이 오른쪽 데크와 채팅 옆에 겹침</td></tr>
+<tr><td>3 잘못된 위치</td><td>FPS·draw calls 개발용 표시가 일반 화면 오른쪽에 항상 보임</td><td>FPS 표시가 채팅 위에 겹침. 토스트 "클릭/Space"가 모바일에도 나오고 24px로 2줄로 깨짐</td></tr>
+<tr><td>4 따로 노는 기능</td><td>앉기·시간·저장·사운드·설정·관리자 버튼이 시스템 줄에 섞임 (자주 쓰는 앉기는 게임 버튼 쪽이 맞음)</td><td>자동 낚시(하단)와 낚시 버튼(가운데)이 떨어져 있음</td></tr>
+<tr><td>5 알림 일관성</td><td colspan="2">수집 목표 알림 A~D가 아이콘·금액 위치가 제각각, 토스트는 화면 가운데 큰 글자(24px·900)로 게임 화면을 가림</td></tr></table></div>
+
+<div class="sec"><h2><span class="no">3</span>UI 개선 시안 — PC</h2><div class="gal" id="gP"></div></div>
+<div class="sec"><h2><span class="no">4</span>UI 개선 시안 — 모바일</h2><div class="gal m" id="gM"></div></div>
+<div class="sec"><h2><span class="no">5</span>수집 목표 달성 알림 (추가 스타일)</h2><p>기존 A~D는 그대로 두고 추가. 공통 규칙: 아이콘 칸 고정 → 제목 → 보상 칩(🪙 금액 · 🎁 개수) 같은 순서·같은 모양.</p><div class="gal" id="gG"></div></div>
+<div class="sec"><h2><span class="no">6</span>토스트 (글자 축소 · 오른쪽 아래 알림창)</h2><div class="gal" id="gT"></div></div>
+</div><script>
+const G={gF:['C0','C1','C2','C3'].flatMap(k=>[['fire/'+k+'-d',k+' 낮'],['fire/'+k+'-n',k+' 밤']]),
+gC:[['ui/d-cur-idle','현재 PC (대기)'],['ui/d-cur-fish','현재 PC (낚시 중·토스트)'],['ui/m-cur-idle','현재 모바일 (대기)'],['ui/m-cur-fish','현재 모바일 (낚시 중·토스트)']],
+gP:[['P1','P1 상단 한 줄 통합 + 하단 메뉴에 앉기'],['P2','P2 왼쪽 내 정보 카드 + 오른쪽 채팅'],['P3','P3 미니멀 + ≡ 펼침 메뉴']],
+gM:[['M1','M1 상단 1줄 + 낚시 버튼 오른손 자리'],['M2','M2 메뉴+채팅 바텀시트'],['M3','M3 게임패드식 링 메뉴'],['TM','모바일 토스트 (하단 메뉴 위)']],
+gG:[['G1','G1 상단 알약형'],['G2','G2 오른쪽 카드 쌓기 (목표 금색·업적 보라)'],['G3','G3 콘솔 업적형 (아래 한 줄)'],['G4','G4 가로 리본 3칸 격자 (큰 목표용)']],
+gT:[['T0','T0 위치 그대로, 글자만 24→17px'],['T1','T1 오른쪽 아래 카드 쌓기'],['T2','T2 한 줄 알약 + 종류별 색 띠'],['T3','T3 닫기·남은 시간 막대'],['T4','T4 혼합 (입질만 가운데)']]};
+for(const id in G)document.getElementById(id).innerHTML=G[id].map(([f,c])=>`<figure><img src="${f}.jpg" alt="${c}" loading="lazy"><figcaption>${c}</figcaption></figure>`).join('');
+</script><script src="lb.js"></script><script>window.NK_EMOJI_BASE="../icons/emoji/";</script><script src="../emoji.js"></script></body></html>
