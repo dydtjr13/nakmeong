@@ -23,11 +23,11 @@ const css=`#nk{position:fixed;inset:0;pointer-events:none;font-family:system-ui,
 let ui={};
 function init(o){
   const st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
-  const d=document.createElement('div');d.id='nk';d.innerHTML=`<div class="top"><span class="title">🎣 낚멍 <small style="font-weight:400;font-size:12px">${o.style||''}</small></span>
+  const d=document.createElement('div');d.id='nk';d.innerHTML=`<div class="top"><span class="title">🎣 피쉬레스트 <small style="font-weight:400;font-size:12px">${o.style||''}</small></span>
   <button id="tBtn">🌗 시간: 낮</button><button id="aBtn">⏯ 자동시간 ON</button><button id="dBtn">📖 도감</button><button id="sBtn">🔊</button><button id="sitBtn">🪑 앉기</button></div>
   <div id="dex"></div><div id="toast"></div><button id="fishBtn">🎣 낚시 시작</button>
   <div id="chat"><div id="log"></div><input id="msg" placeholder="채팅 입력 후 Enter"><span id="emo"></span></div><div id="joy"><i></i></div>
-  <div id="start"><h1>🎣 낚멍</h1><div>${o.style||''}</div><p>WASD/방향키 이동 · ${o.dragHint||'마우스 드래그 카메라 회전'}<br>데크 끝 낚시 포인트로 가면 [낚시 시작] → 입질(!) 뜨면 클릭/Space</p><button style="font-size:18px;padding:12px 30px">탭해서 시작 (사운드 ON)</button></div>`;
+  <div id="start"><h1>🎣 피쉬레스트</h1><div>${o.style||''}</div><p>WASD/방향키 이동 · ${o.dragHint||'마우스 드래그 카메라 회전'}<br>데크 끝 낚시 포인트로 가면 [낚시 시작] → 입질(!) 뜨면 클릭/Space</p><button style="font-size:18px;padding:12px 30px">탭해서 시작 (사운드 ON)</button></div>`;
   document.body.appendChild(d);
   ['tBtn','aBtn','dBtn','sBtn','sitBtn','dex','toast','fishBtn','log','msg','emo','joy','start'].forEach(k=>ui[k]=d.querySelector('#'+k));
   ui.start.onclick=()=>{ui.start.remove();audio.start();};

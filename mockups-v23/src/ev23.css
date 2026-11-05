@@ -1,0 +1,25 @@
+.evx .sh{display:none}
+.evx{position:fixed;inset:0;pointer-events:none;z-index:60;font-family:'Pretendard','Noto Sans KR',sans-serif;color:#3a3048}
+.evx .pl{display:inline-flex;align-items:center;gap:3px;background:#fff3e0;color:#e2602a;border-radius:999px;padding:2px 8px;font-weight:800;font-size:12px}
+.evx .pl.b{background:#efe6ff;color:#7a4fd0}
+.e1 .bn{position:absolute;top:58px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#fff8ee,#fff);border:1.5px solid #ffd2a8;border-radius:999px;padding:7px 8px 7px 14px;box-shadow:0 6px 18px #0002;white-space:nowrap;font-size:13px}
+.e1 .bn b{font-size:13.5px}.e1 .bn small{color:#9a8fa6}.e1 .bn .x{width:22px;height:22px;border-radius:50%;background:#0000000d;display:grid;place-items:center;font-size:12px}
+.e1 .ch,.e2 .ch{position:absolute;top:12px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:#fffdf8ee;border-radius:999px;padding:4px 10px;box-shadow:0 2px 10px #0002;font-size:12px;font-weight:800}
+.e1 .ch i{font-style:normal;color:#9a8fa6;font-weight:600;font-variant-numeric:tabular-nums}
+.e2 .cd{position:absolute;top:20%;left:50%;transform:translateX(-50%);width:290px;background:#fffdf8;border-radius:20px;padding:16px 16px 12px;text-align:center;box-shadow:0 14px 40px #0003}
+.e2 .cd .em{font-size:34px}.e2 .cd b{display:block;font-size:16px;margin:4px 0 8px}.e2 .cd .r{display:flex;justify-content:center;gap:6px}.e2 .cd small{display:block;color:#9a8fa6;margin-top:8px;font-size:11.5px}
+.e2 .cd .t{height:3px;background:#f0e6da;border-radius:3px;margin-top:10px;overflow:hidden}.e2 .cd .t i{display:block;width:62%;height:100%;background:#ff9a6a}
+.e2 .pb{position:absolute;top:0;left:0;right:0;height:3px;background:#ffffff55}.e2 .pb i{display:block;height:100%;width:38%;background:linear-gradient(90deg,#ff8a4c,#ffc46a)}
+.e2.on .ch{top:6px;left:auto;right:64px;transform:none;padding:2px 8px;font-size:11px}
+.e3 .sd{position:absolute;right:16px;top:150px;width:270px;background:#fffdf8;border-radius:16px;padding:12px 14px;box-shadow:0 10px 28px #0003;border-left:5px solid #ff8a4c;font-size:12.5px}
+.e3 .sd b{font-size:14px;display:block;margin-bottom:6px}.e3 .sd .r{display:flex;gap:6px;margin-bottom:6px}.e3 .sd small{color:#9a8fa6}
+.e3 .rg{position:absolute;left:12px;top:118px;width:46px;height:46px;border-radius:50%;background:conic-gradient(#ff8a4c 0 62%,#f0e6da 62% 100%);display:grid;place-items:center;box-shadow:0 2px 10px #0002}
+.e3 .rg span{width:38px;height:38px;border-radius:50%;background:#fffdf8;display:grid;place-items:center;font-size:17px;line-height:1}.e3 .rg em{position:absolute;bottom:-6px;right:-8px;background:#ff8a4c;color:#fff;font:900 10px sans-serif;font-style:normal;border-radius:8px;padding:2px 5px}
+.e4 .rb{position:absolute;top:0;left:0;right:0;height:30px;background:linear-gradient(90deg,#ff8a4c,#ffb36a,#ff8a4c);color:#fff;display:flex;align-items:center;justify-content:center;gap:10px;font-size:12.5px;font-weight:800;box-shadow:0 3px 10px #0002}
+.e4 .rb span{opacity:.85;font-weight:600}
+.e4 .fx{position:absolute;right:20px;bottom:150px;display:flex;align-items:center;gap:5px;background:#3b3346ee;color:#fff;border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:800;box-shadow:0 3px 10px #0003}
+.e4 .fx i{font-style:normal;color:#ffd77a;font-variant-numeric:tabular-nums}
+@media(max-width:700px){.e1.start .ch{display:none}.e1 .bn{top:132px;left:50%;font-size:12px;gap:6px;padding:6px 6px 6px 10px;max-width:calc(100vw - 20px)}.e1 .bn small{display:none}.e1 .ch,.e2.on .ch{top:52px!important;left:78px!important;right:auto!important;transform:none!important;padding:4px 9px}.evx .lg{display:none}.evx .sh{display:inline}
+ .e2 .cd{width:250px;top:18%}.e2.on .ch{right:auto;left:68px;top:50px}
+ .e3 .sd{right:8px;top:160px;width:220px}.e3 .rg{left:10px;top:100px;width:42px;height:42px}.e3 .rg span{width:34px;height:34px;font-size:15px}
+ .e4 .rb{top:auto;bottom:0;height:22px;font-size:11px;padding-bottom:env(safe-area-inset-bottom)}.e4 .rb span{display:none}.e4 .fx{right:auto;left:16px;bottom:170px}}

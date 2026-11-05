@@ -1,0 +1,5 @@
+window.__EVH={
+e1:s=>s==='start'?`<div class="bn">🎉 <b>주말 코인 2배 이벤트 시작!</b><span class="pl">🪙 ×2</span><span class="pl b">🎁 ×1.5</span><small>~ 11/9 (일) 23:59</small><span class="x">×</span></div><div class="ch">🎉 ×2 <i>47:59:58</i></div>`:`<div class="ch">🎉 <b class="lg">코인 ×2 · 상자 ×1.5</b><b class="sh">×2</b> <i>1:23:45</i></div>`,
+e2:s=>s==='start'?`<div class="cd"><div class="em">🎉</div><b>주말 코인 2배 이벤트</b><div class="r"><span class="pl">🪙 코인 ×2</span><span class="pl b">🎁 상자 ×1.5</span></div><small>11/7 (토) 00:00 ~ 11/9 (일) 23:59 · 3초 후 자동으로 닫혀요</small><div class="t"><i></i></div></div><div class="pb"><i></i></div>`:`<div class="pb"><i></i></div><div class="ch">🎉 1:23:45</div>`,
+e3:s=>s==='start'?`<div class="sd"><b>🎉 이벤트가 시작됐어요</b><div class="r"><span class="pl">🪙 ×2</span><span class="pl b">🎁 ×1.5</span></div><small>주말 코인 2배 · 일요일 23:59까지</small></div><div class="rg"><span>🎉</span><em>×2</em></div>`:`<div class="rg"><span>🎉</span><em>×2</em></div>`,
+e4:s=>s==='start'?`<div class="rb">🎉 주말 코인 2배 이벤트 진행 중 · 🪙 ×2 · 🎁 ×1.5 <span>· 11/9 23:59까지</span></div><div class="fx">🎉 ×2 <i>47:59</i></div>`:`<div class="fx">🎉 코인 ×2 <i>1:23:45</i></div>`};

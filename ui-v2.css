@@ -628,7 +628,7 @@ body:has(.modal.show) #chat,body:has(.modal.show) #bubs{visibility:hidden}
 #bSit.ready{box-shadow:0 0 0 3px #ff8a5c inset}
 
 /* ───────── v21 ───────── */
-#dc{display:none!important}body.adm #dc{display:block!important}
+#dc{display:none!important}body.perf #dc{display:block!important}
 /* 레벨 HUD (v17 lA) */
 .lvb{display:inline-flex;align-items:center;gap:8px;background:var(--bg);border:0;border-radius:999px;padding:4px 12px 4px 4px;box-shadow:0 4px 14px #0002;font:inherit;color:inherit;cursor:pointer;pointer-events:auto}
 .lvb .lvc{width:36px;height:36px;border-radius:50%;background:conic-gradient(#ff8a5c 0 var(--p),#f1e6da var(--p));display:flex;align-items:center;justify-content:center;flex:none}
@@ -815,3 +815,26 @@ body:has(.modal.show) #chat,body:has(.modal.show) #bubs{visibility:hidden}
 @media (min-width:701px){body.hp1 #wxCard{top:114px!important}body.hp3 #wxCard{top:96px!important}}
 .lu4 .ring>div small{display:block;line-height:1;margin-bottom:6px}.lu4 .ring>div span{font-size:70px!important;line-height:.95!important;display:block}
 .adm22 .adt td:first-child{white-space:nowrap}
+
+/* v23 */
+#hud .logo{display:none!important}
+.enLogo{font-size:.42em;letter-spacing:.18em;color:#ff8a4c;font-weight:900;vertical-align:middle;margin-left:4px}
+#annBar{box-sizing:border-box;max-width:min(720px,calc(100vw - 16px))}#annBar span{min-width:0;overflow-wrap:anywhere;line-height:1.35}#annBar button{flex:none;padding:0;margin:0;display:grid;place-items:center;font-size:16px;line-height:1}
+.adm22 .evg{display:flex;flex-wrap:wrap;gap:12px;margin:8px 0}.adm22 .evg label{display:flex;align-items:center;gap:6px}.adm22 .evg fieldset{border:1px solid #e3d8ca;border-radius:12px;padding:8px 12px 10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1;min-width:300px;margin:0}.adm22.dk .evg fieldset{border-color:#ffffff22}.adm22 .evg legend{font-weight:800;font-size:12.5px;padding:0 4px}.adm22 .evg .qk{display:flex;flex-wrap:wrap;gap:4px;width:100%}
+.adm22 .evsum{background:#f4f8ff;border-radius:10px;padding:8px 12px;font-size:13px}.adm22.dk .evsum{background:#ffffff10}.adm22 .evsum.bad{background:#ffecec;color:#c03030}.adm22 .adback{margin:0 0 10px;display:flex;gap:8px;align-items:center}
+.bslot{position:relative}.bslot .cpin{position:absolute;top:2px;right:3px;font-size:13px;line-height:1;background:none;filter:drop-shadow(0 1px 1px #0004);pointer-events:none}
+.btile,.ritem{position:relative}.nwb{position:absolute;top:-5px;right:-5px;background:#ff4f6d;color:#fff;font:900 9px/1 sans-serif;font-style:normal;padding:3px 5px;border-radius:8px;box-shadow:0 1px 3px #0003;letter-spacing:.03em;pointer-events:none;transition:opacity .25s,transform .25s;z-index:2}.nwb.gone{opacity:0;transform:scale(.6)}
+.rcell .ritem{cursor:help;border-radius:6px;padding:1px 2px}.rcell .ritem:hover{background:#ffffff18}.rcell .ritem .nwb{top:-6px;right:-4px}
+/* v23 모바일 가용 화면: 노치·홈바 영역 피하기 */
+#hud{top:env(safe-area-inset-top,0px);bottom:env(safe-area-inset-bottom,0px);left:env(safe-area-inset-left,0px);right:env(safe-area-inset-right,0px)}
+/* v23 모바일 줄바꿈·잘림 기본 개선 (v22 시안 적용) */
+@media(max-width:700px){
+#bag .tabs,#shop .tabs,.rdt,#set .slay>aside{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none;gap:6px;padding:4px 2px 6px;-webkit-mask-image:linear-gradient(90deg,#000 86%,transparent);mask-image:linear-gradient(90deg,#000 86%,transparent)}
+#bag .tabs>*,#shop .tabs>*,.rdt>*,#set .slay>aside>*{flex:0 0 auto!important;white-space:nowrap;font-size:13px!important;padding:7px 11px!important;width:auto!important}
+.tico{position:relative}.tico em.z{top:-7px!important;right:-9px!important;left:auto!important}
+#set input[type=text],#set input:not([type]){width:100%;box-sizing:border-box;height:42px;border-radius:12px;border:1.5px solid #ead9c4;padding:0 12px;font-size:16px;background:#fffaf3}
+.rd3 .lc span,.rd3 .lc b{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;word-break:keep-all;line-height:1.3}
+.modal .card{font-size:13.5px;word-break:keep-all}
+}
+.bslot .cpin{z-index:3;font-size:15px;top:3px;right:4px}.bslot .cpin img{width:16px;height:16px}
+@media(max-width:700px){#annBar{left:8px;right:8px;transform:none;max-width:none;width:auto;padding:8px 8px 8px 12px;gap:8px}#annBar b{font-size:12px}}

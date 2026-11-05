@@ -1,5 +1,6 @@
-# 🎣 낚멍 v2 (시안 A · 3D 로우폴리 파스텔)
+# 🎣 피쉬레스트 FISHREST (가제: 낚멍)
 
+- v23: **게임 이름 피쉬레스트(FISHREST)로 변경 (가제: 낚멍)**, FPS 표시 토글, PC 로고 제거, 이벤트 시:분:초 + 관리자 UI 개편, 공지 × 수정, 대시보드 뒤로 가기, 관리자 이동 속도(🧪 테스트·디버그 탭), 핀 📌, 툴팁·NEW, 모바일 전체 화면·홈 화면 추가, 시안 → mockups-v23/index.html, docs/v23-보고서.html
 - v22: 낚싯대 등급(일반~신화), 레벨 속도, 부적 교체 고정, LU3/RD3/HP1/HM2 기본+설정 전환, 핀치 줌, 관리자 모드 전면 개편, 시안 → mockups-v22/index.html, docs/v22-보고서.html
 - v21: 레벨 시스템(Lv99), 모닥불 C2, 모바일 M3, G2/T2 알림, 동물 걷기, 입력·의자 버그 수정, 시안 → mockups-v21/index.html, docs/v21-보고서.html
 - v20: 의자 앉기 낚시, 모닥불 개선, draw call 최적화, 시안 → mockups-v20/index.html, docs/v20-보고서.html
