@@ -789,7 +789,7 @@ body:has(.modal.show) #chat,body:has(.modal.show) #bubs{visibility:hidden}
 .adm22 .adc2{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:10px}.adm22 .adc2 .adbox{margin:10px 0 0}
 .adm22 .dvr{display:grid;grid-template-columns:54px 1fr 40px 36px;gap:8px;align-items:center;font-size:12.5px;margin:6px 0}.adm22 .bar{height:8px;border-radius:6px;background:#efe6da;overflow:hidden;display:block}.adm22 .bar i{display:block;height:100%;background:#5fc48a}.adm22 .bar i.hi{background:#f0a020}
 .adm22 .spark{display:flex;align-items:flex-end;gap:2px;height:70px;padding:4px 0}.adm22 .spark i{flex:1;background:linear-gradient(#4a8fe0,#9cc4f2);border-radius:3px 3px 0 0;min-height:2px}
-.adm22 .chg{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.adm22 .chc{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:12px;border-radius:14px;border:1px solid #eee4d8;background:#fff;cursor:pointer;font:inherit;color:inherit}.adm22 .chc .bar{width:100%}.adm22 .chc small{color:#8a8094;font-size:11.5px}.adm22 .chc em{font-style:normal;font-size:10.5px;font-weight:800;color:#fff;background:#6a4fc0;border-radius:7px;padding:0 6px}
+.adm22 .chg{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}.adm22 .chc{display:flex;flex-direction:column;align-items:flex-start;gap:6px;text-align:left;padding:12px;border-radius:14px;border:1px solid #eee4d8;background:#fff;cursor:pointer;font:inherit;color:inherit}.adm22 .chc .bar{width:100%}.adm22 .chc small{color:#8a8094;font-size:11.5px}.adm22 .chc em{font-style:normal;font-size:10.5px;font-weight:800;color:#fff;background:#6a4fc0;border-radius:7px;padding:0 6px}
 .adm22 .chc:hover{border-color:#c9b8f0}.adm22 .chc.on{border-color:#6a4fc0;box-shadow:0 0 0 3px #6a4fc022}.adm22.dk .chc{background:#2a2636;border-color:#3a3548}
 .adm22 .chl h4 .sm{margin-left:auto}
 .adm22 .segs{display:inline-flex;gap:4px;flex-wrap:wrap}.adm22 .segs button,.adm22 button.sm{padding:5px 10px;font-size:12px;border-radius:10px}.adm22 .segs button.on,.adm22 button.on{background:#6a4fc0!important;color:#fff!important}
@@ -871,3 +871,8 @@ body.uiedit #world{filter:saturate(.6) brightness(.85)}
 #uiEditBar span{color:#d8cfe4;font-size:12px}#uiEditBar button{border:0;border-radius:10px;padding:6px 12px;font-weight:800;cursor:pointer;background:#fff;color:#3b3346}#uiEditBar button.ok{background:#ff8a4c;color:#fff}
 /* v25 특별 칭호 */
 .sptl{display:inline-block;border-radius:8px;padding:0 7px;font-weight:800;line-height:1.5}
+/* v26 낚싯대 등급 배지 · 단계 올리기 */
+.rgb{display:inline-block;font-size:10.5px;font-weight:800;line-height:16px;padding:0 6px;border-radius:8px;color:#fff;background:var(--rc);vertical-align:1px}
+.rgb.tx{background:linear-gradient(90deg,#ff2d8a,#ff9a3c,#7a5cff,#ff2d8a);background-size:200% 100%;animation:rgbtx 3s linear infinite}@keyframes rgbtx{to{background-position:200% 0}}
+.uprow{margin:6px 0 10px;padding:8px 10px;border-radius:12px;background:#fff7ec;border:1px solid #f0dcc0}.uprow .upbtns{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:6px;margin-top:6px}
+.uprow button{display:flex;align-items:center;gap:6px;text-align:left;padding:5px 8px;font-size:12px;flex-wrap:wrap}.uprow button .sico{width:24px;height:24px}.uprow button small{margin-left:auto;color:#8a7a60}

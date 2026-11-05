@@ -48,7 +48,7 @@ SYS.dismantle=(D,S,maxTier)=>{const L=S.charms.filter(c=>c.tier<=maxTier&&!c.loc
 SYS.mods=(D,S,rod,bait)=>{const ch=SYS.charmSum(D,S),lv=rod.enh||0;
   return {ch,size:rod.size*bait.size*(1+lv*D.ENH.size)*(1+ch.big/100),wait:bait.speed*rod.speed*(1-lv*D.ENH.speed)*(1-ch.quick/100),
    sell:D.SHOP_SELL_RATE*(1+ch.merchant/100)*(1+(rod.coin||0)),box:SYS.boxChance(D,ch)*(1+(rod.box||0))};};
-SYS.progress=(D,S,rod)=>{const G=D.GATE;if(!G)return 1;const ri=Math.max(0,D.RODS.findIndex(r=>r.k===rod.k)),rr=ri/(D.RODS.length-1);return Math.min(1,G.wRod*rr+G.wEnh*Math.min(1,(rod.enh||0)/10)+G.wCaught*Math.min(1,(S.caught||0)/G.caughtMax));};
+SYS.progress=(D,S,rod)=>{const G=D.GATE;if(!G)return 1;const ri=Math.max(0,D.RODS.findIndex(r=>r.k===rod.k)),rr=Math.min(1,ri/Math.max(1,D.RODS.findIndex(r=>r.k==='dragon')))/* v26: 용왕 이후 낚싯대가 늘어도 진행도 기준 유지 */;return Math.min(1,G.wRod*rr+G.wEnh*Math.min(1,(rod.enh||0)/10)+G.wCaught*Math.min(1,(S.caught||0)/G.caughtMax));};
 SYS.gateMul=(D,f,P)=>{const G=D.GATE;if(!G||!G.on)return 1;const fb=f.gb!=null?f.gb:f.base,e=fb>=G.hi.base?G.hi.e:fb>=G.mid.base?G.mid.e:1;return e+(1-e)*P;};
 SYS.weights=(D,S,rod,bait,night=0)=>{const ch=SYS.charmSum(D,S),N=night>.5,bb=bait.nightOnly&&!N?{}:bait.boost,P=SYS.progress(D,S,rod);return D.FISH.map(f=>{if(f.nightOnly&&!N)return 0;if(f.wx&&(S.__wx!==f.wx||(f.season&&S.__season!==f.season)))return 0;return SYS.gateMul(D,f,P)*f.w*(bb[f.k]||1)*(f.rare?(1+rod.luck*10)*(1+ch.luck/100):1)*(f.expert?1+ch.expert/100:1)*(N&&f.night?f.night:1);});};
 // 구버전 세이브 이관
@@ -71,7 +71,7 @@ SYS.charmSynth=(D,S,tier,rnd=Math.random)=>{const need=tier>=5?D.CHARM.synth.myt
 SYS.sizeRoll=(D,f,size,rnd=Math.random)=>{let cm=f.min-Math.log(1-rnd())*f.scale*size;const s0=f.soft;if(s0!=null&&cm>s0){const M=f.max-s0;cm=s0+M*(1-Math.exp(-(cm-s0)/M));}if(f.mythP!=null&&f.mythP<1&&cm>=f.g[3]&&rnd()>=f.mythP)cm=f.g[3]-.1-rnd()*.15*(f.g[3]-(f.soft||f.min));return Math.min(f.max,cm);};
 // v10 상자 낚싯대: 상위 낚싯대는 keep 확률을 통과해야 지급, 실패 시 한 단계 아래로
 SYS.boxRod=(D,tier,rnd=Math.random)=>{const pl=D.BOX.rodPool[tier];let k=pl[Math.floor(rnd()*pl.length)];const K=D.BOX.rodKeep||{},ord=D.RODS.map(r=>r.k);
-  for(let i=0;i<8&&K[k]!=null&&rnd()>=K[k];i++){const lower=ord.slice(0,ord.indexOf(k)).filter(x=>K[x]==null||x!==k);k=K[k+'_fb']||lower[lower.length-1];}return k;};
+  for(let i=0;i<8&&K[k]!=null&&rnd()>=K[k];i++){const lower=ord.slice(0,ord.indexOf(k)).filter(x=>K[x]==null||x!==k);k=K[k+'_fb']||lower[lower.length-1];if(!pl.includes(k))break;/* v26: 풀 밖으로 한 번 내려가면 멈춤 */}return k;};
 
 // v10 수집 목표 판정
 SYS.goalProg=(D,S,g)=>{const dx=S.dex||{},hasG=(k,m)=>dx[k]&&dx[k].gr.some((v,i)=>v&&i>=m);
