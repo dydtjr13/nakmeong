@@ -886,3 +886,13 @@ body.uiedit .uiSel{outline:2px solid #2f8aff!important;outline-offset:2px}
 #uiEditBar{top:auto!important;bottom:86px}@media(max-width:699px){#uiEditBar{bottom:auto;top:46%!important}}
 body.uiedit .cutin[data-uin]{pointer-events:none!important}body.uiedit .cutin[data-uin] .band{pointer-events:auto!important}
 #uiEditBar{bottom:auto!important;top:150px!important}@media(max-width:699px){#uiEditBar{top:58%!important}}#uiEditBar>b{cursor:grab;user-select:none}
+/* v27 하단 메뉴 재배치 (body.mv27) · 후원 */
+body.mv27 #bDex .ml{display:none!important}
+#bBox .mi{display:flex!important;justify-content:center;align-items:center;height:28px}#mMain #bBox .bxi{width:36px!important;height:36px!important;max-width:none!important;max-height:none!important;object-fit:contain;margin:-4px 0}body.m3 #mMain #bBox .bxi{width:30px!important;height:30px!important;margin:-3px 0}
+body.m3.mv27 #mMain #bBox .bxi{width:22px;height:22px}
+@media(max-width:700px){body.m3.mv27 #mMain #bShop{right:117px;bottom:20px}body.m3.mv27 #mMain #bTank{right:110px;bottom:56px}body.m3.mv27 #mMain #bAutoFish{right:89px;bottom:87px}body.m3.mv27 #mMain #bBox{right:59px;bottom:107px}body.m3.mv27 #mMain #bBag{right:22px;bottom:115px}}
+@media(max-width:699px){body.m3.mv27 #mMain #bShop{right:86px;bottom:-18px}body.m3.mv27 #mMain #bTank{right:95px;bottom:30px}body.m3.mv27 #mMain #bAutoFish{right:74px;bottom:74px}body.m3.mv27 #mMain #bBox{right:30px;bottom:95px}body.m3.mv27 #mMain #bBag{right:-18px;bottom:86px}}
+#bDon.d3{width:auto!important;padding:0 10px 0 6px!important;display:flex;align-items:center;gap:5px;background:#fff!important;border:2px solid #e8c8a0!important;color:#8a5a3a!important}
+#bDon.d3 .dt{display:flex;flex-direction:column;line-height:1.05;font-size:11.5px;font-weight:900;text-align:left}#bDon.d3 .dt small{font-size:9px;color:#b08a6a;font-weight:700}
+#donM .donw{width:min(360px,92vw);text-align:center;position:relative}#donM .hd{font-size:19px;font-weight:900;margin:4px 0 6px}#donM .msg{line-height:1.6;font-size:13.5px}
+#donM .dready{background:#f7f1e6;border-radius:12px;padding:12px;font-size:13px;color:#7a6a58}#donM .dacct{background:#f7f1e6;border-radius:12px;padding:8px 12px;font-size:13px}#donM .dqr img{width:150px;border-radius:12px}#donM .ft{color:#9a90a6;font-size:11.5px}
