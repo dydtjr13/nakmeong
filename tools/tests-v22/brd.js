@@ -1,0 +1,2 @@
+const {chromium}=require('playwright-core');(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome'});const O='/workspace/nakmeong/mockups-v22/img/';
+for(const [v,w,h] of [[1,390,844],[2,390,844],[3,1440,560],[4,390,844],[5,390,844]]){const p=await b.newPage({viewport:{width:w,height:h},deviceScaleFactor:2});await p.goto('http://localhost:8787/mockups-v22/src/boards.html?v='+v);await p.waitForTimeout(500);await p.screenshot({path:O+'board-b'+v+'.jpg',quality:82});await p.close();}await b.close();})();

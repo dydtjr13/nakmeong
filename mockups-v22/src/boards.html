@@ -1,0 +1,90 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{box-sizing:border-box;margin:0}body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#f6efe4;color:#2e2a33;word-break:keep-all}
+.v{display:none}body[data-v="1"] .v1,body[data-v="2"] .v2,body[data-v="3"] .v3,body[data-v="4"] .v4,body[data-v="5"] .v5{display:block}
+.sheet{background:#fffaf3;border-radius:22px 22px 0 0;position:fixed;inset:70px 0 0;box-shadow:0 -6px 24px #0002;overflow:hidden;display:flex;flex-direction:column}
+.hd{display:flex;align-items:center;gap:8px;padding:16px 16px 8px;font:800 19px sans-serif}.hd .x{margin-left:auto;width:32px;height:32px;border-radius:50%;background:#f1e6d8;display:grid;place-items:center;font-size:15px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 14px 10px;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.tabs b{flex:none;padding:7px 13px;border-radius:999px;background:#f1e6d8;font-size:13px;font-weight:700;color:#6b5d50}.tabs b.on{background:#ff8a4c;color:#fff}
+.list{overflow:auto;flex:1;padding:0 12px 80px}.row{display:flex;gap:10px;align-items:flex-start;padding:12px 6px;border-bottom:1px solid #f0e4d4}
+.tag{flex:none;font-size:11px;font-weight:800;padding:3px 8px;border-radius:8px;margin-top:2px}.t0{background:#ffe1d2;color:#e2602a}.t1{background:#dcefff;color:#2f7fd0}.t2{background:#e6f6e6;color:#3a9a4a}.t3{background:#f3e5ff;color:#8a4fd0}.t4{background:#fff2c8;color:#b5870b}.t5{background:#ffe0e6;color:#d0405e}
+.tt{font-size:14.5px;font-weight:700;line-height:1.35}.mt{font-size:12px;color:#9a8b7c;margin-top:3px}.cm{color:#ff8a4c;font-weight:800;margin-left:4px}
+.pin{background:#fff3ea}.fab{position:fixed;right:18px;bottom:22px;background:#ff8a4c;color:#fff;font-weight:800;padding:13px 18px;border-radius:999px;box-shadow:0 6px 18px #ff8a4c66}
+.bg{position:fixed;inset:0;background:url(../img/auto-a0.jpg) center/cover;filter:brightness(.75)}
+/* v2 feed */
+.feed{overflow:auto;padding:4px 12px 80px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.fc{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px #0001}
+.fc .ph{height:120px;display:grid;place-items:center;background:linear-gradient(160deg,#d8f0ff,#aee0f5)}.fc .ph img{width:86%;}.fc .ph.g{background:linear-gradient(160deg,#fff1c6,#ffd27a)}.fc .ph.p{background:linear-gradient(160deg,#f2e1ff,#d3b2ff)}
+.fc .ib{padding:8px 10px 10px}.fc .nm{font-size:13.5px;font-weight:800}.fc .sz{font-size:12px;color:#6b5d50}.fc .lk{font-size:12px;color:#d0405e;font-weight:700;margin-top:4px}
+/* v3 pc */
+.pc{display:grid;grid-template-columns:220px 1fr 380px;height:100vh;gap:0}.nav{background:#fff3e6;padding:22px 14px;border-right:1px solid #f0e0cc}.nav h3{font-size:12px;color:#a8977f;margin:16px 8px 6px}
+.nav a{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;font-size:14px;font-weight:700;color:#5a4e44}.nav a.on{background:#ff8a4c;color:#fff}.nav a i{margin-left:auto;font-style:normal;font-size:11px;background:#ff5f5f;color:#fff;border-radius:9px;padding:1px 6px}.nav a.new{color:#2f7fd0}
+.mid{padding:22px;overflow:auto}.mid table{width:100%;border-collapse:collapse;font-size:14px}.mid th{font-size:12px;color:#a8977f;text-align:left;padding:8px;border-bottom:2px solid #f0e0cc}.mid td{padding:11px 8px;border-bottom:1px solid #f3e8da}
+.rt{background:#fff;border-left:1px solid #f0e0cc;padding:22px;overflow:auto}.rt h2{font-size:18px;margin:8px 0}.rt p{font-size:14px;line-height:1.65;color:#4a4048}.att{display:flex;gap:10px;align-items:center;background:#f2f9ff;border-radius:14px;padding:10px;margin:12px 0}.att img{width:90px}
+.cmt{border-top:1px solid #f0e4d4;padding:10px 0;font-size:13px}.cmt b{margin-right:6px}
+.srch{display:flex;gap:8px;margin-bottom:14px}.srch input{flex:1;height:38px;border-radius:10px;border:1.5px solid #ead9c4;padding:0 12px;background:#fffaf3}.btn{background:#ff8a4c;color:#fff;border-radius:10px;padding:9px 16px;font-weight:800;font-size:14px}
+/* v4 wood */
+.wood{position:fixed;left:50%;top:52%;transform:translate(-50%,-50%);width:350px;background:linear-gradient(#b5793f,#99602c);border-radius:14px;padding:16px 14px 18px;box-shadow:0 14px 30px #0006,inset 0 0 0 4px #7a4a1f}
+.wood h2{color:#fff4dc;text-align:center;font:900 20px sans-serif;text-shadow:0 2px 0 #6a3e15;margin-bottom:10px}
+.note{background:#fff7e3;border-radius:6px;padding:10px 12px;margin:8px 0;box-shadow:0 3px 6px #0003;position:relative;font-size:13.5px;font-weight:700}.note:before{content:'';position:absolute;top:-5px;left:50%;width:12px;height:12px;border-radius:50%;background:#e8483b;box-shadow:0 2px 2px #0004}
+.note small{display:block;font-weight:500;color:#9a8b7c;font-size:11.5px;margin-top:3px}.note:nth-child(odd){transform:rotate(-1.2deg)}.note:nth-child(even){transform:rotate(1deg)}
+.wtabs{display:flex;gap:5px;justify-content:center;margin-bottom:6px}.wtabs b{font-size:12px;padding:5px 9px;border-radius:7px;background:#7a4a1f;color:#ffe9c4}.wtabs b.on{background:#ffe9c4;color:#7a4a1f}
+/* v5 write */
+.fm{padding:6px 16px;display:flex;flex-direction:column;gap:12px;overflow:auto}.fm label{font-size:12.5px;font-weight:800;color:#8a7b6c}.inp{background:#fff;border:1.5px solid #ead9c4;border-radius:12px;padding:12px;font-size:15px;color:#2e2a33}.ta{height:130px;color:#b0a090}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chips b{padding:7px 12px;border-radius:999px;background:#f1e6d8;font-size:13px}.chips b.on{background:#2e2a33;color:#fff}
+.pick{display:flex;gap:8px}.pick div{flex:1;background:#fff;border:1.5px dashed #e3cdb2;border-radius:12px;padding:10px;text-align:center;font-size:12px;color:#8a7b6c}.pick img{width:70px;display:block;margin:0 auto 4px}
+.sub{background:#ff8a4c;color:#fff;text-align:center;border-radius:14px;padding:14px;font-weight:900;margin-top:4px}
+.note2{font-size:11.5px;color:#a8977f}
+</style></head><body data-v="1">
+<div class="v v1"><div class="bg"></div><div class="sheet"><div class="hd">📋 게시판<span class="x">✕</span></div>
+<div class="tabs"><b class="on">전체</b><b>📢 공지</b><b>🔔 업데이트</b><b>💬 자유</b><b>❓ 질문</b><b>🐟 자랑</b><b>🤝 거래</b><b>🐞 버그 제보</b></div>
+<div class="list">
+<div class="row pin"><span class="tag t0">공지</span><div><div class="tt">📌 11월 정기 점검 안내 (11/12 06:00~08:00)</div><div class="mt">운영자 · 11/05 · 조회 1,284</div></div></div>
+<div class="row pin"><span class="tag t1">업데이트</span><div><div class="tt">v22 업데이트: 낚싯대 등급 · 핀치 줌 · 새 레벨업 화면</div><div class="mt">운영자 · 11/05 · 조회 2,031<span class="cm">[48]</span></div></div></div>
+<div class="row"><span class="tag t5">자랑</span><div><div class="tt">드디어 전설 낚싯대 떴어요ㅠㅠ 기본옵션 112%</div><div class="mt">물멍러 · 5분 전<span class="cm">[12]</span></div></div></div>
+<div class="row"><span class="tag t3">질문</span><div><div class="tt">부적 교체 대상은 어떻게 고정하나요?</div><div class="mt">초보낚시꾼 · 12분 전 · ✅ 답변 완료<span class="cm">[3]</span></div></div></div>
+<div class="row"><span class="tag t2">자유</span><div><div class="tt">비 오는 날 밤 호수 분위기 진짜 좋네요</div><div class="mt">호수지기 · 25분 전<span class="cm">[7]</span></div></div></div>
+<div class="row"><span class="tag t4">거래</span><div><div class="tt">[삽니다] 행운 부적 ★3 이상 · 코인 2만</div><div class="mt">붕어왕 · 31분 전 · 🟢 거래중</div></div></div>
+<div class="row"><span class="tag t3">질문</span><div><div class="tt">자동 낚시는 몇 레벨부터 열려요?</div><div class="mt">새벽감성 · 1시간 전<span class="cm">[2]</span></div></div></div>
+<div class="row"><span class="tag t2">자유</span><div><div class="tt">채널 3 같이 낚시하실 분 🎣</div><div class="mt">잉어러버 · 1시간 전<span class="cm">[15]</span></div></div></div>
+</div><div class="fab">✏️ 글쓰기</div></div></div>
+
+<div class="v v2"><div class="bg"></div><div class="sheet"><div class="hd">🐟 자랑 게시판<span class="x">✕</span></div>
+<div class="tabs"><b class="on">🔥 인기</b><b>최신</b><b>이번 주 대어</b><b>전설 이상</b><b>내 글</b></div>
+<div class="feed">
+<div class="fc"><div class="ph g"><img src="../../img/fish/catfish.png"></div><div class="ib"><div class="nm">메기 · <span style="color:#e2a00b">전설</span></div><div class="sz">128.4cm · 호수 북쪽</div><div class="lk">❤️ 214 · 💬 31</div></div></div>
+<div class="fc"><div class="ph p"><img src="../../img/fish/eel.png"></div><div class="ib"><div class="nm">뱀장어 · <span style="color:#8a4fd0">영웅</span></div><div class="sz">96.0cm · 다리 아래</div><div class="lk">❤️ 152 · 💬 18</div></div></div>
+<div class="fc"><div class="ph"><img src="../../img/fish/bass.png"></div><div class="ib"><div class="nm">배스 · <span style="color:#2f7fd0">희귀</span></div><div class="sz">61.2cm · 선착장</div><div class="lk">❤️ 87 · 💬 9</div></div></div>
+<div class="fc"><div class="ph"><img src="../../img/fish/carp.png"></div><div class="ib"><div class="nm">잉어 · <span style="color:#2f7fd0">희귀</span></div><div class="sz">74.8cm · 갈대밭</div><div class="lk">❤️ 63 · 💬 4</div></div></div>
+<div class="fc"><div class="ph g"><img src="../../img/fish/kkeokji.png"></div><div class="ib"><div class="nm">꺽지 · <span style="color:#e2a00b">전설</span></div><div class="sz">41.0cm · 바위섬</div><div class="lk">❤️ 58 · 💬 6</div></div></div>
+<div class="fc"><div class="ph"><img src="../../img/fish/bluegill.png"></div><div class="ib"><div class="nm">블루길 · 일반</div><div class="sz">22.1cm · 첫 낚시 기념!</div><div class="lk">❤️ 41 · 💬 12</div></div></div>
+</div><div class="fab">📸 잡은 물고기 자랑</div></div></div>
+
+<div class="v v3"><div class="pc"><div class="nav"><div style="font:900 20px sans-serif;padding:0 8px">🎣 낚멍 게시판</div>
+<h3>기본 게시판</h3><a>📢 공지<i>2</i></a><a>🔔 업데이트</a><a class="on">💬 자유</a><a>❓ 질문</a>
+<h3>추천 추가 게시판</h3><a class="new">🐟 자랑 (대어 인증)</a><a class="new">🤝 거래 (부적·낚싯대)</a><a class="new">📚 공략·팁</a><a class="new">🐞 버그 제보</a><a class="new">💡 건의</a><a class="new">🎉 이벤트</a><a class="new">👥 채널 모집</a></div>
+<div class="mid"><div class="srch"><input placeholder="제목·내용·닉네임 검색"><span class="btn">✏️ 글쓰기</span></div>
+<table><tr><th style="width:70px">말머리</th><th>제목</th><th style="width:100px">글쓴이</th><th style="width:70px">날짜</th><th style="width:50px">추천</th></tr>
+<tr style="background:#fff3ea"><td><span class="tag t0">공지</span></td><td><b>자유게시판 이용 규칙 (거래·욕설 금지)</b></td><td>운영자</td><td>11/01</td><td>-</td></tr>
+<tr><td><span class="tag t2">잡담</span></td><td>비 오는 날 밤 호수 분위기 진짜 좋네요 <span class="cm">[7]</span></td><td>호수지기</td><td>13:02</td><td>24</td></tr>
+<tr><td><span class="tag t2">잡담</span></td><td>채널 3 같이 낚시하실 분 🎣 <span class="cm">[15]</span></td><td>잉어러버</td><td>12:40</td><td>11</td></tr>
+<tr><td><span class="tag t3">정보</span></td><td>안개 낀 새벽에 전설 확률 체감상 높은 듯 <span class="cm">[22]</span></td><td>새벽감성</td><td>11:58</td><td>53</td></tr>
+<tr><td><span class="tag t2">잡담</span></td><td>헤드폰 소녀 캐릭터 너무 귀엽다 <span class="cm">[4]</span></td><td>물멍러</td><td>11:20</td><td>9</td></tr>
+<tr><td><span class="tag t3">정보</span></td><td>Lv.30 보상 길 정리 (챕터별 핵심만) <span class="cm">[18]</span></td><td>붕어왕</td><td>10:47</td><td>61</td></tr>
+<tr><td><span class="tag t2">잡담</span></td><td>오늘 낚시 3시간 했더니 도감 80% 달성 <span class="cm">[6]</span></td><td>초보낚시꾼</td><td>10:12</td><td>14</td></tr>
+</table></div>
+<div class="rt"><span class="tag t3">정보</span><h2>안개 낀 새벽에 전설 확률 체감상 높은 듯</h2><div class="mt">새벽감성 · 11:58 · 조회 412 · 추천 53</div>
+<div class="att"><img src="../../img/fish/catfish.png"><div><b>메기 · 전설</b><div class="mt">128.4cm · 🪙 12,400 · 첨부된 낚시 기록</div></div></div>
+<p>새벽 4~6시 안개 날씨에 북쪽 포인트에서 30분 동안 전설 2마리 나왔어요. 행운 부적 ★3 두 개 끼고 했습니다.</p>
+<div class="cmt"><b>붕어왕</b>오 저도 오늘 해봐야겠네요</div><div class="cmt"><b>운영자</b>날씨별 확률은 동일하지만 안개 이벤트 기간에는 +10% 맞습니다 🙂</div></div></div></div>
+
+<div class="v v4"><div class="bg" style="filter:brightness(.6)"></div><div class="wood"><h2>📌 호숫가 게시판</h2><div class="wtabs"><b class="on">공지</b><b>업데이트</b><b>자유</b><b>질문</b><b>자랑</b></div>
+<div class="note">📢 11월 정기 점검 (11/12 06:00)<small>운영자 · 오늘</small></div><div class="note">🔔 v22: 낚싯대 등급이 생겼어요!<small>운영자 · 오늘 · 💬 48</small></div><div class="note">🎉 주말 코인 2배 이벤트 (토·일)<small>운영자 · 어제</small></div><div class="note">❓ 부적 교체 대상 고정 방법<small>초보낚시꾼 · ✅ 답변 완료</small></div>
+<div style="text-align:center;color:#ffe9c4;font-size:12px;margin-top:10px">선착장 게시판 앞에서 <b>E</b> / 탭으로 열기 · 전체 보기 ›</div></div></div>
+
+<div class="v v5"><div class="bg"></div><div class="sheet"><div class="hd">✏️ 글쓰기<span class="x">✕</span></div><div class="fm">
+<label>게시판</label><div class="chips"><b>💬 자유</b><b class="on">❓ 질문</b><b>🐟 자랑</b><b>🤝 거래</b><b>🐞 버그</b></div>
+<label>제목</label><div class="inp">부적 교체 대상은 어떻게 고정하나요?</div>
+<label>내용</label><div class="inp ta">부적 슬롯이 다 찼을 때 새 부적을 끼면 자동으로 바뀌는데…</div>
+<label>첨부 (선택)</label><div class="pick"><div><img src="../../img/fish/carp.png">내 물고기 기록</div><div style="padding-top:28px">🖼️ 스크린샷</div><div style="padding-top:28px">🎒 내 장비</div></div>
+<div class="note2">※ 거래 글은 거래 게시판에만 · 욕설·도배는 운영 정책에 따라 제재돼요</div><div class="sub">등록하기</div></div></div></div>
+<script>document.body.dataset.v=new URLSearchParams(location.search).get('v')||1</script></body></html>

@@ -1,0 +1,123 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v22 보고서 (2026-11-05)</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>낚멍 v22 보고서 (2026-11-05)</h1>
+<h2>1. 게임에 적용</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>내용</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>이동 속도</td>
+<td>일반 유저는 레벨에 따라 자동 상승 (Lv1 +35% → Lv99 +65%). 설정에는 현재 값만 글자로 표시. +0~100% 수동 조절은 <code>?admin</code>에서만</td>
+</tr>
+<tr>
+<td>2</td>
+<td>낚싯대 랜덤 기본옵션 + 등급</td>
+<td>사거나 얻을 때 기본옵션 85~115% 랜덤. 등급 6단계: 일반 35% · 고급 30% · 희귀 18% · 영웅 10% · 전설 5% · 신화 2% (어느 낚싯대든 비율 같음, 4,000회 시뮬레이션). v22 이전 낚싯대는 100% 그대로</td>
+</tr>
+<tr>
+<td>3</td>
+<td>부적 교체 대상</td>
+<td>슬롯을 누르면 📌 고정. 다른 부적을 골라도 바뀌지 않음</td>
+</tr>
+<tr>
+<td>4</td>
+<td>모바일 시작 화면 탭</td>
+<td>닉네임·서버·캐릭터 탭 누르면 이동</td>
+</tr>
+<tr>
+<td>5</td>
+<td>모바일 채팅 배지</td>
+<td>9개를 넘으면 9+ 유지</td>
+</tr>
+<tr>
+<td>6~9</td>
+<td>기본값</td>
+<td>레벨업 LU3 · 보상 길 RD3 · PC HUD HP1 · 모바일 HUD HM2 (메뉴는 선물 오른쪽). 설정에서 모두 바꿀 수 있음</td>
+</tr>
+<tr>
+<td>10</td>
+<td>모바일 핀치 줌</td>
+<td>두 손가락으로 확대·축소</td>
+</tr>
+</tbody>
+</table>
+<h3>관리자 모드 (<code>?admin</code>)</h3>
+<ul>
+<li><strong>대시보드:</strong> 서버 지표만 보여줘요. 동접, 일일 접속자, 평균 접속 시간, 최고 동접, 기기 비율, 채널별 인원(누르면 그 채널 유저 목록).</li>
+<li><strong>유저 관리:</strong> 서버별 보기, 닉네임 검색, 수량 지정 지급, 채팅 금지(분), 정지(분). 정지가 강퇴를 대신해요.</li>
+<li><strong>아이템 복구:</strong> 판매·분해·합성 로그와 스냅샷 비교로 복구해요. 판매 금액을 되돌릴지 선택할 수 있어요.</li>
+<li><strong>운영자:</strong> 검색 → 선택 → 권한 설정 → 등록 순서예요. 권한은 11개이고, 역할 프리셋은 4개(최고관리자·운영자·CS 상담·모니터)예요.</li>
+<li><strong>시간·날씨:</strong> 간격을 넓히고 옵션을 늘렸어요. 날씨는 지속 시간(분)을 정할 수 있어요.</li>
+<li><strong>맵:</strong> 간격을 넓혔고, 올려 두면 미리보기가 떠요.</li>
+<li><strong>덱:</strong> 1자리 20/30, 2자리 20/25/30 옵션을 넣었고, 올려 두면 미리보기가 떠요.</li>
+<li><strong>밸런스:</strong> 항목마다 ↺(이전 값) 버튼이 있고, 잘못된 값은 표시돼요. 저장 전에 이전 값 → 새 값 확인 창이 떠요.</li>
+<li><strong>이벤트:</strong> 시작·끝 시간, 서버별 일괄 선물, 수량 직접 입력.</li>
+<li><strong>서버 공지:</strong> 화면에 띄울 시간(분)을 정할 수 있고, 내역 목록이 남아요.</li>
+</ul>
+<h2>2. 시안 (mockups-v22/index.html)</h2>
+<ul>
+<li><strong>자동 낚시 버튼:</strong> A0~A4. 추천은 <strong>A4 큰 반원</strong>이에요. 버튼 간격을 50px 넘게 벌려서 겹침이 없어요.</li>
+<li><strong>날씨 vs 낚시 카드:</strong> W0~W4.</li>
+<li>원인은 날씨 캔버스가 HUD 위에 그려지는 것이에요.</li>
+<li>추천은 <strong>W1(HUD를 날씨 위로)</strong>이에요. z-index 한 줄만 고치면 되고 성능 부담이 없어요.</li>
+<li><strong>모바일 줄바꿈·잘림:</strong> 문제 6개를 찾았어요(가방·상점·설정·레벨 챕터 탭이 꺾이거나 잘림, 기본 입력창, 단어 중간 끊김).</li>
+<li>개선 CSS(<code>src/wrap-fix.css</code>)를 적용하기 전과 후를 비교해 뒀어요.</li>
+<li><strong>게시판:</strong> B1~B5를 만들었어요. 추가 게시판으로 자랑·거래·버그 제보·공략·건의·채널 모집·이벤트를 제안해요.</li>
+</ul>
+<h2>3. 관리자 개선 제안</h2>
+<p><strong>대시보드</strong>
+- 개선: 지금은 이 브라우저 기준 수치와 예시 채널이에요. 서버 집계 API로 바꿔야 실제 지표가 돼요.
+- 추가: 매출·재화 흐름(코인 생성/소모), 신규 가입 대비 이탈률(D1/D7), 오류 로그 건수, 신고 건수.
+- 제거: 기기 비율은 자주 보지 않으니 접어 두기로 충분해요.</p>
+<p><strong>전체 점검</strong>
+- 모든 조치(정지·지급·복구·밸런스)에 대한 <strong>관리자 작업 로그</strong>가 필요해요. 누가, 언제, 무엇을 했는지 남겨야 해요.
+- <strong>2단계 확인:</strong> 큰 수량 지급이나 서버 전체 선물을 보낼 때 수량을 다시 입력하게 해요.
+- <strong>권한별 숨김:</strong> 운영자 권한에 없는 탭과 버튼은 아예 숨기면 실수가 줄어요.
+- <strong>밸런스 버전 관리:</strong> 지금은 이전 값 1개만 남아요. 이력 목록을 두고 원하는 버전으로 되돌릴 수 있게 해요.
+- <strong>예약 기능:</strong> 공지·이벤트를 예약 등록할 수 있게 해요. 지금은 '지금부터'만 가능해요.</p>
+<h2>4. 품질 검토 (알아 두실 점)</h2>
+<ul>
+<li>다른 채널 유저, 로그, 정지·채팅 금지는 <strong>이 브라우저(localStorage)에만</strong> 저장돼요. 실제 운영하려면 서버가 필요해요.</li>
+<li>설정의 '테스트' 항목(날씨 강제 등)이 일반 유저에게도 보여요. 다음에 <code>?admin</code>으로 옮기는 걸 권해요.</li>
+<li>덱 미리보기는 위에서 본 렌더 이미지라 실제 화면과 각도가 달라요.</li>
+<li>게시판은 서버(DB·로그인·신고)가 필요해서 시안만 만들었어요.</li>
+</ul>
+<h2>5. 테스트 (2026-11-05 KST)</h2>
+<table>
+<thead>
+<tr>
+<th>테스트</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>t18b · t19</td>
+<td>PASS (bad 없음)</td>
+</tr>
+<tr>
+<td>t30 (화면 점검)</td>
+<td>통과: 메뉴를 연 채 자동 낚시 → 잡힘 158→159, 다시 던짐 확인. 테스트 PC(소프트웨어 렌더링, 약 6fps)에서는 60초 안에 입질이 안 올 수 있어 입질 시간을 당겨서 확인했어요. v21도 fps가 같아요 (6.2 vs 6.4)</td>
+</tr>
+<tr>
+<td>t31 PC · 390×844</td>
+<td>PASS</td>
+</tr>
+<tr>
+<td>t32 · t33 · t34</td>
+<td>PASS (에러 0)</td>
+</tr>
+</tbody>
+</table></main></body></html>

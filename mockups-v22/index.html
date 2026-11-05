@@ -1,0 +1,36 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v22 시안 모음</title><link rel="stylesheet" href="common.css"><style>
+.sec{background:#fff;border-radius:18px;padding:18px 20px;margin:18px 0;box-shadow:0 4px 18px #4a405814}.sec h2{margin:0 0 6px}.no{display:inline-block;background:#6a4fc0;color:#fff;border-radius:10px;padding:2px 9px;font-size:13px;margin-right:6px}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;margin-top:10px}.gal.m{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}figure{margin:0}figure img{width:100%;border-radius:10px;display:block;box-shadow:0 2px 8px #0002;cursor:zoom-in}figcaption{font-size:12.5px;color:#6a6076;margin-top:5px;line-height:1.4}
+p,li,td{font-size:14px;color:#4a4058;line-height:1.5}table{border-collapse:collapse;width:100%}td,th{border-bottom:1px solid #eee4d8;padding:6px 10px;text-align:left;font-size:13.5px;vertical-align:top}th{background:#f7f1e6}.rec{display:inline-block;background:#e6f6e6;color:#2f8a3f;border-radius:8px;padding:0 7px;font-weight:800;font-size:12px}
+</style></head><body><div class="wrap" style="max-width:1200px;margin:auto;padding:16px"><h1>낚멍 v22 시안 모음</h1><p>이미지를 누르면 크게 볼 수 있어요 (←/→, ESC). 1번만 게임에 적용됐고, 2~5번은 시안이에요. 시안 2~4는 실제 게임 화면(390×844)에 CSS만 바꿔 찍은 거라 그대로 옮길 수 있어요.</p>
+<div class="sec"><h2><span class="no">1</span>적용 화면 (v22 게임)</h2><div class="gal" id="gA"></div></div>
+<div class="sec"><h2><span class="no">2</span>모바일 자동 낚시 버튼 위치</h2><p>지금(A0)은 자동 버튼이 가방·도감 버튼 사이에 끼어 겹쳐요. 손가락 크기(44px)가 서로 겹치지 않게 다시 배치했어요.</p><div class="gal m" id="gB"></div>
+<table style="margin-top:10px"><tr><th>시안</th><th>장점</th><th>단점</th></tr><tr><td>A1 낚시 버튼 위 알약</td><td>낚시와 바로 연결되는 위치, 켜짐 상태가 잘 보임</td><td>낚시 버튼 위쪽 여백이 줄어듦</td></tr><tr><td>A2 왼쪽 위 (채팅 아래)</td><td>오른손 영역이 넓어짐</td><td>자주 누르기엔 멀어요</td></tr><tr><td>A3 조이스틱 위</td><td>자동 중엔 조이스틱을 안 써서 자연스러움</td><td>조이스틱을 쓸 때 실수로 눌릴 수 있음</td></tr><tr><td>A4 큰 반원 재배치 <span class="rec">추천</span></td><td>모양은 지금 그대로, 간격만 50px 이상 벌림</td><td>버튼 묶음이 화면 가운데 쪽으로 조금 올라옴</td></tr></table></div>
+<div class="sec"><h2><span class="no">3</span>날씨 효과가 낚시 카드를 가리는 문제</h2><p>원인: 날씨 캔버스(#wxCv)가 z-index 1로 HUD 전체 위에 그려져서 눈·비·꽃잎이 카드 위로 지나가요. 모두 HUD를 날씨보다 위로 올리는 것(한 줄 수정)부터 시작해요.</p><div class="gal m" id="gW"></div>
+<table style="margin-top:10px"><tr><th>시안</th><th>내용</th></tr><tr><td>W0</td><td>지금: 눈송이가 카드 위로 지나감</td></tr><tr><td>W1 <span class="rec">추천</span></td><td>HUD를 날씨 위로 (z-index만 바꿈). 성능 부담 0</td></tr><tr><td>W2</td><td>W1 + 카드가 떠 있는 동안 날씨를 22%로 흐리게</td></tr><tr><td>W3</td><td>카드를 화면 아래쪽(캐릭터 위)으로 내림</td></tr><tr><td>W4</td><td>W1 + 카드 뒤 은은한 어둠 + 날씨 알림 카드 잠깐 숨김</td></tr></table></div>
+<div class="sec"><h2><span class="no">4</span>모바일 줄바꿈 · 잘림 점검 (360×740)</h2>
+<table><tr><th>#</th><th>화면</th><th>문제</th><th>개선</th></tr>
+<tr><td>1</td><td>가방 탭</td><td>탭 4개가 2줄로 꺾이고 숫자 배지가 아이콘을 덮음</td><td>한 줄 가로 스크롤 탭 + 오른쪽 끝 흐림 처리(더 있다는 표시), 배지는 아이콘 바깥 오른쪽 위로</td></tr>
+<tr><td>2</td><td>상점 탭</td><td>탭 5개가 2줄 (밸런스표만 아래로 떨어짐)</td><td>같은 가로 스크롤 탭</td></tr>
+<tr><td>3</td><td>설정 탭</td><td>네 번째 탭이 잘려 보이는데 넘길 수 있다는 표시가 없음</td><td>가로 스크롤 + 끝 흐림, 글자 13px</td></tr>
+<tr><td>4</td><td>설정 · 닉네임 입력</td><td>기본 입력창(작고 각진 모양)이라 다른 UI와 어울리지 않음, 확대 줌 발생(16px 미만)</td><td>높이 42px · 둥근 모서리 · 16px 글자 (iOS 자동 확대 방지)</td></tr>
+<tr><td>5</td><td>레벨 챕터 (RD3)</td><td>챕터 탭 10개가 3줄로 쌓여 카드가 아래로 밀림 / 보상 이름이 '…'으로 잘림</td><td>챕터 탭 한 줄 스크롤, 보상 이름은 2줄까지 줄바꿈</td></tr>
+<tr><td>6</td><td>모든 창</td><td>한국어 단어가 중간에서 끊김 (예: '확률로 획 / 득')</td><td>word-break: keep-all (단어 단위 줄바꿈)</td></tr>
+</table><div class="gal m" id="gT"></div><p>개선 CSS: <a href="src/wrap-fix.css">src/wrap-fix.css</a> (모바일 700px 이하에만 적용, 25줄 남짓)</p></div>
+<div class="sec"><h2><span class="no">5</span>게시판 (공지 · 업데이트 · 자유 · 질문 + 추천 추가)</h2><div class="gal m" id="gK"></div><div class="gal"><figure><img src="img/board-b3.jpg" alt="B3 PC 3단형"><figcaption>B3 PC 3단형: 게시판 목록 · 글 목록 · 글 보기 한 화면</figcaption></figure></div>
+<table style="margin-top:10px"><tr><th>추가 게시판</th><th>왜 필요한가</th><th>운영 포인트</th></tr>
+<tr><td>🐟 자랑 (대어 인증)</td><td>잡은 물고기 기록을 그대로 첨부 → 조작 없는 인증, 재방문 동기</td><td>주간 인기글 → 공지에 소개</td></tr>
+<tr><td>🤝 거래</td><td>부적·낚싯대 등급이 생겨 거래 수요가 생김. 자유게시판 도배 방지</td><td>[삽니다]/[팝니다] 말머리, 거래완료 표시</td></tr>
+<tr><td>🐞 버그 제보</td><td>기기·브라우저 정보를 자동 첨부해 재현이 쉬움</td><td>처리 상태(접수/확인/수정됨) 표시</td></tr>
+<tr><td>📚 공략·팁</td><td>질문 게시판의 반복 질문 줄임</td><td>추천 많은 글은 고정</td></tr>
+<tr><td>💡 건의</td><td>업데이트 방향 수집</td><td>운영자 답변 달린 글만 따로 보기</td></tr>
+<tr><td>👥 채널 모집 · 🎉 이벤트</td><td>같이 낚시할 사람 찾기 / 이벤트 참여 인증</td><td>이벤트 기간에만 열기</td></tr></table>
+<p>추천: <b>B1(모바일 탭 목록) + B3(PC 3단)</b>을 기본으로, 자랑 게시판만 B2 카드형. B4(선착장 나무 게시판)는 공지 3~4개만 보여주는 입구로 쓰면 분위기가 살아요. 실제 운영은 서버(DB·로그인·신고)가 필요해서 지금은 시안만 만들었어요.</p></div>
+</div><script>
+const N={'bag-box':'가방','shop':'상점','set':'설정','road':'레벨 챕터'};const G={gA:[['applied/levelup-LU3','LU3 기본 레벨업'],['applied/levelup-LU1','LU1'],['applied/levelup-LU2','LU2'],['applied/levelup-LU4','LU4'],['applied/road-RD3','RD3 기본 보상 길'],['applied/road-RD1','RD1'],['applied/road-RD2','RD2'],['applied/road-RD4','RD4'],['applied/hud-HP1','HP1 기본 PC HUD'],['applied/hud-HP2','HP2'],['applied/hud-HP3','HP3'],['applied/m-hud-HM2','HM2 기본 모바일 HUD'],['applied/m-hud-HM2-menu','HM2 메뉴(선물 오른쪽)'],['applied/m-start-tabs','모바일 시작 탭 클릭'],['applied/bag-rod-grade','낚싯대 등급 · 기본옵션 %'],['applied/bag-charm-pin','부적 교체 대상 고정'],['applied/admin-dash','관리자 대시보드'],['applied/admin-user','유저 관리 (정지·채팅 금지·지급)'],['applied/admin-recover','아이템 복구'],['applied/admin-op','운영자 권한'],['applied/admin-time','시간·날씨'],['applied/admin-map-hover','맵 미리보기'],['applied/admin-deck-hover','덱 미리보기'],['applied/admin-balance-confirm','밸런스 저장 확인'],['applied/admin-event','이벤트 기간·서버별 선물'],['applied/admin-notice','서버 공지 시간·내역']],
+gB:[['img/auto-a0','A0 지금 (겹침)'],['img/auto-a1','A1 낚시 버튼 위 알약'],['img/auto-a2','A2 왼쪽 위'],['img/auto-a3','A3 조이스틱 위'],['img/auto-a4','A4 큰 반원 (추천)']],
+gW:[['img/wx-w0','W0 지금'],['img/wx-w1','W1 HUD 위로 (추천)'],['img/wx-w2','W2 날씨 흐리게'],['img/wx-w3','W3 카드 아래로'],['img/wx-w4','W4 어둠 + 알림 숨김']],
+gT:['bag-box','shop','set','road'].flatMap(k=>[['img/wrap-'+k+'-before',N[k]+' 지금'],['img/wrap-'+k+'-after',N[k]+' 개선']]),
+gK:[['img/board-b1','B1 모바일 탭 목록'],['img/board-b2','B2 자랑 카드형'],['img/board-b4','B4 선착장 나무 게시판'],['img/board-b5','B5 글쓰기 (물고기 기록 첨부)']]};
+for(const id in G)document.getElementById(id).innerHTML=G[id].map(([f,c])=>`<figure><img src="${f}.jpg" alt="${c}" loading="lazy"><figcaption>${c}</figcaption></figure>`).join('');
+</script><script src="lb.js"></script><script>window.NK_EMOJI_BASE="../icons/emoji/";</script><script src="../emoji.js"></script></body></html>

@@ -3,11 +3,16 @@
 const SYS={};
 const R1=x=>Math.round(x*10)/10;
 SYS.gearOf=S=>(S.gear||[]).find(g=>g.id===S.rodId)||null;
-SYS.makeGear=(D,k,id,rnd=Math.random,tier)=>{const G=D.GEAR;tier=tier==null?(G.shopTier||1):tier;const qb=G.qBand?G.qBand[tier]:G.q;const g={id,k,tier,q:Math.round((qb[0]+(qb[1]-qb[0])*rnd())*1000)/1000,star:0,enh:0,extra:[],lock:false};for(let i=0;i<G.slots[k];i++)SYS.addExtra(D,g,rnd);return g;};
+SYS.makeGear=(D,k,id,rnd=Math.random,tier)=>{const G=D.GEAR;tier=tier==null?(G.shopTier||1):tier;const qb=G.qBand?G.qBand[tier]:G.q;const g={id,k,tier,q:Math.round((qb[0]+(qb[1]-qb[0])*rnd())*1000)/1000,star:0,enh:0,extra:[],lock:false};for(let i=0;i<G.slots[k];i++)SYS.addExtra(D,g,rnd);g.br=Math.round(rnd()*1000)/1000;SYS.gearGrade(D,g);return g;};
+// v22: 기본옵션 랜덤(표기 수치의 하한~상한) + 옵션 수치 합으로 등급(일반~신화)
+SYS.GRADES=[['일반','#9aa3ad'],['고급','#5fc48a'],['희귀','#4ea3ea'],['영웅','#a066e0'],['전설','#f4a62a'],['신화','#ef5f8f']];SYS.GRADE_CUT=[.35,.65,.83,.93,.98];
+SYS.bRange=D=>D.GEAR.bRange||[.85,1.15];SYS.baseMul=(D,g)=>{if(!g||g.br==null)return 1;const r=SYS.bRange(D);return r[0]+(r[1]-r[0])*g.br;};
+SYS.gearScore=(D,g)=>{const xb=D.GEAR.xBand?D.GEAR.xBand[g.tier==null?1:g.tier]:[.4,1],xs=g.extra.map(e=>{const mx=SYS.extraMax(D,g,e.k)||1;return Math.max(0,Math.min(1,(e.v/mx-xb[0])/((xb[1]-xb[0])||1)));}),br=g.br==null?.5:g.br;if(!xs.length)return br;const xr=xs.reduce((a,b)=>a+b,0)/xs.length,m=.6*br+.4*xr,sd=Math.sqrt((.36+.16/xs.length)/12),z=(m-.5)/sd,t=1/(1+.3275911*Math.abs(z)/Math.SQRT2),e=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-z*z/2);return .5*(1+Math.sign(z)*e);};
+SYS.gearGrade=(D,g)=>{if(g.gr==null){const s=SYS.gearScore(D,g);g.gr=SYS.GRADE_CUT.filter(c=>s>=c).length;}return g.gr;};
 SYS.slotCount=(D,g)=>D.GEAR.slots[g.k]+D.GEAR.starSlot.filter(s=>g.star>=s).length;
 SYS.extraMax=(D,g,ok)=>D.CHARM.opts[ok].cap*D.GEAR.mul[g.k];
 SYS.addExtra=(D,g,rnd=Math.random)=>{const pool=D.GEAR.pool.filter(k=>!g.extra.some(e=>e.k===k));if(!pool.length)return;const k=pool[Math.floor(rnd()*pool.length)];const xb=D.GEAR.xBand?D.GEAR.xBand[g.tier==null?1:g.tier]:[.4,1];g.extra.push({k,v:R1(SYS.extraMax(D,g,k)*(xb[0]+(xb[1]-xb[0])*rnd()))});};
-SYS.gearStats=(D,g)=>{const r=D.RODS.find(x=>x.k===(g?g.k:'bamboo')),m=g?(D.GEAR.fixedBase?1:g.q)*(1+D.GEAR.starBonus*g.star):1;
+SYS.gearStats=(D,g)=>{const r=D.RODS.find(x=>x.k===(g?g.k:'bamboo')),m=g?(D.GEAR.fixedBase?SYS.baseMul(D,g):g.q)*(1+D.GEAR.starBonus*g.star):1;
   const B=SYS.enhBonus(D,g?g.enh:0);return {k:r.k,n:r.n,id:g&&g.id,star:g?g.star:0,enh:g?g.enh:0,q:g?g.q:1,size:(1+(r.size-1)*m)*(1+B.size),speed:1-(1-r.speed)*m,luck:r.luck*m+B.luck,coin:(r.coin||0)*m+B.coin,box:(r.box||0)+B.box,price:r.price,bt:B};};
 // v11 강화 돌파 보너스(+5/+10/+15/+20 누적)
 SYS.enhBonus=(D,lv)=>{const o={size:0,luck:0,coin:0,box:0};((D.ENH&&D.ENH.bt)||[]).forEach(b=>{if(lv>=b.lv)for(const k in o)o[k]+=b[k]||0;});return o;};
@@ -39,7 +44,7 @@ SYS.synth=(D,S,tid,mid,rnd=Math.random)=>{const t=S.gear.find(g=>g.id===tid),m=S
   S.coins-=cost;S.gear=S.gear.filter(g=>g!==m);const before=SYS.slotCount(D,t);t.star++;t.q=Math.min(1.15,Math.round((Math.max(t.q,m.q)+.02)*1000)/1000);t.enh=Math.max(t.enh,m.enh);
   t.extra.forEach(e=>e.v=R1(Math.min(SYS.extraMax(D,t,e.k),e.v*G.starUp)));const added=SYS.slotCount(D,t)-before;for(let i=0;i<added;i++)SYS.addExtra(D,t,rnd);return {r:'ok',star:t.star,added};};
 SYS.dismantle=(D,S,maxTier)=>{const L=S.charms.filter(c=>c.tier<=maxTier&&!c.lock&&!S.equip.includes(c.id));let co=0,st=0;L.forEach(c=>{co+=D.CHARM.dismantle.coin[c.tier];st+=D.CHARM.dismantle.stone[c.tier];});
-  S.charms=S.charms.filter(c=>!L.includes(c));S.coins+=co;S.stones+=st;return {n:L.length,co,st};};
+  if(typeof ILOG_HOOK==='function')L.forEach(c=>ILOG_HOOK('dis','charm',c,D.CHARM.dismantle.coin[c.tier],{st:D.CHARM.dismantle.stone[c.tier]}));S.charms=S.charms.filter(c=>!L.includes(c));S.coins+=co;S.stones+=st;return {n:L.length,co,st};};
 SYS.mods=(D,S,rod,bait)=>{const ch=SYS.charmSum(D,S),lv=rod.enh||0;
   return {ch,size:rod.size*bait.size*(1+lv*D.ENH.size)*(1+ch.big/100),wait:bait.speed*rod.speed*(1-lv*D.ENH.speed)*(1-ch.quick/100),
    sell:D.SHOP_SELL_RATE*(1+ch.merchant/100)*(1+(rod.coin||0)),box:SYS.boxChance(D,ch)*(1+(rod.box||0))};};
