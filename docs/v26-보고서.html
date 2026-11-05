@@ -1,0 +1,342 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>피쉬레스트 v26 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>피쉬레스트 v26 보고서</h1>
+<ul>
+<li>게임: <a href="https://dydtjr13.github.io/nakmeong/nakmeong.html">https://dydtjr13.github.io/nakmeong/nakmeong.html</a></li>
+<li>시안 모음: <a href="https://dydtjr13.github.io/nakmeong/mockups-v26/">https://dydtjr13.github.io/nakmeong/mockups-v26/</a></li>
+<li>커밋: 6cdfabd(1 러버덕) · a1e04cc(2 날씨·이름표) · 31a9821(3 낚싯대) · e9e29f1(4 UI 편집) · fa5f3c0(5 시안) · 마지막 커밋은 배포 때 붙여요</li>
+</ul>
+<h2>1. 게임에 적용한 것</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>항목</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>러버덕</td>
+<td>오리가 하늘에서 떨어져서 물에 닿으면 <strong>첨벙</strong>(물결 고리, 물방울, 소리)해요. 그 뒤 호수 위를 돌아다니며 떠다녀요. 데크 끝 안쪽에서만 움직이고, 서로 부딪히지 않아요. <strong>설정 › 🦆 러버덕</strong>에서 켜고 끌 수 있고, 생성 간격(15초~5분, 기본 45초)과 최대 수(기본 8마리, 최대 30)를 고를 수 있어요. “지금 1마리” 버튼도 있어요. 30마리를 그려도 draw call은 3개뿐이에요.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>날씨 카드</td>
+<td>v24 크기로 되돌렸어요(PC 폭 196). <strong>왼쪽 라인만</strong> 위 창에 맞췄어요. PC는 낚시 정보 줄 왼쪽(10px)에, 모바일은 scale .82로 코인 알약 왼쪽(188px)에 맞췄어요.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>이름표</td>
+<td><strong>원인:</strong> 닉네임을 바꾸면 캐릭터를 새로 만드는데, 옛 캐릭터의 HTML 이름표(순위 메달)와 말풍선이 지워지지 않고 남아 있었어요. 남은 이름표는 화면 위치가 갱신되지 않아서, 카메라를 돌리면 캐릭터에서 떨어져 떠다니고 겹쳐 보였어요. 또 순위 이름표는 고른 칭호 대신 “호수의 왕” 같은 순위 칭호만 보여줬어요. <strong>수정:</strong> 캐릭터를 다시 만들 때 <code>dropChar()</code>로 스프라이트·순위 이름표·말풍선을 모두 지워요. 순위 이름표는 고른 칭호를 보여줘요(바뀌면 바로 다시 그려요). 순위가 없는 내 이름표에도 칭호를 작은 알약으로 붙였어요. <strong>테스트:</strong> 닉네임을 4번 바꾸고, 칭호를 바꾸고, 카메라를 6번 돌려도 내 이름표는 1개였어요. 칭호도 바로 바뀌었어요.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>낚싯대 L1~L4</td>
+<td>아래 2장을 봐 주세요. 아이콘은 v25 시안 그림의 흰 배경을 지워서 만들었어요(<code>tools/rodcut-v26.py</code>). 손에 드는 3D 모양도 4종을 추가했어요.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>10개 합성</td>
+<td>가방 › 장비·합성 탭 맨 위에 <strong>⬆ 단계 올리기</strong> 줄을 넣었어요(최소 기능). 황금 10개 → 별빛, 별빛 10 → 은하수, 은하수 10 → 용왕, 용왕 10 → 심해. 수수료는 5천 / 2만 / 5만 / 10만 코인이에요. 재료는 ★0·+0이고 잠금이나 장착 중이 아닌 것만 써요. 결과물의 기본옵션 품질은 재료 중 좋은 3개의 평균이에요. <strong>초월(천룡·화룡)은 합성으로 만들 수 없어요.</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>UI 편집 2차</td>
+<td>평소에 숨어 있는 알림의 <strong>테스트 사본</strong>을 띄워요: XP 알림, 레벨 알림, 토스트, 컷인, 튜토리얼, 운영자 공지, 이벤트 알림. 편집을 끝내면 사본은 사라지고, 실제 알림은 저장한 위치에 떠요. 단축키는 아래와 같아요. 저장 키는 v25와 같아서, v25에서 옮긴 위치가 그대로 이어져요.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>UI 편집 단축키</strong></p>
+<table>
+<thead>
+<tr>
+<th>조작</th>
+<th>동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>끌기</td>
+<td>자석 정렬(다른 창의 가장자리·가운데, 화면 가장자리·가운데, 6px). 붙을 때 분홍 정렬선이 보여요</td>
+</tr>
+<tr>
+<td>Shift + 끌기</td>
+<td>가로나 세로 한 방향으로 고정하고, 맞는 정렬선을 모두 보여줘요</td>
+</tr>
+<tr>
+<td>Ctrl(⌘) + 끌기</td>
+<td>자석을 끄고 자유롭게 미세 조정해요</td>
+</tr>
+<tr>
+<td>방향키 / Shift + 방향키</td>
+<td>1px / 10px씩 움직여요</td>
+</tr>
+<tr>
+<td>Ctrl + Z / Ctrl + S</td>
+<td>되돌리기 / 저장(브라우저 저장 창은 막아요)</td>
+</tr>
+<tr>
+<td>테두리에 마우스 올리기</td>
+<td>크기 조절 커서가 나와요. 비율을 지키며 60~160% 사이로 바꿔요(5% 단위, Ctrl을 누르면 자유롭게)</td>
+</tr>
+<tr>
+<td>편집 막대 제목 끌기</td>
+<td>편집 막대 자체를 옮겨요</td>
+</tr>
+</tbody>
+</table>
+<h2>2. 낚싯대 등급 · 상자 확률 · 초월 확률</h2>
+<table>
+<thead>
+<tr>
+<th>낚싯대</th>
+<th>등급</th>
+<th>빠른입질</th>
+<th>대어</th>
+<th>희귀어종</th>
+<th>랜덤 옵션</th>
+<th>초월 물고기</th>
+<th>착용 레벨</th>
+<th>얻는 곳</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>별빛</td>
+<td>별빛</td>
+<td>35%</td>
+<td>50%</td>
+<td>90%</td>
+<td>0</td>
+<td>0.0066%</td>
+<td>40</td>
+<td>희귀~신화 상자</td>
+</tr>
+<tr>
+<td><strong>L2 은하수</strong></td>
+<td><strong>은하 (새 등급)</strong></td>
+<td>40%</td>
+<td>55%</td>
+<td>95%</td>
+<td>1</td>
+<td>0.0066%</td>
+<td>48</td>
+<td>전설·신화 상자, 별빛 10개</td>
+</tr>
+<tr>
+<td>용왕</td>
+<td>용왕</td>
+<td>45%</td>
+<td>60%</td>
+<td>100%</td>
+<td>1</td>
+<td>0.0066%</td>
+<td>55</td>
+<td>신화 상자, 은하수 10개</td>
+</tr>
+<tr>
+<td><strong>L4 심해</strong></td>
+<td><strong>신화</strong></td>
+<td>50%</td>
+<td>70%</td>
+<td>110%</td>
+<td>2</td>
+<td><strong>0.066%</strong></td>
+<td>60</td>
+<td>신화 상자, 용왕 10개</td>
+</tr>
+<tr>
+<td><strong>L1 천룡</strong></td>
+<td><strong>초월</strong></td>
+<td>55%</td>
+<td>75%</td>
+<td>130%</td>
+<td>2</td>
+<td><strong>0.066%</strong></td>
+<td>65</td>
+<td>신화 상자만 (합성 불가)</td>
+</tr>
+<tr>
+<td><strong>L3 화룡</strong></td>
+<td><strong>초월</strong></td>
+<td>55%</td>
+<td>90%</td>
+<td>110%</td>
+<td>2</td>
+<td><strong>0.066%</strong></td>
+<td>65</td>
+<td>신화 상자만 (합성 불가)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>코드에 있던 실제 초월 확률:</strong> <code>D.TX.p = 0.000066</code> = 0.0066%(약 1/15,152). 행운 보정은 최대 ×1.8이에요.</li>
+<li>심해·천룡·화룡을 장착하면 기본 확률이 <strong>0.066%</strong>(10배)가 돼요(<code>D.TX.rodP</code>). 행운 보정(최대 ×1.8)은 그대로 적용돼요.</li>
+<li><strong>신화 상자에서 낚싯대가 나올 때(20만 번 굴림):</strong> 별빛 47.6%, 은하수 25.6%, 용왕 22.9%, 심해 2.0%, 천룡 1.0%, 화룡 1.0%.</li>
+<li><strong>전설 상자:</strong> 별빛 37%, 황금 30%, 상위 대체 20%, 은하수 11.8%.</li>
+<li>신화 상자는 전체 상자의 0.1%이고, 상자에서 낚싯대가 나올 확률은 25%예요. 그래서 천룡 하나는 상자 약 40만 개당 1개꼴이에요. <strong>아주 드물게</strong> 만들었어요.</li>
+<li>버그도 하나 고쳤어요. 신화 상자에서 낚싯대가 계속 아래 단계로 밀려 벚꽃까지 내려가던 문제예요. 이제는 상자 풀 밖으로 한 번만 내려가요.</li>
+<li>진행도 계산은 낚싯대가 늘어도 용왕을 100% 기준으로 유지해요.</li>
+</ul>
+<p><strong>초월 물고기 기대 마릿수</strong> (<code>tools/sim-tx-v26.js</code>. 캐스팅 수는 코드와 같은 식 3600/(4×입질대기+4)로 계산했어요. 자동낚시는 입질대기 ×1.25에 반응 0.9초를 더했어요.)</p>
+<table>
+<thead>
+<tr>
+<th>구성</th>
+<th>1회 확률</th>
+<th>직접 1시간</th>
+<th>직접 10시간</th>
+<th>자동 1시간</th>
+<th>자동 10시간</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>대나무 (비교, 450회/시)</td>
+<td>0.0066%</td>
+<td>0.03</td>
+<td>0.30</td>
+<td>0.02</td>
+<td>0.24</td>
+</tr>
+<tr>
+<td>용왕+10★3·전설부적 (비교)</td>
+<td>0.0119%</td>
+<td>0.08</td>
+<td>0.84</td>
+<td>0.07</td>
+<td>0.68</td>
+</tr>
+<tr>
+<td>심해+0 (632회/시)</td>
+<td>0.0997%</td>
+<td><strong>0.63</strong></td>
+<td><strong>6.3</strong></td>
+<td><strong>0.51</strong></td>
+<td><strong>5.1</strong></td>
+</tr>
+<tr>
+<td>천룡+0 (653회/시)</td>
+<td>0.1058%</td>
+<td><strong>0.69</strong></td>
+<td><strong>6.9</strong></td>
+<td><strong>0.56</strong></td>
+<td><strong>5.6</strong></td>
+</tr>
+<tr>
+<td>화룡+0 (650회/시)</td>
+<td>0.0999%</td>
+<td><strong>0.65</strong></td>
+<td><strong>6.5</strong></td>
+<td><strong>0.53</strong></td>
+<td><strong>5.3</strong></td>
+</tr>
+<tr>
+<td>천룡+10★5·신화부적 (최종)</td>
+<td>0.1188%</td>
+<td>0.91</td>
+<td>9.1</td>
+<td>0.74</td>
+<td>7.4</td>
+</tr>
+</tbody>
+</table>
+<p>→ 10시간이면 거의 확실하게(99~100%) 초월 물고기를 1마리 이상 잡아요. 의도보다 많다면 <code>D.TX.rodP</code>를 0.00033(5배)으로 낮추면 절반이 돼요.</p>
+<h2>3. 적용하지 않은 것과 이유</h2>
+<ul>
+<li><strong>10개 합성 정식 UI:</strong> 시안(9번)이 아직 정해지지 않았어요. 그래서 기존 자리에 진행 버튼만 넣었어요. v25 계획에 있던 “추가옵션 하나 골라서 물려받기”와 “강화석 50% 돌려주기”는 UI가 필요해서 빼고, 대신 <strong>★0·+0 재료만</strong> 받도록 해서 손해가 없게 했어요.</li>
+<li><strong>러버덕 라이선스 주의:</strong> JDSherbert “3D Rubber Duck Asset Pack”(itch.io)은 상업·비상업 이용이 가능하고, 작가 표기가 필수예요. 원본 파일은 저장소에 넣지 않았어요. 변환한 꼭짓점 데이터만 넣었어요(<code>duck-mesh-v26.js</code>, 파일 머리에 표기). 크레딧은 설정 화면과 README에 있어요. 다만 라이선스에 “사전 동의 없이 수정·재배포 금지” 문구가 있어요. 공개 저장소에 변환 데이터를 올리는 게 이 문구에 걸릴 <strong>위험이 조금 있어요.</strong> 걱정되면 작가에게 허락을 받거나, 직접 만든 로우폴리 오리로 바꿀 수 있어요(반나절 정도).</li>
+<li><strong>운영자 공지와 레벨 알림:</strong> 둘 다 화면 위쪽 가운데에 떠요. 동시에 뜨면 겹칠 수 있어요(기존 배치예요). 편집 모드에서 하나를 옮겨 저장하면 해결돼요.</li>
+</ul>
+<h2>4. 시안 (적용 안 함) — 추천</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>시안</th>
+<th>추천</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>7</td>
+<td>음악 부스 A 원목 부스·턴테이블 2대 / B 오두막형 / C 둥근 무대. 내 시작 위치를 12시, 모닥불을 6시로 놓고 3시 방향 호숫가에 실제로 배치해서 찍었어요.</td>
+<td><strong>A</strong> · 직접 만든 로우폴리라 저작권 문제가 없어요. CC0 대안: Grab3D Turntable, Innerscene Walnut Spin(둘 다 CC0, 약 1.3~1.4만 삼각형, 화풍이 사실적)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>하단 메뉴 M1/M2, 가방 B1(디아블로식)/B2, 상자 창 (PC·모바일)</td>
+<td>PC <strong>M1</strong>(도감은 오른쪽 위), 모바일 <strong>M1</strong>, 가방 <strong>B1</strong></td>
+</tr>
+<tr>
+<td>9</td>
+<td>합성 S1 모루형 / S2 단계 올리기 진행표 / S3 골라서 합성</td>
+<td><strong>S3 + S2</strong></td>
+</tr>
+<tr>
+<td>10</td>
+<td>후원 버튼 D1~D6</td>
+<td><strong>D3 커피 한 잔</strong> (조용한 쪽은 D5)</td>
+</tr>
+</tbody>
+</table>
+<h2>5. 겹침·정렬 점검 (PC 1280×720 · 모바일 390×844 스크린샷)</h2>
+<table>
+<thead>
+<tr>
+<th>새 요소</th>
+<th>PC</th>
+<th>모바일</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>날씨 카드</td>
+<td>왼쪽 10px = 낚시 정보 줄 왼쪽, 폭 196, 겹침 없음 ✅</td>
+<td>왼쪽 188px = 코인 알약 왼쪽, 폭 161(196×.82) ✅</td>
+</tr>
+<tr>
+<td>설정 🦆 줄</td>
+<td>카드 안에 들어가고 다른 줄과 같은 왼쪽 정렬 ✅</td>
+<td>줄바꿈해도 카드 밖으로 안 나감 ✅</td>
+</tr>
+<tr>
+<td>내 이름표 칭호 알약</td>
+<td>이름 바로 위, 말풍선(HTML)과 따로 떠요 ✅</td>
+<td>같음 ✅</td>
+</tr>
+<tr>
+<td>단계 올리기 줄·등급 배지</td>
+<td>가방 카드 안, 4칸 한 줄 ✅</td>
+<td>1열로 쌓이고 넘치지 않음 ✅</td>
+</tr>
+<tr>
+<td>UI 편집 막대</td>
+<td>위 150px 가운데: 상단 메뉴·튜토리얼·컷인과 안 겹치게 옮김(끌어서 이동 가능) ✅</td>
+<td>화면 58% 높이 ✅</td>
+</tr>
+<tr>
+<td>러버덕</td>
+<td>물 위에만 있고 데크·HUD와 상관없음 ✅</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h2>6. 테스트</h2>
+<ul>
+<li><code>tools/tests-v26/</code></li>
+<li>t40: 러버덕 낙하, 유영, 범위, 최대 수 — 통과</li>
+<li>t41: 이름표 반복 변경과 카메라 회전 — 통과</li>
+<li>t42: 날씨 카드 크기와 정렬 — 통과</li>
+<li>t43: 낚싯대 데이터, 상자 확률, 단계 올리기 — 통과</li>
+<li>t44: UI 편집 단축키, 테스트 사본, 저장 위치 적용 — 통과</li>
+<li>t45: 설정 줄 — 통과</li>
+<li>회귀 테스트: t33-v25(레벨, 해금, 토스트, 의자, 모닥불)와 t38 — 통과, 페이지 오류 0</li>
+</ul></main></body></html>
