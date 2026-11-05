@@ -1,0 +1,10 @@
+const {chromium}=require('playwright-core');(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const O='/workspace/nakmeong/mockups-v26/img/';
+const p=await b.newPage({viewport:{width:1280,height:720}});const errs=[];p.on('pageerror',e=>errs.push(e.message));await p.goto('http://localhost:8787/nakmeong.html');await p.evaluate(()=>{localStorage.clear();localStorage.setItem('nk_tut25',JSON.stringify({i:99,chk:1}));localStorage.setItem('nk_ui25',JSON.stringify({duckOn:0}));});await p.reload();await p.waitForFunction(()=>!document.getElementById('go').disabled,null,{timeout:180000});await p.evaluate(()=>document.getElementById('go').click());await p.waitForTimeout(2500);
+await p.addScriptTag({path:'/workspace/nakmeong/mockups-v26/src/booth-v26.js'});
+const info=await p.evaluate(()=>{const {THREE:T,scene}=NKV2,me=NKV2.me(),SH=NKV2.SH(),m=me.o.position,C={x:(m.x+SH.x)/2,z:(m.z+SH.z)/2},v={x:m.x-C.x,z:m.z-C.z},L=Math.hypot(v.x,v.z),f={x:v.x/L,z:v.z/L},R={x:-f.z,z:f.x};
+ window.__B={C,L,R,f,me:{x:m.x,z:m.z},SH};return window.__B;});
+for(const k of ['A','B','C']){await p.evaluate(k=>{const {THREE:T,scene}=NKV2,B=window.__B;if(window.__bm)scene.remove(window.__bm);const g=NK_BOOTH(T,k);const d=B.L*1.13;g.scale.setScalar(1.6);g.position.set(B.C.x+B.R.x*d,0,B.C.z+B.R.z*d);const ox=g.position.x-B.C.x,oz=g.position.z-B.C.z;g.lookAt(g.position.x+ox*.6+(B.me.x-g.position.x)*.4,0,g.position.z+oz*.6+(B.me.z-g.position.z)*.4);scene.add(g);window.__bm=g;
+  const me=NKV2.me();me.o.position.set(B.me.x,me.o.position.y,B.me.z);},k);await p.waitForTimeout(900);await p.screenshot({path:O+'booth-'+k+'-far.jpg',quality:80});
+ // 부스 앞까지 걸어간 장면
+ await p.evaluate(()=>{const me=NKV2.me(),g=window.__bm,f=new NKV2.THREE.Vector3(0,0,1).applyQuaternion(g.quaternion);me.o.position.set(g.position.x+f.x*8,me.o.position.y,g.position.z+f.z*8);me.dir=Math.atan2(-f.x,-f.z);});await p.waitForTimeout(1400);await p.screenshot({path:O+'booth-'+k+'-near.jpg',quality:80});}
+console.log(JSON.stringify(await p.evaluate(()=>window.__B)),errs);await b.close();})();
