@@ -1,0 +1,180 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>피쉬레스트 v27 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>피쉬레스트 v27 보고서</h1>
+<ul>
+<li>게임: <a href="https://dydtjr13.github.io/nakmeong/nakmeong.html">https://dydtjr13.github.io/nakmeong/nakmeong.html</a></li>
+<li>시안 모음: <a href="https://dydtjr13.github.io/nakmeong/mockups-v27/">https://dydtjr13.github.io/nakmeong/mockups-v27/</a></li>
+<li>커밋: dff6d05(1 이름표·천룡화룡·러버덕 설정) · 20c3180(2 하단 메뉴·후원) · 2905ea1(3 화질·합성·모바일 UI 편집) · f964ceb(4 시안) · 마지막 커밋은 배포 때 붙여요</li>
+</ul>
+<h2>1. 게임에 적용한 것</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>항목</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>닉네임 이탈</td>
+<td><strong>원인:</strong> 이름표 위치를 계산할 때 카메라의 <em>이전 프레임</em> 행렬을 썼어요. 카메라를 빨리 돌리면 한 프레임만큼 늦게 따라가서 튀어 보였어요. <strong>수정:</strong> 이름표를 그리기 직전에 카메라 행렬을 먼저 갱신해요(<code>cam.updateMatrixWorld()</code>). <strong>측정(t46, 빠른 회전 8번, 148프레임):</strong> 전 최대 493px · 평균 134px → 후 <strong>최대 0px · 평균 0.01px</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>천룡·화룡</td>
+<td>모든 상자에서 <strong>각각 1만 개당 1개</strong>(상자 등급과 상관없이 따로 굴려요). 200만 개 시뮬: 천룡 187 · 화룡 183 (약 1/1.07만). 다른 등급 영향은 거의 없어요(신화 상자의 낚싯대 몫에서 천룡·화룡 2%만 빠짐: 별빛 234 · 은하 138 · 용왕 81 · 심해 22).</td>
+</tr>
+<tr>
+<td>3</td>
+<td>러버덕 설정</td>
+<td>설정 › 🦆 러버덕: <strong>크기</strong>(0.6~2배) · <strong>이동 속도</strong>(0~2.5배, 0=멈춤) · <strong>첨벙 소리</strong> 켜기/끄기</td>
+</tr>
+<tr>
+<td>5</td>
+<td>모바일 UI 편집</td>
+<td>모바일에서 편집을 켜면 아래 <strong>패널</strong>이 떠요: 위/아래/알림 그룹 → 창 목록에서 고르기 → 화살표(1·10·30px) · 크기 −/+ · 이 창만 초기화 · 📤내보내기/📥가져오기(코드). <strong>“하나씩”</strong> 모드면 고른 창만 끌려서 다른 창이 잘못 움직이지 않아요. 고른 창이 아래쪽이면 패널이 위로 올라가서 가리지 않아요.</td>
+</tr>
+<tr>
+<td>6</td>
+<td>모바일 화질</td>
+<td><strong>원인:</strong> v26은 화면 밀도(DPR) 2 이상이면 안티에일리어싱을 끄고 해상도를 1.5배로 묶었어요 → 폰에서 계단·흐림. <strong>설정 › 🖼 화질 저/중/고</strong> (기본 중, 바꾸면 새로고침). 측정(390×844 DPR3 가상폰, 소프트웨어 렌더라 상대 비교만): 저 390×844 49.9ms · <strong>중 780×1688 150ms</strong> · 고 1170×2532 300ms. 실제 폰은 GPU라 훨씬 빨라요. 느린 폰은 “저”.</td>
+</tr>
+<tr>
+<td>7</td>
+<td>하단 메뉴</td>
+<td>상점 · 어항 · 자동낚시 · <strong>상자</strong> · 가방 (바 넓이·간격·자동낚시 그대로, 62×52 동일). 위 메뉴 줄: <strong>☕후원 · 📖도감 · 게시판</strong> (아이콘만, 38×32 같은 크기·정렬). 모바일은 ☰ 메뉴 안. 겹침 0 (t47).</td>
+</tr>
+<tr>
+<td>7-1</td>
+<td>후원</td>
+<td>기본 = D3 커피잔 아이콘만. 설정 › ☕ 후원 버튼 → “D3 원래 모양”. 누르면 W1 후원 창. <strong>후원 방법(QR·계좌·링크)은 아직 없어서 “준비하고 있어요”로 표시</strong>해요 — 알려 주시면 넣을게요.</td>
+</tr>
+<tr>
+<td>8</td>
+<td>합성</td>
+<td><strong>S1 모루형 기본</strong>(대상 + 재료 → 결과). 설정 › ⚒ 합성 화면에서 S2(진행 막대) · S3(목록)로 바꿀 수 있어요. ※ S3는 v26 목록형이고, 시안의 “체크해서 고르기” 버전은 아직 안 만들었어요.</td>
+</tr>
+</tbody>
+</table>
+<h3>상자 1만 개 모으는 시간</h3>
+<table>
+<thead>
+<tr>
+<th>구간</th>
+<th>시간당 상자 (직접/자동)</th>
+<th>1만 개 (직접/자동)</th>
+<th>하루 3시간이면</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>초반</td>
+<td>8.1 / 5.2</td>
+<td>1235h / 1908h</td>
+<td>292일 / 389일</td>
+</tr>
+<tr>
+<td>중반 (보물 60%)</td>
+<td>18.1 / 11.8</td>
+<td>552h / 848h</td>
+<td>155일 / 220일</td>
+</tr>
+<tr>
+<td>후반 (150%)</td>
+<td>31.7 / 20.6</td>
+<td>315h / 485h</td>
+<td>95일 / 139일</td>
+</tr>
+<tr>
+<td>최종 (300%)</td>
+<td>55.4 / 36.1</td>
+<td>181h / 277h</td>
+<td>57일 / 85일</td>
+</tr>
+</tbody>
+</table>
+<p>※ 시뮬레이션 값: <code>tools/sim-box-v27.json</code>. 실제로는 레벨이 오르며 구간이 바뀌어서 더 빨라져요. 1만 개당 <strong>천룡 1 + 화룡 1</strong>이 평균이라, 최종 구간이면 둘 중 하나를 약 1개월에 만나요.</p>
+<h2>2. 되돌리기</h2>
+<table>
+<thead>
+<tr>
+<th>무엇</th>
+<th>방법</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>하단 메뉴 재배치 백업</strong></td>
+<td>설정 › 🧭 하단 메뉴 → “v26 배치(백업)”. 도감·후원 위치까지 같이 v26으로 돌아가요. 코드 통째로는 커밋 dff6d05. 말로 “하단 메뉴 재배치 백업”이라고 하시면 기본값을 v26으로 바꿔 드릴게요.</td>
+</tr>
+<tr>
+<td>후원 버튼</td>
+<td>설정 › ☕ 후원 버튼 (커피잔 / D3 원래 모양)</td>
+</tr>
+<tr>
+<td>합성 화면</td>
+<td>설정 › ⚒ 합성 화면 (S1/S2/S3)</td>
+</tr>
+<tr>
+<td>화질</td>
+<td>설정 › 🖼 화질</td>
+</tr>
+<tr>
+<td>천룡·화룡 확률</td>
+<td><code>game-data-v26.js</code>의 <code>D.BOX.txRod</code></td>
+</tr>
+</tbody>
+</table>
+<h2>3. 시안 (게임에는 아직 안 넣음)</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+<th>추천</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>러버덕 5종</td>
+<td>해적 · 딸기 · 우주비행사 · 개구리 · 유니콘. <strong>직접 만든 로우폴리 오리</strong> 위에 만들었어요(원본 JDSherbert 에셋은 수정 금지라서).</td>
+<td>딸기 · 개구리 · 유니콘</td>
+</tr>
+<tr>
+<td>장비 40종</td>
+<td>모자·옷·신발·장갑 × 10 (Lv1·10…90), 단계별로 일반→초월 색과 장식</td>
+<td>—</td>
+</tr>
+<tr>
+<td>가방</td>
+<td>B1-A 합계 표 / B1-B 3단 / B1-C 알약+팝업. 표 = 낚싯대 · 장비 · 부적(유물) · <strong>합계</strong></td>
+<td>B1-A</td>
+</tr>
+<tr>
+<td>장비 창</td>
+<td>E1 내 캐릭터 배경(실제 렌더 캡처) / E2 캐릭터 크게 / E3 실루엣</td>
+<td>E1</td>
+</tr>
+<tr>
+<td>상자 창</td>
+<td>X1 상자(현행) + 🧿부적 관리 → 현행 부적 화면 / X2 탭 / X3 열기 결과 바로가기</td>
+<td>X1</td>
+</tr>
+<tr>
+<td>모바일 UI 편집</td>
+<td>U1 패널(적용) / U2 배치 프리셋 / U3 전체 크기 슬라이더</td>
+<td>U1 + U2</td>
+</tr>
+</tbody>
+</table>
+<h2>4. 라이선스 (러버덕)</h2>
+<p>원본 JDSherbert 러버덕 팩: 상업 사용 가능 · 크레딧 필수 · <strong>수정·재배포 금지</strong>. 그래서 변형 5종은 직접 만든 오리로 만들었고, 원본 오리는 지금처럼 수정 없이 크레딧과 함께 써요. 작가 허락 메일 초안은 따로 드렸어요(허락을 받으면 원본 기반 변형도 가능).</p>
+<h2>5. 확인 (PC·모바일 스크린샷, 겹침 검사)</h2>
+<p>t46 이름표 0px · t47 하단 메뉴 겹침 0 · t48 화질 · t49 합성 · t50 모바일 UI 편집 · 회귀 t33-v25 PASS · t40 러버덕 PASS. 테스트: <code>tools/tests-v27/</code>.</p></main></body></html>
