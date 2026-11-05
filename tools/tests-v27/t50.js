@@ -1,0 +1,11 @@
+// v27 모바일 UI 편집 패널: 그룹·목록 선택·방향 버튼·크기·하나씩 모드·내보내기/가져오기
+const {chromium}=require('playwright-core');(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const O='/workspace/nakmeong/shots/v27/';
+const p=await b.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('dialog',d=>d.accept(globalThis.__code||''));await p.goto('http://localhost:8787/nakmeong.html');await p.evaluate(()=>{localStorage.clear();localStorage.setItem('nk_tut25',JSON.stringify({i:2,chk:1}));localStorage.setItem('nk_ui25',JSON.stringify({duckOn:0}));});await p.reload();await p.waitForFunction(()=>!document.getElementById('go').disabled,null,{timeout:180000});await p.evaluate(()=>document.getElementById('go').click());await p.waitForTimeout(2500);
+await p.evaluate(()=>NK_UIEDIT.enter());await p.waitForTimeout(500);await p.screenshot({path:O+'uimob-1.jpg',quality:80});
+const r={};await p.click('#uiMob [data-g="아래"]');r.opts=await p.evaluate(()=>[...document.querySelectorAll('#uiMob select option')].map(o=>o.textContent).join(','));
+await p.selectOption('#uiMob select','fishBtn');await p.click('#uiMob [data-n="0,-1"]');await p.click('#uiMob [data-n="-1,0"]');await p.click('#uiMob [data-s=".05"]');r.pos=await p.evaluate(()=>JSON.stringify(NK_UIEDIT.pos().fishBtn));
+// 하나씩 모드: 다른 창 끌기 무시
+const jb=await p.evaluate(()=>{const q=document.getElementById('joy').getBoundingClientRect();return [q.left+q.width/2,q.top+q.height/2];});await p.mouse.move(jb[0],jb[1]);await p.mouse.down();await p.mouse.move(jb[0]+40,jb[1]-60,{steps:5});await p.mouse.up();r.joy=await p.evaluate(()=>JSON.stringify(NK_UIEDIT.pos().joy||null));
+await p.screenshot({path:O+'uimob-2.jpg',quality:80});
+const code=await p.evaluate(()=>btoa(unescape(encodeURIComponent(JSON.stringify(NK_UIEDIT.pos())))));globalThis.__code=code;await p.click('#uiMob [data-r]');r.reset=await p.evaluate(()=>JSON.stringify(NK_UIEDIT.pos().fishBtn||null));await p.click('#uiMob [data-i]');await p.waitForTimeout(200);r.imp=await p.evaluate(()=>JSON.stringify(NK_UIEDIT.pos().fishBtn||null));
+console.log(JSON.stringify(r),errs);await b.close();})();

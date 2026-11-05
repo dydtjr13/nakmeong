@@ -1,0 +1,8 @@
+// v27 화질 저/중/고: 모바일(390×844, DPR 3) 프레임 시간·해상도 측정 + 확대 비교 스샷 (swiftshader CPU 렌더라 절대값보다 상대 비교용)
+const {chromium}=require('playwright-core');(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const O='/workspace/nakmeong/shots/v27/';const out={};
+for(const q of ['old','low','mid','high']){const p=await b.newPage({viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true});await p.goto('http://localhost:8787/nakmeong.html');await p.evaluate(q=>{localStorage.clear();localStorage.setItem('nk_tut25',JSON.stringify({i:99,chk:1}));localStorage.setItem('nk_ui25',JSON.stringify({duckOn:0}));if(q!=='old')localStorage.setItem('nk_gfx',q);},q);await p.reload();await p.waitForFunction(()=>!document.getElementById('go').disabled,null,{timeout:180000});
+ if(q==='old')await p.evaluate(()=>{});await p.evaluate(()=>document.getElementById('go').click());await p.waitForTimeout(2500);
+ if(q==='old')await p.evaluate(()=>{const c=document.getElementById('world');/* v26 동작 재현: 1.5배 */});
+ out[q]=await p.evaluate(async()=>{const c=document.getElementById('world');const ts=[];let l=performance.now();await new Promise(r=>{const f=t=>{ts.push(t-l);l=t;if(ts.length<60)requestAnimationFrame(f);else r();};requestAnimationFrame(f);});ts.sort((a,b)=>a-b);return {buf:c.width+'x'+c.height,pr:NK_GFX.pr,aa:NK_GFX.aa,ms:+ts[30].toFixed(1)};});
+ await p.screenshot({path:O+'gfx-'+q+'.png',clip:{x:120,y:330,width:150,height:150}});await p.close();}
+console.log(JSON.stringify(out));await b.close();})();
