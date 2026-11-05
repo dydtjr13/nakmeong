@@ -1,0 +1,92 @@
+[
+ {
+  "k": "quick",
+  "n": "빠른입질",
+  "cap": 20,
+  "one": 20,
+  "rodExtra": 7.2,
+  "rodFixed": 0,
+  "total": 35,
+  "pass": 10
+ },
+ {
+  "k": "big",
+  "n": "대물사냥꾼",
+  "cap": 12,
+  "one": 12,
+  "rodExtra": 4.3,
+  "rodFixed": 0,
+  "total": 15,
+  "pass": 4
+ },
+ {
+  "k": "luck",
+  "n": "행운",
+  "cap": 25,
+  "one": 25,
+  "rodExtra": 9,
+  "rodFixed": 0,
+  "total": 40,
+  "pass": 12
+ },
+ {
+  "k": "expert",
+  "n": "어종전문가",
+  "cap": 20,
+  "one": 20,
+  "rodExtra": 7.2,
+  "rodFixed": 0,
+  "total": 30,
+  "pass": 12
+ },
+ {
+  "k": "bait",
+  "n": "미끼전문가",
+  "cap": 30,
+  "one": 30,
+  "rodExtra": 10.8,
+  "rodFixed": 0,
+  "total": 60,
+  "pass": 15
+ },
+ {
+  "k": "treasure",
+  "n": "보물탐지",
+  "cap": 60,
+  "one": 60,
+  "rodExtra": 21.6,
+  "rodFixed": 0,
+  "total": 300,
+  "pass": 25
+ },
+ {
+  "k": "appraise",
+  "n": "보물감정",
+  "cap": 25,
+  "one": 25,
+  "rodExtra": 9,
+  "rodFixed": 0,
+  "total": 50,
+  "pass": 12
+ },
+ {
+  "k": "master",
+  "n": "감정의달인",
+  "cap": 50,
+  "one": 50,
+  "rodExtra": 18,
+  "rodFixed": 0,
+  "total": 300,
+  "pass": 20
+ },
+ {
+  "k": "merchant",
+  "n": "상인",
+  "cap": 15,
+  "one": 15,
+  "rodExtra": 5.4,
+  "rodFixed": 0,
+  "total": 200,
+  "pass": 8
+ }
+]

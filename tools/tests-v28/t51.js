@@ -1,0 +1,8 @@
+// v28 모바일 남 알림 줄바꿈: 가장 긴 문구(닉 10자·무지개송어·초월) 360/390/PC 폭 테스트
+const {chromium}=require('playwright-core');(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const O='/workspace/nakmeong/shots/v28/';require('fs').mkdirSync(O,{recursive:true});const out={};
+for(const [w,h,n] of [[360,780,'m360'],[390,844,'m390'],[1280,800,'pc']]){const p=await b.newPage({viewport:{width:w,height:h},isMobile:n!='pc',hasTouch:n!='pc'});const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://localhost:8787/nakmeong.html');await p.evaluate(()=>{localStorage.clear();localStorage.setItem('nk_tut25',JSON.stringify({i:2,chk:1}));localStorage.setItem('nk_ui25',JSON.stringify({duckOn:0}));});await p.reload();await p.waitForFunction(()=>!document.getElementById('go').disabled,null,{timeout:180000});await p.evaluate(()=>document.getElementById('go').click());await p.waitForTimeout(2500);
+await p.evaluate(()=>{NKV2.legendAlert('가나다라마바사아자차',{k:'trout',g:5,cm:79.9},false);NKV2.legendAlert('낚시왕김철수최고야',{k:'rainbow_ayu',g:4,cm:39.9},false);NKV2.boxAlert('가나다라마바사아자차',5,false);});await p.waitForTimeout(900);
+out[n]=await p.evaluate(()=>[...document.querySelectorAll('#ribbons .ribbon')].map(r=>{const q=r.getBoundingClientRect(),L=[...r.querySelectorAll('.big>span')].map(s=>({h:Math.round(s.getBoundingClientRect().height),cut:s.scrollWidth>s.clientWidth+1}));return {l:Math.round(q.left),r:Math.round(innerWidth-q.right),h:Math.round(q.height),lines:L}}));
+await p.screenshot({path:O+'ribbon-'+n+'.jpg',quality:85,clip:{x:0,y:0,width:w,height:340}});out[n+'err']=errs;await p.close();}
+console.log(JSON.stringify(out));await b.close()})();
