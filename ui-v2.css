@@ -862,3 +862,12 @@ body:has(.modal.show) #chat,body:has(.modal.show) #bubs{visibility:hidden}
 #boardOv{position:fixed;inset:0;z-index:160}#boardOv iframe{width:100%;height:100%;border:0;background:transparent}#boardOv.v5{left:auto;width:440px}#boardOv.v2,#boardOv.v3,#boardOv.vm{background:#f6efe4}
 /* v25 XP 알림 A2: 어두운 알약 (낚시 카드 아래) */
 #xpF.a2{background:#3b3346e6;color:#fff}#xpF.a2 b{color:#ffd27a}
+/* v25 UI 편집 모드 */
+body.uiedit [data-uin]{outline:2px dashed #ff8a4c!important;outline-offset:2px;cursor:move!important;pointer-events:auto!important}
+body.uiedit [data-uin]::after{content:attr(data-uin);position:absolute;left:0;top:-18px;background:#ff8a4c;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:6px;white-space:nowrap;z-index:9}
+body.uiedit #world{filter:saturate(.6) brightness(.85)}
+.uiDrag{opacity:.85;outline-color:#2f8a3f!important}
+#uiEditBar{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:900;background:#3b3346f2;color:#fff;border-radius:14px;padding:10px 14px;display:flex;gap:10px;align-items:center;font-size:13px;box-shadow:0 8px 24px #0005;flex-wrap:wrap;justify-content:center;max-width:92vw}
+#uiEditBar span{color:#d8cfe4;font-size:12px}#uiEditBar button{border:0;border-radius:10px;padding:6px 12px;font-weight:800;cursor:pointer;background:#fff;color:#3b3346}#uiEditBar button.ok{background:#ff8a4c;color:#fff}
+/* v25 특별 칭호 */
+.sptl{display:inline-block;border-radius:8px;padding:0 7px;font-weight:800;line-height:1.5}
