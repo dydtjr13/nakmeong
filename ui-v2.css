@@ -876,3 +876,13 @@ body.uiedit #world{filter:saturate(.6) brightness(.85)}
 .rgb.tx{background:linear-gradient(90deg,#ff2d8a,#ff9a3c,#7a5cff,#ff2d8a);background-size:200% 100%;animation:rgbtx 3s linear infinite}@keyframes rgbtx{to{background-position:200% 0}}
 .uprow{margin:6px 0 10px;padding:8px 10px;border-radius:12px;background:#fff7ec;border:1px solid #f0dcc0}.uprow .upbtns{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:6px;margin-top:6px}
 .uprow button{display:flex;align-items:center;gap:6px;text-align:left;padding:5px 8px;font-size:12px;flex-wrap:wrap}.uprow button .sico{width:24px;height:24px}.uprow button small{margin-left:auto;color:#8a7a60}
+/* v26 UI 편집 2차: 선택·정렬선·테스트 사본 */
+#uiEditBar{top:10px!important;transform:translateX(-50%)!important;max-width:min(980px,96vw)}#uiEditBar .us{color:#fff;font-weight:700;min-width:160px}#uiEditBar .um{color:#ffd27a;font-weight:800;min-width:0}
+#uiEditBar .uk{flex-basis:100%;text-align:center;color:#bfb4cc;font-size:11px}#uiEditBar button.dirty{background:#ffd27a}
+body.uiedit .uiSel{outline:2px solid #2f8aff!important;outline-offset:2px}
+.uiPv{opacity:1!important;visibility:visible!important;animation:none!important;pointer-events:auto!important}
+#uiGuides{position:fixed;inset:0;pointer-events:none;z-index:899}#uiGuides i{position:absolute;background:#ff3d7f}#uiGuides .gv{top:0;bottom:0;width:1px}#uiGuides .gh{left:0;right:0;height:1px}
+@media(max-width:699px){#uiEditBar .uk{display:none}#uiEditBar{padding:6px 8px;gap:6px;font-size:12px}#uiEditBar button{padding:5px 8px}}
+#uiEditBar{top:auto!important;bottom:86px}@media(max-width:699px){#uiEditBar{bottom:auto;top:46%!important}}
+body.uiedit .cutin[data-uin]{pointer-events:none!important}body.uiedit .cutin[data-uin] .band{pointer-events:auto!important}
+#uiEditBar{bottom:auto!important;top:150px!important}@media(max-width:699px){#uiEditBar{top:58%!important}}#uiEditBar>b{cursor:grab;user-select:none}
