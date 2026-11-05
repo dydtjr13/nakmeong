@@ -1,0 +1,7 @@
+// v26 러버덕: 떨어짐→첨벙→유영, 최대 수 제한
+const {chromium}=require('playwright-core');(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const p=await b.newPage({viewport:{width:1280,height:720}});const errs=[];p.on('pageerror',e=>errs.push(e.message));const ev=(f,a)=>p.evaluate(f,a);const O='/workspace/nakmeong/shots/v26/';
+await p.goto('http://localhost:8787/nakmeong.html');await ev(()=>{localStorage.clear();localStorage.setItem('nk_tut25',JSON.stringify({i:99,chk:1}));localStorage.setItem('nk_ui25',JSON.stringify({duckMax:5,duckEvery:300}));});await p.reload();await p.waitForFunction(()=>!document.getElementById('go').disabled,null,{timeout:180000});await ev(()=>document.getElementById('go').click());await p.waitForTimeout(1500);
+await ev(()=>NK_DUCK.drop(5));await p.waitForTimeout(500);const r={};r.fall=await ev(()=>NK_DUCK.list().map(d=>d.st).join(','));await p.screenshot({path:O+'duck-fall.jpg',quality:75});
+await p.waitForTimeout(900);await p.screenshot({path:O+'duck-splash.jpg',quality:75});await p.waitForTimeout(5000);r.swim=await ev(()=>NK_DUCK.list().map(d=>d.st).join(','));r.rMax=await ev(()=>NK_DUCK.rMax());r.inside=await ev(()=>NK_DUCK.list().every(d=>Math.hypot(d.x,d.z)<NK_DUCK.rMax()+.5));await p.screenshot({path:O+'duck-swim.jpg',quality:75});
+await ev(()=>NK_DUCK.drop(40));r.cap=await ev(()=>NK_DUCK.count());await p.waitForTimeout(800);r.capAfter=await ev(()=>NK_DUCK.count());
+console.log(JSON.stringify(r),'errs',errs);await b.close();})();

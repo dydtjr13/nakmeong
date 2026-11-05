@@ -1,0 +1,15 @@
+// v26 이름표: 닉네임·칭호 반복 변경 + 카메라 회전 → 이름표 1개, 캐릭터 머리 위 유지
+const {chromium}=require('playwright-core');(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const p=await b.newPage({viewport:{width:1280,height:720}});const errs=[];p.on('pageerror',e=>errs.push(e.message));const ev=(f,a)=>p.evaluate(f,a);const O='/workspace/nakmeong/shots/v26/';
+await p.goto('http://localhost:8787/nakmeong.html');await ev(()=>{localStorage.clear();localStorage.setItem('nk_tut25',JSON.stringify({i:99,chk:1}));localStorage.setItem('nk_ui25',JSON.stringify({duckOn:0}));});await p.reload();await p.waitForFunction(()=>!document.getElementById('go').disabled,null,{timeout:180000});await ev(()=>document.getElementById('go').click());await p.waitForTimeout(2500);
+const st=()=>ev(()=>{const v=[...document.querySelectorAll('.rk10')].filter(e=>e.style.display!=='none'&&e.textContent.includes(document.getElementById('nick')?document.getElementById('nick').value||'나':'나'));return {rk:document.querySelectorAll('.rk10').length,vis:[...document.querySelectorAll('.rk10')].filter(e=>e.textContent.includes('테스터')||e.textContent.includes('나')).map(e=>(e.style.display==='none'?'[숨김]':'')+e.textContent).join(' / ')};});
+await ev(()=>NKV2.addXP(NKV2.LV.cum[30]+5,'t'));await p.waitForTimeout(800);await ev(()=>{document.querySelectorAll('.modal.show').forEach(m=>m.classList.remove('show'));document.querySelectorAll('.lvpop,.lvup').forEach(e=>e.remove());});await p.waitForTimeout(500);await p.screenshot({path:O+'tag-title-sprite.jpg',quality:80});await ev(()=>{window.NK_RKME=1;});await p.waitForTimeout(400);const r={a:await st()};
+for(let i=0;i<4;i++){await ev(i=>{NKV2.openSet();document.getElementById('nick').value='테스터'+i;document.getElementById('nickOk').click();},i);await p.waitForTimeout(300);}
+await ev(()=>{document.querySelectorAll('.modal.show').forEach(m=>m.classList.remove('show'));});
+await ev(()=>{NKV2.openSet();const s=document.getElementById('ttlSel');const o=[...s.options].find(x=>x.value);if(o){s.value=o.value;s.dispatchEvent(new Event('change'));}document.querySelectorAll('.modal.show').forEach(m=>m.classList.remove('show'));});
+await p.waitForTimeout(500);r.b=await st();
+// 카메라 회전: 마우스 드래그
+const c=await p.$('canvas');for(let k=0;k<6;k++){await p.mouse.move(640,400);await p.mouse.down({button:'right'});await p.mouse.move(640+(k%2?-300:300),400,{steps:8});await p.mouse.up({button:'right'});await p.mouse.move(640,400);await p.mouse.down();await p.mouse.move(640+(k%2?-300:300),380,{steps:8});await p.mouse.up();await p.waitForTimeout(200);}
+await p.waitForTimeout(400);r.c=await st();
+r.chars=await ev(()=>NKV2.chars?NKV2.chars.length:-1);
+await p.screenshot({path:O+'tag-after-rk.jpg',quality:75});
+await ev(()=>{window.NK_RKME=0;document.querySelectorAll('[data-lu=ok],.modal.show .close').forEach(b=>b.click());});await p.waitForTimeout(900);await p.screenshot({path:O+'tag-sprite2.jpg',quality:80});console.log(JSON.stringify(r),'errs',errs);await b.close();})();

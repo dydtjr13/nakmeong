@@ -36,14 +36,14 @@
  const add=()=>{const sy=document.getElementById('mSys');if(!sy){setTimeout(add,500);return;}if(document.getElementById('bBoard'))return;const b=document.createElement('button');b.id='bBoard';b.title='게시판';b.innerHTML='<b class="mi">📋</b><small class="ml">게시판</small>';b.onclick=e=>{e.stopPropagation();open();};sy.insertBefore(b,sy.firstChild);if(window.NK_EMOJI)try{NK_EMOJI.parse(b);}catch(_){}};add();
  window.NK_BOARD={open,close};})();
 
-// v25: 날씨 카드 정렬 — PC는 낚시 정보 줄(#equip)과 같은 왼쪽·폭, 모바일은 코인 알약~메뉴 버튼 폭에 맞춤. 간격은 레벨창↔정보줄 간격 +2px
+// v25→v26: 날씨 카드 정렬 — 크기는 v24 원래대로, 왼쪽 라인만 위 패널(PC #equip · 모바일 코인 알약)에 맞춤. 간격은 레벨창↔정보줄 간격 +2px
 (function(){const $=id=>document.getElementById(id);
  function al(){const w=$('wxCard');if(!w||!w.offsetParent)return;const B=document.body;if(B.classList.contains('vshort')){['left','top','width','right','transform'].forEach(k=>w.style.removeProperty(k));return;}
   const set=(k,v)=>w.style.setProperty(k,v,'important');
   if(innerWidth>=700){const e=$('equip'),s=$('mStat');if(!e||!s)return;const r=e.getBoundingClientRect(),q=s.getBoundingClientRect();if(!r.width)return;const gap=Math.max(4,r.top-q.bottom)+2;
-   set('left',r.left+'px');set('right','auto');set('top',(r.bottom+gap)+'px');set('width',Math.max(196,r.width)+'px');set('transform','none');set('box-sizing','border-box');}
+   set('left',r.left+'px');set('right','auto');set('top',(r.bottom+gap)+'px');w.style.removeProperty('width');w.style.removeProperty('transform');w.style.removeProperty('box-sizing');}
   else{const pills=[...document.querySelectorAll('#mStat .pill')].filter(p=>p.offsetWidth),m=$('bMore'),lv=document.querySelector('#mStat .lvb'),c=$('chatBtn');if(!pills.length||!m)return;const L=Math.min(...pills.map(p=>p.getBoundingClientRect().left)),R=m.getBoundingClientRect().right,bt=Math.max(m.getBoundingClientRect().bottom,...pills.map(p=>p.getBoundingClientRect().bottom));const gap=(lv&&c)?Math.max(4,c.getBoundingClientRect().top-lv.getBoundingClientRect().bottom)+2:12,sc=.82;
-   set('left',L+'px');set('right','auto');set('top',(bt+gap)+'px');set('transform',`scale(${sc})`);set('transform-origin','top left');set('width',((R-L)/sc)+'px');set('box-sizing','border-box');}}
+   set('left',L+'px');set('right','auto');set('top',(bt+gap)+'px');set('transform',`scale(${sc})`);set('transform-origin','top left');w.style.removeProperty('width');w.style.removeProperty('box-sizing');}}
  setInterval(al,700);addEventListener('resize',()=>setTimeout(al,50));})();
 
 // v25: UI 설정 저장소 (XP 알림 위치·튜토리얼 위치 등) — localStorage nk_ui25
