@@ -1,12 +1,12 @@
 // 피쉬레스트 v28: 러버덕 5종 변형 — 원본 JDSherbert “3D Rubber Duck Asset Pack” 메시 그대로 + 색 · 소품(직접 만든 도형)
 // 작가 허락(2026-11): “출처만 밝히면 오리 인형 마음대로 사용 가능” · 크레딧: JDSherbert
 window.NK_DUCKV=(function(){
- const LIST=[['base','기본 노랑'],['pirate','해적'],['straw','딸기'],['astro','우주비행사'],['frog','개구리'],['uni','유니콘'],['penguin','펭귄'],['snowman','눈사람']];
+ const LIST=[['base','기본 노랑'],['pirate','해적'],['straw','딸기'],['astro','우주비행사'],['frog','개구리'],['uni','유니콘'],['penguin','펭귄'],['snowman','눈사람'],['dino','공룡']];
  function build(T,GE){
   const L=c=>new T.MeshLambertMaterial({color:c}),Sd=c=>new T.MeshStandardMaterial({color:c,roughness:.35,metalness:.15});
   const merge=list=>{let n=0;const P=[],N=[];list.forEach(([g,m])=>{const q=g.index?g.toNonIndexed():g;q.applyMatrix4(m);q.computeVertexNormals();P.push(q.attributes.position.array);N.push(q.attributes.normal.array);n+=q.attributes.position.count;});const p=new Float32Array(n*3),nn=new Float32Array(n*3);let o=0;P.forEach((a,i)=>{p.set(a,o);nn.set(N[i],o);o+=a.length;});const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(p,3));g.setAttribute('normal',new T.BufferAttribute(nn,3));return g;};
   const M=(x=0,y=0,z=0,rx=0,ry=0,rz=0,sx=1,sy=1,sz=1)=>new T.Matrix4().compose(new T.Vector3(x,y,z),new T.Quaternion().setFromEuler(new T.Euler(rx,ry,rz)),new T.Vector3(sx,sy,sz));
-  const sph=(r,w=16,h=12)=>new T.SphereGeometry(r,w,h),cyl=(a,b,h,n=24)=>new T.CylinderGeometry(a,b,h,n),tor=(r,t)=>new T.TorusGeometry(r,t,10,32);
+  const sph=(r,w=16,h=12)=>new T.SphereGeometry(r,w,h),cyl=(a,b,h,n=24)=>new T.CylinderGeometry(a,b,h,n),tor=(r,t)=>new T.TorusGeometry(r,t,10,32),cone=(r,h,n=16)=>new T.ConeGeometry(r,h,n);
   const HC=[0,.64,.15];// 머리 중심
   // 몸 표면 점 (딸기 씨앗)
   const bp=GE.body.attributes.position,bn=GE.body.attributes.normal,seeds=[];const used=[];for(let i=0;i<bp.count&&seeds.length<150;i+=1){const v=new T.Vector3().fromBufferAttribute(bp,i),n=new T.Vector3().fromBufferAttribute(bn,i);if(v.y<.08||(v.z>.33&&v.y>.48)||used.some(u=>u.distanceTo(v)<.075))continue;used.push(v);const q=new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),n);const qq=q.clone().multiply(new T.Quaternion().setFromEuler(new T.Euler(0,i,0)));seeds.push([sph(.02,10,6),new T.Matrix4().compose(v.clone().addScaledVector(n,.002),qq,new T.Vector3(.7,.35,1.15))]);}
@@ -41,6 +41,10 @@ window.NK_DUCKV=(function(){
      [merge([[cyl(.22,.24,.08,20),M(0,.86,HC[2]-.02)],[cyl(.16,.16,.14,16),M(0,.96,HC[2]-.02)]]),L('#2a3550')],
      [merge([[sph(.035,8,6),M(0,.5,.35)],[sph(.03,8,6),M(0,.4,.36)]]),L('#1a1a22')],
      [merge([[cyl(.04,.01,.16,8),M(0,.62,.38,Math.PI/2)]]),L('#ff7b1c')]]},
+   dino:{body:'#6ecf5a',beak:'#ff9a2a',eyes:'#2a2230',acc:[
+     [merge([[cone(.07,.16,8),M(0,.62,-.36,-.85)],[cone(.065,.15,8),M(0,.52,-.46,-.9)],[cone(.055,.13,8),M(0,.42,-.54,-.95)],[cone(.045,.1,8),M(0,.34,-.6,-1)]]),L('#4aa83a')],
+     [merge([[cone(.06,.14,8),M(-.14,.72,HC[2]-.02,0,0,-.2)],[cone(.07,.16,8),M(0,.8,HC[2])],[cone(.06,.14,8),M(.14,.72,HC[2]-.02,0,0,.2)]]),L('#4aa83a')],
+     [merge([[sph(.045,10,8),M(-.22,.4,.3,0,0,0,1,.5,.35)],[sph(.045,10,8),M(.22,.4,.3,0,0,0,1,.5,.35)]]),L('#ff8a6a')]]},
   };
   return V;}
  return {LIST,build};})();

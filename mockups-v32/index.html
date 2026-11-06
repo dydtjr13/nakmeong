@@ -1,0 +1,49 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>피쉬레스트 v32 시안</title>
+<link rel="stylesheet" href="../mockups-v28/common.css">
+<style>
+.sec{background:#fff;border-radius:18px;padding:18px 20px;margin:18px 0;box-shadow:0 4px 18px #4a405814}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:12px}
+.gal.big{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+figure{margin:0}figure img{width:100%;border-radius:12px;display:block;box-shadow:0 2px 10px #0002;cursor:zoom-in}
+figcaption{font-size:13px;color:#6a6076;margin-top:6px;font-weight:700;text-align:center}
+.no{display:inline-block;background:#ff8a4c;color:#fff;border-radius:10px;padding:2px 9px;font-size:13px;margin-right:6px}
+.ok{display:inline-block;background:#2f8a3f;color:#fff;border-radius:10px;padding:2px 9px;font-size:13px;margin-right:6px}
+#lb{display:none;position:fixed;inset:0;z-index:99;background:#1a1428ee;align-items:center;justify-content:center;padding:20px}
+#lb.show{display:flex}#lb img{max-width:96vw;max-height:92vh;border-radius:12px;box-shadow:0 20px 60px #0008}
+#lb .x{position:fixed;right:18px;top:14px;width:42px;height:42px;border-radius:50%;background:#fff;border:0;font-size:22px;cursor:pointer;font-weight:800}
+</style></head><body><div class="wrap" style="max-width:1200px;margin:auto;padding:16px">
+<h1>피쉬레스트 v32 시안</h1>
+<p><a href="../docs/v32-보고서.html">📄 v32 보고서</a> · <a href="../nakmeong.html">게임</a> · <a href="https://dydtjr13.github.io/nakmeong/">라이브</a></p>
+
+<div class="sec"><h2><span class="ok">적용</span> 가방 합계 높이 · 등급 테두리 · 장비 아이콘(C) · ℹ(I1)</h2>
+<div class="gal big">
+<figure><img src="img/bag-sum-grade-ba.png" alt="ba"><figcaption>합계 잘림 해소 + 등급색 테두리</figcaption></figure>
+<figure><img src="img/wear-icon-variants.png" alt="wear"><figcaption>장비 탭 아이콘 — C안 적용, 나머지 시안</figcaption></figure>
+<figure><img src="img/info-btn-variants.png" alt="info"><figcaption>ℹ 버튼 — I1 헤더 우측 적용</figcaption></figure>
+</div></div>
+
+<div class="sec"><h2><span class="ok">적용</span> 러버덕 공룡</h2>
+<p>공룡만 인게임·순환/설정에 추가. 닭/꿀벌/천사/산타/악마는 미적용.</p>
+</div>
+
+<div class="sec"><h2><span class="no">시안만</span> 낚싯대 호버 정보창 (사용자 확인 후 적용)</h2>
+<p>구성: 블랙+등급 테두리 · ★★☆☆☆ +15 · 고유옵션(다른 색) · 옵션1~4 · 추가옵션</p>
+<div class="gal big"><figure><img src="img/rod-hover-variants.png" alt="hover"><figcaption>H1~H4 호버 시안 (미적용)</figcaption></figure></div>
+</div>
+
+<div class="sec"><h2><span class="no">시안만</span> 이벤트 예약 · 매년 반복</h2>
+<p>E1 캘린더 · E2 타임라인 · E3 템플릿(크리스마스 12/25 등). 적용은 사용자 선택 후.</p>
+<div class="gal big"><figure><img src="img/event-schedule-variants.png" alt="ev"><figcaption>이벤트 예약/반복 시안 3안</figcaption></figure></div>
+</div>
+
+</div>
+<div id="lb"><button class="x" type="button">×</button><img alt=""></div>
+<script>
+const lb=document.getElementById('lb'),img=lb.querySelector('img');
+document.querySelectorAll('.gal img').forEach(i=>i.onclick=()=>{img.src=i.src;lb.classList.add('show');});
+lb.querySelector('.x').onclick=()=>lb.classList.remove('show');
+lb.onclick=e=>{if(e.target===lb)lb.classList.remove('show');};
+addEventListener('keydown',e=>{if(e.key==='Escape')lb.classList.remove('show');});
+</script>
+</body></html>

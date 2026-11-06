@@ -1,0 +1,151 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>피쉬레스트(FISHREST) v32 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>피쉬레스트(FISHREST) v32 보고서</h1>
+<ul>
+<li>작업일: 2026-11-06 (Asia/Seoul)</li>
+<li>라이브: <a href="https://dydtjr13.github.io/nakmeong/">https://dydtjr13.github.io/nakmeong/</a></li>
+<li>시안: <a href="../mockups-v32/">mockups-v32</a> (lightbox)</li>
+<li>기반: v31 (게시판 로컬 · 가방 B1-A · 펭귄·눈사람)</li>
+</ul>
+<h2>적용 항목</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>내용</th>
+<th>상태</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>가방 낚싯대 효과 합계 세로 확대 (max 780px + 좌측 스크롤)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>2</td>
+<td>장비 탭 아이콘 — <strong>C안(티셔츠)</strong> 적용, A/B/D 시안</td>
+<td>✅ + 시안</td>
+</tr>
+<tr>
+<td>3</td>
+<td>낚싯대 타일·장착칸 테두리 = <code>R.rc</code> / <code>SYS.GRADES</code> 등급색</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>4</td>
+<td>게시판 실사용 — nick 키 <code>nakmeong_v2</code>, P4/P5 글쓰기 버튼, 상단 로컬 바, 모바일 안내</td>
+<td>✅ 테스트 증거</td>
+</tr>
+<tr>
+<td>5</td>
+<td>이벤트 예약·매년 반복</td>
+<td>🎨 시안만 (E1~E3)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>보상 일괄 지급 <code>giftBanner</code> (이벤트형 배너)</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>7</td>
+<td>칭호 nametag 색 — <code>titleStyle</code>로 레벨창과 동일 보라/금</td>
+<td>✅ 픽셀 검증</td>
+</tr>
+<tr>
+<td>8</td>
+<td>가방/상점/어항 오픈 끊김 — 셸 먼저 show + rAF 렌더 + 이미지 프리로드</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>9</td>
+<td>전체 최적화 (핫패스 주의, 회귀)</td>
+<td>✅ 소폭</td>
+</tr>
+<tr>
+<td>10</td>
+<td>장비 ℹ 위치 — <strong>I1 헤더 우측 주황</strong> 적용, I2/I3 시안</td>
+<td>✅ + 시안</td>
+</tr>
+<tr>
+<td>11</td>
+<td>ℹ 모달의 깨진 「세트 비교 시안 크게 보기」 제거</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h2>시안 (사용자 확인 후 적용)</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>파일</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>낚싯대 호버 H1~H4</td>
+<td><code>mockups-v32/img/rod-hover-variants.png</code></td>
+<td>★강·고유옵션·옵션·추가옵션 구성. <strong>미적용</strong></td>
+</tr>
+<tr>
+<td>이벤트 예약/반복</td>
+<td><code>mockups-v32/img/event-schedule-variants.png</code></td>
+<td>E1 캘린더 · E2 타임라인 · E3 템플릿. <strong>미적용</strong></td>
+</tr>
+<tr>
+<td>장비 아이콘 A/B/D</td>
+<td><code>wear-icon-variants.png</code></td>
+<td>C만 적용</td>
+</tr>
+<tr>
+<td>ℹ 버튼 I2/I3</td>
+<td><code>info-btn-variants.png</code></td>
+<td>I1만 적용</td>
+</tr>
+</tbody>
+</table>
+<h2>러버덕</h2>
+<ul>
+<li><strong>공룡(dino)만</strong> LIST·기본 kinds·설정 체크에 추가 (인게임+순환)</li>
+<li>닭/꿀벌/천사/산타/악마 등 <strong>미적용</strong></li>
+</ul>
+<h2>게시판 원인·수정</h2>
+<ol>
+<li>기본 레이아웃 <strong>P4에 글쓰기 버튼 없음</strong> → P4/P5 헤더에 ✏️ 주입</li>
+<li>mock 바가 창 아래라 안 보임 → <strong>상단</strong>으로 이동 + tip</li>
+<li>nick이 잘못된 키 <code>nk</code> 참조 → <strong><code>nakmeong_v2</code></strong></li>
+<li>모바일 <code>v=m</code>은 이미지만 → 로컬 안내 블록 추가</li>
+</ol>
+<p>테스트(t70): 글 1건·댓글 1건 localStorage 저장, nick=<code>테스터</code>.</p>
+<h2>칭호</h2>
+<ul>
+<li>레벨 칭호에 <code>{bg:'#6a4fc0', fg:'#fff', bd:'#5a3fb0'}</code> (99는 금색)</li>
+<li>canvas <code>drawTag</code>·rankDom <code>TST</code> 모두 색 적용</li>
+<li>t71: 태그 픽셀 보라 603샘플, <code>ttl.bg="#6a4fc0"</code></li>
+</ul>
+<h2>회귀 요약</h2>
+<ul>
+<li>게시판 글/댓글 ✅ · 칭호 색 ✅ · 등급 테두리 <code>#5fc48a</code> ✅</li>
+<li>장비 아이콘 <code>img/eq/tab-wear.png</code> ✅ · 깨진 세트비교 링크 없음 ✅</li>
+<li>공룡 LIST ✅ · 가방 오픈 ~182ms ✅ · pageerror 0</li>
+</ul>
+<h2>커밋·백업·PC</h2>
+<ul>
+<li>step1 <code>f127eac</code> · step2 (본 커밋) · 이후 Pages/PC step</li>
+<li>백업: <code>/workspace/nakmeong-backups/nakmeong-v32-stepN.zip</code></li>
+<li>PC: <code>C:\Users\이용석\Desktop\게임개발\낚멍\낚멍 그록봇\nakmeong-v32\</code></li>
+</ul>
+<h2>시안 대기 (사용자 선택 필요)</h2>
+<ol>
+<li>낚싯대 호버 H1~H4 중 적용안</li>
+<li>이벤트 예약 E1/E2/E3 중 적용안</li>
+<li>장비 아이콘 A/B/D 교체 여부 (현재 C)</li>
+<li>ℹ I2/I3 교체 여부 (현재 I1)</li>
+</ol></main></body></html>
