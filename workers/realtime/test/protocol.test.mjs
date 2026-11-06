@@ -527,3 +527,19 @@ test("v48: duck size keeps rand and fixed sizes as chosen", () => {
   const back = sanitizePlay({ duckSize: "rand" }, big, { bump: true, now: 4 });
   assert.equal(back.duckSize, "rand");
 });
+
+test("v52: admin-only ops, auth parsing, nickname hardening, browser id", async () => {
+  const { ADMIN_OPS } = await import("../src/protocol.js");
+  for (const t of ["world", "notice", "grant", "sanc", "gift", "stage", "play", "recover"]) assert.ok(ADMIN_OPS.has(t), t);
+  for (const t of ["hello", "pose", "chat", "emote", "loss", "losses", "recoverAck"]) assert.ok(!ADMIN_OPS.has(t), t);
+  const a = parseClient(JSON.stringify({ t: "auth", id: "admin", pw: "x".repeat(300) }));
+  assert.equal(a.t, "auth");
+  assert.equal(a.pw.length, 128);
+  assert.equal(parseClient(JSON.stringify({ t: "auth", out: 1 })).out, true);
+  assert.equal(sanitizeNick('a"b<c>d\'e`f&g'), "abcdefg");
+  const h = parseClient(JSON.stringify({ t: "hello", nick: "운영자", cid: "abc-123!@#", adm: { id: "admin", pw: "pw" } }));
+  assert.equal(h.cid, "abc-123");
+  assert.deepEqual(h.adm, { id: "admin", pw: "pw" });
+  const p = parseClient(JSON.stringify({ t: "pose", adm: { id: "admin", pw: "pw" } }));
+  assert.equal(p.adm, null);
+});

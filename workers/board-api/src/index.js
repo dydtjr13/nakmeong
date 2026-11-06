@@ -19,7 +19,7 @@ function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': o,
     'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,X-Admin-Key',
+    'Access-Control-Allow-Headers': 'Content-Type,X-Admin-Key,X-Admin-Token',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin',
   };
@@ -41,17 +41,32 @@ function id(prefix) {
 }
 
 function cleanNick(n) {
-  return String(n || '낚시꾼').replace(/[<>]/g, '').trim().slice(0, 10) || '낚시꾼';
+  return String(n || '낚시꾼').replace(/[\u0000-\u001f<>"'`&\\]/g, '').trim().slice(0, 10) || '낚시꾼';
+}
+// v52: 운영자 전용 — 게시판 카테고리와 닉네임
+const STAFF_CATS = new Set(['공지', '업데이트']);
+const catKey = (s) => String(s || '').replace(/[^\uac00-\ud7a3]/g, '');
+const reservedNick = (n) => { const s = String(n || '').toLowerCase(); return s.includes('관리자') || s.includes('운영자') || s.includes('gm'); };
+async function tokenOk(token, secret) {
+  if (!token || !secret) return false;
+  const [exp, sig] = String(token).split('.');
+  if (!exp || !sig || !(+exp > Date.now())) return false;
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const want = [...new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode('board:' + exp)))].map((b) => b.toString(16).padStart(2, '0')).join('');
+  if (want.length !== sig.length) return false;
+  let d = 0;
+  for (let i = 0; i < want.length; i++) d |= want.charCodeAt(i) ^ sig.charCodeAt(i);
+  return d === 0;
 }
 
 function cleanText(s, max) {
   return String(s || '').replace(/\0/g, '').trim().slice(0, max);
 }
 
-function isAdmin(req, env) {
+async function isAdmin(req, env) {
   const key = env.ADMIN_KEY;
-  if (!key) return false;
-  return req.headers.get('X-Admin-Key') === key;
+  if (key && req.headers.get('X-Admin-Key') === key) return true;
+  return tokenOk(req.headers.get('X-Admin-Token'), env.ADMIN_PASSWORD);
 }
 
 async function listPosts(db, url) {
@@ -111,6 +126,8 @@ export default {
         const cat = cleanText(body.cat, 40) || '💬 자유';
         const nick = cleanNick(body.nick);
         if (!title || !text) return bad('title and body required', 400, origin);
+        const admin = await isAdmin(request, env);
+        if (!admin && (STAFF_CATS.has(catKey(cat)) || reservedNick(nick))) return bad('admin only', 403, origin);
         const pid = id('p');
         const ts = Date.now();
         await env.DB.prepare(
@@ -129,6 +146,7 @@ export default {
         const text = cleanText(body.body, 200);
         const nick = cleanNick(body.nick);
         if (!text) return bad('body required', 400, origin);
+        if (reservedNick(nick) && !(await isAdmin(request, env))) return bad('admin only', 403, origin);
         const cid = id('c');
         const ts = Date.now();
         await env.DB.prepare(
@@ -138,7 +156,7 @@ export default {
       }
 
       if (request.method === 'DELETE' && postOne) {
-        if (!isAdmin(request, env)) return bad('admin key required', 401, origin);
+        if (!(await isAdmin(request, env))) return bad('admin key required', 401, origin);
         const pid = decodeURIComponent(postOne[1]);
         await env.DB.prepare('DELETE FROM comments WHERE post_id=?').bind(pid).run();
         await env.DB.prepare('DELETE FROM posts WHERE id=?').bind(pid).run();
@@ -147,7 +165,7 @@ export default {
 
       const cmDel = path.match(/^\/comments\/([^/]+)$/);
       if (request.method === 'DELETE' && cmDel) {
-        if (!isAdmin(request, env)) return bad('admin key required', 401, origin);
+        if (!(await isAdmin(request, env))) return bad('admin key required', 401, origin);
         await env.DB.prepare('DELETE FROM comments WHERE id=?').bind(decodeURIComponent(cmDel[1])).run();
         return json({ ok: true }, 200, origin);
       }

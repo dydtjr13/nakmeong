@@ -43,6 +43,8 @@ jobs:
       - name: Cloudflare 배포
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          ADMIN_ID: ${{ secrets.ADMIN_ID }}
         run: node scripts/deploy.mjs
       - name: 헬스 체크
         run: |

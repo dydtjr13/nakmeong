@@ -22,6 +22,20 @@
 
   const base = resolveBase();
   const peers = new Map();
+  // v52: 이 브라우저 고유 id — 나갔다 다시 들어올 때 남아 있던 이전 연결을 서버가 정리하는 데 쓴다 (다른 유저에게는 안 보임)
+  const CID = (function () {
+    try {
+      let c = localStorage.getItem("nk_cid");
+      if (!c || !/^[\w-]{8,40}$/.test(c)) {
+        c = (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 12)).replace(/[^\w-]/g, "");
+        localStorage.setItem("nk_cid", c);
+      }
+      return c;
+    } catch (e) { return ""; }
+  })();
+  // v52: 관리자 자격은 메모리에만 (재접속 시 다시 확인용). 저장소에 남기지 않는다.
+  let admCred = null;
+  let authWait = null;
   const RT = {
     base,
     cap: CAP,
@@ -130,6 +144,9 @@
     peers.clear();
     (m.peers || []).forEach((p) => { if (p && p.id && p.id !== RT.id) peers.set(p.id, p); });
     if (m.nick) RT.serverNick = String(m.nick);
+    RT.admin = !!m.admin;
+    RT.adminToken = m.admin ? String(m.token || "") : "";
+    if (!m.admin) admCred = null;
     if (typeof m.now === "number") { RT.clockSkew = Date.now() - m.now; RT.serverNow = m.now; }
     if (m.world) takeWorld(m.world);
     if (Array.isArray(m.notices)) takeNotices(m.notices, "notice" in m ? m.notice : undefined);
@@ -247,6 +264,13 @@
     else if (m.t === "loss" && m.loss) takeLosses([m.loss]);
     else if (m.t === "banned") dispatchEvent(new CustomEvent("nk-rt-banned", { detail: m }));
     else if (m.t === "nick") dispatchEvent(new CustomEvent("nk-rt-nick", { detail: m }));
+    else if (m.t === "auth") {
+      if (m.ok) { RT.admin = true; RT.adminToken = String(m.token || ""); }
+      else if (m.out || m.need) { RT.admin = false; RT.adminToken = ""; }
+      if (authWait) { const w = authWait; authWait = null; w({ ok: !!m.ok }); }
+      else if (m.need) dispatchEvent(new CustomEvent("nk-rt-auth-need", { detail: m }));
+      dispatchEvent(new CustomEvent("nk-rt-auth", { detail: { ok: !!m.ok } }));
+    }
     else if (m.t === "chat" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-chat", { detail: m }));
     else if (m.t === "emote" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-emote", { detail: m }));
     else if (m.t === "seat") dispatchEvent(new CustomEvent("nk-rt-seat", { detail: m }));
@@ -266,6 +290,8 @@
       fish: p.fish || "off",
       anim: p.anim || "idle",
       seat: p.seat == null ? null : p.seat | 0,
+      cid: CID,
+      adm: admCred ? { id: admCred.id, pw: admCred.pw } : undefined,
     };
   }
 
@@ -427,6 +453,20 @@
     }, ms);
   }
 
+  /** v52: 관리자 로그인 — 서버가 비밀번호를 확인한다. 성공하면 이 연결만 관리자 권한. */
+  RT.auth = function (id, pw) {
+    if (RT.mode !== "on" || !ws || ws.readyState !== 1) return Promise.resolve({ ok: false, reason: "offline" });
+    return new Promise((resolve) => {
+      const t = setTimeout(() => { if (authWait) { authWait = null; resolve({ ok: false, reason: "timeout" }); } }, 6000);
+      authWait = (r) => { clearTimeout(t); if (r.ok) admCred = { id: String(id || ""), pw: String(pw || "") }; resolve(r); };
+      send({ t: "auth", id: String(id || ""), pw: String(pw || "") });
+    });
+  };
+  /** 시작 화면에서 관리자 닉으로 들어갈 때: 다음 hello 에 자격을 함께 보낸다 */
+  RT.setAdminCred = function (id, pw) { admCred = id || pw ? { id: String(id || ""), pw: String(pw || "") } : null; };
+  RT.dropAdmin = function () { admCred = null; RT.admin = false; RT.adminToken = ""; };
+  RT.logoutAdmin = function () { admCred = null; RT.admin = false; RT.adminToken = ""; send({ t: "auth", out: 1 }); };
+  RT.isAdmin = function () { return !!RT.admin; };
   RT.chat = function (text) { if (RT.mode === "on") send({ t: "chat", text: String(text || "").slice(0, 80) }); };
   RT.emote = function (text) { if (RT.mode === "on") send({ t: "emote", text: String(text || "").slice(0, 8) }); };
   function opsSend(obj) {

@@ -16,12 +16,20 @@ export const MAX_MSG = 900;
 export const MAX_OPS = 48000;
 const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses"]);
 
-const FISH = new Set(["off", "cast", "bite"]);
+const FISH = new Set(["off", "cast", "bite", "catch"]);
+/** v52: 서버 인증된 관리자 소켓만 보낼 수 있는 운영 메시지 */
+export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover"]);
+function cleanId(v, max) {
+  return String(v == null ? "" : v).replace(/[^\w.-]/g, "").slice(0, max || 40);
+}
+function cleanCred(v, max) {
+  return typeof v === "string" ? v.slice(0, max) : "";
+}
 const ANIMS = new Set(["idle", "walk", "sit", "holding-right"]);
 
 export function sanitizeNick(n) {
   const s = String(n ?? "")
-    .replace(/[\u0000-\u001f<>]/g, "")
+    .replace(/[\u0000-\u001f<>"'`&\\]/g, "")
     .trim()
     .slice(0, 10);
   return s || "낚시꾼";
@@ -954,6 +962,7 @@ export function parseClient(raw) {
   if (!msg || typeof msg !== "object" || typeof msg.t !== "string") return null;
   if (raw.length > MAX_MSG && !OPS.has(msg.t)) return null;
   if (msg.t === "ping") return { t: "ping" };
+  if (msg.t === "auth") return { t: "auth", id: cleanCred(msg.id, 64), pw: cleanCred(msg.pw, 128), out: !!msg.out };
   if (msg.t === "world") {
     if (!msg.world || typeof msg.world !== "object" || Array.isArray(msg.world)) return null;
     return { t: "world", world: msg.world };
@@ -1026,6 +1035,10 @@ export function parseClient(raw) {
       fish: msg.fish,
       anim: msg.anim,
       seat: msg.seat,
+      fk: msg.fish === "catch" ? cleanId(msg.fk, 24) : undefined,
+      fg: msg.fish === "catch" ? Math.max(0, Math.min(5, Math.round(Number(msg.fg) || 0))) : undefined,
+      cid: cleanId(msg.cid, 40),
+      adm: msg.t === "hello" && msg.adm && typeof msg.adm === "object" ? { id: cleanCred(msg.adm.id, 64), pw: cleanCred(msg.adm.pw, 128) } : null,
     };
   }
   return null;
