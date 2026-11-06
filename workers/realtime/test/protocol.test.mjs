@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import vm from "node:vm";
 import {
   CAP,
   SERVERS,
@@ -14,6 +16,8 @@ import {
   mergeGrant,
   mergeNoticeLog,
   grantUntilFor,
+  clientGrantUntil,
+  resolveGrantNick,
   pickQuietDeck,
   joinMapPlan,
   mergeSanc,
@@ -392,6 +396,75 @@ test("ducks face along travel and follow admin speed kinds and off", () => {
   const pirates = sharedDucks(now, world, { max: 3, every: 300000, kinds: ["pirate"] });
   assert.ok(pirates.every((d) => d.v === "pirate"));
   assert.deepEqual(sharedDucks(now, world, { on: 0, max: 4 }), []);
+});
+
+test("turning ducks on spawns one at a time from that moment", () => {
+  const now = 1_700_000_000_000 + 5_000_000;
+  const world = { ambSeed: 99 };
+  const opt = { max: 9, every: 10000, since: now };
+  const born = sharedDucks(now, world, opt);
+  assert.equal(born.length, 1);
+  assert.ok(born[0].age < 50);
+  assert.equal(born[0].head, -born[0].yaw);
+  assert.equal(sharedDucks(now + 9999, world, opt).length, 1);
+  assert.equal(sharedDucks(now + 10000, world, opt).length, 2);
+  assert.equal(sharedDucks(now + 80000, world, opt).length, 9);
+  const stopped = sharedDucks(now, world, { ...opt, speed: 0 });
+  assert.equal(stopped[0].head, stopped[0].yaw);
+  const later = sharedDucks(now + 10000, world, opt);
+  assert.notEqual(later[0].x, born[0].x);
+  assert.equal(later[0].head, -later[0].yaw);
+  assert.deepEqual(sharedDucks(now, world, { on: 0, since: now, max: 9 }), []);
+});
+
+test("duckSince resets only when ducks go from off to on", () => {
+  const now = 1_700_000_000_000;
+  const off = sanitizePlay({ duckOn: 0 }, null, { bump: true, now });
+  assert.equal(off.duckOn, 0);
+  assert.equal(off.duckSince, 0);
+  const on = sanitizePlay({ duckOn: 1 }, off, { bump: true, now: now + 5000 });
+  assert.equal(on.duckOn, 1);
+  assert.equal(on.duckSince, now + 5000);
+  const tuned = sanitizePlay({ duckEvery: 30, duckSince: 1 }, on, { bump: true, now: now + 9000 });
+  assert.equal(tuned.duckSince, now + 5000);
+  assert.equal(tuned.duckEvery, 30);
+  const again = sanitizePlay({ duckOn: 0 }, tuned, { bump: true, now: now + 12000 });
+  assert.equal(again.duckSince, 0);
+  const firstOn = sanitizePlay({ duckOn: 1 }, {}, { bump: true, now });
+  assert.equal(firstOn.duckSince, undefined);
+});
+
+test("autofish grant follows the clicked socket and only that nick", () => {
+  const now = 1_700_000_000_000;
+  const peers = [{ id: "sock-a", nick: "달빛" }, { id: "sock-b", nick: "민물" }];
+  assert.equal(resolveGrantNick({ nick: "옛닉", id: "sock-a" }, peers), "달빛");
+  const granted = mergeGrant({}, { nick: "옛닉", id: "sock-a", mins: 20, until: now - 1 }, now, peers);
+  assert.equal(granted["달빛"], now + 20 * 60000);
+  assert.equal(granted["옛닉"], undefined);
+  assert.equal(granted["민물"], undefined);
+  assert.equal(clientGrantUntil(granted, ["달빛"], now, 0), now + 20 * 60000);
+  assert.equal(clientGrantUntil(granted, ["민물"], now, 0), 0);
+  assert.equal(clientGrantUntil(granted, ["옛닉"], now, 0), 0);
+  assert.equal(clientGrantUntil({}, ["화면닉"], now, now + 20 * 60000), now + 20 * 60000);
+  assert.equal(clientGrantUntil({ 낚시꾼: now + 60000 }, ["나"], now, 0), 0);
+  const gone = mergeGrant(granted, { nick: "옛닉", id: "sock-a", revoke: true }, now, peers);
+  assert.equal(gone["달빛"], undefined);
+  const parsed = parseClient(JSON.stringify({ t: "grant", nick: "달빛", mins: 15, id: "sock a!" }));
+  assert.equal(parsed.mins, 15);
+  assert.equal(parsed.id, "socka");
+});
+
+test("browser duck layout matches the worker", () => {
+  const src = readFileSync(new URL("../../../world-sync.js", import.meta.url), "utf8");
+  const sandbox = { window: null };
+  sandbox.window = sandbox;
+  vm.runInNewContext(src, sandbox);
+  const now = 1_700_000_000_000 + 80_000;
+  const world = { ambSeed: 42 };
+  const opt = { max: 4, every: 20000, since: now - 20000, speed: 0.5, kinds: ["pirate"] };
+  const plain = (rows) => JSON.parse(JSON.stringify(rows));
+  assert.deepEqual(plain(sandbox.NK_SYNC.ducks(now, world, opt)), plain(sharedDucks(now, world, opt)));
+  assert.equal(sandbox.NK_SYNC.ducks(now, world, opt).length, 2);
 });
 
 test("joining during a map change reloads before enter and does not kick a round", () => {

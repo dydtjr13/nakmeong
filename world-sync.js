@@ -52,7 +52,9 @@
     const rate = 0.12 * (spd / 0.5);
     const seed = Math.round(Number(world && world.ambSeed) || 1);
     const t = Number(now) || 0;
-    const elapsed = Math.max(0, t - 1700000000000);
+    const since = Number(o.since);
+    const paced = Number.isFinite(since) && since > 0;
+    const elapsed = Math.max(0, t - (paced ? since : 1700000000000));
     const n = Math.min(max, Math.floor(elapsed / every) + 1);
     const out = [];
     for (let i = 0; i < n; i++) {
@@ -62,7 +64,7 @@
       const ang0 = ((h % 10000) / 10000) * Math.PI * 2;
       const rad = (0.28 + ((h2 % 1000) / 1000) * 0.62) * rMax;
       const yaw = ang0 + (age / 1000) * rate;
-      out.push({ i, x: Math.cos(yaw) * rad, z: Math.sin(yaw) * rad, yaw, head: rate > 0 ? -yaw : yaw, s: DUCK_SIZES[h % DUCK_SIZES.length], v: kinds[h2 % kinds.length], st: "swim" });
+      out.push({ i, x: Math.cos(yaw) * rad, z: Math.sin(yaw) * rad, yaw, head: rate > 0 ? -yaw : yaw, s: DUCK_SIZES[h % DUCK_SIZES.length], v: kinds[h2 % kinds.length], st: "swim", age });
     }
     return out;
   }
