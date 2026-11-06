@@ -474,3 +474,14 @@ test("joining during a map change reloads before enter and does not kick a round
   assert.equal(joinMapPlan(true, boot, next), "keep-round");
   assert.equal(joinMapPlan(false, boot, boot), "stay");
 });
+
+test("v46: ingest without prev keeps duckSince computed by the origin room", () => {
+  const now = 1_700_000_000_000;
+  const off = sanitizePlay({ duckOn: 0 }, null, { bump: true, now });
+  const stored = sanitizePlay(off, null, { bump: false, now });
+  const on = sanitizePlay({ duckOn: 1 }, stored, { bump: true, now: now + 5000 });
+  assert.equal(on.duckSince, now + 5000);
+  const relayed = sanitizePlay(on, null, { bump: false, now: now + 5001 });
+  assert.equal(relayed.duckSince, now + 5000);
+  assert.equal(relayed.duckOn, 1);
+});

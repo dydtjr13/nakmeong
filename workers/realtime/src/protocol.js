@@ -722,6 +722,8 @@ export function sanitizePlay(input, prev, opt) {
   const out = { ...base };
   if ("moveOn" in input) out.moveOn = !!input.moveOn;
   if ("move" in input) out.move = Math.round(Math.max(0, Math.min(1, finite(input.move, 0))) * 100) / 100;
+  // v46: 다른 호숫가로 전달(ingest)될 때 prev 없이 다시 정리하므로, 이미 계산된 duckSince 를 버리지 않는다.
+  if (!prev && "duckSince" in input) out.duckSince = Math.max(0, Math.round(finite(input.duckSince, 0)));
   if ("duckOn" in input) {
     const nextOn = flag01(input.duckOn);
     const had = Object.prototype.hasOwnProperty.call(base, "duckOn");
