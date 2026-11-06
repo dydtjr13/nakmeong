@@ -3,10 +3,12 @@ import {
   CAP,
   HELLO_MS,
   SERVERS,
+  normalizeWorld,
   originAllowed,
   parseClient,
   publicPeer,
   reduce,
+  sanitizeWorld,
 } from "./protocol.js";
 
 function hostOf(request) {
@@ -50,6 +52,34 @@ export class LakeRoom extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env);
     this.ctx.setWebSocketAutoResponse(new WebSocketRequestResponsePair("ping", "pong"));
+    this._world = null;
+  }
+
+  expireWorld(now) {
+    const w = this._world;
+    if (!w || !w.wxUntil || w.wxUntil > now || w.wxOv === "auto") return false;
+    w.wxOv = "auto";
+    w.wxUntil = 0;
+    return true;
+  }
+
+  async worldGet() {
+    if (!this._world) this._world = normalizeWorld(await this.ctx.storage.get("world"));
+    const now = Date.now();
+    if (this.expireWorld(now)) this.ctx.waitUntil(this.ctx.storage.put("world", this._world));
+    return this._world;
+  }
+
+  async worldSet(patch) {
+    const prev = await this.worldGet();
+    const next = sanitizeWorld(patch, prev, { bump: true });
+    if (next.wxUntil && next.wxUntil <= Date.now()) {
+      next.wxOv = "auto";
+      next.wxUntil = 0;
+    }
+    this._world = next;
+    await this.ctx.storage.put("world", next);
+    return next;
   }
 
   openSockets(except) {
@@ -143,6 +173,12 @@ export class LakeRoom extends DurableObject {
       }
       return;
     }
+    if (msg.t === "world") {
+      if (!prev.ready) return;
+      const world = await this.worldSet(msg.world);
+      this.broadcast({ t: "world", world });
+      return;
+    }
     const others = this.readyOthers(ws).map((a) => ({ id: a.id, seatKey: a.seatKey }));
     const next = reduce(prev, msg, Date.now(), others);
     if (next.drop) return;
@@ -153,6 +189,7 @@ export class LakeRoom extends DurableObject {
     }
     const n = this.openSockets().length;
     if (next.first) {
+      const world = await this.worldGet();
       ws.send(JSON.stringify({
         t: "welcome",
         id: next.att.id,
@@ -160,6 +197,7 @@ export class LakeRoom extends DurableObject {
         n,
         cap: CAP,
         peers: this.readyOthers(ws).map(publicPeer),
+        world,
       }));
       this.broadcast({ t: "join", n, peer: next.pub }, ws);
       console.log(JSON.stringify({ event: "join", server: next.att.server, n }));

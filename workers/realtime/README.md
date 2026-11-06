@@ -85,8 +85,9 @@ npm run test:live # wrangler dev를 띄워 두 소켓 채팅·자리·서버 분
 
 서버 → 클라이언트
 
-- `welcome` `{id, server, n, cap, peers}`
+- `welcome` `{id, server, n, cap, peers, world}`
 - `join` `{n, peer}` / `leave` `{id, n}` / `pose` `{id, nick, ki, lv, x, z, y, d, fish, anim, seat}`
+- `world` `{world}` 하루 길이·시각 오프셋·날씨 강제·계절 길이·맵 테마. 방에 저장하고 같은 호숫가 모두에게 보냅니다. 계정 인증은 아직 없어서, 게임은 관리자 화면에서만 이 메시지를 보냅니다. 밸런스(`nk_admin_bal`)는 포함하지 않습니다.
 - `chat` / `emote` `{id, nick, text}`
 - `seat` `{ok:false}` 그 좌표에 다른 실유저가 먼저 앉아 있음
 
