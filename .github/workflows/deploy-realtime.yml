@@ -1,0 +1,47 @@
+# 실시간 워커(fishcozy-realtime) 자동 배포
+# main 에 workers/realtime 변경이 머지되면 테스트 후 Cloudflare 에 배포한다.
+# 필요: GitHub 저장소 Secret `CLOUDFLARE_API_TOKEN` ("Edit Cloudflare Workers" 권한)
+name: Deploy realtime worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "workers/realtime/**"
+      - ".github/workflows/deploy-realtime.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-realtime
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: workers/realtime
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: workers/realtime/package-lock.json
+      - run: npm ci
+      - name: 단위 테스트
+        run: npm test
+      - name: 토큰 확인
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::CLOUDFLARE_API_TOKEN 시크릿이 없습니다. 저장소 Settings > Secrets and variables > Actions 에 추가하세요."
+            exit 1
+          fi
+      - name: Cloudflare 배포
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx wrangler deploy
+      - name: 헬스 체크
+        run: curl -fsS https://fishcozy-realtime.mi1ku.workers.dev/health
