@@ -1,0 +1,91 @@
+<!doctype html><meta charset=utf-8>
+<style>
+body{margin:0;background:#222;font-family:system-ui,sans-serif;color:#2a2433}
+.frame{display:inline-block;margin:16px;background:#f6efe4;border-radius:16px;padding:16px;vertical-align:top}
+.tag{font-size:12px;font-weight:800;color:#fff;background:#ff8a4c;display:inline-block;padding:3px 8px;border-radius:8px;margin-bottom:8px}
+.bag{width:640px;height:360px;background:#fffaf3;border-radius:18px;padding:14px;position:relative;box-shadow:0 8px 24px #0004}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
+.tile{aspect-ratio:1;border:2px solid #c46cf2;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;position:relative}
+.tile img{width:70%;height:70%;object-fit:contain}
+.tip{position:absolute;z-index:2;max-width:200px;padding:10px 12px;font-size:12.5px;line-height:1.45;white-space:pre-line;pointer-events:none;box-shadow:0 8px 20px #0004}
+.H1{background:#2a2438f2;color:#fff;border:2px solid #ff8a4c;border-radius:14px}
+.H2{background:#fff;color:#2a2433;border:2px solid #ead9c4;border-radius:8px}
+.H3{background:#1a1428ee;color:#fff;border:0;border-left:4px solid #ff8a4c;border-radius:4px 12px 12px 4px}
+.H4{background:linear-gradient(135deg,#3b3346,#2a2438);color:#fff;border-radius:16px;border:1px solid #ffd27a;padding:12px 14px}
+.syn{width:700px;background:#fffaf3;border-radius:18px;padding:16px}
+.anvil{display:flex;gap:14px;align-items:center;justify-content:center;margin:16px 0;padding:16px;background:#fff;border-radius:16px}
+.slot{width:88px;height:88px;border-radius:16px;border:2px solid #c46cf2;display:grid;place-items:center;background:#fff}
+.slot img{width:64px;height:64px;object-fit:contain}
+.plus{font-size:28px;font-weight:900;color:#c0a890}
+.S2 .steps{display:flex;gap:8px;justify-content:center;margin:12px 0}
+.S2 .steps span{padding:8px 12px;border-radius:999px;background:#f1e6d8;font-size:12px;font-weight:800}
+.S2 .steps span.on{background:#ff8a4c;color:#fff}
+.S3 .list{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.S3 .row{display:flex;gap:10px;align-items:center;background:#fff;border-radius:12px;padding:8px}
+btn,button,.btn{background:#ff8a4c;color:#fff;border:0;border-radius:10px;padding:8px 14px;font-weight:800}
+</style>
+<body>
+<div class="frame" id="H1"><div class="tag">H1 다크+오렌지 테두리 (기본 추천)</div>
+<div class="bag"><b>🎣 낚싯대</b><div class="grid">
+<div class="tile" style="border-color:#ff2d8a"><img src="../../img/rods/heaven.png"></div>
+<div class="tile"><img src="../../img/rods/galaxy.png"></div>
+<div class="tile"><img src="../../img/rods/bamboo.png"></div>
+<div class="tile"><img src="../../img/rods/coral.png"></div>
+<div class="tile"><img src="../../img/rods/gold.png"></div>
+</div>
+<div class="tip H1" style="left:120px;top:90px">천룡 낚싯대
+★★ +7
+빠른입질 +58% · 대어 +79%
+추가: 보물탐지 +18%</div>
+</div></div>
+
+<div class="frame" id="H2"><div class="tag">H2 밝은 카드</div>
+<div class="bag"><b>🎣 낚싯대</b><div class="grid">
+<div class="tile" style="border-color:#ff2d8a"><img src="../../img/rods/heaven.png"></div>
+<div class="tile"><img src="../../img/rods/galaxy.png"></div>
+<div class="tile"><img src="../../img/rods/bamboo.png"></div>
+</div>
+<div class="tip H2" style="left:120px;top:90px">천룡 낚싯대
+★★ +7
+빠른입질 +58% · 대어 +79%</div>
+</div></div>
+
+<div class="frame" id="H3"><div class="tag">H3 슬림 사이드 바</div>
+<div class="bag"><b>🎣 낚싯대</b><div class="grid">
+<div class="tile" style="border-color:#ff2d8a"><img src="../../img/rods/heaven.png"></div>
+<div class="tile"><img src="../../img/rods/galaxy.png"></div>
+</div>
+<div class="tip H3" style="left:120px;top:90px">천룡 낚싯대 · ★★ +7
+빠른입질 +58% · 대어 +79%
+보물탐지 +18%</div>
+</div></div>
+
+<div class="frame" id="H4"><div class="tag">H4 그라데이션 패널</div>
+<div class="bag"><b>🎣 낚싯대</b><div class="grid">
+<div class="tile" style="border-color:#ff2d8a"><img src="../../img/rods/heaven.png"></div>
+</div>
+<div class="tip H4" style="left:120px;top:90px">✨ 천룡 낚싯대
+★★ +7
+빠른입질 +58%
+대어 +79%</div>
+</div></div>
+
+<div class="frame" id="S1"><div class="tag">S1 모루 심플 (추천 적용)</div>
+<div class="syn"><b>⚒ 합성</b><p style="font-size:13px;color:#8a7a6a">같은 낚싯대 2개 → ★+1</p>
+<div class="anvil"><div class="slot"><img src="../../img/rods/galaxy.png"></div><div class="plus">+</div><div class="slot"><img src="../../img/rods/galaxy.png"></div><div class="plus">→</div><div class="slot" style="border-color:#ffb000"><img src="../../img/rods/galaxy.png"></div></div>
+<div style="text-align:center"><button class="btn">합성 🪙 1,200</button></div>
+</div></div>
+
+<div class="frame" id="S2"><div class="tag">S2 단계 칩</div>
+<div class="syn S2"><b>⚒ 합성</b>
+<div class="steps"><span>재료 선택</span><span class="on">확인</span><span>결과</span></div>
+<div class="anvil"><div class="slot"><img src="../../img/rods/coral.png"></div><div class="plus">+</div><div class="slot"><img src="../../img/rods/coral.png"></div></div>
+<div style="text-align:center"><button class="btn">합성하기</button></div>
+</div></div>
+
+<div class="frame" id="S3"><div class="tag">S3 목록+미리보기</div>
+<div class="syn S3"><b>⚒ 합성</b>
+<div class="list"><div class="row"><img src="../../img/rods/bamboo.png" width=48><div><b>대나무 ★0</b><div style="font-size:12px;color:#8a">재료 1개</div></div><button class="btn">선택</button></div>
+<div class="row"><img src="../../img/rods/gold.png" width=48><div><b>황금 ★1</b><div style="font-size:12px;color:#8a">재료 2개</div></div><button class="btn">선택</button></div></div>
+</div></div>
+</body>

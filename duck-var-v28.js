@@ -1,7 +1,7 @@
 // 피쉬레스트 v28: 러버덕 5종 변형 — 원본 JDSherbert “3D Rubber Duck Asset Pack” 메시 그대로 + 색 · 소품(직접 만든 도형)
 // 작가 허락(2026-11): “출처만 밝히면 오리 인형 마음대로 사용 가능” · 크레딧: JDSherbert
 window.NK_DUCKV=(function(){
- const LIST=[['base','기본 노랑'],['pirate','해적'],['straw','딸기'],['astro','우주비행사'],['frog','개구리'],['uni','유니콘']];
+ const LIST=[['base','기본 노랑'],['pirate','해적'],['straw','딸기'],['astro','우주비행사'],['frog','개구리'],['uni','유니콘'],['penguin','펭귄'],['snowman','눈사람']];
  function build(T,GE){
   const L=c=>new T.MeshLambertMaterial({color:c}),Sd=c=>new T.MeshStandardMaterial({color:c,roughness:.35,metalness:.15});
   const merge=list=>{let n=0;const P=[],N=[];list.forEach(([g,m])=>{const q=g.index?g.toNonIndexed():g;q.applyMatrix4(m);q.computeVertexNormals();P.push(q.attributes.position.array);N.push(q.attributes.normal.array);n+=q.attributes.position.count;});const p=new Float32Array(n*3),nn=new Float32Array(n*3);let o=0;P.forEach((a,i)=>{p.set(a,o);nn.set(N[i],o);o+=a.length;});const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(p,3));g.setAttribute('normal',new T.BufferAttribute(nn,3));return g;};
@@ -33,7 +33,14 @@ window.NK_DUCKV=(function(){
    uni:{body:'#fff3fa',beak:'#ffb0d4',eyes:'#2a2230',acc:[
      [merge([[new T.ConeGeometry(.05,.26,16),M(0,.95,HC[2]+.1,.45)],[tor(.045,.012),M(0,.86,HC[2]+.06,Math.PI/2+.45)],[tor(.035,.01),M(0,.92,HC[2]+.085,Math.PI/2+.45)]]),Sd('#ffd35a')],
      ...[['#ff7ab6',[0,.86,.06]],['#ffb35a',[0,.8,-.05]],['#8ee06a',[0,.72,-.13]],['#6ac8ff',[0,.62,-.18]],['#b48cff',[0,.52,-.22]]].map(([c,p])=>[sph(.085,16,12).applyMatrix4(M(p[0],p[1],p[2],0,0,0,.7,1,1.25)),L(c)]),
-     [merge([[sph(.08,14,10),M(0,.5,-.47,.6,0,0,.8,1,1.4)],[sph(.07,14,10),M(0,.42,-.5,.6,0,0,.8,1,1.3)]]),L('#ff9fd0')]]}
+     [merge([[sph(.08,14,10),M(0,.5,-.47,.6,0,0,.8,1,1.4)],[sph(.07,14,10),M(0,.42,-.5,.6,0,0,.8,1,1.3)]]),L('#ff9fd0')]]},
+   penguin:{body:'#2a3142',beak:'#ff9a2a',eyes:'#2a2230',acc:[
+     [merge([[sph(.28,20,16),M(0,.38,.18,0,0,0,.85,1.05,.7)]]),L('#f5f7fa')],
+     [merge([[sph(.05,10,8),M(-.2,.5,.32)],[sph(.05,10,8),M(.2,.5,.32)]]),L('#ff6b4a')]]},
+   snowman:{body:'#f2f7ff',beak:'#ff7b1c',eyes:'#2a2230',acc:[
+     [merge([[cyl(.22,.24,.08,20),M(0,.86,HC[2]-.02)],[cyl(.16,.16,.14,16),M(0,.96,HC[2]-.02)]]),L('#2a3550')],
+     [merge([[sph(.035,8,6),M(0,.5,.35)],[sph(.03,8,6),M(0,.4,.36)]]),L('#1a1a22')],
+     [merge([[cyl(.04,.01,.16,8),M(0,.62,.38,Math.PI/2)]]),L('#ff7b1c')]]},
   };
   return V;}
  return {LIST,build};})();

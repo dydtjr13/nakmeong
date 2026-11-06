@@ -945,3 +945,50 @@ body.uiOne.uiedit [data-uin]:not(.uiSel){outline-color:#ff8a4c55!important;opaci
 .doll28 .dslot img.ph{opacity:.55;filter:none}
 .doll28 .dslot.empty{background:#2f2938}
 .tabs .tico img.emj{width:18px;height:18px;object-fit:contain;vertical-align:-3px}
+
+/* ===== v31 bag ===== */
+.bag31.bag28{max-height:min(620px,88vh)}
+.bag31 .b1a{grid-template-columns:300px minmax(0,1fr);gap:16px}
+.bag31 .doll28{padding:10px 8px 12px}
+.bag31 .doll28 .dgrid{grid-template-columns:repeat(3,88px);grid-auto-rows:88px;gap:12px}
+.bag31 .dslot{overflow:hidden;border:2px solid #6a5a80;background:#2f2839;color:#fff;padding:4px;min-width:0;min-height:0}
+.bag31 .dslot.on,.bag31 .dslot.rod{border-color:var(--gc,#ff8a4c);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gc) 35%,transparent)}
+.bag31 .dslot.empty{border-style:dashed;border-color:#6a5a80}
+.bag31 .diwrap{width:100%;height:48px;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:0 0 auto}
+.bag31 .diwrap img,.bag31 .dslot.rod .diwrap img,.bag31 .dslot img.di{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+.bag31 .dslot .dn,.bag31 .dslot .dl{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px;line-height:1.15}
+.bag31 .dslot .dl{font-size:9px;opacity:.85}
+.bag31 .dslot.empty .dn{font-size:10px;opacity:.75}
+.bag31 .dslot.empty .dl{display:none} /* 비어있음 텍스트 튀어나옴 제거 */
+.bag31 .sum28{font-size:11px}
+.bag31 .tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:stretch}
+.bag31 .tabs>button{position:relative;display:inline-flex;align-items:center;gap:6px;padding:8px 14px 8px 10px}
+.bag31 .tabs .tico{position:relative;display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin:0}
+.bag31 .tabs .tico img,.bag31 .tabs .tico .tico-ico{width:22px;height:22px;object-fit:contain;font-size:18px;line-height:22px}
+.bag31 .tabs .tico em{position:absolute;top:-7px;right:-10px;min-width:16px;height:16px;padding:0 4px;line-height:16px;font-size:10px;border-radius:9px;z-index:2}
+.wearhd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.wearhd p{margin:0}
+.infoi{width:32px;height:32px;border-radius:50%;border:0;background:#3b3346;color:#fff;font-weight:900;font-size:16px;cursor:pointer}
+.weargrid .diwrap,.rodgrid .diwrap{width:100%;height:64px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.weargrid .diwrap img,.rodgrid .diwrap img{max-width:100%;max-height:100%;object-fit:contain}
+.rodgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.rodtile{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px}
+.rodTip{position:fixed;z-index:200;display:none;max-width:240px;background:#2a2438f2;color:#fff;border:2px solid #ff8a4c;border-radius:14px;padding:10px 12px;font-size:12.5px;line-height:1.45;white-space:pre-line;pointer-events:none;box-shadow:0 8px 24px #0005}
+.rodTip.show{display:block}
+.rodTip.H2{border-radius:8px;background:#fff;color:#2a2433;border-color:#ead9c4}
+.rodTip.H3{border:0;background:#1a1428ee;border-left:4px solid #ff8a4c}
+.wearInfoOv{position:fixed;inset:0;z-index:110;background:#1a1428bb;display:flex;align-items:center;justify-content:center;padding:16px}
+.wearInfoOv .card{background:#fffaf3;border-radius:18px;padding:18px 20px;width:min(920px,96vw);max-height:88vh;overflow:auto;position:relative}
+.wearInfoOv .close{position:absolute;right:12px;top:12px}
+.wsets{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px}
+.wset{background:#fff;border-radius:14px;padding:12px;border:2px solid #f0e4d4}
+.wset.on{border-color:var(--c);box-shadow:0 0 0 2px color-mix(in srgb,var(--c) 35%,transparent)}
+.wsHd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.wsIts{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.wsIts div{text-align:center;opacity:.35;font-size:10px}
+.wsIts div.have{opacity:1}
+.wsIts img{width:48px;height:48px;object-fit:contain;display:block;margin:0 auto}
+.wsFx{margin-top:8px;font-size:12px;font-weight:700;color:#c25a1c}
+#boxFx .fxres .acc{pointer-events:auto;position:relative;z-index:2}
+#boxFx.show:not(.open) .fxbox{animation:shake .18s infinite alternate}
+@media(max-width:760px){.bag31 .b1a{grid-template-columns:1fr}.bag31 .doll28 .dgrid{grid-template-columns:repeat(3,72px);grid-auto-rows:72px}}

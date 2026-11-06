@@ -1,0 +1,95 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>피쉬레스트(FISHREST) v31 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>피쉬레스트(FISHREST) v31 보고서</h1>
+<p>작업일: 2026-11-06 (Asia/Seoul)</p>
+<h2>요약</h2>
+<ol>
+<li>게시판 로컬 테스트(글쓰기·댓글 localStorage)</li>
+<li>가방 UI/장착 칸 잘림·빈칸 튀어나옴·테두리·비율·탭 정렬·미획득 숨김·ℹ 세트정보·낚싯대 심플+호버</li>
+<li>행운 상자 모션 잠김 수정</li>
+<li>AI 제자리걸음(클램프↔경로 충돌) 수정</li>
+<li>러버덕: 펭귄·눈사람 <strong>적용</strong>, 닭·꿀벌·천사·공룡·산타·악마 <strong>시안 수정만</strong></li>
+<li>호버/합성 시안 다수 · 세트 비교(50 리조트·60 선장)</li>
+</ol>
+<hr />
+<h2>기능/UI</h2>
+<h3>게시판</h3>
+<ul>
+<li><code>board-v24.html</code>에 로컬 목 레이어 추가: 글쓰기·내 글·댓글·초기화</li>
+<li>기존 「✏️ 글쓰기」버튼 연결. 서버 연결 전 이 기기 localStorage만 사용</li>
+</ul>
+<h3>가방</h3>
+<ul>
+<li>낚싯대/밀짚모자 <strong>잘림</strong>: <code>.diwrap</code> + <code>object-fit:contain</code> + overflow hidden</li>
+<li>미획득 장비 <strong>목록에서 숨김</strong> (비활성 아님). 보유 5개만 표시 확인(전체 40)</li>
+<li><strong>ℹ 정보창</strong>: 세트 10종·착용 현황·세트효과. 시안 <code>eqSets-v31.jpg</code>(50=리조트, 60=선장)</li>
+<li>낚싯대 타일 심플 + <strong>호버 H1</strong> 기본 적용 (H2~H4는 시안)</li>
+<li>창 <strong>가로↑ 세로↓</strong> (<code>bag31</code>, max-height 620px, width ~1180)</li>
+<li>빈 칸 「비어있음」제거 · 이미지 클리핑 · 착용 시에도 <code>--gc</code> 테두리 유지</li>
+<li>카테고리 탭: 아이콘+숫자 <strong>우측 상단</strong> 배지 정렬</li>
+</ul>
+<h3>합성</h3>
+<ul>
+<li>시안 S1/S2/S3. <strong>S1 모루</strong> 기본 유지 + 안내 문구 단순화. S2/S3 선택 대기</li>
+</ul>
+<hr />
+<h2>버그</h2>
+<h3>행운 상자</h3>
+<ul>
+<li><strong>원인</strong>: 개봉 타임아웃이 한 번뿐·중첩 시 상태 꼬임·확인 전 오버레이 잠김</li>
+<li><strong>수정</strong>: 안전 타임아웃(2.2s)으로 <code>open</code> 보장, <code>closeBoxFx</code>, 배경 클릭·확인으로 정리</li>
+<li><strong>테스트</strong>: <code>show t1 open</code> → 확인 후 class 비움</li>
+</ul>
+<h3>AI 제자리걸음</h3>
+<ul>
+<li><strong>원인</strong>: v30 물클램프가 의자(호수쪽)로 가는 경로와 충돌 → 밀렸다 다시 걸음</li>
+<li><strong>수정</strong>: 의자 예약·낚시 목표 중 클램프 스킵 + 2.2초 진척 없으면 목적지 스냅</li>
+<li><strong>테스트</strong>: 이동 ON 8초, <code>_stkT=0</code>, 경로 진행 중</li>
+</ul>
+<hr />
+<h2>러버덕</h2>
+<table>
+<thead>
+<tr>
+<th>종류</th>
+<th>상태</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>펭귄 · 눈사람</td>
+<td><strong>인게임 적용</strong> + 순환/설정 목록</td>
+</tr>
+<tr>
+<td>닭 · 꿀벌 · 천사 · 공룡 · 산타 · 악마</td>
+<td>시안만 (<code>mockups-v31/img/d31-*.jpg</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>순환(v30): 첫 base → 셔플 유니크 → 최대 시 오래된 페이드 유지. 기본 종류에 penguin,snowman 포함.</p>
+<hr />
+<h2>링크</h2>
+<ul>
+<li>게임: <a href="https://dydtjr13.github.io/nakmeong/nakmeong.html">https://dydtjr13.github.io/nakmeong/nakmeong.html</a></li>
+<li>시안: <a href="https://dydtjr13.github.io/nakmeong/mockups-v31/">https://dydtjr13.github.io/nakmeong/mockups-v31/</a></li>
+<li>보고서: <a href="https://dydtjr13.github.io/nakmeong/docs/v31-보고서.html">https://dydtjr13.github.io/nakmeong/docs/v31-보고서.html</a></li>
+</ul>
+<h2>커밋 / 백업 / PC</h2>
+<p>백업: <code>/workspace/nakmeong-backups/nakmeong-v31-step1.zip</code> ~ <code>step5.zip</code>, <code>nakmeong-v31.zip</code></p>
+<ol>
+<li><code>9c04799</code> — v31 step1: board local mock, boxFx unlock, AI path/clamp stuck fix</li>
+<li><code>9af8109</code> — v31 step2: bag layout/clip/borders/tabs, hide unowned wear, info modal, rod hover H1</li>
+<li><code>a647bb3</code> — v31 step3: apply penguin+snowman; mock revise chicken/bee/angel/dino/santa/devil</li>
+<li><code>b1038b4</code> — v31 step4: mockups (hover/synth/ducks/eqSets) + cache bust v31</li>
+<li><code>b4fb361</code> — v31 step5: report</li>
+</ol>
+<h3>PC</h3>
+<ul>
+<li>경로: <code>C:\Users\이용석\Desktop\게임개발\낚멍\낚멍 그록봇\nakmeong-v31\</code></li>
+<li>SHA256: <code>8a513739ea01a6f9f05522ebf8ba0713401e3778c24357c48282dae0463b1a00</code></li>
+</ul></main></body></html>

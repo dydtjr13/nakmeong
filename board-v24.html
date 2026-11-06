@@ -34,7 +34,7 @@ body[data-v="4"] .cl{right:calc(50% - min(520px,47vw) + 14px);top:calc(50% - min
 .vm{padding:56px 12px 40px}.vm h3{font-size:15px;margin:14px 4px 8px}.vm img{width:100%;max-width:420px;display:block;margin:0 auto 10px;border-radius:16px;box-shadow:0 4px 14px #0002}
 img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;object-fit:contain}
 </style></head><body data-v="2">
-<div class="cl" onclick="parent.postMessage('nkBoardClose','*')" title="닫기 (Esc)">×</div><div class="demo">게시판 미리보기 · 예시 글이에요 (서버 연결 전)</div>
+<div class="cl" onclick="parent.postMessage('nkBoardClose','*')" title="닫기 (Esc)">×</div><div class="demo">게시판 테스트 모드 · 글쓰기·댓글은 이 기기에 저장돼요 (서버 연결 전)</div>
 <div class="v v1 p1"><div class="bg" onclick="parent.postMessage('nkBoardClose','*')"></div><img src="mockups-v23/img/board-pc-p1.jpg" alt="P1"></div>
 <div class="v vm"><h3>📱 게시판 (모바일 확정안 B1 · B2 · B5)</h3><img src="mockups-v23/img/board-b1.jpg" alt=""><img src="mockups-v23/img/board-b2.jpg" alt=""><img src="mockups-v23/img/board-b5.jpg" alt=""></div>
 <div class="v v2 p2"><div class="top"><span class="lg">🎣 피쉬레스트 게시판</span><div class="nav"><a>📢 공지</a><a>🔔 업데이트</a><a class="on">💬 자유</a><a>❓ 질문</a><a>🐟 자랑</a><a>🤝 거래</a><a>🐞 버그 제보</a><a>📚 공략</a></div><span style="margin-left:auto" class="btn">✏️ 글쓰기</span></div>
@@ -71,4 +71,82 @@ img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;object-fit:contain}
 <div class="v v5 p5"><div class="bg"></div><div class="pn"><div class="h">📋 게시판 <span class="mt" style="margin-left:auto;font-weight:400">게임 화면 그대로 · 오른쪽 패널</span></div><div class="tabs"><b class="on">전체</b><b>📢 공지</b><b>🔔 업데이트</b><b>💬 자유</b><b>❓ 질문</b><b>🐟 자랑</b><b>🤝 거래</b></div>
 <div class="row" style="background:#fff3ea"><span class="tag t0">공지</span><div class="tt">📌 11/12 정기 점검 안내</div><div class="mt">운영자 · 11/05</div></div><div class="row"><span class="tag t1">업데이트</span><div class="tt">v23: 피쉬레스트로 새 단장</div><div class="mt">운영자 · 오늘 · 💬 48</div></div><div class="row"><span class="tag t5">자랑</span><div class="tt">드디어 신화 낚싯대 떴어요 (기본옵션 115%)</div><div class="mt">물멍러 · 5분 전 · 💬 12</div></div><div class="row"><span class="tag t3">질문</span><div class="tt">이벤트 남은 시간은 어디서 봐요?</div><div class="mt">초보낚시꾼 · 12분 전 · ✅ 답변 완료</div></div><div class="row"><span class="tag t2">자유</span><div class="tt">비 오는 날 밤 호수 분위기 최고</div><div class="mt">호수지기 · 25분 전 · 💬 7</div></div><div class="row"><span class="tag t4">거래</span><div class="tt">[삽니다] 행운 부적 ★3 · 코인 2만</div><div class="mt">붕어왕 · 31분 전</div></div>
 <div style="margin-top:14px;text-align:right"><span class="btn">✏️ 글쓰기</span></div></div><div class="hint">💡 낚시를 하면서 게시판을 볼 수 있어요 (B 키로 열고 닫기)</div></div>
-<script>document.body.dataset.v=new URLSearchParams(location.search).get('v')||4;addEventListener('keydown',e=>{if(e.key==='Escape')parent.postMessage('nkBoardClose','*');});</script><script>window.NK_EMOJI_BASE='icons/emoji/';</script><script src="emoji.js"></script></body></html>
+<script>document.body.dataset.v=new URLSearchParams(location.search).get('v')||4;addEventListener('keydown',e=>{if(e.key==='Escape')parent.postMessage('nkBoardClose','*');});</script><script>window.NK_EMOJI_BASE='icons/emoji/';</script><script src="emoji.js"></script>
+<script>
+/* v31: 서버 연결 전 로컬 테스트 — 글쓰기·댓글 localStorage */
+(function(){
+ const KEY='nk_board_v31';
+ const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{"posts":[],"cm":{}}');}catch(e){return{posts:[],cm:{}}};};
+ const save=d=>localStorage.setItem(KEY,JSON.stringify(d));
+ const nick=()=>{try{const s=JSON.parse(localStorage.getItem('nk')||'{}');return (s.nick||'낚시꾼').slice(0,10);}catch(e){return '낚시꾼';}};
+ const now=()=>{const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');};
+ function ui(){
+  if(document.getElementById('bdMock'))return;
+  const bar=document.createElement('div');bar.id='bdMock';bar.innerHTML=`
+   <style>
+   #bdMock{position:fixed;left:50%;bottom:48px;transform:translateX(-50%);z-index:20;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:96vw}
+   #bdMock button{background:#ff8a4c;color:#fff;border:0;border-radius:12px;padding:10px 16px;font-weight:800;cursor:pointer;font-size:14px;box-shadow:0 4px 14px #0003}
+   #bdMock button.g{background:#3b3346}
+   #bdPanel{position:fixed;inset:0;z-index:30;background:#1a1428cc;display:none;align-items:center;justify-content:center;padding:16px}
+   #bdPanel.show{display:flex}
+   #bdPanel .card{background:#fffaf3;border-radius:18px;padding:18px 20px;width:min(520px,94vw);max-height:86vh;overflow:auto;box-shadow:0 16px 40px #0005}
+   #bdPanel h3{margin:0 0 10px;font-size:18px}
+   #bdPanel input,#bdPanel textarea,#bdPanel select{width:100%;border:1.5px solid #ead9c4;border-radius:12px;padding:10px 12px;font:14px sans-serif;margin:6px 0 12px;box-sizing:border-box}
+   #bdPanel textarea{min-height:110px;resize:vertical}
+   #bdPanel .row{display:flex;gap:8px;justify-content:flex-end}
+   #bdPanel .row button{border:0;border-radius:10px;padding:9px 14px;font-weight:800;cursor:pointer}
+   #bdPanel .ok{background:#ff8a4c;color:#fff}.cancel{background:#eee4d8}
+   #bdList{margin-top:10px}#bdList .it{background:#fff;border-radius:12px;padding:10px 12px;margin:8px 0;border:1px solid #f0e4d4}
+   #bdList .it b{display:block;margin:4px 0}#bdList .cm{margin-top:8px;padding-left:8px;border-left:3px solid #ffd2b0;font-size:13px;color:#5a4e44}
+   #bdList .cm div{margin:4px 0}.demo{display:none!important}
+   </style>
+   <button type="button" id="bdWrite">✏️ 글쓰기 (로컬)</button>
+   <button type="button" id="bdMine" class="g">📋 내 글·댓글</button>
+   <button type="button" id="bdClear" class="g">🗑 로컬 초기화</button>`;
+  document.body.appendChild(bar);
+  const pan=document.createElement('div');pan.id='bdPanel';pan.innerHTML=`<div class="card"></div>`;document.body.appendChild(pan);
+  const card=pan.querySelector('.card');
+  const open=html=>{card.innerHTML=html;pan.classList.add('show');};
+  const close=()=>pan.classList.remove('show');
+  pan.addEventListener('click',e=>{if(e.target===pan)close();});
+  document.getElementById('bdWrite').onclick=()=>{
+   open(`<h3>✏️ 글쓰기 <small style="font-weight:600;color:#9a8b7c">(로컬 저장 · 서버 연결 전)</small></h3>
+    <label>게시판</label><select id="bdCat"><option>💬 자유</option><option>❓ 질문</option><option>🐟 자랑</option><option>🤝 거래</option><option>🐞 버그 제보</option><option>📚 공략</option><option>💡 건의</option></select>
+    <label>제목</label><input id="bdTitle" maxlength="60" placeholder="제목을 입력하세요">
+    <label>내용</label><textarea id="bdBody" maxlength="2000" placeholder="내용을 입력하세요"></textarea>
+    <div class="row"><button type="button" class="cancel" id="bdX">취소</button><button type="button" class="ok" id="bdGo">등록</button></div>`);
+   card.querySelector('#bdX').onclick=close;
+   card.querySelector('#bdGo').onclick=()=>{
+    const title=card.querySelector('#bdTitle').value.trim(),body=card.querySelector('#bdBody').value.trim(),cat=card.querySelector('#bdCat').value;
+    if(!title||!body){alert('제목과 내용을 입력해 주세요');return;}
+    const d=load();const id='p'+Date.now();d.posts.unshift({id,cat,title,body,nick:nick(),t:now(),ts:Date.now()});save(d);close();showList();
+   };
+  };
+  function showList(){
+   const d=load();
+   open(`<h3>📋 내 로컬 글 · 댓글</h3><p style="font-size:13px;color:#8a7a6a;margin:0 0 8px">이 기기 localStorage에만 저장돼요. 서버 연결 후 이전됩니다.</p><div id="bdList"></div><div class="row"><button type="button" class="cancel" id="bdX2">닫기</button></div>`);
+   const L=card.querySelector('#bdList');
+   if(!d.posts.length)L.innerHTML='<p class="mt">아직 쓴 글이 없어요.</p>';
+   else d.posts.forEach(p=>{
+    const cms=(d.cm[p.id]||[]);
+    const el=document.createElement('div');el.className='it';
+    el.innerHTML=`<span class="tag t2">${p.cat}</span><b>${p.title}</b><div class="mt">${p.nick} · ${p.t}</div><div style="font-size:13.5px;margin-top:6px;white-space:pre-wrap">${p.body}</div>
+     <div class="cm">${cms.map(c=>`<div>💬 <b>${c.nick}</b> ${c.body} <span class="mt">${c.t}</span></div>`).join('')||'<div class="mt">댓글 없음</div>'}
+     <div style="display:flex;gap:6px;margin-top:6px"><input placeholder="댓글" maxlength="200" style="flex:1;padding:6px 8px;border-radius:8px;border:1px solid #ead9c4"><button type="button" class="ok" style="padding:6px 10px">댓글</button></div></div>`;
+    const inp=el.querySelector('input'),btn=el.querySelector('button');
+    btn.onclick=()=>{const v=inp.value.trim();if(!v)return;const d2=load();(d2.cm[p.id]=d2.cm[p.id]||[]).push({nick:nick(),body:v,t:now()});save(d2);showList();};
+    L.appendChild(el);
+   });
+   card.querySelector('#bdX2').onclick=close;
+  }
+  document.getElementById('bdMine').onclick=showList;
+  document.getElementById('bdClear').onclick=()=>{if(confirm('로컬 게시글·댓글을 모두 지울까요?')){localStorage.removeItem(KEY);alert('초기화했어요');}};
+  // wire existing 글쓰기 buttons
+  document.querySelectorAll('.btn').forEach(b=>{if(/글쓰기/.test(b.textContent)){b.style.cursor='pointer';b.onclick=e=>{e.preventDefault();document.getElementById('bdWrite').click();};}});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ui);else ui();
+ window.NK_BOARD_MOCK={load,save};
+})();
+</script>
+
+</body></html>

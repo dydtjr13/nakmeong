@@ -1,33 +1,180 @@
-<!doctype html><meta charset=utf-8><title>v29 보고서</title><style>body{font:15px/1.55 system-ui;max-width:860px;margin:24px auto;padding:0 16px}code{background:#f3f5f8;padding:1px 5px;border-radius:4px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:6px 8px}h1,h2{border-bottom:1px solid #eee;padding-bottom:6px}</style><p><h1>낚멍 v29 보고서</h1></p><p>작업일: 2026-11-06 (Asia/Seoul) · Pages: https://dydtjr13.github.io/nakmeong/</p><p><h2>요약</h2></p><p>| # | 항목 | 결과 |
-|---|---|---|
-| 1 | 어항 판매 렉 | <b>수정</b> — 판매 시 해당 물고기만 제거 |
-| 2 | 계절 사이클 | <b>추천+설정 적용</b> — 하루 4시즌 권장 |
-| 3 | 눈 쌓임 | <b>시안만</b> (G0/A/B/C/D) · 적용 금지 |
-| 4 | 전설+ 강화석 | <b>의견 동의·적용</b> — 전설·신화 상자에서 제외 |
-| 5 | 러버덕 +10 | <b>적용</b> — 총 16종, 설정 on/off |
-| 6 | 호수 물고기 | <b>제거</b> |
-| 7 | AI 물 위 걷기 | <b>수정</b> — 원호 현 클램프 |
-| 시안1 | 가방 B1-A 재적용 | <b>적용</b> — 탭: 낚싯대·장비·합성·강화 / 상자 버튼: 행운상자·부적 |
-| 시안2 | 상자 구조 G/X | <b>보류 유지</b> |
-| 시안3 | 장비 40종 | <b>적용</b> — 50↔60 교체, 튜토리얼 1레벨, 상자 드롭 |
-| 시안4 | 동물 R1/R2 | <b>적용</b> — R1 기본, 설정에서 R2 |</p><p>미결정(건드리지 않음): 상자 열기 개수 · 상한 C안 · 모바일 UI 편집</p><p>---</p><p><h2>1) 어항 판매 렉 — 원인과 수정</h2></p><p><b>원인:</b> <code>상점에 팔기</code>마다 <code>tankView.build()</code>를 호출해 <b>어항 속 모든 물고기를 삭제 후 재생성</b>. 위치·방향(<code>yaw</code>)이 전부 랜덤으로 다시 잡혀 “전체가 방향을 바꾸며 렉”처럼 보였음.</p><p><b>수정:</b> <code>removeFish(id)</code> / <code>addFish(f)</code> 최소 갱신. 판매·봇 구매·구매 시 해당 개체만 제거/추가. 나머지 개체 오브젝트·위치 유지(테스트 <code>sameObj:true</code>).</p><p><h2>2) 계절 사이클 추천</h2></p><p>현실 달력(1시즌≈90일)은 지금처럼 가을이 길게 느껴져 <b>다양성이 부족</b>.</p><p>| 안 | 하루 기준 | 한 시즌 길이 | 다양성 | 몰입 | 비고 |
-|---|---|---|---|---|---|
-| 0 | 실제 날짜 | ≈90일 | ★☆☆ | ★★★ | 현행 |
-| 1 | 1시즌/일 | 6시간 | ★★☆ | ★★★ | 완만 |
-| <b>4</b> | <b>4시즌/일</b> | <b>6시간</b> | <b>★★★</b> | <b>★★★</b> | <b>추천</b> |
-| 8 | 8시즌/일 | 3시간 | ★★★★ | ★★☆ | 다소 산만 |</p><p><b>판단·적용:</b> 설정 › <b>계절 사이클</b>에 <code>0/1/2/4/8</code> 선택 추가. 기본은 <code>0(실제 날짜)</code>로 두어 기존 세이브에 충격 없음. <b>추천값은 4(하루 4시즌)</b> — 사용자 결정으로 바꾸면 됨. 강제 계절 오버라이드는 그대로.</p><p><h2>3) 눈 쌓임 시안 (적용 금지)</h2></p><p><code>mockups-v29/</code> · G0 없음 / A 잔설(바닥 블렌드) / B 데크·지붕 / C 두꺼운 적설+파티클 / D 중간.</p><p>연출 아이디어: 바닥 텍스처 알파 블렌드 → 데크 판자·지붕 메쉬 위 적설 메시 → 잔설 파티클.</p><p><h2>4) 전설+ 강화석 제외 — 의견·균형</h2></p><p><b>의견:</b> 동의. 전설·신화 상자는 “고급 보상(부적·낚싯대·장비)” 기대가 크고, 강화석이 뜨면 김이 빠짐. 강화석은 영웅 이하 상자·부적 분해·수집 목표로 충분.</p><p><b>적용:</b> <code>systems.js</code> — tier≥4 일 때 <code>stones=0</code>, 코인만. 시뮬레이션 100회: 전설/신화 stones=0, 영웅 이하는 유지. 장비 드롭은 영웅+에서 소량 추가.</p><p><h2>5) 러버덕 10종</h2></p><p>기존 6 + 신규 10 = <b>16종</b>. JDSherbert 원본 기반 색·소품 변형 (크레딧 유지).</p><p>신규: 카우보이 · 셰프 · 닌자 · 산타 · 안전모 · 인어 · 뱀파이어 · 꿀벌 · 초밥 · 탐정  
-설정에서 종류별 on/off. 시안: <code>mockups-v29/img/duck-*.jpg</code></p><p><h2>6) 호수 물고기 연출 제거</h2></p><p>월드 <code>worldFish</code> InstancedMesh 생성·갱신 제거.</p><p><h2>7) AI 물 위 걷기 — 원인과 수정</h2></p><p><b>원인:</b> <code>ringRoute</code>가 원호를 그리지만 점 사이 <b>현(chord)</b> 이 호수 안을 가로지름. 호수 안(<code>r<LR</code>)에서 <code>H</code>는 −2.2인데 <code>Math.max(H,.1)</code>로 <b>수면 높이 0.1</b>에 고정 → 물 위를 걷는 것처럼 보임.</p><p><b>수정:</b> 매 프레임 <code>r≥LR+2.35</code>로 밖으로 밀기 · 원호 스텝 더 촘촘히 · 수면 클램프 제거(육지 높이 사용).</p><p>---</p><p><h2>가방 재적용</h2></p><p><li><b>가방 버튼:</b> 낚싯대 · 장비 · 합성 · 강화  </li>
-<li><b>상자 버튼:</b> 행운 상자 · 행운 부적 (구조 시안 G/X 보류)  </li>
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>낚멍 v29 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>낚멍 v29 보고서</h1>
+<p>작업일: 2026-11-06 (Asia/Seoul) · Pages: <a href="https://dydtjr13.github.io/nakmeong/">https://dydtjr13.github.io/nakmeong/</a></p>
+<h2>요약</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>항목</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>어항 판매 렉</td>
+<td><strong>수정</strong> — 판매 시 해당 물고기만 제거</td>
+</tr>
+<tr>
+<td>2</td>
+<td>계절 사이클</td>
+<td><strong>추천+설정 적용</strong> — 하루 4시즌 권장</td>
+</tr>
+<tr>
+<td>3</td>
+<td>눈 쌓임</td>
+<td><strong>시안만</strong> (G0/A/B/C/D) · 적용 금지</td>
+</tr>
+<tr>
+<td>4</td>
+<td>전설+ 강화석</td>
+<td><strong>의견 동의·적용</strong> — 전설·신화 상자에서 제외</td>
+</tr>
+<tr>
+<td>5</td>
+<td>러버덕 +10</td>
+<td><strong>적용</strong> — 총 16종, 설정 on/off</td>
+</tr>
+<tr>
+<td>6</td>
+<td>호수 물고기</td>
+<td><strong>제거</strong></td>
+</tr>
+<tr>
+<td>7</td>
+<td>AI 물 위 걷기</td>
+<td><strong>수정</strong> — 원호 현 클램프</td>
+</tr>
+<tr>
+<td>시안1</td>
+<td>가방 B1-A 재적용</td>
+<td><strong>적용</strong> — 탭: 낚싯대·장비·합성·강화 / 상자 버튼: 행운상자·부적</td>
+</tr>
+<tr>
+<td>시안2</td>
+<td>상자 구조 G/X</td>
+<td><strong>보류 유지</strong></td>
+</tr>
+<tr>
+<td>시안3</td>
+<td>장비 40종</td>
+<td><strong>적용</strong> — 50↔60 교체, 튜토리얼 1레벨, 상자 드롭</td>
+</tr>
+<tr>
+<td>시안4</td>
+<td>동물 R1/R2</td>
+<td><strong>적용</strong> — R1 기본, 설정에서 R2</td>
+</tr>
+</tbody>
+</table>
+<p>미결정(건드리지 않음): 상자 열기 개수 · 상한 C안 · 모바일 UI 편집</p>
+<hr />
+<h2>1) 어항 판매 렉 — 원인과 수정</h2>
+<p><strong>원인:</strong> <code>상점에 팔기</code>마다 <code>tankView.build()</code>를 호출해 <strong>어항 속 모든 물고기를 삭제 후 재생성</strong>. 위치·방향(<code>yaw</code>)이 전부 랜덤으로 다시 잡혀 “전체가 방향을 바꾸며 렉”처럼 보였음.</p>
+<p><strong>수정:</strong> <code>removeFish(id)</code> / <code>addFish(f)</code> 최소 갱신. 판매·봇 구매·구매 시 해당 개체만 제거/추가. 나머지 개체 오브젝트·위치 유지(테스트 <code>sameObj:true</code>).</p>
+<h2>2) 계절 사이클 추천</h2>
+<p>현실 달력(1시즌≈90일)은 지금처럼 가을이 길게 느껴져 <strong>다양성이 부족</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>안</th>
+<th>하루 기준</th>
+<th>한 시즌 길이</th>
+<th>다양성</th>
+<th>몰입</th>
+<th>비고</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>실제 날짜</td>
+<td>≈90일</td>
+<td>★☆☆</td>
+<td>★★★</td>
+<td>현행</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1시즌/일</td>
+<td>6시간</td>
+<td>★★☆</td>
+<td>★★★</td>
+<td>완만</td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td><strong>4시즌/일</strong></td>
+<td><strong>6시간</strong></td>
+<td><strong>★★★</strong></td>
+<td><strong>★★★</strong></td>
+<td><strong>추천</strong></td>
+</tr>
+<tr>
+<td>8</td>
+<td>8시즌/일</td>
+<td>3시간</td>
+<td>★★★★</td>
+<td>★★☆</td>
+<td>다소 산만</td>
+</tr>
+</tbody>
+</table>
+<p><strong>판단·적용:</strong> 설정 › <strong>계절 사이클</strong>에 <code>0/1/2/4/8</code> 선택 추가. 기본은 <code>0(실제 날짜)</code>로 두어 기존 세이브에 충격 없음. <strong>추천값은 4(하루 4시즌)</strong> — 사용자 결정으로 바꾸면 됨. 강제 계절 오버라이드는 그대로.</p>
+<h2>3) 눈 쌓임 시안 (적용 금지)</h2>
+<p><code>mockups-v29/</code> · G0 없음 / A 잔설(바닥 블렌드) / B 데크·지붕 / C 두꺼운 적설+파티클 / D 중간.</p>
+<p>연출 아이디어: 바닥 텍스처 알파 블렌드 → 데크 판자·지붕 메쉬 위 적설 메시 → 잔설 파티클.</p>
+<h2>4) 전설+ 강화석 제외 — 의견·균형</h2>
+<p><strong>의견:</strong> 동의. 전설·신화 상자는 “고급 보상(부적·낚싯대·장비)” 기대가 크고, 강화석이 뜨면 김이 빠짐. 강화석은 영웅 이하 상자·부적 분해·수집 목표로 충분.</p>
+<p><strong>적용:</strong> <code>systems.js</code> — tier≥4 일 때 <code>stones=0</code>, 코인만. 시뮬레이션 100회: 전설/신화 stones=0, 영웅 이하는 유지. 장비 드롭은 영웅+에서 소량 추가.</p>
+<h2>5) 러버덕 10종</h2>
+<p>기존 6 + 신규 10 = <strong>16종</strong>. JDSherbert 원본 기반 색·소품 변형 (크레딧 유지).</p>
+<p>신규: 카우보이 · 셰프 · 닌자 · 산타 · 안전모 · 인어 · 뱀파이어 · 꿀벌 · 초밥 · 탐정<br />
+설정에서 종류별 on/off. 시안: <code>mockups-v29/img/duck-*.jpg</code></p>
+<h2>6) 호수 물고기 연출 제거</h2>
+<p>월드 <code>worldFish</code> InstancedMesh 생성·갱신 제거.</p>
+<h2>7) AI 물 위 걷기 — 원인과 수정</h2>
+<p><strong>원인:</strong> <code>ringRoute</code>가 원호를 그리지만 점 사이 <strong>현(chord)</strong> 이 호수 안을 가로지름. 호수 안(<code>r&lt;LR</code>)에서 <code>H</code>는 −2.2인데 <code>Math.max(H,.1)</code>로 <strong>수면 높이 0.1</strong>에 고정 → 물 위를 걷는 것처럼 보임.</p>
+<p><strong>수정:</strong> 매 프레임 <code>r≥LR+2.35</code>로 밖으로 밀기 · 원호 스텝 더 촘촘히 · 수면 클램프 제거(육지 높이 사용).</p>
+<hr />
+<h2>가방 재적용</h2>
+<ul>
+<li><strong>가방 버튼:</strong> 낚싯대 · 장비 · 합성 · 강화  </li>
+<li><strong>상자 버튼:</strong> 행운 상자 · 행운 부적 (구조 시안 G/X 보류)  </li>
 <li>장착 칸 옷·신발 이미지 표시 (센터 오차 0px 측정)  </li>
-<li>합성/강화 직관 시안: S1 모루(추천) / S2 단계표 / S3 목록 · E1/E2 — <b>확정 전 시안만</b>, 가방 탭 분리는 적용</li></p><p>전후 스샷: <code>shots/v29/bag-gear.jpg</code>, <code>bag-wear.jpg</code>, <code>box-tabs.jpg</code></p><p><h2>장비 40종</h2></p><p><li><code>game-data-v29.js</code> + <code>img/eq/*</code>  </li>
-<li><b>50레벨 = 리조트</b>, <b>60레벨 = 선장</b> (서로 교체)  </li>
-<li>1레벨(밀짚 소풍 세트)만 튜토리얼로 <b>모자→옷→신발→장갑 순</b> 지급, 장착 확인 후 다음 단계  </li>
+<li>합성/강화 직관 시안: S1 모루(추천) / S2 단계표 / S3 목록 · E1/E2 — <strong>확정 전 시안만</strong>, 가방 탭 분리는 적용</li>
+</ul>
+<p>전후 스샷: <code>shots/v29/bag-gear.jpg</code>, <code>bag-wear.jpg</code>, <code>box-tabs.jpg</code></p>
+<h2>장비 40종</h2>
+<ul>
+<li><code>game-data-v29.js</code> + <code>img/eq/*</code>  </li>
+<li><strong>50레벨 = 리조트</strong>, <strong>60레벨 = 선장</strong> (서로 교체)  </li>
+<li>1레벨(밀짚 소풍 세트)만 튜토리얼로 <strong>모자→옷→신발→장갑 순</strong> 지급, 장착 확인 후 다음 단계  </li>
 <li>나머지 레벨은 희귀+ 상자 확률 드롭 (<code>boxRate</code> / <code>boxLv</code>)  </li>
-<li><b>의견:</b> 튜토리얼로 하나씩 → 온보딩에 좋고, 상자로만 상위 장비 = 박스 가치↑. 동의·적용.</li></p><p><h2>동물 캐릭터</h2></p><p><code>chars-round-v29.js</code> — <b>R1(부드러운 셰이딩) 기본</b>, 설정에서 <b>R2(둥근 모서리)</b> 선택. 변경 후 캐릭터 재생성(새로고침) 필요.</p><p>---</p><p><h2>링크</h2></p><p><li>게임: https://dydtjr13.github.io/nakmeong/nakmeong.html  </li>
-<li>시안: https://dydtjr13.github.io/nakmeong/mockups-v29/  </li>
-<li>보고서 HTML: https://dydtjr13.github.io/nakmeong/docs/v29-보고서.html  </li></p><p><h2>커밋 (step)</h2></p><p>1. <code>f68b677</code> — 어항/호수물고기/AI/강화석/계절설정  
-2. <code>1dc8053</code> — 러버덕 10종  
-3. <code>c92d557</code> — 가방·장비·튜토리얼·동물 R1/R2  
-4. <code>653dcee</code> — 눈/합성/강화 시안 + 보고서  
-5. Pages 반영 · PC 전달 완료 (SHA256 <code>c26b5f89…078bd1</code>, 4분할 30MB, 압축해제 1953 files)</p><p>백업: <code>/workspace/nakmeong-backups/nakmeong-v29-step1.zip</code> ~ <code>step4.zip</code>
-</p>
+<li><strong>의견:</strong> 튜토리얼로 하나씩 → 온보딩에 좋고, 상자로만 상위 장비 = 박스 가치↑. 동의·적용.</li>
+</ul>
+<h2>동물 캐릭터</h2>
+<p><code>chars-round-v29.js</code> — <strong>R1(부드러운 셰이딩) 기본</strong>, 설정에서 <strong>R2(둥근 모서리)</strong> 선택. 변경 후 캐릭터 재생성(새로고침) 필요.</p>
+<hr />
+<h2>링크</h2>
+<ul>
+<li>게임: <a href="https://dydtjr13.github.io/nakmeong/nakmeong.html">https://dydtjr13.github.io/nakmeong/nakmeong.html</a>  </li>
+<li>시안: <a href="https://dydtjr13.github.io/nakmeong/mockups-v29/">https://dydtjr13.github.io/nakmeong/mockups-v29/</a>  </li>
+<li>보고서 HTML: <a href="https://dydtjr13.github.io/nakmeong/docs/v29-보고서.html">https://dydtjr13.github.io/nakmeong/docs/v29-보고서.html</a>  </li>
+</ul>
+<h2>커밋 (step)</h2>
+<ol>
+<li><code>f68b677</code> — 어항/호수물고기/AI/강화석/계절설정  </li>
+<li><code>1dc8053</code> — 러버덕 10종  </li>
+<li><code>c92d557</code> — 가방·장비·튜토리얼·동물 R1/R2  </li>
+<li><code>653dcee</code> — 눈/합성/강화 시안 + 보고서  </li>
+<li>Pages 반영 · PC 전달 완료 (SHA256 <code>c26b5f89…078bd1</code>, 4분할 30MB, 압축해제 1953 files)</li>
+</ol>
+<p>백업: <code>/workspace/nakmeong-backups/nakmeong-v29-step1.zip</code> ~ <code>step4.zip</code></p></main></body></html>
