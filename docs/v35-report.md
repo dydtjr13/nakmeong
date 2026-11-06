@@ -4,6 +4,7 @@
 - 라이브: https://dydtjr13.github.io/nakmeong/
 - 캐시: `nakmeong.html?v35`
 - 기반: v34
+- 커밋: `52a4bef`
 - 선택: t58s300 **L 라인아트 물고기** 파비콘 + 표시명 **피쉬코지**
 
 ## 요약
