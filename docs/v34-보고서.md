@@ -4,6 +4,7 @@
 - 라이브: https://dydtjr13.github.io/nakmeong/
 - 캐시 무력화: `nakmeong.html?v34` (스크립트 `?v34`)
 - 기반: v33 (`d3e8c76`)
+- 커밋: `71afad0`
 - 이슈: t56u 「상자 열기 눌러도 아무 반응없고 먹통」
 
 ## 요약
