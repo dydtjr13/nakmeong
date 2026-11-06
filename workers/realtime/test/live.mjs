@@ -100,6 +100,13 @@ async function main() {
 
     const evil = await fetch(`${ORIGIN}/ws/1`, { headers: { Origin: "https://evil.example" } });
     assert(evil.status === 403, `evil origin should be 403, got ${evil.status}`);
+    const httpOpen = connect(1, "http://fishcozy.com");
+    await httpOpen.ready;
+    httpOpen.send(hello("http입장"));
+    const httpWelcome = await httpOpen.next();
+    assert(httpWelcome.t === "welcome", "http://fishcozy.com origin is allowed before the https cert");
+    httpOpen.close();
+    await delay(200);
 
     const missing = await fetch(`${ORIGIN}/ws/9`);
     assert(missing.status === 404, "unknown server");
@@ -184,6 +191,49 @@ async function main() {
     a.send({ t: "balance", balance: { boxBase: 0.5, txp: 0.02, tiers: [3], caps: { luck: 40 }, fish: { carp: { w: 9, base: 11 } } } });
     const [balA, , balC] = await Promise.all([a.next(), b.next(), c.next()]);
     assert(balA.t === "balance" && balC.balance.boxBase === 0.5 && balC.balance.fish.carp.w === 9, "balance reaches every lake");
+
+    a.send({ t: "stage", stage: { lay: "b", deckW: "W2", decks: 30, chN: 2, bots: 4 } });
+    const [stA, stB, stC] = await Promise.all([a.next(), b.next(), c.next()]);
+    assert(stA.t === "stage" && stB.stage.lay === "b" && stB.stage.deckW === "W2" && stC.stage.decks === 30, "deck layout reaches every lake");
+    assert(stB.stage.chN === 2 && stB.stage.bots === 4 && stA.stage.rev === stC.stage.rev, "channel count and bots are shared");
+
+    a.send({ t: "play", play: { moveOn: true, move: 0.5, duckOn: 0, tutOff: 1, duckKinds: "base,pirate" } });
+    const [plA, plB, plC] = await Promise.all([a.next(), b.next(), c.next()]);
+    assert(plA.t === "play" && plB.play.move === 0.5 && plB.play.duckOn === 0 && plC.play.tutOff === 1, "speed, duck and tutorial reach the user");
+
+    a.send({ t: "cue", cue: { id: "duck1", kind: "duck", n: 1, nick: "*" } });
+    const [cuA, cuB, cuC] = await Promise.all([a.next(), b.next(), c.next()]);
+    assert(cuA.t === "cue" && cuB.cue.kind === "duck" && cuC.cue.n === 1, "duck drop reaches every lake");
+
+    a.send({ t: "cue", cue: { id: "tut1", kind: "tut", act: "reset", i: 0, nick: "달빛" } });
+    const [tuA, tuB, tuC] = await Promise.all([a.next(), b.next(), c.next()]);
+    assert(tuB.cue.kind === "tut" && tuB.cue.act === "reset" && tuB.cue.nick === "달빛" && tuC.cue.id === "tut1" && tuA.cue.nick === "달빛", "tutorial cue is addressed to the nick");
+
+    a.send({ t: "recover", recover: { id: "rc1", nick: "달빛", cat: "fish", obj: { id: 7, k: "carp", cm: 12.5, g: 1, v: 40 }, refund: false, coins: 0 } });
+    const [rcA, rcB, rcC] = await Promise.all([a.next(), b.next(), c.next()]);
+    assert(rcA.t === "recover" && rcB.recover.nick === "달빛" && rcB.recover.obj.k === "carp" && rcC.recover.id === "rc1", "item restore is stored for the target nick");
+
+    a.send({ t: "loss", loss: { id: "L1", who: "해커", type: "sell", cat: "fish", obj: { id: 9, k: "carp", cm: 10, g: 0, v: 1 }, coins: 5, t: Date.now() } });
+    const [lsA, lsB, lsC] = await Promise.all([a.next(), b.next(), c.next()]);
+    assert(lsA.t === "losses" && lsB.losses[0].who === "민물" && lsC.losses[0].id === "L1", "loss log uses the sender nick, not a spoofed one");
+
+    b.send({ t: "recoverAck", id: "rc1" });
+    const [akA, akB, akC] = await Promise.all([a.next(), b.next(), c.next()]);
+    assert(akA.t === "recoverAck" && akB.nick === "달빛" && akC.id === "rc1", "target ack clears the pending restore");
+
+    const late = connect(2);
+    await late.ready;
+    late.send(hello("늦참"));
+    const welcomeLate = await late.next();
+    assert(welcomeLate.stage && welcomeLate.stage.lay === "b" && welcomeLate.stage.bots === 4, "late joiner gets the deck stage");
+    assert(welcomeLate.play && welcomeLate.play.moveOn === true && welcomeLate.play.duckOn === 0, "late joiner gets speed and duck");
+    assert(Array.isArray(welcomeLate.cues) && welcomeLate.cues.some((c) => c.id === "tut1"), "recent tutorial cue is still on the room");
+    assert(!welcomeLate.recovers || !welcomeLate.recovers.some((r) => r.id === "rc1"), "acked restore is not delivered again");
+    const joinNoise = await Promise.all([a.next(), b.next()]);
+    assert(joinNoise.every((m) => m.t === "join"), "late join is announced");
+    late.close();
+    const lateLeft = await Promise.all([a.next(), b.next()]);
+    assert(lateLeft.every((m) => m.t === "leave"), "late leave is announced");
 
     a.send({ t: "sanc", nick: "달빛", mute: Date.now() + 60000, ban: 0, why: "도배" });
     const [sA, sB, sC] = await Promise.all([a.next(), b.next(), c.next()]);

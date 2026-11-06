@@ -4,8 +4,11 @@ import {
   HELLO_MS,
   MAX_OPS,
   SERVERS,
+  ackRecover,
   lakeTargets,
   mergeGrant,
+  mergeLosses,
+  mergeRecover,
   mergeSanc,
   normalizeWorld,
   originAllowed,
@@ -13,15 +16,21 @@ import {
   nickTaken,
   parseClient,
   publicPeer,
+  pushCue,
   reduce,
   sanitizeBalance,
+  sanitizeCue,
   sanitizeNick,
   sanitizeEvent,
   sanitizeGift,
   sanitizeGrants,
+  sanitizeLoss,
   sanitizeNotice,
+  sanitizePlay,
   sanitizeProf,
+  sanitizeRecover,
   sanitizeSancMap,
+  sanitizeStage,
   sanitizeWorld,
 } from "./protocol.js";
 
@@ -137,6 +146,9 @@ export class LakeRoom extends DurableObject {
 
   async welcomeOps() {
     const now = Date.now();
+    const recovers = mergeRecover(await this.opsGet("recovers", []), null, now);
+    const losses = mergeLosses(await this.opsGet("losses", []), null, now);
+    const cues = pushCue(await this.opsGet("cues", []), null, now);
     return {
       notice: await this.noticeGet(),
       event: await this.eventGet(),
@@ -144,6 +156,11 @@ export class LakeRoom extends DurableObject {
       grants: sanitizeGrants(await this.opsGet("grants", {}), now),
       sanc: sanitizeSancMap(await this.opsGet("sanc", {}), now),
       prof: await this.opsGet("prof", null),
+      stage: await this.opsGet("stage", null),
+      play: await this.opsGet("play", null),
+      cues,
+      recovers,
+      losses: losses.slice(0, 40),
     };
   }
 
@@ -209,6 +226,54 @@ export class LakeRoom extends DurableObject {
       if (!p) return;
       await this.opsPut("prof", p);
       this.broadcast({ t: "prof", prof: p });
+      return;
+    }
+    if (msg.t === "stage") {
+      const s = sanitizeStage(msg.stage, null, { bump: false, now });
+      if (!s) return;
+      await this.opsPut("stage", s);
+      this.broadcast({ t: "stage", stage: s });
+      return;
+    }
+    if (msg.t === "play") {
+      const p = sanitizePlay(msg.play, null, { bump: false, now });
+      if (!p) return;
+      await this.opsPut("play", p);
+      this.broadcast({ t: "play", play: p });
+      return;
+    }
+    if (msg.t === "cue") {
+      const c = sanitizeCue(msg.cue, now);
+      if (!c) return;
+      const list = pushCue(await this.opsGet("cues", []), c, now);
+      await this.opsPut("cues", list);
+      this.broadcast({ t: "cue", cue: c });
+      return;
+    }
+    if (msg.t === "recover") {
+      const r = sanitizeRecover(msg.recover, now);
+      if (!r) return;
+      const list = mergeRecover(await this.opsGet("recovers", []), r, now);
+      await this.opsPut("recovers", list);
+      this.broadcast({ t: "recover", recover: r });
+      return;
+    }
+    if (msg.t === "recoverAck") {
+      const list = ackRecover(await this.opsGet("recovers", []), msg.id, msg.nick);
+      await this.opsPut("recovers", list.length ? list : null);
+      this.broadcast({ t: "recoverAck", id: msg.id, nick: msg.nick });
+      return;
+    }
+    if (msg.t === "losses") {
+      const rows = [];
+      for (const row of (Array.isArray(msg.losses) ? msg.losses : []).slice(0, 20)) {
+        const s = sanitizeLoss(row, now, msg.nickForce);
+        if (s) rows.push(s);
+      }
+      if (!rows.length) return;
+      const list = mergeLosses(await this.opsGet("losses", []), rows, now);
+      await this.opsPut("losses", list);
+      this.broadcast({ t: "losses", losses: rows });
     }
   }
 
@@ -251,6 +316,47 @@ export class LakeRoom extends DurableObject {
       const p = sanitizeProf(msg.prof);
       if (!p) return;
       await this.fan(fromId, all, { t: "prof", prof: p });
+      return;
+    }
+    if (msg.t === "stage") {
+      const prev = await this.opsGet("stage", null);
+      const next = sanitizeStage(msg.stage, prev, { bump: true, now });
+      if (!next) return;
+      await this.fan(fromId, all, { t: "stage", stage: next });
+      return;
+    }
+    if (msg.t === "play") {
+      const prev = await this.opsGet("play", null);
+      const next = sanitizePlay(msg.play, prev, { bump: true, now });
+      if (!next) return;
+      await this.fan(fromId, all, { t: "play", play: next });
+      return;
+    }
+    if (msg.t === "cue") {
+      const c = sanitizeCue(msg.cue, now);
+      if (!c) return;
+      await this.fan(fromId, all, { t: "cue", cue: c });
+      return;
+    }
+    if (msg.t === "recover") {
+      const r = sanitizeRecover(msg.recover, now);
+      if (!r) return;
+      await this.fan(fromId, all, { t: "recover", recover: r });
+      return;
+    }
+    if (msg.t === "recoverAck") {
+      if (!msg.nick || msg.id == null) return;
+      await this.fan(fromId, all, { t: "recoverAck", id: msg.id, nick: msg.nick });
+      return;
+    }
+    if (msg.t === "losses") {
+      const rows = [];
+      for (const row of (Array.isArray(msg.losses) ? msg.losses : []).slice(0, 20)) {
+        const s = sanitizeLoss(row, now, msg.nickForce);
+        if (s) rows.push(s);
+      }
+      if (!rows.length) return;
+      await this.fan(fromId, all, { t: "losses", losses: rows, nickForce: msg.nickForce });
     }
   }
 
@@ -357,9 +463,20 @@ export class LakeRoom extends DurableObject {
       this.broadcast({ t: "world", world });
       return;
     }
-    if (msg.t === "notice" || msg.t === "event" || msg.t === "balance" || msg.t === "grant" || msg.t === "sanc" || msg.t === "gift" || msg.t === "prof") {
+    if (msg.t === "notice" || msg.t === "event" || msg.t === "balance" || msg.t === "grant" || msg.t === "sanc" || msg.t === "gift" || msg.t === "prof" || msg.t === "stage" || msg.t === "play" || msg.t === "cue" || msg.t === "recover") {
       if (!prev.ready) return;
       await this.acceptOps(prev.server, msg);
+      return;
+    }
+    if (msg.t === "recoverAck") {
+      if (!prev.ready) return;
+      await this.acceptOps(prev.server, { t: "recoverAck", id: msg.id, nick: prev.nick });
+      return;
+    }
+    if (msg.t === "loss" || msg.t === "losses") {
+      if (!prev.ready) return;
+      const losses = msg.t === "loss" ? [msg.loss] : msg.losses;
+      await this.acceptOps(prev.server, { t: "losses", losses, nickForce: prev.nick });
       return;
     }
     let play = msg;

@@ -21,11 +21,22 @@ import {
   sanitizeNotice,
   sanitizeNick,
   sanitizeProf,
+  ackRecover,
+  mergeLosses,
+  mergeRecover,
+  pushCue,
+  sanitizeCue,
+  sanitizeItem,
+  sanitizeLoss,
+  sanitizePlay,
+  sanitizeRecover,
+  sanitizeStage,
   sanitizeWorld,
   seasonSlot,
   sharedBot,
   sharedDucks,
   sharedWeather,
+  stageEffect,
   worldFraction,
 } from "../src/protocol.js";
 
@@ -245,10 +256,80 @@ test("origin allow list matches the pages hosts", () => {
   assert.equal(originAllowed("https://fishcozy.com", "fishcozy-realtime.mi1ku.workers.dev"), true);
   assert.equal(originAllowed("https://www.fishcozy.com", "x"), true);
   assert.equal(originAllowed("https://dydtjr13.github.io", "x"), true);
+  assert.equal(originAllowed("http://fishcozy.com", "x"), true);
+  assert.equal(originAllowed("http://www.fishcozy.com", "x"), true);
+  assert.equal(originAllowed("http://dydtjr13.github.io", "x"), true);
   assert.equal(originAllowed("http://localhost:8787", "x"), true);
   assert.equal(originAllowed("http://127.0.0.1:5500", "x"), true);
   assert.equal(originAllowed("null", "x"), true);
   assert.equal(originAllowed("https://evil.example", "fishcozy-realtime.mi1ku.workers.dev"), false);
+  assert.equal(originAllowed("http://evil.example", "x"), false);
+  assert.equal(originAllowed("http://fishcozy.com.evil.example", "x"), false);
   assert.equal(originAllowed("", "127.0.0.1"), true);
   assert.equal(originAllowed("", "fishcozy-realtime.mi1ku.workers.dev"), false);
+});
+
+test("stage keeps deck layout and only reloads when the map changes", () => {
+  const now = 1_700_000_000_000;
+  const stage = sanitizeStage({ lay: "b", deckW: "W2", decks: 30, chN: 2, bots: 4 }, null, { bump: true, now });
+  assert.equal(stage.lay, "b");
+  assert.equal(stage.deckW, "W2");
+  assert.equal(stage.decks, 30);
+  assert.equal(stage.chN, 2);
+  assert.equal(stage.bots, 4);
+  assert.equal(stage.rev, 1);
+  const legacy = sanitizeStage({ lay: "o", decks: 99, chN: 0, bots: 80 }, stage, { bump: true, now });
+  assert.equal(legacy.lay, "o");
+  assert.equal(legacy.decks, 20);
+  assert.equal(legacy.chN, 1);
+  assert.equal(legacy.bots, 49);
+  assert.equal(legacy.rev, 2);
+  const boot = { lay: "a", deckW: "", decks: 25, bots: 9, chN: 4 };
+  assert.equal(stageEffect(boot, stage).reload, true);
+  assert.equal(stageEffect(boot, { lay: "a", deckW: "", decks: 25, bots: 3, chN: 4 }).reload, false);
+  assert.equal(stageEffect(boot, { lay: "a", deckW: "", decks: 25, bots: 3, chN: 4 }).bots, true);
+  assert.equal(stageEffect(boot, { lay: "a", deckW: "", decks: 25, bots: 9, chN: 2 }).channels, true);
+  assert.equal(parseClient(JSON.stringify({ t: "stage", stage: { lay: "c", bots: 1 } })).t, "stage");
+  assert.equal(parseClient(JSON.stringify({ t: "stage", stage: [] })), null);
+});
+
+test("play, cue, recover and loss stay bounded to the target nick", () => {
+  const now = 1_700_000_000_000;
+  const play = sanitizePlay({ moveOn: true, move: 0.5, duckOn: 0, tutOff: 1, duckKinds: "base,nope,pirate" }, null, { bump: true, now });
+  assert.equal(play.moveOn, true);
+  assert.equal(play.move, 0.5);
+  assert.equal(play.duckOn, 0);
+  assert.equal(play.tutOff, 1);
+  assert.equal(play.duckKinds, "base,pirate");
+  assert.equal(play.duckEvery, undefined);
+  const next = sanitizePlay({ duckEvery: 20, move: 9 }, play, { bump: true, now });
+  assert.equal(next.duckEvery, 15);
+  assert.equal(next.move, 1);
+  assert.equal(next.duckOn, 0);
+  assert.equal(next.rev, play.rev + 1);
+  const cue = sanitizeCue({ id: "c1", kind: "tut", act: "jump", i: 3, nick: "*" }, now);
+  assert.equal(cue.act, "jump");
+  assert.equal(pushCue([], cue, now).length, 1);
+  assert.equal(pushCue([cue], cue, now).length, 1);
+  assert.equal(sanitizeCue({ kind: "duck", n: 9 }, now).n, 8);
+  assert.equal(sanitizeCue({ kind: "tut", act: "nope" }, now), null);
+  const rod = sanitizeItem("rod", { id: 4, k: "silver", tier: 2, q: 0.8, br: 0.4, star: 1, enh: 3, extra: [{ k: "luck", v: 2.25 }, { k: "<>", v: 1 }] });
+  assert.equal(rod.extra.length, 1);
+  assert.equal(rod.extra[0].v, 2.25);
+  const rec = sanitizeRecover({ id: "rc1", nick: "달빛", cat: "fish", obj: { id: 7, k: "carp", cm: 12.2, g: 1, v: 30 }, refund: true, coins: 15 }, now);
+  assert.equal(rec.nick, "달빛");
+  assert.equal(rec.refund, true);
+  assert.equal(sanitizeRecover({ nick: "*", cat: "fish", obj: { k: "carp" } }, now), null);
+  const pending = mergeRecover([], rec, now);
+  assert.equal(ackRecover(pending, "rc1", "민물").length, 1);
+  assert.equal(ackRecover(pending, "rc1", "달빛").length, 0);
+  const loss = sanitizeLoss({ id: "L1", who: "해커", type: "sell", cat: "fish", obj: { id: 9, k: "carp", cm: 10, g: 0, v: 1 }, coins: 5, t: now }, now, "민물");
+  assert.equal(loss.who, "민물");
+  assert.equal(mergeLosses([], [loss, loss], now).length, 1);
+  assert.equal(parseClient(JSON.stringify({ t: "play", play: { moveOn: false } })).t, "play");
+  assert.equal(parseClient(JSON.stringify({ t: "cue", cue: { kind: "duck", n: 1 } })).t, "cue");
+  assert.equal(parseClient(JSON.stringify({ t: "recover", recover: { nick: "달빛" } })).t, "recover");
+  assert.equal(parseClient(JSON.stringify({ t: "recoverAck", id: "rc1" })).t, "recoverAck");
+  assert.equal(parseClient(JSON.stringify({ t: "loss", loss: { id: "L1" } })).t, "loss");
+  assert.equal(parseClient(JSON.stringify({ t: "recoverAck" })), null);
 });
