@@ -8,7 +8,6 @@
   const HIDE = ["bSound", "bSit", "bAuto"];
   const css = document.createElement("style");
   css.textContent = `
-#mSys.v51{position:relative}
 #v51Hold{display:none!important}
 #bMenu51 .hb51{display:inline-flex;flex-direction:column;justify-content:center;gap:3px;width:18px;height:18px;vertical-align:middle}#bMenu51 .hb51 i{display:block;height:2.5px;border-radius:2px;background:#5a5468}
 #bMenu51.on{background:#ffeede}
