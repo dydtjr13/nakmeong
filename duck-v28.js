@@ -1,4 +1,4 @@
-// 피쉬레스트 v30: 러버덕 순환 스폰(첫 base · 셔플 순차 · 최대 시 페이드) · 8종(펭귄·눈사람 포함)(기본+해적·딸기·우주비행사·개구리·유니콘, duck-var-v28.js) — 하늘에서 떨어져 첨벙! 후 호수를 둥둥 유영. 설정: 생성 간격·최대 수(최대 30)
+// 피쉬코지 v47: 오리는 원 궤도 대신 물결에 실려 천천히 떠다님(world-sync.js ducks). v30: 러버덕 순환 스폰(첫 base · 셔플 순차 · 최대 시 페이드) · 8종(펭귄·눈사람 포함)(기본+해적·딸기·우주비행사·개구리·유니콘, duck-var-v28.js) — 하늘에서 떨어져 첨벙! 후 호수를 둥둥 유영. 설정: 생성 간격·최대 수(최대 30)
 // 3D 모델: JDSherbert "3D Rubber Duck Asset Pack" (상업 이용 가능 · 작가 표기 필수)
 (function(){const U=()=>window.NK_UI25,G=()=>window.NKV2;let T,scene,IM=[],VG={},ducks=[],fx=[],last=0,nextT=0,rMax=8,ok=false;const MAX=30;
  const conf=()=>({on:U().get('duckOn')!==0,every:+(U().get('duckEvery')||45),max:Math.min(MAX,Math.max(0,+(U().get('duckMax')??8))),size:+(U().get('duckSize')||1),speed:+(U().get('duckSpeed')??1),snd:U().get('duckSnd')!==0,kinds:(()=>{const allow=new Set((window.NK_DUCKV&&NK_DUCKV.LIST||[]).map(x=>x[0]));const raw=String(U().get('duckKinds')??'base,pirate,straw,astro,frog,uni,penguin,snowman,dino').split(',').filter(k=>allow.has(k));return raw.length?raw:['base','pirate','straw','astro','frog','uni','penguin','snowman','dino'];})()});
@@ -37,7 +37,7 @@
     let since=0,now=Date.now();
     if(duckArm>0){const armServer=duckArm-skew;if(serverSince>=armServer-5000){since=serverSince;now=Date.now()-skew;}else since=duckArm;}
     else if(serverSince>0){since=serverSince;now=Date.now()-skew;}
-    const lay=SY.ducks(now,RT.world,{rMax:rMax,every:everyMs,max:c.max,speed:+c.speed||0,size:c.size,kinds:c.kinds,on:1,since:since||0});ducks.length=0;lay.forEach(s=>{const face=s.head!=null?s.head:(+c.speed>0?-s.yaw:s.yaw);const age=+s.age||0,drop=1500,falling=!!since&&age<drop;ducks.push({x:s.x,z:s.z,y:falling?14*(1-age/drop):WY,vy:0,st:falling?'fall':'swim',yaw:face,tY:face,sp:.3,s:s.s,ph:s.i,spin:0,v:s.v,born:0,fade:1,sync:1});});}}
+    const lay=SY.ducks(now,RT.world,{rMax:rMax,every:everyMs,max:c.max,speed:+c.speed||0,size:c.size,kinds:c.kinds,on:1,since:since||0});ducks.length=0;lay.forEach(s=>{const face=s.head!=null?s.head:(+c.speed>0?-s.yaw:s.yaw);const age=+s.age||0,drop=1500,falling=!!since&&age<drop;const ph=s.ph!=null?+s.ph:s.i;ducks.push({x:s.x,z:s.z,y:falling?14*(1-age/drop):WY-.04+Math.sin(ph*2.1)*.035,vy:0,st:falling?'fall':'swim',yaw:face,tY:face,sp:.3,s:s.s,ph,spin:0,v:s.v,born:0,fade:1,sync:1});});}}
   else if(!c.on){ducks.length=0;everSpawned=0;cycleQ=[];cycleI=0;}
   else if(started&&t>nextT){
    if(ducks.filter(d=>d.st!=='fade').length>=c.max){ // 최대 → 가장 오래된 것 페이드 후 새 등장
@@ -52,8 +52,8 @@
    if(d.st==='fade'){d.fade=(d.fade??1)-dt*.7;d.y+=dt*.15;d.s*=1-dt*.35;if(d.fade<=0){ducks.splice(i,1);continue;}continue;}
    if(d.st==='fall'){d.vy-=18*dt;d.y+=d.vy*dt;d.yaw+=d.spin*dt;if(d.y<=WY){d.y=WY;d.st='sink';d.sv=d.vy*.12;splash(d.x,d.z);}}
    else if(d.st==='sink'){d.sv+=9*dt;d.y+=d.sv*dt;if(d.y>=WY&&d.sv>0){d.y=WY;d.st='swim';}}
-   else{d.ph+=dt;if(Math.random()<dt*.25)d.tY=d.yaw+rnd(-1.4,1.4);const r=Math.hypot(d.x,d.z);if(r>rMax*.9)d.tY=Math.atan2(-d.x,-d.z);for(const e of ducks){if(e===d||e.st==='fade')continue;const dx=d.x-e.x,dz=d.z-e.z,l=Math.hypot(dx,dz);if(l<1.1&&l>0)d.tY=Math.atan2(dx,dz);}
-    let da=((d.tY-d.yaw+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;d.yaw+=da*Math.min(1,dt*1.2);d.x+=Math.sin(d.yaw)*d.sp*c.speed*dt;d.z+=Math.cos(d.yaw)*d.sp*c.speed*dt;d.y=WY-.04+Math.sin(d.ph*2.1)*.035;}}
+   else{d.ph+=dt;if(Math.random()<dt*.06)d.tY=d.yaw+rnd(-.9,.9);const r=Math.hypot(d.x,d.z);if(r>rMax*.9)d.tY=Math.atan2(-d.x,-d.z);for(const e of ducks){if(e===d||e.st==='fade')continue;const dx=d.x-e.x,dz=d.z-e.z,l=Math.hypot(dx,dz);if(l<1.1&&l>0)d.tY=Math.atan2(dx,dz);}
+    let da=((d.tY-d.yaw+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;d.yaw+=da*Math.min(1,dt*.35);const dv=(SY&&SY.duckSpeed?SY.duckSpeed(c.speed):c.speed*.1)*(d.sp/.35);d.x+=Math.sin(d.yaw)*dv*dt+Math.sin(d.ph*.09)*dv*.15*dt;d.z+=Math.cos(d.yaw)*dv*dt+Math.cos(d.ph*.07)*dv*.15*dt;d.y=WY-.04+Math.sin(d.ph*2.1)*.035;}}
   const CN={};for(const v in VG)CN[v]=0;ducks.forEach(d=>{const sw=d.st==='swim';E4.set(sw?Math.sin(d.ph*2.1+1)*.08:(d.st==='fall'?Math.sin(t/120)*.3:0),d.yaw,sw?Math.sin(d.ph*1.7)*.07:0);Q4.setFromEuler(E4);const sm=String(c.size)==='rand'?d.s:d.s*(+c.size||1);S4.set(sm,sm,sm);P4.set(d.x,d.y,d.z);M4.compose(P4,Q4,S4);const L=VG[d.v]||VG.base,i=CN[d.v in VG?d.v:'base']++;L.forEach(m=>m.setMatrixAt(i,M4));});
   for(const v in VG)VG[v].forEach(m=>{m.count=CN[v];m.visible=CN[v]>0;m.instanceMatrix.needsUpdate=true;});
   for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.t+=dt;const k=f.t/.9;f.ring.scale.setScalar(1+k*5);f.ring.material.opacity=.8*(1-k);const a=f.pts.geometry.attributes.position;for(let j=0;j<f.vel.length;j++){f.vel[j][1]-=9*dt;a.array[j*3]+=f.vel[j][0]*dt;a.array[j*3+1]=Math.max(WY,a.array[j*3+1]+f.vel[j][1]*dt);a.array[j*3+2]+=f.vel[j][2]*dt;}a.needsUpdate=true;f.pts.material.opacity=.9*(1-k);

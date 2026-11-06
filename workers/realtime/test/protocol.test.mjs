@@ -43,6 +43,7 @@ import {
   seasonSlot,
   sharedBot,
   sharedDucks,
+  duckSpeed,
   sharedWeather,
   stageEffect,
   worldFraction,
@@ -387,8 +388,12 @@ test("ducks face along travel and follow admin speed kinds and off", () => {
   const world = { ambSeed: 99 };
   const moving = sharedDucks(now, world, { max: 2, every: 300000 });
   const later = sharedDucks(now + 10000, world, { max: 2, every: 300000 });
-  assert.equal(moving[0].head, -moving[0].yaw);
+  assert.equal(moving[0].head, moving[0].yaw);
   assert.notEqual(later[0].x, moving[0].x);
+  // v47: 진행 방향을 바라본다 (4초 전 위치 → 지금 위치)
+  const back = sharedDucks(now - 4000, world, { max: 2, every: 300000 });
+  const dir = Math.atan2(moving[0].x - back[0].x, moving[0].z - back[0].z);
+  assert.ok(Math.abs(Math.atan2(Math.sin(dir - moving[0].head), Math.cos(dir - moving[0].head))) < 0.01);
   const stopped = sharedDucks(now, world, { max: 2, every: 300000, speed: 0 });
   const still = sharedDucks(now + 20000, world, { max: 2, every: 300000, speed: 0 });
   assert.equal(stopped[0].x, still[0].x);
@@ -405,7 +410,7 @@ test("turning ducks on spawns one at a time from that moment", () => {
   const born = sharedDucks(now, world, opt);
   assert.equal(born.length, 1);
   assert.ok(born[0].age < 50);
-  assert.equal(born[0].head, -born[0].yaw);
+  assert.equal(born[0].head, born[0].yaw);
   assert.equal(sharedDucks(now + 9999, world, opt).length, 1);
   assert.equal(sharedDucks(now + 10000, world, opt).length, 2);
   assert.equal(sharedDucks(now + 80000, world, opt).length, 9);
@@ -413,7 +418,7 @@ test("turning ducks on spawns one at a time from that moment", () => {
   assert.equal(stopped[0].head, stopped[0].yaw);
   const later = sharedDucks(now + 10000, world, opt);
   assert.notEqual(later[0].x, born[0].x);
-  assert.equal(later[0].head, -later[0].yaw);
+  assert.equal(later[0].head, later[0].yaw);
   assert.deepEqual(sharedDucks(now, world, { on: 0, since: now, max: 9 }), []);
 });
 
@@ -484,4 +489,30 @@ test("v46: ingest without prev keeps duckSince computed by the origin room", () 
   const relayed = sanitizePlay(on, null, { bump: false, now: now + 5001 });
   assert.equal(relayed.duckSince, now + 5000);
   assert.equal(relayed.duckOn, 1);
+});
+
+test("v47: ducks drift slowly and stay inside the lake, same on browser and server", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const vm = await import("node:vm");
+  const src = await readFile(new URL("../../../world-sync.js", import.meta.url), "utf8");
+  const ctx = { window: {} };
+  vm.runInNewContext(src, ctx);
+  const SY = ctx.window.NK_SYNC;
+  const world = { ambSeed: 4242 };
+  const since = 1_700_000_000_000;
+  for (const speed of [0, 0.5, 1, 1.5, 2.5]) {
+    for (const dt of [0, 1000, 65_000, 3_600_000, 86_400_000]) {
+      const opt = { max: 9, every: 30000, speed, rMax: 20, since };
+      const a = sharedDucks(since + dt, world, opt);
+      const b = JSON.parse(JSON.stringify(SY.ducks(since + dt, world, opt)));
+      assert.deepEqual(b, a, `browser/server mismatch speed=${speed} dt=${dt}`);
+      for (const d of a) assert.ok(Math.hypot(d.x, d.z) <= 20 * 0.95 + 1e-9, "duck left the lake");
+    }
+  }
+  // 아주 느리게: 10초에 1 이하로만 움직인다
+  const o = { max: 1, every: 30000, speed: 0.5, rMax: 20, since };
+  const p1 = sharedDucks(since + 600_000, world, o)[0], p2 = sharedDucks(since + 610_000, world, o)[0];
+  assert.ok(Math.hypot(p2.x - p1.x, p2.z - p1.z) < 1, "too fast at slowest speed");
+  assert.equal(duckSpeed(0), 0);
+  assert.ok(duckSpeed(0.5) < duckSpeed(1) && duckSpeed(1) < duckSpeed(1.5) && duckSpeed(1.5) < duckSpeed(2.5));
 });
