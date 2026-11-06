@@ -1,0 +1,206 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>피쉬코지(FISH COZY) v37 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>피쉬코지(FISH COZY) v37 보고서</h1>
+<ul>
+<li>작업일: 2026-11-06 (Asia/Seoul)</li>
+<li>라이브: <a href="http://fishcozy.com"><a href="http://fishcozy.com">http://fishcozy.com</a></a> · <a href="https://dydtjr13.github.io/nakmeong/">github.io</a></li>
+<li>캐시: <code>game-v2.js?v37</code> · <code>ui-v2.css?v37</code></li>
+<li>기반: v36</li>
+<li>커밋: <code>eff40c8</code> (PR <a href="https://github.com/dydtjr13/nakmeong/pull/1">#1</a> 머지)</li>
+<li>PC 저장: <strong>이번부터 생략</strong> (사이트만 보면 됨)</li>
+</ul>
+<hr />
+<h2>한눈에 보기</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>무엇을</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>자동 낚시</td>
+<td>일반 유저 <strong>잠금</strong> · 「업데이트 예정」 · 관리자가 시간 주면 그때만 사용</td>
+</tr>
+<tr>
+<td>2</td>
+<td>레벨업 보상 창</td>
+<td><strong>닫기/확인</strong> 눌러야 닫힘 · 또 레벨업하면 <strong>새 창으로 교체</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>접속 화면</td>
+<td>서버 <strong>4개 × 정원 50</strong> · 솔로 저장 문구 <strong>삭제</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>다른 브라우저 저장</td>
+<td>설정 → <strong>저장 코드 복사/붙여넣기</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>일반 설정 정리</td>
+<td>플레이어용만 남김 · 시안/테스트는 <strong>관리자</strong>로 이동</td>
+</tr>
+<tr>
+<td>6</td>
+<td>미리보기</td>
+<td>수집 목표·토스트 등 옆에 <strong>미리보기</strong> 버튼</td>
+</tr>
+<tr>
+<td>7</td>
+<td>가방</td>
+<td>레벨 부족 시 「레벨이 낮아서 사용할 수 없어요」 · 낚싯대 <strong>착용 레벨</strong> 표시</td>
+</tr>
+<tr>
+<td>8</td>
+<td>어항</td>
+<td>조합 패시브·물고기 슬롯 <strong>한눈에</strong> 보이게 정리</td>
+</tr>
+<tr>
+<td>9</td>
+<td>자동 판매</td>
+<td>일반 설정에 <strong>그대로</strong> (켜기 / 가치 미만 / 첫 어종 보관)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>1. 자동 낚시</h2>
+<p><strong>일반 유저</strong>
+- 자동 낚시 버튼이 잠겨 있고 <strong>「업데이트 예정」</strong>으로 보여요.
+- 켜지지 않아요.</p>
+<p><strong>관리자</strong>
+- 관리자 모드 → 유저에서 <strong>닉네임</strong>을 넣고 <strong>이용 시간(분)</strong>을 주면, 그 시간 동안만 자동 낚시를 켤 수 있어요.
+- 시간이 끝나면 자동으로 꺼지고 안내가 떠요.</p>
+<hr />
+<h2>2. 레벨업 보상 창</h2>
+<ul>
+<li>예전처럼 시간이 지나면 알아서 닫히지 <strong>않아요</strong>.</li>
+<li><strong>확인</strong> 또는 <strong>닫기</strong>를 눌러야 닫혀요.</li>
+<li>창이 떠 있는 동안 또 레벨이 오르면, 이전 창은 사라지고 <strong>새 레벨 보상</strong>이 보여요.</li>
+</ul>
+<hr />
+<h2>3. 접속 화면 · 저장</h2>
+<p><strong>서버</strong>
+- 서버 <strong>4곳</strong>, 각 <strong>50명</strong> 정원으로 표시해요.
+- (실시간 멀티가 붙기 전에는 실접속 인원 연동이 완전하지 않을 수 있어요. 멀티 작업은 별도로 진행 중.)</p>
+<p><strong>솔로 저장</strong>
+- 「솔로 저장 있음」 문구·설정 체크는 <strong>없앴어요</strong>.</p>
+<p><strong>다른 브라우저에서도 이어하기</strong>
+1. 설정 열기<br />
+2. <strong>저장 코드</strong> 복사<br />
+3. 다른 브라우저/기기에서 붙여넣기  </p>
+<p>이게 지금 가장 쉬운 방법이에요. (계정 클라우드 저장은 나중에.)</p>
+<hr />
+<h2>4. 설정 vs 관리자</h2>
+<p><strong>일반 설정에 남은 것</strong>
+- 프로필(칭호 등)
+- 저장 / 저장 코드
+- 자동 판매
+- 화면·사운드·전체 화면
+- 차단</p>
+<p><strong>관리자로 옮긴 것</strong>
+- 시안·테스트 스타일 (토스트, 수집 목표, 레벨업 팝업 모양 등)
+- 튜토리얼 강제·솔로 저장 같은 개발용 항목
+- 각 스타일 옆 <strong>미리보기</strong> 버튼으로 바로 확인 가능</p>
+<hr />
+<h2>5. 가방 · 어항</h2>
+<p><strong>가방</strong>
+- 레벨이 모자란 낚싯대·장비는 쓸 수 없고,<br />
+<strong>「레벨이 낮아서 사용할 수 없어요」</strong>라고 알려 줘요.
+- 낚싯대에 <strong>착용 레벨</strong>이 보여요.</p>
+<p><strong>어항</strong>
+- 활성 조합 요약 + 물고기 슬롯이 한눈에 들어오게 레이아웃을 정리했어요.
+- 자동 판매는 설정에서 그대로 켜고 끌 수 있어요.</p>
+<hr />
+<h2>어떻게 확인하나요?</h2>
+<ol>
+<li><a href="http://fishcozy.com"><a href="http://fishcozy.com">http://fishcozy.com</a></a> 또는 <a href="https://dydtjr13.github.io/nakmeong/">github.io</a> 접속  </li>
+<li><strong>강력 새로고침</strong> (캐시: v37)  </li>
+<li>아래만 빠르게 보면 돼요.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>확인</th>
+<th>기대</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>접속 화면</td>
+<td>서버 4개 · 정원 50</td>
+</tr>
+<tr>
+<td>자동 낚시</td>
+<td>잠김 + 업데이트 예정</td>
+</tr>
+<tr>
+<td>설정</td>
+<td>짧은 플레이어 설정 · 저장 코드</td>
+</tr>
+<tr>
+<td>관리자 › 화면·시안</td>
+<td>미리보기 버튼</td>
+</tr>
+<tr>
+<td>가방</td>
+<td>낮은 레벨 장비 잠금 문구</td>
+</tr>
+<tr>
+<td>레벨업</td>
+<td>창이 자동으로 안 닫힘</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>같이 끝난 도메인 작업</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>상태</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>가비아 → Cloudflare 네임서버</td>
+<td>완료 · Active</td>
+</tr>
+<tr>
+<td><code><a href="http://fishcozy.com">http://fishcozy.com</a></code></td>
+<td>게임 열림</td>
+</tr>
+<tr>
+<td><code><a href="https://fishcozy.com">https://fishcozy.com</a></code></td>
+<td>GitHub 인증서 <strong>발급 대기</strong> (조금 더 기다리면 됨)</td>
+</tr>
+<tr>
+<td>게시판 API</td>
+<td><a href="https://api.fishcozy.com/health"><a href="https://api.fishcozy.com/health">https://api.fishcozy.com/health</a></a> OK</td>
+</tr>
+<tr>
+<td>workers.dev API</td>
+<td><a href="https://fishcozy-board-api.mi1ku.workers.dev/health"><a href="https://fishcozy-board-api.mi1ku.workers.dev/health">https://fishcozy-board-api.mi1ku.workers.dev/health</a></a> OK</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>아직 진행 중</h2>
+<ul>
+<li><strong>실시간 멀티</strong> (같은 서버에서 실제 유저끼리 만나기) — 끝나면 따로 보고드릴게요.</li>
+</ul>
+<hr />
+<h2>산출물</h2>
+<ul>
+<li>보고서: <a href="https://dydtjr13.github.io/nakmeong/docs/v37-보고서.html">https://dydtjr13.github.io/nakmeong/docs/v37-보고서.html</a>  </li>
+<li>PR: <a href="https://github.com/dydtjr13/nakmeong/pull/1">https://github.com/dydtjr13/nakmeong/pull/1</a> (머지됨)</li>
+</ul></main></body></html>
