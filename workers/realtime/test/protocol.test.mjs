@@ -43,6 +43,7 @@ import {
   seasonSlot,
   sharedBot,
   sharedDucks,
+  sanitizePose,
   duckSpeed,
   sharedWeather,
   stageEffect,
@@ -542,4 +543,14 @@ test("v52: admin-only ops, auth parsing, nickname hardening, browser id", async 
   assert.deepEqual(h.adm, { id: "admin", pw: "pw" });
   const p = parseClient(JSON.stringify({ t: "pose", adm: { id: "admin", pw: "pw" } }));
   assert.equal(p.adm, null);
+});
+
+test("v53: catch pose carries fish kind and grade only while catching", () => {
+  const c = sanitizePose({ fish: "catch", fk: "carp<x>", fg: 9 }, null);
+  assert.equal(c.fish, "catch");
+  assert.equal(c.fk, "carpx");
+  assert.equal(c.fg, 5);
+  const o = sanitizePose({ fish: "cast", fk: "carp", fg: 3 }, null);
+  assert.equal(o.fk, "");
+  assert.equal(o.fg, 0);
 });

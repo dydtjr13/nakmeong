@@ -241,7 +241,7 @@
       const prev = peers.get(m.id) || { id: m.id };
       peers.set(m.id, Object.assign(prev, {
         id: m.id, nick: m.nick || prev.nick, ki: m.ki, lv: m.lv,
-        x: m.x, z: m.z, y: m.y, d: m.d, fish: m.fish, anim: m.anim, seat: m.seat,
+        x: m.x, z: m.z, y: m.y, d: m.d, fish: m.fish, fk: m.fk || "", fg: m.fg | 0, anim: m.anim, seat: m.seat,
       }));
     }
     else if (m.t === "world" && m.world) takeWorld(m.world);
@@ -426,6 +426,8 @@
       t: "pose",
       x: r2(p.x), z: r2(p.z), y: r2(p.y), d: r2(p.d),
       fish: p.fish || "off",
+      fk: p.fish === "catch" ? String(p.fk || "") : undefined,
+      fg: p.fish === "catch" ? p.fg | 0 : undefined,
       anim: p.anim || "idle",
       seat: p.seat == null ? null : p.seat | 0,
       ki: p.ki | 0,
