@@ -140,7 +140,7 @@
     if (m.sanc) takeSanc(m.sanc);
     if (m.prof) takeProf(m.prof);
     if (m.stage) takeStage(m.stage);
-    if (m.play) takePlay(m.play);
+    takePlay(m.play && typeof m.play === "object" ? m.play : {});
     if (m.cues) takeCues(m.cues);
     if (m.recovers) takeRecovers(m.recovers);
     if (m.losses) takeLosses(m.losses);
