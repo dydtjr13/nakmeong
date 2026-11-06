@@ -938,3 +938,5 @@ body.uiOne.uiedit [data-uin]:not(.uiSel){outline-color:#ff8a4c55!important;opaci
 .weargrid .btile.dim{opacity:.35;filter:grayscale(.4)}
 .weargrid .btile.eqon{box-shadow:0 0 0 2px #5fc48a inset}
 .weargrid .wn{font-size:11px;font-weight:800;text-align:center;line-height:1.2}
+
+.doll28 .dslot .di-txt{font-size:22px;font-weight:900;line-height:48px;text-align:center;opacity:.7}
