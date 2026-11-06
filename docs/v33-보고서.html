@@ -1,0 +1,126 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>피쉬레스트(FISHREST) v33 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>피쉬레스트(FISHREST) v33 보고서</h1>
+<ul>
+<li>작업일: 2026-11-06 (Asia/Seoul)</li>
+<li>라이브: <a href="https://dydtjr13.github.io/nakmeong/">https://dydtjr13.github.io/nakmeong/</a></li>
+<li>기반: v32</li>
+</ul>
+<h2>요약</h2>
+<ol>
+<li><strong>튜토리얼 완수해도 안 넘어가던 버그</strong> 수정 + <strong>50단계</strong> (초반 즉시 가능 위주)</li>
+<li><strong>보상 미지급</strong> 수정 — 완수→보상→다음이 한 흐름</li>
+<li>설정에서 <strong>튜토리얼 임무 지정</strong>(점프/다음/완료/끄기/처음부터)</li>
+<li><strong>솔로 로컬 저장</strong> — 같은 브라우저 재접속 시 유지</li>
+</ol>
+<h2>1) 튜토리얼 버그 원인</h2>
+<table>
+<thead>
+<tr>
+<th>증상</th>
+<th>원인</th>
+<th>수정</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>앉아도 미완료</td>
+<td><code>goal.seat</code>가 <code>nearSpot()</code>만 검사 → 벤치/일반 좌석이면 실패</td>
+<td><code>mySeat()</code>로 검사</td>
+</tr>
+<tr>
+<td>상점 판매해도 미완료</td>
+<td>상점/어항 판매 시 <code>S.earned</code> 미증가</td>
+<td>판매 경로에 <code>S.earned+=</code></td>
+</tr>
+<tr>
+<td>장비 임무 불가</td>
+<td>보상이 장비인데 목표가 <strong>장착</strong> → 닭-달걀</td>
+<td>스텝 입장 시 <code>grant</code>로 선지급 → 장착 목표</td>
+</tr>
+<tr>
+<td>보상 안 들어옴 / 중복·누락</td>
+<td><code>give</code> 후 인덱스만 증가, 실패 시 침묵 · 재진입 시 재지급 위험</td>
+<td><code>P.paid[id]</code> / <code>P.granted[id]</code>로 1회 보장, <code>complete()</code>에서 지급→저장→다음</td>
+</tr>
+<tr>
+<td>고레벨 즉시 스킵</td>
+<td><code>lv&gt;=5</code> 또는 <code>caught&gt;=30</code>이면 전체 스킵</td>
+<td><code>lv&gt;=10</code> <strong>그리고</strong> <code>caught&gt;=80</code>으로 완화</td>
+</tr>
+</tbody>
+</table>
+<h2>2) 보상 흐름 (검증)</h2>
+<pre><code>목표 달성 → complete(st)
+  → give(st.rw)  (paid[id]로 1회)
+  → toast 완료+보상
+  → P.i++ / baseline 리셋
+  → 다음 스텝 grant(있으면)
+  → render
+</code></pre>
+<p>테스트 t80:
+- hello 완료 → 코인 <strong>+30</strong>, <code>paid.hello=1</code>, i=1
+- wearHat: grant로 모자 지급 → 장착 → 완료 보상 <strong>+80</strong>, 모자 유지
+- sell 완료 → 보상 <strong>+120</strong>
+- STEPS.length = <strong>50</strong></p>
+<h2>3) 50개 임무 요약</h2>
+<ul>
+<li><strong>1~12</strong> 즉시: 인사 탭, 앉기, 낚시버튼, 첫낚시, 가방/상점/어항/도감/설정 열기, 3마리, 떡밥, 판매</li>
+<li><strong>13~16</strong> 장비: 모자·티·짚신·장갑 (선지급 후 장착)</li>
+<li><strong>17~30</strong> 가벼운 성장: 도감3~7, 낚시 추가, Lv2~4, 상자·강화석(선지급 포함)</li>
+<li><strong>31~50</strong> 점진: Lv5~10, 도감10~15, 코인·낚시량 증가, 졸업 Lv10</li>
+</ul>
+<p>고레벨·장시간만 요구하던 단일 벽은 초반에서 제거하고, 뒤로 갈수록만 난이도↑.</p>
+<h2>4) 설정 UI</h2>
+<p>설정 › 튜토리얼:
+- 스타일/위치 셀렉트 (기존)
+- <strong>임무 드롭다운</strong> + <code>이 임무로 이동</code> / <code>다음</code> / <code>모두 완료</code> / <code>처음부터</code> / <code>숨기기(끄기)</code>
+- 관리자 패널의 튜토리얼 버튼도 유지</p>
+<h2>5) 솔로 저장</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>기본</td>
+<td><code>nk_solo=1</code> → 키 <strong><code>nakmeong_solo</code></strong></td>
+</tr>
+<tr>
+<td>켜기</td>
+<td>URL <code>?solo=1</code> 또는 설정 「솔로(테스트) 저장」</td>
+</tr>
+<tr>
+<td>끄기</td>
+<td><code>?solo=0</code> (공유 키 <code>nakmeong_v2</code>)</td>
+</tr>
+<tr>
+<td>이전</td>
+<td>솔로 키 비어 있고 v2만 있으면 1회 복사</td>
+</tr>
+<tr>
+<td>UX</td>
+<td>시작 화면 <strong>이어서 하기</strong> 배너 (Lv·코인·마리·닉)</td>
+</tr>
+<tr>
+<td>자동저장</td>
+<td>15초 간격 + <code>beforeunload</code> + <code>visibilitychange</code> + 저장 시 <code>savedAt</code> 항상 갱신</td>
+</tr>
+</tbody>
+</table>
+<p>테스트 t80: 코인 7777·42마리 저장 → 새로고침 → 배너 표시 → 시작 후 동일 값 유지.</p>
+<h2>산출물</h2>
+<ul>
+<li><code>tut-v25.js</code> 50스텝, <code>game-v2.js</code> 솔로/판매/설정, <code>nakmeong.html</code> stCont·cache <code>?v33</code></li>
+<li><code>docs/v33-보고서.html</code>, 커밋 체인, Pages, PC <code>nakmeong-v33\</code></li>
+</ul>
+<h2>시안 대기</h2>
+<p>없음 (이번 요청은 적용 항목만).</p></main></body></html>
