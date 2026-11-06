@@ -768,7 +768,8 @@ export function sanitizePlay(input, prev, opt) {
   if ("duckSnd" in input) out.duckSnd = flag01(input.duckSnd);
   if ("duckEvery" in input) out.duckEvery = snapList(input.duckEvery, DUCK_EVERY, snapList(base.duckEvery, DUCK_EVERY, 45));
   if ("duckMax" in input) out.duckMax = Math.max(0, Math.min(30, Math.round(finite(input.duckMax, base.duckMax != null ? base.duckMax : 8))));
-  if ("duckSize" in input) out.duckSize = snapList(input.duckSize, DUCK_SIZE, snapList(base.duckSize, DUCK_SIZE, 1));
+  // v48: "rand"(랜덤)를 숫자 1로 바꾸지 않고 그대로 전달
+  if ("duckSize" in input) out.duckSize = String(input.duckSize) === "rand" ? "rand" : snapList(input.duckSize, DUCK_SIZE, base.duckSize === "rand" ? 1 : snapList(base.duckSize, DUCK_SIZE, 1));
   if ("duckSpeed" in input) out.duckSpeed = snapList(input.duckSpeed, DUCK_SPEED, snapList(base.duckSpeed, DUCK_SPEED, 1));
   if ("duckKinds" in input) out.duckKinds = cleanKinds(input.duckKinds, base.duckKinds);
   if ("tutOff" in input) out.tutOff = flag01(input.tutOff);
