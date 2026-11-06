@@ -55,9 +55,9 @@
 - 「솔로 저장 있음」 문구·설정 체크는 **없앴어요**.
 
 **다른 브라우저에서도 이어하기**
-1. 설정 열기  
-2. **저장 코드** 복사  
-3. 다른 브라우저/기기에서 붙여넣기  
+1. 설정 열기
+2. **저장 코드** 복사
+3. 다른 브라우저/기기에서 붙여넣기
 
 이게 지금 가장 쉬운 방법이에요. (계정 클라우드 저장은 나중에.)
 
@@ -82,7 +82,7 @@
 ## 5. 가방 · 어항
 
 **가방**
-- 레벨이 모자란 낚싯대·장비는 쓸 수 없고,  
+- 레벨이 모자란 낚싯대·장비는 쓸 수 없고,
   **「레벨이 낮아서 사용할 수 없어요」**라고 알려 줘요.
 - 낚싯대에 **착용 레벨**이 보여요.
 
@@ -94,8 +94,8 @@
 
 ## 어떻게 확인하나요?
 
-1. [http://fishcozy.com](http://fishcozy.com) 또는 [github.io](https://dydtjr13.github.io/nakmeong/) 접속  
-2. **강력 새로고침** (캐시: v37)  
+1. [http://fishcozy.com](http://fishcozy.com) 또는 [github.io](https://dydtjr13.github.io/nakmeong/) 접속
+2. **강력 새로고침** (캐시: v37)
 3. 아래만 빠르게 보면 돼요.
 
 | 확인 | 기대 |
@@ -129,5 +129,5 @@
 
 ## 산출물
 
-- 보고서: https://dydtjr13.github.io/nakmeong/docs/v37-보고서.html  
+- 보고서: https://dydtjr13.github.io/nakmeong/docs/v37-보고서.html
 - PR: https://github.com/dydtjr13/nakmeong/pull/1 (머지됨)
