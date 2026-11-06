@@ -29,9 +29,9 @@
  setInterval(tick,500);
  window.NK_EV={st,set(o){localStorage.setItem(LSK,JSON.stringify(Object.assign(st(),o)));lastSig='';tick();},preview(){pv=Date.now()+10000;shownKey='';lastSig='';tick();},_left:left};
 })();
-// v24: 게시판 (PC 기본 P4 · 모바일 B1/B2/B5 확정안) — 아직 서버가 없어 시안 화면을 창으로 띄워요
+// v50: 게시판 — board-v24.html (목록 → 글 보기 → 글쓰기, 서버 D1)
 (function(){let ov;const close=()=>{if(ov){ov.remove();ov=null;}};
- function open(){close();const S=(window.NKV2&&NKV2.S)||{},m=innerWidth<700,v=m?'m':(S.boardPC||'4');ov=document.createElement('div');ov.id='boardOv';ov.className='v'+v;window.NK_BOARD_API=window.NK_BOARD_API||localStorage.getItem('nk_board_api')||'https://fishcozy-board-api.mi1ku.workers.dev';ov.innerHTML=`<iframe src="board-v24.html?v=${v}&api=${encodeURIComponent(window.NK_BOARD_API)}&cb=v44" title="게시판" allowtransparency="true"></iframe>`;document.body.appendChild(ov);}
+ function open(){close();const S=(window.NKV2&&NKV2.S)||{},m=innerWidth<700,v=m?'m':'4';ov=document.createElement('div');ov.id='boardOv';ov.className='v'+v;window.NK_BOARD_API=window.NK_BOARD_API||localStorage.getItem('nk_board_api')||'https://fishcozy-board-api.mi1ku.workers.dev';ov.innerHTML=`<iframe src="board-v24.html?v=${v}&api=${encodeURIComponent(window.NK_BOARD_API)}&cb=v50" title="게시판" allowtransparency="true"></iframe>`;document.body.appendChild(ov);}
  addEventListener('message',e=>{if(e.data==='nkBoardClose')close();});addEventListener('keydown',e=>{if(e.key==='Escape'&&ov)close();});
  const add=()=>{const sy=document.getElementById('mSys');if(!sy){setTimeout(add,500);return;}if(document.getElementById('bBoard'))return;const b=document.createElement('button');b.id='bBoard';b.title='게시판';b.innerHTML='<b class="mi">📋</b><small class="ml">게시판</small>';b.onclick=e=>{e.stopPropagation();open();};sy.insertBefore(b,sy.firstChild);if(window.NK_EMOJI)try{NK_EMOJI.parse(b);}catch(_){}};add();
  window.NK_BOARD={open,close};})();
