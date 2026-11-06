@@ -4,6 +4,7 @@
 - 라이브: https://dydtjr13.github.io/nakmeong/ · 커스텀 도메인 준비 `fishcozy.com`
 - 캐시: `nakmeong.html?v36`
 - 기반: v35
+- 커밋: `7916b4b`
 
 ## 요약
 
