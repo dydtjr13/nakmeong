@@ -27,6 +27,19 @@ export function sanitizeNick(n) {
   return s || "낚시꾼";
 }
 
+/** 관리자·운영자·GM(대소문자 무시) 포함 닉은 거절. 비어 있지 않으면 사유 문자열. */
+export function nickProblem(nick) {
+  const s = sanitizeNick(nick).toLowerCase();
+  if (s.includes("관리자") || s.includes("운영자") || s.includes("gm")) return "reserved";
+  return "";
+}
+
+/** 같은 호숫가에 이미 있는 닉(자기 소켓 제외)이면 true. */
+export function nickTaken(nick, selfId, peers) {
+  const s = sanitizeNick(nick);
+  return (peers || []).some((p) => p && p.id !== selfId && sanitizeNick(p.nick) === s);
+}
+
 export function cleanText(s, max) {
   return String(s ?? "")
     .replace(/[\u0000-\u001f<>]/g, "")
@@ -98,9 +111,12 @@ export function defaultWorld() {
     seasonLen: 0,
     seasonOff: 0,
     seasonT0: 0,
-    seasonSpd: 0,
+    seasonSpd: 8,
+    spdSet: 0,
     seasonLink: 0,
     mapTheme: "base",
+    ambSeed: 0,
+    bots: 9,
     rev: 1,
     at: 0,
   };
@@ -113,6 +129,14 @@ function finite(v, d) {
 
 function pickEnum(v, list, d) {
   return list.includes(v) ? v : d;
+}
+
+/** 호숫가 시드용. 클라이언트 world-sync.js 와 같은 식. */
+export function mix32(a, b) {
+  let x = (Math.imul(a >>> 0, 0x9e3779b1) ^ (b >>> 0)) >>> 0;
+  x = Math.imul(x ^ (x >>> 16), 0x7feb352d) >>> 0;
+  x = Math.imul(x ^ (x >>> 15), 0x846ca68b) >>> 0;
+  return (x ^ (x >>> 16)) >>> 0;
 }
 
 /**
@@ -141,6 +165,16 @@ export function sanitizeWorld(input, prev, opt) {
   const auto = typeof src.auto === "boolean" ? src.auto : !!base.auto;
   const seasonLink = src.seasonLink == null ? (base.seasonLink ? 1 : 0) : (src.seasonLink ? 1 : 0);
   const bump = !!(opt && opt.bump);
+  const spdSet = src.seasonSpd != null ? 1 : (base.spdSet ? 1 : 0);
+  let ambSeed = Math.round(finite(src.ambSeed == null ? base.ambSeed : src.ambSeed, 0));
+  if (!(ambSeed > 0)) ambSeed = Math.round(finite(base.ambSeed, 0));
+  if (!(ambSeed > 0)) ambSeed = mix32(now >>> 0, 0xc0ffee) || 1;
+  const botPick = src.bots == null ? base.bots : src.bots;
+  let bots = 9;
+  if (botPick != null && botPick !== "") {
+    const bn = Math.round(Number(botPick));
+    bots = Number.isFinite(bn) ? Math.max(0, Math.min(50, bn)) : 9;
+  }
   return {
     dayLen: Math.max(30, Math.min(86400, dayLen || 150)),
     auto,
@@ -154,8 +188,11 @@ export function sanitizeWorld(input, prev, opt) {
     seasonOff: Math.max(-1000, Math.min(1000, seasonOff)),
     seasonT0: Math.max(0, Math.min(now + 36e5, seasonT0)),
     seasonSpd,
+    spdSet,
     seasonLink,
     mapTheme: pickEnum(src.mapTheme, MAP_THEMES, pickEnum(base.mapTheme, MAP_THEMES, "base")),
+    ambSeed,
+    bots,
     rev: bump ? (base.rev | 0) + 1 : Math.max(1, Math.round(finite(src.rev, base.rev || 1))),
     at: bump ? now : Math.max(0, Math.round(finite(src.at, base.at || 0))),
   };
@@ -187,6 +224,77 @@ export function worldFraction(now, world) {
   let t = ((now - t0) / 1000 / len + off) % 1;
   if (t < 0) t += 1;
   return t;
+}
+
+const WX_DAY = ["clear", "clear", "drizzle", "storm", "snow", "cherry", "leaf"];
+const WX_NIGHT = ["clear", "firefly", "meteor", "aurora", "clear", "drizzle"];
+
+/** 같은 ambSeed·시각이면 어떤 클라이언트든 같은 날씨. 강제(wxOv)가 우선. */
+export function sharedWeather(now, world) {
+  const w = world || {};
+  const t = Number(now) || 0;
+  if (w.wxOv && w.wxOv !== "auto" && (!w.wxUntil || w.wxUntil > t)) {
+    return { k: w.wxOv, until: w.wxUntil || 0, forced: true };
+  }
+  const seed = Math.round(Number(w.ambSeed) || 1);
+  const bucket = Math.floor(t / 300000);
+  const frac = worldFraction(t, w);
+  const night = frac >= 0.66 && frac < 0.96;
+  const list = night ? WX_NIGHT : WX_DAY;
+  const h = mix32(seed, bucket + (night ? 17 : 3));
+  return { k: list[h % list.length], until: (bucket + 1) * 300000, forced: false };
+}
+
+const DUCK_KINDS = ["base", "pirate", "straw", "astro", "frog", "uni", "penguin", "snowman", "dino"];
+const DUCK_SIZES = [0.72, 1, 1.28, 1.55, 1.9];
+
+/** 간격·최대·크기는 시드와 벽시계로 정해져 중간 입장도 같다. 기본 5분·최대 9·크기 랜덤·느린 회전. */
+export function sharedDucks(now, world, opt) {
+  const every = Math.max(1000, Math.round((opt && opt.every) || 300000));
+  const max = Math.max(0, Math.min(30, Math.round((opt && opt.max) != null ? opt.max : 9)));
+  const rMax = (opt && opt.rMax) > 0 ? opt.rMax : 8;
+  const seed = Math.round(Number(world && world.ambSeed) || 1);
+  const t = Number(now) || 0;
+  const elapsed = Math.max(0, t - 1_700_000_000_000);
+  const n = Math.min(max, Math.floor(elapsed / every) + 1);
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const h = mix32(seed, 400 + i);
+    const h2 = mix32(seed, 900 + i);
+    const age = Math.max(0, elapsed - i * every);
+    const ang0 = ((h % 10000) / 10000) * Math.PI * 2;
+    const rad = (0.28 + ((h2 % 1000) / 1000) * 0.62) * rMax;
+    const yaw = ang0 + (age / 1000) * 0.12;
+    out.push({
+      i,
+      x: Math.cos(yaw) * rad,
+      z: Math.sin(yaw) * rad,
+      yaw,
+      s: DUCK_SIZES[h % DUCK_SIZES.length],
+      v: DUCK_KINDS[h2 % DUCK_KINDS.length],
+      st: "swim",
+    });
+  }
+  return out;
+}
+
+const BOT_KINDS = [1, 0, 3, 7, 2, 8, 4, 10, 5, 9, 6, 11, 12, 13, 14, 15, 16];
+
+/** 봇 i의 종류·위치. 같은 시각·시드면 동일. */
+export function sharedBot(i, now, world) {
+  const seed = Math.round(Number(world && world.ambSeed) || 1);
+  const h = mix32(seed, 2000 + (i | 0));
+  const h2 = mix32(seed, 3000 + (i | 0));
+  const t = Number(now) || 0;
+  const ang = ((h % 10000) / 10000) * Math.PI * 2 + (((t / 1000) % 80) / 80) * 0.4;
+  const rad = 16 + (h2 % 900) / 100;
+  return {
+    i: i | 0,
+    ki: BOT_KINDS[h % BOT_KINDS.length],
+    x: Math.cos(ang) * rad,
+    z: Math.sin(ang) * rad,
+    yaw: ang + Math.PI,
+  };
 }
 
 /** seasonLen 이 있으면 0~3. 없으면 null (실제 날짜·seasonSpd). */

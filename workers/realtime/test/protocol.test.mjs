@@ -13,6 +13,8 @@ import {
   lakeTargets,
   mergeGrant,
   mergeSanc,
+  nickProblem,
+  nickTaken,
   sanitizeBalance,
   sanitizeEvent,
   sanitizeGift,
@@ -21,6 +23,9 @@ import {
   sanitizeProf,
   sanitizeWorld,
   seasonSlot,
+  sharedBot,
+  sharedDucks,
+  sharedWeather,
   worldFraction,
 } from "../src/protocol.js";
 
@@ -138,7 +143,7 @@ test("world clock matches for every joiner and admin pin is shared", () => {
   assert.equal(bad.wxOv, "snow");
   assert.equal(bad.mapTheme, "xmas");
   assert.equal(bad.seasonOv, "summer");
-  assert.equal(bad.seasonSpd, 0);
+  assert.equal(bad.seasonSpd, 8);
   assert.equal(bad.off, 10);
 
   const expired = normalizeWorld({ ...pinned, wxOv: "storm", wxUntil: now - 1000, rev: 4 }, now);
@@ -186,6 +191,54 @@ test("notice, event, balance, grant and gift are bounded", () => {
   assert.equal(ops.t, "notice");
   assert.equal(parseClient(JSON.stringify({ t: "event", event: null })).event, null);
   assert.equal(parseClient("x".repeat(50000)), null);
+});
+
+test("bots 0 is kept and ambSeed stays stable", () => {
+  const now = 1_700_000_000_000;
+  const made = sanitizeWorld({ bots: 0, ambSeed: 42 }, null, { now });
+  assert.equal(made.bots, 0);
+  assert.equal(made.ambSeed, 42);
+  assert.equal(made.seasonSpd, 8);
+  const again = sanitizeWorld({}, made, { bump: true, now });
+  assert.equal(again.bots, 0);
+  assert.equal(again.ambSeed, 42);
+  const zero = sanitizeWorld({ bots: 0 }, { bots: 9, ambSeed: 7 }, { now });
+  assert.equal(zero.bots, 0);
+  assert.equal(zero.ambSeed, 7);
+});
+
+test("same lake seed yields the same weather ducks and bots", () => {
+  const now = 1_700_000_000_000 + 86_400_000;
+  const world = { ambSeed: 99, dayLen: 150, auto: true, off: 0, t0: 0, wxOv: "auto", wxUntil: 0 };
+  const a = sharedWeather(now, world);
+  const b = sharedWeather(now, world);
+  assert.equal(a.k, b.k);
+  assert.equal(a.until, b.until);
+  const forced = sharedWeather(now, { ...world, wxOv: "snow", wxUntil: now + 60000 });
+  assert.equal(forced.k, "snow");
+  const ducks = sharedDucks(now, world, { max: 9, every: 300000 });
+  const ducks2 = sharedDucks(now, world, { max: 9, every: 300000 });
+  assert.deepEqual(ducks, ducks2);
+  assert.ok(ducks.length <= 9);
+  assert.ok(ducks.length > 0);
+  const late = sharedDucks(now + 120000, world, { max: 9, every: 300000 });
+  assert.equal(late.length, ducks.length);
+  assert.equal(late[0].v, ducks[0].v);
+  assert.equal(late[0].s, ducks[0].s);
+  const bot = sharedBot(3, now, world);
+  assert.deepEqual(bot, sharedBot(3, now, world));
+  assert.notDeepEqual(sharedBot(4, now, world).x, bot.x);
+});
+
+test("reserved and duplicate nicks are rejected", () => {
+  assert.equal(nickProblem("호수관리자"), "reserved");
+  assert.equal(nickProblem("GM낚시"), "reserved");
+  assert.equal(nickProblem("gm"), "reserved");
+  assert.equal(nickProblem("운영자님"), "reserved");
+  assert.equal(nickProblem("달빛"), "");
+  assert.equal(nickTaken("달빛", "me", [{ id: "other", nick: "달빛" }]), true);
+  assert.equal(nickTaken("달빛", "me", [{ id: "me", nick: "달빛" }]), false);
+  assert.equal(nickTaken("노을", "me", [{ id: "other", nick: "달빛" }]), false);
 });
 
 test("origin allow list matches the pages hosts", () => {

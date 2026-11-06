@@ -9,10 +9,13 @@ import {
   mergeSanc,
   normalizeWorld,
   originAllowed,
+  nickProblem,
+  nickTaken,
   parseClient,
   publicPeer,
   reduce,
   sanitizeBalance,
+  sanitizeNick,
   sanitizeEvent,
   sanitizeGift,
   sanitizeGrants,
@@ -77,7 +80,15 @@ export class LakeRoom extends DurableObject {
   }
 
   async worldGet() {
-    if (!this._world) this._world = normalizeWorld(await this.ctx.storage.get("world"));
+    if (!this._world) {
+      const stored = await this.ctx.storage.get("world");
+      const legacySeason = !!(stored && stored.seasonSpd === 0 && !stored.spdSet && !stored.seasonLen && (stored.seasonOv == null || stored.seasonOv === "auto"));
+      const src = legacySeason ? Object.assign({}, stored, { seasonSpd: 8, spdSet: 1 }) : stored;
+      this._world = normalizeWorld(src);
+      if (legacySeason || !stored || !(stored.ambSeed > 0) || typeof stored.bots !== "number") {
+        this.ctx.waitUntil(this.ctx.storage.put("world", this._world));
+      }
+    }
     const now = Date.now();
     if (this.expireWorld(now)) this.ctx.waitUntil(this.ctx.storage.put("world", this._world));
     return this._world;
@@ -351,8 +362,30 @@ export class LakeRoom extends DurableObject {
       await this.acceptOps(prev.server, msg);
       return;
     }
+    let play = msg;
+    if (play.t === "hello" || play.t === "pose") {
+      const named = play.nick != null && String(play.nick).trim() !== "";
+      if (play.t === "hello" || named) {
+        const want = sanitizeNick(named ? play.nick : (prev.nick || ""));
+        const why = nickProblem(want);
+        const peers = [];
+        for (const other of this.ctx.getWebSockets()) {
+          if (other === ws) continue;
+          const att = this.attachment(other);
+          if (att && att.nick) peers.push(att);
+        }
+        if (why || nickTaken(want, prev.id, peers)) {
+          try { ws.send(JSON.stringify({ t: "nick", ok: false, reason: why || "dup" })); } catch { /* ignore */ }
+          if (!prev.ready) {
+            try { ws.close(4004, "nick"); } catch { /* ignore */ }
+            return;
+          }
+          play = Object.assign({}, play, { nick: prev.nick || "" });
+        }
+      }
+    }
     const others = this.readyOthers(ws).map((a) => ({ id: a.id, seatKey: a.seatKey }));
-    const next = reduce(prev, msg, Date.now(), others);
+    const next = reduce(prev, play, Date.now(), others);
     if (next.drop) return;
     ws.serializeAttachment(next.att);
     if (next.event) {

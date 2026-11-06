@@ -135,7 +135,7 @@
    if(k==='npc'){if(!P.b)P.b=base();P.b._tap=1;sv();if(m())U().set('tutHide',U().get('tutHide')?0:1);else U().set('tutFold',U().get('tutFold')?0:1);render(1);}if(k==='fold'){U().set('tutFold',U().get('tutFold')?0:1);render(1);}});}
   const done=P.i>=STEPS.length,go=document.getElementById('go'),started=go&&!go.offsetParent;
   if(!started||done||(U()&&U().get('tutOff'))){el.style.display='none';return;}el.style.display='';
-  const st=STEPS[P.i],n=prog(st),v=m()?(U().get('tutM')||'D2'):(U().get('tutPC')||'D2'),pos=m()?(U().get('tutPosM')||'top'):(U().get('tutPosPC')||'bc'),fold=m()?U().get('tutHide'):U().get('tutFold');
+  const st=STEPS[P.i],n=prog(st),v=m()?(U().get('tutM')||'D2'):(U().get('tutPC')||'D2'),pos=m()?(U().get('tutPosM')||'top'):(U().get('tutPosPC')||'bl'),fold=m()?U().get('tutHide'):U().get('tutFold');
   const key=[P.i,n,v,pos,fold,m()].join('|');if(key===last&&!force)return place();last=key;
   el.className=`${String(v).toLowerCase()} p-${pos} ${m()?'m':'pc'} ${fold?'fold':''}`;const pc=Math.round(n/st.goal.n*100),cnt=st.goal.n>1?` <em>${n}/${st.goal.n}</em>`:'';
   if(v==='D4')el.innerHTML=`<div class="sh" data-tq="fold"><div class="hd"><span class="ic">${st.ic}</span><div><small>지금 할 일 · ${P.i+1}/${STEPS.length}</small><b>${st.t}${cnt}</b></div><span class="rw">${rwTxt(st.rw)}</span></div><div class="pg"><i style="width:${Math.max(4,pc)}%"></i></div>${fold?'':`<div class="nx">${st.say}</div>`}</div>`;

@@ -17,9 +17,9 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{font-size:12px;color
 .p3 .ph{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.p3 .ph div{border-radius:12px;background:linear-gradient(160deg,#d8f0ff,#aee0f5);height:84px;display:grid;place-items:center}.p3 .ph img{width:80%}
 /* P4 게임 위 창 */
 .p4 .bg,.p1 .bg{position:fixed;inset:0;background:#2a20304d}.p4 .win{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1040px,94vw);height:min(640px,90vh);background:#fffaf3;border-radius:24px;box-shadow:0 20px 60px #0006;display:grid;grid-template-columns:200px 1fr;overflow:hidden}
-.p4 .sb{background:#fff1e2;padding:20px 12px}.p4 .sb b.t{display:block;font:900 18px sans-serif;padding:0 8px 12px}.p4 .sb a{display:flex;gap:8px;padding:9px 10px;border-radius:10px;font-size:14px;font-weight:700;color:#5a4e44}.p4 .sb a.on{background:#ff8a4c;color:#fff}.p4 .sb a i{margin-left:auto;font-style:normal;font-size:11px;background:#ff5f5f;color:#fff;border-radius:9px;padding:1px 6px}
+.p4 .sb{background:#fff1e2;padding:20px 12px}.p4 .sb b.t{display:block;font:900 18px sans-serif;padding:0 8px 12px}.p4 .sb a{display:flex;gap:8px;padding:9px 10px;border-radius:10px;font-size:14px;font-weight:700;color:#5a4e44;cursor:pointer;text-decoration:none}.p4 .sb a.on{background:#ff8a4c;color:#fff}.p4 .sb a i{margin-left:auto;font-style:normal;font-size:11px;background:#ff5f5f;color:#fff;border-radius:9px;padding:1px 6px}
 .p4 .mn{padding:20px 24px;overflow:hidden}.p4 .mn .h{display:flex;align-items:center;gap:10px;margin-bottom:12px}.p4 .mn .h h2{font-size:19px}.p4 .x{margin-left:auto;width:34px;height:34px;border-radius:50%;background:#f1e6d8;display:grid;place-items:center}
-.p4 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.p4 .lst .it{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px #0000000a}.p4 .lst .it.on{outline:2px solid #ff8a4c}.p4 .lst .tt{font-size:14px;font-weight:700;margin:4px 0}
+.p4 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.p4 .lst .it{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px #0000000a;cursor:pointer}.p4 .lst .it.on{outline:2px solid #ff8a4c}.p4 .lst .tt{font-size:14px;font-weight:700;margin:4px 0}
 .p4 .rd{background:#fff;border-radius:16px;padding:16px 18px}.p4 .rd h3{font-size:17px;margin:6px 0}.p4 .rd p{font-size:13.5px;line-height:1.65;color:#4a4048}.p4 .rd .chg{background:#f6fbff;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:13px;line-height:1.7}
 /* P5 컴팩트 2단 (사이드 패널) */
 .p5 .bg{display:none}.p5 .pn{position:fixed;right:0;top:0;bottom:0;width:440px;background:#fffaf3f5;box-shadow:-10px 0 30px #0003;padding:20px 20px;backdrop-filter:blur(6px)}
@@ -63,7 +63,7 @@ img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;object-fit:contain}
 <div class="card"><h3>🐞 버그 제보 <a>더보기 ›</a></h3><div class="r"><span class="tag t2">수정됨</span><span>공지 닫기 버튼이 창 밖으로 나감</span></div><div class="r"><span class="tag t1">확인 중</span><span>아이폰에서 채팅창 겹침</span></div></div>
 <div class="card"><h3>📚 공략 <a>더보기 ›</a></h3><div class="r"><span>⭐ 초보 1시간 가이드 (Lv1→15)</span></div><div class="r"><span>⭐ 부적 조합 추천 TOP 5</span></div></div></div></div>
 
-<div class="v v4 p4"><div class="bg" onclick="parent.postMessage('nkBoardClose','*')"></div><div class="win"><div class="sb"><b class="t">📋 게시판</b><a>📢 공지<i>2</i></a><a class="on">🔔 업데이트</a><a>💬 자유</a><a>❓ 질문</a><a>🐟 자랑</a><a>🤝 거래</a><a>🐞 버그 제보</a><a>📚 공략</a><a>💡 건의</a></div>
+<div class="v v4 p4"><div class="bg" onclick="parent.postMessage('nkBoardClose','*')"></div><div class="win"><div class="sb"><b class="t">📋 게시판</b><a href="#" data-cat="공지">📢 공지</a><a href="#" data-cat="업데이트">🔔 업데이트</a><a href="#" data-cat="자유">💬 자유</a><a href="#" data-cat="질문">❓ 질문</a><a href="#" data-cat="자랑">🐟 자랑</a><a href="#" data-cat="거래">🤝 거래</a><a href="#" data-cat="공략">📚 공략</a><a href="#" data-cat="건의">💡 건의</a><a href="#" data-cat="버그제보">🐞 버그제보</a></div>
 <div class="mn"><div class="h"><h2>🔔 업데이트</h2><span class="mt">게임을 멈추지 않고 볼 수 있는 창이에요 · ESC로 닫기</span><span class="x">✕</span></div><div class="two"><div class="lst">
 <div class="it on"><span class="tag t1">v23</span><div class="tt">피쉬코지로 새 단장 + 편의 기능</div><div class="mt">11/05 · 💬 48</div></div><div class="it"><span class="tag t1">v22</span><div class="tt">낚싯대 등급 · 핀치 줌 · 새 레벨업 화면</div><div class="mt">11/04 · 💬 61</div></div><div class="it"><span class="tag t1">v21</span><div class="tt">레벨 시스템 Lv99 · 보상 로드</div><div class="mt">11/02 · 💬 33</div></div><div class="it"><span class="tag t6">점검</span><div class="tt">11/12 정기 점검 (06:00~08:00)</div><div class="mt">11/05</div></div></div>
 <div class="rd"><span class="tag t1">v23</span><h3>피쉬코지로 새 단장 + 편의 기능</h3><div class="mt">운영자 · 11/05 15:00</div><div class="chg">✨ 이름이 <b>피쉬코지(FISH COZY)</b>로 바뀌었어요<br>🎁 행운 상자 10개 결과에 마우스를 올리면 옵션이 보여요<br>🆕 새로 얻은 아이템에 NEW 표시<br>📌 부적 고정핀이 작고 깔끔해졌어요<br>📱 모바일 전체 화면 지원 (안드로이드)</div><p>항상 함께해 주셔서 고마워요. 불편한 점은 버그 제보 게시판에 남겨 주세요!</p></div></div></div></div></div>
@@ -186,7 +186,7 @@ img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;object-fit:contain}
   pan.addEventListener('click',e=>{if(e.target===pan)close();});
   document.getElementById('bdWrite').onclick=()=>{
    open(`<h3>✏️ 글쓰기 <small style="font-weight:600;color:#9a8b7c">(${modeLabel})</small></h3>
-    <label>게시판</label><select id="bdCat"><option>💬 자유</option><option>❓ 질문</option><option>🐟 자랑</option><option>🤝 거래</option><option>🐞 버그 제보</option><option>📚 공략</option><option>💡 건의</option></select>
+    <label>게시판</label><select id="bdCat"><option>💬 자유</option><option>❓ 질문</option><option>🐟 자랑</option><option>🤝 거래</option><option>📚 공략</option><option>💡 건의</option><option>🐞 버그제보</option></select>
     <label>제목</label><input id="bdTitle" maxlength="60" placeholder="제목을 입력하세요">
     <label>내용</label><textarea id="bdBody" maxlength="2000" placeholder="내용을 입력하세요"></textarea>
     <div class="row"><button type="button" class="cancel" id="bdX">취소</button><button type="button" class="ok" id="bdGo">등록</button></div>`);
@@ -232,6 +232,40 @@ img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;object-fit:contain}
     w.style.cssText='margin-left:auto;background:#ff8a4c;color:#fff;border:0;border-radius:10px;padding:6px 12px;font-weight:800;cursor:pointer;font-size:12.5px';
     w.onclick=()=>document.getElementById('bdWrite').click();p5.appendChild(w);
   }
+  const CATS=[['공지','📢 공지'],['업데이트','🔔 업데이트'],['자유','💬 자유'],['질문','❓ 질문'],['자랑','🐟 자랑'],['거래','🤝 거래'],['공략','📚 공략'],['건의','💡 건의'],['버그제보','🐞 버그제보']];
+  const catKey=s=>String(s||'').replace(/\s/g,'').replace(/[^\uac00-\ud7a3]/g,'');
+  const escH=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  let curCat='공지', posts=[];
+  function paintNav(){
+    const sb=document.querySelector('.p4 .sb');
+    if(sb){sb.querySelectorAll('a').forEach(n=>n.remove());CATS.forEach(([k,lab])=>{const a=document.createElement('a');a.href='#';a.textContent=lab;a.className=k===curCat?'on':'';a.onclick=e=>{e.preventDefault();pick(k);};sb.appendChild(a);});}
+    const nav=document.querySelector('.p2 .nav');
+    if(nav){nav.querySelectorAll('a').forEach(n=>n.remove());CATS.forEach(([k,lab])=>{const a=document.createElement('a');a.href='#';a.textContent=lab;a.className=k===curCat?'on':'';a.onclick=e=>{e.preventDefault();pick(k);};nav.appendChild(a);});}
+    const tabs=document.querySelector('.p5 .tabs');
+    if(tabs){tabs.innerHTML='';const all=document.createElement('b');all.textContent='전체';all.className=curCat==='*'?'on':'';all.style.cursor='pointer';all.onclick=()=>pick('*');tabs.appendChild(all);CATS.forEach(([k,lab])=>{const b=document.createElement('b');b.textContent=lab;b.className=k===curCat?'on':'';b.style.cursor='pointer';b.onclick=()=>pick(k);tabs.appendChild(b);});}
+  }
+  function showPost(p){
+    const rd=document.querySelector('.p4 .rd');
+    if(!rd||!p)return;
+    rd.innerHTML=`<span class="tag t2">${escH(catKey(p.cat)||p.cat)}</span><h3>${escH(p.title)}</h3><div class="mt">${escH(p.nick)} · ${escH(p.t||'')}</div><p style="white-space:pre-wrap">${escH(p.body||'')}</p><div id="bdRdCm" class="mt">댓글 불러오는 중…</div><div style="display:flex;gap:6px;margin-top:8px"><input id="bdRdIn" placeholder="댓글" maxlength="200" style="flex:1;padding:6px 8px;border-radius:8px;border:1px solid #ead9c4"><button type="button" id="bdRdGo" style="border:0;border-radius:8px;background:#ff8a4c;color:#fff;font-weight:800;padding:6px 10px">댓글</button></div>`;
+    commentsFor(p.id).then(cms=>{const el=document.getElementById('bdRdCm');if(!el)return;el.innerHTML=(cms||[]).map(c=>`<div>💬 <b>${escH(c.nick)}</b> ${escH(c.body)}</div>`).join('')||'댓글 없음';});
+    const go=document.getElementById('bdRdGo');if(go)go.onclick=async()=>{const inp=document.getElementById('bdRdIn');const v=inp&&inp.value.trim();if(!v)return;go.disabled=true;try{await addComment(p.id,v);showPost(p);}catch(e){alert(e.message);go.disabled=false;}};
+    document.querySelectorAll('.p4 .lst .it').forEach(el=>el.classList.toggle('on',el.dataset.id===String(p.id)));
+  }
+  async function paintList(){
+    const d=await listAll();posts=d.posts||[];
+    const key=curCat==='*'?'':curCat;
+    const list=posts.filter(p=>!key||catKey(p.cat)===key);
+    const h=document.querySelector('.p4 .mn .h h2');if(h)h.textContent=(CATS.find(c=>c[0]===curCat)||['','전체'])[1]||'게시판';
+    const lst=document.querySelector('.p4 .lst');
+    if(lst){lst.innerHTML=list.length?list.map(p=>`<div class="it" data-id="${escH(p.id)}"><span class="tag t2">${escH(catKey(p.cat)||p.cat)}</span><div class="tt">${escH(p.title)}</div><div class="mt">${escH(p.nick)} · ${escH(p.t||'')}</div></div>`).join(''):'<p class="mt">이 게시판에 글이 없어요. 글쓰기로 남겨 주세요.</p>';
+      lst.querySelectorAll('.it').forEach(el=>el.onclick=()=>{const p=posts.find(x=>String(x.id)===el.dataset.id);if(p)showPost(p);});}
+    const pn=document.querySelector('.p5 .pn');
+    if(pn){pn.querySelectorAll('.row').forEach(r=>r.remove());const anchor=pn.querySelector('div[style*="text-align:right"]')||null;list.slice(0,40).forEach(p=>{const row=document.createElement('div');row.className='row';row.style.cursor='pointer';row.innerHTML=`<span class="tag t2">${escH(catKey(p.cat)||p.cat)}</span><div class="tt">${escH(p.title)}</div><div class="mt">${escH(p.nick)} · ${escH(p.t||'')}</div>`;row.onclick=()=>showPost(p);if(anchor)pn.insertBefore(row,anchor);else pn.appendChild(row);});}
+    if(list[0])showPost(list[0]);else{const rd=document.querySelector('.p4 .rd');if(rd)rd.innerHTML='<p class="mt">왼쪽에서 게시판을 고르거나 글을 써 주세요.</p>';}
+  }
+  async function pick(k){curCat=k;paintNav();try{await paintList();}catch(e){const lst=document.querySelector('.p4 .lst');if(lst)lst.innerHTML='<p class="mt">목록을 불러오지 못했어요.</p>';}}
+  paintNav();pick('공지');
   probe();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ui);else ui();
