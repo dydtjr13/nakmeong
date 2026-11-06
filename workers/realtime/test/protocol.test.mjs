@@ -516,3 +516,14 @@ test("v47: ducks drift slowly and stay inside the lake, same on browser and serv
   assert.equal(duckSpeed(0), 0);
   assert.ok(duckSpeed(0.5) < duckSpeed(1) && duckSpeed(1) < duckSpeed(1.5) && duckSpeed(1.5) < duckSpeed(2.5));
 });
+
+test("v48: duck size keeps rand and fixed sizes as chosen", () => {
+  const r = sanitizePlay({ duckSize: "rand" }, null, { bump: true, now: 1 });
+  assert.equal(r.duckSize, "rand");
+  const f = sanitizePlay({ duckSize: 1 }, r, { bump: true, now: 2 });
+  assert.equal(f.duckSize, 1);
+  const big = sanitizePlay({ duckSize: 1.3 }, f, { bump: true, now: 3 });
+  assert.equal(big.duckSize, 1.3);
+  const back = sanitizePlay({ duckSize: "rand" }, big, { bump: true, now: 4 });
+  assert.equal(back.duckSize, "rand");
+});
