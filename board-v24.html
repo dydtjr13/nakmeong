@@ -61,6 +61,8 @@ main{flex:1;overflow:auto;padding:0 18px 18px}
 .form .hint{font-size:12px;color:var(--sub);margin-top:4px;text-align:right}
 .form .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
 .who{font-size:12.5px;color:var(--sub);margin-top:2px}
+.ptop{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}.ptop .back{margin:0}.pacts{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}.pacts .btn{padding:7px 11px;font-size:13px}
+.rpt{position:fixed;inset:0;background:rgba(40,30,50,.35);display:flex;align-items:center;justify-content:center;z-index:5}.rptc{background:#fff;border-radius:16px;padding:16px;width:min(340px,90vw);display:flex;flex-direction:column;gap:6px}.rptc .btn{width:100%;justify-content:flex-start;background:#fbf6ee}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#3d3a4b;color:#fff;padding:10px 16px;border-radius:12px;font-size:13.5px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
 .toast.show{opacity:1}
 </style>
@@ -91,6 +93,9 @@ function apiBase(){try{const q=new URLSearchParams(location.search).get('api');i
 function myNick(){try{const RT=P&&P.NK_RT;if(RT&&RT.serverNick)return String(RT.serverNick).slice(0,10);const S=P&&P.NKV2&&P.NKV2.S;if(S&&String(S.nick||'').trim())return String(S.nick).trim().slice(0,10);}catch(e){}return '낚시꾼';}
 function adminToken(){try{const RT=P&&P.NK_RT;return RT&&RT.isAdmin&&RT.isAdmin()?String(RT.adminToken||''):'';}catch(e){return '';}}
 function isStaff(){return !!adminToken();}
+function ownerId(){try{return localStorage.getItem('nk_cid')||'';}catch(e){return '';}}
+function bad(t){try{return !!(P&&P.NK_PROF&&P.NK_PROF.has&&P.NK_PROF.has(String(t||'')));}catch(e){return false;}}
+const ERRMSG=e=>/profanity/.test(e.message)?'비속어가 들어 있어 올릴 수 없어요':/admin only/.test(e.message)?'공지·업데이트와 운영자 닉네임은 관리자만 쓸 수 있어요':/not yours/.test(e.message)?'내가 쓴 글만 고칠 수 있어요':'처리하지 못했어요. 다시 시도해 주세요';
 function when(ts){const t=+ts||0;if(!t)return '';const d=Date.now()-t;if(d<60e3)return '방금';if(d<3600e3)return Math.floor(d/60e3)+'분 전';if(d<86400e3)return Math.floor(d/3600e3)+'시간 전';const x=new Date(t);return (x.getMonth()+1)+'.'+x.getDate();}
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),1800);}
 function close(){try{parent.postMessage('nkBoardClose','*');}catch(e){}}
@@ -100,7 +105,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'){if(view!=='list'){showList()
 async function api(path,opt){
   const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),8000);
   try{
-    const r=await fetch(apiBase()+path,Object.assign({signal:ctl.signal},opt||{},{headers:Object.assign({'Content-Type':'application/json'},adminToken()?{'X-Admin-Token':adminToken()}:{},(opt&&opt.headers)||{})}));
+    const r=await fetch(apiBase()+path,Object.assign({signal:ctl.signal},opt||{},{headers:Object.assign({'Content-Type':'application/json'},ownerId()?{'X-Owner':ownerId()}:{},adminToken()?{'X-Admin-Token':adminToken()}:{},(opt&&opt.headers)||{})}));
     let j=null;try{j=await r.json();}catch(e){}
     if(!r.ok||!j||j.ok===false)throw new Error((j&&j.error)||('HTTP '+r.status));
     setStatus(true);return j;
@@ -117,7 +122,7 @@ function paintCats(){
 }
 async function load(){
   loading=true;
-  try{const j=await api('/posts?limit=100');all=(j.posts||[]).map(p=>({id:p.id,k:catKey(p.cat)||'자유',title:p.title,body:p.body,nick:p.nick,ts:p.created_at,cc:p.comment_count||0}));return true;}
+  try{const j=await api('/posts?limit=100');all=(j.posts||[]).map(p=>({id:p.id,k:catKey(p.cat)||'자유',title:p.title,body:p.body,nick:p.nick,ts:p.created_at,cc:p.comment_count||0,mine:!!p.mine,ed:!!p.edited,rp:p.reports||0,hid:!!p.hidden}));return true;}
   catch(e){return false;}
   finally{loading=false;}
 }
@@ -125,7 +130,7 @@ function filtered(){const s=q.trim().toLowerCase();return all.filter(p=>(cat==='
 function listHTML(){
   const L=filtered();
   if(!L.length)return `<div class="list"><div class="empty">${q?'검색 결과가 없어요.':'아직 글이 없어요.<br>첫 글을 남겨 보세요!'}</div></div>`;
-  return `<div class="list">${L.slice(0,shown).map(p=>`<button class="row" data-id="${esc(p.id)}"><div class="t"><em class="tag ${STAFF.has(p.k)?'n':''}">${esc(p.k)}</em><span>${esc(p.title)}</span>${p.cc?`<em class="cnt">[${p.cc}]</em>`:''}</div><div class="m">${esc(p.nick)} · ${esc(when(p.ts))}</div></button>`).join('')}</div>${L.length>shown?'<button class="btn more" id="more">더 보기</button>':''}`;
+  return `<div class="list">${L.slice(0,shown).map(p=>`<button class="row" data-id="${esc(p.id)}"><div class="t"><em class="tag ${STAFF.has(p.k)?'n':''}">${esc(p.k)}</em><span>${esc(p.title)}</span>${p.cc?`<em class="cnt">[${p.cc}]</em>`:''}${p.hid?'<em class="tag n">숨김</em>':''}${p.rp?`<em class="cnt" style="color:#e0564f">🚩${p.rp}</em>`:''}</div><div class="m">${esc(p.nick)}${p.mine?' · <b style="color:var(--acc)">내 글</b>':''} · ${esc(when(p.ts))}</div></button>`).join('')}</div>${L.length>shown?'<button class="btn more" id="more">더 보기</button>':''}`;
 }
 async function showList(reload){
   view='list';
@@ -145,41 +150,55 @@ async function showPost(id){
   view='post';
   const p=all.find(x=>x.id===id);if(!p)return showList(true);
   const m=$('#main');
-  m.innerHTML=`<button class="back" id="bk">← 목록</button>${isStaff()?'<button class="btn" id="pdel" style="float:right;color:#e0564f">🗑 글 삭제</button>':''}<article class="post"><em class="tag ${STAFF.has(p.k)?'n':''}">${esc(p.k)}</em><h2>${esc(p.title)}</h2><div class="m">${esc(p.nick)} · ${esc(when(p.ts))}</div><div class="body">${esc(p.body)}</div></article><section class="cms"><h3>댓글</h3><div id="cml"><div class="msg">불러오는 중…</div></div><div class="cbox"><input id="cin" maxlength="200" placeholder="${esc(myNick())}(으)로 댓글 남기기"><button class="btn pri" id="cgo">등록</button></div></section>`;
+  const acts=[p.mine?'<button class="btn" id="pedit">✏️ 수정</button>':'',p.mine||isStaff()?'<button class="btn" id="pdel" style="color:#e0564f">🗑 삭제</button>':'',!p.mine?'<button class="btn" id="prep">🚩 신고</button>':'',isStaff()&&p.hid?'<button class="btn" id="punh">숨김 해제</button>':''].join('');
+  m.innerHTML=`<div class="ptop"><button class="back" id="bk">← 목록</button><span class="pacts">${acts}</span></div><article class="post"><em class="tag ${STAFF.has(p.k)?'n':''}">${esc(p.k)}</em><h2>${esc(p.title)}</h2><div class="m">${esc(p.nick)} · ${esc(when(p.ts))}${p.ed?' · 수정됨':''}${isStaff()&&p.rp?` · 🚩 신고 ${p.rp}`:''}</div><div class="body">${esc(p.body)}</div></article><section class="cms"><h3>댓글</h3><div id="cml"><div class="msg">불러오는 중…</div></div><div class="cbox"><input id="cin" maxlength="200" placeholder="${esc(myNick())}(으)로 댓글 남기기"><button class="btn pri" id="cgo">등록</button></div></section>`;
   m.scrollTop=0;
   $('#bk').onclick=()=>showList();
   const paint=async()=>{
     try{const j=await api('/posts/'+encodeURIComponent(id));const cms=j.comments||[];p.cc=cms.length;if(view!=='post')return;
-      $('#cml').innerHTML=cms.length?cms.map(c=>`<div class="cm"><b>${esc(c.nick)}</b><small>${esc(when(c.created_at))}</small>${isStaff()?`<button class="back" data-cdel="${esc(c.id)}" style="float:right;color:#e0564f;margin:0">삭제</button>`:''}<div>${esc(c.body)}</div></div>`).join(''):'<div class="msg" style="padding:14px">첫 댓글을 남겨 보세요.</div>';}
+      $('#cml').innerHTML=cms.length?cms.map(c=>`<div class="cm"><b>${esc(c.nick)}</b><small>${esc(when(c.created_at))}</small>${c.mine||isStaff()?`<button class="back" data-cdel="${esc(c.id)}" style="float:right;color:#e0564f;margin:0">삭제</button>`:''}<div>${esc(c.body)}</div></div>`).join(''):'<div class="msg" style="padding:14px">첫 댓글을 남겨 보세요.</div>';}
     catch(e){if(view==='post')$('#cml').innerHTML='<div class="msg err" style="padding:14px">댓글을 불러오지 못했어요.</div>';}
   };
   paint();
+  const pe=$('#pedit');if(pe)pe.onclick=()=>showWrite(p);
+  const pr=$('#prep');if(pr)pr.onclick=()=>reportPost(p);
+  const pu=$('#punh');if(pu)pu.onclick=async()=>{try{await api('/posts/'+encodeURIComponent(id)+'/unhide',{method:'POST'});p.hid=false;p.rp=0;toast('숨김을 풀었어요');showPost(id);}catch(e){toast(ERRMSG(e));}};
   const pd=$('#pdel');if(pd)pd.onclick=async()=>{if(!confirm('이 글을 삭제할까요? 댓글도 함께 지워져요'))return;try{await api('/posts/'+encodeURIComponent(id),{method:'DELETE'});all=all.filter(x=>x.id!==id);toast('글을 삭제했어요');showList();}catch(e){toast('삭제하지 못했어요');}};
   $('#cml').addEventListener('click',async e=>{const b=e.target.closest('[data-cdel]');if(!b)return;if(!confirm('이 댓글을 삭제할까요?'))return;try{await api('/comments/'+encodeURIComponent(b.dataset.cdel),{method:'DELETE'});await paint();}catch(err){toast('삭제하지 못했어요');}});
-  const go=async()=>{const inp=$('#cin'),v=inp.value.trim();if(!v)return;$('#cgo').disabled=true;
+  const go=async()=>{const inp=$('#cin'),v=inp.value.trim();if(!v)return;if(bad(v))return toast('비속어가 들어 있어 올릴 수 없어요');$('#cgo').disabled=true;
     try{await api('/posts/'+encodeURIComponent(id)+'/comments',{method:'POST',body:JSON.stringify({body:v,nick:myNick()})});inp.value='';await paint();}
-    catch(e){toast('댓글을 등록하지 못했어요. 다시 시도해 주세요');}
+    catch(e){toast(ERRMSG(e));}
     finally{const b=$('#cgo');if(b)b.disabled=false;}};
   $('#cgo').onclick=go;$('#cin').onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();go();}};
 }
-function showWrite(){
+function reportPost(p){
+  const m=$('#main'),box=document.createElement('div');box.className='rpt';
+  box.innerHTML=`<div class="rptc"><b>🚩 이 글을 신고할까요?</b><p class="m">이유를 골라 주세요. 여러 명이 신고하면 관리자가 확인할 때까지 숨겨져요.</p>${['욕설·비하','도배·광고','개인정보 노출','음란·불쾌','기타'].map(r=>`<button class="btn" data-r="${r}">${r}</button>`).join('')}<button class="btn" data-x style="margin-top:6px">취소</button></div>`;
+  m.appendChild(box);
+  box.onclick=async e=>{if(e.target===box||e.target.closest('[data-x]')){box.remove();return;}const b=e.target.closest('[data-r]');if(!b)return;
+    try{const j=await api('/posts/'+encodeURIComponent(p.id)+'/report',{method:'POST',body:JSON.stringify({reason:b.dataset.r})});toast(j.already?'이미 신고한 글이에요':'신고했어요. 확인 후 조치할게요');}catch(err){toast(/own post/.test(err.message)?'내 글은 신고할 수 없어요':ERRMSG(err));}box.remove();};
+}
+function showWrite(edit){
   view='write';
-  const staff=isStaff(),def=cat!=='*'&&(staff||!STAFF.has(cat))?cat:'자유';
+  const staff=isStaff(),def=edit?edit.k:cat!=='*'&&(staff||!STAFF.has(cat))?cat:'자유';
   const opts=CATS.filter(([k])=>staff||!STAFF.has(k)).map(([k,l])=>`<option value="${esc(k)}" ${k===def?'selected':''}>${esc(l)}</option>`).join('');
   const m=$('#main');
-  m.innerHTML=`<button class="back" id="bk">← 목록</button><div class="form"><div class="who">${esc(myNick())}(으)로 글을 써요</div><label for="wc">게시판</label><select id="wc">${opts}</select><label for="wt">제목</label><input id="wt" maxlength="60" placeholder="제목을 입력하세요"><label for="wb">내용</label><textarea id="wb" maxlength="2000" placeholder="내용을 입력하세요"></textarea><div class="hint"><span id="wn">0</span>/2000</div><div class="acts"><button class="btn" id="wx">취소</button><button class="btn pri" id="wgo">등록</button></div></div>`;
+  m.innerHTML=`<button class="back" id="bk">← 목록</button><div class="form"><div class="who">${edit?'글 수정':esc(myNick())+'(으)로 글을 써요'}</div><label for="wc">게시판</label><select id="wc">${opts}</select><label for="wt">제목</label><input id="wt" maxlength="60" placeholder="제목을 입력하세요"><label for="wb">내용</label><textarea id="wb" maxlength="2000" placeholder="내용을 입력하세요"></textarea><div class="hint"><span id="wn">0</span>/2000</div><div class="acts"><button class="btn" id="wx">취소</button><button class="btn pri" id="wgo">${edit?'수정 완료':'등록'}</button></div></div>`;
+  if(edit){$('#wt').value=edit.title;$('#wb').value=edit.body;$('#wn').textContent=edit.body.length;}
   m.scrollTop=0;
-  $('#bk').onclick=$('#wx').onclick=()=>showList();
+  $('#bk').onclick=$('#wx').onclick=()=>edit?showPost(edit.id):showList();
   $('#wb').oninput=e=>{$('#wn').textContent=e.target.value.length;};
   $('#wt').focus();
   $('#wgo').onclick=async()=>{
     const title=$('#wt').value.trim(),body=$('#wb').value.trim(),k=$('#wc').value;
     if(!title)return toast('제목을 입력해 주세요');if(!body)return toast('내용을 입력해 주세요');
+    if(bad(title)||bad(body))return toast('비속어가 들어 있어 올릴 수 없어요');
     $('#wgo').disabled=true;
+    if(edit){try{await api('/posts/'+encodeURIComponent(edit.id),{method:'PUT',body:JSON.stringify({cat:k,title,body})});Object.assign(edit,{k,title,body,ed:true});toast('수정했어요');showPost(edit.id);}catch(e){toast(ERRMSG(e));$('#wgo').disabled=false;}return;}
     try{const j=await api('/posts',{method:'POST',body:JSON.stringify({cat:k,title,body,nick:myNick()})});
-      const p=j.post||{};all.unshift({id:p.id,k,title,body,nick:p.nick||myNick(),ts:p.created_at||Date.now(),cc:0});
+      const p=j.post||{};all.unshift({id:p.id,k,title,body,nick:p.nick||myNick(),ts:p.created_at||Date.now(),cc:0,mine:true});
       cat=k;paintCats();toast('글을 올렸어요');showPost(p.id);}
-    catch(e){toast(/admin only/.test(e.message)?'공지·업데이트와 운영자 닉네임은 관리자만 쓸 수 있어요':'글을 올리지 못했어요. 다시 시도해 주세요');$('#wgo').disabled=false;}
+    catch(e){toast(ERRMSG(e));$('#wgo').disabled=false;}
   };
 }
 paintCats();showList(true);
