@@ -25,7 +25,7 @@ const S0={coins:D.START_COINS,tank:[],wear:[],tankK:'s',tanks:['s'],rod:'bamboo'
 }
 let S=Object.assign({},S0,JSON.parse(localStorage.getItem(SKEY)||'{}'));
 const SYS=window.NK_SYS;S.auto=S.auto||Object.assign({},D.AUTO_DEFAULT,{keepNew:false});if(!S.auto.v6){S.auto.v6=1;S.auto.keepNew=false;}const NICK=()=>S.nick||'나';SYS.migrate(D,S);let NIGHT=0;setTimeout(()=>{try{cslotInit();wkRoll();}catch(e){}},0);
-const save=()=>{S.savedAt=Date.now();try{localStorage.setItem(SKEY,JSON.stringify(S));}catch(e){console.warn('save fail',e);}};
+let _saveSnap='';const save=(force)=>{try{const snap=JSON.stringify(S);if(!force&&snap===_saveSnap)return;S.savedAt=Date.now();_saveSnap=JSON.stringify(S);localStorage.setItem(SKEY,_saveSnap);}catch(e){console.warn('save fail',e);}};
 // ───────── v21 레벨 시스템 (v17 기획 · 만렙 99) ─────────
 var LV={max:99,need:n=>Math.round(100*Math.pow(n,1.35)),xpG:[10,18,30,60,120,250],
  titles:[[5,'새내기 낚시꾼'],[15,'호숫가 단골'],[25,'물고기 친구'],[35,'낚시 애호가'],[45,'베테랑 낚시꾼'],[55,'프로 낚시꾼'],[65,'강태공'],[75,'전설의 낚시꾼'],[85,'전설의 강태공'],[95,'낚시의 달인'],[99,'낚시의 신']],
@@ -211,7 +211,7 @@ const BUB_MS=5000;function setBub(key,txt,emo){bubbles[key]={txt,emo,t:performan
 function emote(who,em,mine){if(!mine&&S.aiChat===false&&BOT_NAMES.includes(who))return;if(mine)try{xpSocial();}catch(e){}if(!mine&&(S.blocked||[]).includes(who))return;const p=document.createElement('div');p.className='lg-chat';p.innerHTML=`<b style="color:${mine?'#ffd58a':'#bfe6ff'}">${who}</b> ${em}`;$('log').appendChild(p);$('log').scrollTop=1e6;setBub(mine?'__me':who,em,true);}
 const bubbleOf=c=>{const k=c===me?'__me':c.name,b=bubbles[k];if(!b)return null;if(performance.now()-b.t>=BUB_MS){delete bubbles[k];return null;}return b;};
 const gc=g=>GR(g).c;
-function hud(){try{updStreak();updAutoBtn();lvHud(0);}catch(e){}try{if(me){setCharRod(me,SYS.gearOf(S).k,rod().star);}updMyTankExt();}catch(e){}$('coins').textContent='🪙 '+S.coins.toLocaleString();const b=bait(),q=S.baits[S.bait];
+let _hudCoins=null;function hud(){try{updStreak();updAutoBtn();lvHud(0);}catch(e){}try{if(me){setCharRod(me,SYS.gearOf(S).k,rod().star);}updMyTankExt();}catch(e){}const _c=S.coins;if(_hudCoins!==_c){_hudCoins=_c;$('coins').textContent='🪙 '+_c.toLocaleString();}const b=bait(),q=S.baits[S.bait];
   $('equip').textContent=`🎣 ${rod().n}${rod().star?' ★'+rod().star:''}${rod().enh?' +'+rod().enh:''} · 🪱 ${b.n}${q>0?' ×'+q:''} · 🐠 ${S.tank.length}/${cap()}`;}
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeM(b.dataset.close));
 function openM(id){document.querySelectorAll('.modal.show').forEach(m=>{if(m.id!=='start')m.classList.remove('show');});const el=$(id);el.classList.add('show');el.style.willChange='contents';requestAnimationFrame(()=>{el.style.willChange='';});}
@@ -1128,7 +1128,7 @@ function frame(now){if(S.fpsCap&&now-last<1000/S.fpsCap-1.5){requestAnimationFra
   for(const c of chars){if(!c._fc){c._fc=1;c.o.traverse(m=>{if(m.isMesh)m.frustumCulled=false;});}if(!c.offline&&!(c.simp&&c.simp.visible)){c.mixer.update(dt);if(c.holdQ&&c.cur==='sit'&&c.rod.visible)c.arm.quaternion.copy(c.holdQ);if(c.rig)animWalk(c,dt);}poseRod(c,dt);c.tag.position.set(c.o.position.x,c.o.position.y+c.h*1.0+.62,c.o.position.z);const dd=cam.position.distanceTo(c.tag.position),far=V14.farLOD(c,dd);const rk=S.rankTag!==false&&!c.offline?tagRank(c):0;V14.layer();const rs=rk?V14.rankDom(c,rk,dd):V14.rankDom(c,0,dd);c.tag.visible=!rs&&!c.offline&&!far;if(!rs){if(c===me)c.tag.userData.ttl=myTitle(myLv());c.tag.userData.lv=c===me?myLv():c.lv||(c.lv=3+Math.floor(seedR(c.name)()*58));drawTag(c.tag,null,0);}c.rkUp=rs;const bb=c.offline||c.muted?null:bubbleOf(c);domBub(c,dd<70?bb:null,dd);}V14.tick(dt,p);
   if(camOverride){cam.position.set(camOverride[0],camOverride[1],camOverride[2]);cam.lookAt(camOverride[3],camOverride[4],camOverride[5]);}R.render(scene,cam);tankView.frame(dt,T);
   fpsA=fpsA*.95+(1/Math.max(dt,1e-3))*.05;$('dc').textContent=`FPS ${fpsA.toFixed(0)} · draw calls ${R.info.render.calls} · tris ${(R.info.render.triangles/1000).toFixed(1)}k · decks ${DECKS}`;window.__nk={calls:R.info.render.calls,tris:R.info.render.triangles};requestAnimationFrame(frame);}
-loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyVG();setInterval(()=>{save();},15000);addEventListener('beforeunload',()=>{try{save();}catch(_){}});document.addEventListener('visibilitychange',()=>{if(document.hidden)try{save();}catch(_){}});
+loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyVG();setInterval(()=>{save();},15000);addEventListener('beforeunload',()=>{try{save(1);}catch(_){}});document.addEventListener('visibilitychange',()=>{if(document.hidden)try{save(1);}catch(_){}});
   bob=new THREE.Mesh(new THREE.SphereGeometry(.15,8,6),new THREE.MeshLambertMaterial({color:'#ff6a5a',emissive:'#ff3a2a',emissiveIntensity:.3}));bob.visible=false;scene.add(bob);
   lineG=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);line=new THREE.Line(lineG,new THREE.LineBasicMaterial({color:0xffffff,transparent:true,opacity:.7}));line.frustumCulled=false;line.visible=false;scene.add(line);
   const d0=decks[0];lanL.position.set(d0.lantern.x,2.2,d0.lantern.z);

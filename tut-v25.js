@@ -126,14 +126,7 @@
     if(t.id==='bSet'||t.closest('#bSet'))mark('_set');
     if(t.getAttribute&&t.getAttribute('data-tq')){mark('_tap');}
    },true);
-   const mo=new MutationObserver(()=>{
-    if(document.querySelector('#bag.modal.show,#bag.show'))mark('_bag');
-    if(document.querySelector('#shop.modal.show,#shop.show'))mark('_shop');
-    if(document.querySelector('#tank.modal.show,#tank.show'))mark('_tank');
-    if(document.querySelector('#dex.modal.show,#dex.show'))mark('_dex');
-    if(document.querySelector('#set.modal.show,#set.show'))mark('_set');
-   });
-   mo.observe(document.body,{attributes:true,subtree:true,attributeFilter:['class']});
+   // 모달 감지는 tick에서 폴링 (body 전체 MutationObserver는 핫패스 비용↑)
    return true;
   };
   if(!tryHook()){const iv=setInterval(()=>{if(tryHook())clearInterval(iv);},400);setTimeout(()=>clearInterval(iv),20000);}
@@ -173,7 +166,9 @@
    last='';render(1);
   }finally{busy=false;}
  }
- function tick(){if(!S()||!G()){return;}hookUI();
+ function pollModals(){if(!P.b)return;const on=id=>{const e=document.getElementById(id);return e&&e.classList.contains('show');};
+  if(on('bag'))P.b._bag=1;if(on('shop'))P.b._shop=1;if(on('tank'))P.b._tank=1;if(on('dex'))P.b._dex=1;if(on('set'))P.b._set=1;}
+ function tick(){if(!S()||!G()){return;}hookUI();pollModals();
   // 자동 스킵은 수동 reset/jump 후에만 끄고, 신규는 유지하되 너무 공격적이지 않게: caught>=80 & lv>=10
   if(!P.chk){P.chk=1;if((G().myLv&&G().myLv()>=10)&&((S().caught||0)>=80))P.i=STEPS.length;sv();}
   if(P.i>=STEPS.length){render();return;}
