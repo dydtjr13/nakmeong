@@ -1,6 +1,7 @@
 # 실시간 워커(fishcozy-realtime) 자동 배포
 # main 에 workers/realtime 변경이 머지되면 테스트 후 Cloudflare 에 배포한다.
 # 필요: GitHub 저장소 Secret `CLOUDFLARE_API_TOKEN` ("Edit Cloudflare Workers" 권한)
+# 배포는 wrangler 가 아니라 scripts/deploy.mjs (Script API + exports). 기존 워커가 exports 방식이라 migrations 로 되돌릴 수 없음.
 name: Deploy realtime worker
 
 on:
@@ -42,6 +43,9 @@ jobs:
       - name: Cloudflare 배포
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: npx wrangler deploy
+        run: node scripts/deploy.mjs
       - name: 헬스 체크
-        run: curl -fsS https://fishcozy-realtime.mi1ku.workers.dev/health
+        run: |
+          sleep 5
+          curl -fsS https://fishcozy-realtime.mi1ku.workers.dev/health
+          curl -fsS https://fishcozy-realtime.mi1ku.workers.dev/servers
