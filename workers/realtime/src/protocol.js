@@ -14,7 +14,7 @@ export const HELLO_MS = 20000;
 export const MAX_MSG = 900;
 /** 공지·이벤트·밸런스·금칙어처럼 본문이 긴 운영 메시지. 채팅·포즈는 MAX_MSG. */
 export const MAX_OPS = 48000;
-const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof"]);
+const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses"]);
 
 const FISH = new Set(["off", "cast", "bite"]);
 const ANIMS = new Set(["idle", "walk", "sit", "holding-right"]);
@@ -395,6 +395,283 @@ export function sanitizeProf(input) {
   return { enabled: input.enabled !== false, words, allow };
 }
 
+export const STAGE_LAYS = ["a", "b", "c", "o"];
+export const STAGE_DECKW = ["", "W1", "W2", "W3", "W4"];
+export const DUCK_KINDS = ["base", "pirate", "straw", "astro", "frog", "uni", "penguin", "snowman", "dino"];
+const DUCK_EVERY = [15, 30, 45, 60, 120, 300];
+const DUCK_SIZE = [0.6, 0.8, 1, 1.3, 1.6, 2];
+const DUCK_SPEED = [0, 0.5, 1, 1.5, 2.5];
+const LOSS_TYPES = new Set(["sell", "dis", "synth", "bulk", "trade", "lost"]);
+const CATS = new Set(["rod", "charm", "fish"]);
+const CUE_ACT = new Set(["reset", "jump", "skip", "next"]);
+
+export function defaultStage() {
+  return { lay: "a", deckW: "", decks: 25, chN: 4, bots: 9, rev: 0, at: 0 };
+}
+
+function snapList(v, list, d) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return d;
+  let best = d;
+  let dist = Infinity;
+  for (const x of list) {
+    const dd = Math.abs(x - n);
+    if (dd < dist) { dist = dd; best = x; }
+  }
+  return best;
+}
+
+/**
+ * 데크 배치·모양·수, 채널 수, 봇 수.
+ * 빠진 필드는 prev(없으면 기본값)를 유지하고, bump 하면 rev 를 올립니다.
+ * lay 가 o 이면 데크 수는 클라이언트와 같이 20으로 고정합니다.
+ */
+export function sanitizeStage(input, prev, opt) {
+  if (input == null || typeof input !== "object" || Array.isArray(input)) {
+    return prev ? sanitizeStage(prev, null, { bump: false, now: opt && opt.now }) : null;
+  }
+  const now = opt && Number.isFinite(opt.now) ? opt.now : Date.now();
+  const base = { ...defaultStage(), ...(prev || {}) };
+  const lay = STAGE_LAYS.includes(input.lay) ? input.lay : (STAGE_LAYS.includes(base.lay) ? base.lay : "a");
+  const deckW = STAGE_DECKW.includes(input.deckW) ? input.deckW : (STAGE_DECKW.includes(base.deckW) ? base.deckW : "");
+  let decks = Math.round(finite(input.decks != null ? input.decks : base.decks, base.decks));
+  if (lay === "o") decks = 20;
+  else decks = Math.max(2, Math.min(30, decks || 25));
+  const chN = Math.max(1, Math.min(8, Math.round(finite(input.chN != null ? input.chN : base.chN, base.chN))));
+  const bots = Math.max(0, Math.min(49, Math.round(finite(input.bots != null ? input.bots : base.bots, base.bots))));
+  const bump = !!(opt && opt.bump);
+  return {
+    lay,
+    deckW,
+    decks,
+    chN,
+    bots,
+    rev: bump ? (base.rev | 0) + 1 : Math.max(0, Math.round(finite(input.rev, base.rev || 0))),
+    at: bump ? now : Math.max(0, Math.round(finite(input.at, base.at || 0))),
+  };
+}
+
+/** 부팅된 맵과 새 스테이지가 어디서 갈리는지. reload 면 메시를 갈아끼우지 않고 다시 들어갑니다. */
+export function stageEffect(boot, stage) {
+  const b = boot || {};
+  const s = stage || {};
+  const reload = (b.lay || "a") !== (s.lay || "a")
+    || (b.deckW || "") !== (s.deckW || "")
+    || (+b.decks || 0) !== (+s.decks || 0);
+  return {
+    reload,
+    bots: (+b.bots || 0) !== (+s.bots || 0),
+    channels: (+b.chN || 0) !== (+s.chN || 0),
+  };
+}
+
+function flag01(v) {
+  return v ? 1 : 0;
+}
+
+function cleanKinds(v, prev) {
+  const allow = new Set(DUCK_KINDS);
+  const raw = Array.isArray(v) ? v : String(v == null ? "" : v).split(",");
+  const out = [];
+  for (const item of raw) {
+    const k = String(item || "").replace(/[^a-z]/g, "").slice(0, 16);
+    if (!allow.has(k) || out.includes(k)) continue;
+    out.push(k);
+    if (out.length >= 12) break;
+  }
+  if (out.length) return out.join(",");
+  return prev || "base";
+}
+
+/**
+ * 이동 속도·오리·튜토리얼 숨김. 패치에 있는 키만 덮어씁니다.
+ * null 이면 저장된 값을 지웁니다.
+ */
+export function sanitizePlay(input, prev, opt) {
+  if (input == null) return null;
+  if (typeof input !== "object" || Array.isArray(input)) return prev || null;
+  const now = opt && Number.isFinite(opt.now) ? opt.now : Date.now();
+  const base = { ...(prev || {}) };
+  const out = { ...base };
+  if ("moveOn" in input) out.moveOn = !!input.moveOn;
+  if ("move" in input) out.move = Math.round(Math.max(0, Math.min(1, finite(input.move, 0))) * 100) / 100;
+  if ("duckOn" in input) out.duckOn = flag01(input.duckOn);
+  if ("duckSnd" in input) out.duckSnd = flag01(input.duckSnd);
+  if ("duckEvery" in input) out.duckEvery = snapList(input.duckEvery, DUCK_EVERY, snapList(base.duckEvery, DUCK_EVERY, 45));
+  if ("duckMax" in input) out.duckMax = Math.max(0, Math.min(30, Math.round(finite(input.duckMax, base.duckMax != null ? base.duckMax : 8))));
+  if ("duckSize" in input) out.duckSize = snapList(input.duckSize, DUCK_SIZE, snapList(base.duckSize, DUCK_SIZE, 1));
+  if ("duckSpeed" in input) out.duckSpeed = snapList(input.duckSpeed, DUCK_SPEED, snapList(base.duckSpeed, DUCK_SPEED, 1));
+  if ("duckKinds" in input) out.duckKinds = cleanKinds(input.duckKinds, base.duckKinds);
+  if ("tutOff" in input) out.tutOff = flag01(input.tutOff);
+  const bump = !!(opt && opt.bump);
+  out.rev = bump ? ((base.rev | 0) + 1) : Math.max(0, Math.round(finite(input.rev, base.rev || 0)));
+  out.at = bump ? now : Math.max(0, Math.round(finite(input.at, base.at || 0)));
+  return out;
+}
+
+function safeId(v, now) {
+  const s = String(v == null || v === "" ? now : v).replace(/[^\w.-]/g, "").slice(0, 40);
+  return s;
+}
+
+export function sanitizeCue(input, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  if (!input || typeof input !== "object" || Array.isArray(input)) return null;
+  const kind = input.kind === "duck" || input.kind === "tut" ? input.kind : null;
+  if (!kind) return null;
+  const id = safeId(input.id, t);
+  if (!id) return null;
+  const nick = input.nick == null || input.nick === "" || input.nick === "*" ? "*" : sanitizeNick(input.nick);
+  if (kind === "duck") {
+    return { id, kind, nick, n: Math.max(1, Math.min(8, Math.round(finite(input.n, 1)))), at: t };
+  }
+  const act = CUE_ACT.has(input.act) ? input.act : null;
+  if (!act) return null;
+  return { id, kind, nick, act, i: Math.max(0, Math.min(80, Math.round(finite(input.i, 0)))), at: t };
+}
+
+export function pushCue(list, cue, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  const out = (Array.isArray(list) ? list : []).filter((c) => c && c.id && c.at > t - 3 * 60 * 1000);
+  if (cue && cue.id && !out.some((c) => c.id === cue.id)) out.push(cue);
+  return out.slice(-30);
+}
+
+function itemKey(v) {
+  return String(v || "").replace(/[^a-z0-9_]/gi, "").slice(0, 24);
+}
+
+function itemId(v) {
+  const n = Math.round(Number(v));
+  if (!Number.isInteger(n) || n < 0 || n > 1e9) return null;
+  return n;
+}
+
+function optRows(arr) {
+  if (!Array.isArray(arr)) return [];
+  const out = [];
+  for (const o of arr) {
+    if (!o || typeof o !== "object" || out.length >= 8) continue;
+    const k = itemKey(o.k);
+    if (!k) continue;
+    out.push({ k, v: Math.round(nonNeg(o.v, 1e6) * 100) / 100 });
+  }
+  return out;
+}
+
+export function sanitizeItem(cat, obj) {
+  if (!CATS.has(cat) || !obj || typeof obj !== "object" || Array.isArray(obj)) return null;
+  const id = itemId(obj.id);
+  const k = itemKey(obj.k);
+  if (cat === "fish") {
+    if (!k) return null;
+    const row = {
+      id: id == null ? 1 : id,
+      k,
+      cm: Math.round(nonNeg(obj.cm, 999) * 10) / 10,
+      g: Math.max(0, Math.min(5, Math.round(finite(obj.g, 0)))),
+      v: Math.round(nonNeg(obj.v, 1e9)),
+      price: Math.round(nonNeg(obj.price, 1e9)),
+      sale: !!obj.sale,
+      lock: !!obj.lock,
+    };
+    if (obj.combo) row.combo = 1;
+    return row;
+  }
+  if (cat === "rod") {
+    if (!k) return null;
+    return {
+      id: id == null ? 1 : id,
+      k,
+      tier: Math.max(0, Math.min(5, Math.round(finite(obj.tier, 1)))),
+      q: Math.round(Math.max(0, Math.min(1, finite(obj.q, 1))) * 1000) / 1000,
+      br: Math.round(Math.max(0, Math.min(1, finite(obj.br, 0.5))) * 1000) / 1000,
+      star: Math.max(0, Math.min(10, Math.round(finite(obj.star, 0)))),
+      enh: Math.max(0, Math.min(30, Math.round(finite(obj.enh, 0)))),
+      gr: Math.max(0, Math.min(5, Math.round(finite(obj.gr, 0)))),
+      lock: false,
+      extra: optRows(obj.extra),
+    };
+  }
+  return {
+    id: id == null ? 1 : id,
+    tier: Math.max(0, Math.min(5, Math.round(finite(obj.tier, 0)))),
+    opts: optRows(obj.opts),
+    lock: false,
+  };
+}
+
+export function sanitizeRecover(input, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  if (!input || typeof input !== "object" || Array.isArray(input)) return null;
+  if (!String(input.nick || "").trim() || input.nick === "*") return null;
+  const cat = CATS.has(input.cat) ? input.cat : null;
+  if (!cat) return null;
+  const obj = sanitizeItem(cat, input.obj);
+  if (!obj) return null;
+  const id = safeId(input.id, t);
+  if (!id) return null;
+  return {
+    id,
+    nick: sanitizeNick(input.nick),
+    cat,
+    obj,
+    refund: !!input.refund,
+    coins: Math.round(nonNeg(input.coins, 1e9)),
+    st: Math.round(nonNeg(input.st, 1e6)),
+    at: t,
+  };
+}
+
+export function mergeRecover(prev, item, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  const out = (Array.isArray(prev) ? prev : []).filter((x) => x && x.id && x.at > t - 7 * 864e5);
+  if (item && item.id && !out.some((x) => x.id === item.id)) out.unshift(item);
+  return out.slice(0, 80);
+}
+
+export function ackRecover(prev, id, nick) {
+  const nid = safeId(id, "");
+  const who = sanitizeNick(nick);
+  if (!nid || !String(nick || "").trim()) return Array.isArray(prev) ? prev : [];
+  return (Array.isArray(prev) ? prev : []).filter((x) => !(x && x.id === nid && x.nick === who));
+}
+
+export function sanitizeLoss(input, now, nickForce) {
+  const tnow = Number.isFinite(now) ? now : Date.now();
+  if (!input || typeof input !== "object" || Array.isArray(input)) return null;
+  const cat = CATS.has(input.cat) ? input.cat : null;
+  if (!cat) return null;
+  const obj = sanitizeItem(cat, input.obj);
+  if (!obj) return null;
+  const id = safeId(input.id, "");
+  if (!id) return null;
+  let t = Math.round(finite(input.t, tnow));
+  if (t < tnow - 40 * 864e5 || t > tnow + 120000) t = tnow;
+  const who = sanitizeNick(nickForce || input.who);
+  return {
+    id,
+    t,
+    who,
+    type: LOSS_TYPES.has(input.type) ? input.type : "sell",
+    cat,
+    obj,
+    coins: Math.round(nonNeg(input.coins, 1e9)),
+    st: Math.round(nonNeg(input.st, 1e6)),
+  };
+}
+
+export function mergeLosses(prev, incoming, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  const out = (Array.isArray(prev) ? prev : []).filter((x) => x && x.id && x.t > t - 30 * 864e5);
+  const add = Array.isArray(incoming) ? incoming : (incoming ? [incoming] : []);
+  for (const row of add) {
+    if (!row || !row.id || out.some((x) => x.id === row.id)) continue;
+    out.unshift(row);
+  }
+  return out.slice(0, 80);
+}
+
 export function parseClient(raw) {
   if (typeof raw !== "string" || raw.length === 0 || raw.length > MAX_OPS) return null;
   let msg;
@@ -430,6 +707,34 @@ export function parseClient(raw) {
   if (msg.t === "prof") {
     if (!msg.prof || typeof msg.prof !== "object") return null;
     return { t: "prof", prof: msg.prof };
+  }
+  if (msg.t === "stage") {
+    if (!msg.stage || typeof msg.stage !== "object" || Array.isArray(msg.stage)) return null;
+    return { t: "stage", stage: msg.stage };
+  }
+  if (msg.t === "play") {
+    if (!msg.play || typeof msg.play !== "object" || Array.isArray(msg.play)) return null;
+    return { t: "play", play: msg.play };
+  }
+  if (msg.t === "cue") {
+    if (!msg.cue || typeof msg.cue !== "object" || Array.isArray(msg.cue)) return null;
+    return { t: "cue", cue: msg.cue };
+  }
+  if (msg.t === "recover") {
+    if (!msg.recover || typeof msg.recover !== "object" || Array.isArray(msg.recover)) return null;
+    return { t: "recover", recover: msg.recover };
+  }
+  if (msg.t === "recoverAck") {
+    if (msg.id == null || msg.id === "") return null;
+    return { t: "recoverAck", id: msg.id };
+  }
+  if (msg.t === "loss") {
+    if (!msg.loss || typeof msg.loss !== "object" || Array.isArray(msg.loss)) return null;
+    return { t: "loss", loss: msg.loss };
+  }
+  if (msg.t === "losses") {
+    if (!Array.isArray(msg.losses)) return null;
+    return { t: "losses", losses: msg.losses.slice(0, 20) };
   }
   if (msg.t === "chat" || msg.t === "emote") {
     const text = cleanText(msg.text, msg.t === "emote" ? 8 : 80);
@@ -481,6 +786,9 @@ const ALLOWED = new Set([
   "https://fishcozy.com",
   "https://www.fishcozy.com",
   "https://dydtjr13.github.io",
+  "http://fishcozy.com",
+  "http://www.fishcozy.com",
+  "http://dydtjr13.github.io",
   "null",
 ]);
 

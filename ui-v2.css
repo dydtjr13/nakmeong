@@ -1047,4 +1047,6 @@ body.uiOne.uiedit [data-uin]:not(.uiSel){outline-color:#ff8a4c55!important;opaci
 #admLogin input,#admPwM input{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:2px solid #ece4da;background:#fff;color:inherit;user-select:text;-webkit-user-select:text}
 #admLogin input:focus,#admPwM input:focus{outline:0;border-color:var(--acc2)}
 #admLogin .admErr,#admPwM .admErr{min-height:1.2em;margin:8px 0 0;color:#c03a3a;font-size:12.5px;font-weight:700}
+#deckNote,#chNote{position:fixed;left:50%;top:72px;transform:translateX(-50%);z-index:60;display:flex;gap:10px;align-items:center;max-width:min(640px,calc(100vw - 16px));background:#3b3346;color:#fff;border-radius:14px;padding:10px 14px;box-shadow:0 10px 28px #0005;font-size:14px;pointer-events:none}
+#deckNote b,#chNote b{color:#ffd77a;white-space:nowrap}#deckNote span,#chNote span{line-height:1.35}
 @media(max-width:700px){.adm2 header{flex-wrap:wrap;row-gap:8px}}
