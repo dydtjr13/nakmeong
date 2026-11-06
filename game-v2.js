@@ -714,7 +714,7 @@ function catchFish(){const f=rollFish(),F=FI(f.k),G0=GR(f.g);S.caught++;const _t
   const bc=SYS.mods(D,S,rod(),bait()).box*(S.autoFish?D.AUTO.boxMul:1)*(V14?V14.fx.boxMul():1)*(V14?V14.evMul().box:1);if(Math.random()<bc){S.boxes.push(Date.now());setTimeout(()=>boxGot('luck'),S.autoFish?900:1400);say('시스템','🎁 행운 상자 획득!');}
   if(streakBox)setTimeout(()=>boxGot('gift'),1600);setTimeout(checkGoals,600);save();hud();V14.catchSfx(f.g);V14.reelFx(f);me.reelT=.7;me.rod.visible=true;endFish();
   if(S.autoFish)autoCD=2.6;if(anyModal())miniToast(`${f.g<2?'🐟':'✨'} <b>${F.n}</b> ${f.cm}cm · <span style="color:${G0.c}">${G0.n}</span> · 🪙${f.v.toLocaleString()}`);else if(f.g<3)toast(catchCard(f,F,G0,{isNew,newG,rec,where}),S.autoFish?2500:3200);
-  say('시스템',`${F.n} ${f.cm}cm (${G0.n})를 낚았어요! · ${where}`);if(f.g>=3)legendAlert(NICK(),f,true,{isNew,rec});achCheck(true);xpCatch(f,F,isNew);}
+  say('시스템',`${F.n} ${f.cm}cm (${G0.n})를 낚았어요! · ${where}`);catchPose={until:performance.now()+1600,fk:f.k,fg:f.g};if(f.g>=3)legendAlert(NICK(),f,true,{isNew,rec});achCheck(true);xpCatch(f,F,isNew);}
 function achCheck(t){try{const C=SYS.passives(D,S).combo||[];S.lvCombo=S.lvCombo||[];C.forEach((x,i)=>{const id=x.id||x.n||String(i);if(x.on&&!S.lvCombo.includes(id)){S.lvCombo.push(id);if(S.v21b)addXP(80,'어항 조합 완성');}});S.v21b=1;}catch(e){}const A=SYS.passives(D,S).ach.filter(a=>a.done).map(a=>a.a.id);if(!S.achSeen){S.achSeen=A;return;}A.filter(x=>!S.achSeen.includes(x)).forEach((id,j)=>{const a=D.ACH.find(x=>x.id===id);if(t)setTimeout(()=>{V14.goalFx(a.n,'',effTxt(a.e),'ach');addXP(150,'업적 「'+a.n+'」');say('시스템',`🏆 업적 '${a.n}' 달성 (${effTxt(a.e)})`);},4200+j*900);});S.achSeen=A;}
 const effTxt=e=>Object.entries(e).map(([k,v])=>`${D.CHARM.opts[k].n} +${v}%`).join(', ');
 // ───────── 어항 관찰 뷰 (별도 3D 씬) ─────────
@@ -1231,16 +1231,37 @@ function sitUI(){let b=$('sitBtn');if(!b){b=document.createElement('button');b.i
  const on=!!(nearSeat||mySeat)&&fishing.state==='off'&&!anyModal();b.style.display=on?'':'none';if(on){const fb=$('fishBtn'),r=fb&&fb.style.display!=='none'?fb.getBoundingClientRect():null;b.style.bottom=(r&&r.height?Math.round(innerHeight-r.top+12):150)+'px';}const t=mySeat?'🪑 일어나기':'🪑 앉기'+(nearSeat&&nearSeat.kind==='stool'&&DW?' (낚시 자리)':'');if(b.textContent!==t)b.textContent=t;const sb=$('bSit');if(sb)sb.classList.toggle('ready',!!(nearSeat||mySeat));}
 function standUp(){if(mySeat){const st=mySeat;seatLeave('me');mySeat=null;if(me){const p=me.o.position,a=me.dir;let ok=false;for(const r of [1.0,1.35,1.8,2.3]){for(const da of [0,.6,-.6,1.2,-1.2,Math.PI/2,-Math.PI/2,2.2,-2.2,Math.PI]){const x=st.x+Math.sin(a+da)*r,z=st.z+Math.cos(a+da)*r;if(walk(x,z)){p.x=x;p.z=z;ok=true;break;}}if(ok)break;}p.y=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);}}sitting=false;}
 const remotes=new Map();
-function dropRemote(r){const i=chars.indexOf(r.c);if(i>=0)chars.splice(i,1);dropChar(r.c);}
+function dropRemote(r){const i=chars.indexOf(r.c);if(i>=0)chars.splice(i,1);dropChar(r.c);rfDrop(r);}
+// v53: 다른 유저 낚시 모습 — 찌 던지기(포물선) · 찌 둥실 · 입질(찌 잠김+물결) · 낚아 올림(물고기 튀어오름).
+//      위치와 바라보는 방향만으로 찌 착수 지점을 계산(내 화면과 같은 식: 반지름 LR-12.5 원과 시선의 교점) → 추가 통신은 낚아 올릴 때 1번뿐.
+const RF_V=new THREE.Vector3(),RF_T=new THREE.Vector3();
+function rfLand(p,d){const ux=Math.sin(d),uz=Math.cos(d),R=LR-12.5,b=p.x*ux+p.z*uz,c=p.x*p.x+p.z*p.z-R*R,disc=b*b-c;let t=disc>0?-b-Math.sqrt(disc):Math.max(2,Math.hypot(p.x,p.z)-R);if(!(t>0))t=-b+Math.sqrt(Math.max(0,disc));if(!(t>0))t=4;return new THREE.Vector3(p.x+ux*t,-.05,p.z+uz*t);}
+function rfMake(r){if(r.rf)return r.rf;const bobM=new THREE.Mesh(bob.geometry,bob.material);bobM.visible=false;scene.add(bobM);const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);const ln=new THREE.Line(g,line.material);ln.frustumCulled=false;ln.visible=false;scene.add(ln);
+ const ring=new THREE.Mesh(new THREE.RingGeometry(.18,.28,24).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:0,depthWrite:false}));ring.visible=false;scene.add(ring);
+ r.rf={bob:bobM,ln,g,ring,st:'off',t:0,to:null,from:new THREE.Vector3(),pop:null,ringT:0};return r.rf;}
+function rfDrop(r){const f=r&&r.rf;if(!f)return;scene.remove(f.bob,f.ln,f.ring);f.g.dispose();f.ring.geometry.dispose();f.ring.material.dispose();if(f.pop){scene.remove(f.pop);f.pop.material.map&&f.pop.material.map.dispose();f.pop.material.dispose();}r.rf=null;}
+function rfFishSprite(k){const im=FISH_IMG[k];if(!im||!im.complete||!im.naturalWidth)return null;const tx=new THREE.Texture(im);tx.needsUpdate=true;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,transparent:true,depthWrite:false}));sp.scale.set(1.6,.8,1);sp.renderOrder=11;scene.add(sp);return sp;}
+function rfTick(r,p,dt){const f=rfMake(r),c=r.c,st=p.fish||'off';
+ if(st!==f.st){const was=f.st;f.st=st;f.t=0;
+  if(st==='cast'&&was!=='bite'){f.to=rfLand(c.o.position,+p.d||0);c.tip&&c.tip.getWorldPosition(f.from);if(!c.tip)f.from.copy(c.o.position).add(RF_V.set(0,3,0));}
+  if(st==='bite'){f.ringT=.01;}
+  if(st==='catch'){if(f.pop){scene.remove(f.pop);f.pop.material.map&&f.pop.material.map.dispose();f.pop.material.dispose();}f.pop=p.fk?rfFishSprite(p.fk):null;f.popT=0;f.popFrom=(f.to||c.o.position).clone();f.ringT=.01;}}
+ f.t+=dt;const on=(st==='cast'||st==='bite')&&f.to;
+ if(on){const k=Math.min(1,f.t*1.4);if(k<1){f.bob.position.lerpVectors(f.from,f.to,k);f.bob.position.y+=Math.sin(k*Math.PI)*3.5;}else{f.bob.position.copy(f.to);f.bob.position.y=-.05+(st==='bite'?Math.sin(T*22)*.12-.12:Math.sin(T*2+c.o.position.x)*.03);}
+  f.bob.visible=f.ln.visible=true;if(c.tip)c.tip.getWorldPosition(RF_T);else RF_T.copy(c.o.position).add(RF_V.set(0,2.4,0));const a=f.g.attributes.position;a.setXYZ(0,RF_T.x,RF_T.y,RF_T.z);a.setXYZ(1,f.bob.position.x,f.bob.position.y,f.bob.position.z);a.needsUpdate=true;}
+ else{f.bob.visible=f.ln.visible=false;}
+ if(f.ringT>0){f.ringT+=dt;const q=f.ringT/.9;const at=f.to||c.o.position;f.ring.position.set(at.x,-.06,at.z);f.ring.visible=q<1;f.ring.scale.setScalar(1+q*4);f.ring.material.opacity=.7*(1-q);if(q>=1)f.ringT=0;}
+ if(f.pop){f.popT+=dt;const q=Math.min(1,f.popT/1.4),h=c.o.position;f.pop.position.set(f.popFrom.x+(h.x-f.popFrom.x)*q,1.2+Math.sin(q*Math.PI)*3.2+q*1.4,f.popFrom.z+(h.z-f.popFrom.z)*q);f.pop.material.rotation=Math.sin(f.popT*14)*.35;f.pop.material.opacity=q<.8?1:1-(q-.8)/.2;if(q>=1){scene.remove(f.pop);f.pop.material.map&&f.pop.material.map.dispose();f.pop.material.dispose();f.pop=null;}}}
 function syncRemotes(dt){const RT=window.NK_RT;if(!RT)return;const on=RT.status()==='on',ps=on?RT.peers():[],live=new Set();
  for(const p of ps){if(!p||!p.id)continue;live.add(p.id);let r=remotes.get(p.id);const ki=Math.max(0,Math.min(KINDS.length-1,p.ki|0));
   if(r&&r.ki!==ki){dropRemote(r);remotes.delete(p.id);r=null;}
   if(!r){const c=makeChar(ki,String(p.nick||'낚시꾼').slice(0,10));c.remote=1;c.real=1;c.remoteId=p.id;c.lv=p.lv||1;c.tag.userData.real=1;c.o.position.set(+p.x||0,+p.y||.4,+p.z||0);r={c,ki};remotes.set(p.id,r);}
   const nick=String(p.nick||r.c.name||'낚시꾼').slice(0,10);if(r.c.tag&&r.c.tag.userData&&r.c.tag.userData.name!==nick){r.c.tag.userData.name=nick;r.c.tag.userData.last=undefined;}r.c.name=nick;r.c.lv=p.lv||r.c.lv||1;
   const o=r.c.o.position,sit=p.seat!=null||p.anim==='sit',k=Math.min(1,dt*(sit?16:8));o.x+=((+p.x||0)-o.x)*k;o.z+=((+p.z||0)-o.z)*k;o.y=sit?(+p.y||o.y):(inDeck(o.x,o.z)?.39:Math.max(H(o.x,o.z),.1));
-  r.c.dir=+p.d||0;const fish=p.fish&&p.fish!=='off';r.c.play(sit?'sit':fish?'holding-right':p.anim==='walk'?'walk':'idle');r.c.rod.visible=!!fish;turn(r.c,dt);}
+  r.c.dir=+p.d||0;const fish=p.fish&&p.fish!=='off';r.c.play(sit?'sit':fish?'holding-right':p.anim==='walk'?'walk':'idle');r.c.rod.visible=!!fish;turn(r.c,dt);try{rfTick(r,p,dt);}catch(e){}}
  for(const [id,r] of remotes)if(!live.has(id)){dropRemote(r);remotes.delete(id);}rtPill();}
-function rtPose(moving){const RT=window.NK_RT;if(!RT||RT.status()!=='on'||!me)return;RT.pose({x:me.o.position.x,z:me.o.position.z,y:me.o.position.y,d:me.dir,fish:fishing.state||'off',anim:mySeat?'sit':(fishing.state&&fishing.state!=='off'?'holding-right':(moving?'walk':(sitting?'sit':'idle'))),seat:mySeat?SEATS.indexOf(mySeat):null,ki:S.char|0,lv:myLv(),nick:NICK()});}
+let catchPose=null;
+function rtPose(moving){const RT=window.NK_RT;if(!RT||RT.status()!=='on'||!me)return;const _cp=catchPose&&catchPose.until>performance.now()&&(fishing.state||'off')==='off'?catchPose:null;RT.pose({x:me.o.position.x,z:me.o.position.z,y:me.o.position.y,d:me.dir,fish:_cp?'catch':(fishing.state||'off'),fk:_cp?_cp.fk:'',fg:_cp?_cp.fg:0,anim:mySeat?'sit':(fishing.state&&fishing.state!=='off'?'holding-right':(moving?'walk':(sitting?'sit':'idle'))),seat:mySeat?SEATS.indexOf(mySeat):null,ki:S.char|0,lv:myLv(),nick:NICK()});}
 function rtPill(){if((rtPill.n=(rtPill.n||0)+1)%20)return;let el=$('rtPill');if(!el){el=document.createElement('div');el.id='rtPill';document.body.appendChild(el);}const RT=window.NK_RT;if(!RT||$('start').classList.contains('show')){el.style.display='none';return;}const st=RT.status();el.style.display='';el.className=st;el.textContent=st==='on'?`● 호숫가 ${RT.serverId()} · 실접속 ${RT.count()}/${RT.cap}`:st==='connecting'?'○ 서버 연결 중…':'○ 혼자 플레이';}
 addEventListener('nk-rt-chat',e=>{const m=e.detail;if(!m)return;say(m.nick,m.text,false,{real:true,bub:'rt:'+m.id});});
 addEventListener('nk-rt-emote',e=>{const m=e.detail;if(!m)return;emote(m.nick,m.text,false,{real:true,bub:'rt:'+m.id});});

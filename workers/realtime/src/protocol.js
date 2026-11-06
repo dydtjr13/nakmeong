@@ -98,6 +98,9 @@ export function sanitizePose(msg, prev) {
     seat: cleanSeat(msg.seat),
     ki: Math.max(0, Math.min(40, Math.round(num(msg.ki, 0, 40, p.ki ?? 0)))),
     lv: Math.max(1, Math.min(99, Math.round(num(msg.lv, 1, 99, p.lv ?? 1)))),
+    // v53: 낚아 올린 순간(fish:"catch")에만 어종·등급을 실어 다른 유저 화면에 물고기를 보여 준다
+    fk: fish === "catch" ? String(msg.fk || "").replace(/[^\w-]/g, "").slice(0, 24) : "",
+    fg: fish === "catch" ? Math.max(0, Math.min(5, Math.round(Number(msg.fg) || 0))) : 0,
   };
 }
 
@@ -1062,6 +1065,8 @@ export function publicPeer(att) {
     y: att.y,
     d: att.d,
     fish: att.fish,
+    fk: att.fk || "",
+    fg: att.fg | 0,
     anim: att.anim,
     seat: att.seat,
   };
@@ -1150,6 +1155,8 @@ export function reduce(prev, msg, now, others) {
   att.y = pose.y;
   att.d = pose.d;
   att.fish = pose.fish;
+  att.fk = pose.fk;
+  att.fg = pose.fg;
   att.anim = denied && pose.anim === "sit" ? "idle" : pose.anim;
   att.seat = seat;
   att.seatKey = seatKey;
