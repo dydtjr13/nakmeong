@@ -40,8 +40,14 @@ function connect(server, origin = ORIGIN) {
     next(ms = 3000) {
       if (inbox.length) return Promise.resolve(inbox.shift());
       return new Promise((resolve, reject) => {
-        const t = setTimeout(() => reject(new Error("message timeout")), ms);
-        waiters.push((m) => { clearTimeout(t); resolve(m); });
+        let waiter;
+        const t = setTimeout(() => {
+          const i = waiters.indexOf(waiter);
+          if (i >= 0) waiters.splice(i, 1);
+          reject(new Error("message timeout"));
+        }, ms);
+        waiter = (m) => { clearTimeout(t); resolve(m); };
+        waiters.push(waiter);
       });
     },
     send(obj) { ws.send(JSON.stringify(obj)); },
@@ -131,6 +137,14 @@ async function main() {
     assert(worldA.world.seasonOv === "summer" && worldB.world.seasonLen === 90, "season synced");
     assert(worldA.world.mapTheme === "xmas" && worldA.world.rev === worldB.world.rev, "map and rev synced");
 
+    a.send({ t: "notice", notice: { id: "n-lake", msg: "2번 호숫가 공지", min: 15, ch: 2 } });
+    const [noteA, noteB] = await Promise.all([a.next(), b.next()]);
+    assert(noteA.t === "notice" && noteB.t === "notice" && noteB.notice.msg.includes("2번") && noteB.notice.ch === 2, "same lake sees the notice");
+
+    a.send({ t: "event", event: { coin: 2, box: 3, from: Date.now(), to: Date.now() + 3600000 } });
+    const [evA, evB] = await Promise.all([a.next(), b.next()]);
+    assert(evA.t === "event" && evA.event.coin === 2 && evB.event.box === 3, "event reaches both on this lake");
+
     const c = connect(4);
     await c.ready;
 
@@ -156,6 +170,43 @@ async function main() {
     c.send(hello("옆서버"));
     const welcomeC = await c.next();
     assert(welcomeC.server === 4 && welcomeC.peers.length === 0, "rooms are isolated");
+    assert(welcomeC.event && welcomeC.event.coin === 2, "late joiner on another lake gets the global event");
+    assert(welcomeC.notice == null, "lake-2 notice does not follow them to lake 4");
+
+    a.send({ t: "notice", notice: { id: "n-all", msg: "전체 점검", min: 5, ch: "all" } });
+    const [allA, allB, allC] = await Promise.all([a.next(), b.next(), c.next()]);
+    assert(allA.notice && allA.notice.msg === "전체 점검" && allB.notice.msg === "전체 점검" && allC.notice.msg === "전체 점검", "all-server notice");
+
+    a.send({ t: "grant", nick: "달빛", until: Date.now() + 120000 });
+    const [gA, gB, gC] = await Promise.all([a.next(), b.next(), c.next()]);
+    assert(gA.t === "grants" && gB.grants["달빛"] > Date.now() && gC.grants["달빛"] > Date.now(), "autofish grant is global");
+
+    a.send({ t: "balance", balance: { boxBase: 0.5, txp: 0.02, tiers: [3], caps: { luck: 40 }, fish: { carp: { w: 9, base: 11 } } } });
+    const [balA, , balC] = await Promise.all([a.next(), b.next(), c.next()]);
+    assert(balA.t === "balance" && balC.balance.boxBase === 0.5 && balC.balance.fish.carp.w === 9, "balance reaches every lake");
+
+    a.send({ t: "sanc", nick: "달빛", mute: Date.now() + 60000, ban: 0, why: "도배" });
+    const [sA, sB, sC] = await Promise.all([a.next(), b.next(), c.next()]);
+    assert(sA.t === "sanc" && sB.sanc["달빛"].mute > Date.now() && sC.sanc["달빛"].why === "도배", "mute stored on every lake");
+    b.send({ t: "chat", text: "금지된 말" });
+    let muted = false;
+    try { await a.next(700); } catch { muted = true; }
+    assert(muted, "muted chat is dropped");
+
+    a.send({
+      t: "world",
+      world: { dayLen: 150, auto: true, off: 0, t0: 0, freezeT: 0, wxOv: "auto", wxUntil: 0, seasonOv: "auto", seasonLen: 0, seasonOff: 0, seasonT0: 0, seasonSpd: 0, seasonLink: 0, mapTheme: "base" },
+    });
+    a.send({ t: "event", event: null });
+    a.send({ t: "notice", notice: { off: true, ch: "all", id: "n-all" } });
+    a.send({ t: "balance", balance: null });
+    a.send({ t: "grant", nick: "달빛", revoke: true });
+    a.send({ t: "sanc", nick: "달빛", mute: 0, ban: 0 });
+    await Promise.all([a, b, c].map(async (sock) => {
+      for (let i = 0; i < 8; i++) {
+        try { await sock.next(400); } catch { break; }
+      }
+    }));
 
     const mid = await (await fetch(`${ORIGIN}/servers`)).json();
     const lake2 = mid.servers.find((s) => s.id === 2);

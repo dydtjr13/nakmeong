@@ -96,7 +96,9 @@ let CONF=load();const F=makeFilter(()=>CONF);
 function save(){CONF.rev=(CONF.rev||0)+1;localStorage.setItem(KEY,JSON.stringify(CONF));}
 function mask(text){if(!F.has(text))return text;let any=false;const out=String(text).split(/(\s+)/).map(t=>{if(/^\s*$/.test(t))return t;if(F.has(t)){any=true;return '*'.repeat(Math.min(6,[...t].length));}return t;}).join('');return any&&!F.has(out)?out:'*** (필터링된 메시지)';}
 window.NK_PROF={check:F.check,has:F.has,mask,conf:()=>CONF,save,reset(){CONF={enabled:true,words:buildSeed(),allow:SEED_ALLOW.slice(),rev:(CONF.rev||0)+1};save();},
- add(k,w){w=String(w).trim();if(w&&!CONF[k].includes(w)){CONF[k].unshift(w);save();return true;}return false;},del(k,w){CONF[k]=CONF[k].filter(x=>x!==w);save();},setOn(v){CONF.enabled=!!v;save();},koNorm,enTokens};
+ add(k,w){w=String(w).trim();if(w&&!CONF[k].includes(w)){CONF[k].unshift(w);save();return true;}return false;},del(k,w){CONF[k]=CONF[k].filter(x=>x!==w);save();},setOn(v){CONF.enabled=!!v;save();},
+ replace(c){if(!c||!Array.isArray(c.words)||!c.words.length)return;CONF.enabled=c.enabled!==false;CONF.words=c.words.slice(0,4000);CONF.allow=Array.isArray(c.allow)?c.allow.slice(0,2000):[];CONF.rev=(CONF.rev||0)+1;try{localStorage.setItem(KEY,JSON.stringify(CONF));}catch(e){}},
+ koNorm,enTokens};
 
 
 })();

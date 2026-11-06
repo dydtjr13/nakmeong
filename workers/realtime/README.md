@@ -87,7 +87,9 @@ npm run test:live # wrangler dev를 띄워 두 소켓 채팅·자리·서버 분
 
 - `welcome` `{id, server, n, cap, peers, world}`
 - `join` `{n, peer}` / `leave` `{id, n}` / `pose` `{id, nick, ki, lv, x, z, y, d, fish, anim, seat}`
-- `world` `{world}` 하루 길이·시각 오프셋·날씨 강제·계절 길이·맵 테마. 방에 저장하고 같은 호숫가 모두에게 보냅니다. 계정 인증은 아직 없어서, 게임은 관리자 화면에서만 이 메시지를 보냅니다. 밸런스(`nk_admin_bal`)는 포함하지 않습니다.
+- `world` `{world}` 하루 길이·시각 오프셋·날씨 강제·계절 길이·맵 테마. 그 호숫가에만 저장합니다.
+- `notice` 공지. `ch` 가 번호면 그 호숫가, `all` 이면 네 곳. `event` 코인·상자 배율, `balance` 수치, `grant` 자동낚시, `sanc` 채팅 금지·정지, `prof` 비속어는 네 호숫가에 같이 저장합니다. `gift` 는 고른 호숫가의 접속 중 유저에게만 가고 오프라인에는 남지 않습니다.
+- 계정 인증은 아직 없습니다. 게임은 관리자 화면에서만 이 메시지를 보냅니다.
 - `chat` / `emote` `{id, nick, text}`
 - `seat` `{ok:false}` 그 좌표에 다른 실유저가 먼저 앉아 있음
 

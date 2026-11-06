@@ -13,7 +13,8 @@
   ['ice_smelt','얼음빙어','pirami','snow',null,'#bcd8ee','겨울 · 함박눈 때만 출현']];
  SF.forEach(([k,n,src,wx,season,col,desc])=>{if(T(k))return;const o=Object.assign({},T(src),{k,n,col,desc,wx,season,img:'img/fish/'+k+'.png',src:'v14 계절 한정',w:8,rare:true,limited:true});
   o.base=Math.round(T(src).base*1.6*10)/10;if(o.ev)o.ev=Math.round(T(src).ev*1.6);D.FISH.push(o);});
- // 관리자 모드 밸런스 덮어쓰기 (localStorage nk_admin_bal)
+ window.NK_BAL0={boxBase:D.BOX.base,txp:D.TX.p,tiers:D.BOX.tiers.map(t=>t.w),caps:Object.fromEntries(Object.entries(D.CHARM.opts).map(([k,o])=>[k,o.total])),fish:Object.fromEntries(D.FISH.map(f=>[f.k,{w:f.w,base:f.base}]))};
+ // 관리자 모드 밸런스 덮어쓰기 (localStorage nk_admin_bal, 접속 중에는 호숫가 설정이 이 값을 덮는다)
  try{const B=JSON.parse(localStorage.getItem('nk_admin_bal')||'null');if(B){if(B.boxBase!=null)D.BOX.base=B.boxBase;if(B.tiers)B.tiers.forEach((w,i)=>{if(D.BOX.tiers[i])D.BOX.tiers[i].w=w;});
   if(B.caps)for(const k in B.caps)if(D.CHARM.opts[k])D.CHARM.opts[k].total=B.caps[k];if(B.fish)for(const k in B.fish){const f=T(k);if(f){if(B.fish[k].w!=null)f.w=B.fish[k].w;if(B.fish[k].base!=null)f.base=B.fish[k].base;}}
   if(B.txp!=null)D.TX.p=B.txp;if(B.coinMul)D.SHOP_SELL_RATE*=B.coinMul;}}catch(e){}
