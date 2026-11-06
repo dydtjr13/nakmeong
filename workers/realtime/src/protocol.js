@@ -252,6 +252,46 @@ const DUCK_SIZES = [0.72, 1, 1.28, 1.55, 1.9];
  *  on 이 0/false 면 오리를 띄우지 않는다.
  *  since(켠 시각)가 있으면 그 순간 1마리, 이후 every 마다 한 마리씩 max 까지.
  *  since 가 없으면 예전처럼 고정 원점(이미 떠 있던 호수)을 쓴다. */
+// v47: 원 궤도(빙글빙글) 대신 물결에 실려 정처 없이 떠다니는 경로.
+// 오리마다 시드로 정한 호수 안의 지점들을 부드러운 곡선(Catmull-Rom)으로 잇고, 느린 물결 흔들림을 더한다.
+// 서버 시각·ambSeed·since 만으로 위치가 정해지므로 같은 호숫가의 모든 유저가 같은 오리를 같은 자리에서 본다.
+// 속도 단위: 초당 호수 좌표 거리. 관리자 값 0 / 0.5 / 1 / 1.5 / 2.5 → 멈춤 / 아주 느리게 / 느리게 / 보통 / 조금 빠르게
+const DUCK_SPD = [[0, 0], [0.5, 0.025], [1, 0.05], [1.5, 0.09], [2.5, 0.15]];
+export function duckSpeed(spd) {
+  const v = Number(spd);
+  if (!Number.isFinite(v) || v <= 0) return 0;
+  for (const [k, u] of DUCK_SPD) if (Math.abs(k - v) < 1e-6) return u;
+  return Math.min(0.2, v * 0.06);
+}
+function duckPoint(seed, i, k, R) {
+  const h = mix32(mix32(seed, 500 + i), (k | 0) >>> 0);
+  const h2 = mix32(h, 77);
+  const r = Math.sqrt((h % 100000) / 100000) * R * 0.85;
+  const a = ((h2 % 100000) / 100000) * Math.PI * 2;
+  return [Math.cos(a) * r, Math.sin(a) * r];
+}
+function cr(p0, p1, p2, p3, f) {
+  const f2 = f * f, f3 = f2 * f;
+  return 0.5 * (2 * p1 + (-p0 + p2) * f + (2 * p0 - 5 * p1 + 4 * p2 - p3) * f2 + (-p0 + 3 * p1 - 3 * p2 + p3) * f3);
+}
+function duckPos(seed, i, ageMs, R, v) {
+  const p0 = duckPoint(seed, i, 0, R);
+  if (!(v > 0)) return p0;
+  const segMs = ((0.9 * R) / v) * 1000;
+  const u = Math.max(0, ageMs) / segMs;
+  const k = Math.floor(u), f = u - k;
+  const A = k > 0 ? duckPoint(seed, i, k - 1, R) : p0;
+  const B = duckPoint(seed, i, k, R), C = duckPoint(seed, i, k + 1, R), D = duckPoint(seed, i, k + 2, R);
+  let x = cr(A[0], B[0], C[0], D[0], f), z = cr(A[1], B[1], C[1], D[1], f);
+  // 물결 흔들림: 아주 느린 옆걸음 (속도에 비례, 멈춤이면 0)
+  const ph = (mix32(seed, 700 + i) % 1000) / 1000 * Math.PI * 2, s = ageMs / 1000;
+  const amp = Math.min(0.8, 4 * v);
+  x += Math.sin(s * 0.09 + ph) * amp;
+  z += Math.cos(s * 0.07 + ph * 1.3) * amp;
+  const r = Math.hypot(x, z), lim = R * 0.95;
+  if (r > lim) { x *= lim / r; z *= lim / r; }
+  return [x, z];
+}
 export function sharedDucks(now, world, opt) {
   const o = opt || {};
   if (o.on === 0 || o.on === false) return [];
@@ -259,33 +299,26 @@ export function sharedDucks(now, world, opt) {
   const max = Math.max(0, Math.min(30, Math.round(o.max != null ? o.max : 9)));
   const rMax = o.rMax > 0 ? o.rMax : 8;
   const kinds = Array.isArray(o.kinds) && o.kinds.length ? o.kinds : DUCK_KINDS;
-  const spd = o.speed == null ? 0.5 : Math.max(0, Number(o.speed) || 0);
-  const rate = 0.12 * (spd / 0.5);
+  const v = duckSpeed(o.speed == null ? 0.5 : o.speed);
   const seed = Math.round(Number(world && world.ambSeed) || 1);
   const t = Number(now) || 0;
   const since = Number(o.since);
   const paced = Number.isFinite(since) && since > 0;
-  const elapsed = Math.max(0, t - (paced ? since : 1_700_000_000_000));
+  const elapsed = Math.max(0, t - (paced ? since : 1700000000000));
   const n = Math.min(max, Math.floor(elapsed / every) + 1);
   const out = [];
   for (let i = 0; i < n; i++) {
     const h = mix32(seed, 400 + i);
     const h2 = mix32(seed, 900 + i);
     const age = Math.max(0, elapsed - i * every);
-    const ang0 = ((h % 10000) / 10000) * Math.PI * 2;
-    const rad = (0.28 + ((h2 % 1000) / 1000) * 0.62) * rMax;
-    const yaw = ang0 + (age / 1000) * rate;
-    out.push({
-      i,
-      x: Math.cos(yaw) * rad,
-      z: Math.sin(yaw) * rad,
-      yaw,
-      head: rate > 0 ? -yaw : yaw,
-      s: DUCK_SIZES[h % DUCK_SIZES.length],
-      v: kinds[h2 % kinds.length],
-      st: "swim",
-      age,
-    });
+    const [x, z] = duckPos(seed, i, age, rMax, v);
+    let head = ((h % 10000) / 10000) * Math.PI * 2;
+    if (v > 0) {
+      const b = duckPos(seed, i, Math.max(0, age - 4000), rMax, v);
+      const dx = x - b[0], dz = z - b[1];
+      if (dx * dx + dz * dz > 1e-8) head = Math.atan2(dx, dz);
+    }
+    out.push({ i, x, z, yaw: head, head, ph: i + age / 1000, s: DUCK_SIZES[h % DUCK_SIZES.length], v: kinds[h2 % kinds.length], st: "swim", age });
   }
   return out;
 }
