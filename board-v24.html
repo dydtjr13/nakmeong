@@ -73,13 +73,84 @@ img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;object-fit:contain}
 <div style="margin-top:14px;text-align:right"><span class="btn">✏️ 글쓰기</span></div></div><div class="hint">💡 낚시를 하면서 게시판을 볼 수 있어요 (B 키로 열고 닫기)</div></div>
 <script>document.body.dataset.v=new URLSearchParams(location.search).get('v')||4;addEventListener('keydown',e=>{if(e.key==='Escape')parent.postMessage('nkBoardClose','*');});</script><script>window.NK_EMOJI_BASE='icons/emoji/';</script><script src="emoji.js"></script>
 <script>
-/* v31: 서버 연결 전 로컬 테스트 — 글쓰기·댓글 localStorage */
+/* v36: Cloudflare Worker API + local mock fallback */
 (function(){
  const KEY='nk_board_v31';
- const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{"posts":[],"cm":{}}');}catch(e){return{posts:[],cm:{}}};};
- const save=d=>localStorage.setItem(KEY,JSON.stringify(d));
- const nick=()=>{try{const s=JSON.parse(localStorage.getItem('nakmeong_v2')||'{}');return (s.nick||'낚시꾼').slice(0,10);}catch(e){return '낚시꾼';}};
+ const DEFAULT_API='https://fishcozy-board-api.mi1ku.workers.dev';
+ const apiBase=()=>{
+  try{
+   const q=new URLSearchParams(location.search).get('api');
+   if(q)return q.replace(/\/$/,'');
+   if(parent && parent.NK_BOARD_API)return String(parent.NK_BOARD_API).replace(/\/$/,'');
+   const ls=localStorage.getItem('nk_board_api');
+   if(ls)return ls.replace(/\/$/,'');
+  }catch(e){}
+  return DEFAULT_API;
+ };
+ let useApi=true, modeLabel='서버';
+ const loadLocal=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{"posts":[],"cm":{}}');}catch(e){return{posts:[],cm:{}}};};
+ const saveLocal=d=>localStorage.setItem(KEY,JSON.stringify(d));
+ const nick=()=>{try{const s=JSON.parse(localStorage.getItem('nakmeong_solo')||localStorage.getItem('nakmeong_v2')||'{}');return (s.nick||'낚시꾼').slice(0,10);}catch(e){return '낚시꾼';}};
  const now=()=>{const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');};
+ const fmtT=ts=>{try{const d=new Date(ts);return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}catch(e){return now();}};
+
+ async function api(path,opt){
+  const base=apiBase();
+  const r=await fetch(base+path,{...opt,headers:{'Content-Type':'application/json',...(opt&&opt.headers||{})}});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  return r.json();
+ }
+ async function probe(){
+  try{
+   const h=await api('/health');
+   useApi=!!(h&&h.ok); modeLabel=useApi?'서버':'로컬';
+  }catch(e){useApi=false; modeLabel='로컬(폴백)';}
+  const tip=document.querySelector('#bdMock .tip');
+  if(tip)tip.textContent=useApi?('🌐 서버 게시판 · '+apiBase().replace(/^https?:\/\//,'')):'📝 로컬 폴백 · 서버 연결 실패 시 이 기기에 저장';
+ }
+
+ async function listAll(){
+  if(useApi){
+   try{
+    const j=await api('/posts?limit=50');
+    const posts=(j.posts||[]).map(p=>({id:p.id,cat:p.cat,title:p.title,body:p.body,nick:p.nick,t:fmtT(p.created_at),ts:p.created_at,comment_count:p.comment_count||0}));
+    return {posts,cm:{},remote:true};
+   }catch(e){useApi=false; modeLabel='로컬(폴백)';}
+  }
+  return {...loadLocal(),remote:false};
+ }
+
+ async function createPost(cat,title,body){
+  if(useApi){
+   try{
+    const j=await api('/posts',{method:'POST',body:JSON.stringify({cat,title,body,nick:nick()})});
+    return j.post;
+   }catch(e){useApi=false;}
+  }
+  const d=loadLocal();const id='p'+Date.now();
+  const post={id,cat,title,body,nick:nick(),t:now(),ts:Date.now()};
+  d.posts.unshift(post);saveLocal(d);return post;
+ }
+
+ async function addComment(pid,body){
+  if(useApi){
+   try{
+    return await api('/posts/'+encodeURIComponent(pid)+'/comments',{method:'POST',body:JSON.stringify({body,nick:nick()})});
+   }catch(e){useApi=false;}
+  }
+  const d=loadLocal();(d.cm[pid]=d.cm[pid]||[]).push({nick:nick(),body,t:now()});saveLocal(d);return {ok:true};
+ }
+
+ async function commentsFor(pid){
+  if(useApi){
+   try{
+    const j=await api('/posts/'+encodeURIComponent(pid));
+    return (j.comments||[]).map(c=>({nick:c.nick,body:c.body,t:fmtT(c.created_at)}));
+   }catch(e){}
+  }
+  return (loadLocal().cm[pid]||[]);
+ }
+
  function ui(){
   if(document.getElementById('bdMock'))return;
   const bar=document.createElement('div');bar.id='bdMock';bar.innerHTML=`
@@ -103,10 +174,10 @@ img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;object-fit:contain}
    body[data-v="4"] #bdMock,body[data-v="5"] #bdMock{top:auto;bottom:18px}
    body[data-v="m"] #bdLive{display:block}
    </style>
-   <span class="tip">📝 로컬 게시판 활성 · 글·댓글 이 기기에 저장</span>
+   <span class="tip">게시판 연결 확인 중…</span>
    <button type="button" id="bdWrite">✏️ 글쓰기</button>
-   <button type="button" id="bdMine" class="g">📋 내 글·댓글</button>
-   <button type="button" id="bdClear" class="g">🗑 초기화</button>`;
+   <button type="button" id="bdMine" class="g">📋 글 목록</button>
+   <button type="button" id="bdClear" class="g">🗑 로컬 초기화</button>`;
   document.body.appendChild(bar);
   const pan=document.createElement('div');pan.id='bdPanel';pan.innerHTML=`<div class="card"></div>`;document.body.appendChild(pan);
   const card=pan.querySelector('.card');
@@ -114,38 +185,39 @@ img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;object-fit:contain}
   const close=()=>pan.classList.remove('show');
   pan.addEventListener('click',e=>{if(e.target===pan)close();});
   document.getElementById('bdWrite').onclick=()=>{
-   open(`<h3>✏️ 글쓰기 <small style="font-weight:600;color:#9a8b7c">(로컬 저장 · 서버 연결 전)</small></h3>
+   open(`<h3>✏️ 글쓰기 <small style="font-weight:600;color:#9a8b7c">(${modeLabel})</small></h3>
     <label>게시판</label><select id="bdCat"><option>💬 자유</option><option>❓ 질문</option><option>🐟 자랑</option><option>🤝 거래</option><option>🐞 버그 제보</option><option>📚 공략</option><option>💡 건의</option></select>
     <label>제목</label><input id="bdTitle" maxlength="60" placeholder="제목을 입력하세요">
     <label>내용</label><textarea id="bdBody" maxlength="2000" placeholder="내용을 입력하세요"></textarea>
     <div class="row"><button type="button" class="cancel" id="bdX">취소</button><button type="button" class="ok" id="bdGo">등록</button></div>`);
    card.querySelector('#bdX').onclick=close;
-   card.querySelector('#bdGo').onclick=()=>{
+   card.querySelector('#bdGo').onclick=async()=>{
     const title=card.querySelector('#bdTitle').value.trim(),body=card.querySelector('#bdBody').value.trim(),cat=card.querySelector('#bdCat').value;
     if(!title||!body){alert('제목과 내용을 입력해 주세요');return;}
-    const d=load();const id='p'+Date.now();d.posts.unshift({id,cat,title,body,nick:nick(),t:now(),ts:Date.now()});save(d);close();showList();
+    const btn=card.querySelector('#bdGo');btn.disabled=true;btn.textContent='등록 중…';
+    try{await createPost(cat,title,body);close();showList();}catch(e){alert('등록 실패: '+e.message);btn.disabled=false;btn.textContent='등록';}
    };
   };
-  function showList(){
-   const d=load();
-   open(`<h3>📋 내 로컬 글 · 댓글</h3><p style="font-size:13px;color:#8a7a6a;margin:0 0 8px">이 기기 localStorage에만 저장돼요. 서버 연결 후 이전됩니다.</p><div id="bdList"></div><div class="row"><button type="button" class="cancel" id="bdX2">닫기</button></div>`);
+  async function showList(){
+   open(`<h3>📋 게시글 · 댓글 <small style="font-weight:600;color:#9a8b7c">(${modeLabel})</small></h3><p style="font-size:13px;color:#8a7a6a;margin:0 0 8px">${useApi?'서버(D1)에 저장돼요.':'로컬 폴백 · 서버 연결 후 이전되지 않을 수 있어요.'}</p><div id="bdList">불러오는 중…</div><div class="row"><button type="button" class="cancel" id="bdX2">닫기</button></div>`);
    const L=card.querySelector('#bdList');
+   const d=await listAll();
+   L.innerHTML='';
    if(!d.posts.length)L.innerHTML='<p class="mt">아직 쓴 글이 없어요.</p>';
-   else d.posts.forEach(p=>{
-    const cms=(d.cm[p.id]||[]);
+   else for(const p of d.posts){
+    const cms=d.remote?await commentsFor(p.id):(d.cm[p.id]||[]);
     const el=document.createElement('div');el.className='it';
     el.innerHTML=`<span class="tag t2">${p.cat}</span><b>${p.title}</b><div class="mt">${p.nick} · ${p.t}</div><div style="font-size:13.5px;margin-top:6px;white-space:pre-wrap">${p.body}</div>
      <div class="cm">${cms.map(c=>`<div>💬 <b>${c.nick}</b> ${c.body} <span class="mt">${c.t}</span></div>`).join('')||'<div class="mt">댓글 없음</div>'}
      <div style="display:flex;gap:6px;margin-top:6px"><input placeholder="댓글" maxlength="200" style="flex:1;padding:6px 8px;border-radius:8px;border:1px solid #ead9c4"><button type="button" class="ok" style="padding:6px 10px">댓글</button></div></div>`;
     const inp=el.querySelector('input'),btn=el.querySelector('button');
-    btn.onclick=()=>{const v=inp.value.trim();if(!v)return;const d2=load();(d2.cm[p.id]=d2.cm[p.id]||[]).push({nick:nick(),body:v,t:now()});save(d2);showList();};
+    btn.onclick=async()=>{const v=inp.value.trim();if(!v)return;btn.disabled=true;try{await addComment(p.id,v);showList();}catch(e){alert(e.message);btn.disabled=false;}};
     L.appendChild(el);
-   });
+   }
    card.querySelector('#bdX2').onclick=close;
   }
   document.getElementById('bdMine').onclick=showList;
-  document.getElementById('bdClear').onclick=()=>{if(confirm('로컬 게시글·댓글을 모두 지울까요?')){localStorage.removeItem(KEY);alert('초기화했어요');}};
-  // wire existing 글쓰기 buttons + inject into P4 (기본 레이아웃에 글쓰기 없음)
+  document.getElementById('bdClear').onclick=()=>{if(confirm('로컬 게시글·댓글만 지울까요? (서버 글은 유지)')){localStorage.removeItem(KEY);alert('로컬 초기화했어요');}};
   document.querySelectorAll('.btn').forEach(b=>{if(/글쓰기/.test(b.textContent)){b.style.cursor='pointer';b.onclick=e=>{e.preventDefault();document.getElementById('bdWrite').click();};}});
   const p4h=document.querySelector('.p4 .mn .h');
   if(p4h && !document.getElementById('bdP4W')){
@@ -160,9 +232,10 @@ img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;object-fit:contain}
     w.style.cssText='margin-left:auto;background:#ff8a4c;color:#fff;border:0;border-radius:10px;padding:6px 12px;font-weight:800;cursor:pointer;font-size:12.5px';
     w.onclick=()=>document.getElementById('bdWrite').click();p5.appendChild(w);
   }
+  probe();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ui);else ui();
- window.NK_BOARD_MOCK={load,save};
+ window.NK_BOARD_MOCK={load:loadLocal,save:saveLocal,apiBase,probe};
 })();
 </script>
 

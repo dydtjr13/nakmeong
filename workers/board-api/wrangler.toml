@@ -1,0 +1,20 @@
+name = "fishcozy-board-api"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+account_id = "0dd46e415e6622db15aec7a31865b350"
+workers_dev = true
+
+# After Gabia NS → Cloudflare Active, attach custom domain:
+# [[routes]]
+# pattern = "api.fishcozy.com/*"
+# zone_name = "fishcozy.com"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "fishcozy-board"
+database_id = "a0e990c1-470b-46a1-8525-3a8a68804f17"
+migrations_dir = "migrations"
+
+# Set with: npx wrangler secret put ADMIN_KEY
+# Do NOT commit the real value.
+# [vars]  — none for secrets

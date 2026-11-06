@@ -1,0 +1,15 @@
+{
+  "name": "fishcozy-board-api",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:create": "wrangler d1 create fishcozy-board",
+    "db:migrate": "wrangler d1 migrations apply fishcozy-board --remote",
+    "db:migrate:local": "wrangler d1 migrations apply fishcozy-board --local"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

@@ -1,0 +1,84 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>피쉬코지(FISH COZY) v36 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>피쉬코지(FISH COZY) v36 보고서</h1>
+<ul>
+<li>작업일: 2026-11-06 (Asia/Seoul)</li>
+<li>라이브: <a href="https://dydtjr13.github.io/nakmeong/">https://dydtjr13.github.io/nakmeong/</a> · 커스텀 도메인 준비 <code>fishcozy.com</code></li>
+<li>캐시: <code>nakmeong.html?v36</code></li>
+<li>기반: v35</li>
+</ul>
+<h2>요약</h2>
+<ol>
+<li><strong>게시판 Cloudflare Worker + D1</strong> 추가·배포 (<code>fishcozy-board-api</code>)</li>
+<li>게임 게시판이 API 우선, 실패 시 <strong>로컬 mock 폴백</strong></li>
+<li><code>CNAME</code> = <code>fishcozy.com</code> 확인·추가, 표시명 피쉬코지 유지</li>
+<li>Gabia NS → Cloudflare <strong>Active 전</strong>이라 <code>api.fishcozy.com</code>은 후속</li>
+</ol>
+<h2>API</h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>workers.dev</td>
+<td><a href="https://fishcozy-board-api.mi1ku.workers.dev">https://fishcozy-board-api.mi1ku.workers.dev</a></td>
+</tr>
+<tr>
+<td>예정 커스텀</td>
+<td><code>api.fishcozy.com</code> (NS Active 후 route)</td>
+</tr>
+<tr>
+<td>D1</td>
+<td><code>fishcozy-board</code> · <code>a0e990c1-470b-46a1-8525-3a8a68804f17</code></td>
+</tr>
+<tr>
+<td>CORS</td>
+<td>fishcozy.com / www / dydtjr13.github.io (+ localhost)</td>
+</tr>
+<tr>
+<td>Admin</td>
+<td><code>X-Admin-Key</code> ← <code>wrangler secret put ADMIN_KEY</code> (값 미커밋)</td>
+</tr>
+</tbody>
+</table>
+<p>엔드포인트: <code>GET /health</code>, <code>GET/POST /posts</code>, <code>GET /posts/:id</code>, <code>POST /posts/:id/comments</code>, <code>DELETE</code> (admin)</p>
+<p>코드: <code>workers/board-api/</code> (<code>src/index.js</code>, <code>migrations/0001_init.sql</code>, <code>wrangler.toml</code>)</p>
+<h2>게임 연동</h2>
+<ul>
+<li><code>board-v24.html</code>: API URL 설정 가능 (<code>?api=</code>, <code>localStorage.nk_board_api</code>, <code>parent.NK_BOARD_API</code>)</li>
+<li>기본값: workers.dev URL · 실패 시 <code>nk_board_v31</code> 로컬</li>
+<li><code>ev-v24.js</code>: iframe에 API 쿼리 전달</li>
+</ul>
+<h2>회귀 (t130)</h2>
+<p>api health/post/comment · title · CNAME · favicon · board iframe · pageerror0 → <strong>전부 OK</strong></p>
+<h2>DNS / NS</h2>
+<ul>
+<li>Zone <code>fishcozy.com</code> Cloudflare pending (Gabia NS → <code>arely</code> / <code>braden</code>)</li>
+<li>Pages CNAME <code>fishcozy.com</code> · DNS A/@ · CNAME www 준비됨 (다른 쪽)</li>
+<li><strong>NS Active 전</strong>엔 커스텀 도메인·<code>api.fishcozy.com</code> 미연결 가능</li>
+</ul>
+<h2>산출물</h2>
+<ul>
+<li>보고서: <a href="https://dydtjr13.github.io/nakmeong/docs/v36-보고서.html">https://dydtjr13.github.io/nakmeong/docs/v36-보고서.html</a></li>
+<li>PC: <code>C:\Users\이용석\Desktop\게임개발\낚멍\낚멍 그록봇\nakmeong-v36\</code></li>
+</ul>
+<h2>남은 리스크</h2>
+<ul>
+<li>NS pending → fishcozy.com / api.fishcozy.com 미활성</li>
+<li><code>ADMIN_KEY</code> 아직 미설정 → 삭제 API 401 (의도)</li>
+<li>workers.dev 첫 배포 직후 잠깐 1042 가능</li>
+</ul>
+<h3>PC / SHA</h3>
+<ul>
+<li>SHA256: <code>20c5101f45bd9fb86e1e9adb366ac8d6252485d11228798416793b70e0703aa5</code></li>
+<li>분할: nakmeong-v36.zip.000~ + merge-v36.ps1</li>
+</ul></main></body></html>
