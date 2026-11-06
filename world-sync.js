@@ -146,5 +146,7 @@
     const rad = 16 + (h2 % 900) / 100;
     return { i: i | 0, ki: BOT_KINDS[h % BOT_KINDS.length], x: Math.cos(ang) * rad, z: Math.sin(ang) * rad, yaw: ang + Math.PI };
   }
-  window.NK_SYNC = { mix32, weather, ducks, duckSpeed, bot, pickQuietDeck };
+  // v49: 실시간 접속 중 서버에 오리 설정이 없을 때 모든 유저가 쓰는 같은 기본값
+  const DUCK_DEF = { duckOn: 1, duckEvery: 300, duckMax: 9, duckSize: 0.8, duckSpeed: 1.5, duckKinds: DUCK_KINDS.join(",") };
+  window.NK_SYNC = { mix32, weather, ducks, duckSpeed, bot, pickQuietDeck, DUCK_DEF };
 })();
