@@ -1,0 +1,17 @@
+{
+  "name": "fishcozy-realtime",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "dry-run": "wrangler deploy --dry-run",
+    "test": "node --test test/protocol.test.mjs",
+    "test:live": "node test/live.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.45.0",
+    "ws": "^8.18.0"
+  }
+}

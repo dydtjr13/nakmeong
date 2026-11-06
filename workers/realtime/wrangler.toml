@@ -1,0 +1,28 @@
+"$schema" = "./node_modules/wrangler/config-schema.json"
+name = "fishcozy-realtime"
+main = "src/index.js"
+compatibility_date = "2026-11-06"
+account_id = "0dd46e415e6622db15aec7a31865b350"
+workers_dev = true
+
+# 커스텀 도메인 api.fishcozy.com 은 아직 불안정할 수 있어 기본 주소는
+# https://fishcozy-realtime.mi1ku.workers.dev 입니다.
+# 붙일 준비가 되면 아래를 켜세요.
+# [[routes]]
+# pattern = "api.fishcozy.com/rt/*"
+# zone_name = "fishcozy.com"
+
+[observability]
+enabled = true
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 1
+
+[[durable_objects.bindings]]
+name = "LAKE"
+class_name = "LakeRoom"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["LakeRoom"]

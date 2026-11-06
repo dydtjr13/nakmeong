@@ -1,0 +1,78 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>피쉬코지(FISH COZY) v38 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3ebe3;padding:1px 6px;border-radius:6px;font-size:0.92em}pre{background:#2b2438;color:#f6f1ea;padding:14px 16px;border-radius:12px;overflow:auto;font-size:13px;line-height:1.55}pre code{background:none;padding:0;color:inherit}
+ul,ol{padding-left:1.3em}hr{border:none;border-top:1px solid #eadfd0;margin:22px 0}
+.meta{color:#7a6f88;font-size:14px}strong{color:#4a3a62}</style></head><body><main>
+<h1>피쉬코지(FISH COZY) v38 보고서</h1>
+<ul>
+<li>작업일: 2026-11-06 (Asia/Seoul)</li>
+<li>라이브: <a href="https://dydtjr13.github.io/nakmeong/">github.io</a> · fishcozy.com은 HTTPS 인증서 대기 중</li>
+<li>실시간 워커: <a href="https://fishcozy-realtime.mi1ku.workers.dev">https://fishcozy-realtime.mi1ku.workers.dev</a></li>
+<li>캐시: <code>realtime.js?v37</code> · <code>game-v2.js?v37</code> · <code>ui-v2.css?v37</code></li>
+<li>기반: v37</li>
+<li>커밋: <code>c54ccb2</code> (PR <a href="https://github.com/dydtjr13/nakmeong/pull/2">#2</a> 머지)</li>
+<li>PC 저장: 생략 (사이트만 보면 됨)</li>
+</ul>
+<hr>
+<h2>한눈에 보기</h2>
+<table><thead><tr><th>#</th><th>무엇을</th><th>결과</th></tr></thead><tbody>
+<tr><td>1</td><td>실시간 멀티</td><td>같은 호숫가에 들어온 <strong>실유저</strong>가 서로 보이고 채팅해요</td></tr>
+<tr><td>2</td><td>서버</td><td>호숫가 <strong>4곳</strong> · 각 방 <strong>열린 WebSocket 50개</strong> (봇 제외)</td></tr>
+<tr><td>3</td><td>정원</td><td>51번째는 <strong>거절</strong> · 시작 화면 버튼도 막힘 · <code>0/50</code> 실접속 표시</td></tr>
+<tr><td>4</td><td>동기화</td><td>닉·캐릭터·위치·방향·앉은 자리·낚시 상태(<code>off</code>/<code>cast</code>/<code>bite</code>)</td></tr>
+<tr><td>5</td><td>채팅</td><td>말풍선 + 이모티콘 · 이름표 <strong>초록 점</strong> / 채팅 <code>●</code>로 봇과 구분</td></tr>
+<tr><td>6</td><td>자리</td><td>실유저가 앉은 자리는 봇이 안 앉음 · 다른 실유저가 먼저면 앉기 거절</td></tr>
+<tr><td>7</td><td>장애</td><td>WebSocket 실패 시 <strong>예전처럼 봇과 혼자</strong> 플레이</td></tr>
+<tr><td>8</td><td>주소</td><td>기본 <code>fishcozy-realtime.mi1ku.workers.dev</code> · <code>?rt=</code> / <code>localStorage.nk_rt_base</code> · <code>off</code>면 끔</td></tr>
+</tbody></table>
+<hr>
+<h2>1. 어떻게 쓰나요</h2>
+<ol>
+<li>1. <a href="https://dydtjr13.github.io/nakmeong/">github.io 피쉬코지</a> 열기  </li>
+<li>2. 시작 화면에서 <strong>호숫가 1~4</strong> 중 하나 고르기 (<code>n/50</code>이 실시간 인원)  </li>
+<li>3. 같은 호숫가를 다른 브라우저/시크릿으로 들어가면 서로 보여요  </li>
+<li>4. 채팅·이모티콘은 말풍선으로 전달돼요  </li>
+</ol>
+<p>로컬만 쓰려면 워커를 <code>npm run dev</code>로 띄운 뒤  </p>
+<p><code>nakmeong.html?rt=http://127.0.0.1:8787</code> 로 들어가면 됩니다.</p>
+<hr>
+<h2>2. 기술 요약</h2>
+<ul>
+<li>코드: <code>workers/realtime/</code> (게시판 API 워커와 <strong>분리</strong>)</li>
+<li>방 하나 = Durable Object 하나 (호숫가 4개)</li>
+<li>클라이언트: <code>realtime.js</code> + 게임 쪽 presence/채팅 연동</li>
+<li>헬스: <code>/health</code> · 서버 목록: <code>/servers</code> (지금 4곳 전부 <code>0/50</code>)</li>
+</ul>
+<p>배포(이미 원격 배포됨):</p>
+<pre><code>cd workers/realtime
+npm install
+npx wrangler login   # 새 환경일 때만
+npm run deploy</code></pre>
+<p>확인:</p>
+<pre><code>npm test
+npm run test:live   # 두 소켓 채팅 · 자리 거절 · 서버 분리 · 51번째 거절</code></pre>
+<hr>
+<h2>3. 아직 없는 것</h2>
+<ul>
+<li>계정 로그인</li>
+<li>낚시·거래의 <strong>서버 판정</strong></li>
+<li>찌까지 포함한 애니메이션 동기화</li>
+<li><code>api.fishcozy.com</code> 과 실시간 워커 연결</li>
+<li>fishcozy.com <strong>HTTPS 인증서</strong> (GitHub Pages 대기) → 그동안은 github.io 사용</li>
+</ul>
+<hr>
+<h2>4. 진행 중</h2>
+<ul>
+<li>관리자 진입: 로그인 <code>admin</code> / <code>1q2w3e4r</code> (변경 가능) · 일반 유저에게 숨김 → 작업 중이면 끝나면 이어서 보고할게요</li>
+</ul>
+<hr>
+<h2>링크</h2>
+<ul>
+<li>PR: <a href="https://github.com/dydtjr13/nakmeong/pull/2">https://github.com/dydtjr13/nakmeong/pull/2</a></li>
+<li>실시간 워커: <a href="https://fishcozy-realtime.mi1ku.workers.dev/servers">https://fishcozy-realtime.mi1ku.workers.dev/servers</a></li>
+<li>게임: <a href="https://dydtjr13.github.io/nakmeong/">https://dydtjr13.github.io/nakmeong/</a></li>
+</ul>
+</main></body></html>
