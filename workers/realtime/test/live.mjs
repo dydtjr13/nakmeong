@@ -104,6 +104,7 @@ async function main() {
     const welcomeA = await a.next();
     assert(welcomeA.t === "welcome" && welcomeA.server === 2 && welcomeA.cap === 50, "welcome A");
     assert(welcomeA.peers.length === 0, "A is first");
+    assert(welcomeA.world && welcomeA.world.dayLen === 150 && welcomeA.world.auto === true, "welcome carries world");
 
     const b = connect(2);
     await b.ready;
@@ -113,6 +114,22 @@ async function main() {
     assert(welcomeB.t === "welcome" && welcomeB.peers.some((p) => p.nick === "민물"), `B snapshot has A ${JSON.stringify(welcomeB)}`);
     assert(welcomeB.n === 2, "count is sockets, not bots");
     assert(joinForA.t === "join" && joinForA.peer.nick === "달빛", "A sees B join");
+    assert(welcomeB.world && welcomeB.world.dayLen === 150, "B welcome world");
+
+    a.send({
+      t: "world",
+      world: {
+        dayLen: 600, auto: true, off: 0.2, t0: 0, freezeT: 0.2,
+        wxOv: "snow", wxUntil: 0, seasonOv: "summer", seasonLen: 90,
+        seasonOff: 1, seasonT0: 0, seasonSpd: 0, seasonLink: 0, mapTheme: "xmas",
+      },
+    });
+    const [worldA, worldB] = await Promise.all([a.next(), b.next()]);
+    assert(worldA.t === "world" && worldB.t === "world", "world broadcast to both");
+    assert(worldA.world.dayLen === 600 && worldB.world.dayLen === 600, "day length synced");
+    assert(worldA.world.wxOv === "snow" && worldB.world.wxOv === "snow", "weather synced");
+    assert(worldA.world.seasonOv === "summer" && worldB.world.seasonLen === 90, "season synced");
+    assert(worldA.world.mapTheme === "xmas" && worldA.world.rev === worldB.world.rev, "map and rev synced");
 
     const c = connect(4);
     await c.ready;

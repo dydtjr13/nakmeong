@@ -32,6 +32,8 @@
     id: "",
     sid: 0,
     n: 0,
+    world: null,
+    rev: 0,
     list() { return this.servers; },
     failed() { return !this.base || this.phase === "down"; },
     server(id) {
@@ -106,12 +108,21 @@
     try { ws.send(JSON.stringify(obj)); } catch (e) { /* ignore */ }
   }
 
+  function takeWorld(w) {
+    if (!w || typeof w !== "object") return;
+    if (w.rev && RT.rev && w.rev < RT.rev) return;
+    RT.world = w;
+    if (w.rev) RT.rev = w.rev;
+    try { dispatchEvent(new CustomEvent("nk-rt-world", { detail: w })); } catch (e) { /* ignore */ }
+  }
+
   function applyWelcome(m) {
     RT.id = m.id || "";
     RT.n = m.n | 0;
     if (m.server) RT.sid = m.server;
     peers.clear();
     (m.peers || []).forEach((p) => { if (p && p.id && p.id !== RT.id) peers.set(p.id, p); });
+    if (m.world) takeWorld(m.world);
   }
 
   function onMessage(m) {
@@ -126,6 +137,7 @@
         x: m.x, z: m.z, y: m.y, d: m.d, fish: m.fish, anim: m.anim, seat: m.seat,
       }));
     }
+    else if (m.t === "world" && m.world) takeWorld(m.world);
     else if (m.t === "chat" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-chat", { detail: m }));
     else if (m.t === "emote" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-emote", { detail: m }));
     else if (m.t === "seat") dispatchEvent(new CustomEvent("nk-rt-seat", { detail: m }));
@@ -294,6 +306,10 @@
 
   RT.chat = function (text) { if (RT.mode === "on") send({ t: "chat", text: String(text || "").slice(0, 80) }); };
   RT.emote = function (text) { if (RT.mode === "on") send({ t: "emote", text: String(text || "").slice(0, 8) }); };
+  RT.setWorld = function (world) {
+    if (RT.mode !== "on" || !world || typeof world !== "object") return;
+    send({ t: "world", world });
+  };
 
   window.NK_RT = RT;
   if (base) {

@@ -4,11 +4,16 @@ import {
   CAP,
   SERVERS,
   allowPose,
+  defaultWorld,
+  normalizeWorld,
   originAllowed,
   parseClient,
   quantizeKey,
   reduce,
   sanitizeNick,
+  sanitizeWorld,
+  seasonSlot,
+  worldFraction,
 } from "../src/protocol.js";
 
 test("4 servers, 50 real users each", () => {
@@ -86,6 +91,60 @@ test("pose throttle keeps important state changes", () => {
   assert.equal(allowPose(1090, base, still), true);
   assert.equal(allowPose(1039, base, { fish: "cast", anim: "holding-right", seat: null }), false);
   assert.equal(allowPose(1040, base, { fish: "cast", anim: "holding-right", seat: null }), true);
+});
+
+test("world clock matches for every joiner and admin pin is shared", () => {
+  const now = 1_700_000_000_000;
+  const plain = normalizeWorld(null, now);
+  assert.equal(plain.dayLen, 150);
+  assert.equal(plain.auto, true);
+  const joinedEarly = worldFraction(now, plain);
+  const joinedLate = worldFraction(now, plain);
+  assert.equal(joinedEarly, joinedLate);
+  const halfDay = worldFraction(now + 75_000, plain);
+  assert.ok(Math.abs(halfDay - ((joinedEarly + 0.5) % 1)) < 1e-9);
+
+  const pinned = sanitizeWorld({
+    dayLen: 600, auto: true, t0: now, off: 0.4, freezeT: 0.4,
+    wxOv: "snow", wxUntil: 0, seasonOv: "summer", seasonLen: 120,
+    seasonOff: 1, seasonT0: now, seasonLink: 1, mapTheme: "xmas",
+  }, plain, { bump: true, now });
+  assert.equal(pinned.rev, plain.rev + 1);
+  assert.equal(pinned.wxOv, "snow");
+  assert.equal(pinned.mapTheme, "xmas");
+  assert.equal(pinned.seasonOv, "summer");
+  assert.equal(pinned.seasonLen, 120);
+  assert.equal(pinned.seasonLink, 1);
+  assert.ok(Math.abs(worldFraction(now, pinned) - 0.4) < 1e-9);
+  assert.ok(Math.abs(worldFraction(now + 300_000, pinned) - 0.9) < 1e-9);
+  assert.ok(Math.abs(worldFraction(now + 600_000, pinned) - 0.4) < 1e-9);
+  const frozen = sanitizeWorld({ auto: false, freezeT: 0.75 }, pinned, { bump: true, now });
+  assert.equal(worldFraction(now + 999_999, frozen), 0.75);
+  assert.equal(seasonSlot(now, pinned), 1);
+  assert.equal(seasonSlot(now + 120_000, pinned), 2);
+
+  const bad = sanitizeWorld({
+    dayLen: 1, wxOv: "hack", mapTheme: "nope", seasonOv: "fall", seasonSpd: 3, off: 99,
+  }, pinned, { bump: true, now });
+  assert.equal(bad.dayLen, 30);
+  assert.equal(bad.wxOv, "snow");
+  assert.equal(bad.mapTheme, "xmas");
+  assert.equal(bad.seasonOv, "summer");
+  assert.equal(bad.seasonSpd, 0);
+  assert.equal(bad.off, 10);
+
+  const expired = normalizeWorld({ ...pinned, wxOv: "storm", wxUntil: now - 1000, rev: 4 }, now);
+  assert.equal(expired.wxOv, "auto");
+  assert.equal(expired.wxUntil, 0);
+  assert.equal(defaultWorld().dayLen, 150);
+});
+
+test("world set message is parsed and junk world is dropped", () => {
+  const ok = parseClient(JSON.stringify({ t: "world", world: { dayLen: 300, wxOv: "aurora" } }));
+  assert.equal(ok.t, "world");
+  assert.equal(ok.world.dayLen, 300);
+  assert.equal(parseClient(JSON.stringify({ t: "world" })), null);
+  assert.equal(parseClient(JSON.stringify({ t: "world", world: ["nope"] })), null);
 });
 
 test("origin allow list matches the pages hosts", () => {

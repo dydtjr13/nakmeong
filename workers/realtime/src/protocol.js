@@ -77,6 +77,127 @@ export function sanitizePose(msg, prev) {
   };
 }
 
+export const WX_OV = ["auto", "clear", "drizzle", "storm", "snow", "cherry", "leaf", "sunset", "firefly", "meteor", "aurora"];
+export const SEASON_OV = ["auto", "spring", "summer", "autumn", "winter"];
+export const MAP_THEMES = ["base", "xmas"];
+export const SEASON_SPD = [0, 1, 2, 4, 8];
+
+export function defaultWorld() {
+  return {
+    dayLen: 150,
+    auto: true,
+    off: 0,
+    t0: 0,
+    freezeT: 0,
+    wxOv: "auto",
+    wxUntil: 0,
+    seasonOv: "auto",
+    seasonLen: 0,
+    seasonOff: 0,
+    seasonT0: 0,
+    seasonSpd: 0,
+    seasonLink: 0,
+    mapTheme: "base",
+    rev: 1,
+    at: 0,
+  };
+}
+
+function finite(v, d) {
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? n : d;
+}
+
+function pickEnum(v, list, d) {
+  return list.includes(v) ? v : d;
+}
+
+/**
+ * 호숫가 세계 설정. 하루 길이·시각 오프셋·날씨 강제·계절·맵.
+ * bump 하면 rev 를 올리고, 빠진 필드는 prev 를 유지합니다.
+ * 클라이언트 worldFrac 과 worldFraction 이 같은 식이어야 합니다.
+ */
+export function sanitizeWorld(input, prev, opt) {
+  const now = opt && Number.isFinite(opt.now) ? opt.now : Date.now();
+  const base = { ...defaultWorld(), ...(prev || {}) };
+  const src = input && typeof input === "object" && !Array.isArray(input) ? input : {};
+  const dayLen = Math.round(finite(src.dayLen, base.dayLen));
+  const seasonLen = Math.round(finite(src.seasonLen, base.seasonLen));
+  let wxUntil = Math.round(finite(src.wxUntil, base.wxUntil));
+  const wxOv = pickEnum(src.wxOv, WX_OV, pickEnum(base.wxOv, WX_OV, "auto"));
+  if (wxOv === "auto" || wxUntil < 0 || wxUntil > now + 30 * 864e5) wxUntil = wxOv === "auto" ? 0 : (wxUntil > 0 && wxUntil <= now + 30 * 864e5 ? wxUntil : 0);
+  if (wxOv === "auto") wxUntil = 0;
+  const spdSrc = src.seasonSpd == null ? base.seasonSpd : Math.round(finite(src.seasonSpd, base.seasonSpd));
+  const seasonSpd = SEASON_SPD.includes(spdSrc) ? spdSrc : (SEASON_SPD.includes(base.seasonSpd) ? base.seasonSpd : 0);
+  const off = finite(src.off, base.off);
+  const seasonOff = finite(src.seasonOff, base.seasonOff);
+  const t0 = finite(src.t0, base.t0);
+  const seasonT0 = finite(src.seasonT0, base.seasonT0);
+  let freezeT = finite(src.freezeT, base.freezeT) % 1;
+  if (freezeT < 0) freezeT += 1;
+  const auto = typeof src.auto === "boolean" ? src.auto : !!base.auto;
+  const seasonLink = src.seasonLink == null ? (base.seasonLink ? 1 : 0) : (src.seasonLink ? 1 : 0);
+  const bump = !!(opt && opt.bump);
+  return {
+    dayLen: Math.max(30, Math.min(86400, dayLen || 150)),
+    auto,
+    off: Math.max(-10, Math.min(10, off)),
+    t0: Math.max(0, Math.min(now + 36e5, t0)),
+    freezeT,
+    wxOv,
+    wxUntil,
+    seasonOv: pickEnum(src.seasonOv, SEASON_OV, pickEnum(base.seasonOv, SEASON_OV, "auto")),
+    seasonLen: seasonLen <= 0 ? 0 : Math.max(10, Math.min(86400 * 400, seasonLen)),
+    seasonOff: Math.max(-1000, Math.min(1000, seasonOff)),
+    seasonT0: Math.max(0, Math.min(now + 36e5, seasonT0)),
+    seasonSpd,
+    seasonLink,
+    mapTheme: pickEnum(src.mapTheme, MAP_THEMES, pickEnum(base.mapTheme, MAP_THEMES, "base")),
+    rev: bump ? (base.rev | 0) + 1 : Math.max(1, Math.round(finite(src.rev, base.rev || 1))),
+    at: bump ? now : Math.max(0, Math.round(finite(src.at, base.at || 0))),
+  };
+}
+
+export function normalizeWorld(stored, now) {
+  const w = sanitizeWorld(stored || {}, defaultWorld(), { bump: false, now });
+  const t = Number.isFinite(now) ? now : Date.now();
+  if (w.wxUntil && w.wxUntil <= t) {
+    w.wxOv = "auto";
+    w.wxUntil = 0;
+  }
+  return w;
+}
+
+/** 벽시계 기준 하루 진행도 0~1. auto 가 꺼지면 freezeT. 입장 시각과 무관합니다. */
+export function worldFraction(now, world) {
+  const w = world || {};
+  if (!w.auto) {
+    let t = Number(w.freezeT);
+    if (!Number.isFinite(t)) t = 0;
+    t %= 1;
+    if (t < 0) t += 1;
+    return t;
+  }
+  const len = Math.max(30, Math.min(86400, Number(w.dayLen) || 150));
+  const t0 = Number.isFinite(+w.t0) ? +w.t0 : 0;
+  const off = Number.isFinite(+w.off) ? +w.off : 0;
+  let t = ((now - t0) / 1000 / len + off) % 1;
+  if (t < 0) t += 1;
+  return t;
+}
+
+/** seasonLen 이 있으면 0~3. 없으면 null (실제 날짜·seasonSpd). */
+export function seasonSlot(now, world) {
+  const w = world || {};
+  const len = Math.round(Number(w.seasonLen) || 0);
+  if (len < 10) return null;
+  const t0 = Number.isFinite(+w.seasonT0) ? +w.seasonT0 : 0;
+  const off = Number.isFinite(+w.seasonOff) ? +w.seasonOff : 0;
+  let s = Math.floor((now - t0) / 1000 / len + off) % 4;
+  if (s < 0) s += 4;
+  return s;
+}
+
 export function parseClient(raw) {
   if (typeof raw !== "string" || raw.length === 0 || raw.length > MAX_MSG) return null;
   let msg;
@@ -87,6 +208,10 @@ export function parseClient(raw) {
   }
   if (!msg || typeof msg !== "object" || typeof msg.t !== "string") return null;
   if (msg.t === "ping") return { t: "ping" };
+  if (msg.t === "world") {
+    if (!msg.world || typeof msg.world !== "object" || Array.isArray(msg.world)) return null;
+    return { t: "world", world: msg.world };
+  }
   if (msg.t === "chat" || msg.t === "emote") {
     const text = cleanText(msg.text, msg.t === "emote" ? 8 : 80);
     if (!text) return null;
