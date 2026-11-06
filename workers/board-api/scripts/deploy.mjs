@@ -30,8 +30,10 @@ if (PW) {
 } else console.log("ADMIN_PASSWORD 없음 → 기존 워커 시크릿 유지");
 const form = new FormData();
 form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-const code = await readFile(new URL("../src/index.js", import.meta.url));
-form.append("index.js", new Blob([code], { type: "application/javascript+module" }), "index.js");
+for (const name of ["index.js", "profanity.js"]) {
+  const code = await readFile(new URL("../src/" + name, import.meta.url));
+  form.append(name, new Blob([code], { type: "application/javascript+module" }), name);
+}
 const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${ACCOUNT}/workers/scripts/${SCRIPT}`, {
   method: "PUT",
   headers: { Authorization: `Bearer ${token}` },

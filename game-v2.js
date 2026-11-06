@@ -866,17 +866,80 @@ function doUp(k){const u=D.GEAR.up[k],L=upMats(k).sort((a,b)=>a.q-b.q);if(L.leng
  const to=D.RODS.find(r=>r.k===u.to);confirmBox(`<h3>⬆ 단계 올리기</h3><p>${D.RODS.find(r=>r.k===k).n} ×${u.n} (소멸) → <b style="color:${to.rc}">${to.n}</b> 1개<br>기본옵션 품질: 재료 중 좋은 3개 평균 <b>${(q*100).toFixed(1)}%</b> · 추가옵션은 새로 굴려요<br>비용 🪙${u.coin.toLocaleString()}</p>`,()=>{S.coins-=u.coin;used.forEach(m=>{ILOG.add('synth','rod',JSON.parse(JSON.stringify(m)),0);});S.gear=S.gear.filter(g=>!used.includes(g));const g=SYS.makeGear(D,u.to,S.nid++,Math.random,5);g.q=q;SYS.gearGrade&&SYS.gearGrade(D,g);g.nw=1;S.gear.push(g);if(!S.rods.includes(u.to))S.rods.push(u.to);save();try{sfx.coin();}catch(e){}toast(`⬆ 단계 올리기 성공! <b style="color:${to.rc}">${to.n}</b>`,2600);try{renderBag();hud();}catch(e){}});}
 function confirmBox(html,ok){const m=$('confirm');m.innerHTML=`<div class="card center" style="width:min(420px,92vw)">${html}<p><button id="cfNo">취소</button> <button class="acc" id="cfYes">확인</button></p></div>`;m.classList.add('show');$('cfNo').onclick=()=>m.classList.remove('show');$('cfYes').onclick=()=>{m.classList.remove('show');ok();};}
 function alertBox(html){const m=$('confirm');m.innerHTML=`<div class="card center" style="width:min(420px,92vw)">${html}<p><button class="acc" id="cfYes">확인</button></p></div>`;m.classList.add('show');$('cfYes').onclick=()=>m.classList.remove('show');}
+// v54: 저장 및 불러오기 — 사용자 시안(양피지 카드) · 짧은 저장 코드(XXXX-XXXX-XXXX, 서버 보관) · 창 밖/Esc 닫기 · 5분마다 자동 클라우드 백업
+const SV={api:()=>String(window.NK_BOARD_API||(()=>{try{return localStorage.getItem('nk_board_api');}catch(e){return '';}})()||'https://fishcozy-board-api.mi1ku.workers.dev').replace(/\/$/,''),
+ cid:()=>{try{return localStorage.getItem('nk_cid')||'';}catch(e){return '';}},code:()=>{try{return localStorage.getItem('nk_save_code')||'';}catch(e){return '';}},
+ setCode:c=>{try{localStorage.setItem('nk_save_code',c);}catch(e){}},sent:0,busy:false};
+async function cloudSave(force){if(SV.busy)return null;const cid=SV.cid();if(!cid)return null;if(!force&&SV.sent&&(+S.savedAt||0)<=SV.sent)return SV.code()||null;SV.busy=true;
+ try{S.savedAt=S.savedAt||Date.now();const r=await fetch(SV.api()+'/saves',{method:'POST',headers:{'Content-Type':'application/json','X-Owner':cid},body:JSON.stringify({data:JSON.stringify(S)})});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j&&j.error||r.status);SV.setCode(j.code);SV.sent=+S.savedAt||Date.now();return j.code;}
+ catch(e){return null;}finally{SV.busy=false;}}
+setInterval(()=>{if(started&&!document.hidden)cloudSave(false);},5*60e3);
+function applySaveObj(o){if(!o||typeof o.coins!=='number')throw 0;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,S0,o);SYS.migrate(D,S);if(S.autoFish&&!afOK())S.autoFish=false;S.savedAt=Date.now();save();hud();}
 function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=Date.now();save();toast('💾 저장 완료');return;}
- const m=$('confirm'),tab=openSaveGuide.tab||'here',when=S.savedAt?new Date(S.savedAt).toLocaleString('ko-KR'):'아직 없음';
- m.innerHTML='<div class="card saveB" style="width:min(460px,94vw)"><h3>💾 저장</h3><div class="stabs"><button type="button" data-stab="here">이 기기</button><button type="button" data-stab="other">다른 기기</button></div><div id="svBody"></div></div>';
- m.classList.add('show');
- m.querySelectorAll('[data-stab]').forEach(b=>{b.classList.toggle('on',b.dataset.stab===tab);b.onclick=()=>{openSaveGuide.tab=b.dataset.stab;openSaveGuide();};});
- const body=m.querySelector('#svBody');
- if(tab==='here'){body.innerHTML='<p class="okline">자동 저장 <b>켜짐</b></p><p class="small">마지막 저장<br><b id="svWhen"></b></p><p><button class="acc" id="svNow">지금 저장</button></p><p class="small muted">이 브라우저는 플레이 중에도 알아서 저장해요.</p>';body.querySelector('#svWhen').textContent=when;body.querySelector('#svNow').onclick=()=>{S.savedAt=Date.now();save();toast('💾 이 기기에 저장했어요');openSaveGuide();};}
- else{body.innerHTML='<p class="small">이 코드를 다른 브라우저에 붙여 넣으면 이어 할 수 있어요.</p><textarea id="svCode" readonly rows="4"></textarea><p><button class="acc" id="svCopy">코드 복사</button></p><p class="small">불러오기</p><textarea id="svIn" rows="3" placeholder="다른 기기에서 복사한 저장 코드"></textarea><p><button id="svLoad">붙여넣기 불러오기</button></p>';
-  const code=JSON.stringify(S);body.querySelector('#svCode').value=code;
-  body.querySelector('#svCopy').onclick=()=>{const done=()=>toast('💾 저장 코드를 복사했어요',1800);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(code).then(done,done);else done();};
-  body.querySelector('#svLoad').onclick=()=>{try{const o=JSON.parse(body.querySelector('#svIn').value);if(!o||typeof o.coins!=='number')throw 0;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,S0,o);SYS.migrate(D,S);if(S.autoFish&&!afOK())S.autoFish=false;save();hud();m.classList.remove('show');toast('📂 다른 기기 코드를 불러왔어요');}catch(e){toast('코드를 읽지 못했어요');}};}}
+ if(!document.getElementById('sv54css')){const st=document.createElement('style');st.id='sv54css';st.textContent=`
+#sv54{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;background:rgba(40,32,24,.38);backdrop-filter:blur(3px)}
+#sv54 .pc{position:relative;width:min(760px,94vw);max-height:92vh;overflow:auto;background:#f8f0e0;border-radius:26px;padding:26px 26px 18px;box-shadow:0 24px 60px rgba(40,30,20,.35);font-family:'Pretendard','Noto Sans KR',sans-serif;color:#4a3a2c}
+#sv54 .pc::before{content:'';position:absolute;inset:9px;border:2px dashed #d9c6a4;border-radius:20px;pointer-events:none}
+#sv54 .x{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:2px solid #5a4632;background:#fffaf0;font-size:22px;line-height:1;cursor:pointer;color:#5a4632;z-index:2}
+#sv54 .deco{display:block;margin:-6px auto 0;width:130px;height:58px}
+#sv54 h3{margin:2px 0 4px;text-align:center;font-size:28px;font-weight:900;letter-spacing:-.5px;color:#4a3626}
+#sv54 .sub{text-align:center;font-size:14px;color:#7a6650;margin:0 0 14px}
+#sv54 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;position:relative;z-index:1}
+#sv54 .tab{border:2px solid #dccaa8;border-bottom:0;border-radius:16px 16px 0 0;padding:12px;font-size:18px;font-weight:800;text-align:center;background:#e9e0cf;color:#7d6c58;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
+#sv54 .tab.on{background:#fbf5e8;color:#4a3626}
+#sv54 .body{display:grid;grid-template-columns:1fr 1fr;border:2px solid #dccaa8;border-radius:0 0 18px 18px;background:#fbf5e8;margin-top:-2px}
+#sv54 .col{padding:18px}#sv54 .col+.col{border-left:2px dashed #e0d0b2}
+#sv54 .auto{display:flex;gap:12px;align-items:center}#sv54 .auto b{font-size:20px}
+#sv54 .onb{display:inline-block;background:#e05a4a;color:#fff;border-radius:999px;padding:2px 10px;font-size:13px;font-weight:800;margin-left:6px;vertical-align:2px}
+#sv54 .muted{font-size:13px;color:#7a6650}
+#sv54 .div{display:flex;align-items:center;gap:8px;margin:14px 0;color:#9bb26a}#sv54 .div::before,#sv54 .div::after{content:'';flex:1;border-top:2px dotted #cdb894}
+#sv54 .info{display:flex;gap:12px;align-items:center;background:#eef0dc;border:2px solid #d6d6b4;border-radius:14px;padding:12px 14px;font-size:15px;line-height:1.6}
+#sv54 .big{margin-top:16px;width:100%;border:0;border-radius:16px;padding:16px;font-size:22px;font-weight:900;color:#fff;background:linear-gradient(#ea6252,#d84a3c);box-shadow:0 4px 0 #b73a2e;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px}
+#sv54 .big:active{transform:translateY(2px);box-shadow:0 2px 0 #b73a2e}
+#sv54 h4{margin:0 0 4px;font-size:18px;font-weight:900}
+#sv54 .codebox{margin:12px 0 14px;border:2px solid #dccaa8;border-radius:14px;padding:16px;text-align:center;background:#fffaf0;position:relative}
+#sv54 .codebox::before{content:'';position:absolute;inset:5px;border:2px dashed #e4d4b6;border-radius:10px;pointer-events:none}
+#sv54 .code{font-family:ui-monospace,'Consolas',monospace;font-size:24px;font-weight:800;letter-spacing:2px;margin-bottom:12px;color:#3d3024}
+#sv54 .red{border:0;border-radius:12px;padding:11px 20px;font-size:17px;font-weight:800;color:#fff;background:linear-gradient(#ea6252,#d84a3c);box-shadow:0 3px 0 #b73a2e;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+#sv54 .red:disabled{opacity:.55;cursor:default}
+#sv54 .lbl{display:flex;align-items:center;gap:8px;font-weight:800;font-size:16px;margin-bottom:6px}
+#sv54 .paste{display:flex;gap:8px}#sv54 .paste input{flex:1;min-width:0;border:2px solid #dccaa8;border-radius:12px;padding:11px 12px;font-size:15px;background:#fffaf0;color:#3d3024}
+#sv54 .paste button{border:0;border-radius:12px;padding:0 14px;font-weight:800;background:#7a9a4a;color:#fff;cursor:pointer}
+#sv54 .foot{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;font-size:13px;color:#7a6650}
+#sv54 svg{flex:none}
+@media (max-width:640px){#sv54 .pc{padding:20px 14px 14px}#sv54 h3{font-size:23px}#sv54 .body{grid-template-columns:1fr}#sv54 .col+.col{border-left:0}#sv54 .body[data-t="here"] .col.oth,#sv54 .body[data-t="other"] .col.here{display:none}#sv54 .code{font-size:20px}#sv54 .big{font-size:19px;padding:14px}}`;document.head.appendChild(st);}
+ const I={fish:'<svg width="40" height="22" viewBox="0 0 40 22"><path d="M3 11c6-9 20-9 27 0-7 9-21 9-27 0z" fill="#b58a5a" stroke="#6d4f30" stroke-width="1.6"/><path d="M30 11l8-7v14z" fill="#9c744a" stroke="#6d4f30" stroke-width="1.6"/><circle cx="10" cy="9.5" r="1.6" fill="#3d2b1a"/></svg>',
+  cloud:'<svg width="34" height="22" viewBox="0 0 34 22"><path d="M9 20h17a6 6 0 0 0 0-12 8 8 0 0 0-15-2A7 7 0 0 0 9 20z" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  check:'<svg width="48" height="48" viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#6aa04a"/><path d="M14 25l7 7 13-15" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  cal:'<svg width="44" height="44" viewBox="0 0 44 44"><rect x="5" y="8" width="34" height="31" rx="6" fill="#fffaf0" stroke="#7a6650" stroke-width="2.4"/><path d="M5 17h34M14 4v8M30 4v8" stroke="#7a6650" stroke-width="2.4" stroke-linecap="round"/><g fill="#7a6650"><rect x="11" y="22" width="5" height="4" rx="1"/><rect x="19.5" y="22" width="5" height="4" rx="1"/><rect x="28" y="22" width="5" height="4" rx="1"/><rect x="11" y="29" width="5" height="4" rx="1"/><rect x="19.5" y="29" width="5" height="4" rx="1"/></g></svg>',
+  disk:'<svg width="34" height="34" viewBox="0 0 34 34"><path d="M4 7a3 3 0 0 1 3-3h17l6 6v17a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z" fill="#fff"/><rect x="10" y="4" width="12" height="8" rx="1.5" fill="#d84a3c"/><rect x="9" y="18" width="16" height="9" rx="2" fill="#d84a3c"/></svg>',
+  doc:'<svg width="20" height="22" viewBox="0 0 20 22"><path d="M3 2h9l5 5v13H3z" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><path d="M7 13h6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>',
+  clip:'<svg width="22" height="24" viewBox="0 0 22 24"><rect x="3" y="4" width="16" height="18" rx="2.5" fill="none" stroke="#5a4632" stroke-width="2"/><rect x="7" y="1.5" width="8" height="5" rx="1.5" fill="#f8f0e0" stroke="#5a4632" stroke-width="2"/><path d="M7 12h8M7 16h6" stroke="#5a4632" stroke-width="2" stroke-linecap="round"/></svg>',
+  leaf:'<svg width="40" height="16" viewBox="0 0 40 16"><path d="M8 13C14 9 24 6 32 3" stroke="#8aa45a" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M15 10c-1-4 2-6 5-6-1 3-2 5-5 6zM21 8c0-4 3-5 6-5-1 3-3 5-6 5zM18 9c3 1 6 0 7-2-3-1-5 0-7 2z" fill="#9bb26a"/></svg>',
+  deco:'<svg class="deco" viewBox="0 0 130 58"><path d="M12 52L104 10" stroke="#8a5a32" stroke-width="5" stroke-linecap="round"/><path d="M12 52L36 41" stroke="#5a3a20" stroke-width="7" stroke-linecap="round"/><circle cx="40" cy="38" r="7" fill="#9aa0a6" stroke="#4a4f55" stroke-width="2"/><circle cx="40" cy="38" r="2.5" fill="#4a4f55"/><path d="M104 10Q120 4 116 30" stroke="#4a3a2c" stroke-width="1.4" fill="none"/><ellipse cx="116" cy="40" rx="8" ry="10" fill="#fff" stroke="#5a4632" stroke-width="1.6"/><path d="M108 38a8 9 0 0 1 16 0z" fill="#e05a4a" stroke="#5a4632" stroke-width="1.6"/><path d="M116 28v4" stroke="#5a4632" stroke-width="2"/></svg>'};
+ let m=document.getElementById('sv54');if(m)m.remove();m=document.createElement('div');m.id='sv54';document.body.appendChild(m);
+ const tab=openSaveGuide.tab||'here',fmt=t=>{if(!t)return '아직 없음';const d=new Date(t),n=new Date();const hm=d.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',hour12:false});return d.toDateString()===n.toDateString()?'오늘 '+hm:(d.getMonth()+1)+'월 '+d.getDate()+'일 '+hm;};
+ const where=(()=>{try{const RT=window.NK_RT;return RT&&RT.status&&RT.status()==='on'?'호숫가 '+RT.serverId():'혼자 플레이';}catch(e){return '-';}})();
+ m.innerHTML=`<div class="pc" role="dialog" aria-label="저장 및 불러오기"><button class="x" data-x aria-label="닫기">×</button>${I.deco}<h3>저장 및 불러오기</h3><p class="sub">진행 상황을 안전하게 저장하고 불러와요.</p>
+  <div class="tabs"><button class="tab ${tab==='here'?'on':''}" data-t="here">${I.fish} 이 기기</button><button class="tab ${tab==='other'?'on':''}" data-t="other">${I.cloud} 다른 기기</button></div>
+  <div class="body" data-t="${tab}"><div class="col here"><div class="auto">${I.check}<div><b>자동 저장</b><span class="onb">ON</span><div class="muted">게임 진행이 자동으로 저장됩니다.</div></div></div><div class="div">${I.leaf}</div>
+   <div class="info">${I.cal}<div>마지막 저장: <b id="svWhen">${fmt(S.savedAt)}</b><br>낚시터: ${where}</div></div><button class="big" id="svNow">${I.disk} 지금 저장</button></div>
+   <div class="col oth"><h4>다른 기기로 이어하기</h4><div class="muted">코드를 복사하거나 붙여넣어 저장 데이터를 옮겨요.</div><div class="codebox"><div class="code" id="svCode">${SV.code()||'코드 만드는 중…'}</div><button class="red" id="svCopy" ${SV.code()?'':'disabled'}>${I.doc} 코드 복사하기</button></div>
+    <div class="lbl">${I.clip} 코드 붙여넣기</div><div class="paste"><input id="svIn" placeholder="여기에 코드를 붙여넣으세요…" autocomplete="off" spellcheck="false"><button id="svLoad">불러오기</button></div><div class="muted" style="margin-top:6px">코드를 입력한 후 이어서 플레이하세요.</div></div></div>
+  <div class="foot">${I.fish.replace('width="40"','width="30"')} 클라우드 저장은 자동으로 백업돼요.</div></div>`;
+ const close=()=>{m.remove();removeEventListener('keydown',key,true);};const key=e=>{if(e.key==='Escape'){e.stopPropagation();close();}};addEventListener('keydown',key,true);
+ m.addEventListener('pointerdown',e=>{if(e.target===m)close();});m.querySelector('[data-x]').onclick=close;
+ m.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{if(!b.classList.contains('tab'))return;openSaveGuide.tab=b.dataset.t;m.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));m.querySelector('.body').dataset.t=b.dataset.t;});
+ const showCode=c=>{const el=m.querySelector('#svCode'),cp=m.querySelector('#svCopy');if(!el)return;if(c){el.textContent=c;cp.disabled=false;}else if(!SV.code()){el.textContent='서버에 연결하지 못했어요';}};
+ cloudSave(!SV.code()).then(showCode);
+ m.querySelector('#svNow').onclick=async()=>{S.savedAt=Date.now();save();m.querySelector('#svWhen').textContent=fmt(S.savedAt);toast('💾 이 기기에 저장했어요',1400);const c=await cloudSave(true);showCode(c);};
+ m.querySelector('#svCopy').onclick=()=>{const c=SV.code();if(!c)return;const done=()=>toast('📋 저장 코드를 복사했어요',1600);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(c).then(done,()=>{const i=m.querySelector('#svIn');i.value=c;i.select();toast('코드를 아래 칸에 넣어 뒀어요. 길게 눌러 복사해 주세요',2200);});else done();};
+ const load=async()=>{const raw=m.querySelector('#svIn').value.trim();if(!raw)return toast('코드를 붙여넣어 주세요',1400);
+  try{let o;if(raw[0]==='{'){o=JSON.parse(raw);}else{const c=raw.toUpperCase().replace(/[^0-9A-Z]/g,'');if(c.length!==12)return toast('코드는 12자리예요 (예: A7X9-K2L8-B6P3)',2000);
+    const r=await fetch(SV.api()+'/saves/'+c,{headers:{'X-Owner':SV.cid()}});const j=await r.json().catch(()=>null);if(r.status===404)return toast('없는 코드예요. 다시 확인해 주세요',2000);if(!r.ok||!j||!j.ok)throw 0;o=JSON.parse(j.data);}
+   if(!confirm('지금 이 기기의 진행 상황이 불러온 데이터로 바뀌어요. 계속할까요?'))return;applySaveObj(o);close();toast('📂 불러왔어요! 이어서 플레이하세요',2200);}
+  catch(e){toast('코드를 읽지 못했어요. 다시 시도해 주세요',2000);}};
+ m.querySelector('#svLoad').onclick=load;m.querySelector('#svIn').onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();load();}};}
 // v8: 부적 드래그 (마우스 즉시 / 터치는 길게 눌러서) — 리스트→슬롯 장착·교체, 슬롯→리스트 해제, 슬롯↔슬롯 순서 교체
 let DRG=null,dragJustEnded=0;
 document.addEventListener('touchmove',e=>{if(DRG&&DRG.on)e.preventDefault();},{passive:false});
