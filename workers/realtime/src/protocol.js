@@ -249,7 +249,9 @@ const DUCK_SIZES = [0.72, 1, 1.28, 1.55, 1.9];
 
 /** 간격·최대·크기·속도·종류는 시드와 벽시계로 정해져 중간 입장도 같다.
  *  속도 생략 시 0.5(느리게) = 초당 0.12라디안. head 는 진행 방향(접선)이라 부리가 앞을 본다.
- *  on 이 0/false 면 오리를 띄우지 않는다. */
+ *  on 이 0/false 면 오리를 띄우지 않는다.
+ *  since(켠 시각)가 있으면 그 순간 1마리, 이후 every 마다 한 마리씩 max 까지.
+ *  since 가 없으면 예전처럼 고정 원점(이미 떠 있던 호수)을 쓴다. */
 export function sharedDucks(now, world, opt) {
   const o = opt || {};
   if (o.on === 0 || o.on === false) return [];
@@ -261,7 +263,9 @@ export function sharedDucks(now, world, opt) {
   const rate = 0.12 * (spd / 0.5);
   const seed = Math.round(Number(world && world.ambSeed) || 1);
   const t = Number(now) || 0;
-  const elapsed = Math.max(0, t - 1_700_000_000_000);
+  const since = Number(o.since);
+  const paced = Number.isFinite(since) && since > 0;
+  const elapsed = Math.max(0, t - (paced ? since : 1_700_000_000_000));
   const n = Math.min(max, Math.floor(elapsed / every) + 1);
   const out = [];
   for (let i = 0; i < n; i++) {
@@ -280,6 +284,7 @@ export function sharedDucks(now, world, opt) {
       s: DUCK_SIZES[h % DUCK_SIZES.length],
       v: kinds[h2 % kinds.length],
       st: "swim",
+      age,
     });
   }
   return out;
@@ -480,17 +485,44 @@ export function sanitizeGrants(map, now) {
   return out;
 }
 
-export function mergeGrant(prev, patch, now) {
+/** 클릭한 소켓 id 가 이 호숫가에 있으면 그 닉이 기준. 없으면 적은 닉. */
+export function resolveGrantNick(patch, peers) {
+  if (!patch || typeof patch !== "object") return "";
+  const id = String(patch.id || "").trim();
+  if (id && Array.isArray(peers)) {
+    const hit = peers.find((p) => p && String(p.id) === id && p.nick);
+    if (hit) return sanitizeNick(hit.nick);
+  }
+  if (!String(patch.nick || "").trim()) return "";
+  return sanitizeNick(patch.nick);
+}
+
+export function mergeGrant(prev, patch, now, peers) {
   const t = Number.isFinite(now) ? now : Date.now();
   const next = sanitizeGrants(prev, t);
-  const nick = sanitizeNick(patch && patch.nick);
-  if (!patch || !String(patch.nick || "").trim()) return next;
+  if (!patch || (!String(patch.nick || "").trim() && !String(patch.id || "").trim())) return next;
+  const nick = resolveGrantNick(patch, peers);
+  if (!nick) return next;
   const mins = Math.round(Number(patch.mins));
   let until = Math.round(finite(patch.until, 0));
   if (mins > 0 && mins <= 400 * 24 * 60) until = t + mins * 60000;
   if (patch.revoke || !(until > t)) delete next[nick];
   else next[nick] = until;
   return next;
+}
+
+/** 이 클라이언트가 쓸 자동낚시 만료. keys 는 자기 닉만. mine 은 서버가 이 소켓에 적어 준 값.
+ *  다른 사람 닉이 keys 에 없으면 그 지급은 따라오지 않는다. */
+export function clientGrantUntil(map, keys, now, mine) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  let best = Math.round(finite(mine, 0));
+  if (!(best > t)) best = 0;
+  const src = map && typeof map === "object" && !Array.isArray(map) ? map : {};
+  for (const key of keys || []) {
+    const until = Math.round(finite(src[sanitizeNick(key)], 0));
+    if (until > t) best = Math.max(best, until);
+  }
+  return best > t ? best : 0;
 }
 
 /** 대상 닉과 빈 닉 별칭(나·낚시꾼) 중 남아 있는 자동낚시 시각. */
@@ -690,7 +722,14 @@ export function sanitizePlay(input, prev, opt) {
   const out = { ...base };
   if ("moveOn" in input) out.moveOn = !!input.moveOn;
   if ("move" in input) out.move = Math.round(Math.max(0, Math.min(1, finite(input.move, 0))) * 100) / 100;
-  if ("duckOn" in input) out.duckOn = flag01(input.duckOn);
+  if ("duckOn" in input) {
+    const nextOn = flag01(input.duckOn);
+    const had = Object.prototype.hasOwnProperty.call(base, "duckOn");
+    const prevOn = had ? flag01(base.duckOn) : nextOn;
+    out.duckOn = nextOn;
+    if (!nextOn) out.duckSince = 0;
+    else if (had && !prevOn) out.duckSince = now;
+  }
   if ("duckSnd" in input) out.duckSnd = flag01(input.duckSnd);
   if ("duckEvery" in input) out.duckEvery = snapList(input.duckEvery, DUCK_EVERY, snapList(base.duckEvery, DUCK_EVERY, 45));
   if ("duckMax" in input) out.duckMax = Math.max(0, Math.min(30, Math.round(finite(input.duckMax, base.duckMax != null ? base.duckMax : 8))));
@@ -886,8 +925,9 @@ export function parseClient(raw) {
   if (msg.t === "event") return { t: "event", event: msg.event == null ? null : msg.event };
   if (msg.t === "balance") return { t: "balance", balance: msg.balance == null ? null : msg.balance };
   if (msg.t === "grant") {
-    if (!msg.nick) return null;
-    return { t: "grant", nick: msg.nick, until: msg.until, revoke: !!msg.revoke, mins: msg.mins };
+    const id = String(msg.id || "").replace(/[^\w.-]/g, "").slice(0, 40);
+    if (!msg.nick && !id) return null;
+    return { t: "grant", nick: msg.nick, until: msg.until, revoke: !!msg.revoke, mins: msg.mins, id };
   }
   if (msg.t === "grants") return { t: "grants", grants: msg.grants };
   if (msg.t === "sanc") {

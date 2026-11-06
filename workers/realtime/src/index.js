@@ -7,6 +7,7 @@ import {
   ackRecover,
   lakeTargets,
   mergeGrant,
+  grantUntilFor,
   mergeLosses,
   mergeNoticeLog,
   mergeRecover,
@@ -219,7 +220,7 @@ export class LakeRoom extends DurableObject {
     if (msg.t === "grants") {
       const g = sanitizeGrants(msg.grants, now);
       await this.opsPut("grants", g);
-      this.broadcast({ t: "grants", grants: g, now });
+      this.broadcastGrants(g, now);
       return;
     }
     if (msg.t === "sanc") {
@@ -309,7 +310,8 @@ export class LakeRoom extends DurableObject {
       return;
     }
     if (msg.t === "grant") {
-      const next = mergeGrant(await this.opsGet("grants", {}), msg, now);
+      const peers = this.readyOthers(null).map((a) => ({ id: a.id, nick: a.nick }));
+      const next = mergeGrant(await this.opsGet("grants", {}), msg, now, peers);
       await this.fan(fromId, all, { t: "grants", grants: next });
       return;
     }
@@ -405,6 +407,22 @@ export class LakeRoom extends DurableObject {
       if (ws === except || ws.readyState !== WebSocket.OPEN) continue;
       try {
         ws.send(raw);
+      } catch {
+        /* 끊긴 소켓은 닫힘 핸들러가 정리합니다 */
+      }
+    }
+  }
+
+  /** 같은 목록을 뿌리되, 각 소켓에는 그 닉의 만료(mine)와 서버 닉(me)을 붙인다. */
+  broadcastGrants(grants, now) {
+    const t = Number.isFinite(now) ? now : Date.now();
+    for (const ws of this.ctx.getWebSockets()) {
+      if (ws.readyState !== WebSocket.OPEN) continue;
+      const att = this.attachment(ws);
+      const me = att && att.nick ? att.nick : "";
+      const mine = me ? grantUntilFor(grants, me, []) : 0;
+      try {
+        ws.send(JSON.stringify({ t: "grants", grants, now: t, me, mine: mine > t ? mine : 0 }));
       } catch {
         /* 끊긴 소켓은 닫힘 핸들러가 정리합니다 */
       }
@@ -543,6 +561,9 @@ export class LakeRoom extends DurableObject {
       }
       const world = await this.worldGet();
       const ops = await this.welcomeOps();
+      const meNick = next.att.nick;
+      const nowHello = Date.now();
+      const mineUntil = grantUntilFor(ops.grants || {}, meNick, []);
       ws.send(JSON.stringify({
         t: "welcome",
         id: next.att.id,
@@ -551,7 +572,9 @@ export class LakeRoom extends DurableObject {
         cap: CAP,
         peers: this.readyOthers(ws).map(publicPeer),
         world,
-        now: Date.now(),
+        now: nowHello,
+        nick: meNick,
+        mine: mineUntil > nowHello ? mineUntil : 0,
         ...ops,
       }));
       this.broadcast({ t: "join", n, peer: next.pub }, ws);

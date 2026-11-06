@@ -10,7 +10,7 @@
   const tips=(g.decks||[]).map(d=>d.tip?Math.hypot(d.tip.x,d.tip.z):99);rMax=Math.max(4,Math.min(...tips,30)-2.2);return true;}
  const rnd=(a,b)=>a+Math.random()*(b-a),WY=-.1;
  // v30: 순환 스폰 — 첫 마리 무조건 base, 이후 켜진 종류 중복없이 셔플 순차, 라운드 끝나면 재셔플. 최대 도달 시 가장 오래된 것부터 페이드아웃 후 새 종류.
- let cycleQ=[],cycleI=0,everSpawned=0;
+ let cycleQ=[],cycleI=0,everSpawned=0,duckWas=null,duckArm=0;
  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
  function refillCycle(){const K=conf().kinds.filter(k=>VG[k]);const rest=K.filter(k=>k!=='base');shuffle(rest);cycleQ=rest.length?rest.slice():(K.length?K.slice():['base']);cycleI=0;}
  function nextKind(){const K=conf().kinds.filter(k=>VG[k]);if(!K.length)return 'base';
@@ -27,10 +27,17 @@
   if(U().get('duckSnd')!==0)try{const ac=window.__duckAC||(window.__duckAC=new (window.AudioContext||window.webkitAudioContext)()),o=ac.createOscillator(),gn=ac.createGain(),vol=(G().S&&G().S.vol!=null?G().S.vol:.2);o.type='sine';o.frequency.setValueAtTime(520,ac.currentTime);o.frequency.exponentialRampToValueAtTime(140,ac.currentTime+.18);gn.gain.setValueAtTime(.25*vol,ac.currentTime);gn.gain.exponentialRampToValueAtTime(.001,ac.currentTime+.25);o.connect(gn).connect(ac.destination);o.start();o.stop(ac.currentTime+.26);}catch(e){}}
  const mtx=()=>new T.Matrix4(),q=()=>new T.Quaternion();let M4,Q4,E4,S4,P4;
  function step(t){requestAnimationFrame(step);if(!ok){ok=init();if(!ok)return;M4=mtx();Q4=q();E4=new T.Euler();S4=new T.Vector3();P4=new T.Vector3();last=t;}
-  const dt=Math.min(.05,(t-last)/1000);last=t;const c=conf(),go=document.getElementById('go'),started=go&&!go.offsetParent;
+  const dt=Math.min(.05,(t-last)/1000);last=t;  const c=conf(),go=document.getElementById('go'),started=go&&!go.offsetParent;
   const RT=window.NK_RT,SY=window.NK_SYNC,lake=!!(RT&&SY&&RT.status&&RT.status()==='on'&&RT.world&&+RT.world.ambSeed);
+  if(duckWas===false&&c.on)duckArm=Date.now();
+  if(!c.on)duckArm=0;
+  duckWas=!!c.on;
   if(lake){if(!c.on){ducks.length=0;everSpawned=0;cycleQ=[];cycleI=0;}
-   else{const everyMs=Math.max(1000,Math.round((+c.every||300)*1000));const lay=SY.ducks(Date.now(),RT.world,{rMax:rMax,every:everyMs,max:c.max,speed:+c.speed||0,size:c.size,kinds:c.kinds,on:1});ducks.length=0;lay.forEach(s=>{const face=s.head!=null?s.head:(+c.speed>0?-s.yaw:s.yaw);ducks.push({x:s.x,z:s.z,y:WY,vy:0,st:'swim',yaw:face,tY:face,sp:.3,s:s.s,ph:s.i,spin:0,v:s.v,born:0,fade:1,sync:1});});}}
+   else{const everyMs=Math.max(1000,Math.round((+c.every||300)*1000));const play=RT.play||{},serverSince=+play.duckSince||0,skew=Number.isFinite(+RT.clockSkew)?+RT.clockSkew:0;
+    let since=0,now=Date.now();
+    if(duckArm>0){const armServer=duckArm-skew;if(serverSince>=armServer-5000){since=serverSince;now=Date.now()-skew;}else since=duckArm;}
+    else if(serverSince>0){since=serverSince;now=Date.now()-skew;}
+    const lay=SY.ducks(now,RT.world,{rMax:rMax,every:everyMs,max:c.max,speed:+c.speed||0,size:c.size,kinds:c.kinds,on:1,since:since||0});ducks.length=0;lay.forEach(s=>{const face=s.head!=null?s.head:(+c.speed>0?-s.yaw:s.yaw);const age=+s.age||0,drop=1500,falling=!!since&&age<drop;ducks.push({x:s.x,z:s.z,y:falling?14*(1-age/drop):WY,vy:0,st:falling?'fall':'swim',yaw:face,tY:face,sp:.3,s:s.s,ph:s.i,spin:0,v:s.v,born:0,fade:1,sync:1});});}}
   else if(!c.on){ducks.length=0;everSpawned=0;cycleQ=[];cycleI=0;}
   else if(started&&t>nextT){
    if(ducks.filter(d=>d.st!=='fade').length>=c.max){ // 최대 → 가장 오래된 것 페이드 후 새 등장

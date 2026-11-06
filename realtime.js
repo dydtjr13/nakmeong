@@ -129,13 +129,14 @@
     if (m.server) RT.sid = m.server;
     peers.clear();
     (m.peers || []).forEach((p) => { if (p && p.id && p.id !== RT.id) peers.set(p.id, p); });
-    if (typeof m.now === "number") RT.clockSkew = Date.now() - m.now;
+    if (m.nick) RT.serverNick = String(m.nick);
+    if (typeof m.now === "number") { RT.clockSkew = Date.now() - m.now; RT.serverNow = m.now; }
     if (m.world) takeWorld(m.world);
     if (Array.isArray(m.notices)) takeNotices(m.notices, "notice" in m ? m.notice : undefined);
     else if ("notice" in m) takeNotice(m.notice);
     if ("event" in m) takeEvent(m.event);
     if ("balance" in m) takeBalance(m.balance);
-    if (m.grants) takeGrants(m.grants);
+    if (m.grants) takeGrants(m.grants, m.now, { me: m.nick || m.me, mine: m.mine });
     if (m.sanc) takeSanc(m.sanc);
     if (m.prof) takeProf(m.prof);
     if (m.stage) takeStage(m.stage);
@@ -163,9 +164,12 @@
     RT.balance = b || null;
     try { dispatchEvent(new CustomEvent("nk-rt-balance", { detail: b || null })); } catch (e) { /* ignore */ }
   }
-  function takeGrants(g, now) {
-    RT.grants = g || {};
-    if (typeof now === "number") RT.clockSkew = Date.now() - now;
+  function takeGrants(g, now, extra) {
+    extra = extra || {};
+    RT.grants = g && typeof g === "object" ? g : {};
+    if (typeof now === "number") { RT.clockSkew = Date.now() - now; RT.serverNow = now; }
+    if (extra.me) RT.serverNick = String(extra.me);
+    RT.grantMine = Math.round(Number(extra.mine) || 0);
     try { dispatchEvent(new CustomEvent("nk-rt-grants", { detail: RT.grants })); } catch (e) { /* ignore */ }
   }
   function takeSanc(s) {
@@ -231,7 +235,7 @@
     }
     else if (m.t === "event") takeEvent(m.event);
     else if (m.t === "balance") takeBalance(m.balance);
-    else if (m.t === "grants") takeGrants(m.grants, m.now);
+    else if (m.t === "grants") takeGrants(m.grants, m.now, { me: m.me, mine: m.mine });
     else if (m.t === "sanc") takeSanc(m.sanc);
     else if (m.t === "prof") takeProf(m.prof);
     else if (m.t === "gift" && m.gift) dispatchEvent(new CustomEvent("nk-rt-gift", { detail: m.gift }));
@@ -438,7 +442,7 @@
   RT.setNotice = function (notice) { return opsSend({ t: "notice", notice: notice || null }); };
   RT.setEvent = function (event) { return opsSend({ t: "event", event: event || null }); };
   RT.setBalance = function (balance) { return opsSend({ t: "balance", balance: balance || null }); };
-  RT.setGrant = function (grant) { return opsSend({ t: "grant", nick: grant && grant.nick, until: grant && grant.until, revoke: !!(grant && grant.revoke), mins: grant && grant.mins }); };
+  RT.setGrant = function (grant) { return opsSend({ t: "grant", nick: grant && grant.nick, until: grant && grant.until, revoke: !!(grant && grant.revoke), mins: grant && grant.mins, id: grant && grant.id || "" }); };
   RT.setSanc = function (row) { return opsSend({ t: "sanc", nick: row && row.nick, mute: row && row.mute, ban: row && row.ban, why: row && row.why }); };
   RT.setGift = function (gift) { return opsSend({ t: "gift", gift }); };
   RT.setProf = function (prof) { return opsSend({ t: "prof", prof }); };
