@@ -1,0 +1,41 @@
+<!doctype html><meta charset=utf-8><title>snow</title>
+<style>html,body{margin:0;background:#9ec8e8;overflow:hidden}canvas{display:block}</style>
+<canvas id=c></canvas>
+<script>
+const Q=new URLSearchParams(location.search),V=Q.get('v')||'A';
+const cv=c,x=cv.getContext('2d');let W,H;function R(){W=cv.width=innerWidth;H=cv.height=innerHeight;}R();addEventListener('resize',R);
+// simple lakeside scene
+function scene(snowCover){
+  x.fillStyle='#8ec4e8';x.fillRect(0,0,W,H);
+  // hills
+  x.fillStyle='#6aa86a';x.beginPath();x.moveTo(0,H*.55);for(let i=0;i<=W;i+=40)x.lineTo(i,H*.55+Math.sin(i*.01)*18);x.lineTo(W,H);x.lineTo(0,H);x.fill();
+  // lake
+  x.fillStyle='#6eb8d8';x.beginPath();x.ellipse(W*.5,H*.72,W*.42,H*.16,0,0,6.3);x.fill();
+  // dock
+  x.fillStyle='#c49a68';x.fillRect(W*.42,H*.58,W*.16,H*.22);x.fillStyle='#a87848';
+  for(let i=0;i<8;i++)x.fillRect(W*.42,H*.58+i*(H*.22/8),W*.16,3);
+  // cabin roof
+  x.fillStyle='#8a5a3a';x.fillRect(W*.1,H*.42,W*.18,H*.16);x.fillStyle='#6a3a2a';
+  x.beginPath();x.moveTo(W*.08,H*.42);x.lineTo(W*.19,H*.32);x.lineTo(W*.3,H*.42);x.fill();
+  // snow layers
+  if(snowCover>0){
+    const a=Math.min(1,snowCover);
+    // ground blend
+    x.fillStyle=`rgba(248,252,255,${.35*a})`;x.beginPath();x.moveTo(0,H*.55);for(let i=0;i<=W;i+=40)x.lineTo(i,H*.55+Math.sin(i*.01)*18);x.lineTo(W,H);x.lineTo(0,H);x.fill();
+    // dock snow
+    x.fillStyle=`rgba(255,255,255,${.55*a})`;
+    for(let i=0;i<8;i++){const t=Math.max(0,a-(i*.08));x.fillStyle=`rgba(255,255,255,${.5*t})`;x.fillRect(W*.42,H*.58+i*(H*.22/8)-2,W*.16,5+a*4);}
+    // roof snow
+    x.fillStyle=`rgba(255,255,255,${.7*a})`;x.beginPath();x.moveTo(W*.08,H*.42);x.lineTo(W*.19,H*.32);x.lineTo(W*.3,H*.42);x.lineTo(W*.28,H*.42+6*a);x.lineTo(W*.19,H*.32+8*a);x.lineTo(W*.1,H*.42+6*a);x.fill();
+    // residual particles on ground
+    for(let i=0;i<40*a;i++){x.fillStyle=`rgba(255,255,255,${.5+Math.random()*.4})`;x.beginPath();x.arc(Math.random()*W,H*.55+Math.random()*H*.4,1+Math.random()*2.5,0,6.3);x.fill();}
+  }
+  // falling snow
+  if(V!=='G0'){const n=V==='A'?40:V==='B'?120:V==='C'?200:80;for(let i=0;i<n;i++){const px=(i*97+performance.now()*.02*(1+i%5))%W,py=(i*53+performance.now()*.05*(1+i%3))%H;x.fillStyle='rgba(255,255,255,.85)';x.beginPath();x.arc(px,py,1+(i%3),0,6.3);x.fill();}}
+  // label
+  x.fillStyle='rgba(0,0,0,.45)';x.fillRect(12,12,280,36);x.fillStyle='#fff';x.font='bold 16px sans-serif';x.fillText({G0:'G0 · 눈 없음',A:'A · 가벼운 잔설 (바닥 블렌드)',B:'B · 데크·지붕 쌓임',C:'C · 두꺼운 적설+파티클',D:'D · 중간 단계 연출'}[V]||V,22,36);
+}
+const cover={G0:0,A:.25,B:.55,C:.95,D:.7}[V]||.4;
+function loop(){scene(cover);requestAnimationFrame(loop);}loop();
+document.title='ok';
+</script>

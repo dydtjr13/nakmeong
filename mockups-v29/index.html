@@ -1,0 +1,29 @@
+<!doctype html><meta charset=utf-8><title>낚멍 v29 시안</title>
+<style>
+body{margin:0;font:15px/1.45 system-ui,sans-serif;background:#0f1419;color:#e8eef4}
+header{padding:18px 22px;border-bottom:1px solid #243041;position:sticky;top:0;background:#0f1419ee;backdrop-filter:blur(8px);z-index:2}
+h1{margin:0;font-size:20px}p{margin:6px 0 0;opacity:.75}
+main{padding:18px;display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+figure{margin:0;background:#182230;border-radius:14px;overflow:hidden;cursor:zoom-in;border:1px solid #2a3a4e}
+figure img{width:100%;display:block;aspect-ratio:16/10;object-fit:cover;background:#9ec8e8}
+figcaption{padding:10px 12px;font-weight:700;font-size:13px}
+#lb{position:fixed;inset:0;background:#000c;display:none;align-items:center;justify-content:center;z-index:9;padding:20px}
+#lb.show{display:flex}#lb img{max-width:min(1200px,96vw);max-height:92vh;border-radius:12px;box-shadow:0 20px 60px #0008}
+h2{grid-column:1/-1;margin:8px 0 0;font-size:16px;opacity:.9;border-left:3px solid #5fc48a;padding-left:10px}
+</style>
+<header><h1>낚멍 v29 시안</h1><p>눈 쌓임(적용 금지) · 합성/강화 재구성 · 러버덕 10종 · 클릭하면 크게 보기</p></header>
+<main id=m></main>
+<div id=lb><img alt=""></div>
+<script>
+const G=[
+['눈 쌓임 (시안만)',[
+ ['img/snow-G0.jpg','G0 · 눈 없음'],['img/snow-A.jpg','A · 가벼운 잔설'],['img/snow-B.jpg','B · 데크·지붕 쌓임'],['img/snow-C.jpg','C · 두꺼운 적설'],['img/snow-D.jpg','D · 중간 단계']]],
+['합성·강화 재구성',[
+ ['img/synS1.jpg','S1 모루형 (추천)'],['img/synS2.jpg','S2 단계 올리기'],['img/synS3.jpg','S3 목록형'],['img/enhE1.jpg','E1 강화 집중'],['img/enhE2.jpg','E2 위험 구간']]],
+['러버덕 신규 10종',[
+ ['img/ducks10.jpg','신규 10종 한눈에'],...['cowboy','chef','ninja','santa','hardhat','mermaid','vamp','bee','sushi','detective'].map(k=>[`img/duck-${k}.jpg`,k])]
+]];
+const m=document.getElementById('m'),lb=document.getElementById('lb'),li=lb.querySelector('img');
+G.forEach(([t,L])=>{const h=document.createElement('h2');h.textContent=t;m.appendChild(h);L.forEach(([src,cap])=>{const f=document.createElement('figure');f.innerHTML=`<img src="${src}" alt="${cap}" loading=lazy><figcaption>${cap}</figcaption>`;f.onclick=()=>{li.src=src;lb.classList.add('show');};m.appendChild(f);});});
+lb.onclick=()=>lb.classList.remove('show');
+</script>
