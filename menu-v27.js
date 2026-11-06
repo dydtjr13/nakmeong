@@ -12,7 +12,7 @@
  function apply(){const mn=$('mMain'),sy=$('mSys'),bd=$('bBoard'),dex=$('bDex');if(!mn||!sy||!bd||!dex||!$('bAutoFish'))return setTimeout(apply,400);
   document.body.classList.toggle('mv27',on());
   if(!ORIG.dex){ORIG.dex=dex.innerHTML;ORIG.order=[...mn.children].map(e=>e.id);}
-  let box=$('bBox');if(!box){box=document.createElement('button');box.id='bBox';box.title='상자';box.innerHTML='<b class="mi"><img class="bxi" src="img/box/t0.png" alt=""></b><small class="ml">상자</small>';box.onclick=e=>{e.stopPropagation();try{NKV2.bagTab('box');}catch(_){}const bb=$('bBag');bb&&bb.click();setTimeout(()=>{try{NKV2.bagTab('box');}catch(_){}},30);};}
+  let box=$('bBox');if(!box){box=document.createElement('button');box.id='bBox';box.title='상자';box.innerHTML='<b class="mi"><img class="bxi" src="img/box/t0.png" alt=""></b><small class="ml">상자</small>';box.onclick=e=>{e.stopPropagation();try{NKV2.openBag('box');}catch(_){try{NKV2.bagTab('box');$('bBag')&&$('bBag').click();}catch(e2){}}};}
   let dn=$('bDon');if(!dn){dn=document.createElement('button');dn.id='bDon';dn.title='후원 (커피 한 잔)';dn.onclick=e=>{e.stopPropagation();don();};}
   const d3=U()&&U().get('donSt')==='d3';dn.className=bd.className+(d3?' d3':'');dn.innerHTML=d3?'<b class="mi">☕</b><span class="dt">커피 한 잔<small>개발자 응원하기</small></span>':'<b class="mi">☕</b><small class="ml">후원</small>';
   if(on()){['bShop','bTank','bAutoFish'].forEach(id=>mn.appendChild($(id)));mn.appendChild(box);mn.appendChild($('bBag'));dex.className=bd.className;sy.insertBefore(dex,bd);sy.insertBefore(dn,dex);}

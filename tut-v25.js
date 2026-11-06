@@ -9,15 +9,20 @@
   {id:'three',cat:'낚시',ic:'🐟',t:'물고기 3마리 낚기',say:'잘했어! 이번엔 <b>3마리</b>를 더 낚아 볼까?',goal:{k:'catch',n:3},rw:{bait:{paste:5}}},
   {id:'bait',cat:'장비',ic:'🪱',t:'떡밥으로 바꿔 끼우기',say:'선물로 준 <b>떡밥</b>을 끼워 봐. 🛒상점 › 미끼에서 <b>장착</b>!',goal:{k:'bait',n:1},rw:{co:100}},
   {id:'sell',cat:'경제',ic:'💰',t:'물고기 팔기',say:'🛒상점 › <b>판매</b>에서 물고기를 팔면 코인이 생겨.',goal:{k:'sell',n:1},rw:{co:100}},
+  {id:'wearHat',cat:'장비',ic:'👒',t:'밀짚 모자 받기',say:'자, 이건 할아버지가 쓰던 <b>밀짚 모자</b>야. 🎒가방 › 장비에서 장착해 보렴.',goal:{k:'wearEq',n:1,slot:'hat'},rw:{wear:'hat1'}},
+  {id:'wearCloth',cat:'장비',ic:'👕',t:'면 티셔츠 받기',say:'이번엔 <b>면 티셔츠</b>를 줄게. 하나씩 차근차근 입는 거야.',goal:{k:'wearEq',n:1,slot:'cloth'},rw:{wear:'cloth1'}},
+  {id:'wearShoe',cat:'장비',ic:'👢',t:'짚신 받기',say:'발에는 <b>짚신</b>이 제격이지. 가방에서 신어 봐!',goal:{k:'wearEq',n:1,slot:'shoe'},rw:{wear:'shoe1'}},
+  {id:'wearGlove',cat:'장비',ic:'🧤',t:'면장갑 받기',say:'마지막으로 <b>면장갑</b>. 네 칸 다 채우면 밀짚 소풍 세트 효과가 켜진단다!',goal:{k:'wearEq',n:1,slot:'glove'},rw:{wear:'glove1'}},
   {id:'dex',cat:'수집',ic:'📖',t:'도감 3종 채우기',say:'여러 종류를 낚으면 📖<b>도감</b>이 채워진단다. 3종!',goal:{k:'dex',n:3},rw:{box:['lv0']}},
   {id:'lv5',cat:'성장',ic:'🏅',t:'Lv.5 되기',say:'마지막! <b>Lv.5</b>가 되면 이제 어엿한 낚시꾼이야.',goal:{k:'lv',n:5},rw:{co:300,box:['lv1']}}];
  const CHECK={seat:(g,b)=>G().nearSpot&&G().nearSpot()?1:0,catch:(g,b,s)=>Math.max(0,(s.caught||0)-(b.caught||0)),bait:(g,b,s)=>s.bait&&s.bait!=='worm'?1:0,
-  sell:(g,b,s)=>((s.earned||0)>(b.earned||0))?1:0,dex:(g,b,s)=>Object.keys(s.dex||{}).length,lv:()=>G().myLv?G().myLv():1};
+  sell:(g,b,s)=>((s.earned||0)>(b.earned||0))?1:0,dex:(g,b,s)=>Object.keys(s.dex||{}).length,lv:()=>G().myLv?G().myLv():1,
+  wearEq:(g,b,s)=>((s.wear||[]).some(w=>w.eq&&w.slot===g.slot)?1:0)};
  const K='nk_tut25';let P;try{P=JSON.parse(localStorage.getItem(K)||'null');}catch(e){}if(!P)P={i:0,b:null,v:1};const sv=()=>localStorage.setItem(K,JSON.stringify(P));
  const U=()=>window.NK_UI25,m=()=>innerWidth<700,emo=e=>{try{window.NK_EMOJI&&NK_EMOJI.parse&&NK_EMOJI.parse(e);}catch(_){}};
- const rwTxt=r=>[r.co&&`🪙 ${r.co}`,r.xp&&`⭐ ${r.xp} XP`,r.bait&&Object.entries(r.bait).map(([k,n])=>`🪱 ${k==='paste'?'떡밥':k} ${n}`).join(' '),r.box&&`🎁 상자 ${r.box.length}`,r.stone&&`💎 강화석 ${r.stone}`].filter(Boolean).join(' · ');
+ const rwTxt=r=>[r.co&&`🪙 ${r.co}`,r.xp&&`⭐ ${r.xp} XP`,r.bait&&Object.entries(r.bait).map(([k,n])=>`🪱 ${k==='paste'?'떡밥':k} ${n}`).join(' '),r.box&&`🎁 상자 ${r.box.length}`,r.stone&&`💎 강화석 ${r.stone}`,r.wear&&`👕 장비`].filter(Boolean).join(' · ');
  function base(){const s=S();return {caught:s.caught||0,earned:s.earned||0};}
- function give(r){const s=S(),g=G();if(r.co)s.coins+=r.co;if(r.bait)for(const k in r.bait){if(s.baits[k]!==-1)s.baits[k]=(s.baits[k]||0)+r.bait[k];}if(r.box)r.box.forEach(b=>s.boxes.push(b));if(r.stone)s.stones=(s.stones||0)+r.stone;if(r.xp&&g.addXP)g.addXP(r.xp,'튜토리얼');try{g.save&&g.save();g.applyHud&&g.applyHud();}catch(e){}}
+ function give(r){const s=S(),g=G();if(r.co)s.coins+=r.co;if(r.bait)for(const k in r.bait){if(s.baits[k]!==-1)s.baits[k]=(s.baits[k]||0)+r.bait[k];}if(r.box)r.box.forEach(b=>s.boxes.push(b));if(r.stone)s.stones=(s.stones||0)+r.stone;if(r.xp&&g.addXP)g.addXP(r.xp,'튜토리얼');if(r.wear){s.wear=s.wear||[];const it=(window.NK_DATA&&NK_DATA.WEAR&&NK_DATA.WEAR.byK[r.wear]);if(it&&!s.wear.some(w=>w.k===r.wear)){s.wear.push({id:(s.nid=(s.nid||1)+1),k:r.wear,slot:it.slot,lv:it.lv,eq:false,nw:1});}}try{g.save&&g.save();g.applyHud&&g.applyHud();}catch(e){}}
  let el,last='';
  function prog(st){const s=S();if(!s||!G())return 0;if(!P.b){P.b=base();sv();}return Math.min(st.goal.n,CHECK[st.goal.k](st.goal,P.b,s));}
  function render(force){if(!el){el=document.createElement('div');el.id='tq25';document.body.appendChild(el);el.addEventListener('click',e=>{const a=e.target.closest('[data-tq]');if(!a)return;e.stopPropagation();const k=a.dataset.tq;

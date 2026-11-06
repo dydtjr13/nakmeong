@@ -30,7 +30,9 @@ SYS.openBox=(D,S,rnd=Math.random,src)=>{const ch=SYS.charmSum(D,S),tier=src==='s
     if((x-=RW.charm)<0){const c=SYS.makeCharm(D,tier,S.nid++,rnd);S.charms.push(c);out.push({type:'charm',c});return;}
     if((x-=RW.rod)<0){const k=SYS.boxRod(D,tier,rnd),g=SYS.makeGear(D,k,S.nid++,rnd,tier);S.gear.push(g);out.push({type:'rod',g});return;}
     if((x-=RW.bait)<0&&tier<=(D.BOX.baitMaxTier==null?9:D.BOX.baitMaxTier)){const [k,n]=D.BOX.baitPool[tier];S.baits[k]=Math.max(0,S.baits[k]||0)+n;out.push({type:'bait',k,n});return;}
-    // v29: 전설(4)·신화(5) 상자에서는 강화석 제외 → 코인만 (강화석은 영웅 이하·분해·수집 목표로)
+    // v29: 장비 드롭 (희귀+ 상자, 1레벨 제외 — 튜토리얼 전용)
+    if(D.WEAR&&D.WEAR.boxRate&&rnd()<D.WEAR.boxRate[tier]){const L=D.WEAR.boxLv[tier].filter(l=>l>1),lv=L[(rnd()*L.length)|0]||10,slot=D.WEAR.slots[(rnd()*4)|0],it=D.WEAR.byK[slot+lv];if(it){const w={id:S.nid++,k:it.k,slot,lv,eq:false,nw:1};S.wear=S.wear||[];S.wear.push(w);out.push({type:'wear',w,it});return;}}
+    // v29: 전설(4)·신화(5) 상자에서는 강화석 제외 → 코인만
     const co=D.BOX.coins[tier],st=tier>=4?0:D.BOX.stones[tier];if(st)S.stones=(S.stones||0)+st;S.coins+=co;out.push({type:'stone',st,co});};
   one();if(rnd()<ch.appraise/100){one();out[out.length-1].bonus=true;}
   // v27: 초월 낚싯대(천룡·화룡)는 상자 등급과 상관없이 상자 1개마다 각각 1/10,000 따로 굴림
@@ -49,9 +51,9 @@ SYS.synth=(D,S,tid,mid,rnd=Math.random)=>{const t=S.gear.find(g=>g.id===tid),m=S
   t.extra.forEach(e=>e.v=R1(Math.min(SYS.extraMax(D,t,e.k),e.v*G.starUp)));const added=SYS.slotCount(D,t)-before;for(let i=0;i<added;i++)SYS.addExtra(D,t,rnd);return {r:'ok',star:t.star,added};};
 SYS.dismantle=(D,S,maxTier)=>{const L=S.charms.filter(c=>c.tier<=maxTier&&!c.lock&&!S.equip.includes(c.id));let co=0,st=0;L.forEach(c=>{co+=D.CHARM.dismantle.coin[c.tier];st+=D.CHARM.dismantle.stone[c.tier];});
   if(typeof ILOG_HOOK==='function')L.forEach(c=>ILOG_HOOK('dis','charm',c,D.CHARM.dismantle.coin[c.tier],{st:D.CHARM.dismantle.stone[c.tier]}));S.charms=S.charms.filter(c=>!L.includes(c));S.coins+=co;S.stones+=st;return {n:L.length,co,st};};
-SYS.mods=(D,S,rod,bait)=>{const ch=SYS.charmSum(D,S),lv=rod.enh||0;
-  return {ch,size:rod.size*bait.size*(1+lv*D.ENH.size)*(1+ch.big/100),wait:bait.speed*rod.speed*(1-lv*D.ENH.speed)*(1-ch.quick/100),
-   sell:D.SHOP_SELL_RATE*(1+ch.merchant/100)*(1+(rod.coin||0)),box:SYS.boxChance(D,ch)*(1+(rod.box||0))};};
+SYS.mods=(D,S,rod,bait)=>{const ch=SYS.charmSum(D,S),lv=rod.enh||0,W=SYS.wearMods?SYS.wearMods(D,S):{};
+  return {ch,W,size:rod.size*bait.size*(1+lv*D.ENH.size)*(1+ch.big/100)*(1+(W.big||0)/100),wait:bait.speed*rod.speed*(1-lv*D.ENH.speed)*(1-(ch.quick+(W.quickW||0))/100),
+   sell:D.SHOP_SELL_RATE*(1+(ch.merchant+(W.sell||0))/100)*(1+(rod.coin||0))*(1+(W.coin||0)/100),box:SYS.boxChance(D,ch)*(1+(rod.box||0)),xp:1+(W.xp||0)/100,shop:1-(W.shop||0)/100};};
 SYS.progress=(D,S,rod)=>{const G=D.GATE;if(!G)return 1;const ri=Math.max(0,D.RODS.findIndex(r=>r.k===rod.k)),rr=Math.min(1,ri/Math.max(1,D.RODS.findIndex(r=>r.k==='dragon')))/* v26: 용왕 이후 낚싯대가 늘어도 진행도 기준 유지 */;return Math.min(1,G.wRod*rr+G.wEnh*Math.min(1,(rod.enh||0)/10)+G.wCaught*Math.min(1,(S.caught||0)/G.caughtMax));};
 SYS.gateMul=(D,f,P)=>{const G=D.GATE;if(!G||!G.on)return 1;const fb=f.gb!=null?f.gb:f.base,e=fb>=G.hi.base?G.hi.e:fb>=G.mid.base?G.mid.e:1;return e+(1-e)*P;};
 SYS.weights=(D,S,rod,bait,night=0)=>{const ch=SYS.charmSum(D,S),N=night>.5,bb=bait.nightOnly&&!N?{}:bait.boost,P=SYS.progress(D,S,rod);return D.FISH.map(f=>{if(f.nightOnly&&!N)return 0;if(f.wx&&(S.__wx!==f.wx||(f.season&&S.__season!==f.season)))return 0;return SYS.gateMul(D,f,P)*f.w*(bb[f.k]||1)*(f.rare?(1+rod.luck*10)*(1+ch.luck/100):1)*(f.expert?1+ch.expert/100:1)*(N&&f.night?f.night:1);});};
@@ -85,5 +87,9 @@ SYS.goalProg=(D,S,g)=>{const dx=S.dex||{},hasG=(k,m)=>dx[k]&&dx[k].gr.some((v,i)
   if(g.t==='gradeSp')return [Math.min(g.cnt,D.FISH.filter(f=>hasG(f.k,g.g)).length),g.cnt];
   if(g.t==='myth')return [Math.min(g.n,((S.stats&&S.stats.g)||[])[4]||0),g.n];return [0,1];};
 SYS.goalDone=(D,S,g)=>{const [a,b]=SYS.goalProg(D,S,g);return a>=b;};
+// v29 wear
+SYS.wearOf=(S,slot)=>((S.wear||[]).find(w=>w.eq&&w.slot===slot));
+SYS.wearMods=(D,S)=>{const m={xp:0,sell:0,coin:0,shop:0,quickW:0,treasure:0,big:0};(S.wear||[]).filter(w=>w.eq).forEach(w=>{const it=D.WEAR&&D.WEAR.byK[w.k];if(!it)return;for(const k in it.opt)m[k]=(m[k]||0)+it.opt[k];});
+ if(D.WEAR){D.WEAR.sets.forEach(st=>{const have=st.need.every(k=>(S.wear||[]).some(w=>w.k===k&&w.eq));if(have)for(const k in st.fx)m[k]=(m[k]||0)+st.fx[k];});}return m;};
 root.NK_SYS=SYS;if(typeof module!=='undefined')module.exports=SYS;
 })(typeof window!=='undefined'?window:globalThis);
