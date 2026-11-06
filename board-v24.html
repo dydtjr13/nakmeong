@@ -87,7 +87,8 @@ const catLabel=k=>(CATS.find(c=>c[0]===k)||[k,k])[1];
 const P=(()=>{try{return parent!==window?parent:null;}catch(e){return null;}})();
 function apiBase(){try{const q=new URLSearchParams(location.search).get('api');if(q)return q.replace(/\/$/,'');if(P&&P.NK_BOARD_API)return String(P.NK_BOARD_API).replace(/\/$/,'');}catch(e){}return 'https://fishcozy-board-api.mi1ku.workers.dev';}
 function myNick(){try{const RT=P&&P.NK_RT;if(RT&&RT.serverNick)return String(RT.serverNick).slice(0,10);const S=P&&P.NKV2&&P.NKV2.S;if(S&&String(S.nick||'').trim())return String(S.nick).trim().slice(0,10);}catch(e){}return '낚시꾼';}
-function isStaff(){try{return !!(P&&P.document.body.classList.contains('adm'));}catch(e){return false;}}
+function adminToken(){try{const RT=P&&P.NK_RT;return RT&&RT.isAdmin&&RT.isAdmin()?String(RT.adminToken||''):'';}catch(e){return '';}}
+function isStaff(){return !!adminToken();}
 function when(ts){const t=+ts||0;if(!t)return '';const d=Date.now()-t;if(d<60e3)return '방금';if(d<3600e3)return Math.floor(d/60e3)+'분 전';if(d<86400e3)return Math.floor(d/3600e3)+'시간 전';const x=new Date(t);return (x.getMonth()+1)+'.'+x.getDate();}
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),1800);}
 function close(){try{parent.postMessage('nkBoardClose','*');}catch(e){}}
@@ -97,7 +98,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'){if(view!=='list'){showList()
 async function api(path,opt){
   const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),8000);
   try{
-    const r=await fetch(apiBase()+path,Object.assign({signal:ctl.signal},opt||{},{headers:Object.assign({'Content-Type':'application/json'},(opt&&opt.headers)||{})}));
+    const r=await fetch(apiBase()+path,Object.assign({signal:ctl.signal},opt||{},{headers:Object.assign({'Content-Type':'application/json'},adminToken()?{'X-Admin-Token':adminToken()}:{},(opt&&opt.headers)||{})}));
     let j=null;try{j=await r.json();}catch(e){}
     if(!r.ok||!j||j.ok===false)throw new Error((j&&j.error)||('HTTP '+r.status));
     setStatus(true);return j;
@@ -142,15 +143,17 @@ async function showPost(id){
   view='post';
   const p=all.find(x=>x.id===id);if(!p)return showList(true);
   const m=$('#main');
-  m.innerHTML=`<button class="back" id="bk">← 목록</button><article class="post"><em class="tag ${STAFF.has(p.k)?'n':''}">${esc(p.k)}</em><h2>${esc(p.title)}</h2><div class="m">${esc(p.nick)} · ${esc(when(p.ts))}</div><div class="body">${esc(p.body)}</div></article><section class="cms"><h3>댓글</h3><div id="cml"><div class="msg">불러오는 중…</div></div><div class="cbox"><input id="cin" maxlength="200" placeholder="${esc(myNick())}(으)로 댓글 남기기"><button class="btn pri" id="cgo">등록</button></div></section>`;
+  m.innerHTML=`<button class="back" id="bk">← 목록</button>${isStaff()?'<button class="btn" id="pdel" style="float:right;color:#e0564f">🗑 글 삭제</button>':''}<article class="post"><em class="tag ${STAFF.has(p.k)?'n':''}">${esc(p.k)}</em><h2>${esc(p.title)}</h2><div class="m">${esc(p.nick)} · ${esc(when(p.ts))}</div><div class="body">${esc(p.body)}</div></article><section class="cms"><h3>댓글</h3><div id="cml"><div class="msg">불러오는 중…</div></div><div class="cbox"><input id="cin" maxlength="200" placeholder="${esc(myNick())}(으)로 댓글 남기기"><button class="btn pri" id="cgo">등록</button></div></section>`;
   m.scrollTop=0;
   $('#bk').onclick=()=>showList();
   const paint=async()=>{
     try{const j=await api('/posts/'+encodeURIComponent(id));const cms=j.comments||[];p.cc=cms.length;if(view!=='post')return;
-      $('#cml').innerHTML=cms.length?cms.map(c=>`<div class="cm"><b>${esc(c.nick)}</b><small>${esc(when(c.created_at))}</small><div>${esc(c.body)}</div></div>`).join(''):'<div class="msg" style="padding:14px">첫 댓글을 남겨 보세요.</div>';}
+      $('#cml').innerHTML=cms.length?cms.map(c=>`<div class="cm"><b>${esc(c.nick)}</b><small>${esc(when(c.created_at))}</small>${isStaff()?`<button class="back" data-cdel="${esc(c.id)}" style="float:right;color:#e0564f;margin:0">삭제</button>`:''}<div>${esc(c.body)}</div></div>`).join(''):'<div class="msg" style="padding:14px">첫 댓글을 남겨 보세요.</div>';}
     catch(e){if(view==='post')$('#cml').innerHTML='<div class="msg err" style="padding:14px">댓글을 불러오지 못했어요.</div>';}
   };
   paint();
+  const pd=$('#pdel');if(pd)pd.onclick=async()=>{if(!confirm('이 글을 삭제할까요? 댓글도 함께 지워져요'))return;try{await api('/posts/'+encodeURIComponent(id),{method:'DELETE'});all=all.filter(x=>x.id!==id);toast('글을 삭제했어요');showList();}catch(e){toast('삭제하지 못했어요');}};
+  $('#cml').addEventListener('click',async e=>{const b=e.target.closest('[data-cdel]');if(!b)return;if(!confirm('이 댓글을 삭제할까요?'))return;try{await api('/comments/'+encodeURIComponent(b.dataset.cdel),{method:'DELETE'});await paint();}catch(err){toast('삭제하지 못했어요');}});
   const go=async()=>{const inp=$('#cin'),v=inp.value.trim();if(!v)return;$('#cgo').disabled=true;
     try{await api('/posts/'+encodeURIComponent(id)+'/comments',{method:'POST',body:JSON.stringify({body:v,nick:myNick()})});inp.value='';await paint();}
     catch(e){toast('댓글을 등록하지 못했어요. 다시 시도해 주세요');}
@@ -174,7 +177,7 @@ function showWrite(){
     try{const j=await api('/posts',{method:'POST',body:JSON.stringify({cat:k,title,body,nick:myNick()})});
       const p=j.post||{};all.unshift({id:p.id,k,title,body,nick:p.nick||myNick(),ts:p.created_at||Date.now(),cc:0});
       cat=k;paintCats();toast('글을 올렸어요');showPost(p.id);}
-    catch(e){toast('글을 올리지 못했어요. 다시 시도해 주세요');$('#wgo').disabled=false;}
+    catch(e){toast(/admin only/.test(e.message)?'공지·업데이트와 운영자 닉네임은 관리자만 쓸 수 있어요':'글을 올리지 못했어요. 다시 시도해 주세요');$('#wgo').disabled=false;}
   };
 }
 paintCats();showList(true);

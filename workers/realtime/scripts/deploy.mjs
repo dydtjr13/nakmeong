@@ -18,6 +18,16 @@ const metadata = {
   exports: { LakeRoom: { type: "durable-object", storage: "sqlite" } },
   observability: { enabled: true, head_sampling_rate: 1 },
 };
+// v52: 관리자 비밀번호 — GitHub 보안 비밀 ADMIN_PASSWORD 가 있으면 워커 시크릿으로 올린다(코드·로그에 남지 않음).
+//      없으면 이미 워커에 있던 시크릿을 그대로 둔다(keep_bindings).
+if (!metadata.keep_bindings) metadata.keep_bindings = ["secret_text"];
+const PW = process.env.ADMIN_PASSWORD || "";
+if (PW) {
+  if (PW.length < 12) { console.error("ADMIN_PASSWORD 는 12자 이상으로 해 주세요."); process.exit(1); }
+  metadata.bindings.push({ type: "secret_text", name: "ADMIN_PASSWORD", text: PW });
+  if (process.env.ADMIN_ID) metadata.bindings.push({ type: "secret_text", name: "ADMIN_ID", text: process.env.ADMIN_ID });
+  console.log("관리자 비밀번호 시크릿 포함");
+} else console.log("ADMIN_PASSWORD 없음 → 기존 워커 시크릿 유지");
 const form = new FormData();
 form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
 for (const name of ["index.js", "protocol.js"]) {

@@ -1,5 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import {
+  ADMIN_OPS,
   CAP,
   HELLO_MS,
   MAX_OPS,
@@ -62,6 +63,24 @@ function json(data, status, origin) {
       ...corsHeaders(origin),
     },
   });
+}
+
+/** v52: 관리자 비밀번호 비교 (SHA-256 후 상수 시간 비교) */
+async function digest(s) {
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s))));
+}
+async function sameSecret(a, b) {
+  const x = await digest(a), y = await digest(b);
+  let d = 0;
+  for (let i = 0; i < x.length; i++) d |= x[i] ^ y[i];
+  return d === 0;
+}
+/** 게시판 API 가 확인하는 관리자 토큰: `만료시각.HMAC(ADMIN_PASSWORD, "board:만료시각")` */
+async function boardToken(secret, ttlMs) {
+  const exp = Date.now() + (ttlMs || 12 * 3600e3);
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode("board:" + exp)));
+  return exp + "." + [...sig].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 function messageText(message) {
@@ -375,12 +394,28 @@ export class LakeRoom extends DurableObject {
     }
   }
 
+  /** v52: 관리자 확인. 10분에 20번 이상 틀리면 이 호숫가는 잠시 모든 로그인 거부 */
+  async adminCheck(id, pw) {
+    const secret = this.env && this.env.ADMIN_PASSWORD;
+    if (!secret || !pw) return false;
+    const now = Date.now();
+    this._authFails = (this._authFails || []).filter((t) => now - t < 10 * 60e3);
+    if (this._authFails.length >= 20) return false;
+    const okId = await sameSecret(String(id || "").trim(), (this.env.ADMIN_ID || "admin"));
+    const okPw = await sameSecret(pw, secret);
+    if (okId && okPw) return true;
+    this._authFails.push(now);
+    console.log(JSON.stringify({ event: "admin_auth_fail", n: this._authFails.length }));
+    return false;
+  }
+
   openSockets(except) {
     return this.ctx.getWebSockets().filter((ws) => ws !== except && ws.readyState === WebSocket.OPEN);
   }
 
   async occupancy() {
-    return { n: this.openSockets().length, cap: CAP };
+    const st = await this.opsGet("stage", null);
+    return { n: this.openSockets().length, cap: CAP, stage: st ? { lay: st.lay, deckW: st.deckW, decks: st.decks, rev: st.rev } : null };
   }
 
   attachment(ws) {
@@ -488,6 +523,29 @@ export class LakeRoom extends DurableObject {
       }
       return;
     }
+    if (msg.t === "auth" && msg.out) {
+      const att = this.attachment(ws) || prev;
+      att.admin = 0;
+      ws.serializeAttachment(att);
+      try { ws.send(JSON.stringify({ t: "auth", ok: false, out: 1 })); } catch { /* ignore */ }
+      return;
+    }
+    if (msg.t === "auth") {
+      const tries = (prev.authN | 0) + 1;
+      const ok = await this.adminCheck(msg.id, msg.pw);
+      const att = this.attachment(ws) || prev;
+      att.authN = ok ? 0 : tries;
+      if (ok) att.admin = 1;
+      ws.serializeAttachment(att);
+      const token = ok ? await boardToken(this.env.ADMIN_PASSWORD) : "";
+      try { ws.send(JSON.stringify({ t: "auth", ok, token })); } catch { /* ignore */ }
+      if (!ok && tries >= 5) { try { ws.close(4006, "auth"); } catch { /* ignore */ } }
+      return;
+    }
+    if (ADMIN_OPS.has(msg.t) && !prev.admin) {
+      try { ws.send(JSON.stringify({ t: "auth", ok: false, need: 1 })); } catch { /* ignore */ }
+      return;
+    }
     if (msg.t === "world") {
       if (!prev.ready) return;
       const world = await this.worldSet(msg.world);
@@ -511,16 +569,34 @@ export class LakeRoom extends DurableObject {
       return;
     }
     let play = msg;
+    let helloAdmin = false;
     if (play.t === "hello" || play.t === "pose") {
       const named = play.nick != null && String(play.nick).trim() !== "";
       if (play.t === "hello" || named) {
         const want = sanitizeNick(named ? play.nick : (prev.nick || ""));
-        const why = nickProblem(want);
+        if (play.t === "hello" && play.adm && !prev.admin) {
+          if (await this.adminCheck(play.adm.id, play.adm.pw)) helloAdmin = true;
+          else {
+            try { ws.send(JSON.stringify({ t: "nick", ok: false, reason: "admin" })); } catch { /* ignore */ }
+            if (!prev.ready) { try { ws.close(4004, "admin"); } catch { /* ignore */ } return; }
+          }
+        }
+        let why = nickProblem(want);
+        if (why === "reserved" && (prev.admin || helloAdmin)) why = "";
         const peers = [];
         for (const other of this.ctx.getWebSockets()) {
           if (other === ws) continue;
           const att = this.attachment(other);
-          if (att && att.nick) peers.push(att);
+          if (!att || !att.nick) continue;
+          // v52: 같은 브라우저(cid)가 다시 들어오면 남아 있던 이전 연결을 정리하고 그 닉을 이어 쓴다
+          if (play.cid && att.cid === play.cid && att.id !== prev.id && sanitizeNick(att.nick) === want) {
+            att.ready = false;
+            try { other.serializeAttachment(att); } catch { /* ignore */ }
+            try { other.close(4005, "replaced"); } catch { /* ignore */ }
+            this.broadcast({ t: "leave", id: att.id, n: Math.max(0, this.openSockets(other).length - 1) }, other);
+            continue;
+          }
+          peers.push(att);
         }
         if (why || nickTaken(want, prev.id, peers)) {
           try { ws.send(JSON.stringify({ t: "nick", ok: false, reason: why || "dup" })); } catch { /* ignore */ }
@@ -535,6 +611,9 @@ export class LakeRoom extends DurableObject {
     const others = this.readyOthers(ws).map((a) => ({ id: a.id, seatKey: a.seatKey }));
     const next = reduce(prev, play, Date.now(), others);
     if (next.drop) return;
+    if (play.cid) next.att.cid = play.cid;
+    if (helloAdmin) next.att.admin = 1;
+    delete next.att.adm;
     ws.serializeAttachment(next.att);
     if (next.event) {
       if (next.event.t === "chat") {
@@ -575,6 +654,8 @@ export class LakeRoom extends DurableObject {
         now: nowHello,
         nick: meNick,
         mine: mineUntil > nowHello ? mineUntil : 0,
+        admin: !!next.att.admin,
+        token: next.att.admin ? await boardToken(this.env.ADMIN_PASSWORD) : "",
         ...ops,
       }));
       this.broadcast({ t: "join", n, peer: next.pub }, ws);
@@ -661,7 +742,7 @@ export default {
         const servers = await Promise.all(SERVERS.map(async (s) => {
           const stub = env.LAKE.getByName(`lake-${s.id}`);
           const occ = await stub.occupancy();
-          return { id: s.id, name: s.name, n: occ.n, cap: occ.cap || CAP };
+          return { id: s.id, name: s.name, n: occ.n, cap: occ.cap || CAP, stage: occ.stage || null };
         }));
         return json({ ok: true, servers }, 200, origin);
       }
