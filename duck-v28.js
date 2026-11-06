@@ -29,7 +29,8 @@
  function step(t){requestAnimationFrame(step);if(!ok){ok=init();if(!ok)return;M4=mtx();Q4=q();E4=new T.Euler();S4=new T.Vector3();P4=new T.Vector3();last=t;}
   const dt=Math.min(.05,(t-last)/1000);last=t;const c=conf(),go=document.getElementById('go'),started=go&&!go.offsetParent;
   const RT=window.NK_RT,SY=window.NK_SYNC,lake=!!(RT&&SY&&RT.status&&RT.status()==='on'&&RT.world&&+RT.world.ambSeed);
-  if(lake){const lay=SY.ducks(Date.now(),RT.world,{rMax:rMax,every:300000,max:9});ducks.length=0;lay.forEach(s=>ducks.push({x:s.x,z:s.z,y:WY,vy:0,st:'swim',yaw:s.yaw,tY:s.yaw,sp:.3,s:s.s,ph:s.i,spin:0,v:s.v,born:0,fade:1,sync:1}));}
+  if(lake){if(!c.on){ducks.length=0;everSpawned=0;cycleQ=[];cycleI=0;}
+   else{const everyMs=Math.max(1000,Math.round((+c.every||300)*1000));const lay=SY.ducks(Date.now(),RT.world,{rMax:rMax,every:everyMs,max:c.max,speed:+c.speed||0,size:c.size,kinds:c.kinds,on:1});ducks.length=0;lay.forEach(s=>{const face=s.head!=null?s.head:(+c.speed>0?-s.yaw:s.yaw);ducks.push({x:s.x,z:s.z,y:WY,vy:0,st:'swim',yaw:face,tY:face,sp:.3,s:s.s,ph:s.i,spin:0,v:s.v,born:0,fade:1,sync:1});});}}
   else if(!c.on){ducks.length=0;everSpawned=0;cycleQ=[];cycleI=0;}
   else if(started&&t>nextT){
    if(ducks.filter(d=>d.st!=='fade').length>=c.max){ // 최대 → 가장 오래된 것 페이드 후 새 등장
@@ -46,7 +47,7 @@
    else if(d.st==='sink'){d.sv+=9*dt;d.y+=d.sv*dt;if(d.y>=WY&&d.sv>0){d.y=WY;d.st='swim';}}
    else{d.ph+=dt;if(Math.random()<dt*.25)d.tY=d.yaw+rnd(-1.4,1.4);const r=Math.hypot(d.x,d.z);if(r>rMax*.9)d.tY=Math.atan2(-d.x,-d.z);for(const e of ducks){if(e===d||e.st==='fade')continue;const dx=d.x-e.x,dz=d.z-e.z,l=Math.hypot(dx,dz);if(l<1.1&&l>0)d.tY=Math.atan2(dx,dz);}
     let da=((d.tY-d.yaw+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;d.yaw+=da*Math.min(1,dt*1.2);d.x+=Math.sin(d.yaw)*d.sp*c.speed*dt;d.z+=Math.cos(d.yaw)*d.sp*c.speed*dt;d.y=WY-.04+Math.sin(d.ph*2.1)*.035;}}
-  const CN={};for(const v in VG)CN[v]=0;ducks.forEach(d=>{const sw=d.st==='swim';E4.set(sw?Math.sin(d.ph*2.1+1)*.08:(d.st==='fall'?Math.sin(t/120)*.3:0),d.yaw,sw?Math.sin(d.ph*1.7)*.07:0);Q4.setFromEuler(E4);const sm=d.sync?d.s:(String(c.size)==='rand'?d.s:d.s*(+c.size||1));S4.set(sm,sm,sm);P4.set(d.x,d.y,d.z);M4.compose(P4,Q4,S4);const L=VG[d.v]||VG.base,i=CN[d.v in VG?d.v:'base']++;L.forEach(m=>m.setMatrixAt(i,M4));});
+  const CN={};for(const v in VG)CN[v]=0;ducks.forEach(d=>{const sw=d.st==='swim';E4.set(sw?Math.sin(d.ph*2.1+1)*.08:(d.st==='fall'?Math.sin(t/120)*.3:0),d.yaw,sw?Math.sin(d.ph*1.7)*.07:0);Q4.setFromEuler(E4);const sm=String(c.size)==='rand'?d.s:d.s*(+c.size||1);S4.set(sm,sm,sm);P4.set(d.x,d.y,d.z);M4.compose(P4,Q4,S4);const L=VG[d.v]||VG.base,i=CN[d.v in VG?d.v:'base']++;L.forEach(m=>m.setMatrixAt(i,M4));});
   for(const v in VG)VG[v].forEach(m=>{m.count=CN[v];m.visible=CN[v]>0;m.instanceMatrix.needsUpdate=true;});
   for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.t+=dt;const k=f.t/.9;f.ring.scale.setScalar(1+k*5);f.ring.material.opacity=.8*(1-k);const a=f.pts.geometry.attributes.position;for(let j=0;j<f.vel.length;j++){f.vel[j][1]-=9*dt;a.array[j*3]+=f.vel[j][0]*dt;a.array[j*3+1]=Math.max(WY,a.array[j*3+1]+f.vel[j][1]*dt);a.array[j*3+2]+=f.vel[j][2]*dt;}a.needsUpdate=true;f.pts.material.opacity=.9*(1-k);
    if(k>=1){scene.remove(f.ring,f.pts);f.ring.geometry.dispose();f.ring.material.dispose();f.pts.geometry.dispose();f.pts.material.dispose();fx.splice(i,1);}}}

@@ -22,7 +22,7 @@ kbd{font-size:10px;background:#0001;border-radius:4px;padding:1px 4px;margin-lef
 #toast{position:absolute;top:26%;left:50%;transform:translate(-50%,-50%);font-size:24px;font-weight:900;color:#fff;text-shadow:0 3px 12px #0008;opacity:0;transition:opacity .4s;text-align:center;pointer-events:none}
 #dc{position:absolute;right:10px;bottom:160px;font:11px monospace;color:#fff9;text-shadow:0 1px 2px #000}
 .modal{position:fixed;inset:0;background:rgba(60,45,70,.35);display:none;align-items:center;justify-content:center;z-index:20;backdrop-filter:blur(3px)}
-.modal.show{display:flex}
+.modal.show{display:flex;z-index:80}
 .card{background:var(--bg);border-radius:22px;padding:20px;box-shadow:0 20px 60px #0003;max-width:min(960px,94vw);max-height:90vh;overflow:auto;position:relative}
 .center{text-align:center}.muted{opacity:.65}.small{font-size:12px}
 h1{margin:0 0 4px;font-size:40px}h2{margin:0 0 10px}
@@ -896,6 +896,10 @@ body.uiedit .cutin[data-uin]{pointer-events:none!important}body.uiedit .cutin[da
 #uiEditBar{bottom:auto!important;top:150px!important}@media(max-width:699px){#uiEditBar{top:58%!important}}#uiEditBar>b{cursor:grab;user-select:none}
 /* v27 하단 메뉴 재배치 (body.mv27) · 후원 */
 body.mv27 #bDex .ml{display:none!important}
+body.mv27 #mSys #bDex .ml{display:inline!important}
+body.mv27 #mSys #bDex{min-height:44px;min-width:44px}
+body.menu-open #tq25,body.menu-open #wxCard{pointer-events:none!important}
+#dex .card{max-height:min(88vh,920px);overflow:auto}
 #bBox .mi{display:flex!important;justify-content:center;align-items:center;height:28px}#mMain #bBox .bxi{width:36px!important;height:36px!important;max-width:none!important;max-height:none!important;object-fit:contain;margin:-4px 0}body.m3 #mMain #bBox .bxi{width:30px!important;height:30px!important;margin:-3px 0}
 body.m3.mv27 #mMain #bBox .bxi{width:22px;height:22px}
 @media(max-width:700px){body.m3.mv27 #mMain #bShop{right:117px;bottom:20px}body.m3.mv27 #mMain #bTank{right:110px;bottom:56px}body.m3.mv27 #mMain #bAutoFish{right:89px;bottom:87px}body.m3.mv27 #mMain #bBox{right:59px;bottom:107px}body.m3.mv27 #mMain #bBag{right:22px;bottom:115px}}

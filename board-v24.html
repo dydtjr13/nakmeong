@@ -19,7 +19,18 @@ table{width:100%;border-collapse:collapse;font-size:14px}th{font-size:12px;color
 .p4 .bg,.p1 .bg{position:fixed;inset:0;background:#2a20304d}.p4 .win{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:min(1040px,94vw);height:min(640px,90vh);background:#fffaf3;border-radius:24px;box-shadow:0 20px 60px #0006;display:grid;grid-template-columns:200px 1fr;overflow:hidden}
 .p4 .sb{background:#fff1e2;padding:20px 12px}.p4 .sb b.t{display:block;font:900 18px sans-serif;padding:0 8px 12px}.p4 .sb a{display:flex;gap:8px;padding:9px 10px;border-radius:10px;font-size:14px;font-weight:700;color:#5a4e44;cursor:pointer;text-decoration:none}.p4 .sb a.on{background:#ff8a4c;color:#fff}.p4 .sb a i{margin-left:auto;font-style:normal;font-size:11px;background:#ff5f5f;color:#fff;border-radius:9px;padding:1px 6px}
 .p4 .mn{padding:20px 24px;overflow:hidden}.p4 .mn .h{display:flex;align-items:center;gap:10px;margin-bottom:12px}.p4 .mn .h h2{font-size:19px}.p4 .x{margin-left:auto;width:34px;height:34px;border-radius:50%;background:#f1e6d8;display:grid;place-items:center}
-.p4 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.p4 .lst .it{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px #0000000a;cursor:pointer}.p4 .lst .it.on{outline:2px solid #ff8a4c}.p4 .lst .tt{font-size:14px;font-weight:700;margin:4px 0}
+.p4 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.p4 .lst .it{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px #0000000a;cursor:pointer}.p4 .lst .it.on{outline:2px solid #e7b089;background:#fff6ee}.p4 .lst .tt{font-size:14px;font-weight:700;margin:4px 0}
+.cbox{display:flex;gap:8px;align-items:center;margin-top:12px}.cbox input{flex:1;min-width:0;border:1.5px solid #ead9c4;border-radius:14px;padding:10px 12px;font:15px/1.4 'Pretendard','Noto Sans KR',sans-serif;min-height:44px;background:#fff}
+.cmt{border:0;border-radius:999px;background:#f4e7da;color:#7a4e38;font-weight:800;padding:10px 16px;min-height:44px;cursor:pointer;white-space:nowrap}
+.cmt:active{background:#e7d3bf}
+.empty{padding:28px 12px;text-align:center;color:#8a7568;background:#fff;border-radius:16px;line-height:1.5}
+body[data-v="m"] .vm{display:none!important}body[data-v="m"] .v4{display:block!important}
+body[data-v="m"] .p4 .bg{display:none}body[data-v="m"] .p4 .win{position:static;transform:none;width:100%;height:auto;min-height:100vh;border-radius:0;box-shadow:none;display:flex;flex-direction:column;grid-template-columns:none}
+body[data-v="m"] .p4 .sb{display:flex;gap:6px;overflow-x:auto;padding:62px 10px 8px;background:#fff6ee;-webkit-overflow-scrolling:touch}body[data-v="m"] .p4 .sb b.t{display:none}
+body[data-v="m"] .p4 .sb a{flex:0 0 auto;white-space:nowrap;background:#fff;border-radius:999px;padding:8px 12px;min-height:40px}
+body[data-v="m"] .p4 .sb a.on{background:#c96b45;color:#fff}
+body[data-v="m"] .p4 .mn{padding:8px 12px 28px;overflow:visible}body[data-v="m"] .p4 .two{display:flex;flex-direction:column;gap:10px}
+body[data-v="m"] .p4 .lst{max-height:42vh;overflow:auto}body[data-v="m"] .p4 .rd{padding:14px}body[data-v="m"] .p4 .rd p{font-size:15px;line-height:1.7}
 .p4 .rd{background:#fff;border-radius:16px;padding:16px 18px}.p4 .rd h3{font-size:17px;margin:6px 0}.p4 .rd p{font-size:13.5px;line-height:1.65;color:#4a4048}.p4 .rd .chg{background:#f6fbff;border-radius:12px;padding:10px 14px;margin:10px 0;font-size:13px;line-height:1.7}
 /* P5 컴팩트 2단 (사이드 패널) */
 .p5 .bg{display:none}.p5 .pn{position:fixed;right:0;top:0;bottom:0;width:440px;background:#fffaf3f5;box-shadow:-10px 0 30px #0003;padding:20px 20px;backdrop-filter:blur(6px)}
@@ -208,8 +219,8 @@ img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;object-fit:contain}
     const cms=d.remote?await commentsFor(p.id):(d.cm[p.id]||[]);
     const el=document.createElement('div');el.className='it';
     el.innerHTML=`<span class="tag t2">${p.cat}</span><b>${p.title}</b><div class="mt">${p.nick} · ${p.t}</div><div style="font-size:13.5px;margin-top:6px;white-space:pre-wrap">${p.body}</div>
-     <div class="cm">${cms.map(c=>`<div>💬 <b>${c.nick}</b> ${c.body} <span class="mt">${c.t}</span></div>`).join('')||'<div class="mt">댓글 없음</div>'}
-     <div style="display:flex;gap:6px;margin-top:6px"><input placeholder="댓글" maxlength="200" style="flex:1;padding:6px 8px;border-radius:8px;border:1px solid #ead9c4"><button type="button" class="ok" style="padding:6px 10px">댓글</button></div></div>`;
+     <div class="cm">${cms.map(c=>`<div><b>${c.nick}</b> ${c.body} <span class="mt">${c.t}</span></div>`).join('')||'<div class="mt">아직 댓글이 없어요</div>'}
+     <div class="cbox"><input placeholder="따뜻한 댓글을 남겨 보세요" maxlength="200"><button type="button" class="cmt">댓글 남기기</button></div></div>`;
     const inp=el.querySelector('input'),btn=el.querySelector('button');
     btn.onclick=async()=>{const v=inp.value.trim();if(!v)return;btn.disabled=true;try{await addComment(p.id,v);showList();}catch(e){alert(e.message);btn.disabled=false;}};
     L.appendChild(el);
@@ -247,8 +258,8 @@ img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;object-fit:contain}
   function showPost(p){
     const rd=document.querySelector('.p4 .rd');
     if(!rd||!p)return;
-    rd.innerHTML=`<span class="tag t2">${escH(catKey(p.cat)||p.cat)}</span><h3>${escH(p.title)}</h3><div class="mt">${escH(p.nick)} · ${escH(p.t||'')}</div><p style="white-space:pre-wrap">${escH(p.body||'')}</p><div id="bdRdCm" class="mt">댓글 불러오는 중…</div><div style="display:flex;gap:6px;margin-top:8px"><input id="bdRdIn" placeholder="댓글" maxlength="200" style="flex:1;padding:6px 8px;border-radius:8px;border:1px solid #ead9c4"><button type="button" id="bdRdGo" style="border:0;border-radius:8px;background:#ff8a4c;color:#fff;font-weight:800;padding:6px 10px">댓글</button></div>`;
-    commentsFor(p.id).then(cms=>{const el=document.getElementById('bdRdCm');if(!el)return;el.innerHTML=(cms||[]).map(c=>`<div>💬 <b>${escH(c.nick)}</b> ${escH(c.body)}</div>`).join('')||'댓글 없음';});
+    rd.innerHTML=`<span class="tag t2">${escH(catKey(p.cat)||p.cat)}</span><h3>${escH(p.title)}</h3><div class="mt">${escH(p.nick)} · ${escH(p.t||'')}</div><p style="white-space:pre-wrap">${escH(p.body||'')}</p><div id="bdRdCm" class="mt">댓글 불러오는 중…</div><div class="cbox"><input id="bdRdIn" placeholder="따뜻한 댓글을 남겨 보세요" maxlength="200"><button type="button" class="cmt" id="bdRdGo">댓글 남기기</button></div>`;
+    commentsFor(p.id).then(cms=>{const el=document.getElementById('bdRdCm');if(!el)return;el.innerHTML=(cms||[]).map(c=>`<div><b>${escH(c.nick)}</b> ${escH(c.body)}</div>`).join('')||'<div class="empty">아직 댓글이 없어요. 첫 댓글을 남겨 보세요.</div>';});
     const go=document.getElementById('bdRdGo');if(go)go.onclick=async()=>{const inp=document.getElementById('bdRdIn');const v=inp&&inp.value.trim();if(!v)return;go.disabled=true;try{await addComment(p.id,v);showPost(p);}catch(e){alert(e.message);go.disabled=false;}};
     document.querySelectorAll('.p4 .lst .it').forEach(el=>el.classList.toggle('on',el.dataset.id===String(p.id)));
   }
@@ -258,7 +269,7 @@ img.emj{width:1.15em;height:1.15em;vertical-align:-.2em;object-fit:contain}
     const list=posts.filter(p=>!key||catKey(p.cat)===key);
     const h=document.querySelector('.p4 .mn .h h2');if(h)h.textContent=(CATS.find(c=>c[0]===curCat)||['','전체'])[1]||'게시판';
     const lst=document.querySelector('.p4 .lst');
-    if(lst){lst.innerHTML=list.length?list.map(p=>`<div class="it" data-id="${escH(p.id)}"><span class="tag t2">${escH(catKey(p.cat)||p.cat)}</span><div class="tt">${escH(p.title)}</div><div class="mt">${escH(p.nick)} · ${escH(p.t||'')}</div></div>`).join(''):'<p class="mt">이 게시판에 글이 없어요. 글쓰기로 남겨 주세요.</p>';
+    if(lst){lst.innerHTML=list.length?list.map(p=>`<div class="it" data-id="${escH(p.id)}"><span class="tag t2">${escH(catKey(p.cat)||p.cat)}</span><div class="tt">${escH(p.title)}</div><div class="mt">${escH(p.nick)} · ${escH(p.t||'')}${p.comment_count?` · 댓글 ${p.comment_count}`:''}</div></div>`).join(''):'<div class="empty">이 게시판에 글이 아직 없어요.<br>위의 글쓰기로 첫 글을 남겨 보세요.</div>';
       lst.querySelectorAll('.it').forEach(el=>el.onclick=()=>{const p=posts.find(x=>String(x.id)===el.dataset.id);if(p)showPost(p);});}
     const pn=document.querySelector('.p5 .pn');
     if(pn){pn.querySelectorAll('.row').forEach(r=>r.remove());const anchor=pn.querySelector('div[style*="text-align:right"]')||null;list.slice(0,40).forEach(p=>{const row=document.createElement('div');row.className='row';row.style.cursor='pointer';row.innerHTML=`<span class="tag t2">${escH(catKey(p.cat)||p.cat)}</span><div class="tt">${escH(p.title)}</div><div class="mt">${escH(p.nick)} · ${escH(p.t||'')}</div>`;row.onclick=()=>showPost(p);if(anchor)pn.insertBefore(row,anchor);else pn.appendChild(row);});}

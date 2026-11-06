@@ -42,9 +42,14 @@
   const DUCK_KINDS = ["base", "pirate", "straw", "astro", "frog", "uni", "penguin", "snowman", "dino"];
   const DUCK_SIZES = [0.72, 1, 1.28, 1.55, 1.9];
   function ducks(now, world, opt) {
-    const every = Math.max(1000, Math.round((opt && opt.every) || 300000));
-    const max = Math.max(0, Math.min(30, Math.round((opt && opt.max) != null ? opt.max : 9)));
-    const rMax = (opt && opt.rMax) > 0 ? opt.rMax : 8;
+    const o = opt || {};
+    if (o.on === 0 || o.on === false) return [];
+    const every = Math.max(1000, Math.round(o.every || 300000));
+    const max = Math.max(0, Math.min(30, Math.round(o.max != null ? o.max : 9)));
+    const rMax = o.rMax > 0 ? o.rMax : 8;
+    const kinds = Array.isArray(o.kinds) && o.kinds.length ? o.kinds : DUCK_KINDS;
+    const spd = o.speed == null ? 0.5 : Math.max(0, Number(o.speed) || 0);
+    const rate = 0.12 * (spd / 0.5);
     const seed = Math.round(Number(world && world.ambSeed) || 1);
     const t = Number(now) || 0;
     const elapsed = Math.max(0, t - 1700000000000);
@@ -56,10 +61,35 @@
       const age = Math.max(0, elapsed - i * every);
       const ang0 = ((h % 10000) / 10000) * Math.PI * 2;
       const rad = (0.28 + ((h2 % 1000) / 1000) * 0.62) * rMax;
-      const yaw = ang0 + (age / 1000) * 0.12;
-      out.push({ i, x: Math.cos(yaw) * rad, z: Math.sin(yaw) * rad, yaw, s: DUCK_SIZES[h % DUCK_SIZES.length], v: DUCK_KINDS[h2 % DUCK_KINDS.length], st: "swim" });
+      const yaw = ang0 + (age / 1000) * rate;
+      out.push({ i, x: Math.cos(yaw) * rad, z: Math.sin(yaw) * rad, yaw, head: rate > 0 ? -yaw : yaw, s: DUCK_SIZES[h % DUCK_SIZES.length], v: kinds[h2 % kinds.length], st: "swim" });
     }
     return out;
+  }
+  function pickQuietDeck(spots, people) {
+    const list = Array.isArray(spots) ? spots.filter((d) => d && d.i != null) : [];
+    if (!list.length) return null;
+    const folks = Array.isArray(people) ? people.filter(Boolean) : [];
+    const near = (d) => {
+      const r = d.r > 0 ? d.r : 7;
+      let n = 0;
+      for (const p of folks) {
+        if (p.deck != null && +p.deck === +d.i) { n += 1; continue; }
+        const x = +p.x, z = +p.z;
+        if (Number.isFinite(x) && Number.isFinite(z) && Math.hypot(x - (+d.x || 0), z - (+d.z || 0)) < r) n += 1;
+      }
+      return n;
+    };
+    let min = Infinity;
+    for (const d of list) min = Math.min(min, near(d));
+    const cands = list.filter((d) => near(d) === min);
+    cands.sort((a, b) => {
+      const gap = (d) => (folks.length ? Math.min(...folks.map((p) => Math.hypot((+p.x || 0) - (+d.x || 0), (+p.z || 0) - (+d.z || 0)))) : 0);
+      const db = gap(b) - gap(a);
+      if (Math.abs(db) > 0.01) return db;
+      return (+a.i || 0) - (+b.i || 0);
+    });
+    return cands[0];
   }
   const BOT_KINDS = [1, 0, 3, 7, 2, 8, 4, 10, 5, 9, 6, 11, 12, 13, 14, 15, 16];
   function bot(i, now, world) {
@@ -71,5 +101,5 @@
     const rad = 16 + (h2 % 900) / 100;
     return { i: i | 0, ki: BOT_KINDS[h % BOT_KINDS.length], x: Math.cos(ang) * rad, z: Math.sin(ang) * rad, yaw: ang + Math.PI };
   }
-  window.NK_SYNC = { mix32, weather, ducks, bot };
+  window.NK_SYNC = { mix32, weather, ducks, bot, pickQuietDeck };
 })();

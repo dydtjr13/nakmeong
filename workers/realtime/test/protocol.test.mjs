@@ -12,6 +12,10 @@ import {
   reduce,
   lakeTargets,
   mergeGrant,
+  mergeNoticeLog,
+  grantUntilFor,
+  pickQuietDeck,
+  joinMapPlan,
   mergeSanc,
   nickProblem,
   nickTaken,
@@ -332,4 +336,68 @@ test("play, cue, recover and loss stay bounded to the target nick", () => {
   assert.equal(parseClient(JSON.stringify({ t: "recoverAck", id: "rc1" })).t, "recoverAck");
   assert.equal(parseClient(JSON.stringify({ t: "loss", loss: { id: "L1" } })).t, "loss");
   assert.equal(parseClient(JSON.stringify({ t: "recoverAck" })), null);
+});
+
+test("quiet deck prefers the empty side", () => {
+  const spots = [
+    { i: 0, x: 10, z: 0 },
+    { i: 1, x: -10, z: 0 },
+    { i: 2, x: 0, z: 10 },
+  ];
+  const crowded = pickQuietDeck(spots, [
+    { x: 10, z: 0.4 },
+    { x: 9.2, z: 0 },
+    { deck: 0, x: 80, z: 80 },
+  ]);
+  assert.notEqual(crowded.i, 0);
+  const bySeat = pickQuietDeck(spots, [{ deck: 1, x: 0, z: 0 }, { deck: 2, x: 0, z: 0 }]);
+  assert.equal(bySeat.i, 0);
+});
+
+test("notice delete drops that item for the lake", () => {
+  const now = 1_700_000_000_000;
+  const posted = mergeNoticeLog([], { id: "n1", msg: "점검", min: 10, ch: 2, by: "호수" }, now);
+  assert.equal(posted.active.msg, "점검");
+  assert.equal(posted.active.by, "호수");
+  assert.equal(posted.rows.length, 1);
+  const gone = mergeNoticeLog(posted.rows, { del: true, id: "n1", ch: 2 }, now);
+  assert.equal(gone.rows.length, 0);
+  assert.equal(gone.active, null);
+  const kept = mergeNoticeLog(posted.rows, { off: true, id: "n1", ch: 2 }, now);
+  assert.equal(kept.rows.length, 1);
+  assert.equal(kept.rows[0].off, true);
+  assert.equal(kept.active, null);
+});
+
+test("auto fish grant uses server minutes and nick aliases", () => {
+  const now = 1_700_000_000_000;
+  const skewed = mergeGrant({}, { nick: "달빛", until: now - 60000, mins: 30 }, now);
+  assert.equal(skewed["달빛"], now + 30 * 60000);
+  assert.equal(grantUntilFor(skewed, "달빛"), now + 30 * 60000);
+  assert.equal(grantUntilFor({ 나: now + 60000, 낚시꾼: now + 120000 }, ""), now + 120000);
+  assert.equal(parseClient(JSON.stringify({ t: "grant", nick: "달빛", mins: 15, until: 1 })).mins, 15);
+});
+
+test("ducks face along travel and follow admin speed kinds and off", () => {
+  const now = 1_700_000_000_000 + 86_400_000;
+  const world = { ambSeed: 99 };
+  const moving = sharedDucks(now, world, { max: 2, every: 300000 });
+  const later = sharedDucks(now + 10000, world, { max: 2, every: 300000 });
+  assert.equal(moving[0].head, -moving[0].yaw);
+  assert.notEqual(later[0].x, moving[0].x);
+  const stopped = sharedDucks(now, world, { max: 2, every: 300000, speed: 0 });
+  const still = sharedDucks(now + 20000, world, { max: 2, every: 300000, speed: 0 });
+  assert.equal(stopped[0].x, still[0].x);
+  assert.equal(stopped[0].z, still[0].z);
+  const pirates = sharedDucks(now, world, { max: 3, every: 300000, kinds: ["pirate"] });
+  assert.ok(pirates.every((d) => d.v === "pirate"));
+  assert.deepEqual(sharedDucks(now, world, { on: 0, max: 4 }), []);
+});
+
+test("joining during a map change reloads before enter and does not kick a round", () => {
+  const boot = { lay: "a", deckW: "", decks: 25, bots: 9, chN: 4 };
+  const next = { lay: "b", deckW: "W1", decks: 30, bots: 9, chN: 4 };
+  assert.equal(joinMapPlan(false, boot, next), "reload-before-enter");
+  assert.equal(joinMapPlan(true, boot, next), "keep-round");
+  assert.equal(joinMapPlan(false, boot, boot), "stay");
 });

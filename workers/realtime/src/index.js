@@ -8,6 +8,7 @@ import {
   lakeTargets,
   mergeGrant,
   mergeLosses,
+  mergeNoticeLog,
   mergeRecover,
   mergeSanc,
   normalizeWorld,
@@ -132,9 +133,18 @@ export class LakeRoom extends DurableObject {
   }
 
   async noticeGet() {
-    const n = await this.opsGet("notice", null);
-    if (!n || n.off || !(n.until > Date.now())) return null;
-    return n;
+    const log = await this.noticeLog();
+    return log.active;
+  }
+
+  async noticeLog() {
+    const now = Date.now();
+    let stored = await this.opsGet("notices", null);
+    if (!Array.isArray(stored)) {
+      const one = await this.opsGet("notice", null);
+      stored = one ? [one] : [];
+    }
+    return mergeNoticeLog(stored, null, now);
   }
 
   async eventGet() {
@@ -149,8 +159,10 @@ export class LakeRoom extends DurableObject {
     const recovers = mergeRecover(await this.opsGet("recovers", []), null, now);
     const losses = mergeLosses(await this.opsGet("losses", []), null, now);
     const cues = pushCue(await this.opsGet("cues", []), null, now);
+    const notes = await this.noticeLog();
     return {
-      notice: await this.noticeGet(),
+      notice: notes.active,
+      notices: notes.rows,
       event: await this.eventGet(),
       balance: await this.opsGet("balance", null),
       grants: sanitizeGrants(await this.opsGet("grants", {}), now),
@@ -185,10 +197,11 @@ export class LakeRoom extends DurableObject {
     if (!msg || typeof msg !== "object") return;
     const now = Date.now();
     if (msg.t === "notice") {
-      const n = sanitizeNotice(msg.notice, now);
-      const store = n && !n.off ? n : null;
-      await this.opsPut("notice", store);
-      this.broadcast({ t: "notice", notice: store });
+      const prev = await this.noticeLog();
+      const next = mergeNoticeLog(prev.rows, msg.notice, now);
+      await this.opsPut("notices", next.rows);
+      await this.opsPut("notice", next.active);
+      this.broadcast({ t: "notice", notice: next.active, notices: next.rows, now });
       return;
     }
     if (msg.t === "event") {
@@ -206,7 +219,7 @@ export class LakeRoom extends DurableObject {
     if (msg.t === "grants") {
       const g = sanitizeGrants(msg.grants, now);
       await this.opsPut("grants", g);
-      this.broadcast({ t: "grants", grants: g });
+      this.broadcast({ t: "grants", grants: g, now });
       return;
     }
     if (msg.t === "sanc") {
@@ -282,9 +295,9 @@ export class LakeRoom extends DurableObject {
     const all = [1, 2, 3, 4];
     if (msg.t === "notice") {
       const n = sanitizeNotice(msg.notice, now);
-      if (!n && msg.notice != null && !(msg.notice && msg.notice.off)) return;
+      if (!n && msg.notice != null && !(msg.notice && (msg.notice.off || msg.notice.del))) return;
       const ch = n ? n.ch : ((msg.notice && msg.notice.ch) || "all");
-      await this.fan(fromId, lakeTargets(ch), { t: "notice", notice: n && !n.off ? n : { off: true, ch } });
+      await this.fan(fromId, [1, 2, 3, 4], { t: "notice", notice: n || { off: true, ch } });
       return;
     }
     if (msg.t === "event") {
@@ -538,6 +551,7 @@ export class LakeRoom extends DurableObject {
         cap: CAP,
         peers: this.readyOthers(ws).map(publicPeer),
         world,
+        now: Date.now(),
         ...ops,
       }));
       this.broadcast({ t: "join", n, peer: next.pub }, ws);
