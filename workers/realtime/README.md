@@ -95,7 +95,9 @@ npm run test:live # wrangler dev를 띄워 두 소켓 채팅·자리·서버 분
 
 자리는 인덱스만 믿지 않고, 앉아 있을 때의 세계 좌표를 0.5m 격자로 잠급니다. 그래서 데크 설정이 조금 달라도 같은 좌표를 두 사람이 동시에 차지하지 않습니다. 봇은 그 좌표의 의자를 비워 둡니다.
 
-CORS·WebSocket Origin: `https://fishcozy.com`, `https://www.fishcozy.com`, `https://dydtjr13.github.io`, localhost, `null`(file). 그 외 사이트에서의 접속은 403입니다.
+CORS·WebSocket Origin: `https://fishcozy.com`, `https://www.fishcozy.com`, `https://dydtjr13.github.io`, 인증서 발급 전의 `http://fishcozy.com`, `http://www.fishcozy.com`, `http://dydtjr13.github.io`, localhost, `null`(file). 그 외 사이트에서의 접속은 403입니다.
+
+같은 호숫가(데크·채널·봇·속도·오리·튜토리얼·아이템 복구는 네 호숫가) 운영 메시지: `stage`, `play`, `cue`, `recover`. 데크 배치·모양이 바뀌면 클라이언트는 메시를 갈아끼우지 않고 낚시를 끝낸 뒤 다시 들어갑니다. 채널 수·봇 수는 그 자리에서 바뀝니다. 아이템 복구는 대상 닉이 접속 중이면 바로, 없으면 최대 7일 보관 후 입장할 때 적용됩니다.
 
 ## 남은 follow-up
 

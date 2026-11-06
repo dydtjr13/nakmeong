@@ -34,6 +34,13 @@
     n: 0,
     world: null,
     rev: 0,
+    stage: null,
+    stageRev: 0,
+    play: null,
+    playRev: 0,
+    cues: [],
+    recovers: [],
+    losses: [],
     list() { return this.servers; },
     failed() { return !this.base || this.phase === "down"; },
     server(id) {
@@ -129,6 +136,12 @@
     if (m.grants) takeGrants(m.grants);
     if (m.sanc) takeSanc(m.sanc);
     if (m.prof) takeProf(m.prof);
+    if (m.stage) takeStage(m.stage);
+    if (m.play) takePlay(m.play);
+    if (m.cues) takeCues(m.cues);
+    if (m.recovers) takeRecovers(m.recovers);
+    if (m.losses) takeLosses(m.losses);
+    try { dispatchEvent(new CustomEvent("nk-rt-welcome", { detail: m })); } catch (e) { /* ignore */ }
   }
 
   function takeNotice(n) {
@@ -156,6 +169,39 @@
     RT.prof = p;
     try { dispatchEvent(new CustomEvent("nk-rt-prof", { detail: p })); } catch (e) { /* ignore */ }
   }
+  function takeStage(s) {
+    if (!s || typeof s !== "object") return;
+    if (s.rev && RT.stageRev && s.rev < RT.stageRev) return;
+    RT.stage = s;
+    if (s.rev) RT.stageRev = s.rev;
+    try { dispatchEvent(new CustomEvent("nk-rt-stage", { detail: s })); } catch (e) { /* ignore */ }
+  }
+  function takePlay(p) {
+    if (!p || typeof p !== "object") return;
+    if (p.rev && RT.playRev && p.rev < RT.playRev) return;
+    RT.play = p;
+    if (p.rev) RT.playRev = p.rev;
+    try { dispatchEvent(new CustomEvent("nk-rt-play", { detail: p })); } catch (e) { /* ignore */ }
+  }
+  function takeCues(list) {
+    const rows = Array.isArray(list) ? list : [];
+    RT.cues = rows;
+    rows.forEach((c) => { try { dispatchEvent(new CustomEvent("nk-rt-cue", { detail: c })); } catch (e) { /* ignore */ } });
+  }
+  function takeRecovers(list) {
+    const rows = Array.isArray(list) ? list : [];
+    RT.recovers = rows;
+    rows.forEach((r) => { try { dispatchEvent(new CustomEvent("nk-rt-recover", { detail: r })); } catch (e) { /* ignore */ } });
+  }
+  function takeLosses(list) {
+    const rows = Array.isArray(list) ? list : [];
+    rows.forEach((row) => {
+      if (!row || !row.id || RT.losses.some((x) => x.id === row.id)) return;
+      RT.losses.unshift(row);
+    });
+    RT.losses = RT.losses.slice(0, 80);
+    try { dispatchEvent(new CustomEvent("nk-rt-losses", { detail: rows })); } catch (e) { /* ignore */ }
+  }
 
   function onMessage(m) {
     if (!m || typeof m !== "object") return;
@@ -177,6 +223,12 @@
     else if (m.t === "sanc") takeSanc(m.sanc);
     else if (m.t === "prof") takeProf(m.prof);
     else if (m.t === "gift" && m.gift) dispatchEvent(new CustomEvent("nk-rt-gift", { detail: m.gift }));
+    else if (m.t === "stage" && m.stage) takeStage(m.stage);
+    else if (m.t === "play" && m.play) takePlay(m.play);
+    else if (m.t === "cue" && m.cue) { RT.cues = (RT.cues || []).concat(m.cue).slice(-30); dispatchEvent(new CustomEvent("nk-rt-cue", { detail: m.cue })); }
+    else if (m.t === "recover" && m.recover) { dispatchEvent(new CustomEvent("nk-rt-recover", { detail: m.recover })); }
+    else if (m.t === "losses" && m.losses) takeLosses(m.losses);
+    else if (m.t === "loss" && m.loss) takeLosses([m.loss]);
     else if (m.t === "banned") dispatchEvent(new CustomEvent("nk-rt-banned", { detail: m }));
     else if (m.t === "chat" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-chat", { detail: m }));
     else if (m.t === "emote" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-emote", { detail: m }));
@@ -370,6 +422,13 @@
   RT.setSanc = function (row) { return opsSend({ t: "sanc", nick: row && row.nick, mute: row && row.mute, ban: row && row.ban, why: row && row.why }); };
   RT.setGift = function (gift) { return opsSend({ t: "gift", gift }); };
   RT.setProf = function (prof) { return opsSend({ t: "prof", prof }); };
+  RT.setStage = function (stage) { return opsSend({ t: "stage", stage }); };
+  RT.setPlay = function (play) { return opsSend({ t: "play", play }); };
+  RT.setCue = function (cue) { return opsSend({ t: "cue", cue }); };
+  RT.setRecover = function (recover) { return opsSend({ t: "recover", recover }); };
+  RT.ackRecover = function (id) { return opsSend({ t: "recoverAck", id }); };
+  RT.pushLoss = function (loss) { return opsSend({ t: "loss", loss }); };
+  RT.pushLosses = function (losses) { return opsSend({ t: "losses", losses: (losses || []).slice(0, 12) }); };
 
   window.NK_RT = RT;
   if (base) {
