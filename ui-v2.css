@@ -931,7 +931,7 @@ body.uiOne.uiedit [data-uin]:not(.uiSel){outline-color:#ff8a4c55!important;opaci
 
 /* v29 wear */
 .doll28 .dslot img.di{width:48px;height:48px;object-fit:contain;display:block;margin:0 auto}
-.doll28 .dslot.empty .di{font-size:28px;line-height:48px;display:block;text-align:center}
+.doll28 .dslot.empty .di{display:block;text-align:center}.doll28 .dslot.empty img.di{width:48px;height:48px;object-fit:contain;opacity:.55;line-height:normal;font-size:0}
 .weargrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
 .weargrid .btile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:12px;border:2px solid var(--gc,#ccc);background:#fff}
 .weargrid .btile img{width:64px;height:64px;object-fit:contain}
@@ -940,3 +940,8 @@ body.uiOne.uiedit [data-uin]:not(.uiSel){outline-color:#ff8a4c55!important;opaci
 .weargrid .wn{font-size:11px;font-weight:800;text-align:center;line-height:1.2}
 
 .doll28 .dslot .di-txt{font-size:22px;font-weight:900;line-height:48px;text-align:center;opacity:.7}
+
+/* v30 empty wear placeholders */
+.doll28 .dslot img.ph{opacity:.55;filter:none}
+.doll28 .dslot.empty{background:#2f2938}
+.tabs .tico img.emj{width:18px;height:18px;object-fit:contain;vertical-align:-3px}

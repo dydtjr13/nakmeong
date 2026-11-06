@@ -1,0 +1,22 @@
+<!doctype html><html><body style="margin:0;overflow:hidden;background:#a9dcef">
+<canvas id=c width=520 height=420 style="width:520px;height:420px;display:block"></canvas>
+<script src="/lib/three.min.js"></script>
+<script src="/duck-mesh-v26.js"></script>
+<script src="/duck-var-v30-mock.js"></script>
+<script>
+const T=THREE,v=new URLSearchParams(location.search).get('v')||'chicken';
+const r=new T.WebGLRenderer({canvas:c,antialias:true,preserveDrawingBuffer:true});r.setPixelRatio(1);r.setSize(520,420,false);
+const s=new T.Scene();s.background=new T.Color('#a9dcef');
+const M=window.NK_DUCK_MESH,b=atob(M.pos),p=new Float32Array(M.n*3),dv=new DataView(new ArrayBuffer(b.length));
+for(let i=0;i<b.length;i++)dv.setUint8(i,b.charCodeAt(i));for(let i=0;i<M.n*3;i++)p[i]=dv.getInt16(i*2,true)/32767;
+const GE={};for(const k in M.g){const q=atob(M.g[k]),d=new DataView(new ArrayBuffer(q.length));for(let i=0;i<q.length;i++)d.setUint8(i,q.charCodeAt(i));const idx=new Uint16Array(q.length/2);for(let i=0;i<idx.length;i++)idx[i]=d.getUint16(i*2,true);const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(p,3));g.setIndex(new T.BufferAttribute(idx,1));g.computeVertexNormals();GE[k]=g;}
+const V=NK_DUCKV30.build(T,GE)[v];if(!V){document.title='missing';throw 0;}
+const G=new T.Group();['body','beak','eyes'].forEach(k=>G.add(new T.Mesh(GE[k],new T.MeshLambertMaterial({color:V[k]}))));
+V.acc.forEach(([g,m])=>G.add(new T.Mesh(g,m)));
+const cam=new T.PerspectiveCamera(30,520/420,.05,50);cam.position.set(1.5,1.15,2.1);cam.lookAt(0,.45,0);
+s.add(new T.HemisphereLight('#ffffff','#7aa',.75));
+const d=new T.DirectionalLight('#fff',.7);d.position.set(2,4,3);s.add(d);s.add(new T.AmbientLight('#fff',.15));
+const w=new T.Mesh(new T.CircleGeometry(6,48),new T.MeshLambertMaterial({color:'#4cb3d4'}));w.rotation.x=-Math.PI/2;w.position.y=.08;s.add(w);
+G.rotation.y=.35;s.add(G);r.render(s,cam);
+window.__png=c.toDataURL('image/jpeg',0.92);document.title='ok:'+v;
+</script></body></html>
