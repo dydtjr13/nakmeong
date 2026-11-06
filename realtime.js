@@ -129,8 +129,10 @@
     if (m.server) RT.sid = m.server;
     peers.clear();
     (m.peers || []).forEach((p) => { if (p && p.id && p.id !== RT.id) peers.set(p.id, p); });
+    if (typeof m.now === "number") RT.clockSkew = Date.now() - m.now;
     if (m.world) takeWorld(m.world);
-    if ("notice" in m) takeNotice(m.notice);
+    if (Array.isArray(m.notices)) takeNotices(m.notices, "notice" in m ? m.notice : undefined);
+    else if ("notice" in m) takeNotice(m.notice);
     if ("event" in m) takeEvent(m.event);
     if ("balance" in m) takeBalance(m.balance);
     if (m.grants) takeGrants(m.grants);
@@ -148,6 +150,11 @@
     RT.notice = n || null;
     try { dispatchEvent(new CustomEvent("nk-rt-notice", { detail: n || null })); } catch (e) { /* ignore */ }
   }
+  function takeNotices(list, active) {
+    RT.notices = Array.isArray(list) ? list : [];
+    if (active !== undefined) RT.notice = active || null;
+    try { dispatchEvent(new CustomEvent("nk-rt-notices", { detail: { notices: RT.notices, notice: RT.notice || null } })); } catch (e) { /* ignore */ }
+  }
   function takeEvent(e) {
     RT.event = e || null;
     try { dispatchEvent(new CustomEvent("nk-rt-event", { detail: e || null })); } catch (e2) { /* ignore */ }
@@ -156,9 +163,10 @@
     RT.balance = b || null;
     try { dispatchEvent(new CustomEvent("nk-rt-balance", { detail: b || null })); } catch (e) { /* ignore */ }
   }
-  function takeGrants(g) {
+  function takeGrants(g, now) {
     RT.grants = g || {};
-    try { dispatchEvent(new CustomEvent("nk-rt-grants", { detail: g || {} })); } catch (e) { /* ignore */ }
+    if (typeof now === "number") RT.clockSkew = Date.now() - now;
+    try { dispatchEvent(new CustomEvent("nk-rt-grants", { detail: RT.grants })); } catch (e) { /* ignore */ }
   }
   function takeSanc(s) {
     RT.sanc = s || {};
@@ -216,10 +224,14 @@
       }));
     }
     else if (m.t === "world" && m.world) takeWorld(m.world);
-    else if (m.t === "notice") takeNotice(m.notice);
+    else if (m.t === "notice") {
+      if (typeof m.now === "number") RT.clockSkew = Date.now() - m.now;
+      if (Array.isArray(m.notices)) takeNotices(m.notices, m.notice);
+      else takeNotice(m.notice);
+    }
     else if (m.t === "event") takeEvent(m.event);
     else if (m.t === "balance") takeBalance(m.balance);
-    else if (m.t === "grants") takeGrants(m.grants);
+    else if (m.t === "grants") takeGrants(m.grants, m.now);
     else if (m.t === "sanc") takeSanc(m.sanc);
     else if (m.t === "prof") takeProf(m.prof);
     else if (m.t === "gift" && m.gift) dispatchEvent(new CustomEvent("nk-rt-gift", { detail: m.gift }));
@@ -426,7 +438,7 @@
   RT.setNotice = function (notice) { return opsSend({ t: "notice", notice: notice || null }); };
   RT.setEvent = function (event) { return opsSend({ t: "event", event: event || null }); };
   RT.setBalance = function (balance) { return opsSend({ t: "balance", balance: balance || null }); };
-  RT.setGrant = function (grant) { return opsSend({ t: "grant", nick: grant && grant.nick, until: grant && grant.until, revoke: !!(grant && grant.revoke) }); };
+  RT.setGrant = function (grant) { return opsSend({ t: "grant", nick: grant && grant.nick, until: grant && grant.until, revoke: !!(grant && grant.revoke), mins: grant && grant.mins }); };
   RT.setSanc = function (row) { return opsSend({ t: "sanc", nick: row && row.nick, mute: row && row.mute, ban: row && row.ban, why: row && row.why }); };
   RT.setGift = function (gift) { return opsSend({ t: "gift", gift }); };
   RT.setProf = function (prof) { return opsSend({ t: "prof", prof }); };

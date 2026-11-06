@@ -247,11 +247,18 @@ export function sharedWeather(now, world) {
 
 const DUCK_SIZES = [0.72, 1, 1.28, 1.55, 1.9];
 
-/** 간격·최대·크기는 시드와 벽시계로 정해져 중간 입장도 같다. 기본 5분·최대 9·크기 랜덤·느린 회전. */
+/** 간격·최대·크기·속도·종류는 시드와 벽시계로 정해져 중간 입장도 같다.
+ *  속도 생략 시 0.5(느리게) = 초당 0.12라디안. head 는 진행 방향(접선)이라 부리가 앞을 본다.
+ *  on 이 0/false 면 오리를 띄우지 않는다. */
 export function sharedDucks(now, world, opt) {
-  const every = Math.max(1000, Math.round((opt && opt.every) || 300000));
-  const max = Math.max(0, Math.min(30, Math.round((opt && opt.max) != null ? opt.max : 9)));
-  const rMax = (opt && opt.rMax) > 0 ? opt.rMax : 8;
+  const o = opt || {};
+  if (o.on === 0 || o.on === false) return [];
+  const every = Math.max(1000, Math.round(o.every || 300000));
+  const max = Math.max(0, Math.min(30, Math.round(o.max != null ? o.max : 9)));
+  const rMax = o.rMax > 0 ? o.rMax : 8;
+  const kinds = Array.isArray(o.kinds) && o.kinds.length ? o.kinds : DUCK_KINDS;
+  const spd = o.speed == null ? 0.5 : Math.max(0, Number(o.speed) || 0);
+  const rate = 0.12 * (spd / 0.5);
   const seed = Math.round(Number(world && world.ambSeed) || 1);
   const t = Number(now) || 0;
   const elapsed = Math.max(0, t - 1_700_000_000_000);
@@ -263,18 +270,53 @@ export function sharedDucks(now, world, opt) {
     const age = Math.max(0, elapsed - i * every);
     const ang0 = ((h % 10000) / 10000) * Math.PI * 2;
     const rad = (0.28 + ((h2 % 1000) / 1000) * 0.62) * rMax;
-    const yaw = ang0 + (age / 1000) * 0.12;
+    const yaw = ang0 + (age / 1000) * rate;
     out.push({
       i,
       x: Math.cos(yaw) * rad,
       z: Math.sin(yaw) * rad,
       yaw,
+      head: rate > 0 ? -yaw : yaw,
       s: DUCK_SIZES[h % DUCK_SIZES.length],
-      v: DUCK_KINDS[h2 % DUCK_KINDS.length],
+      v: kinds[h2 % kinds.length],
       st: "swim",
     });
   }
   return out;
+}
+
+/** 데크 점유(실유저·봇)가 가장 적은 자리. 동점이면 사람에서 더 먼 데크. */
+export function pickQuietDeck(spots, people) {
+  const list = Array.isArray(spots) ? spots.filter((d) => d && d.i != null) : [];
+  if (!list.length) return null;
+  const folks = Array.isArray(people) ? people.filter(Boolean) : [];
+  const near = (d) => {
+    const r = d.r > 0 ? d.r : 7;
+    let n = 0;
+    for (const p of folks) {
+      if (p.deck != null && +p.deck === +d.i) { n += 1; continue; }
+      const x = +p.x;
+      const z = +p.z;
+      if (Number.isFinite(x) && Number.isFinite(z) && Math.hypot(x - (+d.x || 0), z - (+d.z || 0)) < r) n += 1;
+    }
+    return n;
+  };
+  let min = Infinity;
+  for (const d of list) min = Math.min(min, near(d));
+  const cands = list.filter((d) => near(d) === min);
+  cands.sort((a, b) => {
+    const gap = (d) => (folks.length ? Math.min(...folks.map((p) => Math.hypot((+p.x || 0) - (+d.x || 0), (+p.z || 0) - (+d.z || 0)))) : 0);
+    const db = gap(b) - gap(a);
+    if (Math.abs(db) > 0.01) return db;
+    return (+a.i || 0) - (+b.i || 0);
+  });
+  return cands[0];
+}
+
+/** 입장 전 맵이 다르면 들어가기 전에 다시 불러온다. 이미 플레이 중이면 이번 판은 유지. */
+export function joinMapPlan(started, boot, stage) {
+  if (!stageEffect(boot, stage).reload) return "stay";
+  return started ? "keep-round" : "reload-before-enter";
 }
 
 const BOT_KINDS = [1, 0, 3, 7, 2, 8, 4, 10, 5, 9, 6, 11, 12, 13, 14, 15, 16];
@@ -328,20 +370,42 @@ function snapMul(v) {
   return best;
 }
 
-/** 지금 떠 있는 공지. off 이면 대상 호숫가의 공지를 내린다. */
+/** 지금 떠 있는 공지. off 이면 대상 호숫가의 공지를 내린다. del 이면 그 항목을 지운다. */
 export function sanitizeNotice(input, now) {
   const t = Number.isFinite(now) ? now : Date.now();
   if (input == null) return null;
   if (typeof input !== "object" || Array.isArray(input)) return null;
   const ch = input.ch === "all" || input.ch == null || input.ch === "" ? "all" : (lakeTargets(input.ch).length === 1 ? lakeTargets(input.ch)[0] : "all");
   const id = String(input.id == null ? "" : input.id).replace(/[^\w.-]/g, "").slice(0, 40);
-  if (input.off) return { off: true, id, ch };
+  const by = input.by ? sanitizeNick(input.by) : "";
+  if (input.del) return { del: true, id, ch, by, off: true };
   const msg = cleanText(input.msg, 120);
+  if (input.off && !msg) return { off: true, id, ch, by };
   if (!msg) return null;
   const min = Math.max(1, Math.min(1440, Math.round(finite(input.min, 10))));
   let until = Math.round(finite(input.until, 0));
-  if (!(until > t) || until > t + 1440 * 60000 + 120000) until = t + min * 60000;
-  return { id: id || String(t), msg, min, ch, until, off: false };
+  if (!input.off && (!(until > t) || until > t + 1440 * 60000 + 120000)) until = t + min * 60000;
+  return { id: id || String(t), msg, min, ch, until, off: !!input.off, by };
+}
+
+/** 호숫가 공지 목록. 삭제는 id 로 빼고, 내리기는 off. active 는 아직 떠 있는 최신 글. */
+export function mergeNoticeLog(prev, note, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  let rows = [];
+  for (const item of Array.isArray(prev) ? prev : []) {
+    const n = sanitizeNotice(item, t);
+    if (n && n.msg && !n.del) rows.push(n);
+  }
+  const incoming = note ? sanitizeNotice(note, t) : null;
+  if (incoming && incoming.del) rows = rows.filter((n) => n.id !== incoming.id);
+  else if (incoming && incoming.off && !incoming.msg) {
+    rows = rows.map((n) => (!incoming.id || n.id === incoming.id ? { ...n, off: true } : n));
+  } else if (incoming && incoming.msg) {
+    rows = [incoming, ...rows.filter((n) => n.id !== incoming.id)];
+  }
+  rows = rows.slice(0, 40);
+  const active = rows.find((n) => !n.off && n.until > t) || null;
+  return { rows, active };
 }
 
 /** 코인·상자 배율. 끄면 null. 예약(from 이 미래)도 그대로 둔다. */
@@ -421,9 +485,33 @@ export function mergeGrant(prev, patch, now) {
   const next = sanitizeGrants(prev, t);
   const nick = sanitizeNick(patch && patch.nick);
   if (!patch || !String(patch.nick || "").trim()) return next;
-  if (patch.revoke || !(Number(patch.until) > t)) delete next[nick];
-  else next[nick] = Math.round(Number(patch.until));
+  const mins = Math.round(Number(patch.mins));
+  let until = Math.round(finite(patch.until, 0));
+  if (mins > 0 && mins <= 400 * 24 * 60) until = t + mins * 60000;
+  if (patch.revoke || !(until > t)) delete next[nick];
+  else next[nick] = until;
   return next;
+}
+
+/** 대상 닉과 빈 닉 별칭(나·낚시꾼) 중 남아 있는 자동낚시 시각. */
+export function grantUntilFor(map, nick, extra) {
+  const keys = new Set();
+  const add = (n) => {
+    if (n == null) return;
+    const s = String(n).trim();
+    if (!s) return;
+    keys.add(sanitizeNick(s));
+  };
+  add(nick);
+  (Array.isArray(extra) ? extra : []).forEach(add);
+  if (!String(nick || "").trim()) {
+    keys.add("나");
+    keys.add("낚시꾼");
+  }
+  let best = 0;
+  const src = map && typeof map === "object" ? map : {};
+  for (const k of keys) best = Math.max(best, Math.round(finite(src[k], 0)));
+  return best;
 }
 
 export function sanitizeSancMap(map, now) {
@@ -799,7 +887,7 @@ export function parseClient(raw) {
   if (msg.t === "balance") return { t: "balance", balance: msg.balance == null ? null : msg.balance };
   if (msg.t === "grant") {
     if (!msg.nick) return null;
-    return { t: "grant", nick: msg.nick, until: msg.until, revoke: !!msg.revoke };
+    return { t: "grant", nick: msg.nick, until: msg.until, revoke: !!msg.revoke, mins: msg.mins };
   }
   if (msg.t === "grants") return { t: "grants", grants: msg.grants };
   if (msg.t === "sanc") {
