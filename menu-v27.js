@@ -7,7 +7,7 @@
  const ORIG={};
  function don(){let m=$('donM');if(!m){m=document.createElement('div');m.id='donM';m.className='modal';document.body.appendChild(m);m.onclick=e=>{if(e.target===m||e.target.closest('[data-x]'))m.classList.remove('show');};}
   const C=window.NK_DONATE||{};const pay=C.link||C.acct?`${C.qr?`<div class="dqr"><img src="${C.qr}" alt="QR"></div>`:''}${C.acct?`<div class="dacct">${C.acct} <button data-cp>복사</button></div>`:''}${C.link?`<p><a class="btn acc" href="${C.link}" target="_blank" rel="noopener">후원 페이지 열기</a></p>`:''}`:'<div class="dready">후원 방법(QR·계좌·링크)을 준비하고 있어요.</div>';
-  m.innerHTML=`<div class="card donw"><button class="close" data-x>×</button><div class="hd">☕ 개발자에게 커피 한 잔</div><p class="msg">피쉬레스트는 혼자 만드는 작은 게임이에요.<br>재밌게 즐기셨다면 커피 한 잔으로 응원해 주세요 🙂</p>${pay}<p class="ft">후원은 언제나 선택이에요. 안 해도 모든 기능을 똑같이 즐길 수 있어요.</p></div>`;
+  m.innerHTML=`<div class="card donw"><button class="close" data-x>×</button><div class="hd">☕ 개발자에게 커피 한 잔</div><p class="msg">피쉬코지는 혼자 만드는 작은 게임이에요.<br>재밌게 즐기셨다면 커피 한 잔으로 응원해 주세요 🙂</p>${pay}<p class="ft">후원은 언제나 선택이에요. 안 해도 모든 기능을 똑같이 즐길 수 있어요.</p></div>`;
   const cp=m.querySelector('[data-cp]');if(cp)cp.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(C.acct);cp.textContent='복사됨';};if(window.NK_EMOJI)try{NK_EMOJI.parse(m);}catch(_){}m.classList.add('show');}
  function apply(){const mn=$('mMain'),sy=$('mSys'),bd=$('bBoard'),dex=$('bDex');if(!mn||!sy||!bd||!dex||!$('bAutoFish'))return setTimeout(apply,400);
   document.body.classList.toggle('mv27',on());

@@ -1,0 +1,78 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>피쉬코지(FISH COZY) v35 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>피쉬코지(FISH COZY) v35 보고서</h1>
+<ul>
+<li>작업일: 2026-11-06 (Asia/Seoul)</li>
+<li>라이브: <a href="https://dydtjr13.github.io/nakmeong/">https://dydtjr13.github.io/nakmeong/</a></li>
+<li>캐시: <code>nakmeong.html?v35</code></li>
+<li>기반: v34</li>
+<li>선택: t58s300 <strong>L 라인아트 물고기</strong> 파비콘 + 표시명 <strong>피쉬코지</strong></li>
+</ul>
+<h2>요약</h2>
+<ol>
+<li>표시명 <strong>피쉬레스트(FISHREST) → 피쉬코지(FISH COZY)</strong> (폴더/리포 <code>nakmeong</code> 유지)</li>
+<li>L 라인아트 마크를 favicon / apple-touch / PWA 아이콘으로 적용</li>
+<li>시작 화면 카피: <em>Welcome to FISH COZY · A Cozy Place to Fish</em> / 바쁜 일상 속 작은 낚시 공간</li>
+</ol>
+<h2>파비콘</h2>
+<table>
+<thead>
+<tr>
+<th>파일</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>icons/favicon.ico</code> (+ 루트 <code>favicon.ico</code>)</td>
+<td>브라우저 탭</td>
+</tr>
+<tr>
+<td><code>icons/favicon-16.png</code> / <code>favicon-32.png</code></td>
+<td>PNG 아이콘</td>
+</tr>
+<tr>
+<td><code>icons/app-180.png</code></td>
+<td>apple-touch</td>
+</tr>
+<tr>
+<td><code>icons/app-192.png</code> / <code>app-512.png</code></td>
+<td>manifest PWA</td>
+</tr>
+<tr>
+<td><code>icons/brand-fishcozy-1024.png</code></td>
+<td>원본 정리본</td>
+</tr>
+</tbody>
+</table>
+<p><code>nakmeong.html</code>: <code>rel=icon</code> ×3 + <code>apple-touch-icon?v35</code></p>
+<h2>표시명 반영</h2>
+<ul>
+<li>title / apple-mobile-web-app-title / HUD 로고(+마크) / 시작 화면 h1·태그라인</li>
+<li><code>manifest.webmanifest</code> name·short_name·description·theme_color</li>
+<li>도감 제목·환영 메시지·랭킹 서버명·후원 문구·<code>index.html</code>·게시판 목 시안 표기</li>
+<li>과거 보고서/시안 이력 문서는 그대로 둠</li>
+</ul>
+<h2>회귀 (t120)</h2>
+<p>title·apple title·favicon 링크·apple-touch·로고·시작 h1·brandTag·마크 이미지·아이콘 200·<strong>pageerror0</strong> → 전부 OK</p>
+<h2>산출물</h2>
+<ul>
+<li>보고서: <a href="https://dydtjr13.github.io/nakmeong/docs/v35-보고서.html">https://dydtjr13.github.io/nakmeong/docs/v35-보고서.html</a></li>
+<li>게임: <a href="https://dydtjr13.github.io/nakmeong/nakmeong.html?v35">https://dydtjr13.github.io/nakmeong/nakmeong.html?v35</a></li>
+<li>PC: <code>C:\Users\이용석\Desktop\게임개발\낚멍\낚멍 그록봇\nakmeong-v35\</code></li>
+</ul>
+<h2>남은 리스크</h2>
+<ul>
+<li>CDN/브라우저 파비콘 캐시가 강하면 <code>?v35</code>·강력 새로고침 필요</li>
+<li>구버전 로컬 저장 데이터와 무관(이름만 표시 변경)</li>
+</ul>
+<h3>PC / SHA</h3>
+<ul>
+<li>SHA256: <code>bb825745936cfbe29c79740797acc60c0e03904c404e2b9b3e53d2de7fc7557d</code></li>
+<li>분할: nakmeong-v35.zip.000~ + merge-v35.ps1</li>
+</ul></main></body></html>

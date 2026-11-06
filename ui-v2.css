@@ -1007,3 +1007,6 @@ body.uiOne.uiedit [data-uin]:not(.uiSel){outline-color:#ff8a4c55!important;opaci
 .bag31 .wearI:hover{filter:brightness(1.08)}
 .bag31 .rodtile{border:2.5px solid var(--gc,#aab4c0)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--gc,#aab4c0) 30%,transparent)}
 .bag31 .rodtile.eqon{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--gc,#ff8a4c)}
+
+/* v35 brand */
+.logo{display:inline-flex;align-items:center;gap:6px}.brandMark{border-radius:6px;vertical-align:middle;object-fit:cover;box-shadow:0 1px 2px #0002}.brandMark.lg{border-radius:10px;margin-right:4px}.enLogo{font-weight:600;letter-spacing:.04em;opacity:.75}.brandTag{font-weight:600;color:#6a5a4a!important;margin:.2em 0 .15em}
