@@ -70,8 +70,8 @@ function afUntil(who){const A=afAll();if(who!=null&&nickKey(who)!==nickKey(NICK(
 function afLeftMs(who){return Math.max(0,afUntil(who)-afNow());}
 function afOK(who){return afLeftMs(who)>0;}
 function afFmt(ms){const m=Math.max(0,Math.ceil((+ms||0)/60000));if(m<60)return m+'분';const h=Math.floor(m/60),r=m%60;if(h<48)return h+'시간'+(r?' '+r+'분':'');return Math.floor(h/24)+'일';}
-function afGrant(who,mins,peerId){const typed=String(who??'').trim();mins=Math.max(1,Math.round(Number(mins)));if(!typed||!(mins>0))return false;who=nickKey(typed);const A=afAll();A[who]=afNow()+mins*60000;afSave(A);const self=myAfKeys().has(who);let sent=false;try{if(window.V14&&V14.pushGrant)sent=!!V14.pushGrant(who,A[who],false,mins,peerId||'');}catch(e){}if(!self&&!sent){delete A[who];afSave(A);return false;}if(self){try{updAutoBtn();}catch(e){}}return A[who];}
-function afRevoke(who,peerId){who=nickKey(who);const A=afAll();if(!A[who])return false;delete A[who];afSave(A);if(myAfKeys().has(who)){if(S.autoFish){S.autoFish=false;try{save();}catch(e){}}try{updAutoBtn();}catch(e){}try{toast('🤖 자동 낚시 이용 시간을 거뒀어요',1800);}catch(e){}}try{if(window.V14&&V14.pushGrant)V14.pushGrant(who,0,true,0,peerId||'');}catch(e){}return true;}
+function afGrant(who,mins,peerId){const typed=String(who??'').trim();mins=Math.max(1,Math.round(Number(mins)));if(!typed||!(mins>0))return false;who=nickKey(typed);const A=afAll();A[who]=afNow()+mins*60000;afSave(A);const self=myAfKeys().has(who);let sent=false;try{if(V14&&V14.pushGrant)sent=!!V14.pushGrant(who,A[who],false,mins,peerId||'');}catch(e){}if(!self&&!sent){delete A[who];afSave(A);return false;}if(self){try{updAutoBtn();}catch(e){}}return A[who];}
+function afRevoke(who,peerId){who=nickKey(who);const A=afAll();if(!A[who])return false;delete A[who];afSave(A);if(myAfKeys().has(who)){if(S.autoFish){S.autoFish=false;try{save();}catch(e){}}try{updAutoBtn();}catch(e){}try{toast('🤖 자동 낚시 이용 시간을 거뒀어요',1800);}catch(e){}}try{if(V14&&V14.pushGrant)V14.pushGrant(who,0,true,0,peerId||'');}catch(e){}return true;}
 let _afNote=0;
 function afExpire(){if(afOK()){_afNote=0;return false;}if(!S.autoFish)return false;S.autoFish=false;try{save();}catch(e){}if(_afNote!==1){_afNote=1;try{toast('🤖 자동 낚시 이용 시간이 끝났어요<br><small>자동 낚시를 껐어요</small>',2600);}catch(e){}}return true;}
 if(S.autoFish&&!afOK())S.autoFish=false;
@@ -115,7 +115,7 @@ function V25H(m,up){const q=x=>m.querySelectorAll(x),g=id=>m.querySelector('#'+i
  g('spGive').onclick=()=>{const f=form();S.spForm=f;const A=spAll();(A[f.who]=A[f.who]||[]).filter(x=>x.n!==f.n);A[f.who]=A[f.who].filter(x=>x.n!==f.n).concat([{n:f.n,bd:f.bd,bg:f.bg,fg:f.fg}]);localStorage.setItem('nk_sptitle',JSON.stringify(A));save();toast(`🏷 ${f.who}님에게 특별 칭호 「${f.n}」을 줬어요`,2000);up();};
  q('[data-spdel]').forEach(b=>b.onclick=()=>{const [w,i]=b.dataset.spdel.split('|'),A=spAll();if(A[w]){const t=A[w].splice(+i,1)[0];if(!A[w].length)delete A[w];if(t&&w===NICK()&&S.titleSel==='sp:'+t.n)S.titleSel='';}localStorage.setItem('nk_sptitle',JSON.stringify(A));save();try{applyHud();}catch(e){}up();});
  g('uiEd').onclick=()=>{closeM('admin');window.NK_UIEDIT&&NK_UIEDIT.enter();};g('uiRs').onclick=()=>{window.NK_UIEDIT&&NK_UIEDIT.reset();up();};
- const tutCue=(act,i)=>{if(window.V14&&V14.publishCue)V14.publishCue({kind:'tut',act,i:i||0,nick:'*'});else if(window.NK_TUT){if(act==='reset')NK_TUT.reset();else if(act==='skip')NK_TUT.skip();else NK_TUT.jump(Math.min(NK_TUT.STEPS.length,(NK_TUT.P().i||0)+1));}};
+ const tutCue=(act,i)=>{if(V14&&V14.publishCue)V14.publishCue({kind:'tut',act,i:i||0,nick:'*'});else if(window.NK_TUT){if(act==='reset')NK_TUT.reset();else if(act==='skip')NK_TUT.skip();else NK_TUT.jump(Math.min(NK_TUT.STEPS.length,(NK_TUT.P().i||0)+1));}};
  if(g('tuRe'))g('tuRe').onclick=()=>tutCue('reset',0);if(g('tuNx'))g('tuNx').onclick=()=>tutCue('next',0);if(g('tuSk'))g('tuSk').onclick=()=>tutCue('skip',0);}
 // v22 이동 속도: Lv1 +35% → Lv99 +65% (레벨당 약 +0.3%). v42: 관리자가 켠 호숫가 속도가 있으면 그 값이 우선.
 function mvLv(L){return L>=LV.max?2:1.35+.3*(Math.min(99,L)-1)/98;} // v24: 만렙 +100%
@@ -611,7 +611,7 @@ function updBots(dt,T){if(syncLakeBots())return;for(const b of bots){const c=b.c
 function turn(c,dt){let d=((c.dir-c.o.rotation.y)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI;c.o.rotation.y+=d*Math.min(1,dt*10);}
 // 봇이 내 어항 물고기를 사는 시뮬레이션
 let buyT=rand(...D.BOT_BUY_INTERVAL);
-function botBuy(dt){buyT-=dt;if(buyT>0)return;buyT=rand(...D.BOT_BUY_INTERVAL);const forSale=S.tank.filter(f=>f.sale&&!f.lock);if(!forSale.length)return;const b=pick(bots);
+function botBuy(dt){buyT-=dt;if(buyT>0)return;buyT=rand(...D.BOT_BUY_INTERVAL);const forSale=S.tank.filter(f=>f.sale&&!f.lock);if(!forSale.length||!bots.length)return;const b=pick(bots);
   for(const f of forSale){const r=f.price/f.v,p=r<=1?.85:r<=1.5?.45:r<=2.5?.12:0;if(Math.random()<p){S.tank=S.tank.filter(x=>x.id!==f.id);S.coins+=f.price;ILOG.add('trade','fish',f,f.price,{note:b.c.name+' 구매'});S.earned+=f.price;b.tank.push(Object.assign({},f,{price:Math.round(f.price*1.2)}));save();hud();sfx.coin();
     toast(`💰 ${b.c.name}님이 ${FI(f.k).n} ${f.cm}cm를<br>${f.price.toLocaleString()}코인에 구매했어요!`,2600);say('시스템',`${b.c.name}님이 내 ${FI(f.k).n}(${GR(f.g).n})를 ${f.price}코인에 구매`);if($('tank').classList.contains('show')&&tankView.owner==='me'){tankView.removeFish(f.id);tankView.refresh();}return;}}
   if(Math.random()<.3)say(b.c.name,'어항 구경 잘 했어요~ 가격이 좀 비싸네요 😅');}
@@ -1054,9 +1054,9 @@ function boxAlert(who,tier,mine){const t=TIER(tier),M=tier>=5,cls=M?'M':'L';
  if(mine){const el=document.createElement('div');el.className='cutin box '+cls;el.title='클릭하면 닫혀요';el.onclick=()=>{el.classList.add('out');setTimeout(()=>el.remove(),250);};el.innerHTML=`<div class="band">${BOXIMG(tier,'bximg')}<div><div class="t">${M?'✦ 신화 상자 개봉 ✦':'★ 전설 상자 개봉 ★'}</div><div class="sub">${who} · ${t.n} 행운 상자</div></div></div>`;document.body.appendChild(el);setTimeout(()=>el.classList.add('out'),2800);setTimeout(()=>el.remove(),3400);}
  else{const box=$('ribbons'),el=document.createElement('div');el.className='ribbon '+cls;el.innerHTML=`${BOXIMG(tier,'bximg')}<div><div class="big"><span class="w">🎁 <b>${who}</b>님이</span> <span class="f"><span class="gb">${t.n}</span> <b>행운 상자</b>를 열었어요!</span></div><small>방금 전 · 같은 서버</small></div>`;box.appendChild(el);setTimeout(()=>el.classList.add('out'),4800);setTimeout(()=>el.remove(),5400);}
  say('시스템',`📢 ${who}님이 ${t.n} 행운 상자를 열었어요!`);}
-let botBT=rand(90,200);function botBoxAlert(dt,force){botBT-=dt;if(!force&&botBT>0)return;botBT=rand(90,200);const g=force!=null?force:Math.random()<.15?5:4;boxAlert(pick(bots).c.name,g,false);}
+let botBT=rand(90,200);function botBoxAlert(dt,force){botBT-=dt;if(!force&&botBT>0)return;botBT=rand(90,200);if(!bots.length)return;const g=force!=null?force:Math.random()<.15?5:4;boxAlert(pick(bots).c.name,g,false);}
 function botLegend(dt,force){botLT-=dt;if(!force&&botLT>0)return;botLT=rand(...D.ALERT.botTick);const x=Math.random();const g=force!=null?force:x<D.ALERT.myth*D.TX.botRate?5:x<D.ALERT.myth?4:x<D.ALERT.legend?3:-1;if(g<0)return;
- const cand=D.FISH.filter(f=>f.w<=14),F=pick(cand),cm=Math.round((g===5?F.max*(D.TX.lo+(D.TX.hi-D.TX.lo)*Math.random()):g===4?F.g[3]+(F.max-F.g[3])*Math.random():F.g[2]+(F.g[3]-F.g[2])*Math.random())*10)/10,b=pick(bots);legendAlert(b.c.name,{k:F.k,cm,g},false);}
+ const cand=D.FISH.filter(f=>f.w<=14),F=pick(cand),cm=Math.round((g===5?F.max*(D.TX.lo+(D.TX.hi-D.TX.lo)*Math.random()):g===4?F.g[3]+(F.max-F.g[3])*Math.random():F.g[2]+(F.g[3]-F.g[2])*Math.random())*10)/10,b=pick(bots);if(!b)return;legendAlert(b.c.name,{k:F.k,cm,g},false);}
 const autoTargets=()=>S.tank.filter(f=>!f.lock&&f.v<S.auto.th);const autoPrevTxt=()=>{const L=autoTargets();return `현재 어항 기준 미만: ${L.length}마리 (🪙${L.reduce((a,f)=>a+sellP(f),0).toLocaleString()})`;};
 function renderSet(){const r=keepScroll('set',_renderSet);setLayoutA();return r;}
 const PV={reelFx:'reel',fishBtnS:'fb',goalFx:'goal'};
@@ -1106,22 +1106,22 @@ function bindLook(root){const qa=sel=>root.querySelectorAll(sel),q=sel=>root.que
  qa('[name=bdes]').forEach(r=>r.onchange=()=>{S.boxDesign=+r.value;toast('🎁 상자 아이콘 디자인 '+r.value);});
  qa('[data-v14]').forEach(el=>el.onchange=()=>{applyStyleSide(el.dataset.v14,el.value);});
  qa('[data-pv]').forEach(b=>b.onclick=()=>{const sel=b.parentNode.querySelector('select'),k=b.dataset.pv,v=sel?sel.value:S[k];previewStyle(k,v);});
- const sharePlay=patch=>{if(window.V14&&V14.publishPlay)V14.publishPlay(patch);};
+ const sharePlay=patch=>{if(V14&&V14.publishPlay)V14.publishPlay(patch);};
  qa('[data-u25]').forEach(el=>el.onchange=()=>{NK_UI25.set(el.dataset.u25,el.value);const k=el.dataset.u25;if(/^duck/.test(k))sharePlay({[k]:el.value===''?el.value:(isNaN(+el.value)?el.value:+el.value)});});
  const duck=q('#duckOn');if(duck)duck.onchange=e=>{NK_UI25.set('duckOn',e.target.checked?1:0);sharePlay({duckOn:e.target.checked?1:0});};
  const ds=q('#duckSnd');if(ds)ds.onchange=e=>{NK_UI25.set('duckSnd',e.target.checked?1:0);sharePlay({duckSnd:e.target.checked?1:0});};
- const dn=q('#duckNow');if(dn)dn.onclick=()=>{if(window.V14&&V14.publishCue)V14.publishCue({kind:'duck',n:1,nick:'*'});else{window.NK_DUCK&&NK_DUCK.drop(1);toast('🦆 러버덕이 떨어져요!',1400);}};
+ const dn=q('#duckNow');if(dn)dn.onclick=()=>{if(V14&&V14.publishCue)V14.publishCue({kind:'duck',n:1,nick:'*'});else{window.NK_DUCK&&NK_DUCK.drop(1);toast('🦆 러버덕이 떨어져요!',1400);}};
  qa('.duckK').forEach(c=>c.onchange=()=>{const ks=[...qa('.duckK')].filter(x=>x.checked).map(x=>x.value);const v=ks.join(',')||'base';NK_UI25.set('duckKinds',v);sharePlay({duckKinds:v});});
- const tr=q('#tutRe');if(tr)tr.onclick=()=>{if(window.V14&&V14.publishCue)V14.publishCue({kind:'tut',act:'reset',i:0,nick:'*'});else{NK_UI25.set('tutOff',0);NK_TUT&&NK_TUT.reset();toast('튜토리얼을 처음부터 다시 시작해요',1800);}};
+ const tr=q('#tutRe');if(tr)tr.onclick=()=>{if(V14&&V14.publishCue)V14.publishCue({kind:'tut',act:'reset',i:0,nick:'*'});else{NK_UI25.set('tutOff',0);NK_TUT&&NK_TUT.reset();toast('튜토리얼을 처음부터 다시 시작해요',1800);}};
  const to=q('#tutOff');if(to)to.onchange=e=>{NK_UI25.set('tutOff',e.target.checked?1:0);sharePlay({tutOff:e.target.checked?1:0});};
- const tg=q('#tutGo');if(tg)tg.onclick=()=>{const i=+q('#tutJump').value;if(window.V14&&V14.publishCue)V14.publishCue({kind:'tut',act:'jump',i,nick:'*'});else{NK_UI25.set('tutOff',0);if(window.NK_TUT){if(i>=NK_TUT.STEPS.length)NK_TUT.skip();else NK_TUT.jump(i);}toast('튜토리얼 이동',1600);}};
- const tn=q('#tutNx');if(tn)tn.onclick=()=>{if(window.V14&&V14.publishCue)V14.publishCue({kind:'tut',act:'next',i:0,nick:'*'});else if(window.NK_TUT)NK_TUT.jump(Math.min(NK_TUT.STEPS.length,NK_TUT.P().i+1));};
- const ts=q('#tutSk');if(ts)ts.onclick=()=>{if(window.V14&&V14.publishCue)V14.publishCue({kind:'tut',act:'skip',i:0,nick:'*'});else{NK_TUT&&NK_TUT.skip();toast('튜토리얼 모두 완료 처리',1600);}};
+ const tg=q('#tutGo');if(tg)tg.onclick=()=>{const i=+q('#tutJump').value;if(V14&&V14.publishCue)V14.publishCue({kind:'tut',act:'jump',i,nick:'*'});else{NK_UI25.set('tutOff',0);if(window.NK_TUT){if(i>=NK_TUT.STEPS.length)NK_TUT.skip();else NK_TUT.jump(i);}toast('튜토리얼 이동',1600);}};
+ const tn=q('#tutNx');if(tn)tn.onclick=()=>{if(V14&&V14.publishCue)V14.publishCue({kind:'tut',act:'next',i:0,nick:'*'});else if(window.NK_TUT)NK_TUT.jump(Math.min(NK_TUT.STEPS.length,NK_TUT.P().i+1));};
+ const ts=q('#tutSk');if(ts)ts.onclick=()=>{if(V14&&V14.publishCue)V14.publishCue({kind:'tut',act:'skip',i:0,nick:'*'});else{NK_TUT&&NK_TUT.skip();toast('튜토리얼 모두 완료 처리',1600);}};
  const so=q('#soloOn');if(so)so.onchange=e=>{try{localStorage.setItem('nk_solo',e.target.checked?'1':'0');}catch(_){}confirmBox('<h3>저장 모드 변경</h3><p>'+(e.target.checked?'솔로(nakmeong_solo)':'공유(nakmeong_v2)')+' 키로 바꿉니다. 새로고침할까요?</p>',()=>location.reload());};
  const rk=q('#rkTag');if(rk)rk.onchange=e=>{S.rankTag=e.target.checked;save();};
  const pf=q('#perfOn');if(pf)pf.onchange=e=>{S.perfOn=e.target.checked;save();applyHud();};
- const mv=q('#mvS');if(mv){const pub=()=>{const on=S.moveOv!=null;if(window.V14&&V14.publishPlay)V14.publishPlay({moveOn:on,move:on?Math.max(0,Math.min(1,+S.moveOv||0)):0});};mv.oninput=e=>{S.moveOv=+e.target.value;if(window.__nkPlay&&__nkPlay.moveOn)__nkPlay.move=+e.target.value;const lab=q('#mvV');if(lab)lab.textContent='+'+Math.round(S.moveOv*100)+'%';save();};mv.onchange=pub;const o=q('#mvO');if(o)o.onchange=e=>{S.moveOv=e.target.checked?+mv.value:null;save();pub();};}
- const cfg=q('#cfgApply');if(cfg)cfg.onclick=()=>{const lay=(root.querySelector('[name=dLay]:checked')||{}).value||CFG.lay,bots=Math.max(0,Math.min(49,Math.round(+(q('#botN')&&q('#botN').value)||0)));const deckW=(root.querySelector('[name=dW]:checked')||{}).value||'';if(window.V14&&V14.publishStage)V14.publishStage({lay,bots,deckW,decks:lay==='o'?20:(+CFG.decks||25)});else{localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},CFG,{lay,bots,deckW})));S.savedAt=Date.now();save();location.reload();}};
+ const mv=q('#mvS');if(mv){const pub=()=>{const on=S.moveOv!=null;if(V14&&V14.publishPlay)V14.publishPlay({moveOn:on,move:on?Math.max(0,Math.min(1,+S.moveOv||0)):0});};mv.oninput=e=>{S.moveOv=+e.target.value;if(window.__nkPlay&&__nkPlay.moveOn)__nkPlay.move=+e.target.value;const lab=q('#mvV');if(lab)lab.textContent='+'+Math.round(S.moveOv*100)+'%';save();};mv.onchange=pub;const o=q('#mvO');if(o)o.onchange=e=>{S.moveOv=e.target.checked?+mv.value:null;save();pub();};}
+ const cfg=q('#cfgApply');if(cfg)cfg.onclick=()=>{const lay=(root.querySelector('[name=dLay]:checked')||{}).value||CFG.lay,bots=Math.max(0,Math.min(49,Math.round(+(q('#botN')&&q('#botN').value)||0)));const deckW=(root.querySelector('[name=dW]:checked')||{}).value||'';if(V14&&V14.publishStage)V14.publishStage({lay,bots,deckW,decks:lay==='o'?20:(+CFG.decks||25)});else{localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},CFG,{lay,bots,deckW})));S.savedAt=Date.now();save();location.reload();}};
  const myF=g=>{const F=pick(D.FISH.filter(f=>f.rare));return {k:F.k,g,cm:g===4?F.max:F.g[2]};};
  const w=(id,fn)=>{const el=q('#'+id);if(el)el.onclick=fn;};
  w('dbMyL',()=>{closeM('admin');legendAlert(NICK(),myF(3),true);});
@@ -1286,7 +1286,9 @@ addEventListener('nk-rt-seat',e=>{const m=e.detail;if(!m||m.ok!==false||!mySeat)
 $('go').disabled=true;
 // ───────── 메인 ─────────
 let fpsA=60,camOverride=null;let started=false,T=0,last=performance.now();
-function frame(now){if(S.fpsCap&&now-last<1000/S.fpsCap-1.5){requestAnimationFrame(frame);return;}const dt=Math.min((now-last)/1000,.05);last=now;T+=dt;time.t=worldFrac();const p=palette();setMB('bTime','🌗',p.name);
+// v46: 한 프레임에서 오류가 나도 다음 프레임을 예약해 화면이 멈추지 않게 한다 (오류는 5초에 한 번만 콘솔에)
+let _frameErrAt=-1e9;function frame(now){try{frameBody(now);}catch(e){if(now-_frameErrAt>5000){_frameErrAt=now;console.error('[frame]',e);}last=now;requestAnimationFrame(frame);}}
+function frameBody(now){if(S.fpsCap&&now-last<1000/S.fpsCap-1.5){requestAnimationFrame(frame);return;}const dt=Math.min((now-last)/1000,.05);last=now;T+=dt;time.t=worldFrac();const p=palette();setMB('bTime','🌗',p.name);
   if(snd.forceT>0){snd.forceT-=dt;if(snd.forceT<=0)snd.force=null;}NIGHT=p.night;updAmb(p);updRain(dt);
   scene.background=p.sky;scene.fog.color.copy(p.sky);sun.color.copy(p.sun);sun.intensity=p.si;hemi.intensity=p.hemi;hemi.groundColor.copy(p.gnd);wU.deep.value.copy(p.deep);wU.shal.value.copy(p.shal);wU.sky.value.copy(p.sky);wU.night.value=p.night;wU.t.value=T;wU.mode.value=+(S.waterQ||5);dayGrade(p);if(window.NKGRADE)window.NKGRADE(p);
   fireL.intensity=p.fire*(.82+Math.sin(T*13)*.07+Math.sin(T*7.1)*.06+Math.sin(T*23.7)*.04+(Math.random()-.5)*.05);fireMesh.userData.tick(T,dt,p.night);lanL.intensity=p.lan;if(lanGlow)lanGlow.material.color.copy(lerpC('#d8d2c4','#ffd27a',Math.min(1,p.night+p.lan*.3)));
