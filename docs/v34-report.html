@@ -1,0 +1,102 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>피쉬레스트(FISHREST) v34 보고서</title><style>body{margin:0;background:#f6f1ea;font-family:system-ui,'Noto Sans KR','Apple SD Gothic Neo',sans-serif;color:#3a3048;line-height:1.7}
+main{max-width:960px;margin:24px auto;background:#fff;border-radius:18px;padding:28px 34px;box-shadow:0 6px 24px #3a304814}
+h1{font-size:26px;margin-top:0;color:#5a3fb0}h2{font-size:20px;border-bottom:2px solid #f0e8dc;padding-bottom:4px;margin-top:30px}h3{font-size:17px}
+a{color:#3a78c8;word-break:break-all}table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}
+th,td{border:1px solid #eadfd0;padding:7px 10px;text-align:left;vertical-align:top}th{background:#fbf6ef}tr:nth-child(even) td{background:#fdfbf8}
+code{background:#f3eee6;border-radius:5px;padding:1px 5px;font-size:.92em}pre{background:#f3eee6;padding:12px;border-radius:10px;overflow:auto}
+.nav{max-width:960px;margin:16px auto 0;font-size:14px;padding:0 6px}.nav a{color:#7a6f86;text-decoration:none}
+@media(max-width:640px){main{margin:10px;padding:18px}}</style></head><body><div class="nav"><a href="index.html">← 문서 목록</a></div><main><h1>피쉬레스트(FISHREST) v34 보고서</h1>
+<ul>
+<li>작업일: 2026-11-06 (Asia/Seoul)</li>
+<li>라이브: <a href="https://dydtjr13.github.io/nakmeong/">https://dydtjr13.github.io/nakmeong/</a></li>
+<li>캐시 무력화: <code>nakmeong.html?v34</code> (스크립트 <code>?v34</code>)</li>
+<li>기반: v33 (<code>d3e8c76</code>)</li>
+<li>이슈: t56u 「상자 열기 눌러도 아무 반응없고 먹통」</li>
+</ul>
+<h2>요약</h2>
+<ol>
+<li><strong>원인</strong>: 여러 개 상자 개봉 UI가 <strong>장비(wear)</strong> 보상을 처리하지 못해 <code>o.co.toLocaleString()</code>에서 예외 → <code>#boxFx</code>가 <code>show</code>만 남고 내용·확인 버튼 없이 화면을 가림</li>
+<li><strong>수정</strong>: multi 템플릿에 wear tip/셀 추가 · 합계에 장비 수 · <code>boxFx</code>/<code>openN</code> 예외 방어 · 배경 클릭으로 탈출</li>
+<li><strong>검증</strong>: 열기→결과→닫기→다시 열기 · wear 강제 multi · 저장/가방/상점 · pageerror 0</li>
+</ol>
+<h2>원인 상세</h2>
+<table>
+<thead>
+<tr>
+<th>경로</th>
+<th>동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1개 열기</td>
+<td><code>rewardHTML</code>이 wear 분기 있음 → 정상</td>
+</tr>
+<tr>
+<td>N개 열기</td>
+<td>multi <code>ritem</code> tip이 charm/rod/bait만 분기, 그 외 <code>o.co.toLocaleString()</code></td>
+</tr>
+<tr>
+<td>wear 드롭</td>
+<td>희귀+ 상자 <code>WEAR.boxRate</code> (4%~16%)</td>
+</tr>
+<tr>
+<td>예외 시점</td>
+<td><code>fx.className='show …'</code> 설정 <strong>이후</strong> HTML 생성 → 빈 오버레이(z-index 99) 고정</td>
+</tr>
+</tbody>
+</table>
+<p>재현: multi 리스트에 wear 1개만 넣어도 <code>TypeError: Cannot read properties of undefined (reading 'toLocaleString')</code>, <code>cls=show t2 multi</code>, <code>innerHTML=""</code>.</p>
+<h2>수정</h2>
+<p><strong>파일</strong>: <code>game-v2.js</code>, <code>nakmeong.html</code>(캐시 <code>?v34</code>)</p>
+<ul>
+<li><code>tipR</code> / <code>cellR</code>: wear·안전 폴백</li>
+<li>multi 합계: <code>👕 장비</code> 카운트</li>
+<li><code>boxFx</code> body <code>try/catch</code> → 실패 시에도 확인 버튼 표시</li>
+<li><code>openN</code>: <code>openBox</code>/<code>boxFx</code> try/catch, 빈 결과 시 <code>Math.max</code> 가드</li>
+<li>배경 클릭: <code>open</code> 전에도 닫기 가능</li>
+<li>wear <code>nw</code> 플래그: <code>o.w</code>도 신규 표시</li>
+</ul>
+<h2>회귀 (tools/tests-v34)</h2>
+<table>
+<thead>
+<tr>
+<th>테스트</th>
+<th>결과</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>t100 기본 열기/재열기</td>
+<td>OK</td>
+</tr>
+<tr>
+<td>t102 wear multi 강제</td>
+<td>OK (hasWear, open, close, reopen)</td>
+</tr>
+<tr>
+<td>t110 boot·soloSave·bag·shop·open1·close1·multiWear·reopen·giveBox·pageerror0</td>
+<td><strong>12/12 OK</strong>, pageErrs <code>[]</code></td>
+</tr>
+</tbody>
+</table>
+<h2>산출물</h2>
+<ul>
+<li>보고서: <a href="https://dydtjr13.github.io/nakmeong/docs/v34-보고서.html">https://dydtjr13.github.io/nakmeong/docs/v34-보고서.html</a></li>
+<li>게임: <a href="https://dydtjr13.github.io/nakmeong/nakmeong.html?v34">https://dydtjr13.github.io/nakmeong/nakmeong.html?v34</a></li>
+<li>백업: <code>/workspace/nakmeong-backups/nakmeong-v34.zip</code></li>
+<li>PC: <code>C:\Users\이용석\Desktop\게임개발\낚멍\낚멍 그록봇\nakmeong-v34\</code></li>
+</ul>
+<h2>남은 리스크</h2>
+<ul>
+<li>새 보상 타입이 multi 템플릿에 또 빠지면 tip 폴백·try/catch로 닫기는 되지만 표시는 단순화됨</li>
+<li><code>synthFx</code>는 별도 close 경로(기존) — 이번 범위 밖</li>
+<li>Pages CDN 캐시: 반드시 <code>?v34</code>로 확인</li>
+</ul>
+<h2>시안 대기</h2>
+<p>없음.</p>
+<h3>PC / SHA</h3>
+<ul>
+<li>SHA256: <code>dd946263da22665a102b655d3552361011cc7d11e96413cdb2bdd3a7c5d5ff8e</code></li>
+<li>분할: <code>nakmeong-v34.zip.000</code>~<code>.003</code> (30MB) + <code>merge-v34.ps1</code></li>
+</ul></main></body></html>

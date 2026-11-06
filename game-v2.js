@@ -886,7 +886,7 @@ if(bagTab==='charm'){const eqC=S.equip.map(id=>S.charms.find(c=>c.id===id)).filt
  if(!document.getElementById('rodTip')){const tip=document.createElement('div');tip.id='rodTip';tip.className='rodTip H1';document.body.appendChild(tip);}
  const tip=$('rodTip');
  q('.rodtile[data-rodtip]').forEach(b=>{b.onmouseenter=e=>{tip.textContent=b.dataset.rodtip;tip.classList.add('show');const r=b.getBoundingClientRect();tip.style.left=Math.min(innerWidth-220,r.right+8)+'px';tip.style.top=Math.max(8,r.top)+'px';};b.onmouseleave=()=>tip.classList.remove('show');});
- const openN=n=>{const res=[];for(let i=0;i<n&&S.boxes.length;i++){const bx=S.boxes.shift();res.push(SYS.openBox(D,S,Math.random,bx<0?"streak":typeof bx==="string"?bx:null));}rr();boxFx(res);if(res.length)addXP(5*res.length,"상자 열기");const best=Math.max(...res.map(r=>r.tier));if(best>=4)setTimeout(()=>boxAlert(NICK(),best,true),n>1?1000:1400);};
+ const openN=n=>{const res=[];for(let i=0;i<n&&S.boxes.length;i++){const bx=S.boxes.shift();try{res.push(SYS.openBox(D,S,Math.random,bx<0?"streak":typeof bx==="string"?bx:null));}catch(e){console.error('openBox',e);toast('상자 개봉 중 오류 · 다시 시도해 주세요');}}rr();try{boxFx(res);}catch(e){console.error('boxFx',e);closeBoxFx();toast('상자 연출 오류 · 보상은 가방에 반영됐어요');}if(res.length)addXP(5*res.length,"상자 열기");const best=res.length?Math.max(...res.map(r=>r.tier)):-1;if(best>=4)setTimeout(()=>boxAlert(NICK(),best,true),n>1?1000:1400);};
  const ob=$('openBox');if(ob)ob.onclick=()=>openN(1);const ob10=$('openBox10');if(ob10)ob10.onclick=()=>openN(10);
  const d1=$('dbgBox');if(d1)d1.onclick=()=>{S.boxes.push(Date.now());rr();};const d2=$('dbgBox10');if(d2)d2.onclick=()=>{for(let i=0;i<10;i++)S.boxes.push(Date.now());rr();};
  q('[data-eq]').forEach(b=>b.onclick=()=>{if(S.equip.length<D.CHARM.slots)S.equip.push(+b.dataset.eq);S.presets[S.preset]=S.equip.slice();rr();});
@@ -909,17 +909,24 @@ if(bagTab==='charm'){const eqC=S.equip.map(id=>S.charms.find(c=>c.id===id)).filt
  const eg=$('enhGo');if(eg)eg.onclick=()=>{const r=SYS.enhTry(D,S);rr();if(r.r==='ok'){sfx.coin();toast(`⚒ 강화 성공! <b>+${r.lv}</b>`);}else if(r.r==='drop'){sfx.fail();toast(`💥 강화 실패… +${r.lv}로 하락`);}else if(r.r==='fail'){sfx.fail();toast('강화 실패 (단계 유지)');}};
 }
 let _boxFxT=null,_boxFxT2=null;function closeBoxFx(){const fx=$('boxFx');if(!fx)return;clearTimeout(_boxFxT);clearTimeout(_boxFxT2);fx.className='';fx.onclick=null;fx.innerHTML='';}
-function boxFx(list){if(!list||!list.length)return;list.forEach(r=>r.out.forEach(o=>{const it=o.c||o.g;if(it&&it.nw==null)it.nw=1;}));save();const best=Math.max(...list.map(r=>r.tier)),t=TIER(best),fx=$('boxFx');clearTimeout(_boxFxT);clearTimeout(_boxFxT2);V14.boxSfx(best);fx.style.setProperty('--gc',t.c);fx.className='show t'+best+(list.length>1?' multi':'');
- const body=list.length===1?`<h3 style="color:${t.c}">${t.n} 행운 상자</h3>`+list[0].out.map(o=>rewardHTML(o,t)).join(''):
-  `<h3 style="color:${t.c}">행운 상자 ${list.length}개 개봉 · 최고 ${t.n}</h3><div class="rgrid">${list.map(r=>{const tt=TIER(r.tier);return `<div class="rcell" style="--gc:${tt.c}"><span class="gbadge" style="--gc:${tt.c}">${tt.n}</span>${r.out.map(o=>`<div class="ritem" data-tip="${o.type==='charm'?tipC(o.c):o.type==='rod'?tipG(o.g):o.type==='bait'?D.BAITS.find(b=>b.k===o.k).n+' ×'+o.n:'강화석 '+o.st+'개 · 코인 '+o.co.toLocaleString()}${o.bonus?'\n✨ 보물감정 보너스':''}" ${o.type==='charm'?NWK('c',o.c):o.type==='rod'?NWK('g',o.g):''}>${o.type==='charm'?NWB('c',o.c):o.type==='rod'?NWB('g',o.g):''}${o.type==='charm'?CIMG(o.c.tier)+' 부적 '+o.c.opts.length+'옵':o.type==='rod'?RIMG(o.g.k,'cimg')+' '+D.RODS.find(x=>x.k===o.g.k).n.replace(' 낚싯대',''):o.type==='bait'?BIMG(o.k,'cimg')+' '+D.BAITS.find(b=>b.k===o.k).n+' ×'+o.n:'💎×'+o.st+' 🪙'+o.co}${o.bonus?' ✨':''}</div>`).join('')}</div>`;}).join('')}</div>
-  <div class="small">${(()=>{const a={charm:0,rod:0,bait:0,st:0,co:0};list.forEach(r=>r.out.forEach(o=>{if(o.type==='stone'){a.st+=o.st;a.co+=o.co;}else a[o.type]++;}));return `합계: 🧿 부적 ${a.charm} · 🎣 낚싯대 ${a.rod} · 🪱 미끼 ${a.bait} · 💎 ${a.st} · 🪙 ${a.co.toLocaleString()}`;})()}</div>`;
+function boxFx(list){if(!list||!list.length)return;list.forEach(r=>r.out.forEach(o=>{const it=o.c||o.g||o.w;if(it&&it.nw==null)it.nw=1;}));save();const best=Math.max(...list.map(r=>r.tier)),t=TIER(best),fx=$('boxFx');clearTimeout(_boxFxT);clearTimeout(_boxFxT2);V14.boxSfx(best);fx.style.setProperty('--gc',t.c);fx.className='show t'+best+(list.length>1?' multi':'');
+ // v34: multi 템플릿에 wear 미처리 → o.co.toLocaleString throw → 빈 오버레이 잠김
+ const tipR=o=>{try{if(o.type==='charm')return tipC(o.c);if(o.type==='rod')return tipG(o.g);if(o.type==='bait'){const b=D.BAITS.find(x=>x.k===o.k);return (b?b.n:o.k)+' ×'+o.n;}if(o.type==='wear')return (o.it&&o.it.n||'장비')+(o.it?' Lv.'+o.it.lv:'')+(o.it&&o.it.optN?'\n'+o.it.optN:'');return '강화석 '+(o.st||0)+'개 · 코인 '+(+o.co||0).toLocaleString();}catch(e){return o.type||'?';}};
+ const cellR=o=>{if(o.type==='charm')return NWB('c',o.c)+CIMG(o.c.tier)+' 부적 '+o.c.opts.length+'옵';if(o.type==='rod')return NWB('g',o.g)+RIMG(o.g.k,'cimg')+' '+(D.RODS.find(x=>x.k===o.g.k)||{n:o.g.k}).n.replace(' 낚싯대','');if(o.type==='bait'){const b=D.BAITS.find(x=>x.k===o.k);return BIMG(o.k,'cimg')+' '+(b?b.n:o.k)+' ×'+o.n;}if(o.type==='wear')return `<img class="cimg" src="${(o.it&&o.it.img)||''}" alt=""> ${(o.it&&o.it.n)||'장비'}`;return '💎×'+(o.st||0)+' 🪙'+(+o.co||0);};
+ let body='';
+ try{
+  body=list.length===1?`<h3 style="color:${t.c}">${t.n} 행운 상자</h3>`+list[0].out.map(o=>rewardHTML(o,t)).join(''):
+   `<h3 style="color:${t.c}">행운 상자 ${list.length}개 개봉 · 최고 ${t.n}</h3><div class="rgrid">${list.map(r=>{const tt=TIER(r.tier);return `<div class="rcell" style="--gc:${tt.c}"><span class="gbadge" style="--gc:${tt.c}">${tt.n}</span>${r.out.map(o=>`<div class="ritem" data-tip="${String(tipR(o)).replace(/"/g,'&quot;')}${o.bonus?'\n✨ 보물감정 보너스':''}" ${o.type==='charm'?NWK('c',o.c):o.type==='rod'?NWK('g',o.g):''}>${cellR(o)}${o.bonus?' ✨':''}</div>`).join('')}</div>`;}).join('')}</div>
+   <div class="small">${(()=>{const a={charm:0,rod:0,bait:0,wear:0,st:0,co:0};list.forEach(r=>r.out.forEach(o=>{if(o.type==='stone'){a.st+=o.st||0;a.co+=o.co||0;}else if(a[o.type]!=null)a[o.type]++;}));return `합계: 🧿 부적 ${a.charm} · 🎣 낚싯대 ${a.rod} · 🪱 미끼 ${a.bait} · 👕 장비 ${a.wear} · 💎 ${a.st} · 🪙 ${a.co.toLocaleString()}`;})()}</div>`;
+ }catch(e){console.error('boxFx body',e);body=`<h3 style="color:${t.c}">${t.n} 행운 상자</h3><p class="small">보상을 표시하는 중 문제가 났어요. 확인을 눌러 닫아 주세요.</p>`;}
  fx.innerHTML=`<div class="rays"></div><div class="fxbox">${BOXIMG(best,'fximg')}${list.length>1?'<small>×'+list.length+'</small>':''}</div><div class="fxres">${body}<button class="acc" id="fxOk">확인</button></div>`;
  const doOpen=()=>{if(!fx.classList.contains('show'))return;fx.classList.add('open');try{sfx.reel();}catch(e){};};
  _boxFxT=setTimeout(doOpen,list.length>1?700:1100);
  _boxFxT2=setTimeout(doOpen,2200); // 안전: 모션 멈춰도 결과 표시
  const ok=()=>closeBoxFx();
  const btn=$('fxOk');if(btn)btn.onclick=e=>{e.stopPropagation();ok();};
- fx.onclick=e=>{if(e.target===fx&&fx.classList.contains('open'))ok();};
+ // v34: open 전이라도 배경 클릭으로 탈출(빈 오버레이 잠김 방지)
+ fx.onclick=e=>{if(e.target===fx)ok();};
 }
 function synthFx(r){const fx=$('boxFx'),t=TIER(r.c.tier);fx.style.setProperty('--gc',t.c);fx.className='show syn t'+r.c.tier;
  fx.innerHTML=`<div class="rays"></div><div class="synring">${r.used.map((c,i)=>`<div class="sp" style="--a:${i*360/r.used.length}deg">${CIMG(c.tier)}</div>`).join('')}<div class="core">${CIMG(r.c.tier)}</div></div><div class="fxres"><h3 style="color:${t.c}">✨ 합성 성공 · ${t.n} 부적!</h3>${charmHTML(r.c)}</div><button class="acc" id="fxOk">확인</button></div>`;
