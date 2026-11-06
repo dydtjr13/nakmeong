@@ -1032,3 +1032,16 @@ body.uiOne.uiedit [data-uin]:not(.uiSel){outline-color:#ff8a4c55!important;opaci
 #stSrv{display:flex;flex-direction:column;gap:7px}
 #stSrv .sv{grid-template-columns:78px 1fr auto}
 #stSrv .srvnote{margin:2px 0 0;font-size:12px;line-height:1.45;color:#8a7468}
+/* 관리자 로그인: 일반 설정 하단에는 작은 운영 진입만 */
+#set .card.setA>.admfoot{margin:0;padding:8px 16px 12px;text-align:right;border-top:1px solid #f0e8dc;background:#fff}
+#set #admGate{background:transparent;box-shadow:none;padding:0;margin:0;font-size:11px;font-weight:600;color:#c4b8aa;border-radius:0}
+#set #admGate:hover{color:#8a7a6a}
+#set #admOutSet{background:transparent;box-shadow:none;color:#8a7f96;font-size:12px;margin-left:8px}
+#admLogin,#admPwM{z-index:40}
+#admLogin .card,#admPwM .card{width:min(380px,92vw)}
+#admLogin h2,#admPwM h2{font-size:22px}
+#admLogin label,#admPwM label{display:block;font-size:13px;font-weight:800;margin:12px 0 4px}
+#admLogin input,#admPwM input{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:10px 12px;border-radius:12px;border:2px solid #ece4da;background:#fff;color:inherit;user-select:text;-webkit-user-select:text}
+#admLogin input:focus,#admPwM input:focus{outline:0;border-color:var(--acc2)}
+#admLogin .admErr,#admPwM .admErr{min-height:1.2em;margin:8px 0 0;color:#c03a3a;font-size:12.5px;font-weight:700}
+@media(max-width:700px){.adm2 header{flex-wrap:wrap;row-gap:8px}}
