@@ -773,6 +773,7 @@ export function sanitizePlay(input, prev, opt) {
   if ("duckSpeed" in input) out.duckSpeed = snapList(input.duckSpeed, DUCK_SPEED, snapList(base.duckSpeed, DUCK_SPEED, 1));
   if ("duckKinds" in input) out.duckKinds = cleanKinds(input.duckKinds, base.duckKinds);
   if ("tutOff" in input) out.tutOff = flag01(input.tutOff);
+  if ("donOff" in input) out.donOff = flag01(input.donOff);
   const bump = !!(opt && opt.bump);
   out.rev = bump ? ((base.rev | 0) + 1) : Math.max(0, Math.round(finite(input.rev, base.rev || 0)));
   out.at = bump ? now : Math.max(0, Math.round(finite(input.at, base.at || 0)));
