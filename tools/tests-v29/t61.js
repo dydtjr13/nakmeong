@@ -1,0 +1,10 @@
+const {chromium}=require('playwright-core');
+const VS=['base','pirate','straw','astro','frog','uni','cowboy','chef','ninja','santa','hardhat','mermaid','vamp','bee','sushi','detective'];
+(async()=>{const b=await chromium.launch({executablePath:'/usr/bin/google-chrome',args:['--use-gl=swiftshader','--enable-unsafe-swiftshader']});const O='/workspace/nakmeong/shots/v29/';const p=await b.newPage({viewport:{width:1280,height:800}});const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.goto('http://localhost:8787/nakmeong.html');
+await p.evaluate((kinds)=>{localStorage.clear();localStorage.setItem('nk_tut25',JSON.stringify({i:99,chk:1}));localStorage.setItem('nk_ui25',JSON.stringify({duckOn:1,duckEvery:300,duckKinds:kinds}));},VS.join(','));
+await p.reload();await p.waitForFunction(()=>!document.getElementById('go').disabled,null,{timeout:180000});await p.evaluate(()=>document.getElementById('go').click());await p.waitForTimeout(2000);
+await p.evaluate((VS)=>{NK_DUCK.clear();const m=NKV2.me().o.position;VS.forEach((v,i)=>{NK_DUCK.drop(1,v);const d=NK_DUCK.list().slice(-1)[0];d.x=m.x-7+(i%8)*1.85;d.z=m.z+10+Math.floor(i/8)*2.2;d.y=-.1;d.st='swim';d.yaw=Math.PI;d.sp=0;});NKV2.setCam(m.x,m.y+4.2,m.z+4,m.x,m.y-.2,m.z+11);},VS);
+await p.waitForTimeout(1000);await p.screenshot({path:O+'duck16-pc.jpg',quality:88});
+const kinds=await p.evaluate(()=>NK_DUCK.list().map(d=>d.v));
+console.log(JSON.stringify({n:kinds.length,kinds,errs}));await b.close();})();

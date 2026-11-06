@@ -1,7 +1,7 @@
 // 피쉬레스트 v28: 러버덕 6종(기본+해적·딸기·우주비행사·개구리·유니콘, duck-var-v28.js) — 하늘에서 떨어져 첨벙! 후 호수를 둥둥 유영. 설정: 생성 간격·최대 수(최대 30)
 // 3D 모델: JDSherbert "3D Rubber Duck Asset Pack" (상업 이용 가능 · 작가 표기 필수)
 (function(){const U=()=>window.NK_UI25,G=()=>window.NKV2;let T,scene,IM=[],VG={},ducks=[],fx=[],last=0,nextT=0,rMax=8,ok=false;const MAX=30;
- const conf=()=>({on:U().get('duckOn')!==0,every:+(U().get('duckEvery')||45),max:Math.min(MAX,Math.max(0,+(U().get('duckMax')??8))),size:+(U().get('duckSize')||1),speed:+(U().get('duckSpeed')??1),snd:U().get('duckSnd')!==0,kinds:String(U().get('duckKinds')??'base,pirate,straw,astro,frog,uni').split(',').filter(Boolean)});
+ const conf=()=>({on:U().get('duckOn')!==0,every:+(U().get('duckEvery')||45),max:Math.min(MAX,Math.max(0,+(U().get('duckMax')??8))),size:+(U().get('duckSize')||1),speed:+(U().get('duckSpeed')??1),snd:U().get('duckSnd')!==0,kinds:String(U().get('duckKinds')??'base,pirate,straw,astro,frog,uni,cowboy,chef,ninja,santa,hardhat,mermaid,vamp,bee,sushi,detective').split(',').filter(Boolean)});
  function geo(){const M=window.NK_DUCK_MESH,b=atob(M.pos),p=new Float32Array(M.n*3),dv=new DataView(new ArrayBuffer(b.length));for(let i=0;i<b.length;i++)dv.setUint8(i,b.charCodeAt(i));for(let i=0;i<M.n*3;i++)p[i]=dv.getInt16(i*2,true)/32767;
   const out={};for(const k in M.g){const s=atob(M.g[k]),d=new DataView(new ArrayBuffer(s.length));for(let i=0;i<s.length;i++)d.setUint8(i,s.charCodeAt(i));const idx=new Uint16Array(s.length/2);for(let i=0;i<idx.length;i++)idx[i]=d.getUint16(i*2,true);
    const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(p,3));g.setIndex(new T.BufferAttribute(idx,1));g.computeVertexNormals();out[k]=g;}return out;}
