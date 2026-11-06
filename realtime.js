@@ -123,6 +123,38 @@
     peers.clear();
     (m.peers || []).forEach((p) => { if (p && p.id && p.id !== RT.id) peers.set(p.id, p); });
     if (m.world) takeWorld(m.world);
+    if ("notice" in m) takeNotice(m.notice);
+    if ("event" in m) takeEvent(m.event);
+    if ("balance" in m) takeBalance(m.balance);
+    if (m.grants) takeGrants(m.grants);
+    if (m.sanc) takeSanc(m.sanc);
+    if (m.prof) takeProf(m.prof);
+  }
+
+  function takeNotice(n) {
+    RT.notice = n || null;
+    try { dispatchEvent(new CustomEvent("nk-rt-notice", { detail: n || null })); } catch (e) { /* ignore */ }
+  }
+  function takeEvent(e) {
+    RT.event = e || null;
+    try { dispatchEvent(new CustomEvent("nk-rt-event", { detail: e || null })); } catch (e2) { /* ignore */ }
+  }
+  function takeBalance(b) {
+    RT.balance = b || null;
+    try { dispatchEvent(new CustomEvent("nk-rt-balance", { detail: b || null })); } catch (e) { /* ignore */ }
+  }
+  function takeGrants(g) {
+    RT.grants = g || {};
+    try { dispatchEvent(new CustomEvent("nk-rt-grants", { detail: g || {} })); } catch (e) { /* ignore */ }
+  }
+  function takeSanc(s) {
+    RT.sanc = s || {};
+    try { dispatchEvent(new CustomEvent("nk-rt-sanc", { detail: s || {} })); } catch (e) { /* ignore */ }
+  }
+  function takeProf(p) {
+    if (!p) return;
+    RT.prof = p;
+    try { dispatchEvent(new CustomEvent("nk-rt-prof", { detail: p })); } catch (e) { /* ignore */ }
   }
 
   function onMessage(m) {
@@ -138,6 +170,14 @@
       }));
     }
     else if (m.t === "world" && m.world) takeWorld(m.world);
+    else if (m.t === "notice") takeNotice(m.notice);
+    else if (m.t === "event") takeEvent(m.event);
+    else if (m.t === "balance") takeBalance(m.balance);
+    else if (m.t === "grants") takeGrants(m.grants);
+    else if (m.t === "sanc") takeSanc(m.sanc);
+    else if (m.t === "prof") takeProf(m.prof);
+    else if (m.t === "gift" && m.gift) dispatchEvent(new CustomEvent("nk-rt-gift", { detail: m.gift }));
+    else if (m.t === "banned") dispatchEvent(new CustomEvent("nk-rt-banned", { detail: m }));
     else if (m.t === "chat" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-chat", { detail: m }));
     else if (m.t === "emote" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-emote", { detail: m }));
     else if (m.t === "seat") dispatchEvent(new CustomEvent("nk-rt-seat", { detail: m }));
@@ -196,6 +236,13 @@
             RT.mode = "on";
             retry = 0;
             finish({ ok: true });
+            return;
+          }
+          if (m.t === "banned") {
+            closeSocket();
+            RT.mode = "solo";
+            want = false;
+            finish({ ok: false, reason: "banned", until: m.until || 0 });
             return;
           }
           if (m.t === "full") {
@@ -306,10 +353,23 @@
 
   RT.chat = function (text) { if (RT.mode === "on") send({ t: "chat", text: String(text || "").slice(0, 80) }); };
   RT.emote = function (text) { if (RT.mode === "on") send({ t: "emote", text: String(text || "").slice(0, 8) }); };
+  function opsSend(obj) {
+    if (RT.mode !== "on") return false;
+    send(obj);
+    return true;
+  }
   RT.setWorld = function (world) {
-    if (RT.mode !== "on" || !world || typeof world !== "object") return;
+    if (RT.mode !== "on" || !world || typeof world !== "object") return false;
     send({ t: "world", world });
+    return true;
   };
+  RT.setNotice = function (notice) { return opsSend({ t: "notice", notice: notice || null }); };
+  RT.setEvent = function (event) { return opsSend({ t: "event", event: event || null }); };
+  RT.setBalance = function (balance) { return opsSend({ t: "balance", balance: balance || null }); };
+  RT.setGrant = function (grant) { return opsSend({ t: "grant", nick: grant && grant.nick, until: grant && grant.until, revoke: !!(grant && grant.revoke) }); };
+  RT.setSanc = function (row) { return opsSend({ t: "sanc", nick: row && row.nick, mute: row && row.mute, ban: row && row.ban, why: row && row.why }); };
+  RT.setGift = function (gift) { return opsSend({ t: "gift", gift }); };
+  RT.setProf = function (prof) { return opsSend({ t: "prof", prof }); };
 
   window.NK_RT = RT;
   if (base) {

@@ -12,6 +12,9 @@ export const POSE_MS = 90;
 export const CHAT_MS = 700;
 export const HELLO_MS = 20000;
 export const MAX_MSG = 900;
+/** 공지·이벤트·밸런스·금칙어처럼 본문이 긴 운영 메시지. 채팅·포즈는 MAX_MSG. */
+export const MAX_OPS = 48000;
+const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof"]);
 
 const FISH = new Set(["off", "cast", "bite"]);
 const ANIMS = new Set(["idle", "walk", "sit", "holding-right"]);
@@ -198,8 +201,202 @@ export function seasonSlot(now, world) {
   return s;
 }
 
+const EVENT_MUL = [1, 1.2, 1.5, 2, 2.5, 3, 5];
+
+export function lakeTargets(ch) {
+  if (ch === "all" || ch == null || ch === "") return [1, 2, 3, 4];
+  const n = Math.round(Number(ch));
+  return n >= 1 && n <= 4 ? [n] : [1, 2, 3, 4];
+}
+
+function snapMul(v) {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return 1;
+  let best = 1;
+  let dist = Infinity;
+  for (const m of EVENT_MUL) {
+    const d = Math.abs(m - n);
+    if (d < dist) { dist = d; best = m; }
+  }
+  return best;
+}
+
+/** 지금 떠 있는 공지. off 이면 대상 호숫가의 공지를 내린다. */
+export function sanitizeNotice(input, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  if (input == null) return null;
+  if (typeof input !== "object" || Array.isArray(input)) return null;
+  const ch = input.ch === "all" || input.ch == null || input.ch === "" ? "all" : (lakeTargets(input.ch).length === 1 ? lakeTargets(input.ch)[0] : "all");
+  const id = String(input.id == null ? "" : input.id).replace(/[^\w.-]/g, "").slice(0, 40);
+  if (input.off) return { off: true, id, ch };
+  const msg = cleanText(input.msg, 120);
+  if (!msg) return null;
+  const min = Math.max(1, Math.min(1440, Math.round(finite(input.min, 10))));
+  let until = Math.round(finite(input.until, 0));
+  if (!(until > t) || until > t + 1440 * 60000 + 120000) until = t + min * 60000;
+  return { id: id || String(t), msg, min, ch, until, off: false };
+}
+
+/** 코인·상자 배율. 끄면 null. 예약(from 이 미래)도 그대로 둔다. */
+export function sanitizeEvent(input, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  if (input == null) return null;
+  if (typeof input !== "object" || Array.isArray(input)) return null;
+  const coin = snapMul(input.coin);
+  const box = snapMul(input.box);
+  if (coin <= 1 && box <= 1) return null;
+  let from = Math.round(finite(input.from, t));
+  let to = Math.round(finite(input.to, 0));
+  if (from < 0) from = 0;
+  if (to < 0) to = 0;
+  if (to && to <= from) return null;
+  if (to && to <= t) return null;
+  return { coin, box, from, to };
+}
+
+function cleanKey(k) {
+  const s = String(k || "").replace(/[^a-z0-9_]/gi, "").slice(0, 32);
+  return s;
+}
+
+function nonNeg(v, max) {
+  const n = Number(v);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  return Math.min(max, n);
+}
+
+/** null 이면 코드 기본값으로 되돌린다. */
+export function sanitizeBalance(input) {
+  if (input == null) return null;
+  if (typeof input !== "object" || Array.isArray(input)) return null;
+  const tiers = Array.isArray(input.tiers) ? input.tiers.slice(0, 8).map((n) => nonNeg(n, 1e6)) : [];
+  const caps = {};
+  if (input.caps && typeof input.caps === "object" && !Array.isArray(input.caps)) {
+    for (const k of Object.keys(input.caps)) {
+      const key = cleanKey(k);
+      if (!key || Object.keys(caps).length >= 40) continue;
+      caps[key] = nonNeg(input.caps[k], 1e6);
+    }
+  }
+  const fish = {};
+  if (input.fish && typeof input.fish === "object" && !Array.isArray(input.fish)) {
+    for (const k of Object.keys(input.fish)) {
+      const key = cleanKey(k);
+      if (!key || Object.keys(fish).length >= 80) continue;
+      const row = input.fish[k] || {};
+      fish[key] = { w: nonNeg(row.w, 1e7), base: nonNeg(row.base, 1e7) };
+    }
+  }
+  return {
+    boxBase: nonNeg(input.boxBase, 1),
+    txp: nonNeg(input.txp, 1),
+    tiers,
+    caps,
+    fish,
+  };
+}
+
+export function sanitizeGrants(map, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  const out = {};
+  if (!map || typeof map !== "object" || Array.isArray(map)) return out;
+  for (const k of Object.keys(map)) {
+    if (Object.keys(out).length >= 200) break;
+    const nick = sanitizeNick(k);
+    const until = Math.round(finite(map[k], 0));
+    if (until > t && until < t + 400 * 864e5) out[nick] = until;
+  }
+  return out;
+}
+
+export function mergeGrant(prev, patch, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  const next = sanitizeGrants(prev, t);
+  const nick = sanitizeNick(patch && patch.nick);
+  if (!patch || !String(patch.nick || "").trim()) return next;
+  if (patch.revoke || !(Number(patch.until) > t)) delete next[nick];
+  else next[nick] = Math.round(Number(patch.until));
+  return next;
+}
+
+export function sanitizeSancMap(map, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  const out = {};
+  if (!map || typeof map !== "object" || Array.isArray(map)) return out;
+  for (const k of Object.keys(map)) {
+    if (Object.keys(out).length >= 200) break;
+    const row = map[k] || {};
+    const mute = Math.round(finite(row.mute, 0));
+    const ban = Math.round(finite(row.ban, 0));
+    if (mute <= t && ban <= t) continue;
+    out[sanitizeNick(k)] = {
+      mute: mute > t ? mute : 0,
+      ban: ban > t ? ban : 0,
+      why: cleanText(row.why || "", 80),
+    };
+  }
+  return out;
+}
+
+export function mergeSanc(prev, patch, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  const next = sanitizeSancMap(prev, t);
+  if (!patch || !String(patch.nick || "").trim()) return next;
+  const nick = sanitizeNick(patch.nick);
+  const mute = Math.round(finite(patch.mute, 0));
+  const ban = Math.round(finite(patch.ban, 0));
+  if (mute <= t && ban <= t) delete next[nick];
+  else next[nick] = { mute: mute > t ? mute : 0, ban: ban > t ? ban : 0, why: cleanText(patch.why || "", 80) };
+  return next;
+}
+
+export function sanitizeGift(input, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  if (!input || typeof input !== "object" || Array.isArray(input)) return null;
+  const nick = input.nick === "*" ? "*" : sanitizeNick(input.nick);
+  if (!String(input.nick || "").trim()) return null;
+  const id = String(input.id == null ? t : input.id).replace(/[^\w.-]/g, "").slice(0, 40);
+  if (!id) return null;
+  const c = Math.round(nonNeg(input.c, 1e9));
+  const s = Math.round(nonNeg(input.s, 1e6));
+  const b = Math.round(nonNeg(input.b, 50));
+  const x = Math.round(nonNeg(input.x, 1e8));
+  if (!(c || s || b || x)) return null;
+  const servers = Array.isArray(input.servers)
+    ? [...new Set(input.servers.map((n) => Math.round(Number(n))).filter((n) => n >= 1 && n <= 4))]
+    : null;
+  return {
+    id,
+    nick,
+    c,
+    s,
+    b,
+    bt: Math.round(nonNeg(input.bt, 5)),
+    x,
+    msg: cleanText(input.msg || "", 80),
+    servers: servers && servers.length ? servers : null,
+  };
+}
+
+export function sanitizeProf(input) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return null;
+  if (!Array.isArray(input.words) || !input.words.length) return null;
+  const words = [];
+  for (const w of input.words) {
+    const s = cleanText(w, 40);
+    if (s && words.length < 4000) words.push(s);
+  }
+  const allow = [];
+  for (const w of (Array.isArray(input.allow) ? input.allow : [])) {
+    const s = cleanText(w, 40);
+    if (s && allow.length < 2000) allow.push(s);
+  }
+  if (!words.length) return null;
+  return { enabled: input.enabled !== false, words, allow };
+}
+
 export function parseClient(raw) {
-  if (typeof raw !== "string" || raw.length === 0 || raw.length > MAX_MSG) return null;
+  if (typeof raw !== "string" || raw.length === 0 || raw.length > MAX_OPS) return null;
   let msg;
   try {
     msg = JSON.parse(raw);
@@ -207,10 +404,32 @@ export function parseClient(raw) {
     return null;
   }
   if (!msg || typeof msg !== "object" || typeof msg.t !== "string") return null;
+  if (raw.length > MAX_MSG && !OPS.has(msg.t)) return null;
   if (msg.t === "ping") return { t: "ping" };
   if (msg.t === "world") {
     if (!msg.world || typeof msg.world !== "object" || Array.isArray(msg.world)) return null;
     return { t: "world", world: msg.world };
+  }
+  if (msg.t === "notice") return { t: "notice", notice: msg.notice == null ? null : msg.notice };
+  if (msg.t === "event") return { t: "event", event: msg.event == null ? null : msg.event };
+  if (msg.t === "balance") return { t: "balance", balance: msg.balance == null ? null : msg.balance };
+  if (msg.t === "grant") {
+    if (!msg.nick) return null;
+    return { t: "grant", nick: msg.nick, until: msg.until, revoke: !!msg.revoke };
+  }
+  if (msg.t === "grants") return { t: "grants", grants: msg.grants };
+  if (msg.t === "sanc") {
+    if (msg.sanc && typeof msg.sanc === "object") return { t: "sanc", sanc: msg.sanc };
+    if (!msg.nick) return null;
+    return { t: "sanc", nick: msg.nick, mute: msg.mute, ban: msg.ban, why: msg.why };
+  }
+  if (msg.t === "gift") {
+    if (!msg.gift || typeof msg.gift !== "object") return null;
+    return { t: "gift", gift: msg.gift };
+  }
+  if (msg.t === "prof") {
+    if (!msg.prof || typeof msg.prof !== "object") return null;
+    return { t: "prof", prof: msg.prof };
   }
   if (msg.t === "chat" || msg.t === "emote") {
     const text = cleanText(msg.text, msg.t === "emote" ? 8 : 80);

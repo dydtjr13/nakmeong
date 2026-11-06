@@ -10,7 +10,15 @@ import {
   parseClient,
   quantizeKey,
   reduce,
+  lakeTargets,
+  mergeGrant,
+  mergeSanc,
+  sanitizeBalance,
+  sanitizeEvent,
+  sanitizeGift,
+  sanitizeNotice,
   sanitizeNick,
+  sanitizeProf,
   sanitizeWorld,
   seasonSlot,
   worldFraction,
@@ -145,6 +153,39 @@ test("world set message is parsed and junk world is dropped", () => {
   assert.equal(ok.world.dayLen, 300);
   assert.equal(parseClient(JSON.stringify({ t: "world" })), null);
   assert.equal(parseClient(JSON.stringify({ t: "world", world: ["nope"] })), null);
+});
+
+test("notice, event, balance, grant and gift are bounded", () => {
+  const now = 1_700_000_000_000;
+  const note = sanitizeNotice({ msg: "  점검 <b>안내</b>  ", min: 10, ch: "2" }, now);
+  assert.equal(note.msg, "점검 b안내/b");
+  assert.equal(note.ch, 2);
+  assert.equal(note.until, now + 10 * 60000);
+  assert.deepEqual(lakeTargets(note.ch), [2]);
+  assert.deepEqual(lakeTargets("all"), [1, 2, 3, 4]);
+  assert.equal(sanitizeNotice({ off: true, ch: "all", id: "abc" }, now).off, true);
+  const ev = sanitizeEvent({ coin: 2, box: 1.5, from: now, to: now + 3600000 }, now);
+  assert.deepEqual(ev, { coin: 2, box: 1.5, from: now, to: now + 3600000 });
+  assert.equal(sanitizeEvent({ coin: 1, box: 1 }, now), null);
+  const bal = sanitizeBalance({ boxBase: 0.2, txp: 0.01, tiers: [1, 2], caps: { luck: 30 }, fish: { carp: { w: 4, base: 12 } }, extra: "no" });
+  assert.equal(bal.fish.carp.w, 4);
+  assert.equal(bal.extra, undefined);
+  assert.equal(sanitizeBalance(null), null);
+  const grants = mergeGrant({}, { nick: "달빛", until: now + 60000 }, now);
+  assert.equal(grants["달빛"], now + 60000);
+  assert.deepEqual(mergeGrant(grants, { nick: "달빛", revoke: true }, now), {});
+  const sanc = mergeSanc({}, { nick: "민물", mute: now + 5000, ban: 0, why: "도배" }, now);
+  assert.equal(sanc["민물"].why, "도배");
+  assert.equal(mergeSanc(sanc, { nick: "민물", mute: 0, ban: 0 }, now)["민물"], undefined);
+  const gift = sanitizeGift({ id: "g1", nick: "*", c: 10, s: 0, b: 1, bt: 2, x: 0, msg: "점검", servers: [1, 9, 2] }, now);
+  assert.equal(gift.nick, "*");
+  assert.deepEqual(gift.servers, [1, 2]);
+  assert.equal(sanitizeGift({ nick: "달빛", c: 0 }, now), null);
+  assert.equal(sanitizeProf({ enabled: false, words: ["금칙"], allow: [] }).enabled, false);
+  const ops = parseClient(JSON.stringify({ t: "notice", notice: { msg: "안녕", min: 5, ch: "all" } }));
+  assert.equal(ops.t, "notice");
+  assert.equal(parseClient(JSON.stringify({ t: "event", event: null })).event, null);
+  assert.equal(parseClient("x".repeat(50000)), null);
 });
 
 test("origin allow list matches the pages hosts", () => {
