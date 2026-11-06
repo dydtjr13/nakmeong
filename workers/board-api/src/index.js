@@ -2,6 +2,10 @@ const ALLOWED = new Set([
   'https://fishcozy.com',
   'https://www.fishcozy.com',
   'https://dydtjr13.github.io',
+  // v50: HTTPS 인증서 발급 전에는 게임이 http 로 열린다
+  'http://fishcozy.com',
+  'http://www.fishcozy.com',
+  'http://dydtjr13.github.io',
   'http://localhost:8787',
   'http://127.0.0.1:8787',
   'http://localhost:5500',
