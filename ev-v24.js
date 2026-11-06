@@ -31,7 +31,7 @@
 })();
 // v24: 게시판 (PC 기본 P4 · 모바일 B1/B2/B5 확정안) — 아직 서버가 없어 시안 화면을 창으로 띄워요
 (function(){let ov;const close=()=>{if(ov){ov.remove();ov=null;}};
- function open(){close();const S=(window.NKV2&&NKV2.S)||{},m=innerWidth<700,v=m?'m':(S.boardPC||'4');ov=document.createElement('div');ov.id='boardOv';ov.className='v'+v;window.NK_BOARD_API=window.NK_BOARD_API||localStorage.getItem('nk_board_api')||'https://fishcozy-board-api.mi1ku.workers.dev';ov.innerHTML=`<iframe src="board-v24.html?v=${v}&api=${encodeURIComponent(window.NK_BOARD_API)}&cb=v36" title="게시판" allowtransparency="true"></iframe>`;document.body.appendChild(ov);}
+ function open(){close();const S=(window.NKV2&&NKV2.S)||{},m=innerWidth<700,v=m?'m':(S.boardPC||'4');ov=document.createElement('div');ov.id='boardOv';ov.className='v'+v;window.NK_BOARD_API=window.NK_BOARD_API||localStorage.getItem('nk_board_api')||'https://fishcozy-board-api.mi1ku.workers.dev';ov.innerHTML=`<iframe src="board-v24.html?v=${v}&api=${encodeURIComponent(window.NK_BOARD_API)}&cb=v43" title="게시판" allowtransparency="true"></iframe>`;document.body.appendChild(ov);}
  addEventListener('message',e=>{if(e.data==='nkBoardClose')close();});addEventListener('keydown',e=>{if(e.key==='Escape'&&ov)close();});
  const add=()=>{const sy=document.getElementById('mSys');if(!sy){setTimeout(add,500);return;}if(document.getElementById('bBoard'))return;const b=document.createElement('button');b.id='bBoard';b.title='게시판';b.innerHTML='<b class="mi">📋</b><small class="ml">게시판</small>';b.onclick=e=>{e.stopPropagation();open();};sy.insertBefore(b,sy.firstChild);if(window.NK_EMOJI)try{NK_EMOJI.parse(b);}catch(_){}};add();
  window.NK_BOARD={open,close};})();
@@ -47,7 +47,7 @@
  setInterval(al,700);addEventListener('resize',()=>setTimeout(al,50));})();
 
 // v25: UI 설정 저장소 (XP 알림 위치·튜토리얼 위치 등) — localStorage nk_ui25
-window.NK_UI25=(function(){const K='nk_ui25',D0={xp:'A2',tutPC:'D2',tutM:'D2',tutFold:0,tutHide:0};let o;try{o=Object.assign({},D0,JSON.parse(localStorage.getItem(K)||'{}'));}catch(e){o=Object.assign({},D0);}
+window.NK_UI25=(function(){const K='nk_ui25',D0={xp:'A2',tutPC:'D2',tutM:'D2',tutFold:0,tutHide:0,tutPosPC:'bl',duckOn:1,duckEvery:300,duckMax:9,duckSize:'rand',duckSpeed:0.5,menu27:'1',donSt:'icon'};let o;try{o=Object.assign({},D0,JSON.parse(localStorage.getItem(K)||'{}'));}catch(e){o=Object.assign({},D0);}
  return {get:k=>o[k],set:(k,v)=>{o[k]=v;localStorage.setItem(K,JSON.stringify(o));document.dispatchEvent(new CustomEvent('nkui25',{detail:{k,v}}));},all:()=>o};})();
 // v25: XP 알림 위치 — A2(낚시 카드 바로 아래 가운데, 기본) / A4(PC 하단 메뉴 위, 모바일 낚시 버튼 왼쪽)
 (function(){const $=id=>document.getElementById(id);

@@ -862,7 +862,10 @@ body:has(.modal.show) #chat,body:has(.modal.show) #bubs{visibility:hidden}
 .obx{display:flex;gap:6px;flex-wrap:nowrap;margin-top:8px}.obx button{white-space:nowrap;margin:0!important}.obx:not(.t) button{flex:1;min-width:0;padding:7px 10px!important;font-size:13px!important}.obx.t button{font-size:11.5px!important;padding:5px 9px!important}
 @media(max-width:699px){.obx:not(.t) button{font-size:12.5px!important;padding:6px 8px!important}}
 /* 프로필 닉네임 + 적용 버튼 */
-.pfx{display:flex;gap:8px;align-items:stretch;margin:4px 0 2px}.pfx input{flex:1;min-width:0;height:40px;margin:0!important;box-sizing:border-box}.pfx button{height:40px;padding:0 16px!important;border-radius:12px!important;background:#ff8a4c!important;color:#fff!important;font-weight:800;margin:0!important;white-space:nowrap}
+.pfx{display:flex;gap:6px;align-items:center;margin:4px 0 2px;max-width:240px}.pfx input{flex:1;min-width:0;height:30px;margin:0!important;box-sizing:border-box;font-size:13px;padding:2px 8px}.pfx button{height:30px;padding:0 10px!important;border-radius:10px!important;background:#ff8a4c!important;color:#fff!important;font-weight:800;margin:0!important;white-space:nowrap;font-size:13px}
+.saveB .stabs{display:flex;gap:6px;margin:8px 0 12px}.saveB .stabs button{flex:1;border-radius:12px;background:#f3ece3}.saveB .stabs button.on{background:#ff8a4c;color:#fff}
+.saveB textarea{width:100%;box-sizing:border-box;border-radius:12px;border:1.5px solid #ead9c4;padding:8px;font-size:12px;margin:6px 0}
+.saveB .okline{background:#e7f6ea;border-radius:12px;padding:8px 10px;color:#1b4332;font-weight:700}
 /* 게시판 창 */
 #boardOv{position:fixed;inset:0;z-index:160}#boardOv iframe{width:100%;height:100%;border:0;background:transparent}#boardOv.v5{left:auto;width:440px}#boardOv.v2,#boardOv.v3,#boardOv.vm{background:#f6efe4}
 /* v25 XP 알림 A2: 어두운 알약 (낚시 카드 아래) */

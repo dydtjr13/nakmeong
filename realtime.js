@@ -230,6 +230,7 @@
     else if (m.t === "losses" && m.losses) takeLosses(m.losses);
     else if (m.t === "loss" && m.loss) takeLosses([m.loss]);
     else if (m.t === "banned") dispatchEvent(new CustomEvent("nk-rt-banned", { detail: m }));
+    else if (m.t === "nick") dispatchEvent(new CustomEvent("nk-rt-nick", { detail: m }));
     else if (m.t === "chat" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-chat", { detail: m }));
     else if (m.t === "emote" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-emote", { detail: m }));
     else if (m.t === "seat") dispatchEvent(new CustomEvent("nk-rt-seat", { detail: m }));
@@ -288,6 +289,13 @@
             RT.mode = "on";
             retry = 0;
             finish({ ok: true });
+            return;
+          }
+          if (m.t === "nick" && m.ok === false) {
+            closeSocket();
+            RT.mode = "solo";
+            want = false;
+            finish({ ok: false, reason: "nick", detail: m.reason || "bad" });
             return;
           }
           if (m.t === "banned") {
