@@ -1241,6 +1241,8 @@ button.brb.on{background:#ff8a4c;color:#fff;border-color:#ff8a4c}
 #start.v56 .stCode{margin-top:10px;border-top:1px dashed #eadfcd;padding-top:10px}
 #start.v56 .stCodeT{background:none;border:0;padding:0;font:inherit;font-size:13px;font-weight:800;color:#c45a2c;cursor:pointer;box-shadow:none}
 #start.v56 .stCodeB{margin-top:8px}
+#start.v56 .stLinks{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}#start.v56 .stLinks .stCodeT{white-space:nowrap}#start.v56 .stLinks .stCodeT.on{text-decoration:underline;text-underline-offset:3px}
+#start.v56 .stMkB .stIn input{flex:1;min-width:0;font-size:14px;padding:9px 10px;border-radius:11px}#start.v56 #stMkMsg{display:block;margin-top:6px;font-size:11.5px;line-height:1.45}#start.v56 #stMkMsg.ok{color:#2f8a55;font-weight:800}#start.v56 #stMkMsg.bad{color:#c44536;font-weight:800}
 #start.v56 .stCodeR{display:flex;gap:6px}
 #start.v56 .stTabs{display:flex;gap:4px;margin-bottom:6px}#start.v56 .stTabs button{flex:1;padding:6px 4px;font-size:12px;font-weight:800;border-radius:9px;background:#f2ebe0;color:#8a7864;border:0;box-shadow:none;white-space:nowrap}#start.v56 .stTabs button.on{background:#3d3a4b;color:#fff}
 #start.v56 .stIn{flex:1;min-width:0;display:flex;gap:6px}#start.v56 .stCodeB[data-m=acct] .stCd,#start.v56 .stCodeB[data-m=code] .stAc{display:none}
