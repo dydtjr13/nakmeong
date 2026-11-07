@@ -851,6 +851,10 @@ export function sanitizePlay(input, prev, opt) {
   if ("tankUi" in input) out.tankUi = pickOf(input.tankUi, ["old", "A"]);
   if ("hudSt" in input) out.hudSt = pickOf(input.hudSt, ["old", "H1", "H3", "H4"]);
   if ("mapSt" in input) out.mapSt = pickOf(input.mapSt, ["old", "A", "B", "C", "X", "XM", "GB"]);
+  // v62: 배경음악
+  if ("bgmOn" in input) out.bgmOn = flag01(input.bgmOn);
+  if ("bgm" in input) out.bgm = /^[\w-]{1,24}$/.test(String(input.bgm)) ? String(input.bgm) : "shuffle";
+  if ("bgmVol" in input) out.bgmVol = Math.round(Math.max(0, Math.min(1, finite(input.bgmVol, 0.6))) * 100) / 100;
   // v58: 경험치·아이템 밸런스 (null 이면 기본값으로)
   if ("xpBal" in input) { const v = sanitizeXpBal(input.xpBal); if (v) out.xpBal = v; else delete out.xpBal; }
   const bump = !!(opt && opt.bump);
