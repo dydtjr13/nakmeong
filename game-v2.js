@@ -1073,9 +1073,10 @@ const SV={api:()=>String(window.NK_BOARD_API||(()=>{try{return localStorage.getI
  cid:()=>{try{return localStorage.getItem('nk_cid')||'';}catch(e){return '';}},code:()=>{try{return localStorage.getItem('nk_save_code')||'';}catch(e){return '';}},
  setCode:c=>{try{localStorage.setItem('nk_save_code',c);}catch(e){}},sent:0,busy:false};
 async function cloudSave(force){if(SV.busy)return null;const cid=SV.cid();if(!cid)return null;if(!force&&SV.sent&&(+S.savedAt||0)<=SV.sent)return SV.code()||null;SV.busy=true;
- try{S.savedAt=S.savedAt||Date.now();const r=await fetch(SV.api()+'/saves',{method:'POST',headers:{'Content-Type':'application/json','X-Owner':cid},body:JSON.stringify({data:JSON.stringify(S)})});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j&&j.error||r.status);SV.setCode(j.code);SV.sent=+S.savedAt||Date.now();return j.code;}
+ try{S.savedAt=S.savedAt||Date.now();const _b=JSON.stringify({data:JSON.stringify(S)});const r=await fetch(SV.api()+'/saves',{method:'POST',headers:{'Content-Type':'application/json','X-Owner':cid},body:_b,keepalive:_b.length<60000});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j&&j.error||r.status);SV.setCode(j.code);SV.sent=+S.savedAt||Date.now();return j.code;}
  catch(e){return null;}finally{SV.busy=false;}}
-setInterval(()=>{if(started&&!document.hidden)cloudSave(false);},5*60e3);
+// v56: 서버 저장 1분마다 + 탭을 숨기거나 닫을 때도 저장 (주소·브라우저가 바뀌어도 코드로 복구)
+setInterval(()=>{if(started&&!document.hidden)cloudSave(false);},60e3);document.addEventListener('visibilitychange',()=>{if(started&&document.hidden)try{save();cloudSave(false);}catch(e){}});addEventListener('pagehide',()=>{if(started)try{save();cloudSave(false);}catch(e){}});
 // v56: 저장 코드(12자리) 또는 JSON 으로 저장 데이터 가져오기 — 저장 창·시작 화면 공용
 async function fetchSaveObj(raw){raw=String(raw||'').trim();if(!raw)throw new Error('코드를 붙여넣어 주세요');if(raw[0]==='{'){try{return JSON.parse(raw);}catch(e){throw new Error('코드를 읽지 못했어요');}}
  const c=raw.toUpperCase().replace(/[^0-9A-Z]/g,'');if(c.length!==12)throw new Error('코드는 12자리예요 (예: A7X9-K2L8-B6P3)');
