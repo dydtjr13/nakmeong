@@ -850,7 +850,7 @@ export function sanitizePlay(input, prev, opt) {
   const pickOf = (v, list) => (list.includes(String(v)) ? String(v) : list[0]);
   if ("tankUi" in input) out.tankUi = pickOf(input.tankUi, ["old", "A"]);
   if ("hudSt" in input) out.hudSt = pickOf(input.hudSt, ["old", "H1", "H3", "H4"]);
-  if ("mapSt" in input) out.mapSt = pickOf(input.mapSt, ["old", "A", "B", "C"]);
+  if ("mapSt" in input) out.mapSt = pickOf(input.mapSt, ["old", "A", "B", "C", "X", "XM", "GB"]);
   // v58: 경험치·아이템 밸런스 (null 이면 기본값으로)
   if ("xpBal" in input) { const v = sanitizeXpBal(input.xpBal); if (v) out.xpBal = v; else delete out.xpBal; }
   const bump = !!(opt && opt.bump);
