@@ -246,6 +246,12 @@ export default {
         ]);
         return json({ ok: true, nick: a.nick, code: a.code, data: row.data, updated_at: row.updated_at }, 200, origin);
       }
+      if (path === '/accounts/check' && request.method === 'GET') {
+        const nick = cleanNick(url.searchParams.get('nick')), nk = nickKey(nick);
+        if (!nk || nick === '낚시꾼' || profane(nick)) return json({ ok: true, free: false, bad: true }, 200, origin);
+        const had = await db.prepare('SELECT nk FROM accounts WHERE nk=?').bind(nk).first();
+        return json({ ok: true, free: !had }, 200, origin);
+      }
       if (path === '/accounts/mine' && request.method === 'GET') {
         if (!me) return json({ ok: true, nick: '' }, 200, origin);
         const mine = await db.prepare('SELECT code FROM saves WHERE owner=? ORDER BY updated_at DESC LIMIT 1').bind(me).first();

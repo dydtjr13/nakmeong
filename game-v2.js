@@ -1635,7 +1635,21 @@ addEventListener('nk-rt-seat',e=>{const m=e.detail;if(!m||m.ok!==false||!mySeat)
  stEl.querySelectorAll('.stSteps span').forEach(x=>{x.setAttribute('role','button');x.tabIndex=0;x.onclick=()=>step(+x.dataset.s);});
   // v56: 시작 화면에서 저장 코드 불러오기 → 닉네임·레벨·캐릭터 반영
  window.NK_STREFRESH=()=>{try{$('stNick').value=S.nick||'';nickChk();tab=grp(S.char||0);drawCP();stUpd();}catch(e){}};
- {const t=$('stCodeT'),bx=$('stCodeB'),msg=$('stCodeMsg'),inp=$('stCode'),go=$('stCodeGo');if(t&&bx){t.onclick=()=>{bx.hidden=!bx.hidden;if(!bx.hidden)($('stAcN')&&bx.dataset.m!=='code'?$('stAcN'):inp).focus();};
+ // v57: 시작 화면에서 계정 만들기 — 닉네임(1번 칸) + 비밀번호. 게임이 시작되고 첫 서버 저장 뒤에 계정을 연결해요
+ const MK={pin:'',t:0};{const mt=$('stMkT'),mb=$('stMkB'),p1=$('stMkP'),p2=$('stMkP2'),mm=$('stMkMsg');if(mt&&mb){
+  const say=(c,s)=>{mm.className=c;mm.textContent=s;};
+  const chk=async()=>{MK.pin='';[p1,p2].forEach(x=>x.value=x.value.replace(/\D/g,'').slice(0,6));const n=$('stNick').value.trim();
+   if(S.acct)return say('ok',`✅ 이미 ${S.acct} 계정에 연결돼 있어요`);
+   if(!n)return say('bad','1번 칸에 닉네임을 먼저 정해 주세요');if(nickBad(n))return say('bad',nickBadText(nickBad(n)));
+   if(!p1.value)return say('muted',`"${n}" 닉네임으로 계정을 만들어요. 비밀번호는 숫자 4~6자리예요`);
+   if(!/^\d{4,6}$/.test(p1.value))return say('bad','비밀번호는 숫자 4~6자리예요');if(p2.value!==p1.value)return say(p2.value?'bad':'muted',p2.value?'비밀번호가 서로 달라요':'비밀번호를 한 번 더 넣어 주세요');
+   const my=++MK.t;say('muted','닉네임 확인 중…');let j=null;try{j=await fetch(SV.api()+'/accounts/check?nick='+encodeURIComponent(n)).then(r=>r.json());}catch(e){}if(my!==MK.t)return;
+   if(!j)return say('bad','서버에 연결하지 못했어요. 게임 안 저장 창에서도 만들 수 있어요');if(!j.free)return say('bad',j.bad?'이 닉네임으로는 계정을 만들 수 없어요':'이미 계정이 있는 닉네임이에요. 다른 닉네임을 쓰거나 이어하기로 불러오세요');
+   MK.pin=p1.value;say('ok',`✅ "${n}" 계정을 만들 수 있어요. 시작하기를 누르면 만들어져요`);};
+  let tm=0;const later=()=>{clearTimeout(tm);tm=setTimeout(chk,350);};[p1,p2].forEach(x=>x.oninput=later);$('stNick').addEventListener('input',()=>{if(!mb.hidden)later();});
+  mt.onclick=()=>{mb.hidden=!mb.hidden;mt.classList.toggle('on',!mb.hidden);const cb=$('stCodeB');if(!mb.hidden&&cb){cb.hidden=true;$('stCodeT').classList.remove('on');}if(!mb.hidden){chk();p1.focus();}else MK.pin='';};}}
+ window.NK_STMK=async()=>{const pin=MK.pin;if(!pin||S.acct)return;MK.pin='';try{const j=await ACC.link(NICK(),pin);toast(`🔒 <b>${j.nick}</b> 계정을 만들었어요<br><small>다른 기기 시작 화면 › 이어하기에서 닉네임 + 비밀번호로 불러오세요</small>`,3600);}catch(e){toast('🔒 계정을 만들지 못했어요: '+((e&&e.message)||'')+'<br><small>저장 창 › 다른 기기에서 다시 만들 수 있어요</small>',4200);}};
+ {const t=$('stCodeT'),bx=$('stCodeB'),msg=$('stCodeMsg'),inp=$('stCode'),go=$('stCodeGo');if(t&&bx){t.onclick=()=>{bx.hidden=!bx.hidden;t.classList.toggle('on',!bx.hidden);const mb=$('stMkB');if(!bx.hidden&&mb){mb.hidden=true;$('stMkT').classList.remove('on');MK.pin='';}if(!bx.hidden)($('stAcN')&&bx.dataset.m!=='code'?$('stAcN'):inp).focus();};
   const an=$('stAcN'),ap=$('stAcP');let mode='acct';bx.querySelectorAll('[data-sm]').forEach(b=>b.onclick=()=>{mode=b.dataset.sm;bx.querySelectorAll('[data-sm]').forEach(x=>x.classList.toggle('on',x===b));bx.dataset.m=mode;(mode==='acct'?an:inp).focus();});
   if(ap)ap.oninput=()=>{ap.value=ap.value.replace(/\D/g,'').slice(0,6);};
   const run=async()=>{msg.className='muted';msg.textContent='불러오는 중…';go.disabled=true;try{const o=mode==='acct'&&an?await ACC.login(an.value,ap.value):await fetchSaveObj(inp.value);if(!o||typeof o.coins!=='number')throw new Error('저장 데이터가 아니에요');applySaveObj(o);window.NK_STREFRESH();const K=KINDS[S.char]||KINDS[0];msg.className='ok';msg.textContent=`✅ ${S.nick||'나'} · Lv.${myLv()} · ${K.n} 불러왔어요! 시작하기를 누르세요`;if(mob())step(3);}catch(e){msg.className='bad';msg.textContent=(e&&e.message)||'코드를 읽지 못했어요';}go.disabled=false;};
@@ -1697,7 +1711,7 @@ loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyV
     if(deckReload){location.reload();return;}
     try{window.NK_FULL&&NK_FULL.auto(S);}catch(e){}me=makeChar(S.char,NICK());const dSpawn=quietDeck();let x=dSpawn.entry.x,z=dSpawn.entry.z;
     if(online){const a=Math.random()*6.283,rad=1.1+Math.random()*1.7,tx=x+Math.cos(a)*rad,tz=z+Math.sin(a)*rad;if(walk(tx,tz)){x=tx;z=tz;}}
-    me.o.position.set(x,.4,z);me.dir=dSpawn.a+Math.PI;yaw=Math.atan2(Math.cos(dSpawn.a),Math.sin(dSpawn.a));started=true;$('start').classList.remove('show');startAudio();hud();
+    me.o.position.set(x,.4,z);me.dir=dSpawn.a+Math.PI;yaw=Math.atan2(Math.cos(dSpawn.a),Math.sin(dSpawn.a));started=true;$('start').classList.remove('show');startAudio();hud();if(window.NK_STMK)setTimeout(()=>NK_STMK(),1500);
     say('시스템',online?`Welcome to FISH COZY! 호숫가 ${id}에 들어왔어요. 같은 서버의 낚시꾼이 보여요.`:'Welcome to FISH COZY! 피쉬코지에 오신 걸 환영해요. 실시간 서버가 없으면 혼자(봇과) 플레이해요.');
   }finally{$('go')._busy=0;if($('start').classList.contains('show'))$('go').textContent=prev;}};
   hud();requestAnimationFrame(frame);setTimeout(()=>{try{calcRK3();}catch(e){}},1500);setInterval(()=>{try{calcRK3();}catch(e){}},30000);updBagBadge();
