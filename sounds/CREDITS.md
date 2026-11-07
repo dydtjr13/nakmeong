@@ -51,3 +51,7 @@ v5에서 CC BY·CC BY-SA 소스를 모두 제거했습니다. 아래 원본은 �
 | rain_t3 | Thunder and rain on a v.ogg | Public domain |
 | rain_t4 | Rain thunder and birds.ogg | Public domain |
 끝 3초 크로스페이드로 이음새 없는 루프, 음량 평준화.
+
+## 배경음악 (sounds/bgm)
+- bgm1.mp3 — 운영자가 직접 제공한 곡 (BGM 1)
+- 곡 추가: 파일을 sounds/bgm/ 에 넣고 sounds/bgm/list.json 에 {"k":"bgm2","n":"곡 이름","src":"sounds/bgm/bgm2.mp3"} 한 줄 추가
