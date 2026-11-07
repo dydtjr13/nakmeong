@@ -14,11 +14,11 @@ export const HELLO_MS = 20000;
 export const MAX_MSG = 900;
 /** 공지·이벤트·밸런스·금칙어처럼 본문이 긴 운영 메시지. 채팅·포즈는 MAX_MSG. */
 export const MAX_OPS = 48000;
-const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses", "game", "gameNow"]);
+const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses", "game", "gameNow", "titles"]);
 
 const FISH = new Set(["off", "cast", "bite", "catch"]);
 /** v52: 서버 인증된 관리자 소켓만 보낼 수 있는 운영 메시지 */
-export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet"]);
+export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet", "titles"]);
 function cleanId(v, max) {
   return String(v == null ? "" : v).replace(/[^\w.-]/g, "").slice(0, max || 40);
 }
@@ -84,6 +84,27 @@ export function keysNear(a, b, max = 1) {
   return Math.hypot(ax - bx, az - bz) <= max;
 }
 
+// v56: 관리자 특별 칭호 {닉네임: [{n,bd,bg,fg}]} — 네 호숫가 공용
+const HEX = (v, d) => (/^#[0-9a-f]{6}$/i.test(String(v || "")) ? String(v).toLowerCase() : d);
+export function cleanTitle(t) {
+  if (!t || typeof t !== "object" || Array.isArray(t)) return null;
+  const n = String(t.n == null ? "" : t.n).replace(/[\u0000-\u001f<>"'`&\\]/g, "").trim().slice(0, 12);
+  if (!n) return null;
+  return { n, bd: HEX(t.bd, "#ffd27a"), bg: HEX(t.bg, "#3b3346"), fg: HEX(t.fg, "#ffffff") };
+}
+export function sanitizeTitles(input) {
+  const out = {};
+  if (!input || typeof input !== "object" || Array.isArray(input)) return out;
+  for (const [k, list] of Object.entries(input)) {
+    const nick = sanitizeNick(k);
+    if (!nick || !Array.isArray(list)) continue;
+    const rows = list.map(cleanTitle).filter(Boolean).slice(0, 8);
+    if (rows.length) out[nick] = rows;
+    if (Object.keys(out).length >= 500) break;
+  }
+  return out;
+}
+
 // v55: 물고기 자랑 — 들고 있는 물고기 정보 (없으면 null)
 export function cleanBrag(b) {
   if (!b || typeof b !== "object" || Array.isArray(b)) return null;
@@ -120,6 +141,7 @@ export function sanitizePose(msg, prev) {
     fk: fish === "catch" ? String(msg.fk || "").replace(/[^\w-]/g, "").slice(0, 24) : "",
     fg: fish === "catch" ? Math.max(0, Math.min(5, Math.round(Number(msg.fg) || 0))) : 0,
     br: msg.br === undefined ? (p.br || null) : cleanBrag(msg.br),
+    tt: msg.tt === undefined ? (p.tt || null) : cleanTitle(msg.tt),
   };
 }
 
@@ -805,6 +827,11 @@ export function sanitizePlay(input, prev, opt) {
   if ("tutOff" in input) out.tutOff = flag01(input.tutOff);
   if ("donOff" in input) out.donOff = flag01(input.donOff);
   if ("bragOff" in input) out.bragOff = flag01(input.bragOff);
+  // v56: 테스트 기능 '인게임 적용' — 모든 유저 기본 화면 시안
+  const pickOf = (v, list) => (list.includes(String(v)) ? String(v) : list[0]);
+  if ("tankUi" in input) out.tankUi = pickOf(input.tankUi, ["old", "A"]);
+  if ("hudSt" in input) out.hudSt = pickOf(input.hudSt, ["old", "H1", "H3", "H4"]);
+  if ("mapSt" in input) out.mapSt = pickOf(input.mapSt, ["old", "A", "B", "C"]);
   const bump = !!(opt && opt.bump);
   out.rev = bump ? ((base.rev | 0) + 1) : Math.max(0, Math.round(finite(input.rev, base.rev || 0)));
   out.at = bump ? now : Math.max(0, Math.round(finite(input.at, base.at || 0)));
@@ -991,6 +1018,7 @@ export function parseClient(raw) {
   if (msg.t === "game") return msg.game && typeof msg.game === "object" && !Array.isArray(msg.game) ? { t: "game", game: msg.game } : null;
   if (msg.t === "gameNow") return { t: "gameNow", kind: msg.kind === "bal" ? "bal" : msg.kind === "stop" ? "stop" : "cho", all: !!msg.all };
   if (msg.t === "gameGet") return { t: "gameGet" };
+  if (msg.t === "titles") return msg.titles && typeof msg.titles === "object" && !Array.isArray(msg.titles) ? { t: "titles", titles: msg.titles } : null;
   if (msg.t === "auth") return { t: "auth", id: cleanCred(msg.id, 64), pw: cleanCred(msg.pw, 128), out: !!msg.out };
   if (msg.t === "world") {
     if (!msg.world || typeof msg.world !== "object" || Array.isArray(msg.world)) return null;
@@ -1059,6 +1087,7 @@ export function parseClient(raw) {
     return {
       t: msg.t,
       br: msg.br === undefined ? undefined : msg.br,
+      tt: msg.tt === undefined ? undefined : msg.tt,
       nick: msg.nick,
       ki: msg.ki,
       lv: msg.lv,
@@ -1081,7 +1110,8 @@ export function parseClient(raw) {
 export function allowPose(now, att, pose) {
   const dt = now - (att.lastPose || 0);
   const bk = (b) => (b ? b.k + b.at + "|" + b.lk : "");
-  const important = att.fish !== pose.fish || att.anim !== pose.anim || att.seat !== pose.seat || bk(att.br) !== bk(pose.br);
+  const tk = (t) => (t ? t.n + t.bg : "");
+  const important = att.fish !== pose.fish || att.anim !== pose.anim || att.seat !== pose.seat || bk(att.br) !== bk(pose.br) || tk(att.tt) !== tk(pose.tt);
   if (important) return dt >= 40;
   return dt >= POSE_MS;
 }
@@ -1100,6 +1130,7 @@ export function publicPeer(att) {
     fk: att.fk || "",
     fg: att.fg | 0,
     br: att.br || null,
+    tt: att.tt || null,
     anim: att.anim,
     seat: att.seat,
   };
@@ -1198,6 +1229,7 @@ export function reduce(prev, msg, now, others) {
   att.fk = pose.fk;
   att.fg = pose.fg;
   att.br = pose.br;
+  att.tt = pose.tt;
   att.anim = denied && pose.anim === "sit" ? "idle" : pose.anim;
   att.seat = seat;
   att.seatKey = seatKey;

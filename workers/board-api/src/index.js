@@ -88,6 +88,7 @@ async function ensureSchema(db) {
     'CREATE TABLE IF NOT EXISTS ranks (wk TEXT NOT NULL, k TEXT NOT NULL, owner TEXT NOT NULL, nick TEXT NOT NULL, srv INTEGER NOT NULL DEFAULT 0, cm REAL NOT NULL, g INTEGER NOT NULL DEFAULT 0, at INTEGER NOT NULL, PRIMARY KEY (wk, k, owner))',
     'CREATE INDEX IF NOT EXISTS idx_ranks_k ON ranks(wk, k, cm DESC)',
     'CREATE INDEX IF NOT EXISTS idx_ranks_srv ON ranks(wk, srv)',
+    'CREATE TABLE IF NOT EXISTS accounts (nk TEXT PRIMARY KEY, nick TEXT NOT NULL, salt TEXT NOT NULL, ph TEXT NOT NULL, code TEXT NOT NULL, fails INTEGER NOT NULL DEFAULT 0, lock_until INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)',
   ];
   for (const sql of tries) { try { await db.prepare(sql).run(); } catch (e) { /* 이미 있음 */ } }
   schemaReady = true;
@@ -109,6 +110,14 @@ const RANK_ITEM = (x) => {
   if (!/^[a-z0-9_]{1,24}$/.test(k) || !(cm > 0 && cm <= 3000) || g < 0 || g > 9) return null;
   return { k, cm, g };
 };
+// v56: 닉네임 + 비밀번호(숫자 4~6자리) 계정 — 비밀번호는 PBKDF2 해시로만 저장
+const nickKey = (n) => cleanNick(n).toLowerCase().replace(/\s+/g, '');
+async function pinHash(pin, salt) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode('fc-pin:' + pin), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt: new TextEncoder().encode(salt), iterations: 20000 }, base, 256);
+  return [...new Uint8Array(bits)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+const pinOk = (p) => /^\d{4,6}$/.test(String(p || ''));
 const REPORT_HIDE = 3; // 서로 다른 3명이 신고하면 관리자가 볼 때까지 숨김
 
 function shapePost(p, me, admin) {
@@ -196,6 +205,52 @@ export default {
         if (!me) return json({ ok: true, code: '', updated_at: 0 }, 200, origin);
         const row = await db.prepare('SELECT code, updated_at FROM saves WHERE owner=? ORDER BY updated_at DESC LIMIT 1').bind(me).first();
         return json({ ok: true, code: row ? row.code : '', updated_at: row ? row.updated_at : 0 }, 200, origin);
+      }
+
+      // ─ v56: 계정 (닉네임 + 비밀번호) ─
+      if (path === '/accounts/register' && request.method === 'POST') {
+        if (!me) return bad('owner required', 400, origin);
+        const body = await request.json().catch(() => ({}));
+        const nick = cleanNick(body.nick), nk = nickKey(nick);
+        if (!nk || nick === '낚시꾼' || profane(nick)) return bad('nick', 400, origin);
+        if (!pinOk(body.pin)) return bad('pin', 400, origin);
+        const mine = await db.prepare('SELECT code FROM saves WHERE owner=? ORDER BY updated_at DESC LIMIT 1').bind(me).first();
+        if (!mine) return bad('no save', 400, origin);
+        const had = await db.prepare('SELECT code FROM accounts WHERE nk=?').bind(nk).first();
+        if (had && had.code !== mine.code) return bad('taken', 409, origin);
+        const salt = crypto.randomUUID(), now = Date.now();
+        await db.prepare('INSERT INTO accounts (nk,nick,salt,ph,code,created_at,updated_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(nk) DO UPDATE SET salt=excluded.salt, ph=excluded.ph, nick=excluded.nick, updated_at=excluded.updated_at, fails=0, lock_until=0')
+          .bind(nk, nick, salt, await pinHash(String(body.pin), salt), mine.code, now, now).run();
+        return json({ ok: true, nick, code: mine.code }, 200, origin);
+      }
+      if (path === '/accounts/login' && request.method === 'POST') {
+        if (!me) return bad('owner required', 400, origin);
+        const body = await request.json().catch(() => ({}));
+        const nk = nickKey(body.nick), now = Date.now();
+        if (!nk || !pinOk(body.pin)) return bad('wrong', 401, origin);
+        const a = await db.prepare('SELECT * FROM accounts WHERE nk=?').bind(nk).first();
+        if (!a) return bad('wrong', 401, origin);
+        if (a.lock_until > now) return json({ ok: false, error: 'locked', until: a.lock_until }, 429, origin);
+        if ((await pinHash(String(body.pin), a.salt)) !== a.ph) {
+          const fails = (a.fails | 0) + 1;
+          await db.prepare('UPDATE accounts SET fails=?, lock_until=? WHERE nk=?').bind(fails >= 5 ? 0 : fails, fails >= 5 ? now + 10 * 60e3 : 0, nk).run();
+          return bad(fails >= 5 ? 'locked' : 'wrong', fails >= 5 ? 429 : 401, origin);
+        }
+        const row = await db.prepare('SELECT data, updated_at FROM saves WHERE code=?').bind(a.code).first();
+        if (!row) return bad('no save', 404, origin);
+        // 이 기기(owner)가 앞으로 이 계정의 저장 칸을 이어서 쓰도록: 이 기기의 다른 저장은 보관용으로 돌림
+        await db.batch([
+          db.prepare("UPDATE saves SET owner=owner||':old' WHERE owner=? AND code<>?").bind(me, a.code),
+          db.prepare('UPDATE saves SET owner=?, updated_at=? WHERE code=?').bind(me, now, a.code),
+          db.prepare('UPDATE accounts SET fails=0, lock_until=0, updated_at=? WHERE nk=?').bind(now, nk),
+        ]);
+        return json({ ok: true, nick: a.nick, code: a.code, data: row.data, updated_at: row.updated_at }, 200, origin);
+      }
+      if (path === '/accounts/mine' && request.method === 'GET') {
+        if (!me) return json({ ok: true, nick: '' }, 200, origin);
+        const mine = await db.prepare('SELECT code FROM saves WHERE owner=? ORDER BY updated_at DESC LIMIT 1').bind(me).first();
+        const a = mine ? await db.prepare('SELECT nick FROM accounts WHERE code=?').bind(mine.code).first() : null;
+        return json({ ok: true, nick: a ? a.nick : '' }, 200, origin);
       }
 
       // ─ 어종 랭킹 ─
