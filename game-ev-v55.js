@@ -9,14 +9,16 @@
 
   // 보상은 게임마다 한 번만
   function got(id) { try { const S = N().S; S.evGot = S.evGot || {}; return !!S.evGot[id]; } catch (e) { return true; } }
-  function give(id, coin, why) {
+  function give(id, coin, why, xk) {
     try {
-      const S = N().S; S.evGot = S.evGot || {}; if (S.evGot[id] || !(coin > 0)) return;
+      const S = N().S; S.evGot = S.evGot || {}; if (S.evGot[id] || !(coin > 0 || xk != null)) return;
       S.evGot[id] = Date.now();
       const keys = Object.keys(S.evGot); if (keys.length > 60) keys.sort((a, b) => S.evGot[a] - S.evGot[b]).slice(0, keys.length - 60).forEach((k) => delete S.evGot[k]);
-      S.coins += coin; S.earned = (S.earned || 0) + coin; N().save(); N().hud();
+      // v58: 이벤트 경험치 (관리자 밸런스 gm · 하루 한도 gcap)
+      let xp = 0; try { if (xk != null && N().XBAL) { const c = N().XBAL.cfg(); xp = N().XBAL.ev(c.gm[xk] || 0, why); } } catch (e) { /* ignore */ }
+      coin = coin > 0 ? coin : 0; S.coins += coin; S.earned = (S.earned || 0) + coin; N().save(); N().hud();
       try { N().snd && N().snd.ctx; } catch (e) { /* ignore */ }
-      if (window.NKV2 && NKV2.miniToast) NKV2.miniToast(`🪙 +${coin.toLocaleString()} · ${why}`, 2200);
+      if (window.NKV2 && NKV2.miniToast) NKV2.miniToast(`${coin ? `🪙 +${coin.toLocaleString()} ` : ''}${xp ? `⭐ +${xp} EXP ` : ''}· ${why}`, 2200);
     } catch (e) { /* ignore */ }
   }
 
@@ -105,7 +107,7 @@
     if (isNew) { mini = false; typed = ""; wrongAt = 0; if (!g.done) { try { NKV2 && NKV2.snd; } catch (er) { /* ignore */ } } }
     if (g && g.done) {
       const r = res[g.id] || {};
-      if (g.kind === "bal" && r.picked) give(g.id, g.rw || 0, "밸런스 게임 참여");
+      if (g.kind === "bal" && r.picked) give(g.id, g.rw || 0, "밸런스 게임 참여", 4);
       clearTimeout(autoClose); autoClose = setTimeout(() => { if (cur && cur.id === g.id && cur.done) { cur = null; render(); } }, 9000);
     }
     render();
@@ -115,7 +117,7 @@
     if (!m.id) return;
     const r = res[m.id] = Object.assign(res[m.id] || {}, m);
     if (m.ok === false) { wrongAt = Date.now(); r.ok = false; }
-    if (m.ok) { typed = ""; give(m.id, m.coin || 0, `초성 퀴즈 ${m.rank}위`); }
+    if (m.ok) { typed = ""; give(m.id, m.coin || 0, `초성 퀴즈 ${m.rank}위`, Math.min(4, m.rank || 4) - 1); }
     render();
   });
   // 1초마다 시간·막대만 갱신 (창 전체를 다시 그리면 누르는 중인 버튼이 사라져요)
