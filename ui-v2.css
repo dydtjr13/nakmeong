@@ -1242,6 +1242,9 @@ button.brb.on{background:#ff8a4c;color:#fff;border-color:#ff8a4c}
 #start.v56 .stCodeT{background:none;border:0;padding:0;font:inherit;font-size:13px;font-weight:800;color:#c45a2c;cursor:pointer;box-shadow:none}
 #start.v56 .stCodeB{margin-top:8px}
 #start.v56 .stCodeR{display:flex;gap:6px}
+#start.v56 .stTabs{display:flex;gap:4px;margin-bottom:6px}#start.v56 .stTabs button{flex:1;padding:6px 4px;font-size:12px;font-weight:800;border-radius:9px;background:#f2ebe0;color:#8a7864;border:0;box-shadow:none;white-space:nowrap}#start.v56 .stTabs button.on{background:#3d3a4b;color:#fff}
+#start.v56 .stIn{flex:1;min-width:0;display:flex;gap:6px}#start.v56 .stCodeB[data-m=acct] .stCd,#start.v56 .stCodeB[data-m=code] .stAc{display:none}
+#start.v56 .stAc input{flex:1;min-width:0;font-size:14px;padding:9px 10px;border-radius:11px}#start.v56 #stAcP{flex:.8}
 #start.v56 #stCode{flex:1;min-width:0;font-size:14px;padding:9px 11px;border-radius:11px;letter-spacing:.06em;text-transform:uppercase}
 #start.v56 #stCodeGo{flex:none;padding:0 14px;border-radius:11px;background:#3d3a4b;color:#fff;font-weight:800}
 #start.v56 #stCodeMsg{display:block;margin-top:6px;font-size:11.5px;line-height:1.45}
@@ -1249,6 +1252,10 @@ button.brb.on{background:#ff8a4c;color:#fff;border-color:#ff8a4c}
 #start.v56 #stSrv{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 #start.v56 #stSrv .sv{margin:0;min-width:0;padding:9px 10px}
 #start.v56 #stSrv .sv b{white-space:nowrap}
+#start.v56 #stSrv .sv{grid-template-columns:1fr auto;row-gap:6px}#start.v56 #stSrv .sv .bar{grid-column:1/-1;grid-row:2}#start.v56 #stSrv .sv small{white-space:nowrap;font-size:10.5px;grid-column:2;grid-row:1}
+#start.v56 .stL,#start.v56 .stA,#start.v56 .stCode,#start.v56 .stCodeB{min-width:0;max-width:100%}#start.v56 .stTabs button{min-width:0}
+@media (max-width:640px){#start.v56 .stCodeR{flex-wrap:wrap}#start.v56 .stIn{flex-basis:100%}#start.v56 #stCodeGo{flex:1;padding:10px}}
+#start.v56 .stCodeB input{border:1.5px solid #e6d8c3;background:#fffdf8;color:#3d3024;outline:0;box-sizing:border-box}#start.v56 .stCodeB input:focus{border-color:#e8935a;box-shadow:0 0 0 3px rgba(232,147,90,.18)}
 #start.v56 .stR{display:flex;flex-direction:column;gap:10px;min-width:0}
 #start.v56 .stPick{display:flex;align-items:center;gap:14px;background:#f8f1e6;border-radius:16px;padding:10px}
 #start.v56 .stPrev{width:120px!important;height:120px!important;min-height:0!important;flex:none!important;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}

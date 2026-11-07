@@ -1070,10 +1070,10 @@ function confirmBox(html,ok){const m=$('confirm');m.innerHTML=`<div class="card 
 function alertBox(html){const m=$('confirm');m.innerHTML=`<div class="card center" style="width:min(420px,92vw)">${html}<p><button class="acc" id="cfYes">확인</button></p></div>`;m.classList.add('show');$('cfYes').onclick=()=>m.classList.remove('show');}
 // v54: 저장 및 불러오기 — 사용자 시안(양피지 카드) · 짧은 저장 코드(XXXX-XXXX-XXXX, 서버 보관) · 창 밖/Esc 닫기 · 5분마다 자동 클라우드 백업
 const SV={api:()=>String(window.NK_BOARD_API||(()=>{try{return localStorage.getItem('nk_board_api');}catch(e){return '';}})()||'https://fishcozy-board-api.mi1ku.workers.dev').replace(/\/$/,''),
- cid:()=>{try{return localStorage.getItem('nk_cid')||'';}catch(e){return '';}},code:()=>{try{return localStorage.getItem('nk_save_code')||'';}catch(e){return '';}},
+ cid:()=>{try{let c=localStorage.getItem('nk_cid');if(!c||!/^[\w-]{8,40}$/.test(c)){c=(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2,12)).replace(/[^\w-]/g,'');localStorage.setItem('nk_cid',c);}return c;}catch(e){return '';}},code:()=>{try{return localStorage.getItem('nk_save_code')||'';}catch(e){return '';}},
  setCode:c=>{try{localStorage.setItem('nk_save_code',c);}catch(e){}},sent:0,busy:false};
 async function cloudSave(force){if(SV.busy)return null;const cid=SV.cid();if(!cid)return null;if(!force&&SV.sent&&(+S.savedAt||0)<=SV.sent)return SV.code()||null;SV.busy=true;
- try{S.savedAt=S.savedAt||Date.now();const _b=JSON.stringify({data:JSON.stringify(S)});const r=await fetch(SV.api()+'/saves',{method:'POST',headers:{'Content-Type':'application/json','X-Owner':cid},body:_b,keepalive:_b.length<60000});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j&&j.error||r.status);SV.setCode(j.code);SV.sent=+S.savedAt||Date.now();return j.code;}
+ try{S.savedAt=S.savedAt||Date.now();const _b=JSON.stringify({data:JSON.stringify(S)});const r=await fetch(SV.api()+'/saves',{method:'POST',headers:{'Content-Type':'application/json','X-Owner':cid},body:_b,keepalive:_b.length<60000});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j&&j.error||r.status);{const was=SV.code();if(S.acct&&was&&j.code!==was){toast(`🔒 다른 기기에서 <b>${S.acct}</b> 계정으로 접속했어요<br><small>이 기기의 진행은 새 저장 코드로 따로 저장돼요</small>`,4200);S.acct='';save();}}SV.setCode(j.code);SV.sent=+S.savedAt||Date.now();return j.code;}
  catch(e){return null;}finally{SV.busy=false;}}
 // v56: 서버 저장 1분마다 + 탭을 숨기거나 닫을 때도 저장 (주소·브라우저가 바뀌어도 코드로 복구)
 setInterval(()=>{if(started&&!document.hidden)cloudSave(false);},60e3);document.addEventListener('visibilitychange',()=>{if(started&&document.hidden)try{save();cloudSave(false);}catch(e){}});addEventListener('pagehide',()=>{if(started)try{save();cloudSave(false);}catch(e){}});
@@ -1081,6 +1081,12 @@ setInterval(()=>{if(started&&!document.hidden)cloudSave(false);},60e3);document.
 async function fetchSaveObj(raw){raw=String(raw||'').trim();if(!raw)throw new Error('코드를 붙여넣어 주세요');if(raw[0]==='{'){try{return JSON.parse(raw);}catch(e){throw new Error('코드를 읽지 못했어요');}}
  const c=raw.toUpperCase().replace(/[^0-9A-Z]/g,'');if(c.length!==12)throw new Error('코드는 12자리예요 (예: A7X9-K2L8-B6P3)');
  let r;try{r=await fetch(SV.api()+'/saves/'+c,{headers:{'X-Owner':SV.cid()}});}catch(e){throw new Error('서버에 연결하지 못했어요');}const j=await r.json().catch(()=>null);if(r.status===404)throw new Error('없는 코드예요. 다시 확인해 주세요');if(!r.ok||!j||!j.ok)throw new Error('코드를 읽지 못했어요');return JSON.parse(j.data);}
+// v56: 닉네임 + 비밀번호(숫자 4~6자리) 계정 — 다른 기기·브라우저·시크릿 창에서도 닉네임과 비밀번호로 이어 하기
+const ACC={err:{nick:'닉네임을 확인해 주세요',pin:'비밀번호는 숫자 4~6자리예요',taken:'이미 다른 사람이 쓰는 닉네임이에요',wrong:'닉네임 또는 비밀번호가 맞지 않아요',locked:'여러 번 틀려서 10분 동안 잠겼어요. 잠시 후 다시 해 주세요','no save':'저장 데이터를 찾지 못했어요'},
+ async post(path,body){let r;try{r=await fetch(SV.api()+path,{method:'POST',headers:{'Content-Type':'application/json','X-Owner':SV.cid()},body:JSON.stringify(body)});}catch(e){throw new Error('서버에 연결하지 못했어요');}const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.ok)throw new Error(ACC.err[j&&j.error]||'잠시 후 다시 시도해 주세요');return j;},
+ async link(nick,pin){nick=String(nick||'').trim();if(!nick)throw new Error(ACC.err.nick);if(!/^\d{4,6}$/.test(pin))throw new Error(ACC.err.pin);S.savedAt=Date.now();save();const c=await cloudSave(true);if(!c)throw new Error('서버에 저장하지 못했어요. 잠시 후 다시 해 주세요');const j=await ACC.post('/accounts/register',{nick,pin});S.acct=j.nick;save();return j;},
+ async login(nick,pin){nick=String(nick||'').trim();if(!nick)throw new Error(ACC.err.nick);if(!/^\d{4,6}$/.test(pin))throw new Error(ACC.err.pin);const j=await ACC.post('/accounts/login',{nick,pin});const o=JSON.parse(j.data);SV.setCode(j.code);o.acct=j.nick;return o;}};
+window.NK_ACC=ACC;
 function applySaveObj(o){if(!o||typeof o.coins!=='number')throw 0;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,S0,o);SYS.migrate(D,S);if(S.autoFish&&!afOK())S.autoFish=false;S.savedAt=Date.now();save();hud();}
 function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=Date.now();save();toast('💾 저장 완료');return;}
  if(!document.getElementById('sv54css')){const st=document.createElement('style');st.id='sv54css';st.textContent=`
@@ -1114,6 +1120,7 @@ function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=
 #sv54 .paste button{border:0;border-radius:12px;padding:0 14px;font-weight:800;background:#7a9a4a;color:#fff;cursor:pointer}
 #sv54 .foot{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;font-size:13px;color:#7a6650}
 #sv54 svg{flex:none}
+#sv54 .acct{margin-top:14px;padding-top:12px;border-top:2px dotted #cdb894}#sv54 .acct .paste{margin-top:8px}#sv54 .acct .paste button{background:#3d3a4b}
 @media (max-width:640px){#sv54 .pc{padding:20px 14px 14px}#sv54 h3{font-size:23px}#sv54 .body{grid-template-columns:1fr}#sv54 .col+.col{border-left:0}#sv54 .body[data-t="here"] .col.oth,#sv54 .body[data-t="other"] .col.here{display:none}#sv54 .code{font-size:20px}#sv54 .big{font-size:19px;padding:14px}}`;document.head.appendChild(st);}
  const I={fish:'<svg width="40" height="22" viewBox="0 0 40 22"><path d="M3 11c6-9 20-9 27 0-7 9-21 9-27 0z" fill="#b58a5a" stroke="#6d4f30" stroke-width="1.6"/><path d="M30 11l8-7v14z" fill="#9c744a" stroke="#6d4f30" stroke-width="1.6"/><circle cx="10" cy="9.5" r="1.6" fill="#3d2b1a"/></svg>',
   cloud:'<svg width="34" height="22" viewBox="0 0 34 22"><path d="M9 20h17a6 6 0 0 0 0-12 8 8 0 0 0-15-2A7 7 0 0 0 9 20z" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
@@ -1132,7 +1139,9 @@ function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=
   <div class="body" data-t="${tab}"><div class="col here"><div class="auto">${I.check}<div><b>자동 저장</b><span class="onb">ON</span><div class="muted">게임 진행이 자동으로 저장됩니다.</div></div></div><div class="div">${I.leaf}</div>
    <div class="info">${I.cal}<div>마지막 저장: <b id="svWhen">${fmt(S.savedAt)}</b><br>낚시터: ${where}</div></div><button class="big" id="svNow">${I.disk} 지금 저장</button></div>
    <div class="col oth"><h4>다른 기기로 이어하기</h4><div class="muted">코드를 복사하거나 붙여넣어 저장 데이터를 옮겨요.</div><div class="codebox"><div class="code" id="svCode">${SV.code()||'코드 만드는 중…'}</div><button class="red" id="svCopy" ${SV.code()?'':'disabled'}>${I.doc} 코드 복사하기</button></div>
-    <div class="lbl">${I.clip} 코드 붙여넣기</div><div class="paste"><input id="svIn" placeholder="여기에 코드를 붙여넣으세요…" autocomplete="off" spellcheck="false"><button id="svLoad">불러오기</button></div><div class="muted" style="margin-top:6px">코드를 입력한 후 이어서 플레이하세요.</div></div></div>
+    <div class="lbl">${I.clip} 코드 붙여넣기</div><div class="paste"><input id="svIn" placeholder="여기에 코드를 붙여넣으세요…" autocomplete="off" spellcheck="false"><button id="svLoad">불러오기</button></div><div class="muted" style="margin-top:6px">코드를 입력한 후 이어서 플레이하세요.</div>
+    <div class="acct"><div class="lbl">🔒 닉네임 + 비밀번호로 연결</div><div class="muted" id="svAcMsg">${S.acct?`<b>${S.acct}</b> 계정에 연결돼 있어요. 다른 기기 시작 화면 › 이어하기에서 닉네임과 비밀번호만 넣으면 돼요.`:'비밀번호(숫자 4~6자리)를 정해 두면 코드 없이 닉네임과 비밀번호로 이어 할 수 있어요.'}</div>
+    <div class="paste"><input id="svPin" type="password" inputmode="numeric" maxlength="6" placeholder="${S.acct?'비밀번호 바꾸기 (숫자 4~6자리)':'비밀번호 (숫자 4~6자리)'}" autocomplete="new-password"><button id="svAcGo">${S.acct?'변경':'연결'}</button></div></div></div></div>
   <div class="foot">${I.fish.replace('width="40"','width="30"')} 클라우드 저장은 자동으로 백업돼요.</div></div>`;
  const close=()=>{m.remove();removeEventListener('keydown',key,true);};const key=e=>{if(e.key==='Escape'){e.stopPropagation();close();}};addEventListener('keydown',key,true);
  m.addEventListener('pointerdown',e=>{if(e.target===m)close();});m.querySelector('[data-x]').onclick=close;
@@ -1145,6 +1154,9 @@ function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=
   try{const o=await fetchSaveObj(raw);
    if(!confirm('지금 이 기기의 진행 상황이 불러온 데이터로 바뀌어요. 계속할까요?'))return;applySaveObj(o);close();toast('📂 불러왔어요! 이어서 플레이하세요',2200);}
   catch(e){toast((e&&e.message)||'코드를 읽지 못했어요. 다시 시도해 주세요',2000);}};
+ {const pin=m.querySelector('#svPin'),go=m.querySelector('#svAcGo'),msg=m.querySelector('#svAcMsg');pin.oninput=()=>{pin.value=pin.value.replace(/\D/g,'').slice(0,6);};
+  const link=async()=>{go.disabled=true;msg.textContent='연결하는 중…';try{const j=await ACC.link(S.nick,pin.value);pin.value='';msg.innerHTML=`✅ <b>${j.nick}</b> 계정에 연결했어요. 다른 기기 시작 화면 › 이어하기에서 닉네임과 비밀번호를 넣으세요.`;toast('🔒 계정을 연결했어요',1800);go.textContent='변경';pin.placeholder='비밀번호 바꾸기 (숫자 4~6자리)';showCode(j.code);}catch(e){msg.textContent='⚠️ '+((e&&e.message)||'연결하지 못했어요');}go.disabled=false;};
+  go.onclick=link;pin.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();link();}};}
  m.querySelector('#svLoad').onclick=load;m.querySelector('#svIn').onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();load();}};}
 // v8: 부적 드래그 (마우스 즉시 / 터치는 길게 눌러서) — 리스트→슬롯 장착·교체, 슬롯→리스트 해제, 슬롯↔슬롯 순서 교체
 let DRG=null,dragJustEnded=0;
@@ -1613,7 +1625,7 @@ addEventListener('nk-rt-seat',e=>{const m=e.detail;if(!m||m.ok!==false||!mySeat)
  window.__lobbyCounts=lobbyCounts;
  const stEl=document.querySelector('#start .stB'),mob=()=>innerWidth<700;
  const stUpd=()=>{if(!V14)return;const K=KINDS[S.char]||KINDS[0];$('stImg').src=K.th?`img/chars/${K.th}.jpg`:'img/chars/b0.jpg';$('stName').textContent=K.n;$('stDesc').textContent=K.d||'';const meId=Math.max(1,Math.min(lakeShown(),+(CFG.ch||V14.CH.me||1)));$('go').textContent=mob()?`${K.n}(으)로 시작`:`시작하기 (호숫가 ${meId})`;};
- const srvDraw=()=>{const shown=lakeShown(),chN=(V14&&V14.CH&&+V14.CH.n)||shown;const meId=Math.max(1,Math.min(shown,+(CFG.ch||(V14&&V14.CH&&V14.CH.me)||1)));if(V14&&V14.CH)V14.CH.me=meId;if(+CFG.ch!==meId){CFG.ch=meId;try{localStorage.setItem('nk_cfg',JSON.stringify(CFG));}catch(e){}} $('stSrv').innerHTML=lobbyCounts().map(s=>{const known=s.players!=null,n=known?s.players:0,r=known?Math.min(1,n/s.cap):0,full=known&&n>=s.cap,tag=full?'가득':!known?(s.source==='offline'?'단독':'…'):r>.8?'혼잡':s.id===1?'추천':'여유',label=known?(n+'/'+s.cap+' · '+tag):tag;return `<button class="sv ${meId===s.id?'on':''}" data-sv="${s.id}" ${full?'disabled':''} title="${full?'정원이 가득 찼어요':s.source==='offline'?'실시간 서버가 안 열리면 혼자 플레이해요':'실접속 · 봇은 세지 않아요'}"><b>${s.name}</b><span class="bar"><i class="${full?'full':r>.8?'hi':''}" style="width:${Math.round((full?1:r)*100)}%"></i></span><small>${label}</small></button>`;}).join('')+`<p class="srvnote">채널 ${chN}개 · 실시간 호숫가 ${shown}곳 · 정원 50명 · 봇은 인원에 넣지 않아요<br>다른 브라우저에서 이어 하려면 게임 안 <b>설정 › 저장 코드</b>를 복사해 붙여넣으세요.</p>`;
+ const srvDraw=()=>{const shown=lakeShown(),chN=(V14&&V14.CH&&+V14.CH.n)||shown;const meId=Math.max(1,Math.min(shown,+(CFG.ch||(V14&&V14.CH&&V14.CH.me)||1)));if(V14&&V14.CH)V14.CH.me=meId;if(+CFG.ch!==meId){CFG.ch=meId;try{localStorage.setItem('nk_cfg',JSON.stringify(CFG));}catch(e){}} $('stSrv').innerHTML=lobbyCounts().map(s=>{const known=s.players!=null,n=known?s.players:0,r=known?Math.min(1,n/s.cap):0,full=known&&n>=s.cap,tag=full?'가득':!known?(s.source==='offline'?'단독':'…'):r>.8?'혼잡':s.id===1?'추천':'여유',label=known?(n+'/'+s.cap+' · '+tag):tag;return `<button class="sv ${meId===s.id?'on':''}" data-sv="${s.id}" ${full?'disabled':''} title="${full?'정원이 가득 찼어요':s.source==='offline'?'실시간 서버가 안 열리면 혼자 플레이해요':'실접속 · 봇은 세지 않아요'}"><b>${s.name}</b><span class="bar"><i class="${full?'full':r>.8?'hi':''}" style="width:${Math.round((full?1:r)*100)}%"></i></span><small>${label}</small></button>`;}).join('')+`<p class="srvnote">채널 ${chN}개 · 실시간 호숫가 ${shown}곳 · 정원 50명 · 봇은 인원에 넣지 않아요<br>다른 기기·브라우저에서는 위 <b>이어하기</b>에 닉네임 + 비밀번호 또는 저장 코드를 넣으세요.</p>`;
   $('stSrv').querySelectorAll('[data-sv]').forEach(b=>b.onclick=()=>{if(b.disabled)return;const id=+b.dataset.sv;CFG.ch=id;if(V14&&V14.CH)V14.CH.me=id;try{localStorage.setItem('nk_cfg',JSON.stringify(CFG));}catch(e){}srvDraw();stUpd();});};
  addEventListener('nk-rt-servers',()=>{if($('start').classList.contains('show')&&V14)srvDraw();});
  const nickChk=()=>{const v=$('stNick').value.trim();const bad=nickBad(v);const adm=bad==='reserved';$('stNickOk').textContent=adm?'🔒 관리자 닉네임이에요. 시작할 때 관리자 비밀번호를 물어봐요':bad?nickBadText(bad):(v?`"${v}" (으)로 표시돼요`:"비워 두면 '나'로 표시돼요");$('stNickOk').style.color=bad&&!adm?'#c44536':'';};
@@ -1623,9 +1635,11 @@ addEventListener('nk-rt-seat',e=>{const m=e.detail;if(!m||m.ok!==false||!mySeat)
  stEl.querySelectorAll('.stSteps span').forEach(x=>{x.setAttribute('role','button');x.tabIndex=0;x.onclick=()=>step(+x.dataset.s);});
   // v56: 시작 화면에서 저장 코드 불러오기 → 닉네임·레벨·캐릭터 반영
  window.NK_STREFRESH=()=>{try{$('stNick').value=S.nick||'';nickChk();tab=grp(S.char||0);drawCP();stUpd();}catch(e){}};
- {const t=$('stCodeT'),bx=$('stCodeB'),msg=$('stCodeMsg'),inp=$('stCode'),go=$('stCodeGo');if(t&&bx){t.onclick=()=>{bx.hidden=!bx.hidden;if(!bx.hidden)inp.focus();};
-  const run=async()=>{msg.className='muted';msg.textContent='불러오는 중…';go.disabled=true;try{const o=await fetchSaveObj(inp.value);if(!o||typeof o.coins!=='number')throw new Error('저장 데이터가 아니에요');applySaveObj(o);window.NK_STREFRESH();const K=KINDS[S.char]||KINDS[0];msg.className='ok';msg.textContent=`✅ ${S.nick||'나'} · Lv.${myLv()} · ${K.n} 불러왔어요! 시작하기를 누르세요`;if(mob())step(3);}catch(e){msg.className='bad';msg.textContent=(e&&e.message)||'코드를 읽지 못했어요';}go.disabled=false;};
-  go.onclick=run;inp.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();run();}};}}
+ {const t=$('stCodeT'),bx=$('stCodeB'),msg=$('stCodeMsg'),inp=$('stCode'),go=$('stCodeGo');if(t&&bx){t.onclick=()=>{bx.hidden=!bx.hidden;if(!bx.hidden)($('stAcN')&&bx.dataset.m!=='code'?$('stAcN'):inp).focus();};
+  const an=$('stAcN'),ap=$('stAcP');let mode='acct';bx.querySelectorAll('[data-sm]').forEach(b=>b.onclick=()=>{mode=b.dataset.sm;bx.querySelectorAll('[data-sm]').forEach(x=>x.classList.toggle('on',x===b));bx.dataset.m=mode;(mode==='acct'?an:inp).focus();});
+  if(ap)ap.oninput=()=>{ap.value=ap.value.replace(/\D/g,'').slice(0,6);};
+  const run=async()=>{msg.className='muted';msg.textContent='불러오는 중…';go.disabled=true;try{const o=mode==='acct'&&an?await ACC.login(an.value,ap.value):await fetchSaveObj(inp.value);if(!o||typeof o.coins!=='number')throw new Error('저장 데이터가 아니에요');applySaveObj(o);window.NK_STREFRESH();const K=KINDS[S.char]||KINDS[0];msg.className='ok';msg.textContent=`✅ ${S.nick||'나'} · Lv.${myLv()} · ${K.n} 불러왔어요! 시작하기를 누르세요`;if(mob())step(3);}catch(e){msg.className='bad';msg.textContent=(e&&e.message)||'코드를 읽지 못했어요';}go.disabled=false;};
+  go.onclick=run;[inp,an,ap].forEach(x=>{if(x)x.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();run();}};});}}
  step(S.nick&&mob()?3:1);const stInit=()=>{if(!V14)return setTimeout(stInit,80);srvDraw();stUpd();};stInit();addEventListener('resize',stUpd);}
 $('go').disabled=true;
 // ───────── 메인 ─────────
