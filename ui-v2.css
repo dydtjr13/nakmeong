@@ -1221,3 +1221,72 @@ button.brb.on{background:#ff8a4c;color:#fff;border-color:#ff8a4c}
 .gevf{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:6px 0}
 .gevf input[type=number]{width:74px}
 .gevl{margin:8px 0}.gevl summary{cursor:pointer;font-weight:800}.gevl textarea{width:100%;font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;margin-top:6px;border-radius:10px;padding:8px;box-sizing:border-box}
+/* v56 시작 화면: 한 장 카드 · 왼쪽(닉네임·서버·이어하기) / 오른쪽(캐릭터·시작) */
+#start.v56{align-items:center;justify-content:center;overflow:auto}
+#start.v56 .stB{display:block!important;width:min(980px,94vw);max-width:none;max-height:none;margin:auto}
+#start.v56 .stW{background:#fffaf3;border-radius:26px;box-shadow:0 20px 60px rgba(40,30,50,.28);padding:22px 24px 14px;color:#3d3a4b}
+#start.v56 .stHd{display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:1.5px solid #f0e6d8}
+#start.v56 .stHd .brandMark{width:48px;height:48px;border-radius:14px;flex:none}
+#start.v56 .stBrand{min-width:0}
+#start.v56 .stBrand h1{margin:0;font-size:30px;line-height:1.1;white-space:nowrap;display:flex;align-items:baseline;gap:8px}
+#start.v56 .stBrand h1 .enLogo{font-size:13px;letter-spacing:.2em;margin:0;white-space:nowrap}
+#start.v56 .brandTag{margin:3px 0 0;font-size:13px;color:#8a8296;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#start.v56 .stBody{display:grid;grid-template-columns:330px 1fr;gap:18px;margin-top:16px;align-items:start}
+#start.v56 .stL{display:flex;flex-direction:column;gap:14px}
+#start.v56 .stBox{background:#fff;border-radius:18px;padding:14px 16px;box-shadow:0 1px 0 #efe5d6}
+#start.v56 .lbl{display:flex;align-items:center;gap:7px;font-size:14px;font-weight:900;color:#3d3a4b;margin:0 0 8px}
+#start.v56 .lbl b{width:22px;height:22px;border-radius:50%;background:#ff8a4c;color:#fff;font-size:12px;display:inline-flex;align-items:center;justify-content:center}
+#start.v56 #stNick{width:100%;box-sizing:border-box;font-size:16px;padding:11px 13px;border-radius:13px}
+#start.v56 #stNickOk{display:block;margin-top:5px;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#start.v56 .stCode{margin-top:10px;border-top:1px dashed #eadfcd;padding-top:10px}
+#start.v56 .stCodeT{background:none;border:0;padding:0;font:inherit;font-size:13px;font-weight:800;color:#c45a2c;cursor:pointer;box-shadow:none}
+#start.v56 .stCodeB{margin-top:8px}
+#start.v56 .stCodeR{display:flex;gap:6px}
+#start.v56 #stCode{flex:1;min-width:0;font-size:14px;padding:9px 11px;border-radius:11px;letter-spacing:.06em;text-transform:uppercase}
+#start.v56 #stCodeGo{flex:none;padding:0 14px;border-radius:11px;background:#3d3a4b;color:#fff;font-weight:800}
+#start.v56 #stCodeMsg{display:block;margin-top:6px;font-size:11.5px;line-height:1.45}
+#start.v56 #stCodeMsg.ok{color:#2f8a55;font-weight:800}#start.v56 #stCodeMsg.bad{color:#c44536;font-weight:800}
+#start.v56 #stSrv{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#start.v56 #stSrv .sv{margin:0;min-width:0;padding:9px 10px}
+#start.v56 #stSrv .sv b{white-space:nowrap}
+#start.v56 .stR{display:flex;flex-direction:column;gap:10px;min-width:0}
+#start.v56 .stPick{display:flex;align-items:center;gap:14px;background:#f8f1e6;border-radius:16px;padding:10px}
+#start.v56 .stPrev{width:120px!important;height:120px!important;min-height:0!important;flex:none!important;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#start.v56 .stPrev img{max-width:100%;max-height:116px!important;object-fit:contain}
+#start.v56 .stInfo{display:flex;flex-direction:column;gap:4px;min-width:0}
+#start.v56 .stInfo b{font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#start.v56 .stInfo small{font-size:12.5px;line-height:1.45}
+#start.v56 #charPick{margin:0;max-width:none}
+#start.v56 #charPick .cpt{justify-content:flex-start;margin-bottom:8px}
+#start.v56 #charPick .cpg{grid-template-columns:repeat(auto-fill,minmax(84px,1fr));max-height:236px;overflow:auto;padding:4px 2px}
+#start.v56 #charPick .cpg button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;font-size:11.5px}
+#start.v56 .stGo #go{width:100%;margin:0}
+#start.v56 .stGo #loading{text-align:center;margin:6px 0 0}
+#start.v56 .stKeys{text-align:center;margin:12px 0 0;font-size:11.5px}
+#start.v56 .stSteps,#start.v56 .stNext,#start.v56 .stBack{display:none}
+@media (max-width:699px){
+ #start.v56{align-items:flex-start}
+ #start.v56 .stB{width:94vw;margin:10px auto}
+ #start.v56 .stW{padding:16px 14px 12px;border-radius:22px}
+ #start.v56 .stHd{flex-wrap:wrap;gap:10px;padding-bottom:12px}
+ #start.v56 .stHd .brandMark{width:40px;height:40px}
+ #start.v56 .stBrand{flex:1}
+ #start.v56 .stBrand h1{font-size:25px}
+ #start.v56 .brandTag{font-size:12px}
+ #start.v56 .stSteps{display:flex;gap:6px;width:100%}
+ #start.v56 .stSteps span{flex:1;text-align:center;font-size:12px;font-weight:800;padding:6px 0;border-radius:10px;background:#f1e8da;color:#8a8296}
+ #start.v56 .stSteps span.on{background:#ff8a4c;color:#fff}#start.v56 .stSteps span.done{background:#ffe3d0;color:#c45a2c}
+ #start.v56 .stBody{grid-template-columns:1fr;margin-top:12px;gap:12px}
+ #start.v56 .stNext,#start.v56 .stBack{display:block}
+ #start.v56 .stA .stNext{width:100%;margin-top:12px}
+ #start.v56 .stNav{display:flex;gap:8px;margin-top:12px}#start.v56 .stNav .stNext{flex:1}
+ #start.v56 [data-step="1"] .stS,#start.v56 [data-step="1"] .stR,#start.v56 [data-step="2"] .stA,#start.v56 [data-step="2"] .stR,#start.v56 [data-step="3"] .stL{display:none!important}
+ #start.v56 .stPrev{width:92px!important;height:92px!important}#start.v56 .stPrev img{max-height:88px!important}
+ #start.v56 #charPick .cpg{grid-template-columns:repeat(4,1fr);max-height:none}
+ #start.v56 .stGo{position:sticky;bottom:0;background:#fff;padding-top:6px}
+ #start.v56 .stBack{width:100%;margin-top:6px}
+ #start.v56 .stKeys{display:none}
+}
+#start.v56 #stSrv>:not(.sv){grid-column:1/-1;font-size:11.5px;line-height:1.45;margin:2px 0 0}
+#start.v56 #charPick .cpg button{min-width:0;width:100%;box-sizing:border-box}
+@media (max-width:699px){#start.v56 #charPick .cpg{grid-template-columns:repeat(4,minmax(0,1fr))}}

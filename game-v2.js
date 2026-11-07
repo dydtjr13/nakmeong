@@ -920,6 +920,10 @@ async function cloudSave(force){if(SV.busy)return null;const cid=SV.cid();if(!ci
  try{S.savedAt=S.savedAt||Date.now();const r=await fetch(SV.api()+'/saves',{method:'POST',headers:{'Content-Type':'application/json','X-Owner':cid},body:JSON.stringify({data:JSON.stringify(S)})});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j&&j.error||r.status);SV.setCode(j.code);SV.sent=+S.savedAt||Date.now();return j.code;}
  catch(e){return null;}finally{SV.busy=false;}}
 setInterval(()=>{if(started&&!document.hidden)cloudSave(false);},5*60e3);
+// v56: 저장 코드(12자리) 또는 JSON 으로 저장 데이터 가져오기 — 저장 창·시작 화면 공용
+async function fetchSaveObj(raw){raw=String(raw||'').trim();if(!raw)throw new Error('코드를 붙여넣어 주세요');if(raw[0]==='{'){try{return JSON.parse(raw);}catch(e){throw new Error('코드를 읽지 못했어요');}}
+ const c=raw.toUpperCase().replace(/[^0-9A-Z]/g,'');if(c.length!==12)throw new Error('코드는 12자리예요 (예: A7X9-K2L8-B6P3)');
+ let r;try{r=await fetch(SV.api()+'/saves/'+c,{headers:{'X-Owner':SV.cid()}});}catch(e){throw new Error('서버에 연결하지 못했어요');}const j=await r.json().catch(()=>null);if(r.status===404)throw new Error('없는 코드예요. 다시 확인해 주세요');if(!r.ok||!j||!j.ok)throw new Error('코드를 읽지 못했어요');return JSON.parse(j.data);}
 function applySaveObj(o){if(!o||typeof o.coins!=='number')throw 0;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,S0,o);SYS.migrate(D,S);if(S.autoFish&&!afOK())S.autoFish=false;S.savedAt=Date.now();save();hud();}
 function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=Date.now();save();toast('💾 저장 완료');return;}
  if(!document.getElementById('sv54css')){const st=document.createElement('style');st.id='sv54css';st.textContent=`
@@ -981,10 +985,9 @@ function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=
  m.querySelector('#svNow').onclick=async()=>{S.savedAt=Date.now();save();m.querySelector('#svWhen').textContent=fmt(S.savedAt);toast('💾 이 기기에 저장했어요',1400);const c=await cloudSave(true);showCode(c);};
  m.querySelector('#svCopy').onclick=()=>{const c=SV.code();if(!c)return;const done=()=>toast('📋 저장 코드를 복사했어요',1600);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(c).then(done,()=>{const i=m.querySelector('#svIn');i.value=c;i.select();toast('코드를 아래 칸에 넣어 뒀어요. 길게 눌러 복사해 주세요',2200);});else done();};
  const load=async()=>{const raw=m.querySelector('#svIn').value.trim();if(!raw)return toast('코드를 붙여넣어 주세요',1400);
-  try{let o;if(raw[0]==='{'){o=JSON.parse(raw);}else{const c=raw.toUpperCase().replace(/[^0-9A-Z]/g,'');if(c.length!==12)return toast('코드는 12자리예요 (예: A7X9-K2L8-B6P3)',2000);
-    const r=await fetch(SV.api()+'/saves/'+c,{headers:{'X-Owner':SV.cid()}});const j=await r.json().catch(()=>null);if(r.status===404)return toast('없는 코드예요. 다시 확인해 주세요',2000);if(!r.ok||!j||!j.ok)throw 0;o=JSON.parse(j.data);}
+  try{const o=await fetchSaveObj(raw);
    if(!confirm('지금 이 기기의 진행 상황이 불러온 데이터로 바뀌어요. 계속할까요?'))return;applySaveObj(o);close();toast('📂 불러왔어요! 이어서 플레이하세요',2200);}
-  catch(e){toast('코드를 읽지 못했어요. 다시 시도해 주세요',2000);}};
+  catch(e){toast((e&&e.message)||'코드를 읽지 못했어요. 다시 시도해 주세요',2000);}};
  m.querySelector('#svLoad').onclick=load;m.querySelector('#svIn').onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();load();}};}
 // v8: 부적 드래그 (마우스 즉시 / 터치는 길게 눌러서) — 리스트→슬롯 장착·교체, 슬롯→리스트 해제, 슬롯↔슬롯 순서 교체
 let DRG=null,dragJustEnded=0;
@@ -1457,6 +1460,11 @@ addEventListener('nk-rt-seat',e=>{const m=e.detail;if(!m||m.ok!==false||!mySeat)
  const step=n=>{const _nb=nickBad(($('stNick').value||'').trim());if(n>1&&_nb&&_nb!=='reserved'){nickChk();return;}stEl.dataset.step=n;stEl.querySelectorAll('.stSteps span').forEach(x=>x.className=+x.dataset.s<n?'done':+x.dataset.s===n?'on':'');};
  stEl.querySelectorAll('.stNext').forEach(b=>b.onclick=()=>step(+b.dataset.to));
  stEl.querySelectorAll('.stSteps span').forEach(x=>{x.setAttribute('role','button');x.tabIndex=0;x.onclick=()=>step(+x.dataset.s);});
+  // v56: 시작 화면에서 저장 코드 불러오기 → 닉네임·레벨·캐릭터 반영
+ window.NK_STREFRESH=()=>{try{$('stNick').value=S.nick||'';nickChk();tab=grp(S.char||0);drawCP();stUpd();}catch(e){}};
+ {const t=$('stCodeT'),bx=$('stCodeB'),msg=$('stCodeMsg'),inp=$('stCode'),go=$('stCodeGo');if(t&&bx){t.onclick=()=>{bx.hidden=!bx.hidden;if(!bx.hidden)inp.focus();};
+  const run=async()=>{msg.className='muted';msg.textContent='불러오는 중…';go.disabled=true;try{const o=await fetchSaveObj(inp.value);if(!o||typeof o.coins!=='number')throw new Error('저장 데이터가 아니에요');applySaveObj(o);window.NK_STREFRESH();const K=KINDS[S.char]||KINDS[0];msg.className='ok';msg.textContent=`✅ ${S.nick||'나'} · Lv.${myLv()} · ${K.n} 불러왔어요! 시작하기를 누르세요`;if(mob())step(3);}catch(e){msg.className='bad';msg.textContent=(e&&e.message)||'코드를 읽지 못했어요';}go.disabled=false;};
+  go.onclick=run;inp.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();run();}};}}
  step(S.nick&&mob()?3:1);const stInit=()=>{if(!V14)return setTimeout(stInit,80);srvDraw();stUpd();};stInit();addEventListener('resize',stUpd);}
 $('go').disabled=true;
 // ───────── 메인 ─────────

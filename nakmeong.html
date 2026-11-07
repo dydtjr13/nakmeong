@@ -1,5 +1,5 @@
 <!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#7fc8e8"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="피쉬코지"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icons/favicon.ico?v36" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png?v36"><link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png?v36"><link rel="apple-touch-icon" href="icons/app-180.png?v36"><script src="full-v23.js?v31"></script>
-<title>피쉬코지 FISH COZY — A Cozy Place to Fish (v36)</title><link rel="stylesheet" href="ui-v2.css?v55"><link rel="stylesheet" href="ev-v24.css?v31"><script src="emoji.js?v31"></script></head><body>
+<title>피쉬코지 FISH COZY — A Cozy Place to Fish (v36)</title><link rel="stylesheet" href="ui-v2.css?v56"><link rel="stylesheet" href="ev-v24.css?v31"><script src="emoji.js?v31"></script></head><body>
 <canvas id="world"></canvas>
 <div id="hud">
   <div class="top">
@@ -17,15 +17,26 @@
   <div id="toast"></div>
   <div id="dc"></div>
 </div>
-<div id="start" class="modal show"><div class="stB" data-step="1">
- <div class="card st1"><h1><img class="brandMark lg" src="icons/app-180.png?v36" alt="" width="40" height="40"> 피쉬코지 <small class="enLogo">FISH COZY</small></h1><p class="muted small brandTag">Welcome to FISH COZY · A Cozy Place to Fish</p><p class="muted small">바쁜 일상 속, 잠시 쉬어가는 작은 낚시 공간</p>
-  <div class="stSteps"><span data-s="1">1 닉네임</span><span data-s="2">2 서버</span><span data-s="3">3 캐릭터</span></div>
-  <div class="stA"><div class="lbl">닉네임</div><input id="stNick" maxlength="10" placeholder="최대 10자" autocomplete="off"><small id="stNickOk" class="muted"></small><button class="big stNext" data-to="2">다음</button></div>
-  <div class="stS"><div class="lbl">서버</div><div id="stSrv"></div><div class="stNav"><button class="stNext ghost" data-to="1">이전</button><button class="big stNext" data-to="3">다음</button></div></div></div>
- <div class="card st2"><div class="stPrev"><img id="stImg" alt=""></div><b id="stName"></b><small id="stDesc" class="muted"></small>
-  <button id="go" class="big">탭해서 시작 (사운드 ON)</button><p id="loading" class="muted small">에셋 로딩 중…</p>
-  <p class="muted small stKeys">WASD 이동 · 드래그 회전 · 휠 줌 · Space 낚시 · F 어항 · E 상점/구경 · B 도감</p><button class="stNext ghost stBack" data-to="2">이전</button></div>
- <div class="card st3"><div class="lbl">캐릭터 선택</div><div id="charPick"></div></div>
+<div id="start" class="modal show v56"><div class="stB" data-step="1">
+ <div class="stW">
+  <header class="stHd"><img class="brandMark lg" src="icons/app-180.png?v36" alt="" width="44" height="44"><div class="stBrand"><h1>피쉬코지 <small class="enLogo">FISH COZY</small></h1><p class="brandTag">바쁜 일상 속, 잠시 쉬어가는 작은 낚시 공간</p></div>
+   <div class="stSteps"><span data-s="1">1 닉네임</span><span data-s="2">2 서버</span><span data-s="3">3 캐릭터</span></div></header>
+  <div class="stBody">
+   <section class="stL">
+    <div class="stA stBox"><div class="lbl"><b>1</b> 닉네임</div><input id="stNick" maxlength="10" placeholder="최대 10자" autocomplete="off"><small id="stNickOk" class="muted"></small>
+     <div class="stCode"><button type="button" class="stCodeT" id="stCodeT">📂 이어하기 · 저장 코드 불러오기</button><div class="stCodeB" id="stCodeB" hidden><div class="stCodeR"><input id="stCode" maxlength="40" placeholder="예: A7X9-K2L8-B6P3" autocomplete="off" spellcheck="false"><button type="button" id="stCodeGo">불러오기</button></div><small id="stCodeMsg" class="muted">게임 안 설정 › 저장 코드를 넣으면 닉네임·레벨·캐릭터가 그대로 돌아와요</small></div></div>
+     <button class="big stNext" data-to="2">다음</button></div>
+    <div class="stS stBox"><div class="lbl"><b>2</b> 서버</div><div id="stSrv"></div><div class="stNav"><button class="stNext ghost" data-to="1">이전</button><button class="big stNext" data-to="3">다음</button></div></div>
+   </section>
+   <section class="stR stBox">
+    <div class="lbl"><b>3</b> 캐릭터</div>
+    <div class="stPick"><div class="stPrev"><img id="stImg" alt=""></div><div class="stInfo"><b id="stName"></b><small id="stDesc" class="muted"></small></div></div>
+    <div id="charPick"></div>
+    <div class="stGo"><button id="go" class="big">탭해서 시작 (사운드 ON)</button><p id="loading" class="muted small">에셋 로딩 중…</p><button class="stNext ghost stBack" data-to="2">이전</button></div>
+   </section>
+  </div>
+  <p class="muted small stKeys">WASD 이동 · 드래그 회전 · 휠 줌 · Space 낚시 · F 어항 · E 상점 · B 도감</p>
+ </div>
 </div></div>
 <div id="dex" class="modal"></div>
 <div id="tank" class="modal"><div class="tankwrap"><canvas id="tankCv"></canvas><button id="tankBig" onclick="NKV2.tankView.toggleBig()">⤢ 크게 보기</button><div id="tankHint">드래그: 회전 · 휠/핀치: 확대·축소 · 클릭: 크게 보기</div><div id="tankSide"></div><button class="close" data-close="tank">×</button></div></div>
@@ -38,5 +49,5 @@
 <div id="ribbons"></div>
 <script src="lib/three.min.js"></script><script src="lib/GLTFLoader.js"></script><script src="lib/SkeletonUtils.js"></script>
 <script src="assets/assets-data.js"></script><script src="game-data.js"></script><script src="game-data-v3.js"></script><script src="game-data-v4.js"></script><script src="game-data-v5.js"></script><script src="game-data-v7.js"></script><script src="game-data-v8.js"></script><script src="game-data-v9.js"></script><script src="game-data-v10.js"></script><script src="game-data-v11.js"></script><script src="game-data-v12.js"></script><script src="tank-themes-v12.js"></script><script src="game-data-v13.js"></script>
-<script src="game-data-v14.js?v41"></script><script src="game-data-v18.js"></script><script src="game-data-v19.js"></script><script src="game-data-v26.js?v31"></script><script src="game-data-v29.js?v31"></script><script src="fire-v20.js"></script><script src="profanity-v15.js?v43"></script><script src="tank-ext.js"></script><script src="rod-3d.js"></script><script src="systems.js?v36"></script><script src="sim-result.js"></script><script src="chars-v18.js?v31"></script><script src="chars-round-v29.js?v31"></script><script src="world-sync.js?v49"></script><script src="realtime.js?v55"></script><script src="game-v2.js?v55"></script><script src="game-ev-v55.js?v55"></script><script src="ev-v24.js?v54"></script><link rel="stylesheet" href="tut-v25.css?v44"><script src="tut-v25.js?v44"></script><script src="ui-edit-v26.js?v31"></script><script src="menu-v27.js?v55"></script><script src="menu-v51.js?v51b"></script><script src="duck-mesh-v26.js?v31"></script><script src="duck-var-v28.js?v36"></script><script src="duck-v28.js?v49"></script>
+<script src="game-data-v14.js?v41"></script><script src="game-data-v18.js"></script><script src="game-data-v19.js"></script><script src="game-data-v26.js?v31"></script><script src="game-data-v29.js?v31"></script><script src="fire-v20.js"></script><script src="profanity-v15.js?v43"></script><script src="tank-ext.js"></script><script src="rod-3d.js"></script><script src="systems.js?v36"></script><script src="sim-result.js"></script><script src="chars-v18.js?v31"></script><script src="chars-round-v29.js?v31"></script><script src="world-sync.js?v49"></script><script src="realtime.js?v55"></script><script src="game-v2.js?v56"></script><script src="game-ev-v55.js?v55"></script><script src="ev-v24.js?v54"></script><link rel="stylesheet" href="tut-v25.css?v44"><script src="tut-v25.js?v44"></script><script src="ui-edit-v26.js?v31"></script><script src="menu-v27.js?v55"></script><script src="menu-v51.js?v51b"></script><script src="duck-mesh-v26.js?v31"></script><script src="duck-var-v28.js?v36"></script><script src="duck-v28.js?v49"></script>
 </body></html>
