@@ -35,6 +35,10 @@
   })();
   // v52: 관리자 자격은 메모리에만 (재접속 시 다시 확인용). 저장소에 남기지 않는다.
   let admCred = null;
+  // v63: 관리자 로그인 유지 (서버가 준 30일 토큰, 비밀번호는 저장하지 않아요)
+  const KEEP = "nk_adm_keep";
+  const keepGet = () => { try { const t = localStorage.getItem(KEEP) || ""; const exp = +(t.split(".")[0] || 0); if (t && exp > Date.now()) return t; if (t) localStorage.removeItem(KEEP); } catch (e) { /* ignore */ } return ""; };
+  const keepSet = (t) => { try { if (t) localStorage.setItem(KEEP, t); else localStorage.removeItem(KEEP); } catch (e) { /* ignore */ } };
   let authWait = null;
   const RT = {
     base,
@@ -147,6 +151,8 @@
     RT.admin = !!m.admin;
     RT.adminToken = m.admin ? String(m.token || "") : "";
     if (!m.admin) admCred = null;
+    if (m.keep) keepSet(m.keep);
+    if (!m.admin && keepGet()) setTimeout(() => { if (RT.mode === "on" && !RT.admin) send({ t: "auth", tok: keepGet() }); }, 300);
     if (typeof m.now === "number") { RT.clockSkew = Date.now() - m.now; RT.serverNow = m.now; }
     if (m.world) takeWorld(m.world);
     if (Array.isArray(m.notices)) takeNotices(m.notices, "notice" in m ? m.notice : undefined);
@@ -270,7 +276,8 @@
     else if (m.t === "banned") dispatchEvent(new CustomEvent("nk-rt-banned", { detail: m }));
     else if (m.t === "nick") dispatchEvent(new CustomEvent("nk-rt-nick", { detail: m }));
     else if (m.t === "auth") {
-      if (m.ok) { RT.admin = true; RT.adminToken = String(m.token || ""); }
+      if (m.ok) { RT.admin = true; RT.adminToken = String(m.token || ""); if (m.keep) keepSet(m.keep); }
+      else if (m.tok) keepSet("");
       else if (m.out || m.need) { RT.admin = false; RT.adminToken = ""; }
       if (authWait) { const w = authWait; authWait = null; w({ ok: !!m.ok }); }
       else if (m.need) dispatchEvent(new CustomEvent("nk-rt-auth-need", { detail: m }));
@@ -301,7 +308,7 @@
       anim: p.anim || "idle",
       seat: p.seat == null ? null : p.seat | 0,
       cid: CID,
-      adm: admCred ? { id: admCred.id, pw: admCred.pw } : undefined,
+      adm: admCred ? { id: admCred.id, pw: admCred.pw } : (keepGet() ? { tok: keepGet() } : undefined),
     };
   }
 
@@ -346,6 +353,7 @@
             return;
           }
           if (m.t === "nick" && m.ok === false) {
+            if (m.reason === "admin") keepSet("");
             closeSocket();
             RT.mode = "solo";
             want = false;
@@ -498,7 +506,9 @@
   /** 시작 화면에서 관리자 닉으로 들어갈 때: 다음 hello 에 자격을 함께 보낸다 */
   RT.setAdminCred = function (id, pw) { admCred = id || pw ? { id: String(id || ""), pw: String(pw || "") } : null; };
   RT.dropAdmin = function () { admCred = null; RT.admin = false; RT.adminToken = ""; };
-  RT.logoutAdmin = function () { admCred = null; RT.admin = false; RT.adminToken = ""; send({ t: "auth", out: 1 }); };
+  RT.logoutAdmin = function () { admCred = null; keepSet(""); RT.admin = false; RT.adminToken = ""; send({ t: "auth", out: 1 }); };
+  RT.hasAdminKeep = function () { return !!keepGet(); };
+  RT.dropAdminKeep = function () { keepSet(""); };
   RT.isAdmin = function () { return !!RT.admin; };
   RT.chat = function (text) { if (RT.mode === "on") send({ t: "chat", text: String(text || "").slice(0, 80) }); };
   RT.like = function (to) { if (RT.mode === "on" && to) send({ t: "like", to: String(to) }); };

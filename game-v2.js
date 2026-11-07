@@ -211,7 +211,7 @@ function lvRoad(){let m=$('lvRoad');if(!m){m=document.createElement('div');m.id=
  m.querySelector('[data-close]').onclick=()=>closeM('lvRoad');m.querySelectorAll('[data-rdc]').forEach(b=>b.onclick=()=>{RDC=+b.dataset.rdc;lvRoad();});m.querySelectorAll('[data-lvcl]').forEach(b=>b.onclick=e=>{e.stopPropagation();e.preventDefault();if(lvClaim(+b.dataset.lvcl))lvRoad();});if(!m.classList.contains('show'))openM('lvRoad');
  const c=m.querySelector('.nd.cur,.row.cur');if(c&&(st==='v17'||st==='RD1'))c.scrollIntoView({inline:'center',block:'center'});}
 // v22 상단 HUD: PC HP1(기본)/HP2/HP3/old · 모바일 HM2(기본)/HM1/HM3
-function applyHud(){const B=document.body.classList;['hp1','hp2','hp3','hm1','hm2','hm3','hs-h1','hs-h3','hs-h4'].forEach(c=>B.remove(c));{const hs=uiOpt('hudSt','old');if(hs&&hs!=='old')B.add('hs-'+String(hs).toLowerCase());}const pc=S.hudPc||'HP1',mb=S.hudMob||'HM2';if(pc!=='old')B.add(pc.toLowerCase());B.add(mb.toLowerCase());B.toggle('perf',!!S.perfOn);}applyHud();
+function applyHud(){const B=document.body.classList;['hp1','hp2','hp3','hm1','hm2','hm3','hs-h1','hs-h3','hs-h4'].forEach(c=>B.remove(c));{const hs=uiOpt('hudSt','old');if(hs&&hs!=='old')B.add('hs-'+String(hs).toLowerCase());}const pc=S.hudPc||'HP1',mb=S.hudMob||'HM2';if(pc!=='old')B.add(pc.toLowerCase());B.add(mb.toLowerCase());B.toggle('perf',!!S.perfOn||(()=>{try{return NK_ADM.ok();}catch(e){return false;}})());}applyHud();
 // 토스트: T2 한 줄 알약 + 색 띠 + 닫기·남은 시간 막대 (기본) / T0 / T1 / T3 / T4 / 기존
 const TQC={ok:'#5cb85c',info:'#4a8fe0',warn:'#f0a020',err:'#e05050'};
 function tqType(h){const t=h.replace(/<[^>]+>/g,'');if(/부족|없어요|실패|못 |할 수 없|🔒|⛔|❌|불가|필요해요/.test(t))return 'err';if(/가득|주의|소진|⚠|이미/.test(t))return 'warn';if(/성공|완료|구매|획득|저장|달성|해금|ON|열렸|✅|🎉|아꼈/.test(t))return 'ok';return 'info';}
@@ -1887,7 +1887,7 @@ let _frameErrAt=-1e9;function frame(now){try{frameBody(now);}catch(e){if(now-_fr
 // v61: 관리자 접속 시 성능 정보 (FPS · 드로우콜 · 삼각형 · 해상도) — 모바일 포함, 눌러서 접기/펴기
 let perfT=0,perfMin=999,perfAdm=0;
 function perfHud(dt){perfT+=dt;perfMin=Math.min(perfMin,1/Math.max(dt,1e-3));if(perfT<.5)return;const el=$('dc');if(!el){perfT=0;return;}if(el.parentElement!==document.body)document.body.appendChild(el);
- const adm=!!(NK_ADM.ok());if(adm!==!!perfAdm){perfAdm=adm;document.body.classList.toggle('perf',adm||!!S.perfOn);if(!el._b){el._b=1;el.onclick=e=>{e.stopPropagation();S.perfMini=!S.perfMini;save();perfT=1;};}}
+ const adm=!!(NK_ADM.ok());document.body.classList.toggle('perf',adm||!!S.perfOn);perfAdm=adm;if(!el._b){el._b=1;el.onclick=e=>{e.stopPropagation();S.perfMini=!S.perfMini;save();perfT=1;};}
  if(!document.body.classList.contains('perf')){perfT=0;perfMin=999;return;}
  const i=R.info,f=fpsA|0,c=f>=50?'ok':f>=30?'mid':'bad',px=R.getPixelRatio();
  el.className=c+(S.perfMini?' mini':'');
@@ -1936,7 +1936,7 @@ loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyV
    const spots=decks.map(d=>({i:d.i,x:d.cx,z:d.cz,r:7}));const pick=window.NK_SYNC&&NK_SYNC.pickQuietDeck?NK_SYNC.pickQuietDeck(spots,people):null;return (pick&&decks.find(d=>d.i===pick.i))||decks[0];}
   $('go').onclick=async()=>{if($('go')._busy)return;$('go')._busy=1;const prev=$('go').textContent;try{
     const id=Math.max(1,Math.min(4,+(V14&&V14.CH&&V14.CH.me)||+(CFG.ch)||1));let online=false,res=null;
-    if(nickBad(NICK())==='reserved'){if(!window.NK_RT||NK_RT.mode==='off'){alertBox('<h3>관리자 닉네임</h3><p>관리자 닉네임은 실시간 서버에 접속할 때만 쓸 수 있어요.</p>');return;}const cr=await NK_ADM.askCred(NICK());if(!cr){return;}NK_RT.setAdminCred(cr.id,cr.pw);}else if(window.NK_RT&&NK_RT.setAdminCred)NK_RT.setAdminCred(null);
+    if(nickBad(NICK())==='reserved'){if(!window.NK_RT||NK_RT.mode==='off'){alertBox('<h3>관리자 닉네임</h3><p>관리자 닉네임은 실시간 서버에 접속할 때만 쓸 수 있어요.</p>');return;}if(NK_RT.hasAdminKeep&&NK_RT.hasAdminKeep())NK_RT.setAdminCred(null);else{const cr=await NK_ADM.askCred(NICK());if(!cr){return;}NK_RT.setAdminCred(cr.id,cr.pw);}}else if(window.NK_RT&&NK_RT.setAdminCred)NK_RT.setAdminCred(null);
     if(window.NK_RT){$('go').textContent='서버 들어가는 중…';res=await NK_RT.connect(id,{nick:NICK(),ki:S.char|0,lv:myLv(),x:d0.entry.x,z:d0.entry.z,y:.4,d:d0.a+Math.PI,fish:'off',anim:'idle',seat:null});
       if(res&&res.reason==='nick'){try{NK_RT.setAdminCred(null);}catch(_){}alertBox('<h3>닉네임</h3><p>'+(res.detail==='admin'?'관리자 아이디 또는 비밀번호가 맞지 않아요':nickBadText(res.detail))+'</p>');const st=document.querySelector('#start .stB');if(st)st.dataset.step='1';return;}
       if(res&&res.reason==='full'){toast('이 호숫가는 가득 찼어요. 다른 서버를 골라 주세요',2000);dispatchEvent(new Event('nk-rt-servers'));return;}

@@ -85,6 +85,24 @@ async function boardToken(secret, ttlMs) {
   return exp + "." + [...sig].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
+/** v63: 관리자 로그인 유지 토큰 `만료시각.HMAC(ADMIN_PASSWORD, "rtadm:만료시각")` — 비밀번호를 바꾸면 모두 무효 */
+const ADM_TTL = 30 * 86400e3;
+async function hmacHex(secret, text) {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(text)));
+  return [...sig].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+async function adminKeepToken(secret) {
+  const exp = Date.now() + ADM_TTL;
+  return exp + "." + (await hmacHex(secret, "rtadm:" + exp));
+}
+async function adminKeepOk(secret, tok) {
+  if (!secret || typeof tok !== "string" || tok.length > 120) return false;
+  const [exp, sig] = tok.split(".");
+  if (!/^\d{10,16}$/.test(exp || "") || !(+exp > Date.now()) || +exp > Date.now() + ADM_TTL + 60e3) return false;
+  return sameSecret(sig || "", await hmacHex(secret, "rtadm:" + exp));
+}
+
 function messageText(message) {
   if (typeof message === "string") return message.length > MAX_OPS ? null : message;
   if (message instanceof ArrayBuffer) {
@@ -564,13 +582,15 @@ export class LakeRoom extends DurableObject {
     }
     if (msg.t === "auth") {
       const tries = (prev.authN | 0) + 1;
-      const ok = await this.adminCheck(msg.id, msg.pw);
+      const byTok = typeof msg.tok === "string" && msg.tok;
+      const ok = byTok ? await adminKeepOk(this.env.ADMIN_PASSWORD, msg.tok) : await this.adminCheck(msg.id, msg.pw);
       const att = this.attachment(ws) || prev;
       att.authN = ok ? 0 : tries;
       if (ok) att.admin = 1;
       ws.serializeAttachment(att);
       const token = ok ? await boardToken(this.env.ADMIN_PASSWORD) : "";
-      try { ws.send(JSON.stringify({ t: "auth", ok, token })); } catch { /* ignore */ }
+      const keep = ok && !byTok ? await adminKeepToken(this.env.ADMIN_PASSWORD) : "";
+      try { ws.send(JSON.stringify({ t: "auth", ok, token, keep, tok: byTok ? 1 : 0 })); } catch { /* ignore */ }
       if (!ok && tries >= 5) { try { ws.close(4006, "auth"); } catch { /* ignore */ } }
       return;
     }
@@ -622,7 +642,7 @@ export class LakeRoom extends DurableObject {
       if (play.t === "hello" || named) {
         const want = sanitizeNick(named ? play.nick : (prev.nick || ""));
         if (play.t === "hello" && play.adm && !prev.admin) {
-          if (await this.adminCheck(play.adm.id, play.adm.pw)) helloAdmin = true;
+          if (play.adm.tok ? await adminKeepOk(this.env.ADMIN_PASSWORD, play.adm.tok) : await this.adminCheck(play.adm.id, play.adm.pw)) helloAdmin = true;
           else {
             try { ws.send(JSON.stringify({ t: "nick", ok: false, reason: "admin" })); } catch { /* ignore */ }
             if (!prev.ready) { try { ws.close(4004, "admin"); } catch { /* ignore */ } return; }
@@ -705,6 +725,7 @@ export class LakeRoom extends DurableObject {
         mine: mineUntil > nowHello ? mineUntil : 0,
         admin: !!next.att.admin,
         token: next.att.admin ? await boardToken(this.env.ADMIN_PASSWORD) : "",
+        keep: helloAdmin && !(play.adm && play.adm.tok) ? await adminKeepToken(this.env.ADMIN_PASSWORD) : "",
         ...ops,
         game: await this.gamePublic(),
       }));
