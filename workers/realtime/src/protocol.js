@@ -799,6 +799,25 @@ function cleanKinds(v, prev) {
  * 이동 속도·오리·튜토리얼 숨김. 패치에 있는 키만 덮어씁니다.
  * null 이면 저장된 값을 지웁니다.
  */
+export function sanitizeXpBal(x) {
+  if (!x || typeof x !== "object" || Array.isArray(x)) return null;
+  const n = (v, lo, hi, d) => { const f = Number(v); return Number.isFinite(f) ? Math.max(lo, Math.min(hi, f)) : d; };
+  const ints = (a, len, d) => d.map((dv, i) => Math.round(n(Array.isArray(a) ? a[i] : dv, 0, 100000, dv)));
+  const lvMap = (m) => { const o = {}; if (m && typeof m === "object") Object.keys(m).slice(0, 40).forEach((k) => { if (/^\w{1,20}$/.test(k)) o[k] = Math.round(n(m[k], 1, 99, 1)); }); return o; };
+  return {
+    cv: ["old", "A", "B"].includes(String(x.cv)) ? String(x.cv) : "A",
+    cm: Math.round(n(x.cm, 0.1, 5, 1) * 100) / 100,
+    bx: ints(x.bx, 6, [10, 20, 50, 120, 300, 800]),
+    gm: ints(x.gm, 5, [150, 100, 80, 30, 20]),
+    gcap: Math.round(n(x.gcap, 0, 100000, 1000)),
+    rc: x.rc ? 1 : 0,
+    rp: Math.round(n(x.rp, 0, 100, 70)),
+    rmax: Math.round(n(x.rmax, 1, 99, 30)),
+    rl: lvMap(x.rl),
+    bl: lvMap(x.bl),
+  };
+}
+
 export function sanitizePlay(input, prev, opt) {
   if (input == null) return null;
   if (typeof input !== "object" || Array.isArray(input)) return prev || null;
@@ -832,6 +851,8 @@ export function sanitizePlay(input, prev, opt) {
   if ("tankUi" in input) out.tankUi = pickOf(input.tankUi, ["old", "A"]);
   if ("hudSt" in input) out.hudSt = pickOf(input.hudSt, ["old", "H1", "H3", "H4"]);
   if ("mapSt" in input) out.mapSt = pickOf(input.mapSt, ["old", "A", "B", "C"]);
+  // v58: 경험치·아이템 밸런스 (null 이면 기본값으로)
+  if ("xpBal" in input) { const v = sanitizeXpBal(input.xpBal); if (v) out.xpBal = v; else delete out.xpBal; }
   const bump = !!(opt && opt.bump);
   out.rev = bump ? ((base.rev | 0) + 1) : Math.max(0, Math.round(finite(input.rev, base.rev || 0)));
   out.at = bump ? now : Math.max(0, Math.round(finite(input.at, base.at || 0)));

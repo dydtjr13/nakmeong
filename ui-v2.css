@@ -1302,3 +1302,8 @@ button.brb.on{background:#ff8a4c;color:#fff;border-color:#ff8a4c}
 .labset .labctl{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex:none;max-width:52%}
 .labset .labctl select{max-width:100%}
 .labset .labctl small{font-size:10.5px}
+
+/* v58 경험치·아이템 밸런스 */
+.xbset .xbg{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin:8px 0}.xbset .xbg>span{font-weight:800;font-size:12px;min-width:84px}.xbset label{font-size:12px;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}.xbset input[type=number]{padding:4px 6px;border-radius:8px;border:1.5px solid #e6d8c3;font-size:12px}.xbset details{margin:8px 0}.xbset summary{cursor:pointer;font-weight:800;font-size:12px}
+.xbset .xbh{background:#f6f1e7;border-radius:10px;padding:8px 10px;margin:8px 0}.xbset .xbh div{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px;font-size:12px}
+.xbset select{width:auto!important;max-width:none!important;min-width:96px;font-size:12px;padding:4px 6px}

@@ -623,3 +623,10 @@ test("v55 관리자 설정 정리", () => {
   assert.equal(g.choList.length, 1); assert.equal(g.choList[0].a, "붕어");
   assert.equal(g.balList.length, 1);
 });
+
+test("v58 xpBal 정리", () => {
+  const v = sanitizePlay({ xpBal: { cv: "B", cm: 9, bx: [1, 2, "x"], gm: [-5], gcap: "300", rc: 1, rp: 150, rl: { carbon: 120, "bad key!": 3 } } }, null).xpBal;
+  assert.equal(v.cv, "B"); assert.equal(v.cm, 5); assert.deepEqual(v.bx, [1, 2, 50, 120, 300, 800]);
+  assert.equal(v.gm[0], 0); assert.equal(v.gcap, 300); assert.equal(v.rp, 100); assert.deepEqual(v.rl, { carbon: 99 });
+  assert.equal(sanitizePlay({ xpBal: null }, { xpBal: { cv: "A" } }).xpBal, undefined);
+});
