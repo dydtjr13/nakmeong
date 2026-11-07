@@ -171,13 +171,26 @@ export default {
         await db.prepare('INSERT INTO saves (code,owner,data,size,created_at,updated_at) VALUES (?,?,?,?,?,?)').bind(code, me, data, data.length, now, now).run();
         return json({ ok: true, code, updated_at: now }, 201, origin);
       }
-      const saveOne = path !== '/saves/mine' && path.match(/^\/saves\/([^/]+)$/);
+      const saveOne = path !== "/saves/mine" && path !== "/saves/find" && path.match(/^\/saves\/([^/]+)$/);
       if (saveOne && request.method === 'GET') {
         const code = cleanCode(decodeURIComponent(saveOne[1]));
         if (!code) return bad('bad code', 400, origin);
         const row = await db.prepare('SELECT data, updated_at FROM saves WHERE code=?').bind(code).first();
         if (!row) return bad('not found', 404, origin);
         return json({ ok: true, code, data: row.data, updated_at: row.updated_at }, 200, origin);
+      }
+      // v56: 관리자 — 닉네임으로 저장 코드 찾기 (계정 복구용)
+      if (path === '/saves/find' && request.method === 'GET') {
+        if (!admin) return bad('admin only', 401, origin);
+        const nick = cleanNick(url.searchParams.get('nick'));
+        const rows = (await db.prepare('SELECT code, updated_at, created_at, data FROM saves WHERE data LIKE ? ORDER BY updated_at DESC LIMIT 30').bind('%' + nick + '%').all()).results || [];
+        const out = [];
+        for (const r of rows) {
+          let o = null; try { o = JSON.parse(r.data); } catch { /* skip */ }
+          if (!o || String(o.nick || '') !== nick) continue;
+          out.push({ code: r.code, updated_at: r.updated_at, created_at: r.created_at, nick: o.nick, xp: o.xp || 0, coins: o.coins || 0, caught: o.caught || 0 });
+        }
+        return json({ ok: true, nick, list: out }, 200, origin);
       }
       if (path === '/saves/mine' && request.method === 'GET') {
         if (!me) return json({ ok: true, code: '', updated_at: 0 }, 200, origin);
