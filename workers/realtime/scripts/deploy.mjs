@@ -30,7 +30,7 @@ if (PW) {
 } else console.log("ADMIN_PASSWORD 없음 → 기존 워커 시크릿 유지");
 const form = new FormData();
 form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-for (const name of ["index.js", "protocol.js"]) {
+for (const name of ["index.js", "protocol.js", "game.js"]) {
   const code = await readFile(new URL(name, dir));
   form.append(name, new Blob([code], { type: "application/javascript+module" }), name);
 }

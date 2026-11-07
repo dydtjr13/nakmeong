@@ -1,4 +1,5 @@
 import { DurableObject } from "cloudflare:workers";
+import { defaultGame, sanitizeGame, pickQuestion, pushUsed, pickKind, publicRun, newRun, submitAnswer, submitPick } from "./game.js";
 import {
   ADMIN_OPS,
   CAP,
@@ -216,6 +217,16 @@ export class LakeRoom extends DurableObject {
   async ingest(msg) {
     if (!msg || typeof msg !== "object") return;
     const now = Date.now();
+    if (msg.t === "gamecfg" && msg.cfg) {
+      await this.opsPut("game", msg.cfg);
+      this.toAdmins({ t: "gamecfg", cfg: msg.cfg });
+      await this.gameSchedule(msg.cfg, true);
+      return;
+    }
+    if (msg.t === "gameNow") {
+      await this.gameStart(msg.kind);
+      return;
+    }
     if (msg.t === "notice") {
       const prev = await this.noticeLog();
       const next = mergeNoticeLog(prev.rows, msg.notice, now);
@@ -313,6 +324,15 @@ export class LakeRoom extends DurableObject {
   async acceptOps(fromId, msg) {
     const now = Date.now();
     const all = [1, 2, 3, 4];
+    if (msg.t === "game") {
+      const next = sanitizeGame(msg.game, await this.opsGet("game", null) || defaultGame());
+      await this.fan(fromId, all, { t: "gamecfg", cfg: next });
+      return;
+    }
+    if (msg.t === "gameNow") {
+      await this.fan(fromId, msg.all ? all : [fromId], { t: "gameNow", kind: msg.kind });
+      return;
+    }
     if (msg.t === "notice") {
       const n = sanitizeNotice(msg.notice, now);
       if (!n && msg.notice != null && !(msg.notice && (msg.notice.off || msg.notice.del))) return;
@@ -505,7 +525,7 @@ export class LakeRoom extends DurableObject {
       born: Date.now(),
     });
     const alarm = await this.ctx.storage.getAlarm();
-    if (!alarm) this.ctx.waitUntil(this.ctx.storage.setAlarm(Date.now() + HELLO_MS));
+    if (!alarm || alarm > Date.now() + HELLO_MS) this.ctx.waitUntil(this.ctx.storage.setAlarm(Date.now() + HELLO_MS));
     return new Response(null, { status: 101, webSocket: client });
   }
 
@@ -544,6 +564,21 @@ export class LakeRoom extends DurableObject {
     }
     if (ADMIN_OPS.has(msg.t) && !prev.admin) {
       try { ws.send(JSON.stringify({ t: "auth", ok: false, need: 1 })); } catch { /* ignore */ }
+      return;
+    }
+    if (msg.t === "gameGet") {
+      const cfg = await this.opsGet("game", null) || defaultGame();
+      try { ws.send(JSON.stringify({ t: "gamecfg", cfg })); } catch { /* ignore */ }
+      return;
+    }
+    if (msg.t === "game" || msg.t === "gameNow") {
+      if (!prev.ready) return;
+      await this.acceptOps(prev.server, msg);
+      return;
+    }
+    if (msg.t === "ans" || msg.t === "pick") {
+      if (!prev.ready) return;
+      await this.gameInput(ws, prev, msg);
       return;
     }
     if (msg.t === "world") {
@@ -657,6 +692,7 @@ export class LakeRoom extends DurableObject {
         admin: !!next.att.admin,
         token: next.att.admin ? await boardToken(this.env.ADMIN_PASSWORD) : "",
         ...ops,
+        game: await this.gamePublic(),
       }));
       this.broadcast({ t: "join", n, peer: next.pub }, ws);
       console.log(JSON.stringify({ event: "join", server: next.att.server, n }));
@@ -710,12 +746,111 @@ export class LakeRoom extends DurableObject {
         } else pending = true;
       }
     }
-    if (pending || this.openSockets().some((ws) => {
+    const helloWait = pending || this.openSockets().some((ws) => {
       const att = this.attachment(ws);
       return !att || !att.ready;
-    })) {
-      await this.ctx.storage.setAlarm(Date.now() + HELLO_MS);
+    });
+    await this.gameTick(now);
+    await this.armAlarm(helloWait ? Date.now() + HELLO_MS : 0);
+  }
+
+  // ───────── v55: 초성·밸런스 게임 ─────────
+  toAdmins(obj) {
+    const text = JSON.stringify(obj);
+    for (const ws of this.openSockets()) {
+      const att = this.attachment(ws);
+      if (att && att.ready && att.admin) { try { ws.send(text); } catch { /* ignore */ } }
     }
+  }
+
+  async gamePublic() {
+    const run = await this.opsGet("gameRun", null);
+    if (!run || (run.done && Date.now() - run.end > 15000)) return null;
+    const cfg = await this.opsGet("game", null) || defaultGame();
+    return publicRun(run, cfg);
+  }
+
+  async armAlarm(extra) {
+    const run = await this.opsGet("gameRun", null);
+    const next = await this.opsGet("gameNext", 0);
+    const list = [extra || 0, run && !run.done ? run.end + 50 : 0, next || 0].filter((t) => t > 0);
+    if (!list.length) return;
+    const want = Math.min(...list);
+    const cur = await this.ctx.storage.getAlarm();
+    if (!cur || cur > want || cur < Date.now() - 1000) await this.ctx.storage.setAlarm(Math.max(Date.now() + 20, want));
+  }
+
+  async gameSchedule(cfg, reset) {
+    const now = Date.now();
+    let next = await this.opsGet("gameNext", 0);
+    if (!cfg || !cfg.on) { await this.opsPut("gameNext", 0); return; }
+    if (reset || !next || next < now) {
+      const jitter = 0.85 + Math.random() * 0.3;
+      next = now + Math.round(cfg.every * 60000 * jitter);
+      await this.opsPut("gameNext", next);
+    }
+    await this.armAlarm(0);
+  }
+
+  async gameStart(kind) {
+    const now = Date.now();
+    const cfg = await this.opsGet("game", null) || defaultGame();
+    const prev = await this.opsGet("gameRun", null);
+    if (kind === "stop") {
+      if (prev && !prev.done) await this.gameFinish(prev, cfg);
+      return;
+    }
+    if (prev && !prev.done) return;
+    const k = kind === "bal" || kind === "cho" ? kind : pickKind(cfg, prev && prev.kind);
+    if (!k) return;
+    const used = await this.opsGet("gameUsed", null);
+    const idx = pickQuestion(cfg, k, used, Math.random);
+    if (idx < 0) return;
+    const run = newRun(cfg, k, idx, now);
+    await this.opsPut("gameUsed", pushUsed(used, k, idx, (k === "cho" ? cfg.choList : cfg.balList).length));
+    await this.opsPut("gameRun", run);
+    this.broadcast({ t: "game", game: publicRun(run, cfg) });
+    console.log(JSON.stringify({ event: "game_start", kind: k }));
+    await this.armAlarm(0);
+  }
+
+  async gameFinish(run, cfg) {
+    run.done = true;
+    await this.opsPut("gameRun", run);
+    this.broadcast({ t: "game", game: publicRun(run, cfg) });
+  }
+
+  async gameTick(now) {
+    const cfg = await this.opsGet("game", null) || defaultGame();
+    const run = await this.opsGet("gameRun", null);
+    if (run && !run.done && now >= run.end) await this.gameFinish(run, cfg);
+    const next = await this.opsGet("gameNext", 0);
+    if (cfg.on && next && now >= next) {
+      await this.opsPut("gameNext", 0);
+      if (this.readyOthers(null).length > 0) await this.gameStart("");
+      await this.gameSchedule(cfg, true);
+    }
+  }
+
+  async gameInput(ws, att, msg) {
+    const now = Date.now();
+    const run = await this.opsGet("gameRun", null);
+    if (!run || run.id !== msg.id) return;
+    const cfg = await this.opsGet("game", null) || defaultGame();
+    const who = att.cid || att.id;
+    if (msg.t === "ans") {
+      const r = submitAnswer(run, cfg, who, att.nick || "낚시꾼", msg.a, now);
+      if (!r) return;
+      await this.opsPut("gameRun", run);
+      try { ws.send(JSON.stringify({ t: "gameRes", id: run.id, ...r })); } catch { /* ignore */ }
+      if (r.ok) this.broadcast({ t: "game", game: publicRun(run, cfg) });
+      return;
+    }
+    const r = submitPick(run, who, msg.s, now);
+    if (!r) return;
+    await this.opsPut("gameRun", run);
+    try { ws.send(JSON.stringify({ t: "gameRes", id: run.id, picked: r.side })); } catch { /* ignore */ }
+    this.broadcast({ t: "game", game: publicRun(run, cfg) });
   }
 }
 

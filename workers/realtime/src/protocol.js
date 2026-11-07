@@ -14,11 +14,11 @@ export const HELLO_MS = 20000;
 export const MAX_MSG = 900;
 /** 공지·이벤트·밸런스·금칙어처럼 본문이 긴 운영 메시지. 채팅·포즈는 MAX_MSG. */
 export const MAX_OPS = 48000;
-const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses"]);
+const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses", "game", "gameNow"]);
 
 const FISH = new Set(["off", "cast", "bite", "catch"]);
 /** v52: 서버 인증된 관리자 소켓만 보낼 수 있는 운영 메시지 */
-export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover"]);
+export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet"]);
 function cleanId(v, max) {
   return String(v == null ? "" : v).replace(/[^\w.-]/g, "").slice(0, max || 40);
 }
@@ -84,6 +84,24 @@ export function keysNear(a, b, max = 1) {
   return Math.hypot(ax - bx, az - bz) <= max;
 }
 
+// v55: 물고기 자랑 — 들고 있는 물고기 정보 (없으면 null)
+export function cleanBrag(b) {
+  if (!b || typeof b !== "object" || Array.isArray(b)) return null;
+  const k = cleanId(b.k, 24);
+  if (!k) return null;
+  const cm = Math.round(num(b.cm, 0, 3000, 0) * 10) / 10;
+  return {
+    k,
+    g: Math.max(0, Math.min(5, Math.round(Number(b.g) || 0))),
+    cm,
+    v: Math.max(0, Math.min(1e8, Math.round(Number(b.v) || 0))),
+    at: Math.max(0, Math.min(4e12, Math.round(Number(b.at) || 0))),
+    lk: Math.max(0, Math.min(9999, Math.round(Number(b.lk) || 0))),
+    s: Math.max(0, Math.min(9, Math.round(Number(b.s) || 0))),
+    t: Math.max(0, Math.min(4e12, Math.round(Number(b.t) || 0))),
+  };
+}
+
 export function sanitizePose(msg, prev) {
   const p = prev || {};
   const fish = FISH.has(msg.fish) ? msg.fish : p.fish || "off";
@@ -101,6 +119,7 @@ export function sanitizePose(msg, prev) {
     // v53: 낚아 올린 순간(fish:"catch")에만 어종·등급을 실어 다른 유저 화면에 물고기를 보여 준다
     fk: fish === "catch" ? String(msg.fk || "").replace(/[^\w-]/g, "").slice(0, 24) : "",
     fg: fish === "catch" ? Math.max(0, Math.min(5, Math.round(Number(msg.fg) || 0))) : 0,
+    br: msg.br === undefined ? (p.br || null) : cleanBrag(msg.br),
   };
 }
 
@@ -785,6 +804,7 @@ export function sanitizePlay(input, prev, opt) {
   if ("duckKinds" in input) out.duckKinds = cleanKinds(input.duckKinds, base.duckKinds);
   if ("tutOff" in input) out.tutOff = flag01(input.tutOff);
   if ("donOff" in input) out.donOff = flag01(input.donOff);
+  if ("bragOff" in input) out.bragOff = flag01(input.bragOff);
   const bump = !!(opt && opt.bump);
   out.rev = bump ? ((base.rev | 0) + 1) : Math.max(0, Math.round(finite(input.rev, base.rev || 0)));
   out.at = bump ? now : Math.max(0, Math.round(finite(input.at, base.at || 0)));
@@ -965,6 +985,12 @@ export function parseClient(raw) {
   if (!msg || typeof msg !== "object" || typeof msg.t !== "string") return null;
   if (raw.length > MAX_MSG && !OPS.has(msg.t)) return null;
   if (msg.t === "ping") return { t: "ping" };
+  // v55: 초성·밸런스 게임
+  if (msg.t === "ans") return { t: "ans", id: cleanId(msg.id, 24), a: String(msg.a == null ? "" : msg.a).slice(0, 30) };
+  if (msg.t === "pick") return { t: "pick", id: cleanId(msg.id, 24), s: msg.s === "l" || msg.s === "r" ? msg.s : "" };
+  if (msg.t === "game") return msg.game && typeof msg.game === "object" && !Array.isArray(msg.game) ? { t: "game", game: msg.game } : null;
+  if (msg.t === "gameNow") return { t: "gameNow", kind: msg.kind === "bal" ? "bal" : msg.kind === "stop" ? "stop" : "cho", all: !!msg.all };
+  if (msg.t === "gameGet") return { t: "gameGet" };
   if (msg.t === "auth") return { t: "auth", id: cleanCred(msg.id, 64), pw: cleanCred(msg.pw, 128), out: !!msg.out };
   if (msg.t === "world") {
     if (!msg.world || typeof msg.world !== "object" || Array.isArray(msg.world)) return null;
@@ -1025,9 +1051,14 @@ export function parseClient(raw) {
     if (!text) return null;
     return { t: msg.t, text };
   }
+  if (msg.t === "like") {
+    const to = cleanId(msg.to, 40);
+    return to ? { t: "like", to } : null;
+  }
   if (msg.t === "hello" || msg.t === "pose") {
     return {
       t: msg.t,
+      br: msg.br === undefined ? undefined : msg.br,
       nick: msg.nick,
       ki: msg.ki,
       lv: msg.lv,
@@ -1049,7 +1080,8 @@ export function parseClient(raw) {
 
 export function allowPose(now, att, pose) {
   const dt = now - (att.lastPose || 0);
-  const important = att.fish !== pose.fish || att.anim !== pose.anim || att.seat !== pose.seat;
+  const bk = (b) => (b ? b.k + b.at + "|" + b.lk : "");
+  const important = att.fish !== pose.fish || att.anim !== pose.anim || att.seat !== pose.seat || bk(att.br) !== bk(pose.br);
   if (important) return dt >= 40;
   return dt >= POSE_MS;
 }
@@ -1067,6 +1099,7 @@ export function publicPeer(att) {
     fish: att.fish,
     fk: att.fk || "",
     fg: att.fg | 0,
+    br: att.br || null,
     anim: att.anim,
     seat: att.seat,
   };
@@ -1130,6 +1163,13 @@ export function reduce(prev, msg, now, others) {
     };
   }
 
+  if (msg.t === "like") {
+    if (!att.ready || !msg.to || msg.to === att.id) return { att, drop: true };
+    if (now - (att.lastLike || 0) < 1500) return { att, drop: true };
+    att.lastLike = now;
+    return { att, drop: false, event: { t: "like", id: att.id, nick: att.nick, to: msg.to } };
+  }
+
   if (msg.t !== "hello" && msg.t !== "pose") return { att, drop: true };
 
   const pose = sanitizePose(msg, att);
@@ -1157,6 +1197,7 @@ export function reduce(prev, msg, now, others) {
   att.fish = pose.fish;
   att.fk = pose.fk;
   att.fg = pose.fg;
+  att.br = pose.br;
   att.anim = denied && pose.anim === "sit" ? "idle" : pose.anim;
   att.seat = seat;
   att.seatKey = seatKey;

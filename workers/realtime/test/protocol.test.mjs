@@ -554,3 +554,72 @@ test("v53: catch pose carries fish kind and grade only while catching", () => {
   assert.equal(o.fk, "");
   assert.equal(o.fg, 0);
 });
+
+// v55: 물고기 자랑 · 멋져요
+import { cleanBrag as _cb } from "../src/protocol.js";
+test("v55 cleanBrag 정리", () => {
+  assert.equal(_cb(null), null);
+  assert.equal(_cb({ k: "" }), null);
+  const b = _cb({ k: "mandarin<x>", g: 9, cm: 48.25, v: -3, at: 5, lk: 3, s: 2, t: 7 });
+  assert.equal(b.k, "mandarinx");
+  assert.equal(b.g, 5);
+  assert.equal(b.cm, 48.3);
+  assert.equal(b.v, 0);
+  assert.equal(b.lk, 3);
+});
+test("v55 pose 에 br 이 실려 publicPeer 로 나간다", () => {
+  const a = reduce(null, { t: "hello", nick: "자랑꾼", x: 0, z: 0 }, 1000, []).att;
+  const r = reduce(a, { t: "pose", x: 0, z: 0, br: { k: "carp", g: 3, cm: 50, v: 100, at: 9, lk: 0 } }, 2000, []);
+  assert.equal(r.drop, false);
+  assert.equal(r.pub.br.k, "carp");
+  const r2 = reduce(r.att, { t: "pose", x: 0, z: 0, br: null }, 3000, []);
+  assert.equal(r2.pub.br, null);
+});
+test("v55 like 는 1.5초에 한 번", () => {
+  const a = reduce(null, { t: "hello", nick: "팬" }, 1000, []).att;
+  const r = reduce(a, { t: "like", to: "p2" }, 2000, []);
+  assert.equal(r.event.t, "like");
+  assert.equal(r.event.to, "p2");
+  assert.equal(reduce(r.att, { t: "like", to: "p2" }, 2500, []).drop, true);
+});
+
+// v55: 초성·밸런스 게임
+import * as GM from "../src/game.js";
+test("v55 초성 변환 · 정답 정리", () => {
+  assert.equal(GM.choseong("쏘가리"), "ㅆㄱㄹ");
+  assert.equal(GM.choseong("무지개 송어"), "ㅁㅈㄱ ㅅㅇ");
+  assert.equal(GM.normAns(" 쏘 가리! "), "쏘가리");
+});
+test("v55 초성 게임 판정 · 순위 · 보상", () => {
+  const cfg = GM.defaultGame();
+  const run = GM.newRun(cfg, "cho", 2, 1000);
+  assert.equal(run.cho, "ㅆㄱㄹ");
+  assert.equal(GM.publicRun(run, cfg).ans, undefined);
+  assert.deepEqual(GM.submitAnswer(run, cfg, "a", "가", "붕어", 2000), { ok: false });
+  assert.equal(GM.submitAnswer(run, cfg, "a", "가", "쏘가리", 2100), null); // 0.4초 안 재시도 무시
+  const r1 = GM.submitAnswer(run, cfg, "a", "가", "쏘가리", 3000);
+  assert.equal(r1.rank, 1); assert.equal(r1.coin, 300);
+  const r2 = GM.submitAnswer(run, cfg, "b", "나", "쏘 가리", 4000);
+  assert.equal(r2.rank, 2); assert.equal(r2.coin, 200);
+  assert.equal(GM.submitAnswer(run, cfg, "a", "가", "쏘가리", 5000), null); // 이미 맞힘
+  assert.equal(GM.submitAnswer(run, cfg, "c", "다", "쏘가리", run.end + 1), null); // 시간 끝
+  run.done = true;
+  assert.equal(GM.publicRun(run, cfg).ans, "쏘가리");
+  assert.equal(GM.publicRun(run, cfg).top.length, 2);
+});
+test("v55 밸런스 선택은 한 번만 바꿀 수 있다", () => {
+  const cfg = GM.defaultGame();
+  const run = GM.newRun(cfg, "bal", 0, 1000);
+  assert.deepEqual(GM.submitPick(run, "a", "l", 1100), { side: "l" });
+  assert.deepEqual(GM.submitPick(run, "a", "r", 1200), { side: "r" });
+  assert.equal(GM.submitPick(run, "a", "l", 1300), null);
+  GM.submitPick(run, "b", "r", 1400);
+  run.done = true;
+  assert.deepEqual(GM.publicRun(run, cfg).res, { l: 0, r: 2 });
+});
+test("v55 관리자 설정 정리", () => {
+  const g = GM.sanitizeGame({ on: 1, every: 1, dur: 999, rw: { c1: -5 }, choList: [{ a: "<붕어>", c: "물고기" }, { a: "" }], balList: [{ q: "q", l: "a", r: "" }, { q: "q", l: "a", r: "b" }] }, null);
+  assert.equal(g.on, 1); assert.equal(g.every, 5); assert.equal(g.dur, 180); assert.equal(g.rw.c1, 0);
+  assert.equal(g.choList.length, 1); assert.equal(g.choList[0].a, "붕어");
+  assert.equal(g.balList.length, 1);
+});
