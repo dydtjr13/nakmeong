@@ -17,6 +17,6 @@
   const d3=U()&&U().get('donSt')==='d3';dn.className=bd.className+(d3?' d3':'');dn.innerHTML=d3?'<b class="mi">☕</b><span class="dt">커피 한 잔<small>개발자 응원하기</small></span>':'<b class="mi">☕</b><small class="ml">후원</small>';
   if(on()){['bShop','bTank','bAutoFish'].forEach(id=>mn.appendChild($(id)));mn.appendChild(box);mn.appendChild($('bBag'));dex.className=bd.className;sy.insertBefore(dex,bd);sy.insertBefore(dn,dex);}
   else{box.remove();dn.remove();ORIG.order.forEach(id=>$(id)&&mn.appendChild($(id)));dex.className='';}
-  if(window.NK_EMOJI)try{NK_EMOJI.parse(dn);NK_EMOJI.parse(box);}catch(_){}}
+  if(window.NK_EMOJI)try{NK_EMOJI.parse(dn);NK_EMOJI.parse(box);}catch(_){}try{NKV2.updBagBadge();}catch(_){}}
  document.addEventListener('change',e=>{const k=e.target&&e.target.dataset&&e.target.dataset.u25;if(k==='menu27'||k==='donSt')setTimeout(apply,0);},true);
  window.NK_MENU27={apply,don};setTimeout(apply,600);})();

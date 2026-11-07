@@ -1057,3 +1057,25 @@ body.uiOne.uiedit [data-uin]:not(.uiSel){outline-color:#ff8a4c55!important;opaci
 #deckNote,#chNote{position:fixed;left:50%;top:72px;transform:translateX(-50%);z-index:60;display:flex;gap:10px;align-items:center;max-width:min(640px,calc(100vw - 16px));background:#3b3346;color:#fff;border-radius:14px;padding:10px 14px;box-shadow:0 10px 28px #0005;font-size:14px;pointer-events:none}
 #deckNote b,#chNote b{color:#ffd77a;white-space:nowrap}#deckNote span,#chNote span{line-height:1.35}
 @media(max-width:700px){.adm2 header{flex-wrap:wrap;row-gap:8px}}
+
+/* v55 */
+#frank.show{z-index:96}
+.fr-empty{padding:26px 10px;text-align:center;color:#8a8296;font-weight:700}
+.fr-tot{text-align:center;margin-top:6px}
+#bBox{position:relative}
+#bBox[data-new]::after{content:attr(data-new);position:absolute;top:-3px;right:-3px;min-width:14px;height:14px;padding:0 3.5px;border-radius:7px;background:#ff5a5a;color:#fff;font-size:8.5px;font-weight:900;line-height:14px;text-align:center;box-shadow:0 0 0 2px #fff;animation:bdgP 1.2s ease-in-out infinite}
+.baital{position:fixed;left:50%;top:calc(74px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:150;display:flex;align-items:center;gap:12px;padding:10px 12px 10px 10px;background:#fffaf3;border-radius:18px;box-shadow:0 12px 32px rgba(40,30,50,.28);border:2.5px solid #ff8a4c;max-width:calc(100vw - 24px);animation:baIn .35s cubic-bezier(.2,1.4,.4,1)}
+.baital.low{border-color:#ffc24a}
+.baital.out{opacity:0;transform:translate(-50%,-12px);transition:.3s}
+.baital .ba-ic{position:relative;width:46px;height:46px;border-radius:14px;background:#ffeede;display:flex;align-items:center;justify-content:center;flex:none}
+.baital .ba-ic img{width:36px;height:36px;object-fit:contain}
+.baital.out0 .ba-ic img{filter:grayscale(1);opacity:.6}
+.baital .ba-ic i{position:absolute;right:-5px;bottom:-5px;min-width:20px;height:20px;border-radius:10px;background:#ff5a5a;color:#fff;font-style:normal;font-weight:900;font-size:12px;line-height:20px;text-align:center;box-shadow:0 0 0 2px #fff}
+.baital.low .ba-ic i{background:#f2a33a}
+.baital .ba-t{display:flex;flex-direction:column;line-height:1.3;min-width:0}
+.baital .ba-t b{font-size:15px;color:#3d3a4b}
+.baital .ba-t small{font-size:12px;color:#7c7487}
+.baital .ba-shop{border:0;border-radius:12px;background:#ff8a4c;color:#fff;font-weight:800;padding:8px 12px;cursor:pointer;white-space:nowrap}
+.baital .ba-x{border:0;background:transparent;font-size:20px;color:#9a90a6;cursor:pointer;padding:0 4px}
+@keyframes baIn{from{opacity:0;transform:translate(-50%,-16px) scale(.9)}to{opacity:1;transform:translate(-50%,0)}}
+@media (max-width:520px){.baital{top:calc(64px + env(safe-area-inset-top,0px));gap:8px}.baital .ba-t b{font-size:14px}.baital .ba-shop{padding:7px 9px;font-size:12px}}

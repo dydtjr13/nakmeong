@@ -85,6 +85,9 @@ async function ensureSchema(db) {
     'CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_once ON reports(post_id, reporter)',
     'CREATE TABLE IF NOT EXISTS saves (code TEXT PRIMARY KEY, owner TEXT NOT NULL, data TEXT NOT NULL, size INTEGER NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)',
     'CREATE INDEX IF NOT EXISTS idx_saves_owner ON saves(owner)',
+    'CREATE TABLE IF NOT EXISTS ranks (wk TEXT NOT NULL, k TEXT NOT NULL, owner TEXT NOT NULL, nick TEXT NOT NULL, srv INTEGER NOT NULL DEFAULT 0, cm REAL NOT NULL, g INTEGER NOT NULL DEFAULT 0, at INTEGER NOT NULL, PRIMARY KEY (wk, k, owner))',
+    'CREATE INDEX IF NOT EXISTS idx_ranks_k ON ranks(wk, k, cm DESC)',
+    'CREATE INDEX IF NOT EXISTS idx_ranks_srv ON ranks(wk, srv)',
   ];
   for (const sql of tries) { try { await db.prepare(sql).run(); } catch (e) { /* 이미 있음 */ } }
   schemaReady = true;
@@ -97,6 +100,15 @@ async function ownerOf(req) {
   const h = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('fc-owner:' + raw)));
   return [...h].slice(0, 16).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
+// v55: 어종별 주간 최대 크기 랭킹 (실제 유저만). 주는 월요일 0시(한국시간) 기준
+const KST = 9 * 3600e3;
+function wkStart(t) { const d = new Date(t + KST), day = (d.getUTCDay() + 6) % 7; return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - day) - KST; }
+const wkId = (t) => new Date(wkStart(t) + KST).toISOString().slice(0, 10);
+const RANK_ITEM = (x) => {
+  const k = String(x && x.k || ''), cm = Math.round(Number(x && x.cm) * 10) / 10, g = Number(x && x.g) | 0;
+  if (!/^[a-z0-9_]{1,24}$/.test(k) || !(cm > 0 && cm <= 3000) || g < 0 || g > 9) return null;
+  return { k, cm, g };
+};
 const REPORT_HIDE = 3; // 서로 다른 3명이 신고하면 관리자가 볼 때까지 숨김
 
 function shapePost(p, me, admin) {
@@ -171,6 +183,53 @@ export default {
         if (!me) return json({ ok: true, code: '', updated_at: 0 }, 200, origin);
         const row = await db.prepare('SELECT code, updated_at FROM saves WHERE owner=? ORDER BY updated_at DESC LIMIT 1').bind(me).first();
         return json({ ok: true, code: row ? row.code : '', updated_at: row ? row.updated_at : 0 }, 200, origin);
+      }
+
+      // ─ 어종 랭킹 ─
+      if (path === '/ranks' && request.method === 'POST') {
+        if (!me) return bad('owner required', 400, origin);
+        const text = await request.text();
+        if (text.length > 20000) return bad('too large', 413, origin);
+        let body; try { body = JSON.parse(text); } catch { return bad('invalid json', 400, origin); }
+        const nick = cleanNick(body.nick);
+        if (profane(nick)) return bad('nick', 400, origin);
+        const srv = Math.max(0, Math.min(9, Number(body.srv) | 0));
+        const items = (Array.isArray(body.items) ? body.items : [body]).slice(0, 80).map(RANK_ITEM).filter(Boolean);
+        if (!items.length) return bad('no items', 400, origin);
+        const wk = wkId(Date.now()), now = Date.now();
+        const st = db.prepare(`INSERT INTO ranks (wk,k,owner,nick,srv,cm,g,at) VALUES (?,?,?,?,?,?,?,?)
+          ON CONFLICT(wk,k,owner) DO UPDATE SET nick=excluded.nick, srv=excluded.srv,
+          g=CASE WHEN excluded.cm>ranks.cm THEN excluded.g ELSE ranks.g END,
+          at=CASE WHEN excluded.cm>ranks.cm THEN excluded.at ELSE ranks.at END,
+          cm=MAX(ranks.cm, excluded.cm)`);
+        await db.batch(items.map((x) => st.bind(wk, x.k, me, nick, srv, x.cm, x.g, now)));
+        return json({ ok: true, wk, n: items.length }, 200, origin);
+      }
+      if (path === '/ranks' && request.method === 'GET') {
+        const k = String(url.searchParams.get('k') || '');
+        if (!/^[a-z0-9_]{1,24}$/.test(k)) return bad('bad k', 400, origin);
+        const prev = url.searchParams.get('wk') === 'prev';
+        const wk = wkId(prev ? wkStart(Date.now()) - 864e5 : Date.now());
+        const srv = Number(url.searchParams.get('srv')) | 0;
+        const where = srv ? 'wk=? AND k=? AND srv=?' : 'wk=? AND k=?';
+        const args = srv ? [wk, k, srv] : [wk, k];
+        const rows = (await db.prepare(`SELECT owner, nick, srv, cm, g FROM ranks WHERE ${where} ORDER BY cm DESC, at ASC LIMIT 10`).bind(...args).all()).results || [];
+        const total = ((await db.prepare(`SELECT COUNT(*) AS n FROM ranks WHERE ${where}`).bind(...args).first()) || {}).n || 0;
+        let mine = null;
+        if (me) {
+          const m = await db.prepare(`SELECT cm, g, at FROM ranks WHERE ${where} AND owner=?`).bind(...args, me).first();
+          if (m) {
+            const ahead = ((await db.prepare(`SELECT COUNT(*) AS n FROM ranks WHERE ${where} AND (cm>? OR (cm=? AND at<?))`).bind(...args, m.cm, m.cm, m.at).first()) || {}).n || 0;
+            mine = { rk: ahead + 1, cm: m.cm, g: m.g };
+          }
+        }
+        return json({ ok: true, wk, total, me: mine, list: rows.map((r, i) => ({ rk: i + 1, n: r.nick, srv: r.srv, cm: r.cm, g: r.g, me: !!me && r.owner === me })) }, 200, origin);
+      }
+      if (path === '/ranks/server' && request.method === 'GET') {
+        const srv = Number(url.searchParams.get('srv')) | 0;
+        if (!srv) return bad('bad srv', 400, origin);
+        const rows = (await db.prepare('SELECT owner, nick, k, cm FROM ranks WHERE wk=? AND srv=? LIMIT 5000').bind(wkId(Date.now()), srv).all()).results || [];
+        return json({ ok: true, rows: rows.map((r) => ({ n: r.nick, k: r.k, cm: r.cm, me: !!me && r.owner === me })) }, 200, origin);
       }
 
       // ─ 게시판 ─
