@@ -1,4 +1,4 @@
-# 일회성: 닉네임으로 저장 코드 찾기 (결과는 코드·레벨·시각만 로그에 출력)
+# 일회성: 닉네임으로 저장 코드 찾기 (결과는 코드·경험치·시각만 로그에 출력)
 name: ops find save
 on:
   push:
@@ -7,13 +7,24 @@ jobs:
   find:
     runs-on: ubuntu-latest
     steps:
-      - name: D1 조회
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 찾기
         env:
-          CF: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
         run: |
-          Q='{"sql":"SELECT code, updated_at, created_at, size, json_extract(data, ''$.nick'') AS nick, json_extract(data, ''$.xp'') AS xp, json_extract(data, ''$.coins'') AS coins FROM saves WHERE data LIKE ? ORDER BY updated_at DESC LIMIT 20","params":["%뉴깐깐%"]}'
-          curl -sS -X POST "https://api.cloudflare.com/client/v4/accounts/0dd46e415e6622db15aec7a31865b350/d1/database/a0e990c1-470b-46a1-8525-3a8a68804f17/query" \
-            -H "Authorization: Bearer $CF" -H "Content-Type: application/json" --data "$Q" | python3 -c "import sys,json;d=json.load(sys.stdin);print('success',d.get('success'),d.get('errors'));[print('ROW',r) for x in (d.get('result') or []) for r in x.get('results',[])]"
-          Q2='{"sql":"SELECT COUNT(*) AS n, MAX(updated_at) AS last FROM saves"}'
-          curl -sS -X POST "https://api.cloudflare.com/client/v4/accounts/0dd46e415e6622db15aec7a31865b350/d1/database/a0e990c1-470b-46a1-8525-3a8a68804f17/query" \
-            -H "Authorization: Bearer $CF" -H "Content-Type: application/json" --data "$Q2" | python3 -c "import sys,json;d=json.load(sys.stdin);print('total',[r for x in (d.get('result') or []) for r in x.get('results',[])])"
+          sleep 60
+          cat > f.mjs <<'JS'
+          const secret = process.env.ADMIN_PASSWORD;
+          const exp = Date.now() + 600e3;
+          const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+          const sig = [...new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode("board:" + exp)))].map((b) => b.toString(16).padStart(2, "0")).join("");
+          for (const nick of ["뉴깐깐"]) {
+            const r = await fetch("https://fishcozy-board-api.mi1ku.workers.dev/saves/find?nick=" + encodeURIComponent(nick), { headers: { "X-Admin-Token": exp + "." + sig, Origin: "https://fishcozy.com" } });
+            const j = await r.json();
+            console.log("STATUS", r.status, j.ok, j.error || "");
+            for (const x of j.list || []) console.log("ROW", x.code, "xp=" + x.xp, "coins=" + x.coins, "caught=" + x.caught, "updated=" + new Date(x.updated_at).toISOString(), "created=" + new Date(x.created_at).toISOString());
+          }
+          JS
+          node f.mjs
