@@ -156,6 +156,7 @@
     if (m.grants) takeGrants(m.grants, m.now, { me: m.nick || m.me, mine: m.mine });
     if (m.sanc) takeSanc(m.sanc);
     if (m.prof) takeProf(m.prof);
+    takeTitles(m.titles);
     if (m.stage) takeStage(m.stage);
     takePlay(m.play && typeof m.play === "object" ? m.play : {});
     if (m.cues) takeCues(m.cues);
@@ -205,6 +206,10 @@
     if (s.rev) RT.stageRev = s.rev;
     try { dispatchEvent(new CustomEvent("nk-rt-stage", { detail: s })); } catch (e) { /* ignore */ }
   }
+  function takeTitles(t) {
+    RT.titles = t && typeof t === "object" ? t : {};
+    try { dispatchEvent(new CustomEvent("nk-rt-titles", { detail: RT.titles })); } catch (e) { /* ignore */ }
+  }
   function takePlay(p) {
     if (!p || typeof p !== "object") return;
     if (p.rev && RT.playRev && p.rev < RT.playRev) return;
@@ -241,7 +246,7 @@
       const prev = peers.get(m.id) || { id: m.id };
       peers.set(m.id, Object.assign(prev, {
         id: m.id, nick: m.nick || prev.nick, ki: m.ki, lv: m.lv,
-        x: m.x, z: m.z, y: m.y, d: m.d, fish: m.fish, fk: m.fk || "", fg: m.fg | 0, anim: m.anim, seat: m.seat, br: m.br || null,
+        x: m.x, z: m.z, y: m.y, d: m.d, fish: m.fish, fk: m.fk || "", fg: m.fg | 0, anim: m.anim, seat: m.seat, br: m.br || null, tt: m.tt || null,
       }));
     }
     else if (m.t === "world" && m.world) takeWorld(m.world);
@@ -273,6 +278,7 @@
     }
     else if (m.t === "chat" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-chat", { detail: m }));
     else if (m.t === "emote" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-emote", { detail: m }));
+    else if (m.t === "titles") takeTitles(m.titles);
     else if (m.t === "game") { RT.game = m.game || null; dispatchEvent(new CustomEvent("nk-rt-game", { detail: RT.game })); }
     else if (m.t === "gameRes") dispatchEvent(new CustomEvent("nk-rt-gameres", { detail: m }));
     else if (m.t === "gamecfg") { RT.gameCfg = m.cfg || null; dispatchEvent(new CustomEvent("nk-rt-gamecfg", { detail: RT.gameCfg })); }
@@ -440,9 +446,11 @@
       lv: p.lv | 0,
       nick: String(p.nick || "").slice(0, 10),
       br: p.br || null,
+      tt: p.tt || null,
     };
     const bk = (b) => (b ? b.k + b.at + "|" + (b.lk | 0) : "");
-    const important = !poseSnap || next.fish !== poseSnap.fish || next.anim !== poseSnap.anim || next.seat !== poseSnap.seat || bk(next.br) !== bk(poseSnap.br);
+    const tk = (t) => (t ? t.n + t.bg : "");
+    const important = !poseSnap || next.fish !== poseSnap.fish || next.anim !== poseSnap.anim || next.seat !== poseSnap.seat || bk(next.br) !== bk(poseSnap.br) || tk(next.tt) !== tk(poseSnap.tt);
     const moved = !poseSnap || Math.hypot(next.x - poseSnap.x, next.z - poseSnap.z) > 0.15 || Math.abs(next.d - poseSnap.d) > 0.35;
     if (!important && !moved && now - poseAt < 5000) return;
     if (important && now - poseAt < 60) { schedule(p, 70); return; }
@@ -491,6 +499,7 @@
     return true;
   };
   // v55: 초성·밸런스 게임
+  RT.setTitles = function (titles) { return opsSend({ t: "titles", titles: titles || {} }); };
   RT.gameAns = function (id, a) { if (RT.mode === "on") send({ t: "ans", id: String(id || ""), a: String(a || "").slice(0, 30) }); };
   RT.gamePick = function (id, s) { if (RT.mode === "on") send({ t: "pick", id: String(id || ""), s }); };
   RT.gameSet = function (cfg) { return opsSend({ t: "game", game: cfg || {} }); };
