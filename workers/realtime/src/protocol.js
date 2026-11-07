@@ -1044,7 +1044,7 @@ export function parseClient(raw) {
   if (msg.t === "gameNow") return { t: "gameNow", kind: msg.kind === "bal" ? "bal" : msg.kind === "stop" ? "stop" : "cho", all: !!msg.all };
   if (msg.t === "gameGet") return { t: "gameGet" };
   if (msg.t === "titles") return msg.titles && typeof msg.titles === "object" && !Array.isArray(msg.titles) ? { t: "titles", titles: msg.titles } : null;
-  if (msg.t === "auth") return { t: "auth", id: cleanCred(msg.id, 64), pw: cleanCred(msg.pw, 128), out: !!msg.out };
+  if (msg.t === "auth") return { t: "auth", id: cleanCred(msg.id, 64), pw: cleanCred(msg.pw, 128), out: !!msg.out, ...(cleanCred(msg.tok, 120) ? { tok: cleanCred(msg.tok, 120) } : {}) };
   if (msg.t === "world") {
     if (!msg.world || typeof msg.world !== "object" || Array.isArray(msg.world)) return null;
     return { t: "world", world: msg.world };
@@ -1126,7 +1126,7 @@ export function parseClient(raw) {
       fk: msg.fish === "catch" ? cleanId(msg.fk, 24) : undefined,
       fg: msg.fish === "catch" ? Math.max(0, Math.min(5, Math.round(Number(msg.fg) || 0))) : undefined,
       cid: cleanId(msg.cid, 40),
-      adm: msg.t === "hello" && msg.adm && typeof msg.adm === "object" ? { id: cleanCred(msg.adm.id, 64), pw: cleanCred(msg.adm.pw, 128) } : null,
+      adm: msg.t === "hello" && msg.adm && typeof msg.adm === "object" ? { id: cleanCred(msg.adm.id, 64), pw: cleanCred(msg.adm.pw, 128), ...(cleanCred(msg.adm.tok, 120) ? { tok: cleanCred(msg.adm.tok, 120) } : {}) } : null,
     };
   }
   return null;
