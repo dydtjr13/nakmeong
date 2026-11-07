@@ -1,0 +1,171 @@
+/* v64 · 설정 화면 시안 (A/B/C) + 모바일 화면 배치 시안 (A/B/C/D) — 관리자 › 🧪 테스트 기능에서 고름 */
+:root{--sx-bg:#fbf6ec;--sx-card:#fff;--sx-ink:#3d3027;--sx-sub:#8a7660;--sx-line:#efe3cf;--sx-acc:#e8784a;--sx-acc2:#ffb27f;--sx-chip:rgba(255,251,244,.94)}
+/* ───── 설정 공통 ───── */
+#set .card.sx{width:min(460px,96vw)!important;max-height:min(760px,92vh);padding:0!important;display:flex;flex-direction:column;overflow:hidden;background:var(--sx-bg);color:var(--sx-ink);border-radius:26px;font-size:14px;text-align:left}
+#set .sx .sxhd{position:relative;display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px 20px;flex:none}
+#set .sx .sxhd h2{margin:0;font-size:20px;font-weight:800;color:var(--sx-ink);background:none;padding:0}
+#set .sx .sxgrab{display:none}
+#set .sx .sxx{width:44px;height:44px;border-radius:22px;border:0;background:#f2e8d6;color:#5a4632;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;box-shadow:none}
+#set .sx .sxbody{flex:1;min-height:0;overflow:auto;padding:4px 14px 18px;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}
+#set .sx .sxcard{background:var(--sx-card);border-radius:20px;padding:6px 14px;box-shadow:0 1px 0 #0000000a;margin:0}
+#set .sx .sxcard h5{margin:8px 0 2px;font-size:12px;font-weight:700;color:var(--sx-sub);letter-spacing:.02em}
+#set .sx .sxrow{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:50px;width:100%;box-sizing:border-box;border:0;background:none;padding:6px 0;margin:0;font:inherit;color:inherit;text-align:left;border-radius:0;box-shadow:none;cursor:pointer}
+#set .sx .sxrow+.sxrow{border-top:1px solid var(--sx-line)}
+#set .sx .sxrow b{font-weight:600;font-size:15px}
+#set .sx .sxrow small{display:block;font-size:12px;color:var(--sx-sub);margin-top:2px;font-weight:400}
+#set .sx .sxrow>span{flex:1;min-width:0}
+#set .sx .sxrow:hover{filter:none;transform:none}
+#set .sx .sxt{flex:none;width:50px;height:30px;border-radius:15px;background:#e2d5c0;position:relative;transition:background .18s}
+#set .sx .sxt>i{position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:12px;background:#fff;box-shadow:0 1px 3px #0003;transition:left .18s}
+#set .sx .sxt.on{background:var(--sx-acc)}#set .sx .sxt.on>i{left:23px}
+#set .sx .sxrg{cursor:default}#set .sx .sxrg b{flex:none;width:96px}
+#set .sx .sxrg input{flex:1;min-width:0;accent-color:var(--sx-acc);height:30px;margin:0}
+#set .sx .sxrg em{flex:none;width:30px;text-align:right;font-style:normal;font-weight:700;color:var(--sx-sub);font-variant-numeric:tabular-nums}
+#set .sx .sxcol{flex-direction:column;align-items:stretch;gap:8px;cursor:default}
+#set .sx .sxseg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px;background:#f4ecdf;border-radius:14px;padding:4px}
+#set .sx .sxseg button{min-height:40px;border:0;border-radius:11px;background:none;font:inherit;font-weight:600;color:#6f5e4c;cursor:pointer;box-shadow:none;padding:0 6px}
+#set .sx .sxseg button.on{background:#fff;color:var(--sx-ink);box-shadow:0 1px 4px #0000001f}
+#set .sx .sxnum span{flex:none;color:var(--sx-sub)}#set .sx .sxnum input{width:76px;min-height:36px;border-radius:10px;border:1.5px solid #eadcc6;padding:0 8px;font:inherit;text-align:right}
+#set .sx .sxln svg{flex:none;color:#b9a68c}
+#set .sx .sxme{display:flex;align-items:center;gap:12px;background:var(--sx-card);border-radius:20px;padding:12px 14px}
+#set .sx .sxav{flex:none;width:48px;height:48px;border-radius:16px;background:#ffd9bf center/cover no-repeat}
+#set .sx .sxmi{flex:1;min-width:0}#set .sx .sxmi b{font-size:17px}#set .sx .sxmi span{font-size:12px;color:#b8562a;font-weight:700;margin-left:4px}
+#set .sx .sxmi small{display:block;font-size:12px;color:var(--sx-sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#set .sx .sxbtn{min-height:40px;border:0;border-radius:12px;background:#f2e8d6;color:#5a4632;font:inherit;font-weight:700;padding:0 14px;cursor:pointer;box-shadow:none}
+#set .sx .sxbtn.acc{background:var(--sx-acc);color:#fff}
+#set .sx .sxfoot{display:flex;justify-content:center;gap:8px;margin:2px 0 0}
+#set .sx .sxmini{border:0;background:none;color:#b9a68c;font:inherit;font-size:12px;text-decoration:underline;min-height:36px;cursor:pointer;box-shadow:none}
+/* A · 한 장으로 — 모바일에서는 아래에서 올라오는 시트 */
+@media(max-width:699px){
+ #set:has(.sx-A),#set:has(.sx-B){align-items:flex-end}
+ #set .card.sx-A,#set .card.sx-B{width:100vw!important;max-width:none;max-height:90vh;border-radius:26px 26px 0 0;margin:0}
+ #set .sx-A .sxgrab,#set .sx-B .sxgrab{display:block;position:absolute;left:50%;top:6px;width:40px;height:5px;border-radius:3px;background:#e2d5c0;transform:translateX(-50%)}
+ #set .sx-A .sxbody,#set .sx-B .sxbody{padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+}
+/* B · 탭 3개 */
+#set .sx .sxtabs{flex:none;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:0 14px 10px;background:#f2e8d6;border-radius:16px;padding:4px}
+#set .sx .sxtabs button{min-height:42px;border:0;border-radius:12px;background:none;font:inherit;font-weight:700;color:#8a7660;cursor:pointer;box-shadow:none}
+#set .sx .sxtabs button.on{background:#fff;color:var(--sx-ink);box-shadow:0 1px 4px #0000001f}
+#set .card.sx-B{height:min(640px,90vh)}
+/* C · 빠른 설정 패널 (어두운 유리) */
+#set .card.sx-C{background:rgba(34,28,44,.8);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:28px}
+#set .sx-C .sxhd{padding:16px 16px 8px}
+#set .sx-C .sxme{background:none;padding:0}#set .sx-C .sxav{width:42px;height:42px;border-radius:14px}#set .sx-C .sxmi small{color:rgba(255,255,255,.75)}
+#set .sx-C .sxx{background:rgba(255,255,255,.14);color:#fff}
+#set .sx-C .sxtiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+#set .sx-C .sxtile{height:86px;border:0;border-radius:20px;background:rgba(255,255,255,.14);color:#fff;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;padding:12px;font:inherit;cursor:pointer;box-shadow:none;text-align:left}
+#set .sx-C .sxtile b{font-size:13px}#set .sx-C .sxtile small{font-size:11px;opacity:.8}
+#set .sx-C .sxtile.on{background:var(--sx-acc2);color:#3a2216}
+#set .sx-C .sxcard{background:rgba(255,255,255,.08);color:#fff}
+#set .sx-C .sxrow+.sxrow{border-top-color:rgba(255,255,255,.1)}#set .sx-C .sxrg em,#set .sx-C .sxrow small{color:rgba(255,255,255,.7)}
+#set .sx-C .sxrg input{accent-color:var(--sx-acc2)}#set .sx-C .sxln svg{color:rgba(255,255,255,.55)}
+#set .sx-C .sxbtn{background:rgba(255,255,255,.14);color:#fff}#set .sx-C .sxbtn.acc{background:var(--sx-acc2);color:#3a2216}#set .sx-C .sxmini{color:rgba(255,255,255,.55)}
+@media(max-width:699px){#set:has(.sx-C){align-items:flex-start}#set .card.sx-C{margin-top:max(12px,env(safe-area-inset-top))}}
+
+/* ───── 모바일 배치 공통 (body.mx) ───── */
+#bMxMore{display:none}#chatBtn .mxc{display:none}
+body.mx #hud #wxCard{transform:none!important;width:auto!important;max-width:none}
+body.mx #hud #wxCard .e,body.mx #hud #wxCard .bar{display:none!important}
+body.mx #hud #wxCard{padding:0 12px!important;height:36px;display:flex!important;align-items:center;border-radius:18px!important;background:var(--sx-chip)!important;box-shadow:0 2px 8px rgba(60,40,20,.14)!important;min-width:0!important}
+body.mx #hud #wxCard .h{margin:0!important;gap:6px;display:flex;align-items:center;font-size:12.5px;white-space:nowrap}
+body.mx #hud #wxCard .h img{width:20px!important;height:20px!important}body.mx #hud #wxCard .h small{display:none}
+/* 목표 카드: 한 줄 칩, 누르면 펼침 */
+body.mx #tq25:not(.fold){width:auto!important;max-width:min(300px,calc(100vw - 20px))!important}
+body.mx:not(.mx-tqo) #tq25 .npc>img{width:30px!important;height:30px!important;border-radius:50%!important;flex:none}
+body.mx:not(.mx-tqo) #tq25 .bb{padding:6px 12px 6px 8px!important;border-radius:18px!important;min-height:0!important}
+body.mx:not(.mx-tqo) #tq25 .bb>p,body.mx:not(.mx-tqo) #tq25 .bb>.pg,body.mx:not(.mx-tqo) #tq25 .bb>.who,body.mx:not(.mx-tqo) #tq25 .bb::before,body.mx:not(.mx-tqo) #tq25 .bb::after{display:none!important}
+body.mx:not(.mx-tqo) #tq25 .bb>.goal{margin:0!important;padding:0!important;background:none!important;border:0!important;font-size:12.5px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+body.mx:not(.mx-tqo) #tq25 .bb>.rw{position:static!important;margin:0 0 0 6px!important;padding:0!important;background:none!important;font-size:12px!important;white-space:nowrap}
+body.mx:not(.mx-tqo) #tq25 .npc{display:flex!important;align-items:center;gap:6px}
+body.mx:not(.mx-tqo) #tq25 .bb{display:flex!important;align-items:center;gap:0;box-shadow:0 2px 8px rgba(60,40,20,.14)!important;background:var(--sx-chip)!important}
+body.mx #tq25 .bb{cursor:pointer}
+body.mx #hud #fishBtn{width:104px!important;height:104px!important;border:5px solid rgba(255,255,255,.75)!important;box-shadow:0 8px 20px rgba(120,50,20,.35)!important}
+body.mx #hud #joy{width:116px;height:116px}
+body.mx #hud #mMain #bAutoFish{display:none!important}
+
+/* ───── A · 슬림 상단 + 하단 탭바 ───── */
+body.mx-A #hud #mStat{right:58px!important}
+body.mx-A #hud #bMore{top:8px!important;right:8px!important;width:44px!important;height:44px!important;border-radius:14px!important}
+body.mx-A #hud #mSys{top:auto!important;bottom:calc(92px + env(safe-area-inset-bottom))!important;right:8px!important}
+body.mx-A #tq25{left:10px!important;top:62px!important;right:auto!important;bottom:auto!important}
+body.mx-A.mx-tqo #tq25{right:10px!important}
+body.mx-A #hud #wxCard{top:62px!important;right:10px!important;left:auto!important}
+body.mx-A.mx-tqo #hud #wxCard{display:none!important}
+body.mx-A #hud #chatBtn{top:auto!important;bottom:calc(240px + env(safe-area-inset-bottom))!important;left:10px!important;height:44px;border-radius:22px}
+body.mx-A #hud #chat{top:auto!important;bottom:calc(292px + env(safe-area-inset-bottom))!important}
+body.mx-A #hud #joy{left:22px!important;bottom:calc(104px + env(safe-area-inset-bottom))!important}
+body.mx-A #hud #fishBtn{right:18px!important;bottom:calc(104px + env(safe-area-inset-bottom))!important}
+body.mx-A #hud #mMain,body.mx-C #hud #mMain{left:0!important;right:0!important;bottom:0!important;top:auto!important;width:auto!important;height:auto!important;transform:none!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:2px;padding:6px 6px calc(8px + env(safe-area-inset-bottom))!important;background:rgba(255,251,244,.97)!important;border-radius:22px 22px 0 0!important;box-shadow:0 -4px 16px rgba(60,40,20,.12)!important;pointer-events:auto}
+body.mx-A #hud #mMain button,body.mx-C #hud #mMain button{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:auto!important;height:62px!important;border-radius:14px!important;background:transparent!important;box-shadow:none!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;padding:0!important;color:#6f5e4c;transform:none!important}
+body.mx-A #hud #mMain button .mi img,body.mx-C #hud #mMain button .mi img{width:26px!important;height:26px!important}
+body.mx-A #hud #mMain #bBox .bxi,body.mx-C #hud #mMain #bBox .bxi{width:28px!important;height:28px!important}
+body.mx-A #hud #mMain button .ml,body.mx-C #hud #mMain button .ml{display:block!important;font-size:11.5px!important;font-weight:600;position:static!important;background:none!important;color:inherit!important;padding:0!important}
+body.mx-A #hud #mMain button kbd,body.mx-C #hud #mMain button kbd{display:none!important}
+body.mx-A #hud #mMain #bMxMore,body.mx-C #hud #mMain #bMxMore{display:flex!important;border:0;font:inherit;cursor:pointer}
+body.mx-A #rtPill{bottom:calc(84px + env(safe-area-inset-bottom))!important;right:10px!important}
+
+/* ───── B · 엄지 원형 메뉴 ───── */
+body.mx-B #hud #mStat{right:58px!important}
+body.mx-B #hud #bMore{top:8px!important;right:8px!important;width:44px!important;height:44px!important;border-radius:22px!important}
+body.mx-B #hud #mSys{top:58px!important}
+body.mx-B #tq25{left:10px!important;top:60px!important;right:auto!important;bottom:auto!important}
+body.mx-B #hud #wxCard{top:60px!important;right:10px!important;left:auto!important}
+body.mx-B.mx-tqo #hud #wxCard{display:none!important}
+body.mx-B #hud #chatBtn{top:auto!important;bottom:calc(180px + env(safe-area-inset-bottom))!important;left:12px!important;height:44px;border-radius:22px}
+body.mx-B #hud #chat{top:auto!important;bottom:calc(232px + env(safe-area-inset-bottom))!important}
+body.mx-B #hud #joy{left:22px!important;bottom:calc(40px + env(safe-area-inset-bottom))!important}
+body.mx-B #hud #fishBtn{right:26px!important;bottom:calc(34px + env(safe-area-inset-bottom))!important}
+body.mx-B #hud #mMain{left:auto!important;right:0!important;bottom:env(safe-area-inset-bottom)!important;top:auto!important;width:250px!important;height:250px!important;transform:none!important;background:none!important;box-shadow:none!important;padding:0!important;pointer-events:none}
+body.mx-B #hud #mMain button{position:absolute!important;width:54px!important;height:54px!important;border-radius:27px!important;background:rgba(255,251,244,.96)!important;box-shadow:0 3px 10px rgba(60,40,20,.2)!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:0!important;padding:0!important;top:auto!important;left:auto!important;pointer-events:auto;transform:none!important}
+body.mx-B #hud #mMain button .mi img{width:22px!important;height:22px!important}body.mx-B #hud #mMain #bBox .bxi{width:24px!important;height:24px!important}
+body.mx-B #hud #mMain button .ml{display:block!important;font-size:10px!important;font-weight:700;color:#6f5e4c!important;position:static!important;background:none!important;padding:0!important;line-height:1.1}
+body.mx-B #hud #mMain button kbd{display:none!important}
+body.mx-B #hud #mMain #bShop{right:150px!important;bottom:28px!important}
+body.mx-B #hud #mMain #bTank{right:140px!important;bottom:96px!important}
+body.mx-B #hud #mMain #bBox{right:96px!important;bottom:150px!important}
+body.mx-B #hud #mMain #bBag{right:30px!important;bottom:166px!important}
+body.mx-B #rtPill{bottom:auto!important;top:104px!important;right:10px!important}
+
+/* ───── C · 알림 레일 + 아래 시트 ───── */
+body.mx-C #hud #mStat{right:58px!important}
+body.mx-C #hud #bMore{top:8px!important;right:8px!important;width:44px!important;height:44px!important;border-radius:22px!important}
+body.mx-C #hud #mSys{top:auto!important;bottom:calc(150px + env(safe-area-inset-bottom))!important;right:8px!important}
+body.mx-C #tq25{right:10px!important;left:auto!important;top:62px!important;bottom:auto!important}
+body.mx-C #tq25 .npc{flex-direction:row-reverse}
+body.mx-C #hud #wxCard{top:108px!important;right:10px!important;left:auto!important}
+body.mx-C.mx-tqo #hud #wxCard{display:none!important}
+body.mx-C #hud #mMain{padding-bottom:calc(62px + env(safe-area-inset-bottom))!important;padding-top:16px!important}
+body.mx-C #hud #mMain::before{content:'';position:absolute;left:50%;top:6px;width:40px;height:5px;border-radius:3px;background:#e2d5c0;transform:translateX(-50%)}
+body.mx-C #hud #mMain button{background:#fff!important;border-radius:16px!important;height:58px!important}
+body.mx-C #hud #chatBtn{top:auto!important;left:14px!important;right:14px!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;height:44px!important;border-radius:14px!important;border:1.5px solid #eadcc6!important;background:#fff!important;box-shadow:none!important;justify-content:flex-start;padding:0 12px!important;z-index:2}
+body.mx-C #hud #chatBtn .mxc{display:inline;font-size:13px;font-weight:600;color:#6f5e4c;flex:1;text-align:left;margin-left:4px}
+body.mx-C #hud #chat{top:auto!important;bottom:calc(64px + env(safe-area-inset-bottom))!important;left:10px!important;right:10px;width:auto!important;z-index:3}
+body.mx-C #hud #joy{left:22px!important;bottom:calc(196px + env(safe-area-inset-bottom))!important}
+body.mx-C #hud #fishBtn{right:20px!important;bottom:calc(196px + env(safe-area-inset-bottom))!important}
+body.mx-C #rtPill{bottom:calc(158px + env(safe-area-inset-bottom))!important;right:auto!important;left:50%!important;transform:translateX(-50%)}
+
+/* ───── D · 가로 화면 ───── */
+body.mx-D #hud #mStat{left:max(14px,env(safe-area-inset-left))!important;top:8px!important;transform:scale(.78);transform-origin:left top;max-width:540px}
+body.mx-D #hud #equip{display:none!important}
+body.mx-D #tq25{left:max(14px,env(safe-area-inset-left))!important;top:62px!important;right:auto!important;bottom:auto!important}
+body.mx-D.mx-tqo #tq25{max-width:340px!important}
+body.mx-D #hud #wxCard{left:max(14px,env(safe-area-inset-left))!important;top:106px!important;right:auto!important}
+body.mx-D.mx-tqo #hud #wxCard{display:none!important}
+body.mx-D #hud #chat{display:none;top:58px!important;bottom:auto!important;left:auto!important;right:max(14px,env(safe-area-inset-right))!important;width:300px!important;background:var(--bg,#fffaf2);border-radius:16px;padding:8px;box-shadow:0 8px 24px #0003;z-index:5}
+body.mx-D.chat-open #hud #chat{display:block}
+body.mx-D #hud #log{max-height:34vh}
+body.mx-D #hud #chatBtn{display:inline-flex!important;align-items:center;gap:4px;position:absolute;top:8px;right:calc(max(14px,env(safe-area-inset-right)) + 150px);height:40px;padding:0 12px;border:0;border-radius:20px;background:var(--sx-chip);box-shadow:0 2px 8px rgba(60,40,20,.14);font:inherit;font-size:16px;pointer-events:auto}
+body.mx-D #hud #joy{left:calc(max(14px,env(safe-area-inset-left)) + 30px)!important;right:auto!important;bottom:22px!important;top:auto!important}
+body.mx-D #hud #fishBtn{display:flex!important;position:absolute;left:auto!important;right:max(14px,env(safe-area-inset-right))!important;bottom:18px!important;top:auto!important;transform:none!important;border-radius:50%!important;padding:0!important;flex-direction:column;align-items:center;justify-content:center;font-size:12px!important;overflow:hidden;background:var(--sx-acc);color:#fff}
+body.mx-D #hud #fishBtn.far{opacity:.65;filter:saturate(.6)}
+body.mx-D #hud #mMain{left:auto!important;right:calc(max(14px,env(safe-area-inset-right)) + 116px)!important;bottom:18px!important;top:auto!important;transform:none!important;display:grid!important;grid-template-columns:repeat(2,54px);gap:8px!important;padding:0!important;background:none!important;box-shadow:none!important}
+body.mx-D #hud #mMain button{position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;width:54px!important;height:54px!important;min-width:0!important;border-radius:16px!important;background:rgba(255,251,244,.96)!important;box-shadow:0 3px 10px rgba(60,40,20,.18)!important;display:flex!important;flex-direction:column!important;align-items:center;justify-content:center;gap:1px!important;padding:0!important;transform:none!important}
+body.mx-D #hud #mMain button .mi img{width:22px!important;height:22px!important}body.mx-D #hud #mMain #bBox .bxi{width:24px!important;height:24px!important}body.mx-D #hud #mMain #bBox .mi{height:24px!important}
+body.mx-D #hud #mMain button .ml{display:block!important;font-size:10px!important;color:#6f5e4c;font-weight:700}
+body.mx-D #hud #mMain button kbd{display:none!important}
+body.mx-D #rtPill{bottom:auto!important;top:56px!important;right:max(14px,env(safe-area-inset-right))!important}
+body.mx-B #hud #mMain #bMxMore,body.mx-D #hud #mMain #bMxMore{display:none!important}
+body.mx-A:not(.mx-tqo) #tq25,body.mx-B:not(.mx-tqo) #tq25{max-width:calc(100vw - 130px)!important}
+body.mx:not(.mx-tqo) #tq25 .bb{min-width:0;overflow:hidden}
+body.mx:not(.mx-tqo) #tq25 .bb>.goal{max-width:none;flex:1;min-width:0}
+body.mx-D #rtPill{top:auto!important;bottom:4px!important;right:auto!important;left:50%!important;transform:translateX(-50%)}

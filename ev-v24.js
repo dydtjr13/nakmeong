@@ -38,7 +38,7 @@
 
 // v25→v26: 날씨 카드 정렬 — 크기는 v24 원래대로, 왼쪽 라인만 위 패널(PC #equip · 모바일 코인 알약)에 맞춤. 간격은 레벨창↔정보줄 간격 +2px
 (function(){const $=id=>document.getElementById(id);
- function al(){const w=$('wxCard');if(!w||!w.offsetParent)return;const B=document.body;if(B.classList.contains('vshort')){['left','top','width','right','transform'].forEach(k=>w.style.removeProperty(k));return;}
+ function al(){const w=$('wxCard');if(!w||!w.offsetParent)return;const B=document.body;if(B.classList.contains('vshort')||B.classList.contains('mx')){['left','top','width','right','transform'].forEach(k=>w.style.removeProperty(k));return;}
   const set=(k,v)=>w.style.setProperty(k,v,'important');
   if(innerWidth>=700){const e=$('equip'),s=$('mStat');if(!e||!s)return;const r=e.getBoundingClientRect(),q=s.getBoundingClientRect();if(!r.width)return;const gap=Math.max(4,r.top-q.bottom)+2;
    set('left',r.left+'px');set('right','auto');set('top',(r.bottom+gap)+'px');w.style.removeProperty('width');w.style.removeProperty('transform');w.style.removeProperty('box-sizing');}
