@@ -631,12 +631,14 @@ export class LakeRoom extends DurableObject {
         let why = nickProblem(want);
         if (why === "reserved" && (prev.admin || helloAdmin)) why = "";
         const peers = [];
+        const myCid = play.cid || prev.cid || "";
         for (const other of this.ctx.getWebSockets()) {
           if (other === ws) continue;
           const att = this.attachment(other);
           if (!att || !att.nick) continue;
           // v52: 같은 브라우저(cid)가 다시 들어오면 남아 있던 이전 연결을 정리하고 그 닉을 이어 쓴다
-          if (play.cid && att.cid === play.cid && att.id !== prev.id && sanitizeNick(att.nick) === want) {
+          // v60: hello 뿐 아니라 pose 에서도(이 연결의 cid 로) 정리 — 모바일 백그라운드 복귀·닉 변경 뒤 재접속 때 '이미 있는 닉' 오류 방지
+          if (myCid && att.cid === myCid && att.id !== prev.id && sanitizeNick(att.nick) === want) {
             att.ready = false;
             try { other.serializeAttachment(att); } catch { /* ignore */ }
             try { other.close(4005, "replaced"); } catch { /* ignore */ }

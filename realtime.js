@@ -390,16 +390,29 @@
         if (retry > 3) {
           RT.mode = "solo";
           peers.clear();
+          lostAt = Date.now();
           return;
         }
         RT.mode = "connecting";
-        setTimeout(() => { if (want && token === gen) openSocket(token, serverId, profile, true); }, 700 * retry);
+        setTimeout(() => { if (want && token === gen) openSocket(token, serverId, Object.assign({}, profile, RT.profile || {}), true); }, 700 * retry);
       };
       if (isRetry) { /* reconnect uses the same listeners */ }
     });
   }
 
+  // v60: 모바일에서 백그라운드로 갔다가 돌아왔을 때 끊긴 연결을 다시 잇기
+  let lostAt = 0;
+  const resume = () => {
+    if (document.hidden || !RT.profile) return;
+    if (lostAt) { lostAt = 0; RT.connect(RT.sid, RT.profile).then((r) => { if (r && r.ok) dispatchEvent(new CustomEvent("nk-rt-rejoin")); }); return; }
+    if (want && ws && ws.readyState > 1) { try { ws.onclose && ws.onclose(); } catch (e) { /* ignore */ } }
+  };
+  document.addEventListener("visibilitychange", resume);
+  addEventListener("online", resume);
+  addEventListener("pageshow", (e) => { if (e.persisted) resume(); });
+
   RT.connect = async function (serverId, profile) {
+    lostAt = 0;
     gen += 1;
     const token = gen;
     want = true;
@@ -457,6 +470,8 @@
     if (!important && now - poseAt < 200) { if (moved) schedule(p, 210); return; }
     poseSnap = next;
     poseAt = now;
+    // v60: 재접속 때 hello 에 지금 닉·위치를 보내도록 최신 상태를 기억
+    if (RT.profile) Object.assign(RT.profile, { nick: next.nick || RT.profile.nick, ki: next.ki, lv: next.lv, x: next.x, z: next.z, y: next.y, d: next.d, fish: next.fish === "catch" ? "off" : next.fish, anim: next.anim, seat: next.seat });
     send(next);
   };
 

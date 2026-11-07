@@ -2048,7 +2048,7 @@ V14=(()=>{
  addEventListener('nk-rt-event',e=>applyEvent(e.detail));
  addEventListener('nk-rt-balance',e=>applyBalance(e.detail));
  addEventListener('nk-rt-grants',e=>applyGrants(e.detail));
- addEventListener('nk-rt-nick',e=>{const d=e.detail||{};alertBox('<h3>닉네임</h3><p>'+nickBadText(d.reason)+'</p>');if(S._nickPrev!=null&&S.nick!==S._nickPrev){S.nick=S._nickPrev;try{save();}catch(err){}if(me){const p=me.o.position.clone(),dir=me.dir;dropChar(me);const i=chars.indexOf(me);if(i>=0)chars.splice(i,1);me=makeChar(S.char,NICK());me.o.position.copy(p);me.dir=dir;}}});
+ addEventListener('nk-rt-nick',e=>{const d=e.detail||{};/* v60: 재접속 중 내 닉이 겹친 경우(직접 바꾼 게 아니면) 알림 없이 넘어가요 */if(d.reason==='dup'&&!(S._nickPrev!=null&&S.nick!==S._nickPrev))return;alertBox('<h3>닉네임</h3><p>'+nickBadText(d.reason)+'</p>');if(S._nickPrev!=null&&S.nick!==S._nickPrev){S.nick=S._nickPrev;try{save();}catch(err){}if(me){const p=me.o.position.clone(),dir=me.dir;dropChar(me);const i=chars.indexOf(me);if(i>=0)chars.splice(i,1);me=makeChar(S.char,NICK());me.o.position.copy(p);me.dir=dir;}}});
  if(window.NK_RT&&NK_RT.grants)try{applyGrants(NK_RT.grants);}catch(e){}
  addEventListener('nk-rt-sanc',e=>applySanc(e.detail));
  addEventListener('nk-rt-gift',e=>applyGift(e.detail));
