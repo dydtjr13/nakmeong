@@ -631,6 +631,12 @@ body:has(.modal.show) #chat,body:has(.modal.show) #bubs{visibility:hidden}
 
 /* ───────── v21 ───────── */
 #dc{display:none!important}body.perf #dc{display:block!important}
+/* v61: 관리자 성능 정보 */
+body.perf #dc{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 76px);bottom:auto;right:auto;z-index:300;font:600 11px/1.45 ui-monospace,Menlo,Consolas,monospace;color:#f4f1ea;background:rgba(20,18,30,.62);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:5px 9px;text-shadow:none;pointer-events:auto;cursor:pointer;white-space:nowrap;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+body.perf #dc b{color:#fff}body.perf #dc small{opacity:.7;font-weight:500}
+body.perf #dc.ok b:first-child{color:#7ee08a}body.perf #dc.mid b:first-child{color:#ffd166}body.perf #dc.bad b:first-child{color:#ff7a6a}
+body.perf #dc.mini{padding:3px 8px;border-radius:999px}
+@media (max-width:640px){body.perf #dc{left:8px;transform:none;top:calc(env(safe-area-inset-top,0px) + 100px);font-size:10px;padding:4px 7px}}
 /* 레벨 HUD (v17 lA) */
 .lvb{display:inline-flex;align-items:center;gap:8px;background:var(--bg);border:0;border-radius:999px;padding:4px 12px 4px 4px;box-shadow:0 4px 14px #0002;font:inherit;color:inherit;cursor:pointer;pointer-events:auto}
 .lvb .lvc{width:36px;height:36px;border-radius:50%;background:conic-gradient(#ff8a5c 0 var(--p),#f1e6da var(--p));display:flex;align-items:center;justify-content:center;flex:none}
