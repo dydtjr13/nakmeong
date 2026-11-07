@@ -582,3 +582,44 @@ test("v55 like 는 1.5초에 한 번", () => {
   assert.equal(r.event.to, "p2");
   assert.equal(reduce(r.att, { t: "like", to: "p2" }, 2500, []).drop, true);
 });
+
+// v55: 초성·밸런스 게임
+import * as GM from "../src/game.js";
+test("v55 초성 변환 · 정답 정리", () => {
+  assert.equal(GM.choseong("쏘가리"), "ㅆㄱㄹ");
+  assert.equal(GM.choseong("무지개 송어"), "ㅁㅈㄱ ㅅㅇ");
+  assert.equal(GM.normAns(" 쏘 가리! "), "쏘가리");
+});
+test("v55 초성 게임 판정 · 순위 · 보상", () => {
+  const cfg = GM.defaultGame();
+  const run = GM.newRun(cfg, "cho", 2, 1000);
+  assert.equal(run.cho, "ㅆㄱㄹ");
+  assert.equal(GM.publicRun(run, cfg).ans, undefined);
+  assert.deepEqual(GM.submitAnswer(run, cfg, "a", "가", "붕어", 2000), { ok: false });
+  assert.equal(GM.submitAnswer(run, cfg, "a", "가", "쏘가리", 2100), null); // 0.4초 안 재시도 무시
+  const r1 = GM.submitAnswer(run, cfg, "a", "가", "쏘가리", 3000);
+  assert.equal(r1.rank, 1); assert.equal(r1.coin, 300);
+  const r2 = GM.submitAnswer(run, cfg, "b", "나", "쏘 가리", 4000);
+  assert.equal(r2.rank, 2); assert.equal(r2.coin, 200);
+  assert.equal(GM.submitAnswer(run, cfg, "a", "가", "쏘가리", 5000), null); // 이미 맞힘
+  assert.equal(GM.submitAnswer(run, cfg, "c", "다", "쏘가리", run.end + 1), null); // 시간 끝
+  run.done = true;
+  assert.equal(GM.publicRun(run, cfg).ans, "쏘가리");
+  assert.equal(GM.publicRun(run, cfg).top.length, 2);
+});
+test("v55 밸런스 선택은 한 번만 바꿀 수 있다", () => {
+  const cfg = GM.defaultGame();
+  const run = GM.newRun(cfg, "bal", 0, 1000);
+  assert.deepEqual(GM.submitPick(run, "a", "l", 1100), { side: "l" });
+  assert.deepEqual(GM.submitPick(run, "a", "r", 1200), { side: "r" });
+  assert.equal(GM.submitPick(run, "a", "l", 1300), null);
+  GM.submitPick(run, "b", "r", 1400);
+  run.done = true;
+  assert.deepEqual(GM.publicRun(run, cfg).res, { l: 0, r: 2 });
+});
+test("v55 관리자 설정 정리", () => {
+  const g = GM.sanitizeGame({ on: 1, every: 1, dur: 999, rw: { c1: -5 }, choList: [{ a: "<붕어>", c: "물고기" }, { a: "" }], balList: [{ q: "q", l: "a", r: "" }, { q: "q", l: "a", r: "b" }] }, null);
+  assert.equal(g.on, 1); assert.equal(g.every, 5); assert.equal(g.dur, 180); assert.equal(g.rw.c1, 0);
+  assert.equal(g.choList.length, 1); assert.equal(g.choList[0].a, "붕어");
+  assert.equal(g.balList.length, 1);
+});

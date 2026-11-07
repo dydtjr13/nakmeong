@@ -273,6 +273,9 @@
     }
     else if (m.t === "chat" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-chat", { detail: m }));
     else if (m.t === "emote" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-emote", { detail: m }));
+    else if (m.t === "game") { RT.game = m.game || null; dispatchEvent(new CustomEvent("nk-rt-game", { detail: RT.game })); }
+    else if (m.t === "gameRes") dispatchEvent(new CustomEvent("nk-rt-gameres", { detail: m }));
+    else if (m.t === "gamecfg") { RT.gameCfg = m.cfg || null; dispatchEvent(new CustomEvent("nk-rt-gamecfg", { detail: RT.gameCfg })); }
     else if (m.t === "like" && m.to === RT.id) dispatchEvent(new CustomEvent("nk-rt-like", { detail: m }));
     else if (m.t === "seat") dispatchEvent(new CustomEvent("nk-rt-seat", { detail: m }));
   }
@@ -329,6 +332,8 @@
         if (!settled) {
           if (m.t === "welcome") {
             applyWelcome(m);
+            RT.game = m.game || null;
+            setTimeout(() => { try { dispatchEvent(new CustomEvent("nk-rt-game", { detail: RT.game })); } catch (e) { /* ignore */ } }, 0);
             RT.mode = "on";
             retry = 0;
             finish({ ok: true });
@@ -485,6 +490,12 @@
     send({ t: "world", world });
     return true;
   };
+  // v55: 초성·밸런스 게임
+  RT.gameAns = function (id, a) { if (RT.mode === "on") send({ t: "ans", id: String(id || ""), a: String(a || "").slice(0, 30) }); };
+  RT.gamePick = function (id, s) { if (RT.mode === "on") send({ t: "pick", id: String(id || ""), s }); };
+  RT.gameSet = function (cfg) { return opsSend({ t: "game", game: cfg || {} }); };
+  RT.gameNow = function (kind, all) { return opsSend({ t: "gameNow", kind: kind || "", all: !!all }); };
+  RT.gameGet = function () { return opsSend({ t: "gameGet" }); };
   RT.setNotice = function (notice) { return opsSend({ t: "notice", notice: notice || null }); };
   RT.setEvent = function (event) { return opsSend({ t: "event", event: event || null }); };
   RT.setBalance = function (balance) { return opsSend({ t: "balance", balance: balance || null }); };

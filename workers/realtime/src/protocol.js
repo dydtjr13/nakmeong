@@ -14,11 +14,11 @@ export const HELLO_MS = 20000;
 export const MAX_MSG = 900;
 /** 공지·이벤트·밸런스·금칙어처럼 본문이 긴 운영 메시지. 채팅·포즈는 MAX_MSG. */
 export const MAX_OPS = 48000;
-const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses"]);
+const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses", "game", "gameNow"]);
 
 const FISH = new Set(["off", "cast", "bite", "catch"]);
 /** v52: 서버 인증된 관리자 소켓만 보낼 수 있는 운영 메시지 */
-export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover"]);
+export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet"]);
 function cleanId(v, max) {
   return String(v == null ? "" : v).replace(/[^\w.-]/g, "").slice(0, max || 40);
 }
@@ -985,6 +985,12 @@ export function parseClient(raw) {
   if (!msg || typeof msg !== "object" || typeof msg.t !== "string") return null;
   if (raw.length > MAX_MSG && !OPS.has(msg.t)) return null;
   if (msg.t === "ping") return { t: "ping" };
+  // v55: 초성·밸런스 게임
+  if (msg.t === "ans") return { t: "ans", id: cleanId(msg.id, 24), a: String(msg.a == null ? "" : msg.a).slice(0, 30) };
+  if (msg.t === "pick") return { t: "pick", id: cleanId(msg.id, 24), s: msg.s === "l" || msg.s === "r" ? msg.s : "" };
+  if (msg.t === "game") return msg.game && typeof msg.game === "object" && !Array.isArray(msg.game) ? { t: "game", game: msg.game } : null;
+  if (msg.t === "gameNow") return { t: "gameNow", kind: msg.kind === "bal" ? "bal" : msg.kind === "stop" ? "stop" : "cho", all: !!msg.all };
+  if (msg.t === "gameGet") return { t: "gameGet" };
   if (msg.t === "auth") return { t: "auth", id: cleanCred(msg.id, 64), pw: cleanCred(msg.pw, 128), out: !!msg.out };
   if (msg.t === "world") {
     if (!msg.world || typeof msg.world !== "object" || Array.isArray(msg.world)) return null;

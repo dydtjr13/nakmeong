@@ -1166,3 +1166,58 @@ button.brb.on{background:#ff8a4c;color:#fff;border-color:#ff8a4c}
 .labset .labrow select{flex:none;max-width:48%}
 .labset .tg{font-size:10.5px;font-weight:800;border-radius:999px;padding:1px 7px;color:#fff;background:#5fc48a}
 .labset .tg.o{background:#ff8a4c}
+/* v55 초성·밸런스 게임 창 (오른쪽 가운데) */
+#gev.gev{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));top:50%;transform:translateY(-50%);z-index:140;width:300px;background:#fffaf3;border-radius:20px;box-shadow:0 14px 34px rgba(40,30,50,.28);overflow:hidden;border:2.5px solid #ff8a4c;font-size:13px;color:#3d3a4b;animation:gevIn .35s cubic-bezier(.2,1.3,.4,1)}
+#gev.gev.bal{border-color:#7a6fc2}
+#gev.gev.mini{width:auto;background:transparent;border:0;box-shadow:none;overflow:visible}
+@keyframes gevIn{from{opacity:0;transform:translate(30px,-50%)}to{opacity:1;transform:translate(0,-50%)}}
+#gev .gev-pill{display:inline-flex;align-items:center;gap:6px;background:#fffaf3;border:2px solid #ff8a4c;border-radius:999px;padding:6px 12px;font:inherit;font-weight:900;font-size:13px;box-shadow:0 4px 12px #0002;color:#3d3a4b;cursor:pointer}
+#gev.bal .gev-pill{border-color:#7a6fc2}
+#gev .gev-pill b{color:#c45a2c}#gev.bal .gev-pill b{color:#5a4fb0}
+#gev .gev-h{display:flex;align-items:center;gap:6px;padding:10px 10px 8px 12px;background:linear-gradient(90deg,#ffe9d9,#fff4e6)}
+#gev.bal .gev-h{background:linear-gradient(90deg,#ece8ff,#f6f2ff)}
+#gev .gev-h b{font-size:16px;font-weight:900}
+#gev .gev-h .tm{margin-left:auto;font-weight:900;font-variant-numeric:tabular-nums;color:#c45a2c}
+#gev.bal .gev-h .tm{color:#5a4fb0}
+#gev .gev-h .x{border:0;background:transparent;font-size:17px;color:#9a90a6;padding:0 3px;cursor:pointer;box-shadow:none}
+#gev .gev-h b+.x{margin-left:auto}
+#gev .gev-bar{height:5px;background:#f1e3d1}#gev .gev-bar i{display:block;height:100%;background:#ff8a4c;transition:width 1s linear}
+#gev.bal .gev-bar i{background:#7a6fc2}
+#gev .gev-b{padding:10px 12px 12px}
+#gev .gev-cat{font-size:11.5px;font-weight:800;color:#8a8296}
+#gev .gev-cho{font-size:36px;font-weight:900;letter-spacing:.16em;text-align:center;margin:2px 0 6px}
+#gev .gev-in{display:flex;gap:6px}
+#gev .gev-in input{flex:1;min-width:0;border:2px solid #eadfcd;border-radius:12px;padding:7px 10px;font:inherit;font-weight:700;background:#fff}
+#gev .gev-in input.bad{border-color:#e0564f;animation:gevSh .4s}
+@keyframes gevSh{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+#gev .gev-bad{font-size:12px;font-weight:800;color:#e0564f;margin-top:5px}
+#gev .gev-rw{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+#gev .gev-rw span{font-size:11px;font-weight:800;background:#f6efe4;border-radius:8px;padding:2px 7px}
+#gev .gev-top{margin-top:9px;display:grid;gap:4px}
+#gev .gev-top>div{display:flex;align-items:center;gap:7px;background:#fff;border-radius:10px;padding:4px 8px;font-weight:800}
+#gev .gev-top>div.empty{opacity:.5}
+#gev .gev-top>div.me{background:#fff1e6;outline:2px solid #ffb98f}
+#gev .md{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;flex:none}
+#gev .m1{background:#f4b63a}#gev .m2{background:#a7b2bf}#gev .m3{background:#d08b5b}
+#gev .gev-top small{margin-left:auto;color:#8a8296;font-variant-numeric:tabular-nums}
+#gev .gev-ok{margin-top:8px;text-align:center;font-weight:900;background:#eaf7ee;color:#2f8a55;border-radius:12px;padding:7px}
+#gev .gev-ans{text-align:center;font-weight:900;margin:2px 0 4px}#gev .gev-ans b{font-size:24px;color:#c45a2c}
+#gev .gev-note{font-size:11.5px;color:#8a8296;margin-top:7px;text-align:center}
+#gev .gev-q{font-weight:900;font-size:15px;text-align:center;margin:2px 0 9px}
+#gev .gev-vs{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative}
+#gev .gev-vs button{min-height:86px;border-radius:16px;padding:10px 8px;font:inherit;font-weight:900;font-size:17px;line-height:1.3;background:#fff;border:2.5px solid #ffb98f;color:#3d3a4b;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;word-break:keep-all}
+#gev .gev-vs button.r{border-color:#9ec5f2}
+#gev .gev-vs button.pick{background:#fff3e9;box-shadow:0 0 0 3px #ff8a4c inset}
+#gev .gev-vs button.r.pick{background:#eef5ff;box-shadow:0 0 0 3px #6aa7e8 inset}
+#gev .gev-vs button.dim{opacity:.5}
+#gev .gev-vs button small{font-size:11px;color:#c45a2c}
+#gev .gev-vs::after{content:'VS';position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#3d3a4b;color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;font-weight:900;pointer-events:none}
+#gev .gev-res .rb{display:flex;height:34px;border-radius:12px;overflow:hidden;font-weight:900;color:#fff;font-size:14px}
+#gev .gev-res .rb div{display:flex;align-items:center;padding:0 10px}
+#gev .gev-res .a{background:#ff8a4c}#gev .gev-res .b{background:#6aa7e8;justify-content:flex-end}
+#gev .gev-res .lbl{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:800;margin-top:4px}
+#gev img.emj{width:1.05em;height:1.05em;vertical-align:-.15em}
+@media (max-width:700px){#gev.gev{width:250px;right:calc(8px + env(safe-area-inset-right,0px));top:46%;font-size:12px}#gev .gev-cho{font-size:30px}#gev .gev-vs button{min-height:70px;font-size:15px}}
+.gevf{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;margin:6px 0}
+.gevf input[type=number]{width:74px}
+.gevl{margin:8px 0}.gevl summary{cursor:pointer;font-weight:800}.gevl textarea{width:100%;font:12.5px/1.5 ui-monospace,Menlo,Consolas,monospace;margin-top:6px;border-radius:10px;padding:8px;box-sizing:border-box}
