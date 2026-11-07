@@ -1143,3 +1143,26 @@ body.hs-h4 #streak .sk-bar,body.hs-h4 #streak .sk-d{display:none}
 .tkA-cc .need{font-size:12px;font-weight:700;color:#c76a2e}
 #tankSide.tkA img.emj{width:1.1em;height:1.1em;vertical-align:-.18em}
 .tkA-fc .bd img.emj{width:10px!important;height:10px!important}
+/* v55 물고기 자랑 */
+#bragC{z-index:97}
+.brc{position:relative;background:#fffaf3;border-radius:22px;box-shadow:0 14px 40px rgba(40,30,50,.25);padding:16px;width:min(360px,92vw);border:3px solid var(--gc);color:#3d3a4b}
+.brc .close{position:absolute;right:10px;top:10px}
+.brc .hero{border-radius:16px;background:radial-gradient(circle at 50% 55%,var(--gw),#fff 70%);height:130px;display:flex;align-items:center;justify-content:center}
+.brc .hero img{max-width:72%;max-height:110px;filter:drop-shadow(0 6px 8px #0003)}
+.brc .nm{display:flex;align-items:center;gap:8px;margin-top:10px}
+.brc .nm b{font-size:22px;font-weight:900}
+.brc .nm small{margin-left:auto;font-size:12px;color:#8a8296;font-weight:800}
+.brc .kv{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;font-size:12.5px}
+.brc .kv>div{background:#f6efe4;border-radius:10px;padding:6px 9px}
+.brc .kv small{display:block;color:#8a8296;font-size:11px;font-weight:700}
+.brc .kv b{font-size:14px}
+.brc .meter{height:7px;border-radius:4px;background:#e9dfcf;margin:4px 0 2px;overflow:hidden}.brc .meter i{display:block;height:100%;background:var(--gc)}
+.brc .who{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px;font-size:13px}
+.brc .who .lk{font-weight:900;background:#f1e8da;border-radius:12px;padding:6px 10px}
+.brc img.emj{width:1.05em;height:1.05em;vertical-align:-.15em}
+button.brb{background:#fff1e6;border:1.5px solid #ffc49f}
+button.brb.on{background:#ff8a4c;color:#fff;border-color:#ff8a4c}
+.labset .labrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border-radius:12px;background:#0000000a;margin:8px 0}
+.labset .labrow select{flex:none;max-width:48%}
+.labset .tg{font-size:10.5px;font-weight:800;border-radius:999px;padding:1px 7px;color:#fff;background:#5fc48a}
+.labset .tg.o{background:#ff8a4c}

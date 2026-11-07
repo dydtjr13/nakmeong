@@ -554,3 +554,31 @@ test("v53: catch pose carries fish kind and grade only while catching", () => {
   assert.equal(o.fk, "");
   assert.equal(o.fg, 0);
 });
+
+// v55: 물고기 자랑 · 멋져요
+import { cleanBrag as _cb } from "../src/protocol.js";
+test("v55 cleanBrag 정리", () => {
+  assert.equal(_cb(null), null);
+  assert.equal(_cb({ k: "" }), null);
+  const b = _cb({ k: "mandarin<x>", g: 9, cm: 48.25, v: -3, at: 5, lk: 3, s: 2, t: 7 });
+  assert.equal(b.k, "mandarinx");
+  assert.equal(b.g, 5);
+  assert.equal(b.cm, 48.3);
+  assert.equal(b.v, 0);
+  assert.equal(b.lk, 3);
+});
+test("v55 pose 에 br 이 실려 publicPeer 로 나간다", () => {
+  const a = reduce(null, { t: "hello", nick: "자랑꾼", x: 0, z: 0 }, 1000, []).att;
+  const r = reduce(a, { t: "pose", x: 0, z: 0, br: { k: "carp", g: 3, cm: 50, v: 100, at: 9, lk: 0 } }, 2000, []);
+  assert.equal(r.drop, false);
+  assert.equal(r.pub.br.k, "carp");
+  const r2 = reduce(r.att, { t: "pose", x: 0, z: 0, br: null }, 3000, []);
+  assert.equal(r2.pub.br, null);
+});
+test("v55 like 는 1.5초에 한 번", () => {
+  const a = reduce(null, { t: "hello", nick: "팬" }, 1000, []).att;
+  const r = reduce(a, { t: "like", to: "p2" }, 2000, []);
+  assert.equal(r.event.t, "like");
+  assert.equal(r.event.to, "p2");
+  assert.equal(reduce(r.att, { t: "like", to: "p2" }, 2500, []).drop, true);
+});
