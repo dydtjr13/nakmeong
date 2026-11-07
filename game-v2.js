@@ -504,7 +504,7 @@ const MAPV=(()=>{
  function lamps(list){list.forEach(([x,z,h])=>{P('hol-lantern',x,H(x,z),z,rn()*6,h||3.2);const b=mesh(new THREE.SphereGeometry(.2,8,6),lampMat,x,H(x,z)+(h||3.2)*.92,z);st.lamp.push(b);});}
  // ── A · 포근한 호숫가 ──
  function buildA(){seed=11;const pr=LR+6.5,path=[],np=Math.round(Math.PI*2*pr/1.05);
-  for(let i=0;i<np;i++){const a=i/np*Math.PI*2,[x,z]=pol(pr+rr(-.15,.15),a);if(nearKey(x,z,6))continue;path.push([x,H(x,z)+.02,z,-a+rr(-.15,.15),rr(4.4,5)]);}I('path_stone',path);
+  for(let i=0;i<np;i++){const a=i/np*Math.PI*2,[x,z]=pol(pr+rr(-.15,.15),a);if(nearKey(x,z,6))continue;path.push([x,H(x,z)+.01,z,-a+rr(-.15,.15),rr(2.6,3.1)]);}I('path_stone',path);
   const okL=(x,z,a,r)=>ok(x,z,a,r)&&Math.abs(r-pr)>1.6;
   const TR=['tree_oak','tree_default','tree_fat','tree_detailed','tree_oak','tree_default'],TL={};
   for(let n=0,t=0;n<150&&t<2000;t++){const a=rn()*Math.PI*2,r=LR+12+Math.pow(rn(),.7)*66,[x,z]=pol(r,a);if(!okL(x,z,a,r))continue;const k=rn()<.12?pk(['tree_oak_fall','tree_default_fall']):pk(TR),s=rr(4.4,6.6);(TL[k]=TL[k]||[]).push([x,H(x,z)-.1,z,rn()*6.3,s]);st.obs.push([x,z,.35*s*.5]);n++;}
