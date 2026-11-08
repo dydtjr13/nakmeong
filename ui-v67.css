@@ -207,3 +207,37 @@ body.umvDrag #umvTb,body.umvDrag #umvPill,body.umvDrag #umvOk{opacity:0;pointer-
 #tdDlg .tddots{display:flex;justify-content:center;gap:6px;margin-top:12px}#tdDlg .tddots i{width:7px;height:7px;border-radius:4px;background:#e8d6bd}
 #tdDlg .tdC .tdok{margin-top:12px}
 @media(prefers-reduced-motion:reduce){#tdDlg .tdc,#tdDlg .tdi,#tdDlg .tdburst{animation:none!important}}
+/* v76 관리자 › 화면·시안 / 테스트 기능: 설정 화면 같은 카드 + 버튼 묶음 + 마우스 올리면 시안 그림 */
+.adm2 .avset{display:flex;flex-direction:column;gap:14px;max-width:860px}
+.adm2 .avset>h4{margin:0;font-size:18px}
+.adm2 .avset>p{margin:0}
+.adm2 .avcard{background:#fff;border-radius:20px;padding:6px 18px 10px;box-shadow:0 1px 0 #0000000a,0 2px 10px #5a3c1408}
+.adm2 .avcard>h5{margin:12px 0 4px;font-size:13px;font-weight:700;color:#8a7660;letter-spacing:.02em}
+.adm2 .avrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:0;padding:12px 0;border-top:1px solid #f1e7d8;font-size:14px;line-height:1.5}
+.adm2 .avcard>h5+.avrow,.adm2 .avcard>h5+*{border-top:0}
+.adm2 .avrow .avn{flex:0 0 100%;font-size:14.5px;font-weight:700;color:#3d3027}
+.adm2 .labset .labrow.avrow{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;background:#fff;border-radius:18px;padding:14px 16px;margin:0 0 10px;box-shadow:0 1px 0 #0000000a,0 2px 10px #5a3c1408;border:0}
+.adm2 .labset .labctl{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.adm2 .avhid{display:none!important}
+.adm2 .avopts{display:flex;flex-wrap:wrap;gap:6px;margin:0}
+.adm2 .avo{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px;border-radius:999px;border:1.5px solid #ead9c4;background:#fffaf2;color:#5a4632;font:600 13px/1.2 inherit;cursor:pointer;box-shadow:none;transition:background .12s,border-color .12s}
+.adm2 .avo:hover,.adm2 .avo:focus-visible{border-color:#e8784a;background:#fff3ea;outline:none}
+.adm2 .avo.on{background:#e8784a;border-color:#e8784a;color:#fff}
+.adm2 .avo small{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:8px;background:#0000000f}
+.adm2 .avo.on small{background:#ffffff33}
+.adm2 label.avr input{position:absolute;opacity:0;pointer-events:none}
+.adm2 label.avr img{height:22px;vertical-align:middle}
+.adm2 .avset button[data-pv]{min-height:32px;padding:0 12px;border-radius:999px;font-size:12.5px}
+.adm2.dk .avcard,.adm2.dk .labset .labrow.avrow{background:#2a2433;box-shadow:none}
+.adm2.dk .avrow{border-top-color:#3a3245}.adm2.dk .avrow .avn{color:#f2ebff}
+.adm2.dk .avo{background:#332b3e;border-color:#4a4058;color:#e6dcf5}.adm2.dk .avo.on{background:#e8784a;border-color:#e8784a;color:#fff}
+#avPv{position:fixed;z-index:3000;width:320px;background:#fff;border-radius:16px;padding:8px;box-shadow:0 18px 44px rgba(40,20,0,.35);pointer-events:none;opacity:0;transform:translateY(4px) scale(.98);transition:opacity .12s,transform .12s}
+#avPv.on{opacity:1;transform:none}
+#avPv img{display:block;width:100%;max-height:420px;object-fit:contain;border-radius:10px;background:#f4ecdf}
+#avPv small{display:block;margin:6px 4px 0;font-size:12px;font-weight:600;color:#5a4632}
+@media(max-width:699px){#avPv{width:220px}}
+.adm2 .avrow{justify-content:flex-start;text-align:left}
+.adm2 .labset .labctl{justify-content:flex-start}.adm2 .labset .labctl .avopts{flex:0 0 100%}
+.adm2 .labset .labrow.avrow>div:first-child{text-align:left}
+#avPv small img{display:none}
+.adm2 .labset .labctl{flex-direction:row;align-items:center;max-width:none;flex:1 1 auto}
