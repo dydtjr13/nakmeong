@@ -974,12 +974,14 @@ function updStreak(){let el=$('streak');if(!el){const st=$('mStat');if(!st)retur
   const n=S.streak||0,N=D.BOX.streakEvery,C=D.BOX.dailyCap,g=(S.gDay===new Date().toDateString()?S.gN:0)||0,full=C&&g>=C,k=n+'|'+g;if(el._n===k)return;el._n=k;el.title=`낚시 성공 ${N}회마다 선물 상자 1개 · 하루 최대 ${C}개`;el.classList.toggle('full',!!full);el.innerHTML=full?`<span class="sk-i">🎁</span><b>선물 ${C}/${C} 완료</b>`:`<span class="sk-i">🎁</span><span class="sk-bar"><i style="width:${n/N*100}%"></i></span><b>${n}/${N}</b><small class="sk-d">${g}/${C}</small>`;}
 const autoOK=()=>afOK();
 function updAutoBtn(){const b=$('bAutoFish');if(!b)return;afExpire();const ok=afOK(),left=afLeftMs(),on=!!S.autoFish&&ok,k=(on?1:0)+'|'+(ok?1:0)+'|'+Math.ceil(left/60000);if(b._k===k)return;b._k=k;b.classList.toggle('on',on);b.classList.toggle('lk',!ok);b.classList.toggle('soon',!ok);
- if(!ok){b.innerHTML=`<b class="mi">🤖</b><small class="ml">업데이트 예정</small><i class="soonTag">업데이트 예정</i>`;b.title='자동 낚시는 업데이트 예정이에요';}
+ if(!ok){b.innerHTML=`<b class="mi">🤖</b><small class="ml">자동 낚시</small>`;b.title='자동 낚시는 업데이트 예정이에요';}
  else{b.innerHTML=`<b class="mi">🤖</b><small class="ml">자동 ${on?'ON':'OFF'}</small>`;b.title=`자동 낚시 · ${afFmt(left)} 남음 (캐스팅→입질→릴링)`;}}
 let autoCD=0;
 function autoTick(dt){const died=afExpire();updAutoBtn();if(died||!S.autoFish)return;autoCD-=dt;
   if(fishing.state==='off'){if(!nearSpot){if(autoCD<=0){if(!anyModal())toast('🤖 자동 낚시: 데크 끝으로 가면 시작해요',1400);autoCD=4;}return;}if(autoCD<=0){autoCD=rand(.6,1);fishAction(true);}}}
-function toggleAuto(){if(afExpire()){updAutoBtn();return;}if(!afOK()){updAutoBtn();toast('🤖 자동 낚시는 <b>업데이트 예정</b>이에요<br><small>이용 시간이 남은 분만 켤 수 있어요</small>',2200);return;}S.autoFish=!S.autoFish;autoCD=.8;save();updAutoBtn();
+// v66: 자동 낚시 「업데이트 예정」은 버튼을 눌렀을 때만 말풍선으로 (상시 표시 X)
+function afBubble(){const b=$('bAutoFish');let u=$('afBub');if(!u){u=document.createElement('div');u.id='afBub';u.setAttribute('role','status');document.body.appendChild(u);}u.innerHTML='<b>🤖 자동 낚시</b><span>업데이트 예정이에요</span>';const r=b&&b.getBoundingClientRect();if(r&&r.width){u.style.left=Math.round(Math.min(innerWidth-110,Math.max(110,r.left+r.width/2)))+'px';u.style.top=Math.round(r.top-8)+'px';u.classList.remove('dn');}else{u.classList.add('dn');}u.classList.remove('show');void u.offsetWidth;u.classList.add('show');clearTimeout(afBubble.t);afBubble.t=setTimeout(()=>u.classList.remove('show'),2200);}
+function toggleAuto(){if(afExpire()){updAutoBtn();return;}if(!afOK()){updAutoBtn();afBubble();return;}S.autoFish=!S.autoFish;autoCD=.8;save();updAutoBtn();
   toast(S.autoFish?`🤖 <b>자동 낚시 ON</b><br><small>${afFmt(afLeftMs())} 동안 · 자동판매 ${S.auto&&S.auto.on?'적용 중 (가치 '+S.auto.th+' 미만)':'꺼짐(설정에서 켜기)'}</small>`:'🤖 자동 낚시 OFF',1800);}
 function checkGoals(){S.goals=S.goals||{};const nw=D.GOALS.filter(g=>!S.goals[g.id]&&SYS.goalDone(D,S,g));if(!nw.length)return;
   nw.forEach((g,i)=>{S.goals[g.id]=Date.now();const r=g.r;setTimeout(()=>addXP(100+Math.min(400,Math.round((r.co||0)/50+(r.bx||0)*50+(r.st||0)*10)),'수집 목표 「'+g.n+'」'),i*2700+600);S.coins+=r.co||0;S.stones=(S.stones||0)+(r.st||0);for(let j=0;j<(r.bx||0);j++)S.boxes.push(Date.now());if(r.th){S.themes=S.themes||['mint'];if(!S.themes.includes(r.th))S.themes.push(r.th);}
