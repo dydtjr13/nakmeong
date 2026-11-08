@@ -14,7 +14,7 @@
  const PV={xpF:()=>`<b>+25 XP</b> · 테스트 알림`,lvT:()=>'⬆ Lv.10 달성! 코인 +1,000 (테스트)',toast:()=>'🎣 테스트 토스트 알림',annBar:()=>'<b>📢 운영자 공지</b><span>테스트 공지예요. 위치만 확인하세요.</span>',
   cutin:()=>'<div class="band"><div><div class="t">✦ 테스트 컷인 ✦</div><div class="s">위치 확인용 사본</div></div></div>'};
  const key=()=>'nk_uipos_'+(innerWidth<700?'m':'pc');let P={},SAVED='{}';
- const ld=()=>{try{SAVED=localStorage.getItem(key())||'{}';P=JSON.parse(SAVED);}catch(e){P={};SAVED='{}';}};
+ const ld=()=>{try{const own=localStorage.getItem(key());if(own==null){const d=window.NK_UIDEF&&NK_UIDEF();P=d?JSON.parse(JSON.stringify(d)):{};SAVED=JSON.stringify(P);}else{SAVED=own;P=JSON.parse(own);}}catch(e){P={};SAVED='{}';}};// v70: 자기 배치가 없으면 관리자가 정한 처음 화면 배치
  const sv=()=>{SAVED=JSON.stringify(P);localStorage.setItem(key(),SAVED);};
  const $=id=>document.getElementById(id);let on=false,bar=null,sel=null,hist=[],guides=null,made=[],forced=[];
  const elOf=k=>k==='cutin'?document.querySelector('.cutin:not(.box)')||$('uiPvCut'):$(k);
@@ -86,5 +86,5 @@
  function leave(){on=false;document.body.classList.remove('uiOne');const mp=document.getElementById('uiMob');mp&&mp.remove();document.body.classList.remove('uiedit');bar&&bar.remove();bar=null;select(null);clearG();document.body.style.cursor='';made.forEach(e=>e.remove());made=[];forced.forEach(([e,d])=>{e.style.display=d;});forced=[];document.querySelectorAll('.uiPv').forEach(e=>e.classList.remove('uiPv'));document.querySelectorAll('[data-uin]').forEach(e=>delete e.dataset.uin);ld();apply();}
  addEventListener('pointerdown',down,true);addEventListener('pointermove',move,true);addEventListener('pointerup',up,true);addEventListener('keydown',key_,true);
  ld();setInterval(()=>{if(on&&!drag)previews();else if(!drag)apply();},1500);addEventListener('resize',()=>{if(!on)ld();apply();});setTimeout(apply,300);
- window.NK_UIEDIT={enter,leave,reset:()=>{P={};sv();apply();},on:()=>on,pos:()=>P,IDS,sel:()=>sel,select:id=>select(elOf(id))};
+ window.NK_UIEDIT={reload:(force)=>{if(on&&!force)return;ld();IDS.forEach(([k])=>put(elOf(k),null));apply();},enter,leave,reset:()=>{P={};sv();apply();},on:()=>on,pos:()=>P,IDS,sel:()=>sel,select:id=>select(elOf(id))};
 })();

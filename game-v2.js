@@ -1552,7 +1552,7 @@ function labApply(k){if(k==='bragOff'&&bragOffNow()){bragStop();}if(tankView.on)
 addEventListener('nk-rt-play',()=>{labApply('bragOff');try{applyHud();}catch(e){}if(tankView.on)try{tankView.refresh();}catch(e){}});
 function labHTML(){return `<div class="lookset labset"><h4>🧪 테스트 기능</h4><p class="small muted">시험 중인 기능을 여기서 켜고 꺼요. <b>나만 보기</b>는 관리자님 화면에만, <b>모든 유저</b>는 접속한 모든 유저에게 바로 적용돼요. 문제가 생기면 기본값으로 돌리면 원래대로 돌아가요.</p>
  ${LAB.map(x=>`<div class="labrow"><div><b>${x.n}</b> <span class="tg ${x.scope==='all'?'o':'g'}">${x.scope==='all'?'모든 유저':'나만 보기'}</span><br><small class="muted">${x.d}</small></div><div class="labctl"><select data-lab="${x.k}">${x.o.map(([v,t])=>`<option value="${v}" ${labGet(x)===String(v)?'selected':''}>${t}</option>`).join('')}</select>${x.scope==='me'?`<button class="sm ok" data-labgo="${x.k}" title="고른 값을 접속한 모든 유저에게 적용해요">✅ 인게임 적용</button><small class="muted">모든 유저: ${(x.o.find(o=>String(o[0])===labLive(x))||x.o[0])[1]}</small>`:''}</div></div>`).join('')}
- <p><button data-labreset>모두 기본값으로</button></p>${bgmHTML()}${xbHTML()}</div>`;}
+ <p><button data-labreset>모두 기본값으로</button></p>${uiDefHTML()}${bgmHTML()}${xbHTML()}</div>`;}
 // v62: 🔊 배경음악 — 관리자가 켜고 끄기 · 곡 고르기 · 볼륨, [인게임 적용]으로 모든 유저에게
 function bgmHTML(){const c=bgmCfg(),e=BGM.ed||(BGM.ed={on:c.on,k:c.k,vol:c.vol}),opts=[['shuffle','🎲 전체 무작위'],['all','🔁 전체 순서대로']].concat(BGM.list.map(x=>[x.k,'🔊 '+x.n]));
  return `<div class="labrow bgmset" style="display:block"><b>🔊 배경음악 (BGM)</b> <span class="tg o">모든 유저</span><br><small class="muted">지금 적용 중: ${c.on?'켜짐 · '+((opts.find(o=>o[0]===c.k)||[])[1]||c.k)+' · 볼륨 '+Math.round(c.vol*100)+'%':'꺼짐'} · 곡 ${BGM.list.length}개 (sounds/bgm/list.json)</small>
@@ -1585,7 +1585,7 @@ function bindXB(root,re){const box=root.querySelector('.xbset');if(!box)return;c
  box.querySelector('[data-xbdef]').onclick=()=>{XBAL.edit=XBAL.norm(null);re&&re();toast('기본값으로 채웠어요. 인게임 적용을 눌러야 반영돼요',1800);};
  box.querySelector('[data-xblive]').onclick=()=>{XBAL.edit=XBAL.cfg();re&&re();};}
 function bindLab(root,re){root.querySelectorAll('[data-labgo]').forEach(b=>b.onclick=()=>{const x=LAB.find(y=>y.k===b.dataset.labgo),sel=root.querySelector(`[data-lab="${x.k}"]`),v=sel?sel.value:labGet(x),nm=(x.o.find(o=>String(o[0])===String(v))||[])[1];if(!(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on'))return toast('서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2000);if(!confirm(`「${x.n}」을(를) '${nm}'(으)로 모든 유저에게 적용할까요?`))return;V14.publishPlay({[x.k]:v});S[x.k]=null;save();if(x.k==='mapSt')setTimeout(()=>{try{MAPV.apply(uiOpt('mapSt','old'));}catch(e){}},400);toast(`✅ ${x.n}: 모든 유저에게 '${nm}' 적용`,2000);setTimeout(()=>re&&re(),500);});root.querySelectorAll('[data-lab]').forEach(el=>el.onchange=()=>{const x=LAB.find(y=>y.k===el.dataset.lab);if(x){labSet(x,el.value);toast(`${x.n}: ${el.selectedOptions[0].textContent}`,1400);}});
- bindXB(root,re);bindBGM(root,re);const r=root.querySelector('[data-labreset]');if(r)r.onclick=()=>{LAB.forEach(x=>{if(labGet(x)!==String(x.o[0][0]))labSet(x,x.o[0][0]);});toast('테스트 기능을 모두 기본값으로 돌렸어요',1600);re&&re();};}
+ bindXB(root,re);bindBGM(root,re);bindUiDef(root,re);const r=root.querySelector('[data-labreset]');if(r)r.onclick=()=>{LAB.forEach(x=>{if(labGet(x)!==String(x.o[0][0]))labSet(x,x.o[0][0]);});toast('테스트 기능을 모두 기본값으로 돌렸어요',1600);re&&re();};}
 function lookHTML(){return `<div class="lookset">
  <h4>🧭 상단 메뉴 레이아웃</h4><p class="optrow">${[['b','B · 하단 독 (기본)'],['a','A · 우측 아이콘 + ⚙ 묶음'],['c','C · 좌측 세로 레일'],['d','D · 가방·상점 + 메뉴 패널']].map(([k,n])=>`<label><input type="radio" name="menuS" value="${k}" ${(S.menuStyle||'b')===k?'checked':''}> ${n}</label>`).join(' ')}</p>
  <h4>🎣 낚시 성공 카드</h4><p class="optrow">${[['d','D · 메달형 (기본)'],['c','C · 등급 헤더'],['b','B · 가로 스트립'],['a','A · 미니멀']].map(([k,n])=>`<label><input type="radio" name="cardS" value="${k}" ${(S.cardStyle||'d')===k?'checked':''}> ${n}</label>`).join(' ')} <button id="cardPrev" class="small">미리보기</button></p>
@@ -1860,24 +1860,54 @@ function umvSave(){try{localStorage.setItem(umvKey(),JSON.stringify(umvP()));}ca
 function umvSnap(){UMV.hist.push(JSON.stringify(umvP()));if(UMV.hist.length>60)UMV.hist.shift();}
 function umvSel(e){document.querySelectorAll('.umvS').forEach(x=>x.classList.remove('umvS'));UMV.sel=e;if(e)e.classList.add('umvS');umvSheet();}
 function umvMark(){document.querySelectorAll('.umvT').forEach(x=>x.classList.remove('umvT'));if(!UMV.on)return;for(const id in UMV_N){const e=$(id);if(e&&txVis(e))e.classList.add('umvT');}}
-function umvSheet(){let s=$('umvSheet');if(!UMV.on){if(s)s.remove();return;}if(!s){s=document.createElement('div');s.id='umvSheet';document.body.appendChild(s);}
- const e=UMV.sel,v=e&&umvP()[e.id],sc=Math.round(((v&&v[2])||1)*100);
- s.innerHTML=`<div class="grab" aria-hidden="true"></div><div class="hd"><div><b>✋ ${e?UMV_N[e.id]:'옮길 창을 눌러 골라요'}</b><small>${e?'끌어서 옮기고, 여기를 누르면 크기·되돌리기':'점선 창은 모두 끌어서 옮길 수 있어요'}</small></div><button type="button" class="dn" data-umd2>완료</button></div>${e?`<label class="sz"><span>크기</span><input type="range" min="70" max="130" step="5" value="${sc}" data-umz><b data-umzv>${sc}%</b></label>`:''}
-  <div class="row"><button type="button" data-umu>되돌리기</button><button type="button" data-umo ${e?'':'disabled'}>이 창만 원래대로</button><button type="button" data-uma>전부 처음으로</button></div>
-  <button type="button" class="go" data-umd>저장하고 끝내기</button><div class="nt">배치는 이 기기에만 저장돼요 · 아래 버튼을 옮길 땐 이 창을 아래로 내려요</div>`;
- const z=s.querySelector('[data-umz]');if(z){z.oninput=()=>{const P=umvP(),cur=P[e.id]||[0,0,1];P[e.id]=[cur[0],cur[1],+z.value/100];umvPut(e,P[e.id]);s.querySelector('[data-umzv]').textContent=z.value+'%';};z.onchange=()=>umvSnap();}
- s.querySelector('[data-umu]').onclick=()=>{if(!UMV.hist.length){toast('되돌릴 게 없어요');return;}const P=umvP(),o=JSON.parse(UMV.hist.pop());Object.keys(P).forEach(k=>delete P[k]);Object.assign(P,o);for(const id in UMV_N)umvPut($(id),P[id]);umvSheet();};
- s.querySelector('[data-umo]').onclick=()=>{if(!e)return;umvSnap();delete umvP()[e.id];umvPut(e,null);umvSheet();};
- s.querySelector('[data-uma]').onclick=()=>{umvSnap();const P=umvP();for(const id in UMV_N){delete P[id];umvPut($(id),null);}umvSheet();};
- s.querySelector('[data-umd]').onclick=()=>umvLeave(true);s.querySelector('[data-umd2]').onclick=e2=>{e2.stopPropagation();umvLeave(true);};
- s.querySelector('.hd>div').onclick=()=>document.body.classList.toggle('umvMin');}
-function umvEnter(el){UMV.pass=true;UMV.on=true;try{PT.clear();pinch=null;}catch(e){}UMV.hist=[];umvSnap();document.body.classList.add('umv','umvMin');try{navigator.vibrate&&navigator.vibrate(25);}catch(e){}
- umvMark();umvSel(el);UMV.mk=setInterval(umvMark,1000);}
-function umvLeave(save){UMV.on=false;UMV.drag=null;UMV.pass=false;try{PT.clear();pinch=null;}catch(e){}try{window.dispatchEvent(new PointerEvent('pointerup',{bubbles:true}));window.dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));}catch(e){}clearInterval(UMV.mk);if(save){umvSave();toast('✋ 배치를 저장했어요',1400);}document.body.classList.remove('umv','umvMin');umvSel(null);umvMark();const b=$('umvBar');if(b)b.remove();umvSheet();}
+// v70: 이동 모드 = ① 놓으면 바로 저장 + ② 빈 곳 누르면 끝 + ③ 창 옆 도구막대 + ⑤ 처음 한 번 안내
+function umvAuto(){umvSave();const e=UMV.sel;let c=$('umvOk');if(!c){c=document.createElement('div');c.id='umvOk';c.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg>저장됨';document.body.appendChild(c);}
+ const r=e?e.getBoundingClientRect():{left:innerWidth/2,right:innerWidth/2,bottom:innerHeight/2,top:innerHeight/2};c.style.left=Math.max(8,Math.min(innerWidth-90,(r.left+r.right)/2-40))+'px';c.style.top=Math.min(innerHeight-120,r.bottom+(($('umvTb')&&$('umvTb').classList.contains('bl'))?64:10))+'px';c.classList.remove('on');void c.offsetWidth;c.classList.add('on');}
+function umvUndo(){if(!UMV.hist.length){toast('되돌릴 게 없어요');return;}const P=umvP(),o=JSON.parse(UMV.hist.pop());Object.keys(P).forEach(k=>delete P[k]);Object.assign(P,o);for(const id in UMV_N)umvPut($(id),P[id]);umvAuto();umvSheet();}
+function umvSheet(){const old=$('umvSheet');if(old)old.remove();let t=$('umvTb'),p=$('umvPill');if(!UMV.on){if(t)t.remove();if(p)p.remove();umvTip(false);return;}
+ if(!p){p=document.createElement('div');p.id='umvPill';document.body.appendChild(p);}
+ const adm=(()=>{try{return NK_ADM.ok();}catch(e){return false;}})();
+ p.innerHTML=`${adm?`<button type="button" class="adm" data-umall>👑 이 배치를 모든 유저 처음 화면으로</button>`:''}<div class="ln"><span>빈 곳을 누르면 끝나요</span><button type="button" data-uma>전체 처음으로</button><button type="button" class="dn" data-umd>끝내기</button></div>`;
+ p.querySelector('[data-uma]').onclick=()=>{umvSnap();const P=umvP();for(const id in UMV_N){delete P[id];umvPut($(id),null);}try{localStorage.removeItem(umvKey());if(window.NK_UIEDIT&&NK_UIEDIT.reload)NK_UIEDIT.reload(true);}catch(e){}for(const id in UMV_N)umvPut($(id),umvP()[id]);toast('처음 배치로 돌렸어요',1200);umvSheet();};
+ p.querySelector('[data-umd]').onclick=ev=>{ev.stopPropagation();umvLeave(true);};
+ const ab=p.querySelector('[data-umall]');if(ab)ab.onclick=ev=>{ev.stopPropagation();uiDefPublish();};
+ const e=UMV.sel;
+ if(!e){if(t)t.remove();return;}
+ if(!t){t=document.createElement('div');t.id='umvTb';document.body.appendChild(t);}
+ const v=umvP()[e.id],sc=Math.round(((v&&v[2])||1)*100);
+ t.innerHTML=`<b class="nm">${UMV_N[e.id]||''}</b><button type="button" data-umz="-1" aria-label="작게">−</button><span class="pc">${sc}%</span><button type="button" data-umz="1" aria-label="크게">+</button><i></i><button type="button" class="ic" data-umu aria-label="되돌리기">↶</button><button type="button" class="tx" data-umo>원래대로</button><span class="ar" aria-hidden="true"></span>`;
+ t.querySelectorAll('[data-umz]').forEach(b=>b.onclick=()=>{const P=umvP(),cur=P[e.id]||[0,0,1],n=Math.max(70,Math.min(130,Math.round((cur[2]||1)*100)+10*+b.dataset.umz));umvSnap();P[e.id]=[cur[0],cur[1],n/100];umvPut(e,P[e.id]);umvAuto();umvSheet();});
+ t.querySelector('[data-umu]').onclick=umvUndo;
+ t.querySelector('[data-umo]').onclick=()=>{umvSnap();delete umvP()[e.id];umvPut(e,null);umvAuto();umvSheet();};
+ umvTbPos();}
+function umvTbPos(){const t=$('umvTb'),e=UMV.sel;if(!t||!e)return;const r=e.getBoundingClientRect(),w=t.offsetWidth,h=t.offsetHeight,G=12;
+ let x=Math.max(8,Math.min(innerWidth-8-w,(r.left+r.right)/2-w/2)),below=r.top-G-h<56,y=below?r.bottom+G:r.top-G-h;if(below&&y+h>innerHeight-8)y=Math.max(8,r.top-G-h);
+ t.style.left=x+'px';t.style.top=y+'px';t.classList.toggle('bl',below);t.style.setProperty('--ax',Math.max(14,Math.min(w-14,(r.left+r.right)/2-x))+'px');}
+function umvTip(on){let d=$('umvTip');if(!on){if(d)d.remove();return;}try{if(localStorage.getItem('nk_umv_tip'))return;}catch(e){}
+ if(!d){d=document.createElement('div');d.id='umvTip';document.body.appendChild(d);}
+ d.innerHTML=`<div class="cd" role="dialog" aria-label="이동 모드 안내"><b class="tt">✋ 이동 모드예요</b><div class="st"><span class="n n1">1</span><span>창을 <b>끌어서</b> 원하는 곳에 놓아요</span></div><div class="st"><span class="n n2">2</span><span>놓으면 <b>바로 저장</b>돼요</span></div><div class="st"><span class="n n3">3</span><span><b>빈 곳을 누르면</b> 끝나요</span></div><button type="button" class="ok">알겠어요</button><small>처음 한 번만 보여요</small></div>`;
+ d.querySelector('.ok').onclick=ev=>{ev.stopPropagation();try{localStorage.setItem('nk_umv_tip','1');}catch(e){}d.remove();};}
+// v70: 👑 관리자가 정한 배치 = 자기 배치를 안 바꾼 유저들의 처음 화면
+const uiDefKey=()=>innerWidth<700?'m':'pc';
+window.NK_UIDEF=()=>{let d=null;try{const RT=window.NK_RT;if(RT&&RT.status&&RT.status()==='on'&&RT.play)d=RT.play.uiPos||{};}catch(e){}if(!d)try{d=JSON.parse(localStorage.getItem('nk_uidef')||'null');}catch(e){}return d&&d[uiDefKey()]||null;};
+addEventListener('nk-rt-play',()=>{try{const RT=window.NK_RT;if(!(RT&&RT.play))return;const nv=JSON.stringify(RT.play.uiPos||{});if(nv===localStorage.getItem('nk_uidef'))return;localStorage.setItem('nk_uidef',nv);if(!UMV.on&&window.NK_UIEDIT&&NK_UIEDIT.reload)NK_UIEDIT.reload();}catch(e){}});
+function uiDefPublish(clear){if(!(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on'))return toast('서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2000);
+ const k=uiDefKey(),nm=k==='m'?'모바일':'PC',cur=(()=>{try{return JSON.parse(JSON.stringify(NK_RT.play.uiPos||{}));}catch(e){return {};}})();
+ if(clear){if(!confirm(`${nm} 처음 화면 배치를 지우고 기본 위치로 돌릴까요?`))return;delete cur[k];}
+ else{const P=umvP(),n=Object.keys(P).length;if(!confirm(`지금 내 ${nm} 배치(${n}개 창)를 모든 유저의 처음 화면으로 적용할까요?\n자기 배치를 따로 바꾼 유저는 그대로예요.`))return;cur[k]=JSON.parse(JSON.stringify(P));}
+ V14.publishPlay({uiPos:cur});toast(clear?`✅ ${nm} 처음 화면 배치를 지웠어요`:`✅ ${nm} 처음 화면 배치를 모든 유저에게 적용했어요`,2000);}
+setInterval(()=>{if(UMV.drag)return;const P=umvP();['rtPill','txBell'].forEach(id=>{const e=$(id);if(e)umvPut(e,P[id]);});},1500);
+function uiDefHTML(){let d={};try{d=(NK_RT.status()==='on'&&NK_RT.play&&NK_RT.play.uiPos)||{};}catch(e){}const c=k=>d[k]?Object.keys(d[k]).length+'개 창':'없음 (기본 위치)';
+ return `<div class="labrow uidefset" style="display:block"><b>👑 유저 처음 화면 배치</b> <span class="tg o">모든 유저</span><br><small class="muted">꾹 눌러 옮기기로 내 화면을 맞춘 뒤 적용하면, 자기 배치를 바꾸지 않은 유저들의 처음 화면이 같아져요. 지금 적용 중: 모바일 ${c('m')} · PC ${c('pc')} (지금 화면은 ${uiDefKey()==='m'?'모바일':'PC'})</small>
+ <p><button class="sm ok" data-uidgo>✅ 내 배치를 인게임 적용</button> <button class="sm" data-uidclr>이 화면 배치 지우기</button></p></div>`;}
+function bindUiDef(root,re){const b=root.querySelector('[data-uidgo]');if(!b)return;b.onclick=()=>{uiDefPublish();setTimeout(()=>re&&re(),600);};root.querySelector('[data-uidclr]').onclick=()=>{uiDefPublish(true);setTimeout(()=>re&&re(),600);};}
+function umvEnter(el){UMV.pass=true;UMV.on=true;try{PT.clear();pinch=null;}catch(e){}UMV.hist=[];umvSnap();document.body.classList.add('umv');try{navigator.vibrate&&navigator.vibrate(25);}catch(e){}
+ umvMark();umvSel(el);umvTip(true);UMV.mk=setInterval(()=>{umvMark();umvTbPos();},1000);}
+function umvLeave(save){UMV.on=false;UMV.drag=null;UMV.pass=false;try{PT.clear();pinch=null;}catch(e){}try{window.dispatchEvent(new PointerEvent('pointerup',{bubbles:true}));window.dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));}catch(e){}clearInterval(UMV.mk);if(save){umvSave();toast('✋ 배치를 저장했어요',1400);}document.body.classList.remove('umv','umvMin','umvDrag');umvSel(null);umvMark();const b=$('umvBar');if(b)b.remove();const ok=$('umvOk');if(ok)ok.remove();umvSheet();}
 function umvRing(x,y,on){let r=$('umvRing');if(!r){r=document.createElement('div');r.id='umvRing';document.body.appendChild(r);}r.style.left=x+'px';r.style.top=y+'px';r.classList.remove('on');if(on){void r.offsetWidth;r.classList.add('on');}}
-const umvUI=t=>t&&t.closest&&t.closest('#umvBar,#umvSheet');
+const umvUI=t=>t&&t.closest&&t.closest('#umvBar,#umvSheet,#umvTb,#umvPill,#umvTip,#umvOk');
 addEventListener('pointerdown',e=>{
- if(UMV.on){if(umvUI(e.target))return;e.preventDefault();e.stopPropagation();const el=umvEl(e.target,e.clientX,e.clientY);umvSel(el);if(el){const v=umvP()[el.id]||[0,0,1];UMV.drag={el,x0:e.clientX,y0:e.clientY,v0:v.slice(),moved:false};document.body.classList.add('umvMin');}return;}
+ if(UMV.on){if(umvUI(e.target))return;e.preventDefault();e.stopPropagation();if($('umvTip'))return;const el=umvEl(e.target,e.clientX,e.clientY);if(!el){UMV.eat=true;umvLeave(true);return;}umvSel(el);if(el){const v=umvP()[el.id]||[0,0,1];UMV.drag={el,x0:e.clientX,y0:e.clientY,v0:v.slice(),moved:false};document.body.classList.add('umvDrag');}return;}
  if(!umvOn()||e.button>0)return;if(document.querySelector('.modal.show'))return;const el=umvEl(e.target,e.clientX,e.clientY);if(!el)return;
  UMV.lp={x:e.clientX,y:e.clientY,el,t:setTimeout(()=>{const lp=UMV.lp;UMV.lp=null;umvRing(0,0,false);if(!lp)return;UMV.eat=true;umvEnter(lp.el);},560)};umvRing(e.clientX,e.clientY,true);},true);
 addEventListener('pointermove',e=>{
@@ -1887,11 +1917,11 @@ addEventListener('pointermove',e=>{
  const r=d.el.getBoundingClientRect(),M=8,S=10;let sx=0,sy=0;if(Math.abs(r.left-M)<S)sx=M-r.left;else if(Math.abs(innerWidth-M-r.right)<S)sx=innerWidth-M-r.right;else if(Math.abs((r.left+r.right)/2-innerWidth/2)<S)sx=innerWidth/2-(r.left+r.right)/2;
  if(r.left<0)sx=-r.left;if(r.right>innerWidth)sx=innerWidth-r.right;if(Math.abs(r.top-M)<S)sy=M-r.top;else if(Math.abs(innerHeight-M-r.bottom)<S)sy=innerHeight-M-r.bottom;if(r.top<0)sy=-r.top;if(r.bottom>innerHeight)sy=innerHeight-r.bottom;
  if(sx||sy){P[d.el.id]=[P[d.el.id][0]+sx,P[d.el.id][1]+sy,P[d.el.id][2]];umvPut(d.el,P[d.el.id]);}},true);
-addEventListener('pointerup',e=>{if(UMV.eat)setTimeout(()=>UMV.eat=false,450);if(UMV.lp){clearTimeout(UMV.lp.t);UMV.lp=null;umvRing(0,0,false);}if(UMV.pass){setTimeout(()=>UMV.pass=false,350);return;}if(UMV.on){if(!umvUI(e.target)){e.preventDefault();e.stopPropagation();}if(UMV.drag){UMV.drag=null;umvSheet();}}},true);
-['pointercancel'].forEach(t=>addEventListener(t,()=>{if(UMV.lp){clearTimeout(UMV.lp.t);UMV.lp=null;umvRing(0,0,false);}UMV.drag=null;},true));
+addEventListener('pointerup',e=>{if(UMV.eat)setTimeout(()=>UMV.eat=false,450);if(UMV.lp){clearTimeout(UMV.lp.t);UMV.lp=null;umvRing(0,0,false);}if(UMV.pass){setTimeout(()=>UMV.pass=false,350);return;}if(UMV.on){if(!umvUI(e.target)){e.preventDefault();e.stopPropagation();}if(UMV.drag){const mv=UMV.drag.moved;UMV.drag=null;document.body.classList.remove('umvDrag');umvSheet();if(mv)umvAuto();}}},true);
+['pointercancel'].forEach(t=>addEventListener(t,()=>{if(UMV.lp){clearTimeout(UMV.lp.t);UMV.lp=null;umvRing(0,0,false);}if(UMV.drag){UMV.drag=null;document.body.classList.remove('umvDrag');umvSheet();}},true));
 ['click','touchstart','touchend','mousedown','mouseup','contextmenu','dblclick'].forEach(t=>addEventListener(t,e=>{if(t==='contextmenu'&&(UMV.lp||UMV.on)){e.preventDefault();return;}if(UMV.eat&&t==='click'){UMV.eat=false;e.preventDefault();e.stopPropagation();return;}if(UMV.pass&&(t==='touchend'||t==='mouseup'))return;if(UMV.on&&!umvUI(e.target)){if(t!=='touchstart'&&t!=='touchend')e.preventDefault();e.stopPropagation();}},{capture:true,passive:false}));
 ['touchcancel','pointercancel'].forEach(t=>addEventListener(t,()=>{UMV.pass=false;},true));
-addEventListener('keydown',e=>{if(UMV.on&&e.key==='Escape')umvLeave(true);},true);
+addEventListener('keydown',e=>{if(UMV.on&&e.key==='Escape')umvLeave(true);},true);addEventListener('resize',()=>{if(UMV.on)umvTbPos();});
 function _renderSet(){const A=S.auto,g=S.showG;
  $('set').innerHTML=`<div class="card" style="width:min(620px,94vw)"><button class="close" data-close="set">×</button><h2>⚙ 설정 · 저장</h2>
  <h4>👤 프로필 (로컬)</h4><p>닉네임</p><div class="pfx"><input id="nick" maxlength="10" value="${S.nick||''}" placeholder="나"><button id="nickOk">적용</button></div><p>칭호 <select id="ttlSel"><option value="">자동 (레벨 최고 칭호)</option>${LV.titles.filter(x=>myLv()>=x[0]).map(x=>`<option value="lv:${x[1]}" ${S.titleSel==='lv:'+x[1]?'selected':''}>Lv.${x[0]} ${x[1]}</option>`).join('')}${spTitles().map(x=>`<option value="sp:${x.n}" ${S.titleSel==='sp:'+x.n?'selected':''}>✨ ${x.n} (특별)</option>`).join('')}</select> <span id="ttlPv">${(t=>t?`<span class="ttl sptl"${TST(t)}>${t.n}</span>`:'<span class="small muted">칭호 없음 (Lv.5에 첫 칭호)</span>')(myTitle(myLv()))}</span></p><p><span class="small muted">닉네임은 이 브라우저에 남아요. 다른 브라우저로 옮길 때는 아래 저장 코드를 복사해 붙여넣으세요.</span></p>

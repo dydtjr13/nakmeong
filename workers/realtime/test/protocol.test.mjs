@@ -630,3 +630,13 @@ test("v58 xpBal 정리", () => {
   assert.equal(v.gm[0], 0); assert.equal(v.gcap, 300); assert.equal(v.rp, 100); assert.deepEqual(v.rl, { carbon: 99 });
   assert.equal(sanitizePlay({ xpBal: null }, { xpBal: { cv: "A" } }).xpBal, undefined);
 });
+
+test("v70: uiPos 관리자 처음 화면 배치 정리", async () => {
+  const { sanitizePlay } = await import("../src/protocol.js");
+  const o = sanitizePlay({ uiPos: { m: { mStat: [10.4, -20, 1.234], "bad id!": [1, 2, 1], tq25: "x" }, pc: {}, zz: { a: [1, 1, 1] } } }, null);
+  assert.deepEqual(o.uiPos, { m: { mStat: [10, -20, 1.23] } });
+  const big = sanitizePlay({ uiPos: { m: { a: [99999, -99999, 9] } } }, null);
+  assert.deepEqual(big.uiPos.m.a, [3000, -3000, 2]);
+  const cleared = sanitizePlay({ uiPos: {} }, o);
+  assert.equal("uiPos" in cleared, false);
+});
