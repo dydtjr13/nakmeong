@@ -141,7 +141,7 @@ function V25H(m,up){const q=x=>m.querySelectorAll(x),g=id=>m.querySelector('#'+i
  g('spGive').onclick=()=>{const f=form();S.spForm=f;const A=spAll();(A[f.who]=A[f.who]||[]).filter(x=>x.n!==f.n);A[f.who]=A[f.who].filter(x=>x.n!==f.n).concat([{n:f.n,bd:f.bd,bg:f.bg,fg:f.fg}]);spSave(A);save();toast(`🏷 ${f.who}님에게 특별 칭호 「${f.n}」을 줬어요${spOn()?' · 모든 호숫가에 적용':' · 지금은 혼자 플레이라 이 기기에만 저장돼요'}`,2400);setTimeout(up,300);};
  q('[data-spdel]').forEach(b=>b.onclick=()=>{const [w,i]=b.dataset.spdel.split('|'),A=spAll();if(A[w]){const t=A[w].splice(+i,1)[0];if(!A[w].length)delete A[w];if(t&&w===NICK()&&S.titleSel==='sp:'+t.n)S.titleSel='';}spSave(A);save();try{applyHud();}catch(e){}up();});
  g('uiEd').onclick=()=>{closeM('admin');window.NK_UIEDIT&&NK_UIEDIT.enter();};g('uiRs').onclick=()=>{window.NK_UIEDIT&&NK_UIEDIT.reset();up();};
- const tutCue=(act,i)=>{if(V14&&V14.publishCue)V14.publishCue({kind:'tut',act,i:i||0,nick:'*'});else if(window.NK_TUT){if(act==='reset')NK_TUT.reset();else if(act==='skip')NK_TUT.skip();else NK_TUT.jump(Math.min(NK_TUT.STEPS.length,(NK_TUT.P().i||0)+1));}};
+ const tutCue=(act,i)=>{if(window.NK_TUT){try{NK_UI25.set('tutOff',0);}catch(e){}if(act==='reset')NK_TUT.reset();else if(act==='skip')NK_TUT.skip();else NK_TUT.jump(Math.min(NK_TUT.STEPS.length,(NK_TUT.P().i||0)+1));}};
  if(g('tuRe'))g('tuRe').onclick=()=>tutCue('reset',0);if(g('tuNx'))g('tuNx').onclick=()=>tutCue('next',0);if(g('tuSk'))g('tuSk').onclick=()=>tutCue('skip',0);}
 // v22 이동 속도: Lv1 +35% → Lv99 +65% (레벨당 약 +0.3%). v42: 관리자가 켠 호숫가 속도가 있으면 그 값이 우선.
 function mvLv(L){return L>=LV.max?2:1.35+.3*(Math.min(99,L)-1)/98;} // v24: 만렙 +100%
@@ -702,13 +702,19 @@ const MAPV=(()=>{
   st.snow=flakes({n:3200,w:90,h:34,size:.26,fall:1.5,amt:morning?.25:.45,op:.9});
   st.glitter=flakes({n:500,w:60,h:3,size:.08,fall:0,amt:1,op:.0,add:1,col:'#ffffff',drift:[0,0]});}
  // ── 보리밭 ──
- let BARLEY=null;
+ let BARLEY=null,BARLEY_LO=null;
  function barleyGeo(){if(BARLEY)return BARLEY;const parts=[],c1=new THREE.Color('#7a8a3a'),c2=new THREE.Color('#d8a440'),c3=new THREE.Color('#f0c66a');
   const vcol=(g,f)=>{const p=g.attributes.position,a=new Float32Array(p.count*3);for(let i=0;i<p.count;i++){const c=f(p.getY(i));a[i*3]=c.r;a[i*3+1]=c.g;a[i*3+2]=c.b;}g.setAttribute('color',new THREE.BufferAttribute(a,3));return g.toNonIndexed();};
   for(let i=0;i<7;i++){const h=.9+rn()*.45,a=rn()*Math.PI*2,r=rn()*.22,ln=(rn()-.5)*.25;const st0=new THREE.CylinderGeometry(.01,.016,h,3,1,true).translate(0,h/2,0),hd=new THREE.ConeGeometry(.04,.28,5,1).scale(1,1,.6).translate(0,h+.1,0);
    [st0,hd].forEach((g,k)=>{g.rotateZ(ln);g.rotateY(a);g.translate(Math.cos(a)*r,0,Math.sin(a)*r);g.deleteAttribute('uv');parts.push(vcol(g,y=>k?c3.clone().multiplyScalar(.9+rn()*.2):c1.clone().lerp(c2,Math.min(1,y/h))));});}
   const tot=parts.reduce((s,g)=>s+g.attributes.position.count,0),P=new Float32Array(tot*3),C2=new Float32Array(tot*3);let o=0;parts.forEach(g=>{P.set(g.attributes.position.array,o*3);C2.set(g.attributes.color.array,o*3);o+=g.attributes.position.count;g.dispose();});
   const m=new THREE.BufferGeometry();m.setAttribute('position',new THREE.BufferAttribute(P,3));m.setAttribute('color',new THREE.BufferAttribute(C2,3));m.computeVertexNormals();return BARLEY=m;}
+ function barleyLo(){if(BARLEY_LO)return BARLEY_LO;const _sd=seed;seed=777;const parts=[],c1=new THREE.Color('#7a8a3a'),c2=new THREE.Color('#d8a440'),c3=new THREE.Color('#f0c66a');
+  const vcol=(g,f)=>{const p=g.attributes.position,a=new Float32Array(p.count*3);for(let i=0;i<p.count;i++){const c=f(p.getY(i));a[i*3]=c.r;a[i*3+1]=c.g;a[i*3+2]=c.b;}g.setAttribute('color',new THREE.BufferAttribute(a,3));return g.toNonIndexed();};
+  for(let i=0;i<4;i++){const h=.9+rn()*.45,a=rn()*Math.PI*2,r=rn()*.22,ln=(rn()-.5)*.25;const st0=new THREE.CylinderGeometry(.01,.016,h,3,1,true).translate(0,h/2,0),hd=new THREE.ConeGeometry(.045,.3,3,1,true).scale(1,1,.6).translate(0,h+.1,0);
+   [st0,hd].forEach((g,k)=>{g.rotateZ(ln);g.rotateY(a);g.translate(Math.cos(a)*r,0,Math.sin(a)*r);g.deleteAttribute('uv');parts.push(vcol(g,y=>k?c3.clone().multiplyScalar(.9+rn()*.2):c1.clone().lerp(c2,Math.min(1,y/h))));});}
+  const tot=parts.reduce((s,g)=>s+g.attributes.position.count,0),P=new Float32Array(tot*3),C2=new Float32Array(tot*3);let o=0;parts.forEach(g=>{P.set(g.attributes.position.array,o*3);C2.set(g.attributes.color.array,o*3);o+=g.attributes.position.count;g.dispose();});
+  const m=new THREE.BufferGeometry();m.setAttribute('position',new THREE.BufferAttribute(P,3));m.setAttribute('color',new THREE.BufferAttribute(C2,3));m.computeVertexNormals();seed=_sd;return BARLEY_LO=m;}
  function windmill(x,z,ry,s){const y=H(x,z),g=new THREE.Group();const tw=new THREE.Mesh(new THREE.CylinderGeometry(1.1*s,1.6*s,6*s,10),mt('#efe2c8'));tw.position.y=3*s;g.add(tw);const rf=new THREE.Mesh(new THREE.ConeGeometry(1.45*s,1.8*s,10),mt('#9a4a3a'));rf.position.y=6.9*s;g.add(rf);
   const dr=new THREE.Mesh(new THREE.BoxGeometry(.9*s,1.5*s,.2*s),mt('#6a4a32'));dr.position.set(0,.75*s,1.5*s);g.add(dr);const wn=new THREE.Mesh(new THREE.PlaneGeometry(.5*s,.6*s),winMat);wn.position.set(0,4*s,1.22*s);g.add(wn);
   const piv=new THREE.Group();piv.position.set(0,5.6*s,1.55*s);g.add(piv);const bl=PX('windmill',0,0,0,Math.PI/2,2.6*s,piv);if(bl){const bb=new THREE.Box3().setFromObject(bl),ce=bb.getCenter(new THREE.Vector3());bl.position.sub(ce);}
@@ -750,8 +756,22 @@ const MAPV=(()=>{
   const wet=k==='drizzle'||k==='storm';scene.fog.near=wet?45:k==='clear'&&time.t>.9?40:100;scene.fog.far=wet?190:300;
   winMat.color.copy(lerpC('#4a3a30','#ffc070',nt));st.halo.forEach(m=>m.opacity=nt);if(st.dust)st.dust.op.value=(.25+.75*warm)*(1-p.night)*(wet?0:.9);if(st.ff)st.ff.opacity=p.night>.5&&!wet?.95:0;}
  const TINT={A:[1,1,1],B:[.82,1,.9],C:[.86,1.06,1.08],X:[.82,.92,1.08],XM:[.95,1,1.06],GB:[1.06,1,.88]};const _tc=new THREE.Color();
+ // v76: 넓은 들판(보리·풀·나무)처럼 수천 개를 한 번에 그리던 것을 부채꼴 조각으로 나눠, 화면 밖 조각은 그리지 않아요 (모양·밀도는 그대로)
+ const _fr=new THREE.Frustum(),_pm=new THREE.Matrix4(),_sp=new THREE.Sphere(),_ip=new THREE.Vector3(),_im4=new THREE.Matrix4();
+ function chunkify(){if(!st.g)return;st.cull=[];const big=[];st.g.traverse(o=>{if(!o.isInstancedMesh||o.count<150)return;const g=o.geometry,t=(g.index?g.index.count:g.attributes.position.count)/3;if(t*o.count>=60000)big.push(o);});
+  big.forEach(im=>{const isB=im.geometry===BARLEY,n=im.count,SEC=8,RB=isB?[0,LR+38,LR+58]:[0,1e9,1e9],groups={};if(!im.geometry.boundingSphere)im.geometry.computeBoundingSphere();const gr=im.geometry.boundingSphere.radius;
+   for(let i=0;i<n;i++){im.getMatrixAt(i,_im4);_ip.setFromMatrixPosition(_im4);const a=Math.atan2(_ip.z,_ip.x),r=Math.hypot(_ip.x,_ip.z),k=((Math.floor((a+Math.PI)/(Math.PI*2)*SEC))%SEC)+'_'+(r<RB[1]?0:r<RB[2]?1:2);(groups[k]=groups[k]||[]).push(i);}
+   const par=im.parent,vgE=st.vg.find(e=>e[1]===im),vg=vgE&&vgE[0];
+   Object.values(groups).forEach(idx=>{const c=new THREE.InstancedMesh(im.geometry,im.material,idx.length);let cx=0,cy=0,cz=0,ms=1;const P=[];
+    idx.forEach((i,j)=>{im.getMatrixAt(i,_im4);c.setMatrixAt(j,_im4);_ip.setFromMatrixPosition(_im4);P.push(_ip.clone());cx+=_ip.x;cy+=_ip.y;cz+=_ip.z;const s=Math.max(_im4.elements[0]**2+_im4.elements[1]**2+_im4.elements[2]**2,_im4.elements[4]**2+_im4.elements[5]**2+_im4.elements[6]**2);ms=Math.max(ms,Math.sqrt(s));});
+    const ctr=new THREE.Vector3(cx/idx.length,cy/idx.length,cz/idx.length);let rad=0;P.forEach(p=>{rad=Math.max(rad,p.distanceTo(ctr));});
+    c.frustumCulled=false;c.castShadow=im.castShadow;c.receiveShadow=im.receiveShadow;c.renderOrder=im.renderOrder;c.visible=im.visible;par.add(c);
+    st.cull.push({m:c,c:ctr,r:rad+gr*ms+1,vg,hi:im.geometry,lo:isB?barleyLo():null});if(vg){VG[vg].push(c);st.vg.push([vg,c]);}});
+   if(vgE){const L=VG[vg],i=L.indexOf(im);if(i>=0)L.splice(i,1);st.vg.splice(st.vg.indexOf(vgE),1);}par.remove(im);im.dispose&&im.dispose();});}
+ function cull(c){if(!st.cull||!st.cull.length)return;c.updateMatrixWorld();_pm.multiplyMatrices(c.projectionMatrix,c.matrixWorldInverse);_fr.setFromProjectionMatrix(_pm);
+  for(const q of st.cull){const on=q.vg?(S.showG?S.showG[q.vg]!==false:true):true;_sp.center.copy(q.c);_sp.radius=q.r;q.m.visible=on&&_fr.intersectsSphere(_sp);if(q.lo&&q.m.visible){const far=c.position.distanceTo(q.c)-q.r>34;const g=far?q.lo:q.hi;if(q.m.geometry!==g)q.m.geometry=g;}}}
  function clear(){if(st.g){st.vg.forEach(([k,im])=>{const L=VG[k],i=L.indexOf(im);if(i>=0)L.splice(i,1);});scene.remove(st.g);}
-  st.g=null;st.terr=null;st.sea=null;st.ff=null;st.anim=[];st.vg=[];st.lamp=[];st.beam=null;st.wf=null;st.halo=[];st.snowy=0;st.snow=null;st.glitter=null;st.dust=null;WU.k.value=1;
+  st.g=null;st.cull=[];st.terr=null;st.sea=null;st.ff=null;st.anim=[];st.vg=[];st.lamp=[];st.beam=null;st.wf=null;st.halo=[];st.snowy=0;st.snow=null;st.glitter=null;st.dust=null;WU.k.value=1;
   if(st.obs.length){st.obs.forEach(o=>{const i=obstacles.indexOf(o);if(i>=0)obstacles.splice(i,1);});st.obs=[];}}
  let baseObs=null;
  function apply(v){v=['A','B','C','X','XM','GB'].includes(v)?v:'old';st.want=v;if(v===st.cur&&(v==='old'||st.g))return;
@@ -761,7 +781,7 @@ const MAPV=(()=>{
   HX=HF[v];st.g=new THREE.Group();scene.add(st.g);BASEDECO.forEach(o=>o.visible=false);if(TERR0)TERR0.visible=false;
   if(!baseObs){baseObs=obstacles.splice(BASEOBS0,BASEOBS1-BASEOBS0);}
   buildTerr(v);if(opt('mapDetail'))detail();if(opt('mapDeco')){if(v==='A')buildA();if(v==='B')buildB();if(v==='C')buildC();if(v==='X')buildX(false);if(v==='XM')buildX(true);if(v==='GB')buildGB();}
-  st.obs.forEach(o=>obstacles.push(o));try{applyVG();}catch(e){}snapChars();}
+  try{chunkify();}catch(e){console.warn('[chunk]',e);}st.obs.forEach(o=>obstacles.push(o));try{applyVG();}catch(e){}snapChars();}
  function snapChars(){try{chars.forEach(c=>{if(!c||!c.o)return;const o=c.o.position;if(!inDeck(o.x,o.z)&&o.y<3)o.y=Math.max(H(o.x,o.z),.1);});}catch(e){}}
  function want(){return uiOpt('mapSt','old');}
  // v73: 접속 전에 서버 목록과 함께 관리자 설정을 받아 맵을 정해요. 기억한 설정이 있으면 바로 그걸로, 처음 접속이면 받을 때까지(최대 3초) 화면을 잠깐 가려요
@@ -777,7 +797,7 @@ const MAPV=(()=>{
   for(const f of st.anim)f(T,dt);}
  addEventListener('nk-rt-play',()=>{if(!BASEDECO.length)return;const w=want();if(w!==st.cur)apply(w);});
  addEventListener('nk-rt-welcome',()=>setTimeout(()=>{if(!BASEDECO.length)return;const w=want();if(w!==st.cur)apply(w);},300));
-  return {apply,boot,frame,want,wxView,get cur(){return st.cur;},rebuild(){const v=st.cur;st.cur='';apply(v);}};})();
+  return {apply,boot,frame,want,wxView,cull,get cur(){return st.cur;},rebuild(){const v=st.cur;st.cur='';apply(v);}};})();
 
 // ───────── 캐릭터 (Kenney Mini Characters + 애니메이션) ─────────
 const KINDS=[{k:'character-male-a',n:'성인 남성',s:1},{k:'character-female-a',n:'성인 여성',s:1},{k:'character-male-a',n:'남자 어린이',s:.72,rc:{'11,6':'#ff7a2a','3,5':'#ff7a2a','3,4':'#ff7a2a'}},{k:'character-female-c',n:'여자 어린이',s:.72},
@@ -1636,11 +1656,12 @@ function bindLook(root){const qa=sel=>root.querySelectorAll(sel),q=sel=>root.que
  const dn=q('#duckNow');if(dn)dn.onclick=()=>{if(V14&&V14.publishCue)V14.publishCue({kind:'duck',n:1,nick:'*'});else{window.NK_DUCK&&NK_DUCK.drop(1);toast('🦆 러버덕이 떨어져요!',1400);}};
  const dof=q('#donOff');if(dof)dof.onchange=e=>{const v=e.target.checked?1:0;NK_UI25.set('donOff',v);sharePlay({donOff:v});try{document.body.classList.toggle('don-off',!!v);}catch(_){}};
  qa('.duckK').forEach(c=>c.onchange=()=>{const ks=[...qa('.duckK')].filter(x=>x.checked).map(x=>x.value);const v=ks.join(',')||'base';NK_UI25.set('duckKinds',v);sharePlay({duckKinds:v});});
- const tr=q('#tutRe');if(tr)tr.onclick=()=>{if(V14&&V14.publishCue)V14.publishCue({kind:'tut',act:'reset',i:0,nick:'*'});else{NK_UI25.set('tutOff',0);NK_TUT&&NK_TUT.reset();toast('튜토리얼을 처음부터 다시 시작해요',1800);}};
+ const tr=q('#tutRe');if(tr)tr.onclick=()=>{NK_UI25.set('tutOff',0);NK_TUT&&NK_TUT.reset();toast('내 튜토리얼을 처음부터 다시 시작해요',1800);};
  const to=q('#tutOff');if(to)to.onchange=e=>{NK_UI25.set('tutOff',e.target.checked?1:0);sharePlay({tutOff:e.target.checked?1:0});};
- const tg=q('#tutGo');if(tg)tg.onclick=()=>{const i=+q('#tutJump').value;if(V14&&V14.publishCue)V14.publishCue({kind:'tut',act:'jump',i,nick:'*'});else{NK_UI25.set('tutOff',0);if(window.NK_TUT){if(i>=NK_TUT.STEPS.length)NK_TUT.skip();else NK_TUT.jump(i);}toast('튜토리얼 이동',1600);}};
- const tn=q('#tutNx');if(tn)tn.onclick=()=>{if(V14&&V14.publishCue)V14.publishCue({kind:'tut',act:'next',i:0,nick:'*'});else if(window.NK_TUT)NK_TUT.jump(Math.min(NK_TUT.STEPS.length,NK_TUT.P().i+1));};
- const ts=q('#tutSk');if(ts)ts.onclick=()=>{if(V14&&V14.publishCue)V14.publishCue({kind:'tut',act:'skip',i:0,nick:'*'});else{NK_TUT&&NK_TUT.skip();toast('튜토리얼 모두 완료 처리',1600);}};
+ // v76: 튜토리얼 이동·다음·모두 완료는 관리자 본인 화면에만 (다른 유저에게 보내지 않아요)
+ const tg=q('#tutGo');if(tg)tg.onclick=()=>{const i=+q('#tutJump').value;NK_UI25.set('tutOff',0);if(window.NK_TUT){if(i>=NK_TUT.STEPS.length)NK_TUT.skip();else NK_TUT.jump(i);}toast('내 튜토리얼만 이동했어요',1600);};
+ const tn=q('#tutNx');if(tn)tn.onclick=()=>{if(window.NK_TUT){NK_TUT.jump(Math.min(NK_TUT.STEPS.length,NK_TUT.P().i+1));toast('내 튜토리얼만 다음으로',1400);}};
+ const ts=q('#tutSk');if(ts)ts.onclick=()=>{if(window.NK_TUT){NK_TUT.skip();toast('내 튜토리얼만 모두 완료했어요',1600);}};
  const so=q('#soloOn');if(so)so.onchange=e=>{try{localStorage.setItem('nk_solo',e.target.checked?'1':'0');}catch(_){}confirmBox('<h3>저장 모드 변경</h3><p>'+(e.target.checked?'솔로(nakmeong_solo)':'공유(nakmeong_v2)')+' 키로 바꿉니다. 새로고침할까요?</p>',()=>location.reload());};
  const rk=q('#rkTag');if(rk)rk.onchange=e=>{S.rankTag=e.target.checked;save();};
  const pf=q('#perfOn');if(pf)pf.onchange=e=>{S.perfOn=e.target.checked;save();applyHud();};
@@ -2355,7 +2376,7 @@ function frameBody(now){if(S.fpsCap&&now-last<1000/S.fpsCap-1.5){requestAnimatio
   // v27: 카메라 행렬을 이름표 투영 전에 갱신 (이전엔 렌더 때만 갱신돼서 HTML 이름표가 한 프레임 늦게 따라가며 이탈)
   if(camOverride){cam.position.set(camOverride[0],camOverride[1],camOverride[2]);cam.lookAt(camOverride[3],camOverride[4],camOverride[5]);}cam.updateMatrixWorld();
   const _bOff=bragOffNow();for(const c of chars){if(!c._fc){c._fc=1;c.o.traverse(m=>{if(m.isMesh)m.frustumCulled=false;});}if(!c.offline&&!(c.simp&&c.simp.visible)){c.mixer.update(dt);if(c.holdQ&&c.cur==='sit'&&c.rod.visible)c.arm.quaternion.copy(c.holdQ);if(c.rig)animWalk(c,dt);bragArms(c);}poseRod(c,dt);try{bragVis(c,_bOff?null:(c===me?brag:(c.remote?c.bragB:null)),dt);}catch(e){}c.tag.position.set(c.o.position.x,c.o.position.y+c.h*1.0+.62+(c.bragV?1.5:0),c.o.position.z);const dd=cam.position.distanceTo(c.tag.position),far=V14.farLOD(c,dd);const rk=S.rankTag!==false&&!c.offline?tagRank(c):0;V14.layer();const rs=rk?V14.rankDom(c,rk,dd):V14.rankDom(c,0,dd);c.tag.visible=!rs&&!c.offline&&!far;if(!rs){if(c===me)c.tag.userData.ttl=myTitle(myLv());else if(c.remote)c.tag.userData.ttl=c.tt||null;c.tag.userData.lv=c===me?myLv():c.lv||(c.lv=3+Math.floor(seedR(c.name)()*58));drawTag(c.tag,null,0);}c.rkUp=rs;const bb=c.offline||c.muted?null:bubbleOf(c);domBub(c,dd<70?bb:null,dd);}V14.tick(dt,p);
-  if(camOverride){cam.position.set(camOverride[0],camOverride[1],camOverride[2]);cam.lookAt(camOverride[3],camOverride[4],camOverride[5]);}R.render(scene,cam);tankView.frame(dt,T);
+  if(camOverride){cam.position.set(camOverride[0],camOverride[1],camOverride[2]);cam.lookAt(camOverride[3],camOverride[4],camOverride[5]);}try{MAPV.cull(cam);}catch(e){}R.render(scene,cam);tankView.frame(dt,T);
   fpsA=fpsA*.95+(1/Math.max(dt,1e-3))*.05;perfHud(dt);window.__nk={calls:R.info.render.calls,tris:R.info.render.triangles};requestAnimationFrame(frame);}
 loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyVG();setInterval(()=>{save();},15000);addEventListener('beforeunload',()=>{try{save(1);}catch(_){}});document.addEventListener('visibilitychange',()=>{if(document.hidden)try{save(1);}catch(_){}});
   bob=new THREE.Mesh(new THREE.SphereGeometry(.15,8,6),new THREE.MeshLambertMaterial({color:'#ff6a5a',emissive:'#ff3a2a',emissiveIntensity:.3}));bob.visible=false;scene.add(bob);
