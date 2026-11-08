@@ -104,3 +104,10 @@
 .fzx0 svg,.advx svg{display:block;margin:auto}
 .fzpl{word-break:keep-all}
 .fzx0 svg,.advx svg{width:18px!important;height:18px!important;position:static!important}.advx{position:relative;display:flex;align-items:center;justify-content:center}
+/* v66: 자동 낚시 업데이트 예정 → 누르면 말풍선 */
+#bAutoFish.soon{filter:none;opacity:1}
+#bAutoFish .soonTag,body.m3 #mMain #bAutoFish.soon .soonTag{display:none!important}
+#afBub{position:fixed;z-index:400;transform:translate(-50%,-100%) scale(.9);opacity:0;pointer-events:none;background:#3d3027;color:#fff;border-radius:14px;padding:8px 14px;font-size:13px;line-height:1.35;text-align:center;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.25);transition:opacity .18s,transform .18s}
+#afBub b{display:block;font-size:12px;color:#ffd9b8}#afBub::after{content:'';position:absolute;left:50%;bottom:-6px;margin-left:-6px;border:6px solid transparent;border-bottom:0;border-top-color:#3d3027}
+#afBub.show{opacity:1;transform:translate(-50%,-100%) scale(1)}
+#afBub.dn{left:50%!important;top:auto!important;bottom:160px}
