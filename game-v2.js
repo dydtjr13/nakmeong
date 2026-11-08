@@ -1539,6 +1539,8 @@ const LAB=[
  {k:'mapSt',n:'🗺 맵 시안',d:'데크·오리·상점·쉼터는 그대로 두고 주변 풍경만 바뀌어요. 🎄·🌻 시안은 시간(낮·노을·밤)과 날씨(눈·비·폭풍)에 따라 불빛·눈·바람이 바뀌고, 처음 고를 때 풍경을 따로 불러와요. 세부(구조물·디테일·밝기)는 설정 › 화면에서 조절해요',scope:'me',o:[['old','기존 (기본)'],['A','A 포근한 호숫가'],['B','B 숲속 비밀 호수'],['C','C 바닷가 항구'],['X','🎄 눈 내리는 성탄 마을'],['XM','🎄 성탄 아침 햇살'],['GB','🌻 황금빛 노을 보리밭']]},
  {k:'fuseOn',n:'⚗ 물고기 합성',d:'같은 물고기·같은 별 3마리 → 별 올리기 + 가끔 변이(황금·벚꽃·알비노·무지개·유령). 메뉴에 「합성」 버튼이 생겨요. 촉매는 모험에서 얻어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
  {k:'advOn',n:'🧭 물고기 모험',d:'탐험 지도에서 물고기 3마리를 원정 보내요. 돌아오면 코인·상자·지도 조각·합성 촉매. 「빠른 테스트」는 1시간 = 1분 (관리자 확인용)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기'],['fast','빠른 테스트 (1시간=1분)']]},
+ {k:'topUi',n:'📱 모바일 상단 정리',d:'휴대폰 세로 화면의 위쪽만 바꿔요 (아래 버튼은 그대로). A 알림 한 줄 · B 왼쪽 레일+오른쪽 알림 · C 상단 바가 알림으로 변신 · D 알림함+짧은 토스트. 고르면 「모바일 화면 배치」보다 먼저 적용돼요',scope:'me',o:[['old','기존 (기본)'],['A','A 알림 한 줄'],['B','B 왼쪽 레일 + 오른쪽 알림'],['C','C 상단 바가 알림으로'],['D','D 알림함 + 짧은 토스트']]},
+ {k:'uiMove',n:'✋ 꾹 눌러 옮기기',d:'상태바·채팅·날씨·목표 카드·하단 메뉴·낚시 버튼·조이스틱 등을 0.5초 꾹 누르면 이동 모드 → 끌어서 옮기고 크기 조절. 배치는 기기마다 저장돼요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
  {k:'setUi',n:'⚙ 설정 화면',d:'A 한 장으로: 소리·화면·낚시·계정을 카드로 한 화면에 · B 탭 3개: 소리·화면 / 낚시 / 계정 · C 빠른 설정 패널: 큰 켜기·끄기 타일 + 소리 막대. 닉네임·저장·차단은 기존 화면으로 연결돼요',scope:'me',o:[['old','기존 (기본)'],['A','A 한 장으로'],['B','B 탭 3개'],['C','C 빠른 설정 패널']]},
  {k:'mobUi',n:'📱 모바일 화면 배치',d:'휴대폰에서만 적용돼요. A 슬림 상단 + 하단 탭바 · B 엄지 원형 메뉴 · C 알림 레일 + 아래 시트 · D 가로 화면 (세로일 때는 A). 목표 카드는 한 줄로 접히고 누르면 펼쳐져요',scope:'me',o:[['old','기존 (기본)'],['A','A 슬림 상단 + 하단 탭바'],['B','B 엄지 원형 메뉴'],['C','C 알림 레일 + 아래 시트'],['D','D 가로 화면']]},
  {k:'bragOff',n:'📣 물고기 자랑하기',d:'어항 물고기 카드의 📣 자랑하기 · 머리 위로 들기 · 다른 유저 클릭 시 상세 카드 · 👍 멋져요. 끄면 모든 유저에게서 사라져요',scope:'all',o:[['0','켜기 (기본)'],['1','끄기']]}];
@@ -1604,7 +1606,7 @@ function lookHTML(){return `<div class="lookset">
 <small class="muted">진행 ${window.NK_TUT?Math.min(NK_TUT.P().i+1,NK_TUT.STEPS.length)+'/'+NK_TUT.STEPS.length:'-'} · 할아버지를 누르면 접기/펴기</small></p>
 <h4>🧪 디버그</h4><p><button id="dbMyL">내 전설 컷인</button> <button id="dbMyM">내 신화 컷인</button> <button id="dbMyX">내 초월 컷인</button> <button id="dbBotL">봇 전설 리본</button> <button id="dbBotM">봇 신화 리본</button><br><button id="dbBox">행운 상자 +1</button> <button id="dbStone">강화석 +10</button> <button id="dbCoin">코인 +5000</button></p>
 </div>`;}
-function applyStyleSide(k,v){S[k]=v;if(k==='mapSt'){try{MAPV.apply(uiOpt('mapSt','old'));}catch(e){console.warn(e);}}if(k==='tankUi'&&tankView.on)try{tankView.selA&&tankView.selA.clear();tankView.refresh();}catch(e){}if(k==='mapTheme'&&V14)V14.applyMap(v);if(k==='mobLay'){applyMob();applyMx();}if(k==='mobUi')applyMx();if(k==='fuseOn'||k==='advOn')featBtns();if(k==='setUi'&&$('set').classList.contains('show')){SETX.leg=false;renderSet();}if(/^hud/.test(k))applyHud();save();if((k==='wxOv'||k==='seasonOv'||k==='seasonSpd'||k==='mapTheme')&&V14&&V14.pushWorld)V14.pushWorld();}
+function applyStyleSide(k,v){S[k]=v;if(k==='mapSt'){try{MAPV.apply(uiOpt('mapSt','old'));}catch(e){console.warn(e);}}if(k==='tankUi'&&tankView.on)try{tankView.selA&&tankView.selA.clear();tankView.refresh();}catch(e){}if(k==='mapTheme'&&V14)V14.applyMap(v);if(k==='mobLay'){applyMob();applyMx();}if(k==='mobUi'||k==='topUi')applyMx();if(k==='uiMove'&&v!=='on'&&UMV.on)umvLeave(false);if(k==='fuseOn'||k==='advOn')featBtns();if(k==='setUi'&&$('set').classList.contains('show')){SETX.leg=false;renderSet();}if(/^hud/.test(k))applyHud();save();if((k==='wxOv'||k==='seasonOv'||k==='seasonSpd'||k==='mapTheme')&&V14&&V14.pushWorld)V14.pushWorld();}
 function showPv(k,v){const pre={reelFx:'reel',fishBtnS:'fb',goalFx:'goal'}[k];if(!pre||v==='off'||v==='old')return;let pop=$('pvPop');if(!pop){pop=document.createElement('div');pop.id='pvPop';document.body.appendChild(pop);}pop.innerHTML='<img src="img/preview/'+pre+'-'+v+'.jpg" alt=""><small>미리보기</small>';pop.style.display='block';pop.style.left='24px';pop.style.top='72px';clearTimeout(pop._t);pop._t=setTimeout(()=>{pop.style.display='none';},2800);}
 function previewStyle(k,v){applyStyleSide(k,v);
  if(k==='goalFx'){if(v==='off')toast('🎯 <b>수집 목표 미리보기</b><br>기존 토스트로 알려요',2200);else V14.goalFx('호수의 수집가','','🪙 5,000 · 🎁 상자 2','goal');showPv(k,v);}
@@ -1696,12 +1698,12 @@ function bindSetX(v){const R=$('set'),re=()=>keepScroll('set',()=>renderSetX(v))
   else if(k==='save'){closeM('set');openSaveGuide();}else if(k==='amb'){closeM('set');renderSound();openM('sound');}
   else if(k==='admin'){closeM('set');V14.admin();}else if(k==='admout'){NK_ADM.logout();re();}else if(k==='gate')NK_ADM.ask(()=>{closeM('set');V14.admin();});});}
 // v64: 📱 모바일 화면 배치 시안 (관리자 › 🧪 테스트 기능 › 모바일 화면) — A 슬림 상단+하단 탭바 · B 엄지 원형 메뉴 · C 알림 레일+아래 시트 · D 가로 화면
-function mxMode(){const v=String(uiOpt('mobUi','old'));if(v==='old')return '';const B=document.body,touch=innerWidth<700||matchMedia('(pointer:coarse)').matches;if(!touch)return '';
+function mxMode(){const v=String(uiOpt('mobUi','old'));if(v==='old')return '';if(String(uiOpt('topUi','old'))!=='old'&&innerWidth<700&&innerHeight>innerWidth)return '';const B=document.body,touch=innerWidth<700||matchMedia('(pointer:coarse)').matches;if(!touch)return '';
  const land=innerWidth>innerHeight&&innerHeight<560;if(land)return v==='D'?'D':'';if(innerWidth>=700||!B.classList.contains('m3'))return '';return v==='D'?'A':v;}
 function applyMx(){const m=mxMode(),B=document.body;['A','B','C','D'].forEach(k=>B.classList.toggle('mx-'+k,m===k));B.classList.toggle('mx',!!m);
  const mm=$('mMain');if(mm&&!$('bMxMore')){const b=document.createElement('button');b.id='bMxMore';b.type='button';b.title='더보기';b.innerHTML='<b class="mi"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg></b><small class="ml">더보기</small>';b.onclick=e=>{e.stopPropagation();B.classList.toggle('menu-open');};mm.appendChild(b);}
  const cb=$('chatBtn');if(cb&&!cb.querySelector('.mxc')){const s=document.createElement('span');s.className='mxc';s.textContent='채팅';cb.appendChild(s);}
-if(!m)B.classList.remove('mx-tqo');}
+if(!m)B.classList.remove('mx-tqo');try{applyTx();}catch(e){}}
 addEventListener('resize',()=>applyMx());addEventListener('orientationchange',()=>setTimeout(applyMx,250));addEventListener('nk-rt-play',()=>applyMx());
 document.addEventListener('click',e=>{if(!document.body.classList.contains('mx'))return;const t=e.target.closest&&e.target.closest('#tq25 .bb');if(t)document.body.classList.toggle('mx-tqo');},true);
 // v65: 🧪 테스트 — ⚗ 물고기 합성 · 🧭 물고기 모험 (관리자 › 🧪 테스트 기능에서 켜고, ✅ 인게임 적용으로 모두에게)
@@ -1821,6 +1823,74 @@ function featBtns(){const sy=$('mSys');if(!sy)return;const tpl=$('bTime')||$('bB
  want.forEach(([on,id,ic,lab,fn])=>{const b=mk(id,ic,lab,fn);if(on){if(b.parentNode!==sy)sy.insertBefore(b,sy.firstChild);}else if(b.parentNode)b.remove();});
  if(!fzOn()&&$('fuse'))closeM('fuse');if(!advOn()&&$('adv'))closeM('adv');}
 addEventListener('nk-rt-play',()=>setTimeout(featBtns,50));
+// v67: 🧪 테스트 — 📱 모바일 상단 정리(topUi A~D) + ✋ 꾹 눌러 옮기기(uiMove)
+const TXL=[['annBar','#annBar',6,'ann','운영자 공지'],['lvT','#lvT',5,'lv','레벨 업'],['gq','#gq',5,'gq','목표 달성'],['evbn','#evx .bn',4,'ev','이벤트'],['gift','.giftBan',4,'gift','선물'],['rib','#ribbons',3,'rib','알림'],['evch','#evx .ch',2,'evch','이벤트'],['xpF','#xpF',1,'xp','경험치']];
+const TXBOX=new Set(['ann','lv','gq','ev','gift','rib']);
+const TX={inbox:[],unread:0,t:0};
+function txMode(){const v=String(uiOpt('topUi','old'));if(v==='old')return '';const B=document.body;if(!(innerWidth<700&&innerHeight>innerWidth&&B.classList.contains('m3')))return '';return v;}
+const txVis=e=>{if(!e)return false;const c=getComputedStyle(e);if(c.display==='none'||+c.opacity<.05)return false;const r=e.getBoundingClientRect();return r.width>4&&r.height>4;};
+function applyTx(){const m=txMode(),B=document.body;['A','B','C','D'].forEach(k=>B.classList.toggle('tx-'+k,m===k));B.classList.toggle('tx',!!m);if(!m){B.classList.remove('tx-tqo','tx-busy');document.querySelectorAll('.txw,.txh').forEach(e=>e.classList.remove('txw','txh'));}
+ if(m==='D'&&!$('txBell')){const b=document.createElement('button');b.id='txBell';b.type='button';b.setAttribute('aria-label','알림함');b.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5a4632" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><i hidden></i>';b.onclick=e=>{e.stopPropagation();txBox(!($('txBox')&&$('txBox').classList.contains('on')));};document.body.appendChild(b);}
+ if(m!=='D')txBox(false);}
+function txBox(open){let w=$('txBox');if(!open){if(w)w.classList.remove('on');return;}if(!w){w=document.createElement('div');w.id='txBox';document.body.appendChild(w);w.addEventListener('pointerdown',e=>e.stopPropagation());}
+ TX.unread=0;txBadge();const ago=t=>{const s=(Date.now()-t)/1000|0;return s<60?'방금':s<3600?(s/60|0)+'분 전':(s/3600|0)+'시간 전';};
+ w.innerHTML=`<header><b>알림</b><button type="button" data-txc>모두 지우기</button></header>${TX.inbox.length?TX.inbox.slice().reverse().map(x=>`<div class="it ${x.k}"><small>${x.n} · ${ago(x.t)}</small>${sxH(x.s)}</div>`).join(''):'<div class="em">새 알림이 없어요</div>'}`;
+ w.querySelector('[data-txc]').onclick=()=>{TX.inbox=[];txBox(true);};w.classList.add('on');}
+function txBadge(){const i=$('txBell')&&$('txBell').querySelector('i');if(!i)return;i.hidden=!TX.unread;i.textContent=TX.unread>9?'9+':TX.unread;}
+document.addEventListener('pointerdown',e=>{const w=$('txBox');if(w&&w.classList.contains('on')&&!e.target.closest('#txBox,#txBell'))w.classList.remove('on');},true);
+setInterval(()=>{const m=document.body.classList.contains('tx')?txMode():'';if(!m)return;const B=document.body;{const w=$('wxCard');if(w&&txVis(w))B.style.setProperty('--txwx',Math.round(w.getBoundingClientRect().width+14)+'px');}
+ const vis=[];TXL.forEach(([id,sel,pr,k,n])=>{document.querySelectorAll(sel).forEach(e=>{if(!txVis(e)||!(e.innerText||'').trim()){e.classList.remove('txw');if(m==='D')e._txSig=e._txSig&&!txVis(e)?e._txSig:e._txSig;return;}if(!e._txAt)e._txAt=performance.now();vis.push({e,pr,k,n});});});
+ document.querySelectorAll(TXL.map(x=>x[1]).join(',')).forEach(e=>{if(!txVis(e)&&!e.classList.contains('txh'))e._txAt=0;});
+ vis.sort((a,b)=>b.pr-a.pr||a.e._txAt-b.e._txAt);
+ if(m==='D'){const shortV=[];vis.forEach(v=>{if(TXBOX.has(v.k)){const s=(v.e.innerText||'').replace(/\s+/g,' ').trim().slice(0,90);if(s&&v.e._txSig!==s){v.e._txSig=s;TX.inbox.push({k:v.k,n:v.n,s,t:Date.now()});if(TX.inbox.length>30)TX.inbox.shift();TX.unread++;txBadge();}v.e.classList.add('txh');}else shortV.push(v);});shortV.forEach((v,i)=>v.e.classList.toggle('txw',i>0));
+  document.querySelectorAll('.txh').forEach(e=>{if(!e.matches(TXL.filter(x=>TXBOX.has(x[3])).map(x=>x[1]).join(',')))e.classList.remove('txh');});return;}
+ const max=m==='B'?2:1;let y=58;vis.forEach((v,i)=>{const show=i<max;v.e.classList.toggle('txw',!show);if(m==='B'&&show){v.e.style.setProperty('--txy',y+'px');y+=Math.min(140,v.e.getBoundingClientRect().height)+6;}});
+ if(m==='B'){const ep=$('evPill');if(ep&&txVis(ep))ep.style.setProperty('--txy',y+'px');}
+ B.classList.toggle('tx-busy',m==='C'&&vis.length>0);},200);
+document.addEventListener('click',e=>{if(!document.body.classList.contains('tx'))return;const t=e.target.closest&&e.target.closest('#tq25 .bb');if(t)document.body.classList.toggle('tx-tqo');if(e.target.closest&&e.target.closest('#chatBtn'))document.body.classList.remove('tx-tqo');},true);
+// ── ✋ 꾹 눌러 옮기기 ──
+const UMV_N={mStat:'상태바',chatBtn:'채팅 버튼',wxCard:'날씨',tq25:'목표 카드',bMore:'메뉴 버튼',mMain:'하단 메뉴',fishBtn:'낚시 버튼',joy:'조이스틱',chat:'채팅창',rtPill:'접속 표시',equip:'낚시 정보',mSys:'메뉴',txBell:'알림함'};
+const UMV={on:false,sel:null,drag:null,lp:null,hist:[],eat:false};
+const umvOn=()=>uiOpt('uiMove','off')==='on';
+const umvKey=()=>'nk_uipos_'+(innerWidth<700?'m':'pc');
+function umvP(){try{if(window.NK_UIEDIT)return NK_UIEDIT.pos();}catch(e){}UMV._P=UMV._P||JSON.parse(localStorage.getItem(umvKey())||'{}');return UMV._P;}
+function umvPut(e,v){if(!e)return;e.style.translate=v?`${v[0]}px ${v[1]}px`:'';e.style.scale=v&&v[2]&&v[2]!==1?String(v[2]):'';}
+function umvEl(t,x,y){if(t&&t.closest){for(const id in UMV_N){const e=$(id);if(e&&txVis(e)&&e.contains(t))return e;}}if(x==null)return null;let best=null,ba=1e9;for(const id in UMV_N){const e=$(id);if(!e||!txVis(e))continue;const r=e.getBoundingClientRect();if(x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom&&r.width*r.height<ba){ba=r.width*r.height;best=e;}}return best;}
+function umvSave(){try{localStorage.setItem(umvKey(),JSON.stringify(umvP()));}catch(e){}}
+function umvSnap(){UMV.hist.push(JSON.stringify(umvP()));if(UMV.hist.length>60)UMV.hist.shift();}
+function umvSel(e){document.querySelectorAll('.umvS').forEach(x=>x.classList.remove('umvS'));UMV.sel=e;if(e)e.classList.add('umvS');umvSheet();}
+function umvMark(){document.querySelectorAll('.umvT').forEach(x=>x.classList.remove('umvT'));if(!UMV.on)return;for(const id in UMV_N){const e=$(id);if(e&&txVis(e))e.classList.add('umvT');}}
+function umvSheet(){let s=$('umvSheet');if(!UMV.on){if(s)s.remove();return;}if(!s){s=document.createElement('div');s.id='umvSheet';document.body.appendChild(s);}
+ const e=UMV.sel,v=e&&umvP()[e.id],sc=Math.round(((v&&v[2])||1)*100);
+ s.innerHTML=`<div class="grab" aria-hidden="true"></div><div class="hd"><div><b>✋ ${e?UMV_N[e.id]:'옮길 창을 눌러 골라요'}</b><small>${e?'끌어서 옮기고, 여기를 누르면 크기·되돌리기':'점선 창은 모두 끌어서 옮길 수 있어요'}</small></div><button type="button" class="dn" data-umd2>완료</button></div>${e?`<label class="sz"><span>크기</span><input type="range" min="70" max="130" step="5" value="${sc}" data-umz><b data-umzv>${sc}%</b></label>`:''}
+  <div class="row"><button type="button" data-umu>되돌리기</button><button type="button" data-umo ${e?'':'disabled'}>이 창만 원래대로</button><button type="button" data-uma>전부 처음으로</button></div>
+  <button type="button" class="go" data-umd>저장하고 끝내기</button><div class="nt">배치는 이 기기에만 저장돼요 · 아래 버튼을 옮길 땐 이 창을 아래로 내려요</div>`;
+ const z=s.querySelector('[data-umz]');if(z){z.oninput=()=>{const P=umvP(),cur=P[e.id]||[0,0,1];P[e.id]=[cur[0],cur[1],+z.value/100];umvPut(e,P[e.id]);s.querySelector('[data-umzv]').textContent=z.value+'%';};z.onchange=()=>umvSnap();}
+ s.querySelector('[data-umu]').onclick=()=>{if(!UMV.hist.length){toast('되돌릴 게 없어요');return;}const P=umvP(),o=JSON.parse(UMV.hist.pop());Object.keys(P).forEach(k=>delete P[k]);Object.assign(P,o);for(const id in UMV_N)umvPut($(id),P[id]);umvSheet();};
+ s.querySelector('[data-umo]').onclick=()=>{if(!e)return;umvSnap();delete umvP()[e.id];umvPut(e,null);umvSheet();};
+ s.querySelector('[data-uma]').onclick=()=>{umvSnap();const P=umvP();for(const id in UMV_N){delete P[id];umvPut($(id),null);}umvSheet();};
+ s.querySelector('[data-umd]').onclick=()=>umvLeave(true);s.querySelector('[data-umd2]').onclick=e2=>{e2.stopPropagation();umvLeave(true);};
+ s.querySelector('.hd>div').onclick=()=>document.body.classList.toggle('umvMin');}
+function umvEnter(el){UMV.on=true;UMV.hist=[];umvSnap();document.body.classList.add('umv','umvMin');try{navigator.vibrate&&navigator.vibrate(25);}catch(e){}
+ umvMark();umvSel(el);UMV.mk=setInterval(umvMark,1000);}
+function umvLeave(save){UMV.on=false;clearInterval(UMV.mk);if(save){umvSave();toast('✋ 배치를 저장했어요',1400);}document.body.classList.remove('umv','umvMin');umvSel(null);umvMark();const b=$('umvBar');if(b)b.remove();umvSheet();}
+function umvRing(x,y,on){let r=$('umvRing');if(!r){r=document.createElement('div');r.id='umvRing';document.body.appendChild(r);}r.style.left=x+'px';r.style.top=y+'px';r.classList.remove('on');if(on){void r.offsetWidth;r.classList.add('on');}}
+const umvUI=t=>t&&t.closest&&t.closest('#umvBar,#umvSheet');
+addEventListener('pointerdown',e=>{
+ if(UMV.on){if(umvUI(e.target))return;e.preventDefault();e.stopPropagation();const el=umvEl(e.target,e.clientX,e.clientY);umvSel(el);if(el){const v=umvP()[el.id]||[0,0,1];UMV.drag={el,x0:e.clientX,y0:e.clientY,v0:v.slice(),moved:false};document.body.classList.add('umvMin');}return;}
+ if(!umvOn()||e.button>0)return;if(document.querySelector('.modal.show'))return;const el=umvEl(e.target,e.clientX,e.clientY);if(!el)return;
+ UMV.lp={x:e.clientX,y:e.clientY,el,t:setTimeout(()=>{const lp=UMV.lp;UMV.lp=null;umvRing(0,0,false);if(!lp)return;UMV.eat=true;umvEnter(lp.el);},560)};umvRing(e.clientX,e.clientY,true);},true);
+addEventListener('pointermove',e=>{
+ if(UMV.lp&&Math.hypot(e.clientX-UMV.lp.x,e.clientY-UMV.lp.y)>10){clearTimeout(UMV.lp.t);UMV.lp=null;umvRing(0,0,false);}
+ const d=UMV.drag;if(!UMV.on||!d)return;e.preventDefault();e.stopPropagation();let dx=e.clientX-d.x0,dy=e.clientY-d.y0;if(!d.moved&&Math.hypot(dx,dy)<4)return;if(!d.moved){d.moved=true;umvSnap();}
+ const P=umvP();P[d.el.id]=[d.v0[0]+dx,d.v0[1]+dy,d.v0[2]||1];umvPut(d.el,P[d.el.id]);
+ const r=d.el.getBoundingClientRect(),M=8,S=10;let sx=0,sy=0;if(Math.abs(r.left-M)<S)sx=M-r.left;else if(Math.abs(innerWidth-M-r.right)<S)sx=innerWidth-M-r.right;else if(Math.abs((r.left+r.right)/2-innerWidth/2)<S)sx=innerWidth/2-(r.left+r.right)/2;
+ if(r.left<0)sx=-r.left;if(r.right>innerWidth)sx=innerWidth-r.right;if(Math.abs(r.top-M)<S)sy=M-r.top;else if(Math.abs(innerHeight-M-r.bottom)<S)sy=innerHeight-M-r.bottom;if(r.top<0)sy=-r.top;if(r.bottom>innerHeight)sy=innerHeight-r.bottom;
+ if(sx||sy){P[d.el.id]=[P[d.el.id][0]+sx,P[d.el.id][1]+sy,P[d.el.id][2]];umvPut(d.el,P[d.el.id]);}},true);
+addEventListener('pointerup',e=>{if(UMV.eat)setTimeout(()=>UMV.eat=false,450);if(UMV.lp){clearTimeout(UMV.lp.t);UMV.lp=null;umvRing(0,0,false);}if(UMV.on){if(!umvUI(e.target)){e.preventDefault();e.stopPropagation();}if(UMV.drag){UMV.drag=null;umvSheet();}}},true);
+['pointercancel'].forEach(t=>addEventListener(t,()=>{if(UMV.lp){clearTimeout(UMV.lp.t);UMV.lp=null;umvRing(0,0,false);}UMV.drag=null;},true));
+['click','touchstart','touchend','mousedown','mouseup','contextmenu','dblclick'].forEach(t=>addEventListener(t,e=>{if(t==='contextmenu'&&(UMV.lp||UMV.on)){e.preventDefault();return;}if(UMV.eat&&t==='click'){UMV.eat=false;e.preventDefault();e.stopPropagation();return;}if(UMV.on&&!umvUI(e.target)){if(t!=='touchstart'&&t!=='touchend')e.preventDefault();e.stopPropagation();}},{capture:true,passive:false}));
+addEventListener('keydown',e=>{if(UMV.on&&e.key==='Escape')umvLeave(true);},true);
 function _renderSet(){const A=S.auto,g=S.showG;
  $('set').innerHTML=`<div class="card" style="width:min(620px,94vw)"><button class="close" data-close="set">×</button><h2>⚙ 설정 · 저장</h2>
  <h4>👤 프로필 (로컬)</h4><p>닉네임</p><div class="pfx"><input id="nick" maxlength="10" value="${S.nick||''}" placeholder="나"><button id="nickOk">적용</button></div><p>칭호 <select id="ttlSel"><option value="">자동 (레벨 최고 칭호)</option>${LV.titles.filter(x=>myLv()>=x[0]).map(x=>`<option value="lv:${x[1]}" ${S.titleSel==='lv:'+x[1]?'selected':''}>Lv.${x[0]} ${x[1]}</option>`).join('')}${spTitles().map(x=>`<option value="sp:${x.n}" ${S.titleSel==='sp:'+x.n?'selected':''}>✨ ${x.n} (특별)</option>`).join('')}</select> <span id="ttlPv">${(t=>t?`<span class="ttl sptl"${TST(t)}>${t.n}</span>`:'<span class="small muted">칭호 없음 (Lv.5에 첫 칭호)</span>')(myTitle(myLv()))}</span></p><p><span class="small muted">닉네임은 이 브라우저에 남아요. 다른 브라우저로 옮길 때는 아래 저장 코드를 복사해 붙여넣으세요.</span></p>
