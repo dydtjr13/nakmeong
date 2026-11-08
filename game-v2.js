@@ -1159,7 +1159,7 @@ const tankView={r:null,open(owner){this.owner=owner;if(owner&&owner!=='me')try{x
    else if(a==='sellsel'){this.armA=true;}
    else if(a==='sellgo'){const fs=S.tank.filter(f=>s.has(f.id)&&!f.lock);let tot=0;fs.forEach(f=>{S.tank=S.tank.filter(x=>x!==f);const pz=sellP(f);tot+=pz;S.coins+=pz;S.earned=(S.earned||0)+pz;ILOG.add('sell','fish',f,pz);this.removeFish(f.id);});sfx.coin();save();hud();s.clear();this.armA=false;toast(`🪙 ${fs.length}마리 팔아서 ${tot.toLocaleString()}코인`);}
    re();});},
- frame(dt,T){if(!this.on)return;const cv=this.r.domElement,w=cv.clientWidth,h=cv.clientHeight;if(cv.width!==Math.floor(w*this.r.getPixelRatio())){this.r.setSize(w,h,false);this.cam.aspect=w/h;this.cam.updateProjectionMatrix();}
+ frame(dt,T){if(!this.on)return;const cv=this.r.domElement,w=cv.clientWidth,h=cv.clientHeight;const pr=this.r.getPixelRatio();if(w>0&&h>0&&(cv.width!==Math.floor(w*pr)||cv.height!==Math.floor(h*pr))){this.r.setSize(w,h,false);this.cam.aspect=w/h;this.cam.updateProjectionMatrix();}
   {const sf=this.sf||1,dist=(3.6+3.1*sf)*this.zoom*Math.max(1,1.45/this.cam.aspect);this.cam.position.set(Math.sin(this.yaw)*dist,2.2*sf*Math.max(.6,this.zoom),Math.cos(this.yaw)*dist);this.cam.lookAt(0,1.05*sf,0);}const{W,H,D:Dp}=this.box;
   for(const x of this.fish){const p=x.o.position,lim=[W/2-.45,H*.86,Dp/2-.32];
    // 목표 갱신·속도 변화·가끔 멈춤
@@ -1849,7 +1849,7 @@ setInterval(()=>{const m=document.body.classList.contains('tx')?txMode():'';if(!
  B.classList.toggle('tx-busy',m==='C'&&vis.length>0);},200);
 document.addEventListener('click',e=>{if(!document.body.classList.contains('tx'))return;const t=e.target.closest&&e.target.closest('#tq25 .bb');if(t)document.body.classList.toggle('tx-tqo');if(e.target.closest&&e.target.closest('#chatBtn'))document.body.classList.remove('tx-tqo');},true);
 // ── ✋ 꾹 눌러 옮기기 ──
-const UMV_N={mStat:'상태바',chatBtn:'채팅 버튼',wxCard:'날씨',tq25:'목표 카드',bMore:'메뉴 버튼',mMain:'하단 메뉴',fishBtn:'낚시 버튼',joy:'조이스틱',chat:'채팅창',rtPill:'접속 표시',equip:'낚시 정보',mSys:'메뉴',txBell:'알림함'};
+const UMV_N={mStat:'상태바',chatBtn:'채팅 버튼',wxCard:'날씨',tq25:'목표 카드',bMore:'메뉴 버튼',mMain:'하단 메뉴',fishBtn:'낚시 버튼',joy:'조이스틱',chat:'채팅창',rtPill:'접속 표시',equip:'낚시 정보',mSys:'메뉴',txBell:'알림함',dc:'FPS 정보'};
 const UMV={on:false,sel:null,drag:null,lp:null,hist:[],eat:false};
 const umvOn=()=>uiOpt('uiMove','off')==='on';
 const umvKey=()=>'nk_uipos_'+(innerWidth<700?'m':'pc');
@@ -1894,9 +1894,14 @@ addEventListener('nk-rt-play',()=>{try{const RT=window.NK_RT;if(!(RT&&RT.play))r
 function uiDefPublish(clear){if(!(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on'))return toast('서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2000);
  const k=uiDefKey(),nm=k==='m'?'모바일':'PC',cur=(()=>{try{return JSON.parse(JSON.stringify(NK_RT.play.uiPos||{}));}catch(e){return {};}})();
  if(clear){if(!confirm(`${nm} 처음 화면 배치를 지우고 기본 위치로 돌릴까요?`))return;delete cur[k];}
- else{const P=umvP(),n=Object.keys(P).length;if(!confirm(`지금 내 ${nm} 배치(${n}개 창)를 모든 유저의 처음 화면으로 적용할까요?\n자기 배치를 따로 바꾼 유저는 그대로예요.`))return;cur[k]=JSON.parse(JSON.stringify(P));}
+ else{const P=umvP(),n=Object.keys(P).filter(x=>x!=='dc').length;if(!confirm(`지금 내 ${nm} 배치(${n}개 창)를 모든 유저의 처음 화면으로 적용할까요?\n자기 배치를 따로 바꾼 유저는 그대로예요.`))return;cur[k]=JSON.parse(JSON.stringify(P));delete cur[k].dc;}
  V14.publishPlay({uiPos:cur});toast(clear?`✅ ${nm} 처음 화면 배치를 지웠어요`:`✅ ${nm} 처음 화면 배치를 모든 유저에게 적용했어요`,2000);}
-setInterval(()=>{if(UMV.drag)return;const P=umvP();['rtPill','txBell'].forEach(id=>{const e=$(id);if(e)umvPut(e,P[id]);});},1500);
+setInterval(()=>{if(UMV.drag)return;const P=umvP();['rtPill','txBell','dc'].forEach(id=>{const e=$(id);if(e)umvPut(e,P[id]);});},1500);
+// v71: 옮긴 튜토리얼 카드를 눌러 펼쳤을 때 화면 밖으로 밀려나지 않게 — 넘친 만큼만 안쪽으로
+function keepIn(e){if(!e)return;const st=e.style;st.marginLeft=st.marginRight=st.marginTop=st.marginBottom='';if(!txVis(e)||UMV.drag&&UMV.drag.el===e)return;const r=e.getBoundingClientRect(),M=8;if(!r.width)return;
+ let dx=0,dy=0;if(r.right>innerWidth-M)dx=innerWidth-M-r.right;if(r.left+dx<M)dx=M-r.left;if(r.bottom>innerHeight-M)dy=innerHeight-M-r.bottom;if(r.top+dy<M)dy=M-r.top;if(!dx&&!dy)return;
+ const c=getComputedStyle(e);if(dx){if(c.left!=='auto')st.marginLeft=dx+'px';else st.marginRight=-dx+'px';}if(dy){if(c.top!=='auto')st.marginTop=dy+'px';else st.marginBottom=-dy+'px';}}
+setInterval(()=>keepIn($('tq25')),300);document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#tq25'))[30,120,300].forEach(t=>setTimeout(()=>keepIn($('tq25')),t));});
 function uiDefHTML(){let d={};try{d=(NK_RT.status()==='on'&&NK_RT.play&&NK_RT.play.uiPos)||{};}catch(e){}const c=k=>d[k]?Object.keys(d[k]).length+'개 창':'없음 (기본 위치)';
  return `<div class="labrow uidefset" style="display:block"><b>👑 유저 처음 화면 배치</b> <span class="tg o">모든 유저</span><br><small class="muted">꾹 눌러 옮기기로 내 화면을 맞춘 뒤 적용하면, 자기 배치를 바꾸지 않은 유저들의 처음 화면이 같아져요. 지금 적용 중: 모바일 ${c('m')} · PC ${c('pc')} (지금 화면은 ${uiDefKey()==='m'?'모바일':'PC'})</small>
  <p><button class="sm ok" data-uidgo>✅ 내 배치를 인게임 적용</button> <button class="sm" data-uidclr>이 화면 배치 지우기</button></p></div>`;}
