@@ -1,0 +1,101 @@
+/* v67 · 🧪 테스트: 모바일 상단 정리(A~D) + 꾹 눌러 옮기기 */
+/* 공통: 칩 모양 (v64 모바일 시안과 같은 칩) */
+body.tx #hud #wxCard{transform:none!important;width:auto!important;max-width:none}
+body.tx #hud #wxCard .e,body.tx #hud #wxCard .bar{display:none!important}
+body.tx #hud #wxCard{padding:0 12px!important;height:36px;display:flex!important;align-items:center;border-radius:18px!important;background:var(--sx-chip)!important;box-shadow:0 2px 8px rgba(60,40,20,.14)!important;min-width:0!important}
+body.tx #hud #wxCard .h{margin:0!important;gap:6px;display:flex;align-items:center;font-size:12.5px;white-space:nowrap}
+body.tx #hud #wxCard .h img{width:20px!important;height:20px!important}body.tx #hud #wxCard .h small{display:none}
+body.tx #tq25:not(.fold){width:auto!important}
+body.tx:not(.tx-tqo) #tq25 .npc>img{width:30px!important;height:30px!important;border-radius:50%!important;flex:none}
+body.tx:not(.tx-tqo) #tq25 .bb{padding:6px 12px 6px 8px!important;border-radius:18px!important;min-height:0!important}
+body.tx:not(.tx-tqo) #tq25 .bb>p,body.tx:not(.tx-tqo) #tq25 .bb>.pg,body.tx:not(.tx-tqo) #tq25 .bb>.who,body.tx:not(.tx-tqo) #tq25 .bb::before,body.tx:not(.tx-tqo) #tq25 .bb::after{display:none!important}
+body.tx:not(.tx-tqo) #tq25 .bb>.goal{margin:0!important;padding:0!important;background:none!important;border:0!important;font-size:12.5px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+body.tx:not(.tx-tqo) #tq25 .bb>.rw{position:static!important;margin:0 0 0 6px!important;padding:0!important;background:none!important;font-size:12px!important;white-space:nowrap}
+body.tx:not(.tx-tqo) #tq25 .npc{display:flex!important;align-items:center;gap:6px}
+body.tx:not(.tx-tqo) #tq25 .bb{display:flex!important;align-items:center;gap:0;box-shadow:0 2px 8px rgba(60,40,20,.14)!important;background:var(--sx-chip)!important}
+body.tx #tq25 .bb{cursor:pointer}
+body.tx:not(.tx-tqo) #tq25 .bb{min-width:0;overflow:hidden}
+body.tx:not(.tx-tqo) #tq25 .bb>.goal{max-width:none;flex:1;min-width:0}
+body.tx #hud #wxCard{height:40px!important;border-radius:20px!important;padding:0 10px!important}
+body.tx:not(.tx-tqo) #tq25 .bb{height:40px;box-sizing:border-box}
+body.tx #hud #chatBtn{width:44px!important;height:40px!important;border-radius:20px!important;bottom:auto!important}
+body.tx #hud #mStat{top:9px!important}
+.txw{visibility:hidden!important}.txh{display:none!important}
+/* 알림 자리(레인) 공통 모양 */
+body.tx :is(#annBar,#lvT,#xpF,#gq,.giftBan,#ribbons,#evPill),body.tx #evx :is(.bn,.ch){position:fixed!important;transform:none!important;margin:0!important;box-sizing:border-box}
+body.tx :is(#annBar,#lvT,#xpF,.giftBan),body.tx #evx :is(.bn,.ch){min-height:36px;display:flex!important;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:none!important;border-radius:18px!important}
+/* ── A · 알림 한 줄 (4층) ── */
+body.tx-A #hud #mStat{right:54px!important}
+body.tx-A :is(#annBar,#lvT,#xpF,#gq,.giftBan,#ribbons),body.tx-A #evx :is(.bn,.ch){top:56px!important;left:8px!important;right:8px!important;width:auto!important;bottom:auto!important}
+body.tx-A #hud #chatBtn{top:104px!important;left:8px!important}
+body.tx-A #tq25{top:104px!important;left:58px!important;right:auto!important;bottom:auto!important;max-width:calc(100vw - 66px - var(--txwx,96px))!important}
+body.tx-A.tx-tqo #tq25{max-width:calc(100vw - 66px)!important}
+body.tx-A #hud #wxCard{top:104px!important;right:8px!important;left:auto!important}
+body.tx-A.tx-tqo #hud #wxCard{display:none!important}
+body.tx-A #hud #chat{top:152px!important;bottom:auto!important;left:8px!important;right:8px!important;width:auto!important}
+body.tx-A #evPill{top:152px!important;right:8px!important;left:auto!important}
+body.tx-A.chat-open #tq25,body.tx-A.chat-open #evPill{visibility:hidden}
+/* ── B · 왼쪽 레일 + 오른쪽 알림 ── */
+body.tx-B #hud #mStat{right:54px!important}
+body.tx-B #hud #chatBtn{top:58px!important;left:8px!important}
+body.tx-B #hud #wxCard{top:58px!important;left:58px!important;right:auto!important;max-width:128px!important}
+body.tx-B #tq25{top:104px!important;left:8px!important;right:auto!important;bottom:auto!important;max-width:178px!important}
+body.tx-B:not(.tx-tqo) #tq25 .bb>.goal{white-space:normal!important;font-size:12px!important;line-height:1.3}
+body.tx-B:not(.tx-tqo) #tq25 .bb{height:auto!important;min-height:40px}
+body.tx-B.tx-tqo #tq25{max-width:calc(100vw - 16px)!important;z-index:47}
+body.tx-B :is(#annBar,#lvT,#xpF,#gq,.giftBan,#ribbons),body.tx-B #evx :is(.bn,.ch){top:var(--txy,58px)!important;right:8px!important;left:auto!important;width:186px!important;bottom:auto!important;white-space:normal!important;justify-content:flex-start!important;text-align:left;font-size:12.5px!important;line-height:1.35}
+body.tx-B #evPill{top:var(--txy,58px)!important;right:8px!important;left:auto!important}
+body.tx-B #hud #chat{top:200px!important;bottom:auto!important;left:8px!important;right:8px!important;width:auto!important}
+body.tx-B.chat-open #tq25{visibility:hidden}
+/* ── C · 상단 바가 알림으로 ── */
+body.tx-C #hud #mStat{right:54px!important;transition:opacity .2s}
+body.tx-C.tx-busy #hud #mStat{opacity:0;pointer-events:none}
+body.tx-C :is(#annBar,#lvT,#xpF,#gq,.giftBan,#ribbons),body.tx-C #evx :is(.bn,.ch){top:7px!important;left:8px!important;right:54px!important;width:auto!important;bottom:auto!important;min-height:44px!important;border-radius:22px!important;z-index:60!important}
+body.tx-C #hud #chatBtn{top:58px!important;left:8px!important}
+body.tx-C #tq25{top:58px!important;left:58px!important;right:auto!important;bottom:auto!important;max-width:calc(100vw - 66px - var(--txwx,96px))!important}
+body.tx-C.tx-tqo #tq25{max-width:calc(100vw - 66px)!important}
+body.tx-C #hud #wxCard{top:58px!important;right:8px!important;left:auto!important}
+body.tx-C.tx-tqo #hud #wxCard{display:none!important}
+body.tx-C #hud #chat{top:106px!important;bottom:auto!important;left:8px!important;right:8px!important;width:auto!important}
+body.tx-C #evPill{top:106px!important;right:8px!important;left:auto!important}
+body.tx-C.chat-open #tq25,body.tx-C.chat-open #evPill{visibility:hidden}
+/* ── D · 알림함 + 짧은 토스트 ── */
+body.tx-D #hud #mStat{right:104px!important}
+body.tx-D #hud #chatBtn{top:56px!important;left:8px!important}
+body.tx-D #tq25{top:56px!important;left:58px!important;right:auto!important;bottom:auto!important;max-width:calc(100vw - 66px - var(--txwx,96px))!important}
+body.tx-D.tx-tqo #tq25{max-width:calc(100vw - 66px)!important}
+body.tx-D #hud #wxCard{top:56px!important;right:8px!important;left:auto!important}
+body.tx-D.tx-tqo #hud #wxCard{display:none!important}
+body.tx-D :is(#xpF),body.tx-D #evx .ch{top:104px!important;left:60px!important;right:60px!important;width:auto!important;bottom:auto!important}
+body.tx-D #hud #chat{top:104px!important;bottom:auto!important;left:8px!important;right:8px!important;width:auto!important}
+body.tx-D #evPill{top:104px!important;right:8px!important;left:auto!important}
+#txBell{display:none}
+body.tx-D #txBell{display:flex;position:fixed;top:9px;right:54px;z-index:46;width:44px;height:40px;border-radius:20px;border:0;background:rgba(255,251,244,.95);align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(60,40,20,.15);padding:0;cursor:pointer}
+#txBell i{position:absolute;top:-3px;right:-2px;min-width:18px;height:18px;border-radius:9px;background:#e8584a;color:#fff;font:700 10.5px/18px sans-serif;font-style:normal;text-align:center;padding:0 4px;box-sizing:border-box}
+#txBox{position:fixed;top:56px;right:8px;width:min(300px,calc(100vw - 16px));max-height:60vh;overflow:auto;z-index:70;background:#fbf6ec;border-radius:20px;box-shadow:0 12px 30px rgba(30,18,10,.3);padding:10px;display:none;flex-direction:column;gap:6px;color:#3d3027}
+#txBox.on{display:flex}#txBox header{display:flex;justify-content:space-between;align-items:center;padding:2px 4px}#txBox header b{font-size:14px}#txBox header button{border:0;background:none;font:600 12px inherit;color:#8a7660;min-height:32px;box-shadow:none;padding:0 6px}
+#txBox .it{background:#fff;border-radius:14px;padding:8px 10px;font-size:12.5px;line-height:1.4}#txBox .it small{display:block;font-size:11px;font-weight:700;color:#8a7660}#txBox .it.ann{background:#3d3027;color:#fff}#txBox .it.ann small{color:#ffd36a}#txBox .it.lv small{color:#6a4bb0}
+#txBox .em{font-size:12.5px;color:#8a7660;text-align:center;padding:14px 0}
+/* ── 꾹 눌러 옮기기 ── */
+#umvRing{position:fixed;z-index:500;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;pointer-events:none;background:conic-gradient(#ffd36a var(--p,0%),rgba(255,255,255,.35) 0);-webkit-mask:radial-gradient(circle,transparent 20px,#000 21px);mask:radial-gradient(circle,transparent 20px,#000 21px);opacity:0;transition:opacity .12s}
+#umvRing.on{opacity:1;animation:umvP .55s linear forwards}
+@property --p{syntax:'<percentage>';inherits:false;initial-value:0%}
+@keyframes umvP{to{--p:100%}}
+body.umv::before{content:'';position:fixed;inset:0;z-index:2;background-color:rgba(30,22,40,.18);background-image:radial-gradient(rgba(255,255,255,.35) 1.2px,transparent 1.4px);background-size:16px 16px;pointer-events:none}
+body.umv .umvT{outline:2px dashed rgba(255,255,255,.85)!important;outline-offset:3px}
+body.umv .umvS{outline:3px solid #ffd36a!important;outline-offset:3px;filter:drop-shadow(0 10px 18px rgba(0,0,0,.35))}
+#umvBar{position:fixed;left:8px;right:8px;top:8px;z-index:510;height:44px;display:flex;align-items:center;gap:8px;background:#2b2230;color:#fff;border-radius:22px;padding:0 6px 0 14px;font-size:13.5px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+#umvBar span{flex:1}#umvBar button{height:34px;padding:0 16px;border-radius:17px;border:0;background:#ffd36a;color:#3d2a00;font:700 13.5px inherit;box-shadow:none}
+#umvSheet{position:fixed;left:0;right:0;bottom:0;z-index:510;background:#fbf6ec;color:#3d3027;border-radius:24px 24px 0 0;padding:10px 16px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;box-shadow:0 -8px 24px rgba(0,0,0,.25);max-width:520px;margin:0 auto}
+#umvSheet .hd{display:flex;align-items:center;gap:10px;min-height:44px}#umvSheet .hd>div{flex:1;min-width:0}#umvSheet .hd b{font-size:15px;display:block}#umvSheet .hd small{color:#8a7660;font-size:12px}#umvSheet .hd .dn{height:40px;padding:0 18px;border-radius:20px;border:0;background:#ffd36a;color:#3d2a00;font:700 14px inherit;box-shadow:none;flex:none}#umvSheet .grab{width:40px;height:5px;border-radius:3px;background:#e2d5c0;margin:0 auto}
+#umvSheet .sz{display:grid;grid-template-columns:44px minmax(0,1fr) 48px;align-items:center;gap:10px;font-size:14px}#umvSheet input{accent-color:#e8784a;width:100%;height:28px;margin:0}
+#umvSheet .row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+#umvSheet .row button{min-height:44px;border-radius:14px;border:0;background:#f2e8d6;color:#5a4632;font:700 13px inherit;box-shadow:none;padding:0 6px}
+#umvSheet .go{min-height:50px;border-radius:25px;border:0;background:#e8784a;color:#fff;font:700 15px inherit;box-shadow:none}
+#umvSheet .nt{font-size:11.5px;color:#8a7660;text-align:center}
+#umvSheet{transition:transform .2s}body.umv.umvMin #umvSheet{transform:translateY(calc(100% - 78px - env(safe-area-inset-bottom)))}
+body.tx-B:not(.tx-tqo) #tq25 .bb{flex-wrap:wrap!important;row-gap:2px}
+body.tx-B:not(.tx-tqo) #tq25 .bb>.goal{flex:1 1 100%!important;white-space:nowrap!important;overflow:hidden;text-overflow:ellipsis}
+body.tx-B:not(.tx-tqo) #tq25 .bb>.rw{margin:0!important}
+#umvSheet,#umvSheet *{-webkit-user-select:none;user-select:none}
+body.umv,body.umv *{-webkit-touch-callout:none}

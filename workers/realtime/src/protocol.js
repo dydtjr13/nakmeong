@@ -854,6 +854,8 @@ export function sanitizePlay(input, prev, opt) {
   if ("setUi" in input) out.setUi = pickOf(input.setUi, ["old", "A", "B", "C"]);
   if ("mobUi" in input) out.mobUi = pickOf(input.mobUi, ["old", "A", "B", "C", "D"]);
   if ("fuseOn" in input) out.fuseOn = pickOf(input.fuseOn, ["off", "on"]);
+  if ("topUi" in input) out.topUi = pickOf(input.topUi, ["old", "A", "B", "C", "D"]);
+  if ("uiMove" in input) out.uiMove = pickOf(input.uiMove, ["off", "on"]);
   if ("advOn" in input) out.advOn = pickOf(input.advOn, ["off", "on", "fast"]);
   // v62: 배경음악
   if ("bgmOn" in input) out.bgmOn = flag01(input.bgmOn);
