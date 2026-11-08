@@ -465,7 +465,8 @@ export class LakeRoom extends DurableObject {
 
   async occupancy() {
     const st = await this.opsGet("stage", null);
-    return { n: this.openSockets().length, cap: CAP, stage: st ? { lay: st.lay, deckW: st.deckW, decks: st.decks, rev: st.rev } : null };
+    const play = await this.opsGet("play", null);
+    return { n: this.openSockets().length, cap: CAP, stage: st ? { lay: st.lay, deckW: st.deckW, decks: st.decks, rev: st.rev } : null, play };
   }
 
   attachment(ws) {
@@ -912,9 +913,12 @@ export default {
         const servers = await Promise.all(SERVERS.map(async (s) => {
           const stub = env.LAKE.getByName(`lake-${s.id}`);
           const occ = await stub.occupancy();
-          return { id: s.id, name: s.name, n: occ.n, cap: occ.cap || CAP, stage: occ.stage || null };
+          return { id: s.id, name: s.name, n: occ.n, cap: occ.cap || CAP, stage: occ.stage || null, play: occ.play || null };
         }));
-        return json({ ok: true, servers }, 200, origin);
+        // v73: 관리자 설정(맵 등)을 접속 전에 미리 알려 줘서 첫 화면부터 맞는 맵이 보이게
+        const play = (servers.find((r) => r.play) || {}).play || null;
+        servers.forEach((r) => { delete r.play; });
+        return json({ ok: true, servers, play }, 200, origin);
       }
       const room = path.match(/^\/ws\/([1-4])$/);
       if (room && request.method === "GET") {

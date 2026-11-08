@@ -32,9 +32,11 @@
     return w;
   }
 
+  // v73: ⚙ 설정 › 이벤트 창에서 끈 게임은 창을 띄우지 않아요
+  function offKind(k) { try { const S = N().S; return k === "cho" ? S.evCho === false : S.evBal === false; } catch (e) { return false; } }
   function render() {
     const w = el();
-    if (!cur || hidden === cur.id) { w.className = ""; w.innerHTML = ""; return; }
+    if (!cur || hidden === cur.id || offKind(cur.kind)) { w.className = ""; w.innerHTML = ""; return; }
     const g = cur, done = g.done, L = left(), pct = Math.max(0, Math.min(100, L / (g.end - g.start) * 100)), cho = g.kind === "cho", r = res[g.id] || {};
     const title = cho ? (done ? "⚡ 초성 퀴즈 종료" : "⚡ 초성 퀴즈") : (done ? "⚖️ 밸런스 게임 결과" : "⚖️ 밸런스 게임");
     if (mini && !done) {
