@@ -1871,9 +1871,9 @@ function umvSheet(){let s=$('umvSheet');if(!UMV.on){if(s)s.remove();return;}if(!
  s.querySelector('[data-uma]').onclick=()=>{umvSnap();const P=umvP();for(const id in UMV_N){delete P[id];umvPut($(id),null);}umvSheet();};
  s.querySelector('[data-umd]').onclick=()=>umvLeave(true);s.querySelector('[data-umd2]').onclick=e2=>{e2.stopPropagation();umvLeave(true);};
  s.querySelector('.hd>div').onclick=()=>document.body.classList.toggle('umvMin');}
-function umvEnter(el){UMV.on=true;UMV.hist=[];umvSnap();document.body.classList.add('umv','umvMin');try{navigator.vibrate&&navigator.vibrate(25);}catch(e){}
+function umvEnter(el){UMV.pass=true;UMV.on=true;try{PT.clear();pinch=null;}catch(e){}UMV.hist=[];umvSnap();document.body.classList.add('umv','umvMin');try{navigator.vibrate&&navigator.vibrate(25);}catch(e){}
  umvMark();umvSel(el);UMV.mk=setInterval(umvMark,1000);}
-function umvLeave(save){UMV.on=false;clearInterval(UMV.mk);if(save){umvSave();toast('✋ 배치를 저장했어요',1400);}document.body.classList.remove('umv','umvMin');umvSel(null);umvMark();const b=$('umvBar');if(b)b.remove();umvSheet();}
+function umvLeave(save){UMV.on=false;UMV.drag=null;UMV.pass=false;try{PT.clear();pinch=null;}catch(e){}try{window.dispatchEvent(new PointerEvent('pointerup',{bubbles:true}));window.dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));}catch(e){}clearInterval(UMV.mk);if(save){umvSave();toast('✋ 배치를 저장했어요',1400);}document.body.classList.remove('umv','umvMin');umvSel(null);umvMark();const b=$('umvBar');if(b)b.remove();umvSheet();}
 function umvRing(x,y,on){let r=$('umvRing');if(!r){r=document.createElement('div');r.id='umvRing';document.body.appendChild(r);}r.style.left=x+'px';r.style.top=y+'px';r.classList.remove('on');if(on){void r.offsetWidth;r.classList.add('on');}}
 const umvUI=t=>t&&t.closest&&t.closest('#umvBar,#umvSheet');
 addEventListener('pointerdown',e=>{
@@ -1887,9 +1887,10 @@ addEventListener('pointermove',e=>{
  const r=d.el.getBoundingClientRect(),M=8,S=10;let sx=0,sy=0;if(Math.abs(r.left-M)<S)sx=M-r.left;else if(Math.abs(innerWidth-M-r.right)<S)sx=innerWidth-M-r.right;else if(Math.abs((r.left+r.right)/2-innerWidth/2)<S)sx=innerWidth/2-(r.left+r.right)/2;
  if(r.left<0)sx=-r.left;if(r.right>innerWidth)sx=innerWidth-r.right;if(Math.abs(r.top-M)<S)sy=M-r.top;else if(Math.abs(innerHeight-M-r.bottom)<S)sy=innerHeight-M-r.bottom;if(r.top<0)sy=-r.top;if(r.bottom>innerHeight)sy=innerHeight-r.bottom;
  if(sx||sy){P[d.el.id]=[P[d.el.id][0]+sx,P[d.el.id][1]+sy,P[d.el.id][2]];umvPut(d.el,P[d.el.id]);}},true);
-addEventListener('pointerup',e=>{if(UMV.eat)setTimeout(()=>UMV.eat=false,450);if(UMV.lp){clearTimeout(UMV.lp.t);UMV.lp=null;umvRing(0,0,false);}if(UMV.on){if(!umvUI(e.target)){e.preventDefault();e.stopPropagation();}if(UMV.drag){UMV.drag=null;umvSheet();}}},true);
+addEventListener('pointerup',e=>{if(UMV.eat)setTimeout(()=>UMV.eat=false,450);if(UMV.lp){clearTimeout(UMV.lp.t);UMV.lp=null;umvRing(0,0,false);}if(UMV.pass){setTimeout(()=>UMV.pass=false,350);return;}if(UMV.on){if(!umvUI(e.target)){e.preventDefault();e.stopPropagation();}if(UMV.drag){UMV.drag=null;umvSheet();}}},true);
 ['pointercancel'].forEach(t=>addEventListener(t,()=>{if(UMV.lp){clearTimeout(UMV.lp.t);UMV.lp=null;umvRing(0,0,false);}UMV.drag=null;},true));
-['click','touchstart','touchend','mousedown','mouseup','contextmenu','dblclick'].forEach(t=>addEventListener(t,e=>{if(t==='contextmenu'&&(UMV.lp||UMV.on)){e.preventDefault();return;}if(UMV.eat&&t==='click'){UMV.eat=false;e.preventDefault();e.stopPropagation();return;}if(UMV.on&&!umvUI(e.target)){if(t!=='touchstart'&&t!=='touchend')e.preventDefault();e.stopPropagation();}},{capture:true,passive:false}));
+['click','touchstart','touchend','mousedown','mouseup','contextmenu','dblclick'].forEach(t=>addEventListener(t,e=>{if(t==='contextmenu'&&(UMV.lp||UMV.on)){e.preventDefault();return;}if(UMV.eat&&t==='click'){UMV.eat=false;e.preventDefault();e.stopPropagation();return;}if(UMV.pass&&(t==='touchend'||t==='mouseup'))return;if(UMV.on&&!umvUI(e.target)){if(t!=='touchstart'&&t!=='touchend')e.preventDefault();e.stopPropagation();}},{capture:true,passive:false}));
+['touchcancel','pointercancel'].forEach(t=>addEventListener(t,()=>{UMV.pass=false;},true));
 addEventListener('keydown',e=>{if(UMV.on&&e.key==='Escape')umvLeave(true);},true);
 function _renderSet(){const A=S.auto,g=S.showG;
  $('set').innerHTML=`<div class="card" style="width:min(620px,94vw)"><button class="close" data-close="set">×</button><h2>⚙ 설정 · 저장</h2>
