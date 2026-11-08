@@ -1546,6 +1546,7 @@ const LAB=[
  {k:'fuseOn',n:'⚗ 물고기 합성',d:'같은 물고기·같은 별 3마리 → 별 올리기 + 가끔 변이(황금·벚꽃·알비노·무지개·유령). 메뉴에 「합성」 버튼이 생겨요. 촉매는 모험에서 얻어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
  {k:'advOn',n:'🧭 물고기 모험',d:'탐험 지도에서 물고기 3마리를 원정 보내요. 돌아오면 코인·상자·지도 조각·합성 촉매. 「빠른 테스트」는 1시간 = 1분 (관리자 확인용)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기'],['fast','빠른 테스트 (1시간=1분)']]},
  {k:'topUi',n:'📱 모바일 상단 정리',d:'휴대폰 세로 화면의 위쪽만 바꿔요 (아래 버튼은 그대로). A 알림 한 줄 · B 왼쪽 레일+오른쪽 알림 · C 상단 바가 알림으로 변신 · D 알림함+짧은 토스트. 고르면 「모바일 화면 배치」보다 먼저 적용돼요',scope:'me',o:[['old','기존 (기본)'],['A','A 알림 한 줄'],['B','B 왼쪽 레일 + 오른쪽 알림'],['C','C 상단 바가 알림으로'],['D','D 알림함 + 짧은 토스트']]},
+ {k:'tutDone',n:'🎓 튜토리얼 완료 창',d:'임무를 끝내면 오른쪽 알림 대신 확인 창이 떠요. 여러 개를 한 번에 끝내면 확인을 누를 때마다 다음 창이 나와요. 보상은 튜토리얼 데이터를 그대로 읽어요',scope:'me',o:[['old','기존 · 오른쪽 알림 (기본)'],['A','A · 할아버지 칭찬 카드'],['B','B · 보상이 하나씩 톡톡'],['C','C · 아래에서 올라오는 카드']]},
  {k:'uiMove',n:'✋ 꾹 눌러 옮기기',d:'상태바·채팅·날씨·목표 카드·하단 메뉴·낚시 버튼·조이스틱 등을 0.5초 꾹 누르면 이동 모드 → 끌어서 옮기고 크기 조절. 배치는 기기마다 저장돼요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
  {k:'setUi',n:'⚙ 설정 화면',d:'A 한 장으로: 소리·화면·낚시·계정을 카드로 한 화면에 · B 탭 3개: 소리·화면 / 낚시 / 계정 · C 빠른 설정 패널: 큰 켜기·끄기 타일 + 소리 막대. 닉네임·저장·차단은 기존 화면으로 연결돼요',scope:'me',o:[['old','기존 (기본)'],['A','A 한 장으로'],['B','B 탭 3개'],['C','C 빠른 설정 패널']]},
  {k:'mobUi',n:'📱 모바일 화면 배치',d:'휴대폰에서만 적용돼요. A 슬림 상단 + 하단 탭바 · B 엄지 원형 메뉴 · C 알림 레일 + 아래 시트 · D 가로 화면 (세로일 때는 A). 목표 카드는 한 줄로 접히고 누르면 펼쳐져요',scope:'me',o:[['old','기존 (기본)'],['A','A 슬림 상단 + 하단 탭바'],['B','B 엄지 원형 메뉴'],['C','C 알림 레일 + 아래 시트'],['D','D 가로 화면']]},
@@ -1758,6 +1759,35 @@ function bindSxSub(v){const R=$('set'),re=()=>keepScroll('set',()=>renderSetX(v)
  const f=$('sxImpF');if(f)f.onchange=()=>sxLegacyClick('imp',null,f.files,re);}
 // 저장·판매 같은 기존 동작은 그대로 쓰려고, 이전 화면을 보이지 않는 곳에 잠깐 그려서 버튼만 눌러요
 function sxLegacyClick(id,vals,files,re){const leg=SETX.leg;try{_renderSet();if(vals)for(const k in vals){const el=$(k);if(el)el.value=vals[k];}const el=$(id);if(el){if(files){try{Object.defineProperty(el,'files',{value:files,configurable:true});}catch(e){}el.dispatchEvent(new Event('change'));}else el.click();}}catch(e){console.warn(e);}finally{SETX.leg=leg;if(re)re();}}
+// v74: 🎓 튜토리얼 완료 확인 창 (관리자 › 🧪 테스트 기능 › 튜토리얼 완료 창) — 오른쪽 알림 대신 확인 창. 여러 개를 한 번에 끝내면 확인을 누를 때마다 다음 창
+// 내용은 완료 순간의 튜토리얼 데이터(제목·아이콘·보상)를 그대로 읽어서, 나중에 튜토리얼이나 보상을 바꿔도 그대로 반영돼요
+const TDQ={q:[],on:false};
+const tdMode=()=>String(uiOpt('tutDone','old'));
+const tdEmo=e=>{const cp=[...String(e||'')].map(c=>c.codePointAt(0).toString(16)).filter(x=>x!=='fe0f').join('-');return cp?`<img class="tdem" src="icons/emoji-png/${cp}.png" alt="" onerror="this.replaceWith(document.createTextNode('${String(e||'').replace(/'/g,'')}'))">`:'';};
+function tdItems(r){if(!r)return [];const L=[],bn=k=>{const b=D.BAITS.find(x=>x.k===k);return b?b.n:k==='paste'?'떡밥':k;};
+ if(r.co)L.push({emo:'1fa99',n:'코인',v:'+'+(+r.co).toLocaleString(),c:'co'});
+ if(r.xp)L.push({emo:'2b50',n:'경험치',v:'+'+r.xp,c:'xp'});
+ if(r.bait)for(const k in r.bait)L.push({emo:'1fab1',n:bn(k),v:'×'+r.bait[k],c:'bt'});
+ if(r.box&&r.box.length)L.push({emo:'1f381',n:'행운 상자',v:'×'+r.box.length,c:'bx'});
+ if(r.stone)L.push({emo:'1f48e',n:'강화석',v:'×'+r.stone,c:'st'});
+ if(r.wear){const it=window.NK_DATA&&NK_DATA.WEAR&&NK_DATA.WEAR.byK[r.wear];L.push({emo:'1f455',n:it?it.n:'장비',v:'',c:'we'});}
+ return L;}
+const tdIt=(x,i)=>`<div class="tdi tdi-${x.c}" style="--d:${i*90}ms">${x.img?`<img src="${x.img}" alt="">`:`<img src="icons/emoji-png/${x.emo}.png" alt="">`}<b>${x.n}</b>${x.v?`<em>${x.v}</em>`:''}</div>`;
+function tdPush(o){TDQ.q.push(o);if(!TDQ.on){TDQ.on=true;clearTimeout(TDQ.t);TDQ.t=setTimeout(tdShow,60);}else tdLbl();}
+function tdLbl(){const b=document.querySelector('#tdDlg .tdok');if(b&&!b.closest('.out'))b.textContent=TDQ.q.length?`확인 · 다음 ${TDQ.q.length}개`:'확인';}
+function tdShow(){const o=TDQ.q.shift();let w=$('tdDlg');if(!o){TDQ.on=false;if(w){w.classList.remove('on');setTimeout(()=>{if(!TDQ.on&&w)w.remove();},260);}return;}
+ TDQ.on=true;if(!w){w=document.createElement('div');w.id='tdDlg';w.setAttribute('role','dialog');w.setAttribute('aria-modal','true');document.body.appendChild(w);}
+ const v=tdMode(),its=tdItems(o.rw),left=TDQ.q.length,btn=left?`확인 · 다음 ${left}개`:'확인',all=o.all;
+ const head=all?`<b class="tdt">튜토리얼을 모두 마쳤어요!</b><p class="tds">이제 자유롭게 낚시해요</p>`:`<small class="tdk">${o.cat?sxH(o.cat)+' · ':''}${o.no?o.no+'번째 임무':'임무'} 완료</small><b class="tdt">${sxH(o.t)}</b>`;
+ const rw=its.length?`<div class="tdr">${its.map(tdIt).join('')}</div>`:(all?'':`<p class="tds">보상 없이 넘어가는 임무예요</p>`);
+ let h='';
+ if(v==='B')h=`<div class="tdc tdB"><div class="tdburst" aria-hidden="true"></div><div class="tdic">${all?tdEmo('🎉'):tdEmo(o.ic)}</div>${head}${its.length?'<small class="tdk2">받은 보상</small>':''}${rw}<button type="button" class="tdok">${btn}</button></div>`;
+ else if(v==='C')h=`<div class="tdc tdC"><div class="tdrow"><div class="tdic">${all?tdEmo('🎉'):tdEmo(o.ic)}</div><div>${head}</div></div>${rw}${left?`<div class="tddots" aria-label="남은 확인 창 ${left}개">${'<i></i>'.repeat(Math.min(left,6))}</div>`:''}<button type="button" class="tdok">${btn}</button></div>`;
+ else h=`<div class="tdc tdA"><div class="tdnpc"><img src="img/chars/h1.jpg" alt="노인 어부 할아버지"><span class="tdbub">${all?'정말 잘했구나!':'잘했다, 꼬마 낚시꾼!'}</span></div><div class="tdbody"><div class="tdic">${all?tdEmo('🎉'):tdEmo(o.ic)}</div>${head}${rw}<button type="button" class="tdok">${btn}</button></div></div>`;
+ w.className='v'+(v==='B'||v==='C'?v:'A');w.innerHTML=h;requestAnimationFrame(()=>w.classList.add('on'));
+ try{snd&&snd.on&&sfx&&sfx.ding&&sfx.ding();}catch(e){}
+ const ok=w.querySelector('.tdok');ok.focus({preventScroll:true});ok.onclick=e=>{e.stopPropagation();const c=w.querySelector('.tdc');if(c)c.classList.add('out');setTimeout(tdShow,160);};}
+window.NK_TUTDONE={on:()=>tdMode()!=='old',push:tdPush,demo:(n=3)=>{const T=window.NK_TUT&&NK_TUT.STEPS||[];T.slice(0,n).forEach((st,i)=>tdPush({t:st.t,ic:st.ic,cat:st.cat,rw:st.rw,no:i+1}));}};
 // v64: 📱 모바일 화면 배치 시안 (관리자 › 🧪 테스트 기능 › 모바일 화면) — A 슬림 상단+하단 탭바 · B 엄지 원형 메뉴 · C 알림 레일+아래 시트 · D 가로 화면
 function mxMode(){const v=String(uiOpt('mobUi','old'));if(v==='old')return '';if(String(uiOpt('topUi','old'))!=='old'&&innerWidth<700&&innerHeight>innerWidth)return '';const B=document.body,touch=innerWidth<700||matchMedia('(pointer:coarse)').matches;if(!touch)return '';
  const land=innerWidth>innerHeight&&innerHeight<560;if(land)return v==='D'?'D':'';if(innerWidth>=700||!B.classList.contains('m3'))return '';return v==='D'?'A':v;}
