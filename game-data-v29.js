@@ -20,3 +20,5 @@
   boxRate:[0,0,.04,.08,.12,.16], // 일반~신화
   boxLv: [[1],[1,10],[10,20],[20,30,40],[40,50,60],[60,70,80,90]]};
 })(window.NK_DATA);
+// v77: 입질 대기 최소값 5초 → 2초 (좋은 낚싯대·강화가 끝까지 속도에 반영되게), 자동 낚시 패널티 없앰 (대기·희귀·상자 모두 수동과 같게)
+(function(D){if(!D)return;if(D.BITE)D.BITE.min=2;if(D.AUTO)Object.assign(D.AUTO,{waitMul:1,rareMul:1,boxMul:1});})(window.NK_DATA);
