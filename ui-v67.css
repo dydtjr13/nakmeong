@@ -99,3 +99,13 @@ body.tx-B:not(.tx-tqo) #tq25 .bb>.goal{flex:1 1 100%!important;white-space:nowra
 body.tx-B:not(.tx-tqo) #tq25 .bb>.rw{margin:0!important}
 #umvSheet,#umvSheet *{-webkit-user-select:none;user-select:none}
 body.umv,body.umv *{-webkit-touch-callout:none}
+/* v69: 모바일 메뉴 안의 「메뉴」(또 메뉴) 없애고 한 목록으로 */
+@media(max-width:699px){
+ body.m3 #mSys #bMenu51{display:none!important}
+ body.m3 #mSys #mDrop51{display:contents!important}
+ body.m3 #mSys>button,body.m3 #mSys #mDrop51>button{display:flex!important;align-items:center;gap:10px;width:100%;min-height:44px;height:auto!important;padding:8px 12px!important;border-radius:12px;background:transparent!important;box-shadow:none!important;justify-content:flex-start}
+ body.m3 #mSys>button .ml,body.m3 #mSys #mDrop51>button .ml{display:inline!important;font-size:14px!important;font-weight:700;position:static!important;transform:none!important;opacity:1!important}
+ body.m3 #mSys>button .mi,body.m3 #mSys #mDrop51>button .mi{width:24px;text-align:center;font-size:18px}
+ body.m3 #mSys #mDrop51>button kbd{display:none}
+ body.m3 #mSys{min-width:168px}
+}
