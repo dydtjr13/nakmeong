@@ -1876,7 +1876,7 @@ function umvSheet(){const old=$('umvSheet');if(old)old.remove();let t=$('umvTb')
  if(!t){t=document.createElement('div');t.id='umvTb';document.body.appendChild(t);}
  const v=umvP()[e.id],sc=Math.round(((v&&v[2])||1)*100);
  t.innerHTML=`<b class="nm">${UMV_N[e.id]||''}</b><button type="button" data-umz="-1" aria-label="작게">−</button><span class="pc">${sc}%</span><button type="button" data-umz="1" aria-label="크게">+</button><i></i><button type="button" class="ic" data-umu aria-label="되돌리기">↶</button><button type="button" class="tx" data-umo>원래대로</button><span class="ar" aria-hidden="true"></span>`;
- t.querySelectorAll('[data-umz]').forEach(b=>b.onclick=()=>{const P=umvP(),cur=P[e.id]||[0,0,1],n=Math.max(70,Math.min(130,Math.round((cur[2]||1)*100)+10*+b.dataset.umz));umvSnap();P[e.id]=[cur[0],cur[1],n/100];umvPut(e,P[e.id]);umvAuto();umvSheet();});
+ t.querySelectorAll('[data-umz]').forEach(b=>b.onclick=()=>{const P=umvP(),cur=P[e.id]||[0,0,1],n=Math.max(70,Math.min(130,Math.round((cur[2]||1)*100)+10*+b.dataset.umz));umvSnap();P[e.id]=[cur[0],cur[1],n/100];umvPut(e,P[e.id]);keepIn(e);umvAuto();umvSheet();});
  t.querySelector('[data-umu]').onclick=umvUndo;
  t.querySelector('[data-umo]').onclick=()=>{umvSnap();delete umvP()[e.id];umvPut(e,null);umvAuto();umvSheet();};
  umvTbPos();}
@@ -1897,11 +1897,28 @@ function uiDefPublish(clear){if(!(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.stat
  else{const P=umvP(),n=Object.keys(P).filter(x=>x!=='dc').length;if(!confirm(`지금 내 ${nm} 배치(${n}개 창)를 모든 유저의 처음 화면으로 적용할까요?\n자기 배치를 따로 바꾼 유저는 그대로예요.`))return;cur[k]=JSON.parse(JSON.stringify(P));delete cur[k].dc;}
  V14.publishPlay({uiPos:cur});toast(clear?`✅ ${nm} 처음 화면 배치를 지웠어요`:`✅ ${nm} 처음 화면 배치를 모든 유저에게 적용했어요`,2000);}
 setInterval(()=>{if(UMV.drag)return;const P=umvP();['rtPill','txBell','dc'].forEach(id=>{const e=$(id);if(e)umvPut(e,P[id]);});},1500);
-// v71: 옮긴 튜토리얼 카드를 눌러 펼쳤을 때 화면 밖으로 밀려나지 않게 — 넘친 만큼만 안쪽으로
-function keepIn(e){if(!e)return;const st=e.style;st.marginLeft=st.marginRight=st.marginTop=st.marginBottom='';if(!txVis(e)||UMV.drag&&UMV.drag.el===e)return;const r=e.getBoundingClientRect(),M=8;if(!r.width)return;
- let dx=0,dy=0;if(r.right>innerWidth-M)dx=innerWidth-M-r.right;if(r.left+dx<M)dx=M-r.left;if(r.bottom>innerHeight-M)dy=innerHeight-M-r.bottom;if(r.top+dy<M)dy=M-r.top;if(!dx&&!dy)return;
- const c=getComputedStyle(e);if(dx){if(c.left!=='auto')st.marginLeft=dx+'px';else st.marginRight=-dx+'px';}if(dy){if(c.top!=='auto')st.marginTop=dy+'px';else st.marginBottom=-dy+'px';}}
-setInterval(()=>keepIn($('tq25')),300);document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#tq25'))[30,120,300].forEach(t=>setTimeout(()=>keepIn($('tq25')),t));});
+// v71→v72: 옮긴 창(튜토리얼 카드 펼침·크기 키움·화면 회전 등)이 화면 밖으로 나가지 않게 — 넘친 만큼만 안쪽으로
+function keepIn(e){if(!e)return;const st=e.style;const had=st.marginLeft||st.marginRight||st.marginTop||st.marginBottom;if(had)st.marginLeft=st.marginRight=st.marginTop=st.marginBottom='';
+ if(!st.translate&&!st.scale||e._anc)return;if(UMV.drag&&UMV.drag.el===e)return;if(!txVis(e))return;const c=getComputedStyle(e);if(c.position!=='fixed'&&c.position!=='absolute')return;
+ const r=e.getBoundingClientRect(),W=innerWidth,H=innerHeight;let dx=0,dy=0;
+ if(r.width<=W){if(r.right>W)dx=W-r.right;if(r.left+dx<0)dx=-r.left;}if(r.height<=H){if(r.bottom>H)dy=H-r.bottom;if(r.top+dy<0)dy=-r.top;}
+ dx=Math.round(dx);dy=Math.round(dy);if(!dx&&!dy)return;if(dx){if(c.left!=='auto')st.marginLeft=dx+'px';else st.marginRight=-dx+'px';}if(dy){if(c.top!=='auto')st.marginTop=dy+'px';else st.marginBottom=-dy+'px';}}
+const KEEP_IDS=()=>{const L=Object.keys(UMV_N);try{(NK_UIEDIT.IDS||[]).forEach(([k])=>{if(k!=='cutin'&&!L.includes(k))L.push(k);});}catch(e){}return L;};
+function keepAll(){try{if(window.NK_UIEDIT&&NK_UIEDIT.on())return;}catch(e){}KEEP_IDS().forEach(id=>keepIn($(id)));}
+setInterval(keepAll,400);addEventListener('resize',()=>setTimeout(keepAll,60));document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#tq25'))[30,120,300].forEach(t=>setTimeout(()=>keepIn($('tq25')),t));});
+// v72: 메뉴 버튼을 옮겼으면 메뉴는 버튼 옆에서 펼쳐요 — 버튼이 아래쪽이면 위로, 위쪽이면 아래로. 화면에 다 안 들어가면 스크롤
+function menuAnchor(){const m=$('mSys'),b=$('bMore'),B=document.body,ST=['top','bottom','left','right','max-height','overflow-y','translate','scale'];if(!m)return;
+ const clr=()=>{if(m._anc){ST.forEach(k=>m.style.removeProperty(k));m._anc=0;}};
+ if(!B.classList.contains('m3')||!B.classList.contains('menu-open')||!b||!txVis(b)){clr();return;}
+ const moved=!!(b.style.translate||b.style.scale);const set=(k,v)=>m.style.setProperty(k,v,'important');
+ if(moved){const r=b.getBoundingClientRect(),G=8,up=(r.top+r.bottom)/2>innerHeight/2,left=(r.left+r.right)/2<innerWidth/2;
+  set('translate','none');set('scale','1');
+  if(up){set('top','auto');set('bottom',Math.max(8,innerHeight-r.top+G)+'px');set('max-height',Math.max(120,r.top-G-8)+'px');}
+  else{set('bottom','auto');set('top',Math.max(8,r.bottom+G)+'px');set('max-height',Math.max(120,innerHeight-r.bottom-G-8)+'px');}
+  if(left){set('right','auto');set('left',Math.max(8,r.left)+'px');}else{set('left','auto');set('right',Math.max(8,innerWidth-r.right)+'px');}
+  set('overflow-y','auto');m._anc=1;}
+ else{const r=m.getBoundingClientRect();if(r.height&&r.bottom>innerHeight-8){set('max-height',Math.max(120,innerHeight-8-r.top)+'px');set('overflow-y','auto');m._anc=1;}}}
+new MutationObserver(()=>menuAnchor()).observe(document.body,{attributes:true,attributeFilter:['class']});setInterval(menuAnchor,500);addEventListener('resize',()=>setTimeout(menuAnchor,60));
 function uiDefHTML(){let d={};try{d=(NK_RT.status()==='on'&&NK_RT.play&&NK_RT.play.uiPos)||{};}catch(e){}const c=k=>d[k]?Object.keys(d[k]).length+'개 창':'없음 (기본 위치)';
  return `<div class="labrow uidefset" style="display:block"><b>👑 유저 처음 화면 배치</b> <span class="tg o">모든 유저</span><br><small class="muted">꾹 눌러 옮기기로 내 화면을 맞춘 뒤 적용하면, 자기 배치를 바꾸지 않은 유저들의 처음 화면이 같아져요. 지금 적용 중: 모바일 ${c('m')} · PC ${c('pc')} (지금 화면은 ${uiDefKey()==='m'?'모바일':'PC'})</small>
  <p><button class="sm ok" data-uidgo>✅ 내 배치를 인게임 적용</button> <button class="sm" data-uidclr>이 화면 배치 지우기</button></p></div>`;}
@@ -1922,7 +1939,7 @@ addEventListener('pointermove',e=>{
  const r=d.el.getBoundingClientRect(),M=8,S=10;let sx=0,sy=0;if(Math.abs(r.left-M)<S)sx=M-r.left;else if(Math.abs(innerWidth-M-r.right)<S)sx=innerWidth-M-r.right;else if(Math.abs((r.left+r.right)/2-innerWidth/2)<S)sx=innerWidth/2-(r.left+r.right)/2;
  if(r.left<0)sx=-r.left;if(r.right>innerWidth)sx=innerWidth-r.right;if(Math.abs(r.top-M)<S)sy=M-r.top;else if(Math.abs(innerHeight-M-r.bottom)<S)sy=innerHeight-M-r.bottom;if(r.top<0)sy=-r.top;if(r.bottom>innerHeight)sy=innerHeight-r.bottom;
  if(sx||sy){P[d.el.id]=[P[d.el.id][0]+sx,P[d.el.id][1]+sy,P[d.el.id][2]];umvPut(d.el,P[d.el.id]);}},true);
-addEventListener('pointerup',e=>{if(UMV.eat)setTimeout(()=>UMV.eat=false,450);if(UMV.lp){clearTimeout(UMV.lp.t);UMV.lp=null;umvRing(0,0,false);}if(UMV.pass){setTimeout(()=>UMV.pass=false,350);return;}if(UMV.on){if(!umvUI(e.target)){e.preventDefault();e.stopPropagation();}if(UMV.drag){const mv=UMV.drag.moved;UMV.drag=null;document.body.classList.remove('umvDrag');umvSheet();if(mv)umvAuto();}}},true);
+addEventListener('pointerup',e=>{if(UMV.eat)setTimeout(()=>UMV.eat=false,450);if(UMV.lp){clearTimeout(UMV.lp.t);UMV.lp=null;umvRing(0,0,false);}if(UMV.pass){setTimeout(()=>UMV.pass=false,350);return;}if(UMV.on){if(!umvUI(e.target)){e.preventDefault();e.stopPropagation();}if(UMV.drag){const mv=UMV.drag.moved,de=UMV.drag.el;UMV.drag=null;keepIn(de);document.body.classList.remove('umvDrag');umvSheet();if(mv)umvAuto();}}},true);
 ['pointercancel'].forEach(t=>addEventListener(t,()=>{if(UMV.lp){clearTimeout(UMV.lp.t);UMV.lp=null;umvRing(0,0,false);}if(UMV.drag){UMV.drag=null;document.body.classList.remove('umvDrag');umvSheet();}},true));
 ['click','touchstart','touchend','mousedown','mouseup','contextmenu','dblclick'].forEach(t=>addEventListener(t,e=>{if(t==='contextmenu'&&(UMV.lp||UMV.on)){e.preventDefault();return;}if(UMV.eat&&t==='click'){UMV.eat=false;e.preventDefault();e.stopPropagation();return;}if(UMV.pass&&(t==='touchend'||t==='mouseup'))return;if(UMV.on&&!umvUI(e.target)){if(t!=='touchstart'&&t!=='touchend')e.preventDefault();e.stopPropagation();}},{capture:true,passive:false}));
 ['touchcancel','pointercancel'].forEach(t=>addEventListener(t,()=>{UMV.pass=false;},true));
