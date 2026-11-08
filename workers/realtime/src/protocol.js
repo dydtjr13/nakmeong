@@ -853,6 +853,8 @@ export function sanitizePlay(input, prev, opt) {
   if ("mapSt" in input) out.mapSt = pickOf(input.mapSt, ["old", "A", "B", "C", "X", "XM", "GB"]);
   if ("setUi" in input) out.setUi = pickOf(input.setUi, ["old", "A", "B", "C"]);
   if ("mobUi" in input) out.mobUi = pickOf(input.mobUi, ["old", "A", "B", "C", "D"]);
+  if ("fuseOn" in input) out.fuseOn = pickOf(input.fuseOn, ["off", "on"]);
+  if ("advOn" in input) out.advOn = pickOf(input.advOn, ["off", "on", "fast"]);
   // v62: 배경음악
   if ("bgmOn" in input) out.bgmOn = flag01(input.bgmOn);
   if ("bgm" in input) out.bgm = /^[\w-]{1,24}$/.test(String(input.bgm)) ? String(input.bgm) : "shuffle";
