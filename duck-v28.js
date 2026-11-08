@@ -1,6 +1,6 @@
 // 피쉬코지 v47: 오리는 원 궤도 대신 물결에 실려 천천히 떠다님(world-sync.js ducks). v30: 러버덕 순환 스폰(첫 base · 셔플 순차 · 최대 시 페이드) · 8종(펭귄·눈사람 포함)(기본+해적·딸기·우주비행사·개구리·유니콘, duck-var-v28.js) — 하늘에서 떨어져 첨벙! 후 호수를 둥둥 유영. 설정: 생성 간격·최대 수(최대 30)
 // 3D 모델: JDSherbert "3D Rubber Duck Asset Pack" (상업 이용 가능 · 작가 표기 필수)
-(function(){const U=()=>window.NK_UI25,G=()=>window.NKV2;let T,scene,IM=[],VG={},ducks=[],fx=[],last=0,nextT=0,rMax=8,ok=false;const MAX=30;
+(function(){const U=()=>window.NK_UI25,G=()=>window.NKV2;let T,scene,IM=[],VG={},ducks=[],fx=[],last=0,nextT=0,rMax=8,ok=false;const MAX=32;
  // v49: 실시간 접속 중에는 서버 play 값(없으면 NK_SYNC.DUCK_DEF)만 쓴다 → 모든 유저가 같은 오리
  const UG=k=>{const RT=window.NK_RT,DD=window.NK_SYNC&&NK_SYNC.DUCK_DEF;if(RT&&RT.status&&RT.status()==='on'&&k!=='duckSnd'){const P=RT.play||{};if(k in P)return P[k];return DD?DD[k]:undefined;}const v=U().get(k);return v!=null?v:(DD?DD[k]:undefined);};
  const conf=()=>({on:UG('duckOn')!==0,every:+(UG('duckEvery')||45),max:Math.min(MAX,Math.max(0,+(UG('duckMax')??8))),size:(()=>{const v=UG('duckSize');return v==null||String(v)==='rand'?'rand':(+v||1);})(),speed:+(UG('duckSpeed')??1),snd:U().get('duckSnd')!==0,kinds:(()=>{const allow=new Set((window.NK_DUCKV&&NK_DUCKV.LIST||[]).map(x=>x[0]));const raw=String(UG('duckKinds')??'base,pirate,straw,astro,frog,uni,penguin,snowman,dino').split(',').filter(k=>allow.has(k));return raw.length?raw:['base','pirate','straw','astro','frog','uni','penguin','snowman','dino'];})()});
@@ -30,6 +30,8 @@
  // v77: 🦆 오리 놀이 — ③ 부딪히면 합체(최대 3단계, 왕관) · ⑤ 엄마 오리 따라 줄서기 (항상)
  //      🧪 ① 미끄럼틀 섬 · ② 물길 · ④ 분수 점프 (관리자 › 테스트 기능 › 오리 놀이 시설)
  // 실시간 호수에서는 모두 같은 시각(서버 시각)과 같은 오리 배치로 계산해서, 접속한 사람끼리 거의 같은 장면을 봐요
+ // 같은 단계끼리 부딪혀야 다음 단계 · 오리 32마리면 32→16→8→4→2→1 이라 5단계(크기 ×1.2씩, 5단계 ≈ ×2.5)가 끝. 3단계부터 왕관, 5단계는 큰 금왕관
+ const FUN_MAXL=5,FUN_COL=['#ffffff','#fff3a0','#bfe8ff','#ffd34a','#ff9ad0','#c8a8ff'];
  const FUN={lv:{},abs:{},lastM:0,crown:null,fac:null,facK:'',rides:{}};
  const nowS=()=>{const RT=window.NK_RT;const sk=RT&&Number.isFinite(+RT.clockSkew)?+RT.clockSkew:0;return Date.now()-sk;};
  const funOpt=()=>{try{return String(G().uiOpt?G().uiOpt('duckFun','off'):'off');}catch(e){return 'off';}};
@@ -64,13 +66,13 @@
  function funApply(dt,t){const now=nowS();ducks.forEach(d=>d._r=null);const A=ducks.filter(d=>d.st!=='fade');A.forEach(d=>{if(d.key==null)d.key='l'+(FUN.uid=(FUN.uid||0)+1);d._r={x:d.x,y:d.y,z:d.z,yaw:d.yaw,sc:1,hide:false,busy:false};});
   const K=new Map(A.map(d=>[d.key,d]));
   // ③ 합체: 가까워지면 큰 쪽(키가 앞선 쪽)으로 흡수, 2분 뒤 다시 톡 나와요
-  for(const k in FUN.abs){const a=FUN.abs[k];if(now>a.until||!K.has(k)||!K.has(a.into)){if(K.has(k)&&K.has(a.into)){const d=K.get(a.into);burst(d.x,WY+.3,d.z,'#ffffff',10);}if(FUN.lv[a.into])FUN.lv[a.into]=Math.max(0,FUN.lv[a.into]-1);delete FUN.abs[k];}}
+  for(const k in FUN.abs){const a=FUN.abs[k];if(now>a.until||!K.has(k)||!K.has(a.into)){if(K.has(k)&&K.has(a.into)){const d=K.get(a.into);burst(d.x,WY+.3,d.z,'#ffffff',10);}if(FUN.lv[a.into]!=null)FUN.lv[a.into]=Math.min(FUN.lv[a.into],a.prevW!=null?a.prevW:Math.max(0,FUN.lv[a.into]-1));delete FUN.abs[k];}}
   for(const d of A){if(FUN.abs[d.key])d._r.hide=true;}
-  if(now-FUN.lastM>10000)for(let i=0;i<A.length;i++){const a=A[i];if(a._r.hide||a.st!=='swim')continue;for(let j=i+1;j<A.length;j++){const b=A[j];if(b._r.hide||b.st!=='swim')continue;if(Math.hypot(a.x-b.x,a.z-b.z)<1.6){const [w,l]=String(a.key)<String(b.key)?[a,b]:[b,a];if((FUN.lv[w.key]||0)>=2||(FUN.lv[l.key]||0)>0)continue;FUN.abs[l.key]={into:w.key,until:now+120000};FUN.lv[w.key]=(FUN.lv[w.key]||0)+1;FUN.lastM=now;l._r.hide=true;burst((a.x+b.x)/2,WY+.4,(a.z+b.z)/2,'#fff3a0',18);i=A.length;break;}}}
-  for(const d of A){const L=FUN.lv[d.key]||0;if(L)d._r.sc=1+.45*L;}
+  if(now-FUN.lastM>6000)for(let i=0;i<A.length;i++){const a=A[i];if(a._r.hide||a.st!=='swim')continue;for(let j=i+1;j<A.length;j++){const b=A[j];if(b._r.hide||b.st!=='swim')continue;const la=FUN.lv[a.key]||0,lb=FUN.lv[b.key]||0;if(la!==lb||la>=FUN_MAXL)continue;if(Math.hypot(a.x-b.x,a.z-b.z)<1.5*Math.pow(1.2,la)){const [w,l]=String(a.key)<String(b.key)?[a,b]:[b,a];FUN.abs[l.key]={into:w.key,until:now+300000,prevW:la};FUN.lv[w.key]=la+1;FUN.lastM=now;l._r.hide=true;burst((a.x+b.x)/2,WY+.4,(a.z+b.z)/2,FUN_COL[la+1],14+la*4);i=A.length;break;}}}
+  for(const d of A){const L=FUN.lv[d.key]||0;if(L)d._r.sc=Math.pow(1.2,L);}
   // ⑤ 엄마 오리 따라 줄서기: 4분마다 100초 동안, 가장 큰 오리를 가까운 오리 넷이 따라가요
   const W=240000,wk=Math.floor(now/W),we=now-wk*W,DUR=100000;
-  if(we<DUR){const fa=Math.min(1,we/5000,(DUR-we)/5000);const pool=A.filter(d=>!d._r.hide&&d.st==='swim');if(pool.length>=3){const mom=pool.slice().sort((a,b)=>(b.s*(1+.45*(FUN.lv[b.key]||0)))-(a.s*(1+.45*(FUN.lv[a.key]||0)))||String(a.key).localeCompare(String(b.key)))[0];
+  if(we<DUR){const fa=Math.min(1,we/5000,(DUR-we)/5000);const pool=A.filter(d=>!d._r.hide&&d.st==='swim');if(pool.length>=3){const mom=pool.slice().sort((a,b)=>(b.s*Math.pow(1.2,FUN.lv[b.key]||0))-(a.s*Math.pow(1.2,FUN.lv[a.key]||0))||String(a.key).localeCompare(String(b.key)))[0];
     const kids=pool.filter(d=>d!==mom).sort((a,b)=>Math.hypot(a.x-mom.x,a.z-mom.z)-Math.hypot(b.x-mom.x,b.z-mom.z)).slice(0,4);const fw=[Math.sin(mom.yaw),Math.cos(mom.yaw)];
     kids.forEach((d,i)=>{const gap=(1.1+i*1.05)*Math.max(.9,mom.s*.8),sw=Math.sin(now/600+i)*.18;const tx=mom.x-fw[0]*gap+fw[1]*sw,tz=mom.z-fw[1]*gap-fw[0]*sw;d._r.x+=(tx-d._r.x)*fa;d._r.z+=(tz-d._r.z)*fa;if(fa>.5)d._r.yaw=mom.yaw;d._r.busy=true;d._r.sc=Math.min(d._r.sc,.85);});
     kids.forEach(d=>{const r=Math.hypot(d._r.x,d._r.z),lim=rMax*.95;if(r>lim){d._r.x*=lim/r;d._r.z*=lim/r;}});    mom._r.busy=true;if(fa>=1&&FUN.heartK!==wk){FUN.heartK=wk;burst(mom.x,WY+.8,mom.z,'#ff7aa2',16);}}}
@@ -112,7 +114,7 @@
     let da=((d.tY-d.yaw+Math.PI)%(Math.PI*2)+Math.PI*2)%(Math.PI*2)-Math.PI;d.yaw+=da*Math.min(1,dt*.35);const dv=(SY&&SY.duckSpeed?SY.duckSpeed(c.speed):c.speed*.1)*(d.sp/.35);d.x+=Math.sin(d.yaw)*dv*dt+Math.sin(d.ph*.09)*dv*.15*dt;d.z+=Math.cos(d.yaw)*dv*dt+Math.cos(d.ph*.07)*dv*.15*dt;d.y=WY-.04+Math.sin(d.ph*2.1)*.035;}}
   try{funApply(dt,t);}catch(e){if(!FUN.err){FUN.err=1;console.warn('[duckfun]',e);}}const CR=crownMesh();let cn=0;
   const CN={};for(const v in VG)CN[v]=0;ducks.forEach(d=>{const r=d._r||{x:d.x,y:d.y,z:d.z,yaw:d.yaw,sc:1};if(r.hide)return;const sw=d.st==='swim'&&!(r.y>d.y+.2);E4.set(sw?Math.sin(d.ph*2.1+1)*.08:(d.st==='fall'?Math.sin(t/120)*.3:0),r.yaw,sw?Math.sin(d.ph*1.7)*.07:0);Q4.setFromEuler(E4);const sm=(String(c.size)==='rand'?d.s:DUCK_BASE*(+c.size||1))*(r.sc||1);S4.set(sm,sm,sm);P4.set(r.x,r.y,r.z);M4.compose(P4,Q4,S4);const L=VG[d.v]||VG.base,i=CN[d.v in VG?d.v:'base']++;L.forEach(m=>m.setMatrixAt(i,M4));
-   if((FUN.lv[d.key]||0)>=2&&cn<MAX){const hy=r.y+sm*1.02;P4.set(r.x,hy,r.z);S4.set(sm,sm,sm);M4.compose(P4,Q4,S4);CR.m.setMatrixAt(cn,M4);for(let j=0;j<5;j++){const a=j/5*6.28+r.yaw;const px=r.x+Math.cos(a)*.22*sm,pz=r.z+Math.sin(a)*.22*sm;P4.set(px,hy+.12*sm,pz);M4.compose(P4,Q4,S4);CR.pk.setMatrixAt(cn*5+j,M4);}cn++;}});
+   if((FUN.lv[d.key]||0)>=3&&cn<MAX){const hy=r.y+sm*1.02,ck=(FUN.lv[d.key]>=5?1.45:FUN.lv[d.key]>=4?1.2:1);P4.set(r.x,hy,r.z);S4.set(sm*ck,sm*ck,sm*ck);M4.compose(P4,Q4,S4);CR.m.setMatrixAt(cn,M4);for(let j=0;j<5;j++){const a=j/5*6.28+r.yaw;const px=r.x+Math.cos(a)*.22*sm,pz=r.z+Math.sin(a)*.22*sm;P4.set(px,hy+.12*sm,pz);M4.compose(P4,Q4,S4);CR.pk.setMatrixAt(cn*5+j,M4);}cn++;}});
   CR.m.count=cn;CR.pk.count=cn*5;CR.m.instanceMatrix.needsUpdate=CR.pk.instanceMatrix.needsUpdate=true;
   for(const v in VG)VG[v].forEach(m=>{m.count=CN[v];m.visible=CN[v]>0;m.instanceMatrix.needsUpdate=true;});
   for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.t+=dt;const k=f.t/.9;f.ring.scale.setScalar(1+k*5);f.ring.material.opacity=.8*(1-k);const a=f.pts.geometry.attributes.position;for(let j=0;j<f.vel.length;j++){f.vel[j][1]-=9*dt;a.array[j*3]+=f.vel[j][0]*dt;a.array[j*3+1]=Math.max(WY,a.array[j*3+1]+f.vel[j][1]*dt);a.array[j*3+2]+=f.vel[j][2]*dt;}a.needsUpdate=true;f.pts.material.opacity=.9*(1-k);

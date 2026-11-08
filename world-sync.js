@@ -85,7 +85,7 @@
     const o = opt || {};
     if (o.on === 0 || o.on === false) return [];
     const every = Math.max(1000, Math.round(o.every || 300000));
-    const max = Math.max(0, Math.min(30, Math.round(o.max != null ? o.max : 9)));
+    const max = Math.max(0, Math.min(32, Math.round(o.max != null ? o.max : 9)));
     const rMax = o.rMax > 0 ? o.rMax : 8;
     const kinds = Array.isArray(o.kinds) && o.kinds.length ? o.kinds : DUCK_KINDS;
     const v = duckSpeed(o.speed == null ? 0.5 : o.speed);

@@ -348,7 +348,7 @@ export function sharedDucks(now, world, opt) {
   const o = opt || {};
   if (o.on === 0 || o.on === false) return [];
   const every = Math.max(1000, Math.round(o.every || 300000));
-  const max = Math.max(0, Math.min(30, Math.round(o.max != null ? o.max : 9)));
+  const max = Math.max(0, Math.min(32, Math.round(o.max != null ? o.max : 9)));
   const rMax = o.rMax > 0 ? o.rMax : 8;
   const kinds = Array.isArray(o.kinds) && o.kinds.length ? o.kinds : DUCK_KINDS;
   const v = duckSpeed(o.speed == null ? 0.5 : o.speed);
@@ -861,7 +861,7 @@ export function sanitizePlay(input, prev, opt) {
   }
   if ("duckSnd" in input) out.duckSnd = flag01(input.duckSnd);
   if ("duckEvery" in input) out.duckEvery = snapList(input.duckEvery, DUCK_EVERY, snapList(base.duckEvery, DUCK_EVERY, 45));
-  if ("duckMax" in input) out.duckMax = Math.max(0, Math.min(30, Math.round(finite(input.duckMax, base.duckMax != null ? base.duckMax : 8))));
+  if ("duckMax" in input) out.duckMax = Math.max(0, Math.min(32, Math.round(finite(input.duckMax, base.duckMax != null ? base.duckMax : 8))));
   // v48: "rand"(랜덤)를 숫자 1로 바꾸지 않고 그대로 전달
   if ("duckSize" in input) out.duckSize = String(input.duckSize) === "rand" ? "rand" : snapList(input.duckSize, DUCK_SIZE, base.duckSize === "rand" ? 1 : snapList(base.duckSize, DUCK_SIZE, 1));
   if ("duckSpeed" in input) out.duckSpeed = snapList(input.duckSpeed, DUCK_SPEED, snapList(base.duckSpeed, DUCK_SPEED, 1));
@@ -880,6 +880,12 @@ export function sanitizePlay(input, prev, opt) {
   if ("topUi" in input) out.topUi = pickOf(input.topUi, ["old", "A", "B", "C", "D"]);
   if ("uiMove" in input) out.uiMove = pickOf(input.uiMove, ["off", "on"]);
   if ("tutDone" in input) out.tutDone = pickOf(input.tutDone, ["old", "A", "B", "C"]);
+  if ("boxShop" in input) {
+    const b = input.boxShop;
+    if (b && typeof b === "object") out.boxShop = { on: b.on ? 1 : 0, base: Math.max(0, Math.min(10000000, Math.round(finite(b.base, 1500)))), lv: Math.max(0, Math.min(1000000, Math.round(finite(b.lv, 380)))), day: Math.max(0, Math.min(100, Math.round(finite(b.day, 10)))) };
+    else delete out.boxShop;
+  }
+  if ("deck4" in input) out.deck4 = pickOf(input.deck4, ["off", "A", "B"]);
   if ("duckFun" in input) out.duckFun = pickOf(input.duckFun, ["off", "slide", "flume", "fountain", "all"]);
   if ("advOn" in input) out.advOn = pickOf(input.advOn, ["off", "on", "fast"]);
   // v70: 관리자가 정한 유저 처음 화면 배치 {m:{id:[dx,dy,scale]}, pc:{...}}
