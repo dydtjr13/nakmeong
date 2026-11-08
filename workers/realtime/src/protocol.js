@@ -880,6 +880,7 @@ export function sanitizePlay(input, prev, opt) {
   if ("topUi" in input) out.topUi = pickOf(input.topUi, ["old", "A", "B", "C", "D"]);
   if ("uiMove" in input) out.uiMove = pickOf(input.uiMove, ["off", "on"]);
   if ("tutDone" in input) out.tutDone = pickOf(input.tutDone, ["old", "A", "B", "C"]);
+  if ("duckFun" in input) out.duckFun = pickOf(input.duckFun, ["off", "slide", "flume", "fountain", "all"]);
   if ("advOn" in input) out.advOn = pickOf(input.advOn, ["off", "on", "fast"]);
   // v70: 관리자가 정한 유저 처음 화면 배치 {m:{id:[dx,dy,scale]}, pc:{...}}
   if ("uiPos" in input) { const v = sanitizeUiPos(input.uiPos); if (v) out.uiPos = v; else delete out.uiPos; }
