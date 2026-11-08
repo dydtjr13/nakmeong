@@ -818,6 +818,29 @@ export function sanitizeXpBal(x) {
   };
 }
 
+function sanitizeUiPos(v) {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const out = {};
+  for (const k of ["m", "pc"]) {
+    const src = v[k];
+    if (!src || typeof src !== "object" || Array.isArray(src)) continue;
+    const one = {};
+    let n = 0;
+    for (const id of Object.keys(src)) {
+      if (n >= 40 || !/^[A-Za-z][\w-]{0,23}$/.test(id)) continue;
+      const a = src[id];
+      if (!Array.isArray(a)) continue;
+      const dx = Math.round(Math.max(-3000, Math.min(3000, finite(a[0], 0))));
+      const dy = Math.round(Math.max(-3000, Math.min(3000, finite(a[1], 0))));
+      const sc = Math.round(Math.max(0.5, Math.min(2, finite(a[2], 1))) * 100) / 100;
+      one[id] = [dx, dy, sc];
+      n++;
+    }
+    if (n) out[k] = one;
+  }
+  return Object.keys(out).length ? out : null;
+}
+
 export function sanitizePlay(input, prev, opt) {
   if (input == null) return null;
   if (typeof input !== "object" || Array.isArray(input)) return prev || null;
@@ -857,6 +880,8 @@ export function sanitizePlay(input, prev, opt) {
   if ("topUi" in input) out.topUi = pickOf(input.topUi, ["old", "A", "B", "C", "D"]);
   if ("uiMove" in input) out.uiMove = pickOf(input.uiMove, ["off", "on"]);
   if ("advOn" in input) out.advOn = pickOf(input.advOn, ["off", "on", "fast"]);
+  // v70: 관리자가 정한 유저 처음 화면 배치 {m:{id:[dx,dy,scale]}, pc:{...}}
+  if ("uiPos" in input) { const v = sanitizeUiPos(input.uiPos); if (v) out.uiPos = v; else delete out.uiPos; }
   // v62: 배경음악
   if ("bgmOn" in input) out.bgmOn = flag01(input.bgmOn);
   if ("bgm" in input) out.bgm = /^[\w-]{1,24}$/.test(String(input.bgm)) ? String(input.bgm) : "shuffle";

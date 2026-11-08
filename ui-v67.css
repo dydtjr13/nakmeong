@@ -109,3 +109,29 @@ body.umv,body.umv *{-webkit-touch-callout:none}
  body.m3 #mSys #mDrop51>button kbd{display:none}
  body.m3 #mSys{min-width:168px}
 }
+/* v70 이동 모드: 놓으면 저장 + 빈 곳 누르면 끝 + 창 옆 도구막대 + 처음 안내 */
+#umvTb{position:fixed;z-index:510;display:flex;align-items:center;gap:2px;background:#2b2230;color:#fff;border-radius:16px;padding:4px;box-shadow:0 8px 20px rgba(0,0,0,.35);transition:opacity .12s;white-space:nowrap}
+#umvTb .nm{position:absolute;left:8px;top:-22px;font-size:11.5px;font-weight:700;color:#fff;background:#2b2230;border-radius:8px;padding:2px 8px}#umvTb.bl .nm{top:auto;bottom:-22px}
+#umvTb button{height:40px;min-width:40px;border-radius:12px;border:0;background:rgba(255,255,255,.1);color:#fff;font:700 20px/1 inherit;box-shadow:none;padding:0;display:flex;align-items:center;justify-content:center}
+#umvTb button.tx{font-size:12.5px;font-weight:600;padding:0 10px}#umvTb button.ic{font-size:18px}
+#umvTb .pc{width:46px;text-align:center;font-size:13px;font-weight:700}
+#umvTb i{width:1px;height:24px;background:rgba(255,255,255,.2);margin:0 4px}
+#umvTb .ar{position:absolute;left:var(--ax,50%);bottom:-6px;width:12px;height:12px;margin-left:-6px;background:#2b2230;transform:rotate(45deg)}
+#umvTb.bl .ar{bottom:auto;top:-6px}
+body.umvDrag #umvTb,body.umvDrag #umvPill,body.umvDrag #umvOk{opacity:0;pointer-events:none}
+#umvPill{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:510;display:flex;flex-direction:column;align-items:center;gap:8px;max-width:calc(100vw - 16px);transition:opacity .12s}
+#umvPill .ln{display:flex;align-items:center;gap:6px;background:rgba(43,34,48,.92);color:#fff;border-radius:999px;padding:6px 6px 6px 16px;font-size:12.5px;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+#umvPill button{height:36px;padding:0 12px;border-radius:18px;border:0;background:rgba(255,255,255,.12);color:#fff;font:600 12.5px inherit;box-shadow:none}
+#umvPill button.dn{background:#ffd36a;color:#3d2a00;font-weight:700;padding:0 16px}
+#umvPill button.adm{background:#fffbf4;color:#7a3f1c;border:2px solid #f2a57a;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+#umvOk{position:fixed;z-index:511;display:flex;align-items:center;gap:4px;background:#2f7a52;color:#fff;border-radius:14px;padding:5px 12px;font-size:12.5px;font-weight:700;pointer-events:none;opacity:0}
+#umvOk.on{animation:umvOkA 1.4s ease forwards}
+@keyframes umvOkA{0%{opacity:0;transform:translateY(4px)}12%,75%{opacity:1;transform:none}100%{opacity:0}}
+#umvTip{position:fixed;inset:0;z-index:520;background:rgba(20,14,26,.55);display:flex;align-items:center;justify-content:center;padding:24px}
+#umvTip .cd{width:100%;max-width:340px;background:#fbf6ec;color:#3d3027;border-radius:24px;padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:0 16px 40px rgba(0,0,0,.4)}
+#umvTip .tt{font-size:18px}#umvTip .st{display:flex;gap:12px;align-items:center;font-size:14px;line-height:1.45}
+#umvTip .n{flex:none;width:36px;height:36px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-weight:700}
+#umvTip .n1{background:#fff3e8;color:#b8562a}#umvTip .n2{background:#e3f3e6;color:#2f7a52}#umvTip .n3{background:#efe8fb;color:#6a4bb0}
+#umvTip .ok{height:50px;border-radius:25px;border:0;background:#e8784a;color:#fff;font:700 16px inherit;box-shadow:none}
+#umvTip small{font-size:12px;color:#8a7660;text-align:center}
+#umvTb,#umvTb *,#umvPill,#umvPill *,#umvTip,#umvTip *{-webkit-user-select:none;user-select:none}
