@@ -108,6 +108,11 @@
       if (!body || !body.ok || !Array.isArray(body.servers)) throw new Error("shape");
       RT.servers = body.servers;
       RT.phase = "ok";
+      if (body.play && typeof body.play === "object" && RT.mode !== "on") {
+        try { localStorage.setItem("nk_play_cache", JSON.stringify(body.play)); } catch (e) { /* ignore */ }
+        RT.prePlay = body.play;
+        try { dispatchEvent(new CustomEvent("nk-rt-preplay", { detail: body.play })); } catch (e) { /* ignore */ }
+      }
       emitServers();
       return true;
     } catch (e) {
@@ -221,6 +226,8 @@
     if (p.rev && RT.playRev && p.rev < RT.playRev) return;
     RT.play = p;
     if (p.rev) RT.playRev = p.rev;
+    // v73: 다음 접속 때 첫 화면부터 관리자 설정(맵 등)이 바로 보이도록 기억
+    try { localStorage.setItem("nk_play_cache", JSON.stringify(p)); } catch (e) { /* ignore */ }
     try { dispatchEvent(new CustomEvent("nk-rt-play", { detail: p })); } catch (e) { /* ignore */ }
   }
   function takeCues(list) {

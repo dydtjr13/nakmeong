@@ -135,3 +135,24 @@ body.umvDrag #umvTb,body.umvDrag #umvPill,body.umvDrag #umvOk{opacity:0;pointer-
 #umvTip .ok{height:50px;border-radius:25px;border:0;background:#e8784a;color:#fff;font:700 16px inherit;box-shadow:none}
 #umvTip small{font-size:12px;color:#8a7660;text-align:center}
 #umvTb,#umvTb *,#umvPill,#umvPill *,#umvTip,#umvTip *{-webkit-user-select:none;user-select:none}
+/* v73 설정 안쪽 화면 */
+#set .sx .sxhd .sxbk{margin-right:4px}
+#set .sxsubp .sxhd{gap:8px;justify-content:flex-start}#set .sxsubp .sxhd h2{flex:1;font-size:18px}
+#set .sx .sxin{gap:8px}#set .sx .sxin input,#set .sx textarea,#set .sx .sxsel{flex:1;min-width:0;min-height:44px;border-radius:12px;border:1.5px solid #eadcc6;background:#fff;padding:0 12px;font:inherit;font-size:16px;color:var(--sx-ink);box-sizing:border-box}
+#set .sx textarea{padding:10px 12px;font-size:13px;resize:vertical;min-height:64px;width:100%}
+#set .sx .sxsel{width:100%;font-size:15px}
+#set .sx .sxpick{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;padding:6px 0 10px}
+#set .sx .sxpick button{min-height:56px;border:1.5px solid #eadcc6;border-radius:14px;background:#fff;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;padding:8px 12px;font:inherit;color:var(--sx-ink);text-align:left;cursor:pointer;box-shadow:none}
+#set .sx .sxpick button b{font-size:14px;font-weight:700}#set .sx .sxpick button small{font-size:11.5px;color:var(--sx-sub)}
+#set .sx .sxpick button.on{border-color:var(--sx-acc);background:#fff4ec;box-shadow:inset 0 0 0 1px var(--sx-acc)}
+#set .sx .sxsnd{gap:8px}#set .sx .sxsnd.on b{color:#b8562a}
+#set .sx .sxbtn.sm{min-height:36px;min-width:44px;padding:0 10px;font-size:13px}
+#set .sx .sxok{flex:none;width:44px;height:36px;display:flex;align-items:center;justify-content:center;color:var(--sx-acc);font-style:normal;font-weight:800}
+#set .sx .sxbtns{flex:none;display:flex;gap:6px}#set .sx label.sxbtn{display:inline-flex;align-items:center}
+#set .sx .sxempty{padding:26px 6px;text-align:center}#set .sx .sxempty b{display:block;font-size:15px}#set .sx .sxempty small{display:block;margin-top:6px;font-size:12.5px;color:var(--sx-sub);line-height:1.5}
+#set .sx .sxnote{margin:0 6px;font-size:12px;color:var(--sx-sub);text-align:center}
+#set .sx .sxseg.wr{grid-auto-flow:row;grid-template-columns:repeat(auto-fit,minmax(78px,1fr))}
+#set .sx .sxcol>small{margin-top:0}
+#set .sx-C.sxsubp .sxin input,#set .sx-C.sxsubp textarea,#set .sx-C.sxsubp .sxsel,#set .sx-C.sxsubp .sxpick button{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.18)}
+#set .sx-C .sxseg{background:rgba(255,255,255,.1)}#set .sx-C .sxseg button{color:rgba(255,255,255,.75)}#set .sx-C .sxseg button.on{background:#fff;color:#3d3027}
+#set .sx.sxsubp{min-height:min(78vh,680px)}

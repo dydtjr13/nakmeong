@@ -764,7 +764,12 @@ const MAPV=(()=>{
   st.obs.forEach(o=>obstacles.push(o));try{applyVG();}catch(e){}snapChars();}
  function snapChars(){try{chars.forEach(c=>{if(!c||!c.o)return;const o=c.o.position;if(!inDeck(o.x,o.z)&&o.y<3)o.y=Math.max(H(o.x,o.z),.1);});}catch(e){}}
  function want(){return uiOpt('mapSt','old');}
- function boot(){apply(want());}
+ // v73: 접속 전에 서버 목록과 함께 관리자 설정을 받아 맵을 정해요. 기억한 설정이 있으면 바로 그걸로, 처음 접속이면 받을 때까지(최대 3초) 화면을 잠깐 가려요
+ function boot(){const RT=window.NK_RT,m=RT&&RT.status?RT.status():'off';if(RT&&RT.prePlay)PLAYC=RT.prePlay;
+  const re=()=>{if(!BASEDECO.length)return;const w=want();if(w!==st.cur)apply(w);};
+  if(PLAYC||m==='off'){apply(want());addEventListener('nk-rt-preplay',re);return;}
+  const cv=R.domElement;cv.style.transition='opacity .45s';cv.style.opacity='0';let done=0;const go=()=>{if(done)return;done=1;apply(want());requestAnimationFrame(()=>{cv.style.opacity='';});setTimeout(()=>{cv.style.transition='';},600);};
+  addEventListener('nk-rt-preplay',go);addEventListener('nk-rt-play',go);addEventListener('nk-rt-servers',()=>setTimeout(go,50));setTimeout(go,3000);addEventListener('nk-rt-preplay',re);}
  function frame(p,dt){const b=+opt('mapBright')||1;if(b!==1){hemi.intensity*=b;sun.intensity*=b;}const T0=TINT[st.cur];if(T0){wU.deep.value.multiply(_tc.setRGB(T0[0],T0[1],T0[2]));wU.shal.value.multiply(_tc);}
   if(st.cur==='B'){scene.fog.near=60;scene.fog.far=210;scene.fog.color.lerp(_tc.set('#cfe0d0'),.25*(1-p.night));}else if(st.cur==='C'){scene.fog.near=130;scene.fog.far=380;}else{scene.fog.near=110;scene.fog.far=300;}
   if(st.snowy)frameX(p,dt);if(st.cur==='GB')frameGB(p,dt);WU.t.value=T;
@@ -877,7 +882,7 @@ function bgmTick(dt){if(BGM.pvT>0)BGM.pvT-=dt;const c=bgmCfg(),pv=BGM.pvT>0,want
 const RAIN={r:[['r1','R1 부슬비 (기본)'],['r2','R2 창가 빗소리'],['r3','R3 굵은 빗방울']],t:[['t1','T1 보슬비+먼 천둥 (기본)'],['t2','T2 소나기+천둥'],['t3','T3 처마 비+천둥'],['t4','T4 비+천둥+새소리']]};
 function updRain(dt){const w=S.__wx,k=w==='drizzle'?(S.rainR||'r1'):w==='storm'?(S.rainT||'t1'):snd.rainForce||'';const ext=snd.day.canPlayType('audio/ogg')?'.ogg':'.mp3';
  if(k&&k!==snd.rainK&&snd.rainV<.02){snd.rainK=k;snd.rain.src='sounds/rain_'+k+ext;if(snd.on)snd.rain.play().catch(()=>{});}
- const tgt=k&&k===snd.rainK&&snd.on&&S.rainOn!==false?(S.vol||0)*.9:0;snd.rainV+=(tgt-snd.rainV)*Math.min(1,dt*.8);const v=Math.max(0,Math.min(1,snd.rainV));if(snd.gRain){snd.rain.volume=1;snd.gRain.gain.value=v;}else snd.rain.volume=v;if(v<.005&&!k&&!snd.rain.paused){snd.rain.pause();snd.rainK='';}}
+ const tgt=k&&k===snd.rainK&&snd.on&&S.rainOn!==false?(S.vol||0)*.9*(S.natVol==null?1:+S.natVol):0;snd.rainV+=(tgt-snd.rainV)*Math.min(1,dt*.8);const v=Math.max(0,Math.min(1,snd.rainV));if(snd.gRain){snd.rain.volume=1;snd.gRain.gain.value=v;}else snd.rain.volume=v;if(v<.005&&!k&&!snd.rain.paused){snd.rain.pause();snd.rainK='';}}
 function setAmb(){const d=D.SOUNDS.day[S.sDay],n=D.SOUNDS.night[S.sNight];const ext=snd.day.canPlayType('audio/ogg')?'.ogg':'.mp3';
   if(!snd.day.src.includes(d.f)){snd.day.src=d.f+ext+'?v8';snd.on&&snd.day.play().catch(()=>{});}if(!snd.night.src.includes(n.f)){snd.night.src=n.f+ext+'?v8';snd.on&&snd.night.play().catch(()=>{});}}
 function startAudio(){try{snd.ctx=new (window.AudioContext||window.webkitAudioContext)();snd.m=snd.ctx.createGain();snd.m.gain.value=.5;snd.m.connect(snd.ctx.destination);
@@ -894,7 +899,7 @@ const sfx={cast(){tone(660,440,.22,'sine',.025);},bite(){tone(880,880,.12,'sine'
   drop(){if(!snd.on)return;if(snd.dropBuf&&snd.ctx){const b=snd.ctx.createBufferSource(),g=snd.ctx.createGain();b.buffer=snd.dropBuf;g.gain.value=1.6;b.connect(g).connect(snd.m);b.start();return;}try{const a=sfxDrop.cloneNode();a.volume=Math.max(0,Math.min(1,(S.vol==null?.5:S.vol)*1.2));a.play().catch(()=>{});}catch(e){}}};
 const FISH_IMG={};D.FISH.forEach(f=>{const im=new Image();im.decoding='async';im.src=f.img;FISH_IMG[f.k]=im;if(im.decode)im.decode().catch(()=>{});});
 const sfxDrop=new Audio('sounds/sfx/splash-drop.wav');sfxDrop.preload='auto';
-function updAmb(p){const k=snd.force==='day'?0:snd.force==='night'?1:S.ambOne==='day'?0:S.ambOne==='night'?1:Math.min(1,p.night*1.15);const v=snd.on?S.vol:0,cl=x=>Math.max(0,Math.min(1,x));if(snd.wa){snd.day.volume=snd.night.volume=1;snd.gDay.gain.value=cl(v*(1-k));snd.gNight.gain.value=cl(v*k);}else{snd.day.volume=cl(v*(1-k));snd.night.volume=cl(v*k);}if(snd.m)snd.m.gain.value=cl(v*.625);}
+function updAmb(p){const k=snd.force==='day'?0:snd.force==='night'?1:S.ambOne==='day'?0:S.ambOne==='night'?1:Math.min(1,p.night*1.15);const nv=S.natVol==null?1:+S.natVol,v=snd.on?S.vol*nv:0,cl=x=>Math.max(0,Math.min(1,x));if(snd.wa){snd.day.volume=snd.night.volume=1;snd.gDay.gain.value=cl(v*(1-k));snd.gNight.gain.value=cl(v*k);}else{snd.day.volume=cl(v*(1-k));snd.night.volume=cl(v*k);}if(snd.m)snd.m.gain.value=cl(v*.625);}
 // ───────── 게임 상태 ─────────
 let me,yaw=0,pitch=.38,dist=12,drag=null,fishing={state:'off'},nearSpot=null,bob=null,line=null,lineG,castT=-1,castTo=new THREE.Vector3();
 const bots=[];const BOT_NAMES=['물멍러','붕어왕','노을소녀','캠핑아재','꼬마강태공','밤낚시','호수요정','쏘가리헌터','루어장인','은빛여울','새벽입질','낚시하는곰','월척꿈나무','바람의찌','모래무지씨','고요한호수','릴감는소리','물안개','별밤조사','떡밥장인','강준치헌터','찌맞춤','초보강태공','손맛중독','잉어사랑','호수산책','물결소리','갈대숲','연잎위개구리','버들치','송사리','물총새','왜가리','청둥오리','노을빛찌','달빛낚시','파란버킷','캠핑의자','모닥불지기','붕어빵','민물요정','손맛장인','느긋한오후','바람개비','연못지기','물수제비','고양이낚시꾼','대물사냥꾼','초록찌','소풍가방'];
@@ -1530,7 +1535,8 @@ function setLayoutA(){const card=$('set').querySelector('.card');if(!card||card.
   const show=()=>{const v=sel.value;if(v==='off'||v==='old'){pop.style.display='none';return;}const r=row.getBoundingClientRect();pop.innerHTML=`<img src="img/preview/${pre}-${v}.jpg" alt=""><small>${sel.options[sel.selectedIndex].text} 미리보기</small>`;pop.style.display='block';pop.style.left=Math.min(innerWidth-300,r.right+12)+'px';pop.style.top=Math.max(8,Math.min(innerHeight-230,r.top-60))+'px';};
   row.addEventListener('mouseenter',show);row.addEventListener('mouseleave',()=>pop.style.display='none');sel.addEventListener('change',show);});}
 // v56: 화면 시안 값 — 관리자가 '나만 보기'로 고른 값이 있으면 그것, 없으면 '인게임 적용'으로 모든 유저에게 정한 값, 없으면 기존
-function uiOpt(k,d){if(S[k]!=null&&S[k]!=='')return S[k];try{const RT=window.NK_RT;const p=RT&&RT.status&&RT.status()==='on'?RT.play:null;if(p&&p[k]!=null&&p[k]!=='')return p[k];}catch(e){}return d;}
+let PLAYC=null;try{PLAYC=JSON.parse(localStorage.getItem('nk_play_cache')||'null');}catch(e){}addEventListener('nk-rt-play',e=>{if(e.detail)PLAYC=e.detail;});addEventListener('nk-rt-preplay',e=>{if(e.detail)PLAYC=e.detail;});
+function uiOpt(k,d){if(S[k]!=null&&S[k]!=='')return S[k];try{const RT=window.NK_RT;const p=RT&&RT.status&&RT.status()==='on'?RT.play:PLAYC;if(p&&p[k]!=null&&p[k]!=='')return p[k];}catch(e){}return d;}
 // v55: 관리자 › 🧪 테스트 기능 — 시험 중인 기능을 한곳에서 켜고 끔. 항목 추가는 LAB 배열에 한 줄만 넣으면 돼요.
 // scope 'me' = 관리자 화면에서만(미리보기) · 'all' = 접속한 모든 유저에게 바로 적용(서버 play 설정)
 const LAB=[
@@ -1653,12 +1659,12 @@ function bindLook(root){const qa=sel=>root.querySelectorAll(sel),q=sel=>root.que
 
 // v64: ⚙ 새 설정 화면 시안 (관리자 › 🧪 테스트 기능 › 설정 화면) — A 한 장으로 · B 탭 3개 · C 빠른 설정 패널. 기존 화면은 'old'
 const SETX={leg:false,tab:0};
-const SXI={vol:'<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/>',bgm:'<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',wx:'<path d="M7 16a4 4 0 1 1 1-7.9A5 5 0 0 1 18 9a3.5 3.5 0 0 1 0 7H7z"/><path d="M9 19l-1 2M13 19l-1 2M17 19l-1 2"/>',full:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',coin:'<ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7"/><path d="M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',chev:'<path d="M9 6l6 6-6 6"/>'};
+const SXI={vol:'<path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/>',bgm:'<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>',wx:'<path d="M7 16a4 4 0 1 1 1-7.9A5 5 0 0 1 18 9a3.5 3.5 0 0 1 0 7H7z"/><path d="M9 19l-1 2M13 19l-1 2M17 19l-1 2"/>',full:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',coin:'<ellipse cx="12" cy="7" rx="7" ry="3"/><path d="M5 7v5c0 1.7 3.1 3 7 3s7-1.3 7-3V7"/><path d="M5 12v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',back:'<path d="M15 6l-6 6 6 6"/>',chev:'<path d="M9 6l6 6-6 6"/>'};
 const sxI=k=>`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SXI[k]}</svg>`;
 const sxAv=()=>{try{return (getComputedStyle(document.querySelector('#lvB .av')).backgroundImage||'none').replace(/"/g,"'");}catch(e){return 'none';}};
 const sxH=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function sxState(){const F=window.NK_FULL;return {snd:!!snd.on,bgm:S.bgmOff!==true,wx:S.wxOn!==false,full:!!(F&&F.isFull()),auto:!!(S.auto&&S.auto.on),vol:S.vol==null?.5:+S.vol,bvol:S.bgmVol==null?1:+S.bgmVol,gfx:NK_GFX.q,fps:S.fpsCap==null?60:+S.fpsCap};}
-function renderSetX(v){const st=sxState(),L=myLv(),tt=myTitle(L),adm=NK_ADM.ok(),nm=sxH(NICK());
+function sxState(){const F=window.NK_FULL;return {snd:!!snd.on,bgm:S.bgmOff!==true,wx:S.wxOn!==false,full:!!(F&&F.isFull()),auto:!!(S.auto&&S.auto.on),vol:S.vol==null?.5:+S.vol,bvol:S.bgmVol==null?1:+S.bgmVol,nvol:S.natVol==null?1:+S.natVol,gfx:NK_GFX.q,fps:S.fpsCap==null?60:+S.fpsCap};}
+function renderSetX(v){if(SETX.sub)return sxSub(v);const st=sxState(),L=myLv(),tt=myTitle(L),adm=NK_ADM.ok(),nm=sxH(NICK());
  const sw=(k,on,lab,sub)=>`<button type="button" class="sxrow sxsw" data-sx="${k}" role="switch" aria-checked="${on}"><span><b>${lab}</b>${sub?`<small>${sub}</small>`:''}</span><i class="sxt ${on?'on':''}"><i></i></i></button>`;
  const rg=(k,lab,val)=>`<label class="sxrow sxrg"><b>${lab}</b><input type="range" min="0" max="1" step=".05" value="${val}" data-sxr="${k}"><em data-sxv="${k}">${Math.round(val*100)}</em></label>`;
  const lnk=(k,lab,sub)=>`<button type="button" class="sxrow sxln" data-sxl="${k}"><span><b>${lab}</b>${sub?`<small>${sub}</small>`:''}</span>${sxI('chev')}</button>`;
@@ -1666,27 +1672,28 @@ function renderSetX(v){const st=sxState(),L=myLv(),tt=myTitle(L),adm=NK_ADM.ok()
  const fps=`<div class="sxseg sm" role="group" aria-label="프레임 상한">${[[60,'60'],[120,'120'],[0,'제한 없음']].map(([q,n])=>`<button type="button" data-sxf="${q}" class="${st.fps==q?'on':''}">${n}</button>`).join('')}</div>`;
  const autoSub=`${(S.auto&&S.auto.th)||0}코인 미만${S.auto&&S.auto.keepNew?' · 처음 잡은 어종은 보관':''}`;
  const prof=`<div class="sxme"><div class="sxav" style="background-image:${sxAv()}"></div><div class="sxmi"><b>${nm}</b> <span>Lv.${L}${tt?' '+sxH(tt.n):''}</span><small>${S.acct?'🔒 계정 연결됨 · 다른 기기에서도 이어 해요':'계정 연결 전 · 이 기기에만 저장돼요'}</small></div><button type="button" class="sxbtn" data-sxl="prof">편집</button></div>`;
- const secSound=`<section class="sxcard"><h5>소리</h5>${sw('snd',st.snd,'소리 켜기')}${rg('vol','전체 소리',st.vol)}${sw('bgm',st.bgm,'배경음악')}${rg('bvol','배경음악 크기',st.bvol)}${lnk('amb','자연 소리 · 빗소리','낮·밤 소리와 빗소리 고르기')}</section>`;
+ const secSound=`<section class="sxcard"><h5>소리</h5>${sw('snd',st.snd,'소리 켜기')}${rg('vol','전체 소리',st.vol)}${rg('nvol','자연 소리',st.nvol)}${sw('bgm',st.bgm,'배경음악')}${rg('bvol','배경음악 소리',st.bvol)}${lnk('amb','자연 소리 · 빗소리 고르기','낮·밤 소리와 빗소리')}</section>`;
+ const secEv=`<section class="sxcard"><h5>이벤트 창</h5>${sw('evCho',S.evCho!==false,'초성 퀴즈','꺼 두면 퀴즈 창이 뜨지 않아요')}${sw('evBal',S.evBal!==false,'밸런스 게임','꺼 두면 투표 창이 뜨지 않아요')}</section>`;
  const secScreen=`<section class="sxcard"><h5>화면</h5><div class="sxrow sxcol"><b>그래픽 품질</b>${gfx}<small>휴대폰이 뜨거워지면 '가볍게'를 골라 주세요 · 바꾸면 새로고침해요</small></div>${sw('wx',st.wx,'날씨 효과','비·눈·꽃잎')}${window.NK_FULL&&!NK_FULL.iOS?sw('full',st.full,'전체 화면'):''}<div class="sxrow sxcol"><b>프레임 상한</b>${fps}</div></section>`;
  const secGame=`<section class="sxcard"><h5>낚시</h5>${sw('auto',st.auto,'자동 판매',autoSub)}${st.auto?`<label class="sxrow sxnum"><b>기준 가치</b><span><input type="number" min="1" value="${(S.auto&&S.auto.th)||1}" data-sxn="th"> 코인 미만</span></label>`:''}</section>`;
- const secAcc=`<section class="sxcard sxlinks">${lnk('prof','닉네임 · 칭호')}${lnk('save','계정과 저장',S.acct?S.acct+' 계정에 연결됨':'다른 기기에서 이어 하려면 연결해요')}${lnk('block','차단한 유저',`${(S.blocked||[]).length}명`)}${lnk('old','전체 설정 (이전 화면)')}</section>`;
+ const secAcc=`<section class="sxcard sxlinks">${lnk('prof','닉네임 · 칭호')}${lnk('save','계정과 저장',S.acct?S.acct+' 계정에 연결됨':'다른 기기에서 이어 하려면 연결해요')}${lnk('block','차단한 유저',`${(S.blocked||[]).length}명`)}${lnk('old','더 많은 설정','풍경 · 어항 · 저장 코드')}</section>`;
  const foot=adm?`<p class="sxfoot"><button type="button" class="sxbtn acc" data-sxl="admin">🛠 관리자 모드 열기</button> <button type="button" class="sxbtn" data-sxl="admout">로그아웃</button></p>`:`<p class="sxfoot"><button type="button" class="sxmini" data-sxl="gate">운영자 로그인</button></p>`;
  let body='';
- if(v==='B'){const T=['소리·화면','낚시','계정'],i=Math.max(0,Math.min(2,SETX.tab|0));body=`<div class="sxtabs" role="tablist">${T.map((t,j)=>`<button type="button" role="tab" aria-selected="${i===j}" data-sxtab="${j}" class="${i===j?'on':''}">${t}</button>`).join('')}</div><div class="sxbody">${i===0?secSound+secScreen:i===1?secGame:prof+secAcc+foot}</div>`;}
+ if(v==='B'){const T=['소리·화면','낚시','계정'],i=Math.max(0,Math.min(2,SETX.tab|0));body=`<div class="sxtabs" role="tablist">${T.map((t,j)=>`<button type="button" role="tab" aria-selected="${i===j}" data-sxtab="${j}" class="${i===j?'on':''}">${t}</button>`).join('')}</div><div class="sxbody">${i===0?secSound+secScreen:i===1?secGame+secEv:prof+secAcc+foot}</div>`;}
  else if(v==='C'){const tile=(k,ic,lab,on)=>`<button type="button" class="sxtile ${on?'on':''}" data-sx="${k}" aria-pressed="${on}">${sxI(ic)}<b>${lab}</b></button>`;
   body=`<div class="sxbody"><div class="sxtiles">${tile('snd','vol','소리',st.snd)}${tile('bgm','bgm','배경음악',st.bgm)}${tile('wx','wx','날씨 효과',st.wx)}${window.NK_FULL&&!NK_FULL.iOS?tile('full','full','전체 화면',st.full):''}${tile('auto','coin','자동 판매',st.auto)}<button type="button" class="sxtile" data-sxcyc="gfx"><small>그래픽</small><b>${{low:'가볍게',mid:'보통',high:'선명하게'}[st.gfx]||'보통'} ›</b></button></div>
-   <div class="sxcard">${rg('vol','전체 소리',st.vol)}${rg('bvol','배경음악',st.bvol)}</div><div class="sxcard sxlinks">${lnk('amb','자연 소리 · 빗소리')}${lnk('prof','닉네임 · 칭호')}${lnk('save','계정과 저장')}${lnk('block','차단한 유저')}${lnk('old','전체 설정 (이전 화면)')}</div>${foot}</div>`;}
- else body=`<div class="sxbody">${prof}${secSound}${secScreen}${secGame}${secAcc}${foot}</div>`;
+   <div class="sxcard">${rg('vol','전체 소리',st.vol)}${rg('nvol','자연 소리',st.nvol)}${rg('bvol','배경음악 소리',st.bvol)}</div>${secEv}<div class="sxcard sxlinks">${lnk('amb','자연 소리 · 빗소리 고르기')}${lnk('prof','닉네임 · 칭호')}${lnk('save','계정과 저장')}${lnk('block','차단한 유저')}${lnk('old','더 많은 설정')}</div>${foot}</div>`;}
+ else body=`<div class="sxbody">${prof}${secSound}${secScreen}${secGame}${secEv}${secAcc}${foot}</div>`;
  const head=v==='C'?`<div class="sxhd"><div class="sxme c"><div class="sxav" style="background-image:${sxAv()}"></div><div class="sxmi"><b>${nm}</b><small>Lv.${L} · ${S.acct?'계정 연결됨':'계정 연결 전'}</small></div></div><button type="button" class="sxx" data-close="set" aria-label="닫기">${sxI('x')}</button></div>`:`<div class="sxhd"><div class="sxgrab" aria-hidden="true"></div><h2>설정</h2><button type="button" class="sxx" data-close="set" aria-label="닫기">${sxI('x')}</button></div>`;
  $('set').innerHTML=`<div class="card sx sx-${v}">${head}${body}</div>`;bindSetX(v);}
 function bindSetX(v){const R=$('set'),re=()=>keepScroll('set',()=>renderSetX(v)),q=s=>R.querySelectorAll(s);
- q('[data-close]').forEach(b=>b.onclick=()=>closeM('set'));
+ q('[data-close]').forEach(b=>b.onclick=()=>{SETX.sub=null;closeM('set');});
  q('[data-sxtab]').forEach(b=>b.onclick=()=>{SETX.tab=+b.dataset.sxtab;renderSetX(v);});
  q('[data-sx]').forEach(b=>b.onclick=()=>{const k=b.dataset.sx;
-  if(k==='snd'){snd.on=!snd.on;}else if(k==='bgm'){S.bgmOff=S.bgmOff!==true;}else if(k==='wx'){S.wxOn=S.wxOn===false;}else if(k==='auto'){S.auto.on=!S.auto.on;}
+  if(k==='snd'){snd.on=!snd.on;}else if(k==='evCho'||k==='evBal'){S[k]=S[k]===false;}else if(k==='bgm'){S.bgmOff=S.bgmOff!==true;}else if(k==='wx'){S.wxOn=S.wxOn===false;}else if(k==='auto'){S.auto.on=!S.auto.on;}
   else if(k==='full'){const F=window.NK_FULL;if(F&&F.isFull()){(document.exitFullscreen||document.webkitExitFullscreen).call(document);}else if(!(F&&F.go()))toast(F?F.note():'이 브라우저는 전체 화면을 지원하지 않아요',2600);setTimeout(re,350);return;}
   save();hud();re();});
- q('[data-sxr]').forEach(el=>el.oninput=()=>{const k=el.dataset.sxr,x=+el.value;if(k==='vol')S.vol=x;else S.bgmVol=x;const o=R.querySelector(`[data-sxv="${k}"]`);if(o)o.textContent=Math.round(x*100);save();});
+ q('[data-sxr]').forEach(el=>el.oninput=()=>{const k=el.dataset.sxr,x=+el.value;if(k==='vol')S.vol=x;else if(k==='nvol')S.natVol=x;else S.bgmVol=x;const o=R.querySelector(`[data-sxv="${k}"]`);if(o)o.textContent=Math.round(x*100);save();});
  q('[data-sxn]').forEach(el=>el.onchange=()=>{S.auto.th=Math.max(1,+el.value||1);save();re();});
  const gfx=q2=>{if(q2===NK_GFX.q)return;try{localStorage.setItem('nk_gfx',q2);}catch(_){}save();confirmBox('<h3>그래픽 품질</h3><p>새로고침하면 적용돼요. 지금 새로고침할까요?</p>',()=>location.reload());};
  q('[data-sxg]').forEach(b=>b.onclick=()=>gfx(b.dataset.sxg));
@@ -1694,9 +1701,63 @@ function bindSetX(v){const R=$('set'),re=()=>keepScroll('set',()=>renderSetX(v))
  q('[data-sxf]').forEach(b=>b.onclick=()=>{S.fpsCap=+b.dataset.sxf||0;save();re();});
  const legacy=tab=>{SETX.leg=true;renderSet();if(tab){const bt=[...$('set').querySelectorAll('.slay aside button')].find(x=>x.textContent.includes(tab));if(bt)bt.click();}};
  q('[data-sxl]').forEach(b=>b.onclick=()=>{const k=b.dataset.sxl;
-  if(k==='prof')legacy('프로필');else if(k==='block')legacy('차단');else if(k==='old')legacy('');
-  else if(k==='save'){closeM('set');openSaveGuide();}else if(k==='amb'){closeM('set');renderSound();openM('sound');}
+  if(k==='prof'||k==='block'||k==='amb'){SETX.sub=k;re();R.querySelector('.sxbody')&&(R.querySelector('.sxbody').scrollTop=0);}else if(k==='old'){SETX.sub='more';re();}
+  else if(k==='save'){closeM('set');openSaveGuide();}
   else if(k==='admin'){closeM('set');V14.admin();}else if(k==='admout'){NK_ADM.logout();re();}else if(k==='gate')NK_ADM.ask(()=>{closeM('set');V14.admin();});});}
+// v73: ⚙ 설정 안쪽 화면(닉네임·칭호 / 자연 소리·빗소리 / 차단한 유저 / 더 많은 설정)을 새 설정 화면 모양으로 — 이전 화면으로 넘어가지 않아요
+function sxSub(v){const k=SETX.sub,R=$('set'),T={prof:'닉네임 · 칭호',amb:'자연 소리 · 빗소리',block:'차단한 유저',more:'더 많은 설정'};
+ const sw=(id,on,lab,sub)=>`<button type="button" class="sxrow sxsw" data-ss="${id}" role="switch" aria-checked="${on}"><span><b>${lab}</b>${sub?`<small>${sub}</small>`:''}</span><i class="sxt ${on?'on':''}"><i></i></i></button>`;
+ const seg=(id,cur,list,lab)=>`<div class="sxseg${list.length>3?' wr':''}" role="group" aria-label="${lab||''}">${list.map(([q,n])=>`<button type="button" data-sg="${id}" data-sv="${q}" class="${String(cur)===String(q)?'on':''}">${n}</button>`).join('')}</div>`;
+ const col=(lab,inner,sub)=>`<div class="sxrow sxcol"><b>${lab}</b>${inner}${sub?`<small>${sub}</small>`:''}</div>`;
+ let body='';
+ if(k==='prof'){const L=myLv(),tt=myTitle(L),opts=[['','자동','레벨 최고 칭호']].concat(LV.titles.filter(x=>L>=x[0]).map(x=>['lv:'+x[1],x[1],'Lv.'+x[0]])).concat(spTitles().map(x=>['sp:'+x.n,x.n,'✨ 특별 칭호']));
+  body=`<div class="sxme"><div class="sxav" style="background-image:${sxAv()}"></div><div class="sxmi"><b>${sxH(NICK())}</b> <span>Lv.${L}${tt?' '+sxH(tt.n):''}</span><small>닉네임은 10자까지 · 칭호는 머리 위에 보여요</small></div></div>
+  <section class="sxcard"><h5>닉네임</h5><div class="sxrow sxin"><input id="sxNick" maxlength="10" value="${sxH(S.nick||'')}" placeholder="나" aria-label="닉네임"><button type="button" class="sxbtn acc" data-sa="nick">바꾸기</button></div></section>
+  <section class="sxcard"><h5>칭호</h5><div class="sxpick">${opts.map(([q,n,s])=>`<button type="button" data-sa="ttl" data-v="${sxH(q)}" class="${(S.titleSel||'')===q?'on':''}"><b>${sxH(n)}</b><small>${s}</small></button>`).join('')}</div>${opts.length<2?'<p class="sxnote">Lv.5가 되면 첫 칭호를 받아요</p>':''}</section>`;}
+ else if(k==='amb'){const row=(c,i,s)=>{const sel=c==='day'?S.sDay===i:S.sNight===i;return `<div class="sxrow sxsnd ${sel?'on':''}"><span><b>${s.n}</b>${sel?'<small>선택됨</small>':''}</span><button type="button" class="sxbtn sm" data-sa="pv" data-v="${c}:${i}" aria-label="${s.n} 들어보기">▶</button>${sel?'<i class="sxok" aria-label="선택됨"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></i>':`<button type="button" class="sxbtn sm" data-sa="sel" data-v="${c}:${i}">고르기</button>`}</div>`;};
+  body=`<section class="sxcard"><h5>낮·밤 소리</h5>${col('언제 어떤 소리를 낼까요',seg('ambOne',S.ambOne||'auto',[['auto','시간 따라'],['day','늘 낮 소리'],['night','늘 밤 소리']],'낮밤 소리'))}</section>
+  <section class="sxcard"><h5>빗소리</h5>${sw('rainOn',S.rainOn!==false,'비 올 때 빗소리')}${col('이슬비',seg('rainR',S.rainR||'r1',RAIN.r.map(([q,n])=>[q,n.replace(/^R\d\s*/,'').replace(' (기본)','')]),'이슬비'))}${col('소나기',seg('rainT',S.rainT||'t1',RAIN.t.map(([q,n])=>[q,n.replace(/^T\d\s*/,'').replace(' (기본)','')]),'소나기'),'고르면 10초 동안 미리 들려줘요')}</section>
+  <section class="sxcard"><h5>☀️ 낮 소리</h5>${D.SOUNDS.day.map((s,i)=>row('day',i,s)).join('')}</section><section class="sxcard"><h5>🌙 밤 소리</h5>${D.SOUNDS.night.map((s,i)=>row('night',i,s)).join('')}</section><p class="sxnote">▶ 를 누르면 15초 동안 그 소리만 들려요</p>`;}
+ else if(k==='block'){const B=S.blocked||[];body=`<section class="sxcard">${B.length?B.map(n=>`<div class="sxrow"><span><b>${sxH(n)}</b></span><button type="button" class="sxbtn" data-sa="unb" data-v="${encodeURIComponent(n)}">차단 풀기</button></div>`).join(''):'<div class="sxempty"><b>차단한 유저가 없어요</b><small>캐릭터나 채팅 닉네임을 길게 누르면(PC는 오른쪽 클릭) 차단할 수 있어요</small></div>'}</section>`;}
+ else if(k==='more'){const A=S.auto||{},g=S.showG||{},adm=NK_ADM.ok(),cur=MAPV.cur,b=S.mapBright==null?1:+S.mapBright;
+  body=`<section class="sxcard"><h5>낚시</h5>${sw('keepNew',!!A.keepNew,'처음 잡은 어종은 보관','자동 판매할 때 도감 첫 등록 물고기는 남겨요')}<div class="sxrow"><span><b>지금 어항에서 한 번에 팔기</b><small>${autoPrevTxt()}</small></span><button type="button" class="sxbtn" data-sa="bulk">팔기</button></div></section>
+  <section class="sxcard"><h5>풍경</h5>${col('호수 물',seg('waterQ',S.waterQ||'1',[['1','잔물결'],['5','물가 거품'],['3','빛무늬'],['4','하늘 반사']],'호수 물'))}${col('낮 밝기',seg('dayQ',S.dayQ||'1',[['1','기본'],['2','은은하게'],['3','따뜻하게'],['5','진한 하늘'],['0','예전 밝기']],'낮 밝기'))}
+   ${sw('vg_tree',g.tree!==false,'나무')}${sw('vg_grass',g.grass!==false,'풀 · 덤불')}${sw('vg_flower',g.flower!==false,'꽃 · 버섯')}${sw('farLOD',S.farLOD===true,'멀리 있는 캐릭터 간단히','30m 밖 캐릭터를 가볍게 그려요')}
+   ${cur!=='old'?`${sw('mapDeco',S.mapDeco!==false,'나무 · 구조물 · 소품')}${sw('mapDetail',S.mapDetail!==false,'데크 테두리 · 조약돌')}<label class="sxrow sxrg"><b>맵 밝기</b><input type="range" min="0.75" max="1.35" step="0.05" value="${b}" data-sr="mapBright"><em data-sv2="mapBright">${Math.round(b*100)}</em></label>`:''}
+   ${adm?col('🗺 맵 미리보기 (관리자)',`<select class="sxsel" data-sa="map">${[['old','기존'],['A','포근한 호숫가'],['B','숲속 비밀 호수'],['C','바닷가 항구'],['X','눈 내리는 성탄 마을'],['XM','성탄 아침 햇살'],['GB','황금빛 노을 보리밭']].map(([q,n])=>`<option value="${q}" ${cur===q?'selected':''}>${n}</option>`).join('')}</select>`,'나만 바뀌어요 · 모든 유저 적용은 관리자 › 🧪 테스트 기능'):''}</section>
+  <section class="sxcard"><h5>어항</h5>${col('어항 물고기',seg('tankFish',S.tankFish||'A',[['A','그림'],['B','그림+테두리'],['3d','3D']],'어항 물고기'))}</section>
+  ${window.NK_FULL&&!NK_FULL.iOS?`<section class="sxcard"><h5>전체 화면</h5>${sw('mobFull',S.mobFull!==false,'휴대폰에서 시작할 때 전체 화면')}</section>`:''}
+  <section class="sxcard"><h5>저장</h5><div class="sxrow"><span><b>지금 저장</b><small>${S.savedAt?'마지막 저장 '+new Date(S.savedAt).toLocaleString('ko-KR'):'자동으로 저장하고 있어요'}</small></span><button type="button" class="sxbtn acc" data-sa="saveNow">저장</button></div>
+   <div class="sxrow"><span><b>저장 코드 복사</b><small>다른 브라우저에서 이어 할 때 붙여넣어요</small></span><button type="button" class="sxbtn" data-sa="expCode">복사</button></div>
+   <div class="sxrow sxcol"><b>저장 코드 불러오기</b><textarea id="sxImp" rows="2" placeholder="복사한 저장 코드를 붙여넣어요"></textarea><button type="button" class="sxbtn" data-sa="impCode">불러오기</button></div>
+   <div class="sxrow"><span><b>파일로 내보내기 · 불러오기</b></span><span class="sxbtns"><button type="button" class="sxbtn" data-sa="exp">내보내기</button><label class="sxbtn">불러오기<input type="file" id="sxImpF" accept=".json" hidden></label></span></div></section>
+  ${adm?`<p class="sxfoot"><button type="button" class="sxmini" data-sa="legacy">이전 설정 화면 (관리자)</button></p>`:''}`;}
+ R.innerHTML=`<div class="card sx sx-${v} sxsubp"><div class="sxhd"><button type="button" class="sxx sxbk" data-sa="back" aria-label="뒤로">${sxI('back')}</button><h2>${T[k]||''}</h2><button type="button" class="sxx" data-close="set" aria-label="닫기">${sxI('x')}</button></div><div class="sxbody">${body}</div></div>`;
+ bindSxSub(v);}
+function bindSxSub(v){const R=$('set'),re=()=>keepScroll('set',()=>renderSetX(v)),q=s=>R.querySelectorAll(s),k=SETX.sub;
+ q('[data-close]').forEach(b=>b.onclick=()=>{SETX.sub=null;closeM('set');});
+ q('[data-ss]').forEach(b=>b.onclick=()=>{const id=b.dataset.ss,on=b.getAttribute('aria-checked')!=='true';
+  if(id==='rainOn')S.rainOn=on;else if(id==='keepNew'){S.auto.keepNew=on;}else if(id.startsWith('vg_')){const g=id.slice(3);S.showG=S.showG||{};S.showG[g]=on;try{applyVG();}catch(e){}}
+  else if(id==='farLOD')S.farLOD=on;else if(id==='mobFull')S.mobFull=on;else if(id==='mapDeco'||id==='mapDetail'){S[id]=on;save();MAPV.rebuild();}
+  save();re();});
+ q('[data-sg]').forEach(b=>b.onclick=()=>{const id=b.dataset.sg,val=b.dataset.sv;S[id]=val;save();
+  if(id==='rainR'||id==='rainT'){snd.rainForce=val;snd.rainV=0;snd.rainK='';clearTimeout(snd._rf);snd._rf=setTimeout(()=>snd.rainForce='',10000);}
+  re();});
+ q('[data-sr]').forEach(el=>el.oninput=()=>{S.mapBright=+el.value;const o=R.querySelector('[data-sv2="mapBright"]');if(o)o.textContent=Math.round(S.mapBright*100);save();});
+ const sel=R.querySelector('select[data-sa="map"]');if(sel)sel.onchange=()=>{applyStyleSide('mapSt',sel.value);save();re();};
+ q('[data-sa]').forEach(b=>{if(b.tagName==='SELECT')return;b.onclick=()=>{const a=b.dataset.sa,val=b.dataset.v;
+  if(a==='back'){SETX.sub=null;re();}
+  else if(a==='nick'){const raw=$('sxNick').value.trim().slice(0,10),bad=nickBad(raw);if(bad&&!(bad==='reserved'&&NK_ADM.ok())){alertBox('<h3>닉네임</h3><p>'+nickBadText(bad)+'</p>');return;}S._nickPrev=S.nick;S.nick=raw;if(me){dropChar(me);const p=me.o.position.clone(),d=me.dir;const i=chars.indexOf(me);if(i>=0)chars.splice(i,1);me=makeChar(S.char,NICK());me.o.position.copy(p);me.dir=d;}toast('닉네임: '+NICK());save();hud();re();}
+  else if(a==='ttl'){S.titleSel=val;save();hud();try{if(me){dropChar(me);const p=me.o.position.clone(),d=me.dir;const i=chars.indexOf(me);if(i>=0)chars.splice(i,1);me=makeChar(S.char,NICK());me.o.position.copy(p);me.dir=d;}}catch(e){}re();}
+  else if(a==='pv'||a==='sel'){const[c,i]=val.split(':');if(c==='day')S.sDay=+i;else S.sNight=+i;save();setAmb();if(a==='pv'){snd.force=c;snd.forceT=15;const el=c==='day'?snd.day:snd.night;el.currentTime=0;el.play().catch(()=>{});}re();}
+  else if(a==='unb'){V15.unblock(decodeURIComponent(val));re();}
+  else if(a==='bulk')sxLegacyClick('auBulk',null,null,re);
+  else if(a==='impCode')sxLegacyClick('impCodeGo',{impCode:$('sxImp').value},null,re);
+  else if(a==='saveNow'||a==='expCode'||a==='exp')sxLegacyClick(a,null,null,re);
+  else if(a==='legacy'){SETX.sub=null;SETX.leg=true;renderSet();}};});
+ const f=$('sxImpF');if(f)f.onchange=()=>sxLegacyClick('imp',null,f.files,re);}
+// 저장·판매 같은 기존 동작은 그대로 쓰려고, 이전 화면을 보이지 않는 곳에 잠깐 그려서 버튼만 눌러요
+function sxLegacyClick(id,vals,files,re){const leg=SETX.leg;try{_renderSet();if(vals)for(const k in vals){const el=$(k);if(el)el.value=vals[k];}const el=$(id);if(el){if(files){try{Object.defineProperty(el,'files',{value:files,configurable:true});}catch(e){}el.dispatchEvent(new Event('change'));}else el.click();}}catch(e){console.warn(e);}finally{SETX.leg=leg;if(re)re();}}
 // v64: 📱 모바일 화면 배치 시안 (관리자 › 🧪 테스트 기능 › 모바일 화면) — A 슬림 상단+하단 탭바 · B 엄지 원형 메뉴 · C 알림 레일+아래 시트 · D 가로 화면
 function mxMode(){const v=String(uiOpt('mobUi','old'));if(v==='old')return '';if(String(uiOpt('topUi','old'))!=='old'&&innerWidth<700&&innerHeight>innerWidth)return '';const B=document.body,touch=innerWidth<700||matchMedia('(pointer:coarse)').matches;if(!touch)return '';
  const land=innerWidth>innerHeight&&innerHeight<560;if(land)return v==='D'?'D':'';if(innerWidth>=700||!B.classList.contains('m3'))return '';return v==='D'?'A':v;}
@@ -2249,7 +2310,7 @@ loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyV
     say('시스템',online?`Welcome to FISH COZY! 호숫가 ${id}에 들어왔어요. 같은 서버의 낚시꾼이 보여요.`:'Welcome to FISH COZY! 피쉬코지에 오신 걸 환영해요. 실시간 서버가 없으면 혼자(봇과) 플레이해요.');
   }finally{$('go')._busy=0;if($('start').classList.contains('show'))$('go').textContent=prev;}};
   hud();requestAnimationFrame(frame);setTimeout(()=>{try{calcRK3();}catch(e){}},1500);setInterval(()=>{try{calcRK3();}catch(e){}},30000);updBagBadge();
-  $('bBag').onclick=()=>openBag('bag');$('bSet').onclick=()=>{SETX.leg=false;renderSet();openM('set');};$('bSave').onclick=e=>{e.preventDefault();e.stopPropagation();openSaveGuide();};
+  $('bBag').onclick=()=>openBag('bag');$('bSet').onclick=()=>{SETX.leg=false;SETX.sub=null;renderSet();openM('set');};$('bSave').onclick=e=>{e.preventDefault();e.stopPropagation();openSaveGuide();};
   document.addEventListener('click',e=>{const b=e.target&&e.target.closest&&e.target.closest('#bSave');if(!b||e.target.closest('#set,#admin,#uiEditBar,#confirm'))return;e.preventDefault();e.stopPropagation();document.body.classList.remove('menu-open');openSaveGuide();},true);
   document.addEventListener('pointerup',e=>{const b=e.target&&e.target.closest&&e.target.closest('#bDex');if(!b||e.target.closest('#set,#admin,#dex'))return;if(b.closest('#mSys')&&!document.body.classList.contains('menu-open')&&innerWidth<700)return;e.preventDefault();e.stopPropagation();document.body.classList.remove('menu-open');renderDex();openM('dex');},true);
   addEventListener('contextmenu',e=>e.preventDefault());
