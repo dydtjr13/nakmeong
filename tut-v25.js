@@ -157,12 +157,13 @@
   try{
    const id=st.id;
    if(!P.paid[id]){const r=give(st.rw,'rw:'+id);P.paid[id]=1;sv();
-    try{G()._n&&G()._n.toast(`✅ 튜토리얼 완료: ${st.t}<br><small>보상 ${rwTxt(st.rw)||'없음'}</small>`,2800);}catch(e){}
+    const TD=window.NK_TUTDONE;if(TD&&TD.on())TD.push({t:st.t,ic:st.ic,cat:st.cat,rw:st.rw,no:STEPS.indexOf(st)+1});
+    else{try{G()._n&&G()._n.toast(`✅ 튜토리얼 완료: ${st.t}<br><small>보상 ${rwTxt(st.rw)||'없음'}</small>`,2800);}catch(e){}}
     window.__tutLastReward=r;
    }
    P.i++;P.b=null;sv();
    if(P.i<STEPS.length){P.b=base();ensureGrant(STEPS[P.i]);sv();}
-   else{try{G()._n.toast('🎉 튜토리얼을 모두 마쳤어요! 이제 자유롭게 낚시해요',3200);}catch(e){}}
+   else{const TD=window.NK_TUTDONE;if(TD&&TD.on())TD.push({all:1});else try{G()._n.toast('🎉 튜토리얼을 모두 마쳤어요! 이제 자유롭게 낚시해요',3200);}catch(e){}}
    last='';render(1);
   }finally{busy=false;}
  }
