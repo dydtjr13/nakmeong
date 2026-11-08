@@ -124,6 +124,7 @@
     }
   }
   RT.refresh = refresh;
+  RT.base = base;
 
   function closeSocket() {
     const cur = ws;
