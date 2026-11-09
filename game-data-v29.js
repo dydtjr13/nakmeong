@@ -22,3 +22,14 @@
 })(window.NK_DATA);
 // v77: 입질 대기 최소값 5초 → 2초 (좋은 낚싯대·강화가 끝까지 속도에 반영되게), 자동 낚시 패널티 없앰 (대기·희귀·상자 모두 수동과 같게)
 (function(D){if(!D)return;if(D.BITE)D.BITE.min=2;if(D.AUTO)Object.assign(D.AUTO,{waitMul:1,rareMul:1,boxMul:1});})(window.NK_DATA);
+// v82: 어항 조합 8개 추가 (8 → 16) — 효과 크기는 기존 조합과 같은 범위, 옵션별 상한은 그대로
+(function(D){if(!D||!D.COMBO||D.COMBO._v82)return;D.COMBO._v82=1;const has=k=>(D.FISH||[]).some(f=>f.k===k);
+ [{id:'season',n:'사계절 정령',ks:['sakura_trout','rainbow_ayu','maple_mandarin','ice_smelt'],e:{luck:3}},
+  {id:'spring',n:'봄 여울',ks:['sakura_trout','gangjunchi','kkeuri'],e:{quick:2}},
+  {id:'summer',n:'여름 계곡',ks:['rainbow_ayu','pirami','kkeokji'],e:{bait:3}},
+  {id:'autumn',n:'가을 단풍',ks:['maple_mandarin','mandarin','kkeokji'],e:{expert:2}},
+  {id:'winter',n:'겨울 얼음낚시',ks:['ice_smelt','crucian','moraemuji'],e:{appraise:2}},
+  {id:'bigmouth',n:'큰 입 삼총사',ks:['snakehead','catfish','bass'],e:{big:.6}},
+  {id:'eelden',n:'장어 굴',ks:['eel','donjagae','moraemuji'],e:{treasure:4}},
+  {id:'pond',n:'연못 정원',ks:['carp','crucian','bluegill'],e:{merchant:1.2}}]
+ .forEach(c=>{if(c.ks.every(has)&&!D.COMBO.list.some(x=>x.id===c.id))D.COMBO.list.push(c);});})(window.NK_DATA);
