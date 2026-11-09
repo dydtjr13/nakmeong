@@ -434,9 +434,9 @@ function buildTwins(T,BOARDS,LEN,W,boardG,wood,lan,kind){const n=T.length,B2=new
   T.forEach((t,j)=>{const {ca,sa,cx,cz,ry,i}=t;Q.setFromAxisAngle(UP,ry);for(let b=0;b<BOARDS;b++){const o=-LEN/2+(b+.5)*LEN/BOARDS;M4.compose(V.set(cx-ca*o,.3+Math.sin(b*5.1+i)*.015,cz-sa*o),Q,SC.set(1,1,1));B2.setMatrixAt(k++,M4);}
    if(kind==='B'){const gap=t.sh*2-W;[-3.9,3.9].forEach(o=>{const mx=(cx+(ca*t.cr-sa*0)*0)-ca*o+sa*t.sh,mz=cz-sa*o-ca*t.sh;M4.compose(V.set(mx,.3,mz),Q,SC.set((gap+.4)/W,1,.8/(LEN/BOARDS-.06)));B2.setMatrixAt(k++,M4);});}
    [[-1.35,-4],[1.35,-4],[-1.35,0],[1.35,0],[-1.35,4],[1.35,4]].forEach(([sx,o],q)=>{M4.compose(V.set(cx+ca*o-sa*sx,-.9,cz+sa*o+ca*sx),Q.identity(),SC.set(1,1,1));P2.setMatrixAt(j*6+q,M4);});
-   const tx=cx+ca*.5-sa*1.0,tz=cz+sa*.5+ca*1.0;Q.setFromAxisAngle(UP,ry);M4.compose(V.set(tx,.7,tz),Q,SC.set(1,1,1));S2.setMatrixAt(j,M4);M4.compose(V.set(tx,1.4,tz),Q,SC.set(1,1,1));G2.setMatrixAt(j,M4);
+   const tx=cx+ca*.5-sa*1.0,tz=cz+sa*.5+ca*1.0;Q.setFromAxisAngle(UP,ry);M4.compose(V.set(tx,.7,tz),Q,SC.set(1,1,1));S2.setMatrixAt(j,M4);const _t0=M4.clone();M4.compose(V.set(tx,1.4,tz),Q,SC.set(1,1,1));G2.setMatrixAt(j,M4);TWT[i]={S:S2,G:G2,j,x:tx,z:tz,ry,tm:[_t0,M4.clone()]};
    lan.push([cx-ca*3.9-sa*1.25,.38,cz-sa*3.9+ca*1.25,ry,1.3]);
-   const d=decks[i];d.tw={cx,cz,sh:t.sh,kind};for(const side of [-.55,.55]){const tpx=ca*(t.cr-3.9)-sa*t.sh,tpz=sa*(t.cr-3.9)+ca*t.sh;SEATS.push({x:tpx+ca*.05-sa*side,z:tpz+sa*.05+ca*side,y:.66,cap:1,occ:[],deck:d,kind:'stool',virt:1,twin:1});}});
+   const d=decks[i];d.tw={cx,cz,sh:t.sh,kind};for(const side of [-.55,.55]){const tpx=ca*(t.cr-3.9)-sa*t.sh,tpz=sa*(t.cr-3.9)+ca*t.sh;SEATS.push({x:tpx+ca*.05-sa*side,z:tpz+sa*.05+ca*side,y:.66,cap:1,occ:[],deck:d,kind:'stool',virt:1,twin:1,twinI:i});}});
   [B2,P2,S2,G2].forEach(m=>{m.frustumCulled=false;scene.add(m);});}
 // v19: 넓힌 데크 W1~W4 (설정에서 선택, 호수 반지름 +DW.lr). 좌표: x=데크 옆(+는 오른쪽), z=데크 길이(+는 호수 쪽 끝)
 const DWX=[],SEATS=[];function buildDW(wood){const ex=DW.ext,nE=ex.length*DWX.length,n=DWX.length;const M=(c)=>new THREE.MeshLambertMaterial({color:c,flatShading:true});
@@ -451,12 +451,15 @@ const tankPickers=[];let myTankX=null,myTankPos=null,myTankK=null;
 // v78: Ctrl+S(맥은 ⌘+S) → 게임 저장
 addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.altKey&&(e.key==='s'||e.key==='S'||e.code==='KeyS')){e.preventDefault();try{S.savedAt=Date.now();save();toast('💾 저장했어요',1200);}catch(_){}}},true);
 // v77: 내 어항은 접속할 때 정해지지 않고, 데크 의자에 앉아 낚시를 시작하면 그 데크 어항이 내 어항으로 바뀌어요
-const DTM=[],DTANK={stand:null,glass:null};let myDeckI=null;
-function setMyDeck(d){if(!d||d.i==null||d.i===myDeckI)return;const S0=DTANK.stand,G0=DTANK.glass;if(!S0)return;
- if(myDeckI!=null&&DTM[myDeckI]){const t=DTM[myDeckI];S0.setMatrixAt(myDeckI,t.tm[0]);G0.setMatrixAt(myDeckI,t.tm[1]);const od=decks[myDeckI];if(od&&od.owner==='__me')od.owner=null;}
- const t=DTM[d.i];M4.compose(V.set(t.x,-50,t.z),Q.identity(),SC.set(.001,.001,.001));S0.setMatrixAt(d.i,M4);G0.setMatrixAt(d.i,M4);S0.instanceMatrix.needsUpdate=G0.instanceMatrix.needsUpdate=true;
+const DTM=[],TWT=[],DTANK={stand:null,glass:null};let myDeckI=null;
+// v82: 4인용(쌍둥이) 데크는 반쪽마다 어항이 따로 있어요 — 앉은 의자 쪽 어항이 내 어항 (왼쪽에 앉았는데 오른쪽 어항이 바뀌던 문제)
+function tankSlot(key){if(key==null)return null;if(String(key).startsWith('T')){const t=TWT[+String(key).slice(1)];return t?{S:t.S,G:t.G,j:t.j,t}:null;}const t=DTM[key];return t&&DTANK.stand?{S:DTANK.stand,G:DTANK.glass,j:+key,t}:null;}
+function setMyDeck(d,seat){if(!d||d.i==null)return;const key=seat&&seat.twin&&TWT[seat.twinI]?'T'+seat.twinI:d.i;if(String(key)===String(myDeckI))return;
+ const old=tankSlot(myDeckI);if(old){old.S.setMatrixAt(old.j,old.t.tm[0]);old.G.setMatrixAt(old.j,old.t.tm[1]);old.S.instanceMatrix.needsUpdate=old.G.instanceMatrix.needsUpdate=true;}
+ if(myDeckI!=null&&!String(myDeckI).startsWith('T')){const od=decks[myDeckI];if(od&&od.owner==='__me')od.owner=null;}
+ const sl=tankSlot(key);if(!sl)return;const t=sl.t;M4.compose(V.set(t.x,-50,t.z),Q.identity(),SC.set(.001,.001,.001));sl.S.setMatrixAt(sl.j,M4);sl.G.setMatrixAt(sl.j,M4);sl.S.instanceMatrix.needsUpdate=sl.G.instanceMatrix.needsUpdate=true;
  try{for(const b of bots){if(b.deck===d){try{seatLeave(b);}catch(e){}b.seat=null;b.deck=null;b.path=[];const free=decks.filter(x=>x!==d&&!x.owner);if(free.length){const nd=free[(Math.random()*free.length)|0];nd.owner=b.c.name;b.deck=nd;}}}}catch(e){}
- d.owner='__me';myDeckI=d.i;myTankPos={x:t.x,z:t.z,ry:t.ry};myTankK=null;updMyTankExt();}
+ d.owner='__me';myDeckI=key;myTankPos={x:t.x,z:t.z,ry:t.ry};myTankK=null;updMyTankExt();}
 // v30: 기본 데크(DW 없음)에도 AI용 낚시 의자 좌석 생성 (tip 호수쪽)
 function ensureDeckSeats(){decks.forEach(d=>{if(!d||d.i===0)return;
   const has=SEATS.some(s=>s.kind==='stool'&&(s.deck===d||s.deck===d.i||(s.deck&&s.deck.i)===d.i));
@@ -1011,7 +1014,7 @@ function fishAction(auto){if(!auto&&anyModal())return;if(!auto&&S.autoFish){if(!
   if(fishing.state==='off'){if(!auto){document.querySelectorAll('.cutin').forEach(e=>e.remove());const t=$('toast');clearTimeout(t._t);t.style.transition='none';t.style.opacity=0;void t.offsetWidth;t.style.transition='';}if(!nearSpot)return toast(DW?'데크 의자에 앉아야 낚시할 수 있어요<br><small>의자 가까이 가서 🪑 앉기</small>':'데크 끝 낚시 포인트로 가세요<br><small>내 데크 또는 빈 데크</small>');
     if(S.tank.length>=cap())toast('어항이 가득 찼어요! 잡으면 상점가 60%로 자동 판매돼요',2000);
     const b=bait(),MO=SYS.mods(D,S,rod(),b);if(S.baits[S.bait]>0&&Math.random()<MO.ch.bait/100){toast('🧿 미끼전문가: 미끼를 아꼈어요!',900);}else if(S.baits[S.bait]>0){S.baits[S.bait]--;const left=S.baits[S.bait];if(left===0){baitOut(b);S.bait='worm';}else if(left===3||left===1)baitLow(b,left);save();hud();}
-    try{if(mySeat&&mySeat.deck!=null)setMyDeck(typeof mySeat.deck==='number'?decks[mySeat.deck]:mySeat.deck);}catch(e){}
+    try{if(mySeat&&mySeat.deck!=null)setMyDeck(typeof mySeat.deck==='number'?decks[mySeat.deck]:mySeat.deck,mySeat);}catch(e){}
     fishing={state:'cast',t:0,bite:Math.max(D.BITE.min,rand(D.BITE.base[0],D.BITE.base[1])*MO.wait*(V14?V14.fx.waitMul():1))*(S.autoFish?D.AUTO.waitMul:1),fakes:fakeTimes(),d:nearSpot};castT=0;castTo.set(nearSpot.ca*(LR-12.5)+rand(-1.5,1.5)*-nearSpot.sa,-.05,nearSpot.sa*(LR-12.5)+rand(-1.5,1.5)*nearSpot.ca);me.dir=Math.atan2(castTo.x-me.o.position.x,castTo.z-me.o.position.z);sfx.cast();return;}
   if(fishing.state==='cast'||fishing.state==='bite'){if(fishing.state==='bite')catchFish();else{toast('앗, 너무 빨랐어요! 찌가 살짝 흔들렸을 뿐이에요 🎣',1300);sfx.fail();endFish();}}}
 function endFish(){fishing={state:'off'};castT=-1;bob.visible=line.visible=false;wU.bob.value.y=0;}
@@ -1189,7 +1192,7 @@ let duckChk=0;function duckBob(dt){if(String(uiOpt('duckCatch','off'))!=='on'||!
  const hit=NK_DUCK.visible().find(d=>!d.busy&&Math.hypot(d.x-castTo.x,d.z-castTo.z)<.8+.4*d.sc*(d.s||1));if(!hit)return;
  const L=Math.max(0,Math.min(5,NK_DUCK.caught(hit.key))),R=DUCK_RW[L],mul=1+Math.min(2,(myLv()-1)/25),g=Math.round(R.g*mul/10)*10,got=[`🪙 ${g.toLocaleString()} 골드`,`⭐ ${R.x} XP`];
  S.coins+=g;addXP(R.x,'오리 낚기');if(R.st){S.stones=(S.stones||0)+R.st;got.push(`💎 강화석 ${R.st}`);}if(R.bx){for(let i=0;i<R.bx[0];i++)S.boxes.push(R.bx[1]);S.newBox=(S.newBox||0)+R.bx[0];got.push(`🎁 행운 상자 ${R.bx[0]}`);}
- if(R.cat){const ks=['gold','sakura','albino','rainbow','ghost'],k=ks[Math.random()*ks.length|0],z=fzS();z.cat[k]=(z.cat[k]|0)+1;got.push(`✨ ${(FZV[k]||{n:k}).n} 촉매`);}
+ if(R.cat){const ks=['black','pink','red','gold','rainbow'],k=ks[Math.random()*ks.length|0],z=fzS();z.cat[k]=(z.cat[k]|0)+1;got.push(`✨ ${(FZV[k]||{n:k}).n} 촉매`);}
  S.duckDay.n++;S.duckN=(S.duckN||0)+1;endFish();try{sfx.coin();V14.catchSfx(Math.min(4,L+1));}catch(e){}save();hud();try{updBagBadge();}catch(e){}
  toast(`🦆 <b>${L?'Lv.'+(L+1)+' ':''}오리</b>를 낚았어요! ${got.join(' · ')}<br><small>오리는 놀라서 5분 동안 숨어요 · 오늘 ${S.duckDay.n}/15</small>`,3600);say('시스템',`🦆 ${L?'Lv.'+(L+1)+' ':''}오리를 낚았어요 · ${got.join(', ')}`);}
 function catchFish(){const f=rollFish(),F=FI(f.k),G0=GR(f.g);S.caught++;const _td=new Date().toDateString();if(S.gDay!==_td){S.gDay=_td;S.gN=0;}let streakBox=false;if(!(D.BOX.dailyCap&&S.gN>=D.BOX.dailyCap)){S.streak=(S.streak||0)+1;if(D.BOX.streakEvery&&S.streak>=D.BOX.streakEvery){S.streak=0;S.gN=(S.gN||0)+1;S.boxes.push(-Date.now());streakBox=true;}}f.t=Date.now();const dx=S.dex[f.k]||(S.dex[f.k]={n:0,max:0,gr:[0,0,0,0,0]});const isNew=!dx.n,newG=!dx.gr[f.g],rec=f.cm>dx.max;dx.n++;dx.gr[f.g]=1;dx.max=Math.max(dx.max,f.cm);wkRec(f);S.stats=S.stats||{g:[0,0,0,0,0]};S.stats.g[f.g]=(S.stats.g[f.g]||0)+1;
@@ -1973,13 +1976,16 @@ if(!m)B.classList.remove('mx-tqo');try{applyTx();}catch(e){}}
 addEventListener('resize',()=>applyMx());addEventListener('orientationchange',()=>setTimeout(applyMx,250));addEventListener('nk-rt-play',()=>applyMx());
 document.addEventListener('click',e=>{if(!document.body.classList.contains('mx'))return;const t=e.target.closest&&e.target.closest('#tq25 .bb');if(t)document.body.classList.toggle('mx-tqo');},true);
 // v65: 🧪 테스트 — ⚗ 물고기 합성 · 🧭 물고기 모험 (관리자 › 🧪 테스트 기능에서 켜고, ✅ 인게임 적용으로 모두에게)
-const FZV={gold:{n:'황금',c:'#9a6a00',bg:'#fff3cc',p:3,fx:'sepia(1) saturate(3.2) hue-rotate(-6deg) brightness(1.12)'},sakura:{n:'벚꽃',c:'#b0466e',bg:'#ffe7f0',p:6,fx:'sepia(.85) saturate(2.4) hue-rotate(292deg) brightness(1.12)'},albino:{n:'알비노',c:'#6f6258',bg:'#f4f1ec',p:3,fx:'grayscale(1) brightness(1.42) contrast(.85)'},rainbow:{n:'무지개',c:'#3f7fb0',bg:'#e7f1fb',p:1,fx:'saturate(2.2)'},ghost:{n:'유령',c:'#3e6f8a',bg:'#e6f2f8',p:.5,fx:'grayscale(.5) brightness(1.25) opacity(.55) drop-shadow(0 0 6px #9fdcff)'}};
-const FZO=['gold','sakura','albino','rainbow','ghost'],FZ_FAIL=5,FZ_MAXST=4;
+// v82: 변이 등급 — 블랙(6%) → 핑크(3%) → 레드(2%) → 황금(1%) → 무지개(0.5%). 뒤로 갈수록 귀하고 판매가 배율(m)이 커요
+const FZV={black:{n:'블랙',t:1,m:1.5,c:'#2c2a30',bg:'#ecebef',p:6,fx:'grayscale(.85) brightness(.42) contrast(1.45)'},pink:{n:'핑크',t:2,m:2,c:'#b0466e',bg:'#ffe7f0',p:3,fx:'sepia(.85) saturate(2.4) hue-rotate(292deg) brightness(1.12)'},red:{n:'레드',t:3,m:2.5,c:'#b8322a',bg:'#ffe4e0',p:2,fx:'sepia(1) saturate(5.5) hue-rotate(-42deg) brightness(.92) contrast(1.1)'},gold:{n:'황금',t:4,m:3,c:'#9a6a00',bg:'#fff3cc',p:1,fx:'sepia(1) saturate(3.2) hue-rotate(-6deg) brightness(1.12)'},rainbow:{n:'무지개',t:5,m:4,c:'#3f7fb0',bg:'#e7f1fb',p:.5,fx:'saturate(2.2)'}};
+const FZ_OLD={albino:'black',sakura:'pink',ghost:'red'},fzVK=k=>FZ_OLD[k]||k,fzBest=(a,b)=>{a=a&&fzVK(a);b=b&&fzVK(b);if(!a)return b||null;if(!b)return a;return (FZV[a]?FZV[a].t:0)>=(FZV[b]?FZV[b].t:0)?a:b;};
+const FZO=['black','pink','red','gold','rainbow'],FZ_FAIL=5,FZ_MAXST=4;
+setTimeout(()=>{try{fzS();}catch(e){}},0);
 const fzOn=()=>uiOpt('fuseOn','off')==='on',advOn=()=>uiOpt('advOn','off')!=='off',advFast=()=>uiOpt('advOn','off')==='fast';
-const fzS=()=>{S.fz=S.fz||{};const z=S.fz;z.ess=z.ess|0;z.cat=z.cat||{};z.dex=z.dex||{};return z;};
-const fzImg=(f,cls='')=>{const F=FI(f.k),v=f.vr&&FZV[f.vr];return `<img class="fzi ${cls} ${f.vr==='rainbow'?'rb':''}" src="${(F&&F.img)||'img/fish/'+f.k+'.png'}" alt="" style="${v?'filter:'+v.fx:''}">`;};
+const fzS=()=>{S.fz=S.fz||{};const z=S.fz;z.ess=z.ess|0;z.cat=z.cat||{};z.dex=z.dex||{};if(!z.v82){z.v82=1;for(const [o,n] of Object.entries(FZ_OLD)){if(z.cat[o]){z.cat[n]=(z.cat[n]|0)+z.cat[o];delete z.cat[o];}for(const k in z.dex){const d=z.dex[k];if(d&&d[o]){d[n]=1;delete d[o];}}}const fix=f=>{if(f&&f.vr&&FZ_OLD[f.vr])f.vr=FZ_OLD[f.vr];};(S.tank||[]).forEach(fix);Object.values(S.cslot||{}).forEach(fix);try{((S.adv&&S.adv.teams)||[]).forEach(t=>(t.fish||[]).forEach(fix));}catch(e){}}return z;};
+const fzImg=(f,cls='')=>{const F=FI(f.k),v=f.vr&&FZV[fzVK(f.vr)];return `<img class="fzi ${cls} ${f.vr==='rainbow'?'rb':''}" src="${(F&&F.img)||'img/fish/'+f.k+'.png'}" alt="" style="${v?'filter:'+v.fx:''}">`;};
 const fzStars=n=>'★'.repeat(n+1)+'<i>'+'★'.repeat(Math.max(0,FZ_MAXST-n))+'</i>';
-const fzName=f=>{const F=FI(f.k);return (f.vr?FZV[f.vr].n+' ':'')+(F?F.n:f.k);};
+const fzName=f=>{const F=FI(f.k),V=f.vr&&FZV[fzVK(f.vr)];return (V?V.n+' ':'')+(F?F.n:f.k);};
 // ── 합성 ──
 const FZ={sel:null,cat:null,pity:null,busy:false};
 function fzPool(){return S.tank.filter(f=>!f.lock&&!f.away);}
@@ -2013,28 +2019,28 @@ function fzDo(G,mats){if(FZ.busy||!G||mats.length<3)return;const z=fzS(),cost=fz
  const pr=fzProbs();let r=Math.random()*100,vr=null,fail=false;if(FZ.pity){vr=FZ.pity;z.ess-=10;FZ.pity=null;}else{for(const k of FZO){if(r<pr.P[k]){vr=k;break;}r-=pr.P[k];}if(!vr&&r<pr.fail)fail=true;}
  S.coins-=cost;if(FZ.cat&&(z.cat[FZ.cat]|0)>0){z.cat[FZ.cat]--;}FZ.cat=null;const ids=mats.map(f=>f.id),F=FI(G.k);
  let res;if(fail){const keep=mats.slice().sort((a,b)=>b.cm-a.cm)[0];S.tank=S.tank.filter(f=>!ids.includes(f.id)||f.id===keep.id);z.ess++;res={fail:true,keep};}
- else{const cm=Math.round(mats.reduce((a,f)=>a+f.cm,0)/3*1.08*10)/10,g=Math.max(...mats.map(f=>f.g|0)),inh=mats.map(f=>f.vr).filter(Boolean)[0]||null,v0=Math.round(valueOf(F,cm,g)*(1+.5*(G.st+1))*((vr||inh)?2:1));
-  const nf={id:S.nid++,k:G.k,cm,g,v:v0,price:Math.round(v0*1.3),sale:false,st:G.st+1,t:Date.now()};if(vr||inh)nf.vr=vr||inh;S.tank=S.tank.filter(f=>!ids.includes(f.id));S.tank.push(nf);
+ else{const cm=Math.round(mats.reduce((a,f)=>a+f.cm,0)/3*1.08*10)/10,g=Math.max(...mats.map(f=>f.g|0)),inh=mats.reduce((a,f)=>fzBest(a,f.vr),null),v0=Math.round(valueOf(F,cm,g)*(1+.5*(G.st+1))*((fzBest(vr,inh)&&FZV[fzBest(vr,inh)])?FZV[fzBest(vr,inh)].m:1));
+  const nf={id:S.nid++,k:G.k,cm,g,v:v0,price:Math.round(v0*1.3),sale:false,st:G.st+1,t:Date.now()};if(vr||inh)nf.vr=fzBest(vr,inh);S.tank=S.tank.filter(f=>!ids.includes(f.id));S.tank.push(nf);
   let first=false;if(nf.vr){const dx=z.dex[G.k]=z.dex[G.k]||{};first=!dx[nf.vr];dx[nf.vr]=1;}res={f:nf,first,newVar:!!vr,avg:Math.round(mats.reduce((a,f)=>a+f.cm,0)/3)};}
  try{XBAL.ev(15,'합성');}catch(e){}save();hud();FZ.busy=false;fzReveal(res,G);renderFuse();}
 function fzReveal(res,G){let m=$('fzr');if(!m){m=document.createElement('div');m.id='fzr';m.className='modal';document.body.appendChild(m);}
  if(res.fail){m.innerHTML=`<div class="fzrw fail"><div class="fzrc"><span class="fzrk">아쉬워요</span><h2>합성 실패</h2>${fzImg(res.keep,'big')}<p>가장 큰 ${sxH(fzName(res.keep))} ${res.keep.cm}cm는 돌아왔어요<br><b>물고기 정수 +1</b> · 지금 ${fzS().ess}/10</p><div class="fzrb"><button type="button" class="acc" data-ok>확인</button></div></div></div>`;}
- else{const f=res.f,V=f.vr&&FZV[f.vr];m.innerHTML=`<div class="fzrw ${res.newVar?'var':''}" style="${V?'--vc:'+V.c+';--vb:'+V.bg:''}"><div class="fzrays" aria-hidden="true"></div><div class="fzrc">${res.newVar?`<span class="fzrk">VARIANT</span>`:`<span class="fzrk">STAR UP</span>`}<h2>${sxH(fzName(f))}</h2><div class="fzst">${fzStars(f.st)}</div>${fzImg(f,'big')}<div class="fzchips"><span><b>${f.cm}cm</b> · 재료 평균 ${res.avg}cm</span><span>가치 ${f.v.toLocaleString()}</span>${res.first?'<span class="hl">처음 발견 · 도감에 기록</span>':''}</div><div class="fzrb"><button type="button" class="acc" data-ok>어항에 넣기</button></div></div></div>`;}
+ else{const f=res.f,V=f.vr&&FZV[fzVK(f.vr)];m.innerHTML=`<div class="fzrw ${res.newVar?'var':''}" style="${V?'--vc:'+V.c+';--vb:'+V.bg:''}"><div class="fzrays" aria-hidden="true"></div><div class="fzrc">${res.newVar?`<span class="fzrk">VARIANT</span>`:`<span class="fzrk">STAR UP</span>`}<h2>${sxH(fzName(f))}</h2><div class="fzst">${fzStars(f.st)}</div>${fzImg(f,'big')}<div class="fzchips"><span><b>${f.cm}cm</b> · 재료 평균 ${res.avg}cm</span><span>가치 ${f.v.toLocaleString()}</span>${res.first?'<span class="hl">처음 발견 · 도감에 기록</span>':''}</div><div class="fzrb"><button type="button" class="acc" data-ok>어항에 넣기</button></div></div></div>`;}
  m.querySelector('[data-ok]').onclick=()=>m.classList.remove('show');m.classList.add('show');try{V14.catchSfx(res.fail?0:res.newVar?4:2);}catch(e){}}
 function openFuse(){if(!$('fuse')){const d=document.createElement('div');d.id='fuse';d.className='modal';document.body.appendChild(d);}renderFuse();openM('fuse');}
 // ── 모험 ──
 const ADV_START={x:.120,y:.728};
 // v81: 탐험 시간 — 바위 협곡 30분 · 폭포 아래 1시간 · 벚꽃 강 1시간 30분 · 얼음 호수 2시간 · 보물섬 5시간
-const ADVR=[{k:'canyon',n:'바위 협곡',h:.5,d:1,x:.329,y:.445,lv:1,coin:[120,260],piece:.25,box:.2,cat:['gold',.2],desc:'바위틈 보물 찾기'},
- {k:'fall',n:'폭포 아래',h:1,d:2,x:.506,y:.756,lv:1,coin:[200,420],piece:.35,box:.3,cat:['gold',.35],desc:'물보라 속 반짝이 줍기'},
- {k:'sakura',n:'벚꽃 강',h:1.5,d:2,x:.668,y:.466,lv:3,coin:[260,520],piece:.4,box:.3,cat:['sakura',.7],bonus:['sakura_trout','crucian'],desc:'꽃잎 줍기 · 벚꽃 촉매'},
- {k:'ice',n:'얼음 호수',h:2,d:3,x:.899,y:.692,lv:6,coin:[420,800],piece:.5,box:.45,cat:['albino',.5],bonus:['trout'],desc:'얼음 밑 조사 · 알비노 촉매'},
- {k:'treasure',n:'보물섬',h:5,d:4,x:.520,y:.248,lv:1,need:6,coin:[1800,3000],piece:0,box:1,boxN:3,cat:['rainbow',.6],desc:'지도 조각 6개로 열려요'}];
+const ADVR=[{k:'canyon',n:'바위 협곡',h:.5,d:1,x:.329,y:.445,lv:1,coin:[200,300],piece:.25,box:.2,cat:['black',.2],desc:'바위틈 보물 찾기'},
+ {k:'fall',n:'폭포 아래',h:1,d:2,x:.506,y:.756,lv:1,coin:[500,700],piece:.35,box:.3,cat:['red',.35],desc:'물보라 속 반짝이 줍기'},
+ {k:'sakura',n:'벚꽃 강',h:1.5,d:2,x:.668,y:.466,lv:3,coin:[750,1150],piece:.4,box:.3,cat:['pink',.7],bonus:['sakura_trout','crucian'],desc:'꽃잎 줍기 · 핑크 촉매'},
+ {k:'ice',n:'얼음 호수',h:2,d:3,x:.899,y:.692,lv:6,coin:[1100,1500],piece:.5,box:.45,cat:['gold',.5],bonus:['trout'],desc:'얼음 밑 조사 · 황금 촉매'},
+ {k:'treasure',n:'보물섬',h:5,d:4,x:.520,y:.248,lv:1,need:6,coin:[3000,4000],piece:0,box:1,boxN:3,cat:['rainbow',.6],desc:'지도 조각 6개로 열려요'}];
 const ADV={sel:null,party:[],tick:0};
 const advH=h=>{const m=Math.round(h*60);if(advFast())return m<60?m+'초':(m/60)+'분';return m<60?m+'분':Math.floor(m/60)+'시간'+(m%60?' '+m%60+'분':'');};
 const advS=()=>{S.adv=S.adv||{};const a=S.adv;a.teams=a.teams||[];a.pieces=a.pieces|0;return a;};
 const advHour=()=>advFast()?60e3:3600e3;
-const advPow=f=>(f.g|0)+1+(f.st|0)*1.5+(f.vr?1:0);
+const advPow=f=>(f.g|0)+1+(f.st|0)*1.5+(f.vr&&FZV[fzVK(f.vr)]?.5+FZV[fzVK(f.vr)].t*.5:0);
 function advProb(R,fish){let pw=0;fish.forEach(f=>{pw+=advPow(f);if(R.bonus&&R.bonus.includes(f.k))pw+=2;});return Math.max(.15,Math.min(.95,.5+pw*.04-R.d*.12));}
 const advR=k=>ADVR.find(r=>r.k===k);
 const advFmt=ms=>{ms=Math.max(0,ms);const s=Math.ceil(ms/1000),h=s/3600|0,m=(s%3600)/60|0,ss=s%60;return h?`${h}시간 ${m}분`:m?`${m}분 ${ss}초`:`${ss}초`;};
@@ -2075,7 +2081,7 @@ function advClaim(id){const a=advS(),t=a.teams.find(x=>x.id===id);if(!t||Date.no
   if(R.cat&&Math.random()<R.cat[1]){z.cat[R.cat[0]]=(z.cat[R.cat[0]]|0)+1;got.push(['potion',`${FZV[R.cat[0]].n} 촉매 +1`]);}
   if(R.k==='treasure'){a.pieces=0;a.treasure=(a.treasure|0)+1;}}
  else{const c=Math.round(R.coin[0]*.3);S.coins+=c;got.push(['coins',`골드 ${c} (위로금)`]);}
- if(t.ev){const pk=t.ev.pick||'b',ix=ADV_EV.findIndex(e=>e.q===t.ev.q);if(pk==='b'){if(ix===0){const k=(R.cat&&R.cat[0])||'sakura';z.cat[k]=(z.cat[k]|0)+1;got.push(['potion',`${FZV[k].n} 촉매 +1 (도중 선택)`]);}else{const c=ix===1?120:80;S.coins+=c;got.push(['coins',`골드 +${c} (도중 선택)`]);}}
+ if(t.ev){const pk=t.ev.pick||'b',ix=ADV_EV.findIndex(e=>e.q===t.ev.q);if(pk==='b'){if(ix===0){const k=(R.cat&&R.cat[0])||'pink';z.cat[k]=(z.cat[k]|0)+1;got.push(['potion',`${FZV[k].n} 촉매 +1 (도중 선택)`]);}else{const c=ix===1?120:80;S.coins+=c;got.push(['coins',`골드 +${c} (도중 선택)`]);}}
   else{const luck=Math.random()<(ix===1?.6:ix===2?1:.7);if(luck){if(ix===1){S.boxes.push(Date.now()+9);got.push(['chest','상자 +1 (도중 선택)']);}else if(a.pieces<6){a.pieces++;got.push(['piece','지도 조각 +1 (도중 선택)']);}}else got.push(['bag','도중 선택은 아쉽게 빈손']);}}
  t.fish.forEach(f=>S.tank.push(f));a.teams=a.teams.filter(x=>x!==t);try{XBAL.ev(25,'모험');}catch(e){}save();hud();try{updBagBadge();}catch(e){}
  let m=$('fzr');if(!m){m=document.createElement('div');m.id='fzr';m.className='modal';document.body.appendChild(m);}
@@ -2147,10 +2153,22 @@ function umvSheet(){const old=$('umvSheet');if(old)old.remove();let t=$('umvTb')
  t.querySelectorAll('[data-umz]').forEach(b=>b.onclick=()=>{const P=umvP(),cur=P[e.id]||[0,0,1],n=Math.max(70,Math.min(130,Math.round((cur[2]||1)*100)+10*+b.dataset.umz));umvSnap();P[e.id]=[cur[0],cur[1],n/100];umvPut(e,P[e.id]);keepIn(e);umvAuto();umvSheet();});
  t.querySelector('[data-umu]').onclick=umvUndo;
  t.querySelector('[data-umo]').onclick=()=>{umvSnap();delete umvP()[e.id];umvPut(e,null);umvAuto();umvSheet();};
- umvTbPos();}
-function umvTbPos(){const t=$('umvTb'),e=UMV.sel;if(!t||!e)return;const r=e.getBoundingClientRect(),w=t.offsetWidth,h=t.offsetHeight,G=12;
- let x=Math.max(8,Math.min(innerWidth-8-w,(r.left+r.right)/2-w/2)),below=r.top-G-h<56,y=below?r.bottom+G:r.top-G-h;if(below&&y+h>innerHeight-8)y=Math.max(8,r.top-G-h);
- t.style.left=x+'px';t.style.top=y+'px';t.classList.toggle('bl',below);t.style.setProperty('--ax',Math.max(14,Math.min(w-14,(r.left+r.right)/2-x))+'px');}
+ umvTbPos();umvPillPos();}
+// v82: 이동 도구막대·안내 알약이 다른 창을 덮으면 그 창을 잡을 수 없었어요 → 다른 창과 가장 덜 겹치는 자리로 놓아요
+function umvRects(skip){const out=[];for(const id in UMV_N){const e=$(id);if(!e||e===skip||!txVis(e))continue;const r=e.getBoundingClientRect();if(r.width>2&&r.height>2)out.push(r);}return out;}
+const umvOv=(x,y,w,h,R)=>R.reduce((a,r)=>a+Math.max(0,Math.min(x+w,r.right)-Math.max(x,r.left))*Math.max(0,Math.min(y+h,r.bottom)-Math.max(y,r.top)),0);
+function umvTbPos(){const t=$('umvTb'),e=UMV.sel;if(!t||!e)return;const r=e.getBoundingClientRect(),w=t.offsetWidth,h=t.offsetHeight,G=12,R=umvRects(e),cx=(r.left+r.right)/2,cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+ const C=[['up',cx-w/2,r.top-G-h],['bl',cx-w/2,r.bottom+G],['lf',r.left-G-w,(r.top+r.bottom)/2-h/2],['rt',r.right+G,(r.top+r.bottom)/2-h/2]].map(([k,x,y])=>{const X=cl(x,8,innerWidth-8-w),Y=cl(y,8,innerHeight-8-h);const self=umvOv(X,Y,w,h,[r]);return [k,X,Y,umvOv(X,Y,w,h,R)+self*50+(k==='up'&&y<8?5e3:0)+(k==='bl'&&y+h>innerHeight-8?5e3:0)];}).sort((a,b)=>a[3]-b[3]);
+ const [k,x,y]=C[0];t.style.left=x+'px';t.style.top=y+'px';t.classList.toggle('bl',k==='bl');t.classList.toggle('side',k==='lf'||k==='rt');t.style.setProperty('--ax',Math.max(14,Math.min(w-14,cx-x))+'px');}
+function umvPillPos(){const p=$('umvPill');if(!p||!UMV.on)return;const w=p.offsetWidth,h=p.offsetHeight,R=umvRects(null),tb=$('umvTb');if(tb)R.push(tb.getBoundingClientRect());
+ const C=[[innerWidth/2-w/2,innerHeight-18-h],[innerWidth/2-w/2,64],[innerWidth/2-w/2,innerHeight/2-h/2],[12,innerHeight/2-h/2],[innerWidth-12-w,innerHeight/2-h/2]].map(([x,y],i)=>[x,y,umvOv(x,y,w,h,R)+i]).sort((a,b)=>a[2]-b[2]);
+ p.style.left=C[0][0]+'px';p.style.top=C[0][1]+'px';p.style.bottom='auto';p.style.transform='none';}
+setInterval(()=>{if(UMV.on&&!UMV.drag)umvPillPos();},700);
+// v82: 이동 모드에서 방향키로 1px(Shift 10px)씩, +/− 로 크기
+addEventListener('keydown',ev=>{if(!UMV.on||!UMV.sel)return;const tg=ev.target;if(tg&&/INPUT|TEXTAREA|SELECT/.test(tg.tagName))return;const d=ev.shiftKey?10:1,K={ArrowLeft:[-d,0],ArrowRight:[d,0],ArrowUp:[0,-d],ArrowDown:[0,d]}[ev.key];const e=UMV.sel,P=umvP(),cur=P[e.id]||[0,0,1];
+ if(K){ev.preventDefault();ev.stopPropagation();if(!UMV._kt||Date.now()-UMV._kt>800)umvSnap();UMV._kt=Date.now();P[e.id]=[cur[0]+K[0],cur[1]+K[1],cur[2]||1];umvPut(e,P[e.id]);keepIn(e);clearTimeout(UMV._ks);UMV._ks=setTimeout(()=>{umvAuto();umvTbPos();},250);umvTbPos();return;}
+ if(ev.key==='+'||ev.key==='='||ev.key==='-'){ev.preventDefault();ev.stopPropagation();const n=Math.max(70,Math.min(130,Math.round((cur[2]||1)*100)+(ev.key==='-'?-10:10)));umvSnap();P[e.id]=[cur[0],cur[1],n/100];umvPut(e,P[e.id]);keepIn(e);umvAuto();umvSheet();}
+ if(ev.key==='Escape'){ev.preventDefault();umvLeave(true);}},true);
 function umvTip(on){let d=$('umvTip');if(!on){if(d)d.remove();return;}try{if(localStorage.getItem('nk_umv_tip'))return;}catch(e){}
  if(!d){d=document.createElement('div');d.id='umvTip';document.body.appendChild(d);}
  d.innerHTML=`<div class="cd" role="dialog" aria-label="이동 모드 안내"><b class="tt">✋ 이동 모드예요</b><div class="st"><span class="n n1">1</span><span>창을 <b>끌어서</b> 원하는 곳에 놓아요</span></div><div class="st"><span class="n n2">2</span><span>놓으면 <b>바로 저장</b>돼요</span></div><div class="st"><span class="n n3">3</span><span><b>빈 곳을 누르면</b> 끝나요</span></div><button type="button" class="ok">알겠어요</button><small>처음 한 번만 보여요</small></div>`;
