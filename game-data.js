@@ -9,7 +9,7 @@ window.NK_DATA = {
     {id:3,n:'전설',c:'#f4a62a',m:10},
     {id:4,n:'신화',c:'#c46cf2',m:30}],
   // min/max: 게임 내 크기 범위(cm), g: 등급 하한 [고급, 희귀, 전설, 신화], scale: 지수분포 스케일(작을수록 대어가 드묾)
-  // w: 기본 출현 가중치, base: 최소 크기일 때 일반 등급 기본가(코인)
+  // w: 기본 출현 가중치, base: 최소 크기일 때 일반 등급 기본가(골드)
   FISH: [
     {k:'crucian',n:'붕어',  min:8,  max:64,  g:[20,30.3,40,50], scale:7,  w:30,base:10,col:'#b9b48a',img:'img/fish/crucian.png',
       src:'FishBase Carassius auratus: 보통 10cm·최대 48cm / 낚시춘추 국내 최대 64cm(1988 송악지) / 월척=30.3cm, 4짜=40cm(영남일보)'},

@@ -5,8 +5,8 @@
  const pad=n=>String(n).padStart(2,'0'),left=ms=>{if(ms==null)return '';ms=Math.max(0,ms);const s=Math.floor(ms/1000),d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);return d?`${d}일 ${h}시간`:`${h}:${pad(m)}:${pad(s%60)}`;};
  const kst=t=>{const x=new Date(t+9*36e5);return `${x.getUTCMonth()+1}/${x.getUTCDate()} ${pad(x.getUTCHours())}:${pad(x.getUTCMinutes())}`;};
  function info(){if(pv&&Date.now()<pv)return {coin:2,box:1.5,from:pv-10000,to:pv+86400000*2-3600000,on:true,key:'pv'};const V=window.NKV2&&NKV2.V14;if(!V||!V.evMul)return null;const m=V.evMul();if(!m.on)return null;const e=V.evInfo?V.evInfo():{};return {coin:m.coin,box:m.box,from:e.from||0,to:e.to||0,on:true,key:[e.from,e.coin,e.box].join('|')};}
- const pills=e=>`${e.coin>1?`<span class="pl">🪙 코인 ×${e.coin}</span>`:''}${e.box>1?`<span class="pl b">🎁 상자 ×${e.box}</span>`:''}`;
- const ttl=e=>e.coin>1&&e.box>1?`코인 ×${e.coin} · 상자 ×${e.box} 이벤트`:e.coin>1?`코인 ×${e.coin} 이벤트`:`상자 ×${e.box} 이벤트`;
+ const pills=e=>`${e.coin>1?`<span class="pl">🪙 골드 ×${e.coin}</span>`:''}${e.box>1?`<span class="pl b">🎁 상자 ×${e.box}</span>`:''}`;
+ const ttl=e=>e.coin>1&&e.box>1?`골드 ×${e.coin} · 상자 ×${e.box} 이벤트`:e.coin>1?`골드 ×${e.coin} 이벤트`:`상자 ×${e.box} 이벤트`;
  const sh=e=>e.coin>1?'×'+e.coin:'🎁×'+e.box;
  function html(v,ph,e){const L=e.to?left(e.to-Date.now()):'',per=e.to&&e.from?Math.max(0,Math.min(100,(e.to-Date.now())/(e.to-e.from)*100)):100,until=e.to?kst(e.to)+'까지':'종료 시간 없음';
   if(v==='e1')return ph==='start'?`<div class="bn">🎉 <b>${ttl(e)} 시작!</b>${pills(e)}<small>${until}</small><span class="x" data-evx>×</span></div>`:`<div class="ch">🎉 <b class="lg">${ttl(e).replace(' 이벤트','')}</b><b class="sh">${sh(e)}</b>${L?` <i>${L}</i>`:''}</div>`;
@@ -31,12 +31,12 @@
 })();
 // v50: 게시판 — board-v24.html (목록 → 글 보기 → 글쓰기, 서버 D1)
 (function(){let ov;const close=()=>{if(ov){ov.remove();ov=null;}};
- function open(){close();const S=(window.NKV2&&NKV2.S)||{},m=innerWidth<700,v=m?'m':'4';ov=document.createElement('div');ov.id='boardOv';ov.className='v'+v;window.NK_BOARD_API=window.NK_BOARD_API||localStorage.getItem('nk_board_api')||'https://fishcozy-board-api.mi1ku.workers.dev';ov.innerHTML=`<iframe src="board-v24.html?v=${v}&api=${encodeURIComponent(window.NK_BOARD_API)}&cb=v79" title="게시판" allowtransparency="true"></iframe>`;document.body.appendChild(ov);}
+ function open(){close();const S=(window.NKV2&&NKV2.S)||{},m=innerWidth<700,v=m?'m':'4';ov=document.createElement('div');ov.id='boardOv';ov.className='v'+v;window.NK_BOARD_API=window.NK_BOARD_API||localStorage.getItem('nk_board_api')||'https://fishcozy-board-api.mi1ku.workers.dev';ov.innerHTML=`<iframe src="board-v24.html?v=${v}&api=${encodeURIComponent(window.NK_BOARD_API)}&cb=v80" title="게시판" allowtransparency="true"></iframe>`;document.body.appendChild(ov);}
  addEventListener('message',e=>{if(e.data==='nkBoardClose')close();});addEventListener('keydown',e=>{if(e.key==='Escape'&&ov)close();});
  const add=()=>{const sy=document.getElementById('mSys');if(!sy){setTimeout(add,500);return;}if(document.getElementById('bBoard'))return;const b=document.createElement('button');b.id='bBoard';b.title='게시판';b.innerHTML='<b class="mi">📋</b><small class="ml">게시판</small>';b.onclick=e=>{e.stopPropagation();open();};sy.insertBefore(b,sy.firstChild);if(window.NK_EMOJI)try{NK_EMOJI.parse(b);}catch(_){}};add();
  window.NK_BOARD={open,close};})();
 
-// v25→v26: 날씨 카드 정렬 — 크기는 v24 원래대로, 왼쪽 라인만 위 패널(PC #equip · 모바일 코인 알약)에 맞춤. 간격은 레벨창↔정보줄 간격 +2px
+// v25→v26: 날씨 카드 정렬 — 크기는 v24 원래대로, 왼쪽 라인만 위 패널(PC #equip · 모바일 골드 알약)에 맞춤. 간격은 레벨창↔정보줄 간격 +2px
 (function(){const $=id=>document.getElementById(id);
  function al(){const w=$('wxCard');if(!w||!w.offsetParent)return;const B=document.body;if(B.classList.contains('vshort')||B.classList.contains('mx')||B.classList.contains('tx')){['left','top','width','right','transform'].forEach(k=>w.style.removeProperty(k));return;}
   const set=(k,v)=>w.style.setProperty(k,v,'important');

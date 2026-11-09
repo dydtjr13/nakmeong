@@ -1,4 +1,4 @@
-// 튜토리얼 100단계 생성 — 경험치는 단계마다 30+6k, 코인 50+30k, 10단계마다 상자(1+⌊k/30⌋개, 등급 하한 k≥30 고급 · k≥60 희귀 · k=100 영웅)
+// 튜토리얼 100단계 생성 — 경험치는 단계마다 30+6k, 골드 50+30k, 10단계마다 상자(1+⌊k/30⌋개, 등급 하한 k≥30 고급 · k≥60 희귀 · k=100 영웅)
 const S=[];const r5=x=>Math.round(x/5)*5;
 const rw=(k,extra)=>{const o={xp:30+6*k,co:50+30*k};if(k%10===0){const n=1+Math.floor(k/30),t=k>=100?3:k>=60?2:k>=30?1:0;o.box=Array(n).fill('lv'+t);}return Object.assign(o,extra||{});};
 const add=(k,o)=>{S.push(Object.assign({},o,{rw:rw(k,o.rwx)}));delete S[S.length-1].rwx;};
@@ -9,7 +9,7 @@ add(4,{id:'t4ten',cat:'낚시',ic:'🐟',t:'물고기 10마리 낚기',say:'감 
 add(5,{id:'t5rod',cat:'장비',ic:'🎣',t:'카본 낚싯대 장착하기',say:'받은 <b>카본 낚싯대</b>를 🎒가방 › 낚싯대에서 <b>장착</b>해 보렴. 입질이 더 빨라져.',goal:{k:'rodEq',n:1,rod:'carbon'}});
 add(6,{id:'t6bag',cat:'UI',ic:'🎒',t:'가방 열어 보기',say:'아래 메뉴의 <b>가방</b>에는 상자·부적·장비가 모여.',goal:{k:'openBag',n:1}});
 add(7,{id:'t7shop',cat:'UI',ic:'🛒',t:'상점 열어 보기',say:'<b>상점</b>에서 미끼·낚싯대·행운 상자를 살 수 있어.',goal:{k:'openShop',n:1}});
-add(8,{id:'t8sell',cat:'경제',ic:'💰',t:'물고기 팔기',say:'상점 › <b>판매</b>에서 물고기를 팔면 코인이 생겨.',goal:{k:'sell',n:1}});
+add(8,{id:'t8sell',cat:'경제',ic:'💰',t:'물고기 팔기',say:'상점 › <b>판매</b>에서 물고기를 팔면 골드가 생겨.',goal:{k:'sell',n:1}});
 add(9,{id:'t9tank',cat:'UI',ic:'🐠',t:'어항 열어 보기',say:'낚은 물고기는 <b>어항</b>에서 헤엄쳐. 한 번 구경해 봐.',goal:{k:'openTank',n:1}});
 add(10,{id:'t10dex',cat:'UI',ic:'📖',t:'도감 열어 보기',say:'📖 <b>도감</b>에서 만난 물고기를 모아 볼 수 있어. 열 번째 임무 기념 <b>행운 상자</b>도 줄게!',goal:{k:'openDex',n:1}});
 add(11,{id:'t11box',cat:'수집',ic:'🎁',t:'행운 상자 1개 열기',say:'받은 <b>행운 상자</b>를 🎒가방 › 상자에서 <b>열어</b> 보렴. 뭐가 나올까?',goal:{k:'boxOpen',n:1}});
@@ -23,7 +23,7 @@ add(18,{id:'t18dex3',cat:'수집',ic:'📖',t:'도감 3종 채우기',say:'여�
 add(19,{id:'t19lv4',cat:'성장',ic:'🏅',t:'Lv.4 되기',say:'경험치를 모아 <b>레벨 4</b>가 되어 보자.',goal:{k:'lv',n:4}});
 add(20,{id:'t20c20',cat:'낚시',ic:'🐟',t:'20마리 더 낚기',say:'호수가 너를 반기네. <b>20마리</b>! 스무 번째 임무 상자도 준비했어.',goal:{k:'catch',n:20}});
 add(21,{id:'t21set',cat:'UI',ic:'⚙️',t:'설정 열어 보기',say:'⚙️ <b>설정</b>에서 소리·화면을 내 맘대로 바꿀 수 있어.',goal:{k:'openSet',n:1}});
-add(22,{id:'t22co',cat:'경제',ic:'🪙',t:'코인 1,000 모으기',say:'판매와 보상으로 <b>1,000 코인</b>을 모아 봐.',goal:{k:'coins',n:1000}});
+add(22,{id:'t22co',cat:'경제',ic:'🪙',t:'골드 1,000 모으기',say:'판매와 보상으로 <b>1,000 골드</b>을 모아 봐.',goal:{k:'coins',n:1000}});
 add(23,{id:'t23c25',cat:'낚시',ic:'🎣',t:'25마리 더 낚기',say:'꾸준함이 월척을 불러. <b>25마리</b>!',goal:{k:'catch',n:25}});
 add(24,{id:'t24dex5',cat:'수집',ic:'📖',t:'도감 5종',say:'도감에 <b>5종</b>을 채워 보자.',goal:{k:'dex',n:5}});
 add(25,{id:'t25enh',cat:'장비',ic:'⚒️',t:'낚싯대 +1 강화',say:'강화석으로 낚싯대를 <b>+1</b> 강화해 보렴. 가방 › 낚싯대 › 강화.',goal:{k:'enh',n:1},grant:{stone:2}});
@@ -34,8 +34,8 @@ add(29,{id:'t29dex7',cat:'수집',ic:'📖',t:'도감 7종',say:'도감 <b>7종<
 add(30,{id:'t30c35',cat:'낚시',ic:'🎣',t:'35마리 더 낚기',say:'서른 번째 임무! <b>35마리</b> 낚으면 고급 상자 2개!',goal:{k:'catch',n:35}});
 const SAY={catch:['손맛이 좋지? <b>{n}마리</b> 더!','오늘도 물결이 잔잔해. <b>{n}마리</b>!','큰 놈이 올지도 몰라. <b>{n}마리</b>!','꾸준함이 최고야. <b>{n}마리</b>!','할아버지도 젊을 땐 이만큼 낚았지. <b>{n}마리</b>!'],
  dex:['도감 <b>{n}종</b>을 채워 보자.','새로운 친구를 찾아봐. 도감 <b>{n}종</b>!'],lv:['<b>레벨 {n}</b>까지 가 보자.','<b>Lv.{n}</b>이면 더 좋은 장비를 쓸 수 있어.'],
- coins:['<b>{n} 코인</b>을 모아 보렴.','장비 살 돈을 모아 두자. <b>{n} 코인</b>!'],enh:['낚싯대를 <b>+{n}</b>까지 강화해 보렴.'],boxOpen:['행운 상자를 <b>{n}개</b> 열어 봐.']};
-const T={catch:n=>`${n}마리 더 낚기`,dex:n=>`도감 ${n}종`,lv:n=>`Lv.${n} 되기`,coins:n=>`코인 ${n.toLocaleString()} 모으기`,enh:n=>`낚싯대 +${n} 강화`,boxOpen:n=>`행운 상자 ${n}개 열기`};
+ coins:['<b>{n} 골드</b>을 모아 보렴.','장비 살 돈을 모아 두자. <b>{n} 골드</b>!'],enh:['낚싯대를 <b>+{n}</b>까지 강화해 보렴.'],boxOpen:['행운 상자를 <b>{n}개</b> 열어 봐.']};
+const T={catch:n=>`${n}마리 더 낚기`,dex:n=>`도감 ${n}종`,lv:n=>`Lv.${n} 되기`,coins:n=>`골드 ${n.toLocaleString()} 모으기`,enh:n=>`낚싯대 +${n} 강화`,boxOpen:n=>`행운 상자 ${n}개 열기`};
 const IC={catch:'🎣',dex:'📖',lv:'🏅',coins:'🪙',enh:'⚒️',boxOpen:'🎁'},CAT={catch:'낚시',dex:'수집',lv:'성장',coins:'경제',enh:'장비',boxOpen:'수집'};
 let ci=0;
 for(let k=31;k<=100;k++){const j=k-30;let kind,n;

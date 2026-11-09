@@ -88,6 +88,10 @@ async function ensureSchema(db) {
     'CREATE TABLE IF NOT EXISTS ranks (wk TEXT NOT NULL, k TEXT NOT NULL, owner TEXT NOT NULL, nick TEXT NOT NULL, srv INTEGER NOT NULL DEFAULT 0, cm REAL NOT NULL, g INTEGER NOT NULL DEFAULT 0, at INTEGER NOT NULL, PRIMARY KEY (wk, k, owner))',
     'CREATE INDEX IF NOT EXISTS idx_ranks_k ON ranks(wk, k, cm DESC)',
     'CREATE INDEX IF NOT EXISTS idx_ranks_srv ON ranks(wk, srv)',
+    // v80: 게시글 사진 1장 (게임 스크린샷 · 자랑 게시판)
+    'ALTER TABLE posts ADD COLUMN img TEXT',
+    'CREATE TABLE IF NOT EXISTS imgs (id TEXT PRIMARY KEY, post_id TEXT, owner TEXT, mime TEXT NOT NULL, data TEXT NOT NULL, size INTEGER NOT NULL, created_at INTEGER NOT NULL)',
+    'CREATE INDEX IF NOT EXISTS idx_imgs_owner ON imgs(owner, created_at)',
     'CREATE TABLE IF NOT EXISTS accounts (nk TEXT PRIMARY KEY, nick TEXT NOT NULL, salt TEXT NOT NULL, ph TEXT NOT NULL, code TEXT NOT NULL, fails INTEGER NOT NULL DEFAULT 0, lock_until INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)',
   ];
   for (const sql of tries) { try { await db.prepare(sql).run(); } catch (e) { /* 이미 있음 */ } }
@@ -122,7 +126,7 @@ const REPORT_HIDE = 3; // 서로 다른 3명이 신고하면 관리자가 볼 �
 
 function shapePost(p, me, admin) {
   return { id: p.id, cat: p.cat, title: p.title, body: p.body, nick: p.nick, created_at: p.created_at, updated_at: p.updated_at,
-    comment_count: p.comment_count || 0, mine: !!(me && p.owner && p.owner === me), edited: p.updated_at > p.created_at + 1000,
+    comment_count: p.comment_count || 0, img: p.img ? '/img/' + p.img : '', mine: !!(me && p.owner && p.owner === me), edited: p.updated_at > p.created_at + 1000,
     ...(admin ? { reports: p.reports || 0, hidden: !!p.hidden } : {}) };
 }
 async function listPosts(db, url, me, admin) {
@@ -145,6 +149,7 @@ function newCode() {
 }
 const cleanCode = (c) => { const s = String(c || '').toUpperCase().replace(/[^0-9A-Z]/g, ''); return s.length === 12 ? s.slice(0, 4) + '-' + s.slice(4, 8) + '-' + s.slice(8) : ''; };
 const SAVE_MAX = 400 * 1024;
+const IMG_MAX = 620 * 1024; // base64 글자 수 (실제 약 460KB)
 
 export default {
   async fetch(request, env) {
@@ -306,6 +311,14 @@ export default {
         return json({ ok: true, rows: rows.map((r) => ({ n: r.nick, k: r.k, cm: r.cm, me: !!me && r.owner === me })) }, 200, origin);
       }
 
+      // v80: 게시글 사진 보기 (한 번 올리면 바뀌지 않아서 오래 캐시)
+      const imgOne = path.match(/^\/img\/([\w-]{4,40})$/);
+      if (request.method === 'GET' && imgOne) {
+        const row = await db.prepare('SELECT mime, data FROM imgs WHERE id=?').bind(imgOne[1]).first();
+        if (!row) return bad('not found', 404, origin);
+        const bin = Uint8Array.from(atob(row.data), (c) => c.charCodeAt(0));
+        return new Response(bin, { status: 200, headers: { 'Content-Type': row.mime, 'Cache-Control': 'public, max-age=31536000, immutable', ...corsHeaders(origin) } });
+      }
       // ─ 게시판 ─
       if (request.method === 'GET' && path === '/posts') return json({ ok: true, posts: await listPosts(db, url, me, admin) }, 200, origin);
       if (request.method === 'GET' && path === '/reports') {
@@ -331,8 +344,19 @@ export default {
         if (!admin && (STAFF_CATS.has(catKey(cat)) || reservedNick(nick))) return bad('admin only', 403, origin);
         if (!admin && profane(title, text, nick)) return bad('profanity', 400, origin);
         const pid = id('p'), ts = Date.now();
-        await db.prepare('INSERT INTO posts (id,cat,title,body,nick,created_at,updated_at,owner) VALUES (?,?,?,?,?,?,?,?)').bind(pid, cat, title, text, nick, ts, ts, me || null).run();
-        return json({ ok: true, post: { id: pid, cat, title, body: text, nick, created_at: ts, updated_at: ts, mine: !!me } }, 201, origin);
+        // v80: 사진 1장 (data:image/jpeg|webp|png;base64 · 최대 약 450KB)
+        let imgId = null;
+        if (body.img) {
+          const m = String(body.img).match(/^data:(image\/(?:jpeg|webp|png));base64,([A-Za-z0-9+/]+=*)$/);
+          if (!m || m[2].length > IMG_MAX) return bad('bad image', 400, origin);
+          if (!me) return bad('owner required', 400, origin);
+          const today = await db.prepare('SELECT COUNT(*) AS n FROM imgs WHERE owner=? AND created_at>?').bind(me, ts - 864e5).first();
+          if (!admin && today && today.n >= 20) return bad('image limit', 429, origin);
+          imgId = id('i');
+          await db.prepare('INSERT INTO imgs (id,post_id,owner,mime,data,size,created_at) VALUES (?,?,?,?,?,?,?)').bind(imgId, pid, me, m[1], m[2], Math.round(m[2].length * 3 / 4), ts).run();
+        }
+        await db.prepare('INSERT INTO posts (id,cat,title,body,nick,created_at,updated_at,owner,img) VALUES (?,?,?,?,?,?,?,?,?)').bind(pid, cat, title, text, nick, ts, ts, me || null, imgId).run();
+        return json({ ok: true, post: { id: pid, cat, title, body: text, nick, created_at: ts, updated_at: ts, mine: !!me, img: imgId ? '/img/' + imgId : '' } }, 201, origin);
       }
       if (request.method === 'PUT' && postOne) {
         const pid = decodeURIComponent(postOne[1]);
@@ -356,6 +380,7 @@ export default {
         if (!admin && !(me && post.owner === me)) return bad('not yours', 403, origin);
         await db.prepare('DELETE FROM comments WHERE post_id=?').bind(pid).run();
         await db.prepare('DELETE FROM reports WHERE post_id=?').bind(pid).run();
+        await db.prepare('DELETE FROM imgs WHERE post_id=?').bind(pid).run();
         await db.prepare('DELETE FROM posts WHERE id=?').bind(pid).run();
         return json({ ok: true }, 200, origin);
       }

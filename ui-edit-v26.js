@@ -11,7 +11,7 @@
  // v27 그룹(모바일 목록·탭용)
  const GRP={'위':['mStat','equip','wxCard','mSys','bMore','chatBtn','annBar','evx','lvT'],'아래':['mMain','fishBtn','joy','chat'],'알림':['xpF','toast','cutin','tq25']};
  // 테스트 사본: 숨은 알림을 편집 중에만 진짜 id로 만들어 보여줌(끝나면 지움 → 게임이 필요할 때 다시 만듦)
- const PV={xpF:()=>`<b>+25 XP</b> · 테스트 알림`,lvT:()=>'⬆ Lv.10 달성! 코인 +1,000 (테스트)',toast:()=>'🎣 테스트 토스트 알림',annBar:()=>'<b>📢 운영자 공지</b><span>테스트 공지예요. 위치만 확인하세요.</span>',
+ const PV={xpF:()=>`<b>+25 XP</b> · 테스트 알림`,lvT:()=>'⬆ Lv.10 달성! 골드 +1,000 (테스트)',toast:()=>'🎣 테스트 토스트 알림',annBar:()=>'<b>📢 운영자 공지</b><span>테스트 공지예요. 위치만 확인하세요.</span>',
   cutin:()=>'<div class="band"><div><div class="t">✦ 테스트 컷인 ✦</div><div class="s">위치 확인용 사본</div></div></div>'};
  const key=()=>'nk_uipos_'+(innerWidth<700?'m':'pc');let P={},SAVED='{}';
  const ld=()=>{try{const own=localStorage.getItem(key());if(own==null){const d=window.NK_UIDEF&&NK_UIDEF();P=d?JSON.parse(JSON.stringify(d)):{};SAVED=JSON.stringify(P);}else{SAVED=own;P=JSON.parse(own);}}catch(e){P={};SAVED='{}';}};// v70: 자기 배치가 없으면 관리자가 정한 처음 화면 배치

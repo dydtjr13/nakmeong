@@ -153,7 +153,7 @@
         <label><input type="checkbox" id="gvCho" ${c.cho ? "checked" : ""}> 초성 게임</label>
         <label><input type="checkbox" id="gvBal" ${c.bal ? "checked" : ""}> 밸런스 게임</label>
       </div>
-      <div class="adform gevf"><b class="small">보상(코인)</b>
+      <div class="adform gevf"><b class="small">보상(골드)</b>
         <label>초성 1위 <input type="number" id="gvC1" min="0" value="${c.rw.c1}"></label><label>2위 <input type="number" id="gvC2" min="0" value="${c.rw.c2}"></label><label>3위 <input type="number" id="gvC3" min="0" value="${c.rw.c3}"></label><label>그 뒤 정답 <input type="number" id="gvCx" min="0" value="${c.rw.cx}"></label><label>밸런스 참여 <input type="number" id="gvB" min="0" value="${c.rw.b}"></label>
       </div>
       <details class="gevl"><summary>✏️ 초성 문제 ${c.choList.length}개 <small class="muted">한 줄에 하나 · <code>정답 | 주제 | 초성 직접 쓰기(선택)</code> · 정답이 여러 개면 <code>쏘가리/쏘갈이</code></small></summary><textarea id="gvChoL" rows="9" spellcheck="false">${esc(choTxt(c.choList))}</textarea></details>
