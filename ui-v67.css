@@ -345,3 +345,17 @@ body.umv #tq,body.umv #gq{pointer-events:auto!important}
 #dex .dxfull{font-size:10.5px;font-weight:800;color:#3f8a2e;background:#e9f6e2;border-radius:999px;padding:1px 7px}
 .comboV .cplus{font-size:11.5px;font-weight:800;color:#b07a00;background:#fff3cc;border-radius:999px;padding:1px 8px;margin-left:4px}
 .comboV .cvb{margin-top:10px;background:#fbf6ee;border-radius:12px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}.comboV .cvb span{border:1.5px solid var(--vc);color:var(--vc);border-radius:999px;padding:1px 9px;font-weight:700;font-size:12px}
+/* v84: 탐험 지도 — 이름표뿐 아니라 섬 전체를 눌러도 열려요 (모바일에서 섬을 눌러 반응이 없던 문제) */
+#adv .advhit{position:absolute;width:19%;aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%);z-index:1;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+/* v84: '후원 버튼 숨기기'를 켜도 모바일 메뉴 줄에 ☕ 가 보이던 문제 (모바일 메뉴 규칙이 더 강했어요) */
+html body.don-off button#bDon,html body.don-off #mSys button#bDon,html body.don-off #mDrop51 button#bDon{display:none!important}
+/* v84: 경험치 알림 — 연달아 와도 깜빡이지 않게 (애니메이션 다시 시작 대신 보이는 상태 유지) */
+#xpF{transition:opacity .25s ease,transform .25s ease;transform:translateY(-4px)}#xpF.xs{opacity:1;transform:none}
+/* v84: 보상 로드(레벨 챕터) 모바일 — 챕터 탭 두 줄이 잘리던 문제, 긴 칭호·보상 글자가 단어 중간에서 끊기거나 칸 밖으로 나가던 문제 */
+#lvRoad .rdt{align-items:stretch}#lvRoad .rdt button{height:auto!important;min-height:44px;padding-top:6px!important;padding-bottom:6px!important;line-height:1.15;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#lvRoad .rdt button small{display:block;line-height:1.1;position:static!important;transform:none!important}
+#lvRoad .rd3 .lc,#lvRoad .lc{min-width:0;overflow-wrap:anywhere;word-break:keep-all}
+#lvRoad .lc>*{max-width:100%}#lvRoad .lc .ttl{white-space:normal;display:inline-block;max-width:100%;overflow-wrap:anywhere}
+@media(max-width:420px){#lvRoad .card{padding-left:14px!important;padding-right:14px!important}#lvRoad .lc{padding:12px!important;font-size:14px}#lvRoad .lc b{font-size:inherit}}
+/* v84: 화면·시안 인게임 적용 */
+.lkapply{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 0}.lkapply small b{color:#c2621f}
