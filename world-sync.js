@@ -69,22 +69,35 @@
     const f2 = f * f, f3 = f2 * f;
     return 0.5 * (2 * p1 + (-p0 + p2) * f + (2 * p0 - 5 * p1 + 4 * p2 - p3) * f2 + (-p0 + 3 * p1 - 3 * p2 + p3) * f3);
   }
-  function duckPos(seed, i, ageMs, R, v) {
+  const DUCK_CACHE = new Map();
+  function duckPos(seed, i, ageMs, R, v, tag) {
     const p0 = duckPoint(seed, i, 0, R);
     if (!(v > 0)) return p0;
-    const segMs = ((0.9 * R) / v) * 1000;
-    const u = Math.max(0, ageMs) / segMs;
-    const k = Math.floor(u), f = u - k;
-    const A = k > 0 ? duckPoint(seed, i, k - 1, R) : p0;
-    const B = duckPoint(seed, i, k, R), C = duckPoint(seed, i, k + 1, R), D = duckPoint(seed, i, k + 2, R);
-    let x = cr(A[0], B[0], C[0], D[0], f), z = cr(A[1], B[1], C[1], D[1], f);
-    // 물결 흔들림: 아주 느린 옆걸음 (속도에 비례, 멈춤이면 0)
-    const ph = (mix32(seed, 700 + i) % 1000) / 1000 * Math.PI * 2, s = ageMs / 1000;
-    const amp = Math.min(0.8, 4 * v);
-    x += Math.sin(s * 0.09 + ph) * amp;
-    z += Math.cos(s * 0.07 + ph * 1.3) * amp;
+    // v83: 일정한 속도 — 예전에는 구간마다 같은 시간을 써서 짧은 구간은 느리고 긴 구간은 빨랐어요.
+    //      이제 구간 길이(곡선 길이)만큼 시간을 쓰고, 구간 안에서도 길이 비례로 나아가요. 오리마다 진행을 기억해서 매번 처음부터 세지 않아요.
+    const key = seed + "|" + i + "|" + R.toFixed(3) + "|" + v.toFixed(5) + "|" + (tag || "");
+    let c = DUCK_CACHE.get(key);
+    const age = Math.max(0, ageMs);
+    if (!c || age < c.t0) { c = { k: 0, t0: 0, seg: null }; DUCK_CACHE.set(key, c); if (DUCK_CACHE.size > 400) DUCK_CACHE.delete(DUCK_CACHE.keys().next().value); }
+    const segOf = (k) => {
+      const A = k > 0 ? duckPoint(seed, i, k - 1, R) : p0, B = duckPoint(seed, i, k, R), C = duckPoint(seed, i, k + 1, R), D = duckPoint(seed, i, k + 2, R);
+      const L = [0]; let px = B[0], pz = B[1];
+      for (let j = 1; j <= 12; j++) { const f = j / 12, x = cr(A[0], B[0], C[0], D[0], f), z = cr(A[1], B[1], C[1], D[1], f); L.push(L[j - 1] + Math.hypot(x - px, z - pz)); px = x; pz = z; }
+      return { A, B, C, D, L, ms: Math.max(0.5, L[12]) / v * 1000 };
+    };
+    if (!c.seg) c.seg = segOf(c.k);
+    let guard = 0;
+    while (age >= c.t0 + c.seg.ms && guard++ < 5000) { c.t0 += c.seg.ms; c.k += 1; c.seg = segOf(c.k); }
+    const sg = c.seg, want = (age - c.t0) / sg.ms * sg.L[12];
+    let j = 1; while (j < 12 && sg.L[j] < want) j++;
+    const f = ((j - 1) + (sg.L[j] > sg.L[j - 1] ? (want - sg.L[j - 1]) / (sg.L[j] - sg.L[j - 1]) : 0)) / 12;
+    let x = cr(sg.A[0], sg.B[0], sg.C[0], sg.D[0], f), z = cr(sg.A[1], sg.B[1], sg.C[1], sg.D[1], f);
+    // 물결 흔들림은 아주 작게 (속도가 들쭉날쭉해 보이지 않게)
+    const ph = (mix32(seed, 700 + i) % 1000) / 1000 * Math.PI * 2, s = age / 1000;
+    const amp = Math.min(0.15, v);
+    x += Math.sin(s * 0.05 + ph) * amp;
+    z += Math.cos(s * 0.04 + ph * 1.3) * amp;
     const r = Math.hypot(x, z), lim = R * 0.95;
-    // v79: 벽에 닿으면 미끄러지지 않고 튕겨 안쪽으로 방향을 바꿔요
     if (r > lim) { const k = Math.max(0.5 * lim, 2 * lim - r) / r; x *= k; z *= k; }
     return [x, z];
   }
@@ -110,7 +123,7 @@
       const [x, z] = duckPos(seed, i, age, rMax, v);
       let head = ((h % 10000) / 10000) * Math.PI * 2;
       if (v > 0) {
-        const b = duckPos(seed, i, Math.max(0, age - 4000), rMax, v);
+        const b = duckPos(seed, i, Math.max(0, age - 4000), rMax, v, "h");
         const dx = x - b[0], dz = z - b[1];
         if (dx * dx + dz * dz > 1e-8) head = Math.atan2(dx, dz);
       }

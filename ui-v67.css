@@ -314,3 +314,34 @@ body.umvDrag #umvTb,body.umvDrag #umvPill,body.umvDrag #umvOk{opacity:0;pointer-
 #shotView .svnav{position:absolute;top:50%;transform:translateY(-50%);width:48px;height:72px;border:0;border-radius:14px;background:rgba(255,255,255,.14);color:#fff;font-size:34px;cursor:pointer}#shotView .svnav.p{left:12px}#shotView .svnav.n{right:12px}
 /* v81: 상점 착용 레벨 */
 #shop .lvtag{display:inline-block;font-size:11.5px;font-weight:800;border-radius:999px;padding:2px 8px;margin:4px 0}#shop .lvtag.ok{background:#e9f6e2;color:#3f8a2e}#shop .lvtag.no{background:#fde8e4;color:#c4462c}
+/* v83: 관리자 › 🦆 오리 */
+.duckset .dkcard{background:var(--adc,#fff);border:1.5px solid rgba(0,0,0,.07);border-radius:16px;padding:14px 16px;margin:10px 0}.duckset h5{margin:0 0 10px;font-size:14px}
+.duckset .dkgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px 18px}
+.duckset .dkf{display:flex;align-items:center;gap:10px;min-height:36px}.duckset .dkf>span:first-child{width:72px;flex:none;font-weight:700;font-size:13px;color:#8a7660}
+.duckset .dkkinds{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.duckset .dkkinds .dkK{background:#f6f1e8;border-radius:999px;padding:4px 10px;font-size:13px}
+.adm.dk .duckset .dkcard{--adc:#2b2733;border-color:rgba(255,255,255,.08)}
+/* v83: 이동 모드에서 비어 있는 알림 자리도 보이게 해서 옮길 수 있게 */
+body.umv #tq:empty,body.umv #gq:empty{min-width:220px;min-height:46px;border:2px dashed rgba(232,120,74,.8);border-radius:14px;background:rgba(255,253,248,.55);pointer-events:auto!important;display:flex;align-items:center;justify-content:center}
+body.umv #tq:empty::after{content:'🔔 알림 자리';font-size:12.5px;font-weight:700;color:#8a4b12}body.umv #gq:empty::after{content:'🏆 목표 알림 자리';font-size:12.5px;font-weight:700;color:#8a4b12}
+body.umv #tq,body.umv #gq{pointer-events:auto!important}
+/* v83: 오리 낚기 결과 창 */
+#duckGot{position:fixed;left:50%;top:22%;z-index:1250;width:min(340px,calc(100vw - 32px));background:#fffdf8;border-radius:20px;padding:16px 18px 12px;box-shadow:0 16px 44px rgba(40,30,20,.3);transform:translate(-50%,-10px) scale(.96);opacity:0;pointer-events:none;transition:.22s cubic-bezier(.2,1.3,.4,1)}
+#duckGot.on{opacity:1;transform:translate(-50%,0) scale(1);pointer-events:auto}
+#duckGot .dg-x{position:absolute;top:8px;right:10px;border:0;background:none;font-size:20px;color:#a08a70;cursor:pointer}
+#duckGot .dg-h{display:flex;gap:12px;align-items:center}#duckGot .dg-ic{position:relative;width:58px;height:58px;flex:none;border-radius:16px;background:radial-gradient(circle at 50% 40%,#fff,var(--dc));display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:inset 0 0 0 2px rgba(0,0,0,.06)}
+#duckGot .dg-ic i{position:absolute;top:-10px;right:-6px;font-style:normal;font-size:20px}
+#duckGot small{color:#8a7660;font-size:12px}#duckGot b{display:block;font-size:18px;margin:1px 0 4px}
+#duckGot .dg-lv{display:flex;gap:4px}#duckGot .dg-l{width:22px;height:22px;border-radius:7px;font-size:11.5px;font-weight:800;display:flex;align-items:center;justify-content:center;background:#f1ebe0;color:#b3a48e}#duckGot .dg-l.on{background:var(--dc);color:#3d3027;box-shadow:0 0 0 2px #e8784a}
+#duckGot .dg-rw{list-style:none;margin:12px 0 8px;padding:10px 12px;background:#fbf6ee;border-radius:14px;display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:13.5px;font-weight:700}
+#duckGot .dg-ft{display:block;font-size:11px}
+/* v83: 📖 도감 업그레이드 */
+#dex .dxp{background:linear-gradient(135deg,#fff7e4,#ffeef2);border-radius:16px;padding:12px 14px;margin:10px 0}#dex .dxp h4{margin:0 0 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#dex .dxbadge{font-size:11.5px;background:#3d3027;color:#ffd36a;border-radius:999px;padding:2px 9px}
+#dex .dxm{margin:6px 0 10px}#dex .dxmh{display:flex;justify-content:space-between;font-size:13px}#dex .dxbar{height:8px;border-radius:5px;background:#eadfcb;overflow:hidden;margin:4px 0 6px}#dex .dxbar i{display:block;height:100%;background:linear-gradient(90deg,#ffcf5a,#ff8aa8)}
+#dex .dxms{display:flex;gap:6px;flex-wrap:wrap}#dex .dxmi{position:relative;border:1.5px solid #eadfcb;background:#fff;border-radius:12px;padding:6px 10px;font:inherit;font-size:12px;display:flex;flex-direction:column;align-items:center;min-width:88px}
+#dex .dxmi.ok{border-color:#e8784a;background:#fff3ea;cursor:pointer}#dex .dxmi.got{background:#eef8e8;border-color:#9fd38d;opacity:.8}#dex .dxmi em{position:absolute;top:-8px;right:6px;font-style:normal;font-size:10px;font-weight:800;border-radius:999px;padding:1px 6px;background:#e8784a;color:#fff}#dex .dxmi.got em{background:#5fb37b}
+#dex .dxc{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:4px 0}#dex .dxst{color:#e6a700;letter-spacing:-1px;font-size:13px}#dex .dxst i{font-style:normal;color:#e4dccd}
+#dex .dxv{display:flex;gap:3px}#dex .dxv i{width:17px;height:17px;border-radius:5px;font-style:normal;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;background:#f1ece2;color:#c9bca6}#dex .dxv i.on{background:var(--vc);color:#fff}
+#dex .dxfull{font-size:10.5px;font-weight:800;color:#3f8a2e;background:#e9f6e2;border-radius:999px;padding:1px 7px}
+.comboV .cplus{font-size:11.5px;font-weight:800;color:#b07a00;background:#fff3cc;border-radius:999px;padding:1px 8px;margin-left:4px}
+.comboV .cvb{margin-top:10px;background:#fbf6ee;border-radius:12px;padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}.comboV .cvb span{border:1.5px solid var(--vc);color:var(--vc);border-radius:999px;padding:1px 9px;font-weight:700;font-size:12px}
