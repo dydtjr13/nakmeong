@@ -9,8 +9,12 @@ D.RODS.forEach(r=>{if(r.desc)r.desc=r.desc.replace(/\s*\(옵션 \d+슬롯\)/,"")
 const CFG=Object.assign({lay:'a',bots:9},JSON.parse(localStorage.getItem('nk_cfg')||'{}'));const LAYS={a:['ring',32],b:['alt',26],c:['bay',29],o:['ring',24]};
 const BOOT={lay:'a',deckW:'',decks:25,bots:9,chN:4};
 // v79: 🧪 4인용 데크를 켜면 관리자 맵의 '데크 폭' 설정(넓은 데크)보다 먼저 적용해요 — 넓은 데크가 켜져 있으면 4인용이 꺼져 보이던 문제
+// v85: 🧪 데크 어항 위치 B — 어항을 데크 입구 쪽 양옆으로, 의자 쪽(안쪽)을 보게 돌려 놓아요. 바꾸면 새로고침해야 적용
+function DTKBOOT(){const ok=v=>v!=null&&v!=='';try{const sv=JSON.parse(localStorage.getItem(localStorage.getItem('nk_solo')!=='0'?'nakmeong_solo':'nakmeong_v2')||'{}');if(ok(sv.deckTank))return String(sv.deckTank);}catch(e){}try{const pc=JSON.parse(localStorage.getItem('nk_play_cache')||'null');if(pc&&ok(pc.deckTank))return String(pc.deckTank);}catch(e){}return 'off';}
+function dwTk(d){if(!d||DTKBOOT()!=='B')return d;const h=Math.max(.8,d.w/2-.55);return Object.assign({},d,{tank:[[-h,-1.6],[h,-1.6]],tankR:[Math.PI/2,-Math.PI/2]});}
+const DTKBOOT0=DTKBOOT(),TKR=k=>DW&&DW.tankR?DW.tankR[k]:0,TKB=()=>!DW&&DTKBOOT()==='B';
 function D4BOOT(){const ok=v=>v!=null&&v!=='';try{const sv=JSON.parse(localStorage.getItem(localStorage.getItem('nk_solo')!=='0'?'nakmeong_solo':'nakmeong_v2')||'{}');if(ok(sv.deck4))return String(sv.deck4);}catch(e){}try{const pc=JSON.parse(localStorage.getItem('nk_play_cache')||'null');if(pc&&ok(pc.deck4))return String(pc.deck4);}catch(e){}return 'off';}
-const MOCK30=qs.has('mock30'),LK=MOCK30?null:(LAYS[CFG.lay]?CFG.lay:'a'),LAY=MOCK30?(qs.get('lay')||'ring'):LAYS[LK][0],DECKS=Math.min(30,Math.max(2,+qs.get('decks')||(MOCK30||LK==='o'?D.DECK_COUNT_DEFAULT:(CFG.decks||25)))),DW=((window.NK_DECKW||{})[CFG.deckW]||null),LR=(MOCK30?(+qs.get('lr')||24):LAYS[LK][1])+(DW?DW.lr:0)+(DW&&D4BOOT()!=='off'?5:0);
+const MOCK30=qs.has('mock30'),LK=MOCK30?null:(LAYS[CFG.lay]?CFG.lay:'a'),LAY=MOCK30?(qs.get('lay')||'ring'):LAYS[LK][0],DECKS=Math.min(30,Math.max(2,+qs.get('decks')||(MOCK30||LK==='o'?D.DECK_COUNT_DEFAULT:(CFG.decks||25)))),DW=dwTk((window.NK_DECKW||{})[CFG.deckW]||null),LR=(MOCK30?(+qs.get('lr')||24):LAYS[LK][1])+(DW?DW.lr:0)+(DW&&D4BOOT()!=='off'?5:0);
 BOOT.lay=LK||'a';BOOT.deckW=CFG.deckW||'';BOOT.decks=DECKS;BOOT.bots=Math.max(0,Math.min(50,+CFG.bots||0));BOOT.chN=(CFG.chN==null||CFG.chN==='')?4:Math.max(1,Math.min(8,+CFG.chN||4));
 function deckAng(i){if(LAY==='bay'){const G=6,per=Math.ceil(DECKS/G),g=Math.floor(i/per),j=i%per,gw=Math.PI*2/G,sp=gw*.72/per;return -Math.PI/2+g*gw+(j-(per-1)/2)*sp;}return -Math.PI/2+i*Math.PI*2/DECKS;}
 const deckOff=i=>LAY==='alt'&&i%2?2.6:0;
@@ -423,8 +427,8 @@ function buildDecks(){const BOARDS=12,LEN=9,W=3,boardG=new THREE.BoxGeometry(W,.
     for(let b=0;b<BOARDS;b++){const o=-LEN/2+(b+.5)*LEN/BOARDS;M4.compose(V.set(cx-ca*o,.3+Math.sin(b*7.3+i)*.015,cz-sa*o),Q,SC.set(DW?DW.w/W:1,1,1));boards.setMatrixAt(i*BOARDS+b,M4);}
     [[-1.35,-4],[1.35,-4],[-1.35,0],[1.35,0],[-1.35,4],[1.35,4]].forEach(([sx,o],k)=>{M4.compose(V.set(cx+ca*o-sa*sx*-1*0+(-sa)*sx,-.9,cz+sa*o+ca*sx),Q.identity(),SC.set(1,1,1));posts.setMatrixAt(i*6+k,M4);});
     // 어항 위치(데크 측면 중앙)
-    const LW=(x,z)=>[cx-ca*z-sa*x,cz-sa*z+ca*x];const [tx,tz]=DW?LW(DW.tank[0][0],DW.tank[0][1]):[cx+ca*.5-sa*1.0*(dbl?-1:1),cz+sa*.5+ca*1.0*(dbl?-1:1)];if(DW)DWX.push({i,LW,ry,tk:'R'+i});Q.setFromAxisAngle(UP,ry);M4.compose(V.set(tx,.7,tz),Q,SC.set(1,1,1));stand.setMatrixAt(i,M4);M4.compose(V.set(tx,1.4,tz),Q,SC.set(DW&&DW.tw?DW.tw:1,DW&&DW.tw?.8:1,1));glass.setMatrixAt(i,M4);
-    const _tm=[new THREE.Matrix4(),new THREE.Matrix4()];stand.getMatrixAt(i,_tm[0]);glass.getMatrixAt(i,_tm[1]);DTM[i]={x:tx,z:tz,ry,tm:_tm};
+    const LW=(x,z)=>[cx-ca*z-sa*x,cz-sa*z+ca*x];const _tb=TKB(),[tx,tz]=DW?LW(DW.tank[0][0],DW.tank[0][1]):_tb?LW(1.05*(dbl?-1:1),-1.6):[cx+ca*.5-sa*1.0*(dbl?-1:1),cz+sa*.5+ca*1.0*(dbl?-1:1)],_tr=DW?TKR(0):_tb?-Math.PI/2*(dbl?-1:1):0;if(DW)DWX.push({i,LW,ry,tk:'R'+i});Q.setFromAxisAngle(UP,ry+_tr);M4.compose(V.set(tx,.7,tz),Q,SC.set(1,1,1));stand.setMatrixAt(i,M4);M4.compose(V.set(tx,1.4,tz),Q,SC.set(DW&&DW.tw?DW.tw:1,DW&&DW.tw?.8:1,1));glass.setMatrixAt(i,M4);
+    const _tm=[new THREE.Matrix4(),new THREE.Matrix4()];stand.getMatrixAt(i,_tm[0]);glass.getMatrixAt(i,_tm[1]);DTM[i]={x:tx,z:tz,ry:ry+_tr,tm:_tm};Q.setFromAxisAngle(UP,ry);
     if(DW){const lx=DW.lan,l=LW(lx[0],lx[1]),q=LW(DW.prop[0],DW.prop[1]);lan.push([l[0],.38,l[1],ry,1.3]);if(i%2)buck.push([q[0],.38,q[1],a,2.2]);else plant.push([q[0],.38,q[1],a,1.6]);}else{lan.push([cx-ca*3.9+sa*1.25,.38,cz-sa*3.9-ca*1.25,ry,1.3]);if(i%2)buck.push([cx+ca*2+sa*.9,.38,cz+sa*2-ca*.9,a,2.2]);else plant.push([cx+ca*2.5+sa*1,.38,cz+sa*2.5-ca*1,a,1.6]);}
     decks.push({i,a,cx,cz,ca,sa,tip:{x:ca*(cr-3.9)+sa*sh,z:sa*(cr-3.9)-ca*sh},entry:{x:ca*(LR+3)+sa*sh,z:sa*(LR+3)-ca*sh},tank:{x:tx,z:tz},lantern:{x:lan[i][0],z:lan[i][2]},owner:null});}
   if(twins.length)buildTwins(twins,BOARDS,LEN,W,boardG,wood,lan,D4);
@@ -436,7 +440,7 @@ function buildTwins(T,BOARDS,LEN,W,boardG,wood,lan,kind){const WD=DW?DW.w:W,PX=W
   T.forEach((t,j)=>{const {ca,sa,cx,cz,ry,i}=t;Q.setFromAxisAngle(UP,ry);for(let b=0;b<BOARDS;b++){const o=-LEN/2+(b+.5)*LEN/BOARDS;M4.compose(V.set(cx-ca*o,.3+Math.sin(b*5.1+i)*.015,cz-sa*o),Q,SC.set(WD/W,1,1));B2.setMatrixAt(k++,M4);}
    if(kind==='B'){const gap=t.sh*2-WD;[-3.9,3.9].forEach(o=>{const mx=(cx+(ca*t.cr-sa*0)*0)-ca*o+sa*t.sh,mz=cz-sa*o-ca*t.sh;M4.compose(V.set(mx,.3,mz),Q,SC.set((gap+.4)/W,1,.8/(LEN/BOARDS-.06)));B2.setMatrixAt(k++,M4);});}
    [[-PX,-4],[PX,-4],[-PX,0],[PX,0],[-PX,4],[PX,4]].forEach(([sx,o],q)=>{M4.compose(V.set(cx+ca*o-sa*sx,-.9,cz+sa*o+ca*sx),Q.identity(),SC.set(1,1,1));P2.setMatrixAt(j*6+q,M4);});const LWt=(x,z)=>[cx-ca*z-sa*x,cz-sa*z+ca*x];
-   const [tx,tz]=DW?LWt(DW.tank[0][0],DW.tank[0][1]):[cx+ca*.5-sa*1.0,cz+sa*.5+ca*1.0];Q.setFromAxisAngle(UP,ry);M4.compose(V.set(tx,.7,tz),Q,SC.set(1,1,1));S2.setMatrixAt(j,M4);const _t0=M4.clone();M4.compose(V.set(tx,1.4,tz),Q,SC.set(1,1,1));G2.setMatrixAt(j,M4);TWT[i]={S:S2,G:G2,j,x:tx,z:tz,ry,tm:[_t0,M4.clone()]};
+   const _tb=TKB(),[tx,tz]=DW?LWt(DW.tank[0][0],DW.tank[0][1]):_tb?LWt(1.05,-1.6):[cx+ca*.5-sa*1.0,cz+sa*.5+ca*1.0],_tr=DW?TKR(0):_tb?-Math.PI/2:0;Q.setFromAxisAngle(UP,ry+_tr);M4.compose(V.set(tx,.7,tz),Q,SC.set(1,1,1));S2.setMatrixAt(j,M4);const _t0=M4.clone();M4.compose(V.set(tx,1.4,tz),Q,SC.set(1,1,1));G2.setMatrixAt(j,M4);TWT[i]={S:S2,G:G2,j,x:tx,z:tz,ry:ry+_tr,tm:[_t0,M4.clone()]};
    if(DW){const l=LWt(DW.lan[0],DW.lan[1]);lan.push([l[0],.38,l[1],ry,1.3]);DWX.push({i,LW:LWt,ry,twin:1,tk:'TR'+i});}else lan.push([cx-ca*3.9-sa*1.25,.38,cz-sa*3.9+ca*1.25,ry,1.3]);
    const d=decks[i];d.tw={cx,cz,sh:t.sh,kind,hw:DW?(t.sh-(kind==='B'?.4:0)):1.4};if(!DW)for(const side of [-.55,.55]){const tpx=ca*(t.cr-3.9)-sa*t.sh,tpz=sa*(t.cr-3.9)+ca*t.sh;SEATS.push({x:tpx+ca*.05-sa*side,z:tpz+sa*.05+ca*side,y:.66,cap:1,occ:[],deck:d,kind:'stool',virt:1,twin:1,twinI:i,tk:'T'+i});}});
   [B2,P2,S2,G2].forEach(m=>{m.frustumCulled=false;scene.add(m);});}
@@ -447,7 +451,7 @@ const DWX=[],SEATS=[];function buildDW(wood){const ex=DW.ext,nE=ex.length*DWX.le
   const seat=new THREE.InstancedMesh(new THREE.CylinderGeometry(.32,.34,.12,10),M('#ffffff'),n*2),leg=new THREE.InstancedMesh(new THREE.CylinderGeometry(.07,.09,.5,6),M('#8a6a4a'),n*2),cols=['#ff9a6a','#6ab0e8'];
   const st2=new THREE.InstancedMesh(new THREE.BoxGeometry(1.3,.6,.7),M('#c49468'),n),gl2=new THREE.InstancedMesh(new THREE.BoxGeometry(1.2,.8,.6),new THREE.MeshLambertMaterial({color:'#bfeaf5',transparent:true,opacity:.55}),n);
   DWX.forEach((d,j)=>{Q.setFromAxisAngle(UP,d.ry);DW.stool.forEach(([x,z],m)=>{const c=d.LW(x,z),same0=Math.sign(x)===Math.sign(DW.tank[0][0]);SEATS.push({x:c[0],z:c[1],y:.66,cap:1,occ:[],deck:decks[d.i]||d.i,kind:'stool',twin:d.twin?1:0,twinI:d.i,tk:same0?(d.twin?'T'+d.i:d.i):d.tk});M4.makeTranslation(c[0],.92,c[1]);seat.setMatrixAt(j*2+m,M4);seat.setColorAt(j*2+m,new THREE.Color(cols[m]));M4.makeTranslation(c[0],.62,c[1]);leg.setMatrixAt(j*2+m,M4);});
-   const t=d.LW(DW.tank[1][0],DW.tank[1][1]),tw=DW.tw||1;M4.compose(V.set(t[0],.7,t[1]),Q,SC.set(tw,1,1));st2.setMatrixAt(j,M4);const _a=M4.clone();M4.compose(V.set(t[0],1.4,t[1]),Q,SC.set(tw,tw>1?.8:1,1));gl2.setMatrixAt(j,M4);TANKX[d.tk]={S:st2,G:gl2,j,x:t[0],z:t[1],ry:d.ry,tm:[_a,M4.clone()]};});
+   const t=d.LW(DW.tank[1][0],DW.tank[1][1]),tw=DW.tw||1;Q.setFromAxisAngle(UP,d.ry+TKR(1));M4.compose(V.set(t[0],.7,t[1]),Q,SC.set(tw,1,1));st2.setMatrixAt(j,M4);const _a=M4.clone();M4.compose(V.set(t[0],1.4,t[1]),Q,SC.set(tw,tw>1?.8:1,1));gl2.setMatrixAt(j,M4);TANKX[d.tk]={S:st2,G:gl2,j,x:t[0],z:t[1],ry:d.ry+TKR(1),tm:[_a,M4.clone()]};});
   [seat,leg,st2,gl2].forEach(m=>{m.frustumCulled=false;scene.add(m);});}
 const tankPickers=[];let myTankX=null,myTankPos=null,myTankK=null;
 // v78: Ctrl+S(맥은 ⌘+S) → 게임 저장
@@ -1765,7 +1769,7 @@ function bindXB(root,re){const box=root.querySelector('.xbset');if(!box)return;c
  box.querySelector('[data-xbgo]').onclick=()=>{if(!(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on'))return toast('서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2000);if(!confirm('경험치·아이템 밸런스를 모든 유저에게 적용할까요?'))return;const p=JSON.parse(JSON.stringify(c));V14.publishPlay({xpBal:p});XBAL.save(p);setTimeout(()=>{XBAL.apply();re&&re();},600);toast('✅ 밸런스를 모든 유저에게 적용했어요',2000);};
  box.querySelector('[data-xbdef]').onclick=()=>{XBAL.edit=XBAL.norm(null);re&&re();toast('기본값으로 채웠어요. 인게임 적용을 눌러야 반영돼요',1800);};
  box.querySelector('[data-xblive]').onclick=()=>{XBAL.edit=XBAL.cfg();re&&re();};}
-function bindLab(root,re){root.querySelectorAll('[data-labgo]').forEach(b=>b.onclick=()=>{const x=LAB.find(y=>y.k===b.dataset.labgo),sel=root.querySelector(`[data-lab="${x.k}"]`),v=sel?sel.value:labGet(x),nm=(x.o.find(o=>String(o[0])===String(v))||[])[1];if(!(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on'))return toast('서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2000);if(!confirm(`「${x.n}」을(를) '${nm}'(으)로 모든 유저에게 적용할까요?`))return;V14.publishPlay({[x.k]:v});S[x.k]=null;save();if(x.k==='mapSt')setTimeout(()=>{try{MAPV.apply(uiOpt('mapSt','old'));}catch(e){}},400);toast(`✅ ${x.n}: 모든 유저에게 '${nm}' 적용`,2000);setTimeout(()=>re&&re(),500);});root.querySelectorAll('[data-lab]').forEach(el=>el.onchange=()=>{const x=LAB.find(y=>y.k===el.dataset.lab);if(x){labSet(x,el.value);toast(`${x.n}: ${el.selectedOptions[0].textContent}`,1400);if(x.k==='deck4'&&String(uiOpt('deck4','off'))!==D4NOW)d4Reload();}});
+function bindLab(root,re){root.querySelectorAll('[data-labgo]').forEach(b=>b.onclick=()=>{const x=LAB.find(y=>y.k===b.dataset.labgo),sel=root.querySelector(`[data-lab="${x.k}"]`),v=sel?sel.value:labGet(x),nm=(x.o.find(o=>String(o[0])===String(v))||[])[1];if(!(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on'))return toast('서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2000);if(!confirm(`「${x.n}」을(를) '${nm}'(으)로 모든 유저에게 적용할까요?`))return;V14.publishPlay({[x.k]:v});S[x.k]=null;save();if(x.k==='mapSt')setTimeout(()=>{try{MAPV.apply(uiOpt('mapSt','old'));}catch(e){}},400);toast(`✅ ${x.n}: 모든 유저에게 '${nm}' 적용`,2000);setTimeout(()=>re&&re(),500);});root.querySelectorAll('[data-lab]').forEach(el=>el.onchange=()=>{const x=LAB.find(y=>y.k===el.dataset.lab);if(x){labSet(x,el.value);toast(`${x.n}: ${el.selectedOptions[0].textContent}`,1400);if(x.k==='deck4'&&String(uiOpt('deck4','off'))!==D4NOW)d4Reload();if(x.k==='deckTank'&&String(uiOpt('deckTank','off'))!==DTKBOOT0)d4Reload();}});
  bindXB(root,re);bindBGM(root,re);bindUiDef(root,re);bindBoxAdm(root,re);bindLoad(root,re);const r=root.querySelector('[data-labreset]');if(r)r.onclick=()=>{LAB.forEach(x=>{if(labGet(x)!==String(x.o[0][0]))labSet(x,x.o[0][0]);});toast('테스트 기능을 모두 기본값으로 돌렸어요',1600);re&&re();};}
 // v76: 관리자 › 화면·시안 / 🧪 테스트 기능을 설정 화면처럼 카드로 정리. 고르는 칸은 버튼 묶음으로 바꾸고, 버튼에 마우스를 올리면 그 시안 그림(img/pv)이 떠요
 const AVRAD={menuS:'menuStyle',cardS:'cardStyle',txs:'txStyle',bdes:'boxDesign'};
@@ -2528,7 +2532,7 @@ function syncRemotes(dt){const RT=window.NK_RT;if(!RT)return;const on=RT.status(
   r.c.dir=+p.d||0;const fish=p.fish&&p.fish!=='off';r.c.play(sit?'sit':fish?'holding-right':p.anim==='walk'?'walk':'idle');r.c.rod.visible=!!fish;turn(r.c,dt);try{rfTick(r,p,dt);}catch(e){}}
  for(const [id,r] of remotes)if(!live.has(id)){dropRemote(r);remotes.delete(id);}rtPill();}
 let catchPose=null;
-function rtPose(moving){const RT=window.NK_RT;if(!RT||RT.status()!=='on'||!me)return;const _cp=catchPose&&catchPose.until>performance.now()&&(fishing.state||'off')==='off'?catchPose:null;RT.pose({x:me.o.position.x,z:me.o.position.z,y:me.o.position.y,d:me.dir,fish:_cp?'catch':(fishing.state||'off'),fk:_cp?_cp.fk:'',fg:_cp?_cp.fg:0,anim:mySeat?'sit':(fishing.state&&fishing.state!=='off'?'holding-right':(moving?'walk':(sitting?'sit':'idle'))),seat:mySeat?SEATS.indexOf(mySeat):null,ki:S.char|0,lv:myLv(),nick:NICK(),br:brag?{k:brag.k,g:brag.g,cm:brag.cm,v:brag.v,at:brag.at,lk:brag.lk,s:brag.s,t:brag.t||0}:null,tt:(()=>{const t=myTitle(myLv()),x=c=>/^#[0-9a-f]{3}$/i.test(c||'')?'#'+[...c.slice(1)].map(d=>d+d).join(''):c;return t?{n:t.n,bd:x(t.bd||'#ffd27a'),bg:x(t.bg||'#6a4fc0'),fg:x(t.fg||'#ffffff')}:null;})()});}
+function rtPose(moving){const RT=window.NK_RT;if(!RT||RT.status()!=='on'||!me)return;const _cp=catchPose&&catchPose.until>performance.now()&&(fishing.state||'off')==='off'?catchPose:null;RT.pose({x:me.o.position.x,z:me.o.position.z,y:me.o.position.y,d:me.dir,fish:_cp?'catch':(fishing.state||'off'),fk:_cp?_cp.fk:'',fg:_cp?_cp.fg:0,anim:mySeat?'sit':(fishing.state&&fishing.state!=='off'?'holding-right':(moving?'walk':(sitting?'sit':'idle'))),seat:mySeat?SEATS.indexOf(mySeat):null,ki:S.char|0,lv:myLv(),nick:NICK(),br:brag?{k:brag.k,g:brag.g,cm:brag.cm,v:brag.v,at:brag.at,lk:brag.lk,s:brag.s,t:brag.t||0}:null,dc:(()=>{try{return window.NK_DECO_DC?NK_DECO_DC():null;}catch(e){return null;}})(),tt:(()=>{const t=myTitle(myLv()),x=c=>/^#[0-9a-f]{3}$/i.test(c||'')?'#'+[...c.slice(1)].map(d=>d+d).join(''):c;return t?{n:t.n,bd:x(t.bd||'#ffd27a'),bg:x(t.bg||'#6a4fc0'),fg:x(t.fg||'#ffffff')}:null;})()});}
 function rtPill(){if((rtPill.n=(rtPill.n||0)+1)%20)return;let el=$('rtPill');if(!el){el=document.createElement('div');el.id='rtPill';document.body.appendChild(el);}const RT=window.NK_RT;if(!RT||$('start').classList.contains('show')){el.style.display='none';return;}const st=RT.status();el.style.display='';el.className=st;el.textContent=st==='on'?`● 호숫가 ${RT.serverId()} · 실접속 ${RT.count()}/${RT.cap}`:st==='connecting'?'○ 서버 연결 중…':'○ 혼자 플레이';}
 addEventListener('nk-rt-chat',e=>{const m=e.detail;if(!m)return;say(m.nick,m.text,false,{real:true,bub:'rt:'+m.id});});
 addEventListener('nk-rt-emote',e=>{const m=e.detail;if(!m)return;emote(m.nick,m.text,false,{real:true,bub:'rt:'+m.id});});
@@ -3250,6 +3254,197 @@ const SHOT=(()=>{const MAX=30;let db=null;
   g.scale.setScalar((.55+F.f.cm/100*1.4)/(F.o.scale.x||1));F.o.add(g);F.s2d=g;});};
  const _q=new THREE.Quaternion(),_p=new THREE.Vector3();
  tankView.frame=function(dt,t){f0(dt,t);if(!this.on||!this.fish)return;this.fish.forEach(F=>{const g=F.s2d;if(!g)return;F.o.getWorldQuaternion(_q);g.quaternion.copy(_q.invert().multiply(this.cam.quaternion));g.children[0].rotation.z=Math.sin(t*2+F.ph)*.05;F.o.getWorldPosition(_p);_p.applyMatrix4(this.cam.matrixWorldInverse);if(F.px!=null){const dx=_p.x-F.px;if(Math.abs(dx)>.0015)g.scale.x=Math.abs(g.scale.x)*(dx>0?-1:1);}F.px=_p.x;if(g.userData.sh){F.o.getWorldPosition(_p);g.userData.sh.position.y=-(_p.y-.2)/(g.scale.y*F.o.scale.y);}});};}
+// v85: 🧪 테스트 기능 묶음 — 한 기기 여러 계정 · 모바일 배치 미리보기 · 모험 완료 알림 · 모바일 채팅 · 환영 문구 · 데크 꾸미기
+// game-v2.js 다음에 읽어요 (game-v2.js의 전역 S·uiOpt·LAB·toast 등을 그대로 써요). 기본값은 모두 꺼짐이에요.
+(function(){
+const PREV=window.NK_PREV||'';
+LAB.push(
+ {k:'acctSlot',n:'👥 한 기기 여러 계정',d:'같은 브라우저에서 새 계정을 만들거나 다른 계정으로 이어하면, 지금 진행은 이 기기에 따로 보관하고 새 칸에서 시작해요. 시작 화면 닉네임 위에 「이 기기의 계정」 목록이 생겨 눌러서 바꿀 수 있어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
+ {k:'advNote',n:'🧭 모험 완료 알림',d:'원정대가 돌아오면 바로 결과를 볼 수 있게 알려요. A 오른쪽 아래 카드 (게임은 그대로, 받기를 누르면 카드 안에 보상) · B 가운데 귀환 창 (보상 받기 → 결과 창)',scope:'me',o:[['off','끄기 (기존 알림)'],['A','A · 오른쪽 아래 카드'],['B','B · 귀환 연출 창']]},
+ {k:'mChat',n:'💬 모바일 채팅',d:'휴대폰에서만 적용돼요. A 최근 두 줄만 반투명으로 + 입력 버튼 · B 채팅 버튼을 누르면 아래에서 올라오는 시트 · D 늘 보이는 작은 3줄 창 (위 손잡이를 누르거나 끌면 커져요)',scope:'me',o:[['off','기존 (기본)'],['A','A · 두 줄 티커'],['B','B · 하단 시트'],['D','D · 접히는 미니 창']]},
+ {k:'welcome',n:'🐟 시작 화면 환영 문구',d:'A 시작 화면 옆 편지 카드 (PC 위치·크기는 아래 「환영 문구 A 위치」에서 정해요) · B 시작 화면 앞에 한 번 뜨는 전체 화면 (낚시하러 가기)',scope:'me',o:[['off','끄기 (기본)'],['A','A · 편지 카드'],['B','B · 첫 접속 전체 화면']]},
+ {k:'deckTank',n:'🐠 데크 어항 위치',d:'B: 어항을 데크 입구 쪽 양옆으로 옮기고 의자 쪽을 보게 돌려요. 바꾸면 새로고침해야 적용돼요',scope:'me',o:[['off','기존 (기본)'],['B','B · 입구 쪽 양옆']]},
+ {k:'deckDeco',n:'🪑 데크 꾸미기',d:'상점에 「데크 꾸미기」 탭이 생겨요 (빨간 파라솔 · 작은 탁자 · 전구줄). 데크 의자에 앉으면 「꾸미기」 버튼으로 내 의자 쪽 절반에만 놓을 수 있어요. 옆자리 사람도 자기 쪽을 꾸밀 수 있고, 앉아 있는 동안 다른 유저에게도 보여요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
+const opt=(k,d)=>String(uiOpt(k,d)),mob=()=>innerWidth<700,startOn=()=>{const s=$('start');return !!(s&&s.classList.contains('show'));};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pub=(patch,what)=>{if(!(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on')){toast('서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2000);return false;}V14.publishPlay(patch);toast('✅ '+what+' 모든 유저에게 적용했어요',2000);return true;};
+
+// ───────── ① 👥 한 기기 여러 계정 ─────────
+const SL=window.NK_SLOT,slotOn=()=>!!SL&&!PREV&&(opt('acctSlot','off')==='on'||SL.list().length>1);
+const NICK0=S.nick||'';
+const hasProg=()=>!!(S.acct||(S.caught|0)>0||(S.xp|0)>0);
+function slotTouch(){if(!SL||PREV)return;try{SL.touch({nick:startOn()?NICK0||S.nick||'':S.nick||'',acct:S.acct||'',xp:S.xp|0,ch:S.char|0});}catch(e){}}
+setInterval(slotTouch,5000);addEventListener('pagehide',slotTouch);
+function slotGo(to,extra){S.nick=NICK0;try{save(true);}catch(e){}SL.go(to,extra);}
+function slotHTML(){const L=SL.list(),cur=SL.cur();return `<div class="slh"><b>👥 이 기기의 계정</b><small>눌러서 바꿔요 · 진행은 칸마다 따로 보관돼요</small></div><div class="slr">${L.sort((a,b)=>(b.id===cur)-(a.id===cur)||(b.t||0)-(a.t||0)).map(x=>{const lv=lvOf(+x.xp||0),me=x.id===cur;return `<button type="button" class="slc ${me?'on':''}" data-slot="${x.id}"><b>${esc(x.nick||'이름 없음')}</b><small>Lv.${lv}${x.acct?' · 🔒':''}${me?' · 지금':''}</small></button>`;}).join('')}<button type="button" class="slc nw" data-slot="new"><b>＋ 새 계정</b><small>처음부터 시작</small></button></div>`;}
+function slotRender(){const box=document.querySelector('#start .stA');if(!box)return;let el=$('stSlots');if(!slotOn()){if(el)el.remove();return;}if(!el){el=document.createElement('div');el.id='stSlots';box.insertBefore(el,box.firstChild);}el.innerHTML=slotHTML();
+ el.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{const id=b.dataset.slot;if(id===SL.cur())return;if(id==='new'){confirmBox(`<h3>👥 새 계정으로 시작</h3><p>지금 진행(<b>${esc(NICK0||'이름 없음')}</b> · Lv.${myLv()})은 이 기기에 그대로 보관돼요.<br>새 칸에서 처음부터 시작할까요?</p>`,()=>slotGo('new',{mk:0}));return;}
+  const r=SL.list().find(x=>x.id===id);confirmBox(`<h3>👥 계정 바꾸기</h3><p><b>${esc(r&&r.nick||'이름 없음')}</b> 칸으로 바꿀까요?<br>지금 진행은 이 기기에 그대로 보관돼요.</p>`,()=>slotGo(id));});
+ slotMk();}
+// 🔒 계정 만들기: 이 칸에 이미 진행이 있으면 지금 진행을 새 계정에 붙이지 않고, 새 칸에서 처음부터 만들게 해요
+function slotMk(){const mb=$('stMkB');if(!mb)return;let nt=$('stMkNew');const need=slotOn()&&!mb.hidden&&hasProg();
+ [$('stMkP'),$('stMkP2')].forEach(x=>{if(x){x.disabled=need;if(need)x.value='';}});
+ if(!need){if(nt)nt.remove();return;}if(!nt){nt=document.createElement('div');nt.id='stMkNew';mb.appendChild(nt);}
+ const n=($('stNick').value||'').trim();nt.innerHTML=`<p>이 칸에는 <b>${esc(NICK0||S.acct||'지금')}</b> 진행이 있어요. 새 계정은 <b>새 칸에서 처음부터</b> 만들어요 (지금 진행은 그대로 보관).</p><button type="button" class="acc" ${n&&n!==NICK0?'':'disabled'}>＋ 새 칸에서 「${esc(n&&n!==NICK0?n:'새 닉네임')}」 계정 만들기</button>${n&&n!==NICK0?'':'<small>1번 칸에 새 닉네임을 먼저 넣어 주세요</small>'}`;
+ nt.querySelector('button').onclick=()=>{const v=($('stNick').value||'').trim();if(!v||v===NICK0)return;slotGo('new',{nick:v,mk:1});};
+ const mm=$('stMkMsg');if(mm){mm.className='muted';mm.textContent='';}}
+if(SL&&!PREV){
+ document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#stMkT'))setTimeout(slotMk,30);},true);
+ document.addEventListener('input',e=>{if(e.target&&(e.target.id==='stNick'||e.target.id==='stMkP'))setTimeout(slotMk,400);},true);
+ // 📂 이어하기: 다른 계정을 불러오면 지금 칸에 덮어쓰지 않고, 그 계정 칸(없으면 새 칸)으로 바꿔요
+ const _login=ACC.login.bind(ACC);
+ ACC.login=async function(n,p){const prev=SV.code();const o=await _login(n,p);if(slotOn()&&hasProg()&&o&&o.acct!==S.acct){const code=SV.code();SV.setCode(prev);const ex=SL.list().find(x=>x.acct&&x.acct===o.acct&&x.id!==SL.cur());slotGo(ex?ex.id:'new',{load:JSON.stringify(o),code});throw new Error('계정 칸을 바꾸는 중이에요…');}return o;};
+ const _fso=fetchSaveObj;
+ fetchSaveObj=async function(raw){const prev=SV.code();const o=await _fso(raw);if(slotOn()&&hasProg()&&o&&((o.acct||'')!==(S.acct||'')||(o.nick||'')!==(NICK0||''))){const code=SV.code();SV.setCode(prev);slotGo('new',{load:JSON.stringify(o),code});throw new Error('계정 칸을 바꾸는 중이에요…');}return o;};
+ let msg=null;try{msg=JSON.parse(sessionStorage.getItem('nk_slot_msg')||'null');sessionStorage.removeItem('nk_slot_msg');}catch(e){}
+ const first=()=>{if(!$('stNick'))return setTimeout(first,200);slotRender();
+  if(msg){if(msg.load){toast(`👥 <b>${esc(S.nick||'')}</b> 계정 칸으로 바꿨어요 · Lv.${myLv()}`,2600);try{window.NK_STREFRESH&&NK_STREFRESH();}catch(e){}}
+   else if(msg.mk){try{$('stNick').value=S.nick||msg.nick;}catch(e){}const t=$('stMkT');if(t&&$('stMkB').hidden)t.click();setTimeout(()=>{const p=$('stMkP');if(p)p.focus();},200);toast(`👥 새 칸이에요. 비밀번호를 넣고 시작하면 <b>${esc(msg.nick)}</b> 계정이 만들어져요`,3600);}
+   else toast(msg.to&&S.nick?`👥 <b>${esc(S.nick)}</b> 칸으로 바꿨어요`:'👥 새 칸이에요. 처음부터 시작해요',2400);}};
+ first();addEventListener('nk-rt-play',()=>{if(startOn())slotRender();});
+}
+
+// ───────── ② 📱 PC에서 모바일 처음 화면 배치 편집 (관리자) ─────────
+const DEVS=[['390x844','아이폰 14 · 390×844'],['360x780','갤럭시 S · 360×780'],['412x915','큰 안드로이드 · 412×915'],['375x667','아이폰 SE · 375×667']];
+function prevFrame(id,src,w,h,head,tip){let o=$(id);if(o)o.remove();o=document.createElement('div');o.id=id;o.className='nkprev';
+ o.innerHTML=`<div class="pvw"><div class="pvh">${head}</div><div class="pvb"><div class="pvf"><iframe src="${src}" title="미리보기"></iframe></div><div class="pvt">${tip}</div></div></div>`;document.body.appendChild(o);
+ const fit=()=>{const f=o.querySelector('.pvf'),fr=o.querySelector('iframe'),aw=Math.min(innerWidth-40,innerWidth>900?innerWidth-320:innerWidth-40),ah=innerHeight-120,k=Math.min(1,aw/w,ah/h);fr.style.width=w+'px';fr.style.height=h+'px';fr.style.transform=`scale(${k})`;f.style.width=w*k+'px';f.style.height=h*k+'px';};fit();o._fit=fit;addEventListener('resize',fit);o._off=()=>removeEventListener('resize',fit);return o;}
+function openMobPrev(){const dv=DEVS[0][0].split('x');
+ const o=prevFrame('mPrev','nakmeong.html?rt=off&uiprev=m',+dv[0],+dv[1],`<b>📱 모바일 처음 화면 배치</b><select data-mpdev>${DEVS.map(([k,n])=>`<option value="${k}">${n}</option>`).join('')}</select><span class="sp"></span><button type="button" class="ok" data-mpgo>✅ 이 배치를 모바일 처음 화면으로 인게임 적용</button><button type="button" data-mpx>닫기</button>`,
+  `<b>휴대폰 화면 그대로예요.</b><br>창을 <b>마우스로 0.5초 꾹 누른 뒤 끌어서</b> 옮기세요. 크기 조절 손잡이도 그대로 써요.<br><br>여기서 옮긴 배치는 내 PC 화면·저장에 영향을 주지 않아요. 다 옮기면 위 <b>✅ 인게임 적용</b>을 누르세요.<br><br><small class="muted">지금 적용 중인 모바일 처음 화면 배치에서 시작해요. 게임이 열리는 데 몇 초 걸려요.</small>`);
+ const close=()=>{o._off();o.remove();removeEventListener('message',onm);};o.querySelector('[data-mpx]').onclick=close;
+ o.querySelector('[data-mpdev]').onchange=e=>{const [w,h]=e.target.value.split('x').map(Number);const fr=o.querySelector('iframe');o._fit=null;fr.src=fr.src;const f=()=>{const aw=Math.min(innerWidth-40,innerWidth>900?innerWidth-320:innerWidth-40),ah=innerHeight-120,k=Math.min(1,aw/w,ah/h),pf=o.querySelector('.pvf');fr.style.width=w+'px';fr.style.height=h+'px';fr.style.transform=`scale(${k})`;pf.style.width=w*k+'px';pf.style.height=h*k+'px';};f();};
+ let want=false;const onm=e=>{const d=e.data;if(!d||d.t!=='nkprev-pos'||!want)return;want=false;const P=d.P||{};delete P.dc;const n=Object.keys(P).length;if(!n)return toast('옮긴 창이 없어요. 창을 꾹 눌러 옮긴 뒤 적용하세요',2200);
+  if(!confirm(`이 모바일 배치(${n}개 창)를 모든 유저의 모바일 처음 화면으로 적용할까요?\n자기 배치를 따로 바꾼 유저는 그대로예요.`))return;let cur={};try{cur=JSON.parse(JSON.stringify(NK_RT.play.uiPos||{}));}catch(_){}cur.m=P;pub({uiPos:cur},'모바일 처음 화면 배치를');};addEventListener('message',onm);
+ o.querySelector('[data-mpgo]').onclick=()=>{want=true;o.querySelector('iframe').contentWindow.postMessage({t:'nkprev-get'},'*');setTimeout(()=>{if(want){want=false;toast('미리보기 게임이 아직 열리는 중이에요. 잠시 뒤 다시 눌러 주세요',2000);}},1500);};}
+const _udh=uiDefHTML;uiDefHTML=function(){return _udh().replace('<button class="sm" data-uidclr>','<button class="sm" data-uidmob title="PC에서 휴대폰 화면처럼 띄워서 배치를 정해요">📱 PC에서 모바일 배치 편집</button> <button class="sm" data-uidclr>');};
+const _bud=bindUiDef;bindUiDef=function(root,re){_bud(root,re);const b=root.querySelector('[data-uidmob]');if(b)b.onclick=()=>{try{closeM('admin');}catch(e){}openMobPrev();};};
+// 미리보기 창 안: 자동으로 게임을 시작하고 이동 모드로 들어가요
+if(PREV==='m'){S.uiMove='on';S.welcome='off';
+ const go=()=>{const g=$('go');if(!g||g.disabled)return setTimeout(go,300);if(!($('stNick').value||'').trim()){$('stNick').value='미리보기';S.nick='미리보기';}g.click();setTimeout(()=>{try{umvEnter(null);}catch(e){}},2500);};setTimeout(go,600);
+ addEventListener('message',e=>{if(e.data&&e.data.t==='nkprev-get'){let P={};try{P=JSON.parse(JSON.stringify(umvP()||{}));}catch(_){}parent.postMessage({t:'nkprev-pos',P},'*');}});}
+
+// ───────── ③ 🧭 모험 완료 알림 A·B ─────────
+const advNote=()=>advOn()&&!PREV?opt('advNote','off'):'off';
+const _toast=toast;toast=function(m){if(advNote()!=='off'&&typeof m==='string'&&/원정대가 돌아왔어요/.test(m))return;return _toast.apply(this,arguments);};
+const ADN={shown:new Set(),q:[]};
+const advClaim2=id=>{if(!$('adv')){const d=document.createElement('div');d.id='adv';d.className='modal';document.body.appendChild(d);}try{advClaim(id);}catch(e){console.warn(e);}};
+const boat='<img src="img/feat/boat.png" alt="" class="adnb">';
+function adnDone(){try{return (S.adv&&S.adv.teams||[]).filter(t=>Date.now()>=t.t0+t.dur);}catch(e){return [];}}
+function adnTick(){const m=advNote();if(m==='off'||startOn()){['advA','advB'].forEach(id=>{const e=$(id);if(e&&m==='off')e.remove();});return;}
+ const done=adnDone().filter(x=>!ADN.shown.has(x.id));if(!done.length){const a=$('advA');if(a&&!a._got)a.remove();return;}
+ if(m==='A')adnA(done);else{const t=done[0];ADN.shown.add(t.id);adnB(t,adnDone().length);}}
+function adnA(done){let c=$('advA');if(c&&c._got)return;const t=done[0];if(c&&c._id===t.id){c.querySelector('.adnn').textContent=done.length>1?`+${done.length-1}팀 더`:'';return;}
+ const R=advR(t.r);if(!R)return;if(!c){c=document.createElement('div');c.id='advA';c.className='adnA';document.body.appendChild(c);}c._id=t.id;c._got=0;
+ c.innerHTML=`<button type="button" class="adnx" aria-label="닫기">×</button><div class="adnt">${boat}<div><small class="ok">🧭 원정대 귀환</small><b>${esc(R.n)}에서 돌아왔어요</b><small class="muted">성공 확률 ${Math.round((t.p||0)*100)}% <span class="adnn">${done.length>1?`+${done.length-1}팀 더`:''}</span></small></div></div><div class="adnf">${t.fish.map(f=>fzImg(f)).join('')}</div><div class="adnbt"><button type="button" class="acc" data-get>보상 받기</button><button type="button" data-map>지도 보기</button></div>`;
+ c.querySelector('.adnx').onclick=()=>{ADN.shown.add(t.id);c.remove();};c.querySelector('[data-map]').onclick=()=>{c.remove();openAdv();};
+ c.querySelector('[data-get]').onclick=()=>{advClaim2(t.id);const m=$('fzr');let ok=true,got='';if(m){ok=!m.querySelector('.fzrw.fail');got=[...m.querySelectorAll('.advgot span')].map(s=>`<span class="chip">${s.innerHTML}</span>`).join('');m.classList.remove('show');}
+  c._got=1;c.innerHTML=`<button type="button" class="adnx" aria-label="닫기">×</button><div class="adnt">${boat}<div><small class="${ok?'ok':'bad'}">🧭 ${ok?'원정 성공!':'원정 실패'}</small><b>${esc(R.n)}에서 돌아왔어요</b><small class="muted">물고기 ${t.fish.length}마리는 어항으로 돌아왔어요</small></div></div><div class="adng">${got}</div><div class="adnbt"><button type="button" class="acc" data-ok>확인</button>${adnDone().length?'<button type="button" data-next>다음 원정대</button>':''}</div>`;
+  const off=()=>{clearTimeout(c._tm);c.remove();adnTick();};c.querySelector('.adnx').onclick=off;c.querySelector('[data-ok]').onclick=off;const nx=c.querySelector('[data-next]');if(nx)nx.onclick=off;c._tm=setTimeout(off,9000);};}
+function adnB(t,n){const R=advR(t.r);if(!R)return;let m=$('advB');if(!m){m=document.createElement('div');m.id='advB';m.className='modal adnB';document.body.appendChild(m);}
+ m.innerHTML=`<div class="adnw"><div class="adns">${boat}<span class="adnk">🧭 원정대 귀환</span><i></i></div><div class="adnc"><h2>${esc(R.n)} 원정대가 돌아왔어요!</h2><p class="muted">성공 확률 ${Math.round((t.p||0)*100)}%${t.ev&&t.ev.pick?' · 도중 선택: '+esc((t.ev.pick==='a'?t.ev.a:t.ev.b)||''):''}${n>1?` · 돌아온 원정대 ${n}팀`:''}</p><div class="adnf">${t.fish.map(f=>fzImg(f)).join('')}</div><button type="button" class="acc big" data-get>보상 받기</button><button type="button" class="ghost" data-later>나중에 받기</button></div></div>`;
+ m.classList.add('show');m.querySelector('[data-get]').onclick=()=>{m.classList.remove('show');advClaim2(t.id);};m.querySelector('[data-later]').onclick=()=>m.classList.remove('show');}
+setInterval(adnTick,1000);
+
+// ───────── ④ 💬 모바일 채팅 A·B·D ─────────
+let MCH='';function mchApply(){const v=mob()&&!PREV?opt('mChat','off'):'off';if(v===MCH)return;MCH=v;const b=document.body.classList;['mchA','mchB','mchD','mchBig'].forEach(c=>b.remove(c));if(v!=='off')b.add('mch'+v);
+ let tk=$('mchTick');if(v==='A'){if(!tk){tk=document.createElement('div');tk.id='mchTick';tk.innerHTML='<div class="mtl"></div><button type="button" class="mti">💬 채팅 입력…</button>';document.body.appendChild(tk);tk.onclick=e=>{e.stopPropagation();document.body.classList.add('chat-open');setTimeout(()=>{const i=$('msg');if(i&&e.target.closest('.mti'))i.focus();},60);};}mchTick();}else if(tk)tk.remove();
+ let h=$('mchH');if(v==='D'){if(!h){h=document.createElement('div');h.id='mchH';h.textContent='︿ 눌러서 크게';const ch=$('chat');ch.insertBefore(h,ch.firstChild);let y0=null;h.onpointerdown=e=>{y0=e.clientY;};h.onpointerup=e=>{const dy=y0==null?0:e.clientY-y0;y0=null;const big=dy<-25?true:dy>25?false:!document.body.classList.contains('mchBig');document.body.classList.toggle('mchBig',big);h.textContent=big?'﹀ 눌러서 작게':'︿ 눌러서 크게';$('log').scrollTop=1e6;};}}else if(h)h.remove();}
+function mchTick(){const tk=$('mchTick');if(!tk)return;const L=[...$('log').children].slice(-2);tk.querySelector('.mtl').innerHTML=L.map(x=>`<div>${x.innerHTML}</div>`).join('');}
+new MutationObserver(()=>{if(MCH==='A')mchTick();if(MCH==='D')$('log').scrollTop=1e6;}).observe($('log'),{childList:true});
+addEventListener('resize',()=>{MCH='?';mchApply();});addEventListener('nk-rt-play',()=>{MCH='?';mchApply();});setInterval(mchApply,1500);mchApply();
+
+// ───────── ⑤ 🐟 시작 화면 환영 문구 A·B ─────────
+const WEL_T=`<p class="wh">Welcome to FISH COZY 🐟</p><p>Fish Cozy는 바쁜 일상 속에서<br>잠시 쉬어갈 수 있는 작은 낚시 공간입니다.</p><p>복잡한 생각은 잠시 내려놓고,<br>잔잔한 물결을 바라보며 낚싯대를 드리워보세요.</p><p>어떤 날은 새로운 물고기를 만나고,<br>어떤 날은 모닥불 앞에서 사람들과 대화를 나누고,<br>어떤 날은 그저 물가에 앉아 시간을 보내도 괜찮아요.</p><p>서두르지 않아도,<br>잘하지 않아도 괜찮습니다.</p><p>이곳에서는 나만의 속도로 낚시를 즐기면 되니까요.</p><p class="wl">오늘도 Fish Cozy에서 편안한 시간을 보내세요.</p>`;
+const WEL0={x:3,y:8,w:440,fs:14.5,op:.96};const qs=new URLSearchParams(location.search);
+function welPos(){if(PREV==='wel'){const o={};['x','y','w','fs','op'].forEach(k=>{if(qs.has(k))o[k]=+qs.get(k);});return Object.assign({},WEL0,o);}let p=null;try{const RT=window.NK_RT;const P=RT&&RT.status&&RT.status()==='on'?RT.play:PLAYC;p=P&&P.welPos;}catch(e){}return Object.assign({},WEL0,S.welPosMe||{},p||{});}
+const welMode=()=>PREV==='wel'?'A':PREV?'off':opt('welcome','off');let WELB_DONE=false,WELA_X=false;
+function welApply(){const m=welMode(),on=startOn();let a=$('welA'),b=$('welB');
+ if(!on||m!=='A'||WELA_X){if(a)a.remove();}else{if(!a){a=document.createElement('div');a.id='welA';a.innerHTML=`<button type="button" class="wx" aria-label="닫기">×</button><div class="wt">${WEL_T}</div>${PREV==='wel'?'<i class="wrs" title="끌어서 너비 조절"></i>':''}`;document.body.appendChild(a);a.querySelector('.wx').onclick=()=>{WELA_X=true;a.remove();};if(PREV==='wel')welDrag(a);}
+  const p=welPos();a.classList.toggle('m',mob());if(!mob()){a.style.left=p.x+'vw';a.style.top=p.y+'vh';a.style.width=p.w+'px';a.style.fontSize=p.fs+'px';a.style.setProperty('--op',p.op);}else{a.style.cssText='';}}
+ if(!on||m!=='B'||WELB_DONE){if(b)b.remove();}else if(!b){b=document.createElement('div');b.id='welB';b.innerHTML=`<div class="wt">${WEL_T}<button type="button" class="acc big" data-go>낚시하러 가기</button></div>`;document.body.appendChild(b);b.querySelectorAll('.wt>*').forEach((x,i)=>x.style.animationDelay=(.25+i*.45)+'s');b.querySelector('[data-go]').onclick=()=>{WELB_DONE=true;b.classList.add('out');setTimeout(()=>b.remove(),500);};}}
+function welDrag(a){let d=null;a.addEventListener('pointerdown',e=>{if(e.target.closest('.wx'))return;const r=a.getBoundingClientRect();d={rs:!!e.target.closest('.wrs'),x:e.clientX,y:e.clientY,l:r.left,t:r.top,w:r.width};a.setPointerCapture(e.pointerId);e.preventDefault();});
+ a.addEventListener('pointermove',e=>{if(!d)return;if(d.rs){a.style.width=Math.max(240,Math.min(900,d.w+e.clientX-d.x))+'px';}else{a.style.left=(d.l+e.clientX-d.x)/innerWidth*100+'vw';a.style.top=(d.t+e.clientY-d.y)/innerHeight*100+'vh';}});
+ a.addEventListener('pointerup',()=>{if(!d)return;d=null;const r=a.getBoundingClientRect(),cs=getComputedStyle(a);parent.postMessage({t:'nkprev-wel',pos:{x:+(r.left/innerWidth*100).toFixed(1),y:+(r.top/innerHeight*100).toFixed(1),w:Math.round(r.width),fs:parseFloat(cs.fontSize),op:+(cs.getPropertyValue('--op')||.96)}},'*');});}
+{const st=$('start');if(st)new MutationObserver(welApply).observe(st,{attributes:true,attributeFilter:['class']});addEventListener('resize',welApply);addEventListener('nk-rt-play',welApply);setTimeout(welApply,50);setTimeout(welApply,1500);}
+// 관리자: 환영 문구 A 위치 (PC)
+const WED={};function welAdmHTML(){const p=Object.assign(welPos(),WED.p||{});WED.p=p;const n=(k,lo,hi,st,lab)=>`<label>${lab} <input type="number" data-wp="${k}" value="${p[k]}" min="${lo}" max="${hi}" step="${st}" style="width:70px"></label>`;let live=null;try{live=NK_RT.play&&NK_RT.play.welPos;}catch(e){}
+ return `<div class="labrow welset" style="display:block"><b>🐟 환영 문구 A 위치 (PC)</b> <span class="tg o">모든 유저</span><br><small class="muted">PC 시작 화면에서 편지 카드가 놓일 곳이에요. 숫자로 고치거나 <b>✋ 시작 화면에서 끌어서 정하기</b>로 직접 옮기세요. 지금 적용 중: ${live?`왼쪽 ${live.x}% · 위 ${live.y}% · 너비 ${live.w}px · 글자 ${live.fs}px`:'기본 위치'}</small>
+ <div class="xbg">${n('x',0,100,.5,'왼쪽 %')}${n('y',0,100,.5,'위 %')}${n('w',240,900,10,'너비 px')}${n('fs',10,24,.5,'글자 px')}${n('op',.3,1,.02,'불투명도')}</div>
+ <p><button class="sm" data-wpdrag>✋ 시작 화면에서 끌어서 정하기</button> <button class="sm" data-wpme>나만 보기 (다음 시작 화면)</button> <button class="sm ok" data-wpgo>✅ 인게임 적용</button></p></div>`;}
+function welAdmBind(root,re){const box=root.querySelector('.welset');if(!box)return;box.querySelectorAll('[data-wp]').forEach(i=>i.oninput=()=>{WED.p[i.dataset.wp]=+i.value;});
+ box.querySelector('[data-wpme]').onclick=()=>{S.welPosMe=Object.assign({},WED.p);save();toast('다음에 시작 화면이 열릴 때 이 위치로 보여요 (나만)',2000);};
+ box.querySelector('[data-wpgo]').onclick=()=>{if(!confirm('환영 문구 A 위치를 모든 유저에게 적용할까요?'))return;if(pub({welPos:Object.assign({},WED.p)},'환영 문구 A 위치를')){delete S.welPosMe;save();setTimeout(()=>re&&re(),500);}};
+ box.querySelector('[data-wpdrag]').onclick=()=>{const p=WED.p,src=`nakmeong.html?rt=off&uiprev=wel&x=${p.x}&y=${p.y}&w=${p.w}&fs=${p.fs}&op=${p.op}`;try{closeM('admin');}catch(e){}
+  const o=prevFrame('wPrev',src,1280,800,`<b>🐟 환영 문구 A 위치 정하기 (PC 1280×800)</b><span class="sp"></span><span class="wpv"></span><button type="button" class="ok" data-wok>이 위치로 정하기</button><button type="button" data-wx>닫기</button>`,'<b>카드를 끌어서</b> 옮기고, <b>오른쪽 아래 모서리</b>를 끌어 너비를 바꿔요.<br><br>정한 뒤 <b>이 위치로 정하기</b> → 관리자 › 🧪 테스트 기능의 <b>✅ 인게임 적용</b>을 누르면 모든 유저에게 적용돼요.');
+  const sh=()=>{o.querySelector('.wpv').textContent=`왼쪽 ${p.x}% · 위 ${p.y}% · 너비 ${p.w}px`;};sh();
+  const onm=e=>{const d=e.data;if(d&&d.t==='nkprev-wel'&&d.pos){Object.assign(p,{x:d.pos.x,y:d.pos.y,w:d.pos.w});sh();}};addEventListener('message',onm);
+  const close=()=>{o._off();o.remove();removeEventListener('message',onm);};o.querySelector('[data-wx]').onclick=close;o.querySelector('[data-wok]').onclick=()=>{close();toast('🐟 위치를 정했어요. 관리자 › 🧪 테스트 기능에서 ✅ 인게임 적용을 누르세요',3000);try{NKV2.PVK.admin();setTimeout(()=>{const t=document.querySelector('#admin [data-at="lab"]');if(t)t.click();},300);}catch(e){}};};}
+const _lh=labHTML;labHTML=function(){const h=_lh(),k='<p><button data-labreset>';return h.indexOf(k)>=0?h.replace(k,welAdmHTML()+k):h+welAdmHTML();};
+const _bl=bindLab;bindLab=function(root,re){_bl(root,re);welAdmBind(root,re);};
+
+// ───────── ⑥ 🪑 데크 꾸미기 ─────────
+const DECO=[{id:0,k:'parasol',n:'빨간 파라솔',p:2500,d:'의자 옆에 그늘을 만들어요'},{id:1,k:'table',n:'작은 탁자',p:1200,d:'음료 두 잔이 올려진 작은 탁자'},{id:2,k:'lights',n:'전구줄',p:3000,d:'기둥 두 개 사이에 알록달록 전구 (밤에 더 예뻐요)'}];
+const decoOn=()=>!PREV&&opt('deckDeco','off')==='on';
+const dS=()=>{S.deco=S.deco||{};const z=S.deco;z.own=z.own||{};z.pl=Array.isArray(z.pl)?z.pl.filter(x=>Array.isArray(x)&&DECO[x[0]]&&z.own[DECO[x[0]].k]):[];return z;};
+const ICO={parasol:'<svg viewBox="0 0 48 48"><path d="M6 22 Q24 2 42 22Z" fill="#e8584a"/><path d="M15 22 Q24 6 33 22Z" fill="#fff"/><path d="M20 22 Q24 9 28 22Z" fill="#e8584a"/><rect x="23" y="20" width="2.4" height="22" rx="1" fill="#8a6a4a"/><ellipse cx="24" cy="43" rx="7" ry="2" fill="#666"/></svg>',
+ table:'<svg viewBox="0 0 48 48"><ellipse cx="24" cy="24" rx="15" ry="5" fill="#e8d6b8" stroke="#c9b08a"/><rect x="22.5" y="27" width="3" height="14" fill="#8a6a4a"/><ellipse cx="24" cy="42" rx="7" ry="2" fill="#8a6a4a"/><rect x="15" y="13" width="5" height="9" rx="1.5" fill="#ff7a7a"/><rect x="27" y="14" width="5" height="8" rx="1.5" fill="#7ac0ff"/></svg>',
+ lights:'<svg viewBox="0 0 48 48"><rect x="5" y="10" width="2.5" height="32" fill="#8a6a4a"/><rect x="40.5" y="10" width="2.5" height="32" fill="#8a6a4a"/><path d="M6 12 Q24 26 42 12" stroke="#555" fill="none" stroke-width="1.2"/><circle cx="12" cy="16" r="2.6" fill="#ffd27a"/><circle cx="18" cy="19" r="2.6" fill="#ff9a9a"/><circle cx="24" cy="19.5" r="2.6" fill="#9fe0ff"/><circle cx="30" cy="19" r="2.6" fill="#ffd27a"/><circle cx="36" cy="16" r="2.6" fill="#ff9a9a"/></svg>'};
+// 상점 탭
+const _rs=_renderShop;_renderShop=function(){if(!decoOn()&&shopTab==='deco')shopTab='rod';_rs.apply(this,arguments);if(!decoOn())return;const sh=$('shop'),tabs=sh.querySelector('.tabs');if(!tabs)return;
+ const tb=document.createElement('button');tb.dataset.tab='deco';tb.className=shopTab==='deco'?'on':'';tb.textContent='🪑 데크 꾸미기';const sell=tabs.querySelector('[data-tab="sell"]');tabs.insertBefore(tb,sell||null);tb.onclick=()=>{shopTab='deco';renderShop();};
+ if(shopTab!=='deco')return;tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===tb));const z=dS(),grid=tabs.nextElementSibling;if(!grid)return;grid.className='grid';
+ grid.innerHTML=DECO.map(x=>{const own=!!z.own[x.k];return `<div class="item dcit"><span class="sico">${ICO[x.k]}</span><h4>${x.n}</h4><div class="small muted">${x.d}</div><div class="p">🪙 ${x.p.toLocaleString()}</div>${own?'<button disabled>보유 중</button>':`<button class="acc" data-buydc="${x.k}" ${S.coins<x.p?'disabled':''}>구매</button>`}</div>`;}).join('')+`<p class="small muted dcnote" style="grid-column:1/-1">데크 의자에 앉으면 오른쪽에 <b>🪑 꾸미기</b> 버튼이 생겨요. 내 의자 쪽 절반에만 놓을 수 있어서, 옆자리 사람도 자기 쪽을 따로 꾸밀 수 있어요.</p>`;
+ grid.querySelectorAll('[data-buydc]').forEach(b=>b.onclick=()=>{const x=DECO.find(d=>d.k===b.dataset.buydc);if(!x||z.own[x.k]||S.coins<x.p)return;S.coins-=x.p;try{sfx.coin();}catch(e){}z.own[x.k]=1;save();hud();toast(`🪑 ${x.n} 구매! 데크 의자에 앉아 꾸미기 버튼으로 놓아 보세요`,2600);renderShop();decoSync(true);});};
+// 3D 모델 (단순한 낮은 폴리곤, 바닥 y=0 기준)
+const DM={};const mat=c=>DM['m'+c]||(DM['m'+c]=new THREE.MeshLambertMaterial({color:c,flatShading:true}));
+function decoMesh(k){const T=THREE,g=new T.Group();const add=(geo,m,x,y,z,ry)=>{const o=new T.Mesh(geo,m);o.position.set(x||0,y||0,z||0);if(ry)o.rotation.y=ry;g.add(o);return o;};
+ if(k==='parasol'){add(new T.CylinderGeometry(.05,.05,2.6,6),mat('#f4ede0'),0,1.3);add(new T.ConeGeometry(1.45,.55,8),mat('#e8584a'),0,2.68);for(let i=0;i<4;i++)add(new T.ConeGeometry(1.47,.55,8,1,true,i*Math.PI/2,Math.PI/4),mat('#ffffff'),0,2.68);add(new T.CylinderGeometry(.26,.3,.1,10),mat('#666666'),0,.05);}
+ else if(k==='table'){add(new T.CylinderGeometry(.36,.36,.06,12),mat('#e8d6b8'),0,.62);add(new T.CylinderGeometry(.05,.07,.6,6),mat('#8a6a4a'),0,.31);add(new T.CylinderGeometry(.18,.2,.04,10),mat('#8a6a4a'),0,.02);add(new T.CylinderGeometry(.07,.06,.15,8),mat('#ff7a7a'),.12,.72,0);add(new T.CylinderGeometry(.07,.06,.15,8),mat('#7ac0ff'),-.12,.72,.05);}
+ else if(k==='lights'){const L=2.6;[-L/2,L/2].forEach(z=>add(new T.CylinderGeometry(.045,.05,2.3,6),mat('#8a6a4a'),0,1.15,z));const cols=['#ffd27a','#ff9a9a','#9fe0ff','#b6f5c8'];for(let i=0;i<=8;i++){const q=i/8,z=-L/2+L*q,y=2.25-Math.sin(Math.PI*q)*.38;const b=add(new T.SphereGeometry(.085,6,4),DM['b'+i%4]||(DM['b'+i%4]=new T.MeshBasicMaterial({color:cols[i%4]})),0,y,z);b.userData.bulb=1;}
+  const pts=[];for(let i=0;i<=16;i++){const q=i/16;pts.push(new T.Vector3(0,2.3-Math.sin(Math.PI*q)*.38,-L/2+L*q));}g.add(new T.Line(new T.BufferGeometry().setFromPoints(pts),DM.ln||(DM.ln=new T.LineBasicMaterial({color:'#4a4a4a'}))));}
+ g.traverse(o=>{o.frustumCulled=false;});return g;}
+// 앉은 의자의 데크 좌표계 — 데크 가운데 선을 기준으로 의자 쪽 절반
+function seatFrame(s){if(!s||s.kind!=='stool'||s.virt&&!s.deck)return null;const dk=s.deck&&typeof s.deck==='object'?s.deck:decks[s.deck];if(!dk)return null;const di=dk.i;let LW=null,hw=1.45;
+ if(DW){const e=DWX.find(d=>s.twin?(d.twin&&d.i===s.twinI):(!d.twin&&d.i===di));if(e){LW=e.LW;hw=DW.w/2;}}
+ if(!LW){let cx=dk.cx,cz=dk.cz;if(s.twin&&dk.tw){cx=dk.tw.cx;cz=dk.tw.cz;}const ca=dk.ca,sa=dk.sa;LW=(x,z)=>[cx-ca*z-sa*x,cz-sa*z+ca*x];}
+ const o=LW(0,0),e=LW(1,0),lx=(s.x-o[0])*(e[0]-o[0])+(s.z-o[1])*(e[1]-o[1]),side=lx<0?-1:1;return {LW,hw,side,ry:-dk.a+Math.PI/2};}
+const toLocal=(F,u,v)=>[F.side*(.3+u/100*(F.hw-.6)),-3.4+v/100*7.0];
+function decoBuild(grp,F,list){while(grp.children.length)grp.remove(grp.children[0]);if(!F||!list)return;list.slice(0,4).forEach(([id,u,v,r])=>{const x=DECO[id];if(!x)return;const m=decoMesh(x.k),[lx,lz]=toLocal(F,u,v),w=F.LW(lx,lz);m.position.set(w[0],.39,w[1]);m.rotation.y=F.ry+(r|0)*Math.PI/4;grp.add(m);});}
+const MY={g:null,key:''},PEER=new Map();
+function myList(){if(!decoOn()||!mySeat||mySeat.kind!=='stool')return null;const z=dS();return z.pl.length?z.pl.map(p=>p.slice(0,4)):null;}
+window.NK_DECO_DC=()=>myList();
+function decoSync(force){if(typeof scene==='undefined')return;const on=decoOn();
+ if(!MY.g){MY.g=new THREE.Group();scene.add(MY.g);}const F=on&&mySeat?seatFrame(mySeat):null,L=F?myList():null,key=F&&L?SEATS.indexOf(mySeat)+'|'+JSON.stringify(L):'';
+ if(force||key!==MY.key){MY.key=key;decoBuild(MY.g,F,L);try{rtPose(false);}catch(e){}}
+ const RT=window.NK_RT,ps=on&&RT&&RT.status()==='on'?RT.peers():[],live=new Set();
+ for(const p of ps){if(!p||!p.id||!p.dc||p.seat==null)continue;const s=SEATS[p.seat];const F2=seatFrame(s);if(!F2)continue;live.add(p.id);const k2=p.seat+'|'+JSON.stringify(p.dc);let r=PEER.get(p.id);if(!r){r={g:new THREE.Group(),key:''};scene.add(r.g);PEER.set(p.id,r);}if(r.key!==k2){r.key=k2;decoBuild(r.g,F2,p.dc);}}
+ for(const [id,r] of PEER)if(!live.has(id)){scene.remove(r.g);PEER.delete(id);}
+ decoBtn(on&&!!F);}
+setInterval(()=>{try{decoSync(false);}catch(e){}},400);
+// 꾸미기 버튼 + 편집 창 (의자 쪽 절반을 위에서 본 모습)
+function decoBtn(show){let b=$('dcBtn');const z=dS(),has=Object.keys(z.own).length>0;if(!show){if(b)b.remove();const ed=$('dcEd');if(ed)ed.remove();return;}
+ if(!b){b=document.createElement('button');b.id='dcBtn';b.type='button';b.innerHTML='🪑<small>꾸미기</small>';document.body.appendChild(b);b.onclick=e=>{e.stopPropagation();decoEd();};}b.classList.toggle('dim',!has);}
+function decoEd(){const z=dS();if(!Object.keys(z.own).length){toast('🛒 상점 › 🪑 데크 꾸미기에서 먼저 아이템을 사 주세요',2400);return;}const F=seatFrame(mySeat);if(!F)return;let ed=$('dcEd');if(ed){ed.remove();return;}
+ ed=document.createElement('div');ed.id='dcEd';document.body.appendChild(ed);let sel=-1;const W=150,H=330;
+ const stoolUV=()=>{const o=F.LW(0,0),ex=F.LW(1,0),ez=F.LW(0,1),dx=mySeat.x-o[0],dz=mySeat.z-o[1],lx=dx*(ex[0]-o[0])+dz*(ex[1]-o[1]),lz=dx*(ez[0]-o[0])+dz*(ez[1]-o[1]);return [Math.max(0,Math.min(100,(Math.abs(lx)-.3)/(F.hw-.6)*100)),Math.max(0,Math.min(100,(lz+3.4)/7.0*100))];};
+ // 화면: 위 = 호수 쪽, 아래 = 입구 · 가운데 선(옆자리) 쪽은 의자 방향에 맞춰 왼쪽/오른쪽
+ const px=u=>F.side<0?W-u/100*W:u/100*W,py=v=>H-v/100*H,pu=x=>Math.max(0,Math.min(100,Math.round((F.side<0?W-x:x)/W*100))),pv=y=>Math.max(0,Math.min(100,Math.round((H-y)/H*100)));
+ const draw=()=>{const su=stoolUV();ed.innerHTML=`<div class="dch"><b>🪑 내 자리 꾸미기</b><button type="button" class="dcx" aria-label="닫기">×</button></div><small class="muted">의자 쪽 절반에만 놓여요. 옆자리 사람도 자기 쪽을 꾸밀 수 있어요.</small>
+  <div class="dcm"><span class="dcl t">호수 쪽 ↑</span><div class="dcr ${F.side<0?'l':'r'}" style="width:${W}px;height:${H}px"><span class="dcmid">옆자리</span><i class="dcs" style="left:${px(su[0])}px;top:${py(su[1])}px" title="내 의자"></i>${z.pl.map((p,i)=>`<b class="dcp ${i===sel?'on':''}" data-i="${i}" style="left:${px(p[1])}px;top:${py(p[2])}px;transform:translate(-50%,-50%) rotate(${(p[3]|0)*45}deg)">${ICO[DECO[p[0]].k]}</b>`).join('')}</div><span class="dcl b">입구 ↓</span></div>
+  <div class="dcbar">${sel>=0?`<button type="button" data-rot>🔄 돌리기</button><button type="button" data-del>빼기</button>`:'<small class="muted">놓인 아이템을 끌어서 옮기고, 누르면 돌리거나 뺄 수 있어요</small>'}</div>
+  <div class="dcinv">${DECO.filter(x=>z.own[x.k]&&!z.pl.some(p=>p[0]===x.id)).map(x=>`<button type="button" data-add="${x.id}">${ICO[x.k]}<span>${x.n} 놓기</span></button>`).join('')}</div>`;
+  ed.querySelector('.dcx').onclick=()=>ed.remove();
+  ed.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{if(z.pl.length>=4)return toast('한 자리에 4개까지 놓을 수 있어요',1600);const id=+b.dataset.add;z.pl.push([id,id===2?85:id===0?92:60,id===0?90:id===1?80:40,0]);sel=z.pl.length-1;commit();});
+  const rb=ed.querySelector('[data-rot]');if(rb)rb.onclick=()=>{z.pl[sel][3]=((z.pl[sel][3]|0)+1)%8;commit();};
+  const db=ed.querySelector('[data-del]');if(db)db.onclick=()=>{z.pl.splice(sel,1);sel=-1;commit();};
+  const R=ed.querySelector('.dcr');ed.querySelectorAll('.dcp').forEach(el=>{el.onpointerdown=e=>{e.preventDefault();e.stopPropagation();const i=+el.dataset.i;sel=i;let moved=false;el.setPointerCapture(e.pointerId);ed.querySelectorAll('.dcp').forEach(x=>x.classList.toggle('on',x===el));
+   el.onpointermove=ev=>{const r=R.getBoundingClientRect(),x=ev.clientX-r.left,y=ev.clientY-r.top;moved=true;el.style.left=Math.max(0,Math.min(W,x))+'px';el.style.top=Math.max(0,Math.min(H,y))+'px';z.pl[i][1]=pu(x);z.pl[i][2]=pv(y);decoSync(true);};
+   el.onpointerup=()=>{el.onpointermove=null;el.onpointerup=null;commit();};};});};
+ const commit=()=>{const su=stoolUV();z.pl.forEach(p=>{const du=(p[1]-su[0])/100*(F.hw-.6),dv=(p[2]-su[1])/100*7.0;if(Math.hypot(du,dv)<.55){p[2]=Math.max(0,su[1]-12);}});save();decoSync(true);draw();};
+ draw();}
+document.addEventListener('pointerdown',e=>{const ed=$('dcEd');if(ed&&!e.target.closest('#dcEd,#dcBtn'))ed.remove();});
+})();
 window.NKV2={uiOpt:(k,d)=>uiOpt(k,d),PVK:{apply:(k,v)=>applyStyleSide(k,v),preview:(k,v)=>previewStyle(k,v),admin:()=>V14.admin()},LT:{start:(n,o)=>ltStart(n,o),stop:()=>ltStop(),snap:()=>ltSnap(),html:()=>loadHTML(),bind:(r,re)=>bindLoad(r,re)},featBtns:()=>featBtns(),openFuse:()=>openFuse(),openAdv:()=>openAdv(),FZV,ADVR,applyMx:()=>applyMx(),mxMode:()=>mxMode(),renderSet:()=>renderSet(),XBAL,BGM,bgmCfg,MAPX:{apply:v=>MAPV.apply(v),time:(v,auto)=>{if(v!=null){pinAuto(false);pinTime(v);}return time.t;}},SOLO:()=>SOLO,SKEY:()=>SKEY,bots:()=>bots,seats:()=>SEATS,decks,LR,S,catchFish:()=>catchFish(),legendAlert:(...a)=>legendAlert(...a),boxAlert:(...a)=>boxAlert(...a),seen:k=>{const [t,id]=k.split(':'),L=t==='c'?S.charms:S.gear,it=L&&L.find(x=>String(x.id)===id);if(it&&it.nw){delete it.nw;save();}document.querySelectorAll(`[data-nwk="${k}"]`).forEach(e=>{e.removeAttribute('data-nwk');e.querySelectorAll('.nwb').forEach(b=>b.classList.add('gone'));});},mvMul,ILOG,applyHud,lvPop,KINDS,fire:()=>fireMesh,LV,myLv,addXP,lvRoad,lvCharmSlots,lvTankBonus,resetInput,keys:()=>keys,SEATS,sitOn,standUp,mySeat:()=>mySeat,nearSeat:()=>nearSeat,SH:()=>SH,_n:{catchCard,toast,boxFx,synthFx,FI,GR,TIER,confirmBox,say,openBox:()=>SYS.openBox(D,S,Math.random,null),achCheck},DW,inDeck,R,cam,hemi,sun,wU,V15,V14,S,chars,decks,ROD_POSE,scene,THREE,openFishRank,miniToast,boxGot,calcRK3,updBagBadge,baitOut,baitLow,MAPV:()=>MAPV,bragStart,bragStop,bragCard,brag:()=>brag,labHTML:()=>labHTML(),bindLab:(r)=>bindLab(r),RK3:()=>RK3,project:a=>{const v=new THREE.Vector3(a[0],a[1],a[2]).project(cam);return [Math.round((v.x+1)/2*innerWidth),Math.round((1-v.y)/2*innerHeight)];},snd:()=>snd,emote,applyMenu,botBuyNow:()=>{buyT=0;botBuy(0);},S,D,decks,bots,fishAction,catchFish,tankView,renderShop,renderDex,openM,closeM,time,me:()=>me,setPos:(x,z)=>{me.o.position.set(x,.4,z);},nearSpot:()=>nearSpot,fishing:()=>fishing,save,VG,bag:()=>openBag(),legendAlert,botLegend,boxAlert,botBoxAlert,bagTab:t=>{bagTab=t;if(t==='box'||t==='charm')bagMode='box';else bagMode='bag';renderBag();},openBag,openSet:()=>{renderSet();openM('set');},afOK,afGrant,afRevoke,afLeftMs,rodNeed,lobbyCounts:()=>window.__lobbyCounts?window.__lobbyCounts():[],SYS,giveBox:(n=1)=>{for(let i=0;i<n;i++)S.boxes.push(Date.now());save();},setCam:(x,y,z,tx=0,ty=0,tz=0)=>{camOverride=x==null?null:[x,y,z,tx,ty,tz];},setDecks:n=>{},dexTab:t=>{dexTab=t;},synthFx,hud};});
 })();
 
