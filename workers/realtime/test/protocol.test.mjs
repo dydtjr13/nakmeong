@@ -727,3 +727,16 @@ test("v90: petCfg · trCfg · 새 테스트 키 · 부적 열쇠 키 삭제", ()
   const p = sanitizePose({ x: 1, z: 1, ex: { pt: "fox", ts: 3, tk: "s" } }, null);
   assert.deepEqual(p.ex, { pt: "fox", ts: 3, tk: "s" });
 });
+
+test("v92 탈것 설정 · 펫 빛 · 자랑 변이", () => {
+  const pl = _spl({ petFx: "on", vehCfg: { p: { car: 0.5, sled: "x" }, s: { carRb: 999 }, cc: { rainbow: 2, bad: 1 } } }, {});
+  assert.equal(pl.petFx, "on");
+  assert.equal(pl.vehCfg.p.car, 0.5); assert.equal(pl.vehCfg.p.sled, 0.4);
+  assert.equal(pl.vehCfg.s.carRb, 300); assert.equal(pl.vehCfg.s.dog, 30);
+  assert.equal(pl.vehCfg.cc.rainbow, 2); assert.equal(pl.vehCfg.cc.bad, undefined);
+  const b = _cb({ k: "carp", g: 3, cm: 30, vr: "gold", st: 9 });
+  assert.equal(b.vr, "gold"); assert.equal(b.st, 4);
+  assert.equal(_cb({ k: "carp", vr: "evil" }).vr, "");
+  const p = _sp({ x: 1, z: 1, ex: { vh: "car.rainbow", ps: "0123456789abcdef0123456789" } }, null);
+  assert.equal(p.ex.vh, "car.rainbow"); assert.equal(p.ex.ps.length, 24);
+});
