@@ -663,3 +663,16 @@ test("v79 도배 감지 · 운영자 권한 · 신고", async () => {
   assert.equal(P.mergeReports(list, [b], t + 1000).length, 1);
   assert.equal(P.parseClient(JSON.stringify({ t: "report", id: "abc", why: "욕설·비하" })).t, "report");
 });
+
+test("v81 끝난 공지는 다시 읽어도 늘어나지 않고, 고정 공지는 계속", async () => {
+  const P = await import("../src/protocol.js");
+  const t = 1e12;
+  const a = P.sanitizeNotice({ msg: "점검", min: 10 }, t);
+  assert.equal(a.until, t + 600000);
+  const later = P.mergeNoticeLog([a], null, t + 700000);
+  assert.equal(later.rows[0].until, t + 600000);
+  assert.equal(later.active, null);
+  const f = P.sanitizeNotice({ msg: "고정 공지", fix: true }, t);
+  assert.ok(f.fix && f.until > t + 3000 * 864e5);
+  assert.ok(P.mergeNoticeLog([f], null, t + 864e5).active);
+});

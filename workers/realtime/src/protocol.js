@@ -480,9 +480,15 @@ export function sanitizeNotice(input, now) {
   if (input.off && !msg) return { off: true, id, ch, by };
   if (!msg) return null;
   const min = Math.max(1, Math.min(1440, Math.round(finite(input.min, 10))));
+  // v81: 끝난 공지를 다시 읽을 때 시간이 새로 늘어나던 문제 — until 이 있으면 그대로 두고(지났으면 지난 대로), 없을 때만 지금+min 분
+  //      fix(고정) = 관리자가 내릴 때까지 계속 (10년)
+  const fix = !!input.fix;
   let until = Math.round(finite(input.until, 0));
-  if (!input.off && (!(until > t) || until > t + 1440 * 60000 + 120000)) until = t + min * 60000;
-  return { id: id || String(t), msg, min, ch, until, off: !!input.off, by };
+  if (!input.off) {
+    if (fix) { if (!(until > t)) until = t + 3650 * 864e5; }
+    else if (!(until > 0) || until > t + 1440 * 60000 + 120000) until = t + min * 60000;
+  }
+  return { id: id || String(t), msg, min, ch, until, off: !!input.off, by, ...(fix ? { fix: true } : {}) };
 }
 
 /** 호숫가 공지 목록. 삭제는 id 로 빼고, 내리기는 off. active 는 아직 떠 있는 최신 글. */
@@ -894,6 +900,7 @@ export function sanitizePlay(input, prev, opt) {
   }
   if ("deck4" in input) out.deck4 = pickOf(input.deck4, ["off", "A", "B"]);
   if ("boxEarly" in input) out.boxEarly = pickOf(input.boxEarly, ["off", "A", "B"]);
+  if ("nightGlow" in input) out.nightGlow = pickOf(input.nightGlow, ["off", "A", "B", "C", "D"]);
   if ("duckCatch" in input) out.duckCatch = pickOf(input.duckCatch, ["off", "on"]);
   if ("afPay" in input) out.afPay = pickOf(input.afPay, ["off", "A", "B", "C"]);
   if ("duckFun" in input) out.duckFun = pickOf(input.duckFun, ["off", "slide", "flume", "fountain", "all"]);
