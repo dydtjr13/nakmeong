@@ -640,3 +640,26 @@ test("v70: uiPos 관리자 처음 화면 배치 정리", async () => {
   const cleared = sanitizePlay({ uiPos: {} }, o);
   assert.equal("uiPos" in cleared, false);
 });
+
+test("v79 도배 감지 · 운영자 권한 · 신고", async () => {
+  const P = await import("../src/protocol.js");
+  let rec, r, t = 1e12;
+  for (let i = 0; i < 4; i++) { r = P.spamStep(rec, "안녕" + i, t + i * 1000); rec = r.rec; assert.equal(r.hit, false); }
+  r = P.spamStep(rec, "또", t + 4000); assert.equal(r.hit, true); assert.equal(r.ms, 60e3); rec = r.rec;
+  for (let k = 0; k < 2; k++) { r = P.spamStep(rec, "같은말", t + 100000 + k * 5000); rec = r.rec; }
+  r = P.spamStep(rec, "같은 말", t + 112000); assert.equal(r.hit, true); assert.equal(r.n, 2); rec = r.rec;
+  let last;
+  for (let s = 0; s < 4; s++) for (let k = 0; k < 3; k++) { last = P.spamStep(rec, "x", t + 200000 + s * 60000 + k * 1000); rec = last.rec; }
+  assert.equal(last.n, 6); assert.equal(last.ms, 5 * 60e3); assert.equal(last.flag, true);
+  assert.equal(P.opAllowed(["sanc"], "sanc"), true);
+  assert.equal(P.opAllowed(["sanc"], "gift"), false);
+  assert.equal(P.opAllowed(["look"], "play"), true);
+  assert.equal(P.opAllowed(["ev"], "notice"), false);
+  const st = P.sanitizeStaff({ "ab12": { n: "물고기", r: "운영자", p: ["dash", "nope", "sanc"] } });
+  assert.deepEqual(st.ab12.p, ["dash", "sanc"]);
+  const a = P.sanitizeReport({ nick: "나쁜", why: "도배", lines: ["a"] }, t, "착한");
+  const list = P.mergeReports([], [a], t);
+  const b = P.sanitizeReport({ nick: "나쁜", why: "도배" }, t + 1000, "착한");
+  assert.equal(P.mergeReports(list, [b], t + 1000).length, 1);
+  assert.equal(P.parseClient(JSON.stringify({ t: "report", id: "abc", why: "욕설·비하" })).t, "report");
+});

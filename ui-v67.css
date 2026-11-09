@@ -249,3 +249,16 @@ body.umvDrag #umvTb,body.umvDrag #umvPill,body.umvDrag #umvOk{opacity:0;pointer-
 #shop .bxs-p b{font-size:26px;color:#b07800}#shop .bxs-p small{display:block;color:#8a7660;font-size:12px}
 #shop .bxs-b{display:flex;gap:8px;flex-wrap:wrap}#shop .bxs-b button{min-height:44px;padding:0 18px;font-size:15px}
 #shop .bxs-t{display:flex;flex-wrap:wrap;gap:6px}#shop .bxs-t span{font-size:12px;background:#f4ecdf;border-radius:999px;padding:3px 10px;color:#5a4632}
+/* v79: 탐험 지도 장소 버튼 — 누를 때 공통 button:active 이동이 가운데 맞춤(translate -50%)을 덮어써서 버튼이 튀어 클릭이 안 먹던 문제 */
+#adv .advn:active{transform:translate(-50%,calc(-50% + 1px))}
+#adv .advn,#adv .advn *{touch-action:manipulation}
+/* v79: 레벨 바 경험치 말풍선 */
+#xpTip{position:fixed;z-index:1200;min-width:200px;max-width:240px;background:#fffdf8;color:#3d3027;border-radius:14px;padding:10px 13px;box-shadow:0 8px 24px rgba(40,30,20,.22);font-size:13px;line-height:1.5;display:flex;flex-direction:column;gap:2px;pointer-events:none;opacity:0;transform:translateY(-4px);transition:opacity .15s,transform .15s}
+#xpTip.on{opacity:1;transform:none}#xpTip b{font-size:14px}#xpTip em{font-style:normal;font-weight:800;color:#e07a2e}#xpTip small{color:#a08a70;font-size:11px}
+#lvB .xp .t .n{display:none}
+/* v79: 신고 */
+#ctxM button{display:block;width:100%;text-align:left}
+#repDlg .repc{max-width:380px;width:calc(100vw - 32px);padding:20px}#repDlg h3{margin:0 0 4px}
+#repDlg .repw{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}#repDlg .repw button{border:1.5px solid #e6dccb;background:#fff;border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}#repDlg .repw button.on{background:#e8784a;border-color:#e8784a;color:#fff}
+#repDlg textarea{width:100%;box-sizing:border-box;min-height:64px;border-radius:12px;border:1.5px solid #e6dccb;padding:8px 10px;font:inherit;font-size:13px;resize:vertical}
+#repDlg details{margin-top:8px;font-size:13px}#repDlg .repb{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}

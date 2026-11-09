@@ -9,7 +9,7 @@
    const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(p,3));g.setIndex(new T.BufferAttribute(idx,1));g.computeVertexNormals();out[k]=g;}return out;}
  function init(){const g=G();if(!g||!g.scene||!g.THREE||!window.NK_DUCK_MESH)return false;T=g.THREE;scene=g.scene;const GE=geo(),VV=window.NK_DUCKV.build(T,GE);
   for(const v in VV){const P=VV[v],L=[];['body','beak','eyes'].forEach(k=>L.push(new T.InstancedMesh(GE[k],new T.MeshLambertMaterial({color:P[k]}),MAX)));P.acc.forEach(([g,m])=>L.push(new T.InstancedMesh(g,m,MAX)));L.forEach(m=>{m.count=0;m.visible=false;m.frustumCulled=false;scene.add(m);IM.push(m);});VG[v]=L;}
-  const tips=(g.decks||[]).map(d=>d.tip?Math.hypot(d.tip.x,d.tip.z):99);rMax=Math.max(4,Math.min(...tips,30)-2.2);return true;}
+  const tips=(g.decks||[]).map(d=>d.tip?Math.hypot(d.tip.x,d.tip.z):99);rMax=Math.max(4,Math.min(...tips,30)-1.1);return true;}
  const rnd=(a,b)=>a+Math.random()*(b-a),WY=-.1,DUCK_BASE=1.3; // v48: 랜덤이 아니면 모든 오리를 같은 크기로 (DUCK_BASE×선택 배율)
  // v30: 순환 스폰 — 첫 마리 무조건 base, 이후 켜진 종류 중복없이 셔플 순차, 라운드 끝나면 재셔플. 최대 도달 시 가장 오래된 것부터 페이드아웃 후 새 종류.
  let cycleQ=[],cycleI=0,everSpawned=0,duckWas=null,duckArm=0;
@@ -32,7 +32,7 @@
  // 실시간 호수에서는 모두 같은 시각(서버 시각)과 같은 오리 배치로 계산해서, 접속한 사람끼리 거의 같은 장면을 봐요
  // 같은 단계끼리 부딪혀야 다음 단계 · 오리 32마리면 32→16→8→4→2→1 이라 5단계(크기 ×1.2씩, 5단계 ≈ ×2.5)가 끝. 3단계부터 왕관, 5단계는 큰 금왕관
  const FUN_MAXL=5,FUN_COL=['#ffffff','#fff3a0','#bfe8ff','#ffd34a','#ff9ad0','#c8a8ff'];
- const FUN={lv:{},abs:{},lastM:0,crown:null,fac:null,facK:'',rides:{}};
+ const FUN={lv:{},abs:{},lastM:0,crown:null,fac:null,facK:'',rides:{},disp:{},pop:{},tags:[]};const MERGE_MS=1400;
  const nowS=()=>{const RT=window.NK_RT;const sk=RT&&Number.isFinite(+RT.clockSkew)?+RT.clockSkew:0;return Date.now()-sk;};
  const funOpt=()=>{try{return String(G().uiOpt?G().uiOpt('duckFun','off'):'off');}catch(e){return 'off';}};
  function burst(x,y,z,col,n){const g=new T.BufferGeometry(),pa=new Float32Array(n*3),vel=[];for(let i=0;i<n;i++){pa[i*3]=x;pa[i*3+1]=y;pa[i*3+2]=z;const a=Math.random()*6.28,s=rnd(.6,1.6);vel.push([Math.cos(a)*s,rnd(1.5,3),Math.sin(a)*s]);}g.setAttribute('position',new T.BufferAttribute(pa,3));
@@ -66,14 +66,19 @@
  function funApply(dt,t){const now=nowS();ducks.forEach(d=>d._r=null);const A=ducks.filter(d=>d.st!=='fade');A.forEach(d=>{if(d.key==null)d.key='l'+(FUN.uid=(FUN.uid||0)+1);d._r={x:d.x,y:d.y,z:d.z,yaw:d.yaw,sc:1,hide:false,busy:false};});
   const K=new Map(A.map(d=>[d.key,d]));
   // ③ 합체: 가까워지면 큰 쪽(키가 앞선 쪽)으로 흡수, 2분 뒤 다시 톡 나와요
-  for(const k in FUN.abs){const a=FUN.abs[k];if(now>a.until||!K.has(k)||!K.has(a.into)){if(K.has(k)&&K.has(a.into)){const d=K.get(a.into);burst(d.x,WY+.3,d.z,'#ffffff',10);}if(FUN.lv[a.into]!=null)FUN.lv[a.into]=Math.min(FUN.lv[a.into],a.prevW!=null?a.prevW:Math.max(0,FUN.lv[a.into]-1));delete FUN.abs[k];}}
-  for(const d of A){if(FUN.abs[d.key])d._r.hide=true;}
-  if(now-FUN.lastM>6000)for(let i=0;i<A.length;i++){const a=A[i];if(a._r.hide||a.st!=='swim')continue;for(let j=i+1;j<A.length;j++){const b=A[j];if(b._r.hide||b.st!=='swim')continue;const la=FUN.lv[a.key]||0,lb=FUN.lv[b.key]||0;if(la!==lb||la>=FUN_MAXL)continue;if(Math.hypot(a.x-b.x,a.z-b.z)<1.5*Math.pow(1.2,la)){const [w,l]=String(a.key)<String(b.key)?[a,b]:[b,a];FUN.abs[l.key]={into:w.key,until:now+300000,prevW:la};FUN.lv[w.key]=la+1;FUN.lastM=now;l._r.hide=true;burst((a.x+b.x)/2,WY+.4,(a.z+b.z)/2,FUN_COL[la+1],14+la*4);i=A.length;break;}}}
-  for(const d of A){const L=FUN.lv[d.key]||0;if(L)d._r.sc=Math.pow(1.2,L);}
+  for(const k in FUN.abs){const a=FUN.abs[k];if(now>a.until||!K.has(k)||!K.has(a.into)){if(K.has(k)&&K.has(a.into)){const d=K.get(a.into);burst(d.x,WY+.3,d.z,'#ffffff',10);const p=FUN.disp[a.into];FUN.disp[k]={x:p?p.x:d.x,z:p?p.z:d.z,sc:.3};}if(FUN.lv[a.into]!=null)FUN.lv[a.into]=Math.min(FUN.lv[a.into],a.prevW!=null?a.prevW:Math.max(0,FUN.lv[a.into]-1));delete FUN.abs[k];}}
+  // v79: 합체는 순간이동 대신 1.4초 동안 헤엄쳐 들어가며 작아지고, 끝나면 반짝 + '합체! Lv.N' 글자
+  for(const d of A){const ab=FUN.abs[d.key];if(!ab)continue;const e=now-(ab.t0||0),w=K.get(ab.into);
+   if(ab.t0&&e<MERGE_MS&&w){const f=e/MERGE_MS,k=f*f*(3-2*f);d._r.x+=(w.x-d.x)*k;d._r.z+=(w.z-d.z)*k;d._r.yaw=Math.atan2(w.x-d.x,w.z-d.z);d._r.sc=1-.75*k;d._r.busy=true;continue;}
+   d._r.hide=true;if(!ab.fx&&w){ab.fx=1;burst(w.x,WY+.5,w.z,FUN_COL[ab.lv||1],18+(ab.lv||1)*4);tag(w.key,'합체! Lv.'+((ab.lv||1)+1),FUN_COL[ab.lv||1]);FUN.pop[w.key]=now;}}
+  if(now-FUN.lastM>6000)for(let i=0;i<A.length;i++){const a=A[i];if(a._r.hide||a.st!=='swim')continue;for(let j=i+1;j<A.length;j++){const b=A[j];if(b._r.hide||b.st!=='swim')continue;const la=FUN.lv[a.key]||0,lb=FUN.lv[b.key]||0;if(la!==lb||la>=FUN_MAXL)continue;if(Math.hypot(a.x-b.x,a.z-b.z)<1.5*Math.pow(1.2,la)){const [w,l]=String(a.key)<String(b.key)?[a,b]:[b,a];FUN.abs[l.key]={into:w.key,until:now+300000,prevW:la,t0:now,lv:la+1};FUN.lv[w.key]=la+1;FUN.lastM=now;i=A.length;break;}}}
+  const PEND={};for(const k in FUN.abs){const ab=FUN.abs[k];if(!ab.fx&&ab.t0)PEND[ab.into]=ab.lv-1;}for(const d of A){const L=FUN.lv[d.key]||0;const shown=PEND[d.key]!=null?PEND[d.key]:L;let sc=shown?Math.pow(1.2,shown):1;const pe=now-(FUN.pop[d.key]||0);if(pe<700)sc*=1+.35*Math.sin(pe/700*Math.PI);if(!d._r.busy)d._r.sc=sc;}
   // ⑤ 엄마 오리 따라 줄서기: 4분마다 100초 동안, 가장 큰 오리를 가까운 오리 넷이 따라가요
   const W=240000,wk=Math.floor(now/W),we=now-wk*W,DUR=100000;
-  if(we<DUR){const fa=Math.min(1,we/5000,(DUR-we)/5000);const pool=A.filter(d=>!d._r.hide&&d.st==='swim');if(pool.length>=3){const mom=pool.slice().sort((a,b)=>(b.s*Math.pow(1.2,FUN.lv[b.key]||0))-(a.s*Math.pow(1.2,FUN.lv[a.key]||0))||String(a.key).localeCompare(String(b.key)))[0];
-    const kids=pool.filter(d=>d!==mom).sort((a,b)=>Math.hypot(a.x-mom.x,a.z-mom.z)-Math.hypot(b.x-mom.x,b.z-mom.z)).slice(0,4);const fw=[Math.sin(mom.yaw),Math.cos(mom.yaw)];
+  if(we<DUR){const fa=Math.min(1,we/5000,(DUR-we)/5000);const pool=A.filter(d=>!d._r.hide&&d.st==='swim');if(pool.length>=3){let mom=pool.slice().sort((a,b)=>(b.s*Math.pow(1.2,FUN.lv[b.key]||0))-(a.s*Math.pow(1.2,FUN.lv[a.key]||0))||String(a.key).localeCompare(String(b.key)))[0];
+    // v79: 엄마·아기 오리는 줄서기 시작 때 한 번만 정해요 (매 순간 다시 고르면 줄이 바뀌며 툭 튀었어요)
+    if(FUN.famK!==wk||!FUN.fam||!K.has(FUN.fam.mom)||FUN.fam.kids.some(k=>!K.has(k)||(K.get(k)._r||{}).hide)){FUN.famK=wk;FUN.fam={mom:mom.key,kids:pool.filter(d=>d!==mom).sort((a,b)=>Math.hypot(a.x-mom.x,a.z-mom.z)-Math.hypot(b.x-mom.x,b.z-mom.z)).slice(0,4).map(d=>d.key)};}
+    const mom2=K.get(FUN.fam.mom);if(mom2&&!mom2._r.hide)mom=mom2;const kids=FUN.fam.kids.map(k=>K.get(k)).filter(d=>d&&d!==mom&&!d._r.hide);const fw=[Math.sin(mom.yaw),Math.cos(mom.yaw)];
     kids.forEach((d,i)=>{const gap=(1.1+i*1.05)*Math.max(.9,mom.s*.8),sw=Math.sin(now/600+i)*.18;const tx=mom.x-fw[0]*gap+fw[1]*sw,tz=mom.z-fw[1]*gap-fw[0]*sw;d._r.x+=(tx-d._r.x)*fa;d._r.z+=(tz-d._r.z)*fa;if(fa>.5)d._r.yaw=mom.yaw;d._r.busy=true;d._r.sc=Math.min(d._r.sc,.85);});
     kids.forEach(d=>{const r=Math.hypot(d._r.x,d._r.z),lim=rMax*.95;if(r>lim){d._r.x*=lim/r;d._r.z*=lim/r;}});    mom._r.busy=true;if(fa>=1&&FUN.heartK!==wk){FUN.heartK=wk;burst(mom.x,WY+.8,mom.z,'#ff7aa2',16);}}}
   // 🧪 시설
@@ -82,7 +87,22 @@
    const s0=r.legs[0][0].getPoint(0);if(e<r.approach){const f=e/r.approach;d._r.x+=(s0.x-d._r.x)*f;d._r.z+=(s0.z-d._r.z)*f;d._r.yaw=Math.atan2(s0.x-d.x,s0.z-d.z);continue;}e-=r.approach;
    let done=true;for(const [cv,ms] of r.legs){if(e<ms){const p=cv.getPoint(e/ms),tg=cv.getTangent(e/ms);d._r.x=p.x;d._r.y=p.y;d._r.z=p.z;d._r.yaw=Math.atan2(tg.x,tg.z);done=false;if(r.jet&&FUN.col){FUN.col.scale.y=Math.max(1,p.y+.6);FUN.col.position.y=FUN.col.scale.y/2;}break;}e-=ms;}
    if(done){const last=r.legs[r.legs.length-1][0].getPoint(1);d._r.x=last.x;d._r.z=last.z;if(!r.spl||r.spl!==r.pick.k){r.spl=r.pick.k;splash(last.x,last.z);}if(r.jet&&FUN.col){FUN.col.scale.y=1;FUN.col.position.y=.5;}}}
+  smoothAll(A,dt);tagStep(dt,K);
   return A;}
+ // v79: 화면 위치를 한 번 더 부드럽게 — 설정 변경·가족 줄서기·합체 해제 때 툭 튀지 않고 헤엄쳐 가요.
+ // 서로 너무 붙은 오리는 살짝 밀어내서 한 곳에 뭉쳐 보이지 않게 해요 (보이는 위치만, 공유 경로는 그대로).
+ function smoothAll(A,dt){const V=A.filter(d=>d._r&&!d._r.hide);
+  for(const d of V){const r=d._r;let p=FUN.disp[d.key];if(!p)p=FUN.disp[d.key]={x:r.x,z:r.z,sc:r.sc};
+   const dx=r.x-p.x,dz=r.z-p.z,l=Math.hypot(dx,dz);if(l<.15||d.st!=='swim'){p.x=r.x;p.z=r.z;}else{const m=Math.min(l,(.5+l*2.2)*dt)/l;p.x+=dx*m;p.z+=dz*m;if(l>.6)r.yaw=Math.atan2(dx,dz);}
+   p.sc=(p.sc==null?r.sc:p.sc)+(r.sc-(p.sc==null?r.sc:p.sc))*Math.min(1,dt*4);}
+  for(let i=0;i<V.length;i++)for(let j=i+1;j<V.length;j++){const a=V[i],b=V[j];if(a._r.busy||b._r.busy||a.st!=='swim'||b.st!=='swim')continue;const pa=FUN.disp[a.key],pb=FUN.disp[b.key],dx=pa.x-pb.x,dz=pa.z-pb.z,l=Math.hypot(dx,dz)||1e-3,mn=.95*Math.max(.8,(a.s+b.s)*.5*(pa.sc+pb.sc)*.5);
+   if(l<mn){const k=Math.min(.5,(mn-l)*dt*1.5)/l;pa.x+=dx*k;pa.z+=dz*k;pb.x-=dx*k;pb.z-=dz*k;}}
+  for(const d of V){const p=FUN.disp[d.key],r=Math.hypot(p.x,p.z),lim=rMax*.97;if(r>lim){p.x*=lim/r;p.z*=lim/r;}d._r.x=p.x;d._r.z=p.z;d._r.sc=p.sc;}
+  for(const k in FUN.disp)if(!A.some(d=>d.key===k&&d._r&&!d._r.hide)&&!FUN.abs[k])delete FUN.disp[k];}
+ // 합체 글자: 오리 머리 위로 떠올랐다 사라지는 스프라이트
+ function tag(key,txt,col){const c=document.createElement('canvas');c.width=256;c.height=72;const g=c.getContext('2d');g.font='800 38px Pretendard,"Noto Sans KR",sans-serif';g.textAlign='center';g.textBaseline='middle';g.lineWidth=8;g.strokeStyle='rgba(60,40,20,.85)';g.strokeText(txt,128,38);g.fillStyle=col==='#ffffff'?'#fff3a0':col;g.fillText(txt,128,38);
+  const tx=new T.CanvasTexture(c),sp=new T.Sprite(new T.SpriteMaterial({map:tx,transparent:true,depthTest:false,depthWrite:false}));sp.scale.set(3.6,1.02,1);sp.renderOrder=999;scene.add(sp);FUN.tags.push({key,sp,t:0});}
+ function tagStep(dt,K){for(let i=FUN.tags.length-1;i>=0;i--){const g=FUN.tags[i];g.t+=dt;const d=K.get(g.key),p=FUN.disp[g.key]||d;if(p)g.sp.position.set(p.x,WY+1.3+g.t*.45,p.z);g.sp.material.opacity=Math.min(1,g.t*4,(2.6-g.t)/.6);if(g.t>2.6||!d){scene.remove(g.sp);g.sp.material.map.dispose();g.sp.material.dispose();FUN.tags.splice(i,1);}}}
  const mtx=()=>new T.Matrix4(),q=()=>new T.Quaternion();let M4,Q4,E4,S4,P4;
  function step(t){requestAnimationFrame(step);if(!ok){ok=init();if(!ok)return;M4=mtx();Q4=q();E4=new T.Euler();S4=new T.Vector3();P4=new T.Vector3();last=t;}
   const dt=Math.min(.05,(t-last)/1000);last=t;  const c=conf(),go=document.getElementById('go'),started=go&&!go.offsetParent;

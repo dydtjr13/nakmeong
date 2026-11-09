@@ -47,15 +47,21 @@
   // 속도 단위: 초당 호수 좌표 거리. 관리자 값 0 / 0.5 / 1 / 1.5 / 2.5 → 멈춤 / 아주 느리게 / 느리게 / 보통 / 조금 빠르게
   const DUCK_SPD = [[0, 0], [0.5, 0.025], [1, 0.05], [1.5, 0.09], [2.5, 0.15]];
   function duckSpeed(spd) {
-    const v = Number(spd);
+    // v79: 관리자가 숫자(0~5)로 직접 넣어요. 표의 값 사이는 직선으로 이어요 (2.5 이상은 1당 +0.06, 5에서 초당 0.3).
+    const v = Math.min(5, Number(spd));
     if (!Number.isFinite(v) || v <= 0) return 0;
-    for (const [k, u] of DUCK_SPD) if (Math.abs(k - v) < 1e-6) return u;
-    return Math.min(0.2, v * 0.06);
+    for (let j = 1; j < DUCK_SPD.length; j++) {
+      const [k0, u0] = DUCK_SPD[j - 1], [k1, u1] = DUCK_SPD[j];
+      if (v <= k1) return u0 + (u1 - u0) * (v - k0) / (k1 - k0);
+    }
+    return 0.15 + (v - 2.5) * 0.06;
   }
   function duckPoint(seed, i, k, R) {
     const h = mix32(mix32(seed, 500 + i), (k | 0) >>> 0);
     const h2 = mix32(h, 77);
-    const r = Math.sqrt((h % 100000) / 100000) * R * 0.85;
+    // v79: 지점의 40%는 바깥 고리(데크 끝 가까이), 나머지는 호수 안쪽 전체에 고르게 → 한 곳에 몰리지 않아요
+    const u = (h % 100000) / 100000;
+    const r = (h >>> 20) % 10 < 4 ? R * (0.8 + 0.15 * u) : Math.sqrt(u) * R * 0.8;
     const a = ((h2 % 100000) / 100000) * Math.PI * 2;
     return [Math.cos(a) * r, Math.sin(a) * r];
   }
@@ -78,7 +84,8 @@
     x += Math.sin(s * 0.09 + ph) * amp;
     z += Math.cos(s * 0.07 + ph * 1.3) * amp;
     const r = Math.hypot(x, z), lim = R * 0.95;
-    if (r > lim) { x *= lim / r; z *= lim / r; }
+    // v79: 벽에 닿으면 미끄러지지 않고 튕겨 안쪽으로 방향을 바꿔요
+    if (r > lim) { const k = Math.max(0.5 * lim, 2 * lim - r) / r; x *= k; z *= k; }
     return [x, z];
   }
   function ducks(now, world, opt) {
