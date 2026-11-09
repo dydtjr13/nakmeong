@@ -2,7 +2,7 @@
 (()=>{
 let V14=null,V15=null;
 const FHOOK=[];// v86: 매 프레임 불리는 테스트 기능 (기차 등)
-const RHOOK=[];// v89: 다른 유저 캐릭터 위치를 정한 뒤 불려요 (기차 좌석에 붙이기 등)
+const RHOOK=[];const PHOOK=[];// v91: 내 캐릭터가 움직인 뒤 불려요 (탈것)// v89: 다른 유저 캐릭터 위치를 정한 뒤 불려요 (기차 좌석에 붙이기 등)
 THREE.ColorManagement.legacyMode=false;
 const D=NK_DATA,$=id=>document.getElementById(id),qs=new URLSearchParams(location.search);
 // v25: 낚싯대 설명의 옛 "(옵션 N슬롯)"·"랜덤 옵션 1" 문구 정리 (실제 추가옵션 슬롯은 상점 카드에 따로 표기)
@@ -2630,7 +2630,7 @@ function frameBody(now){if(S.fpsCap&&now-last<1000/S.fpsCap-1.5){nextF();return;
       const _stk=!walk(pp.x,pp.z);if(_stk||walk(pp.x+dx*sp,pp.z))pp.x+=dx*sp;if(_stk||walk(pp.x,pp.z+dz*sp))pp.z+=dz*sp;me.dir=Math.atan2(dx,dz);moving=true;}
     pp.y=mySeat?mySeat.y:inDeck(pp.x,pp.z)?.39:Math.max(H(pp.x,pp.z),.1);
     nearSeat=mySeat?null:SEATS.filter(seatFree).map(st=>[st,Math.hypot(pp.x-st.x,pp.z-st.z)]).filter(a=>a[1]<1.6).sort((a,b)=>a[1]-b[1]).map(a=>a[0])[0]||null;sitUI();
-    me.play(mySeat?'sit':fishing.state!=='off'?'holding-right':moving?'walk':sitting?'sit':'idle');me.rod.visible=fishing.state!=='off'||nearSpot!=null;turn(me,dt);
+    me.play(mySeat||(window.__nkVehSit&&__nkVehSit())?'sit':fishing.state!=='off'?'holding-right':moving?'walk':sitting?'sit':'idle');me.rod.visible=fishing.state!=='off'||nearSpot!=null;turn(me,dt);
     nearSpot=DW?(mySeat&&mySeat.kind==='stool'&&mySeat.deck?mySeat.deck:null):decks.find(d=>canFishAt(d)&&Math.hypot(pp.x-d.tip.x,pp.z-d.tip.z)<2.4)||null;
     $('fishBtn').style.display=nearSpot||fishing.state!=='off'?'block':'none';V14.fishBtn(fishing.state);$('fishBtn').classList.toggle('far',!(nearSpot||fishing.state!=='off'));
     const nearShop=Math.hypot(pp.x-SHOP.x,pp.z-SHOP.z)<7,nd=decks.find(d=>Math.hypot(pp.x-d.tank.x,pp.z-d.tank.z)<2.6);
@@ -2644,6 +2644,7 @@ function frameBody(now){if(S.fpsCap&&now-last<1000/S.fpsCap-1.5){nextF();return;
     if(castT>=0){const _pc=castT;castT=Math.min(1,castT+dt*1.4);if(_pc<1&&castT>=1)sfx.drop();const tip=me.tip.getWorldPosition(new THREE.Vector3());bob.visible=line.visible=true;const st=pp.clone().add(V.set(0,3,0));bob.position.lerpVectors(st,castTo,castT);bob.position.y+=Math.sin(castT*Math.PI)*3.5;
       if(castT>=1){const bite=fishing.state==='bite';bob.position.y=-.05+(bite?Math.sin(T*22)*.12-.12:Math.sin(T*2)*.03);wU.bob.value.set(castTo.x,bite?1.6:.5,castTo.z);}
       const a=lineG.attributes.position;a.setXYZ(0,tip.x,tip.y,tip.z);a.setXYZ(1,bob.position.x,bob.position.y,bob.position.z);a.needsUpdate=true;}
+    for(const f of PHOOK)try{f(dt,moving);}catch(e){}
     syncRemotes(dt);bragTick(moving);rtPose(moving);updBots(dt,T);botBuy(dt);botRestock(dt);
     if(distT!=null){dist+=(distT-dist)*Math.min(1,dt*10);if(Math.abs(distT-dist)<.01){dist=distT;distT=null;}}cam.position.set(pp.x+Math.sin(yaw)*Math.cos(pitch)*dist,pp.y+1.6+Math.sin(pitch)*dist,pp.z+Math.cos(yaw)*Math.cos(pitch)*dist);cam.lookAt(pp.x,pp.y+1.6,pp.z);occFade(dt,pp);}
   // v27: 카메라 행렬을 이름표 투영 전에 갱신 (이전엔 렌더 때만 갱신돼서 HTML 이름표가 한 프레임 늦게 따라가며 이탈)
@@ -3791,8 +3792,8 @@ const PTM=[.5,.75,1,1.5,2.5,4];
 setInterval(()=>{try{if(petOn()&&started&&myLv()>=50&&!petOwn().penguin)petGet('penguin','lv');}catch(e){}},3000);
 // 가방 › 🐾 펫
 function petTabHTML(){const own=petOwn(),c=petCfg(),n=Object.keys(own).length;return `<div class="pettab"><div class="pth"><b>🐾 내 펫 ${n}/${PETS.length}</b><small>고른 펫이 나를 따라다녀요 · 같은 호숫가 유저에게도 보여요</small>${S.petOn?'<button type="button" data-pet="off">데리고 다니지 않기</button>':''}</div>
- <div class="ptg">${PETS.map(p=>{const G=SYS.GRADES[p.g],h=!!own[p.k],on=S.petOn===p.k;return `<div class="ptc ${h?'':'lock'} ${on?'on':''}" style="--c:${G[1]}"><span class="ptr">${G[0]}</span>${on?'<span class="pton">함께 다니는 중</span>':''}<img class="pti" src="img/pets/${p.k}.png" alt=""><b>${p.n}</b><small>${h?'보유 중':p.src==='shop'?`상점 🪙 ${(p.k==='hedgehog'?c.ph:c.pf).toLocaleString()}`:p.src==='lv'?'레벨 50 보상':p.g===5?`행운 상자 (아주 드물게)`:'행운 상자'}</small>${h?`<button type="button" data-pet="${p.k}" class="${on?'':'acc'}">${on?'✓ 선택됨':'데리고 다니기'}</button>`:p.src==='shop'?`<button type="button" data-petshop>상점 가기</button>`:''}</div>`;}).join('')}</div>
- <p class="small muted">펫 능력은 준비 중이에요 · 상자 확률: 희귀 ${c.rr}% · 신화 ${c.mr}% (상자 등급이 높을수록 더 잘 나와요)</p></div>`;}
+ <div class="ptg">${PETS.map(p=>{const G=SYS.GRADES[p.g],h=!!own[p.k],on=S.petOn===p.k;return `<div class="ptc ${h?'':'lock'} ${on?'on':''}" style="--c:${G[1]}"><span class="ptr">${G[0]}</span>${on?'<span class="pton">함께 다니는 중</span>':''}<img class="pti" src="img/pets/${p.k}.png" alt=""><b>${p.n}</b><div class="ptab">${petAbTxt(p).map(x=>`<span>${x}</span>`).join('')}</div><small>${h?'보유 중':p.src==='shop'?`상점 🪙 ${(p.k==='hedgehog'?c.ph:c.pf).toLocaleString()}`:p.src==='lv'?'레벨 50 보상':p.g===5?`행운 상자 (아주 드물게)`:'행운 상자'}</small>${h?`<button type="button" data-pet="${p.k}" class="${on?'':'acc'}">${on?'✓ 선택됨':'데리고 다니기'}</button>`:p.src==='shop'?`<button type="button" data-petshop>상점 가기</button>`:''}</div>`;}).join('')}</div>
+ <p class="small muted">데리고 다니는 펫 1마리의 능력만 적용돼요 · 다른 유저 펫과 3m 안에서 만나면 💞 둘 다 경험치 +10 (같은 유저와는 10분에 한 번) · 상자에서 펫 나올 확률: 희귀 ${c.rr}% · 신화 ${c.mr}% (상자 등급이 높을수록 더 잘 나와요)</p></div>`;}
 {const _rb=_renderBag;_renderBag=function(){_rb.apply(this,arguments);if(!petOn()||bagMode==='box')return;const card=$('bag').querySelector('.card'),tabs=card&&card.querySelector('.tabs');if(!tabs||tabs.querySelector('[data-pettab]'))return;
  const b=document.createElement('button');b.dataset.pettab='1';b.className=bagTab==='pet'?'on':'';b.innerHTML=`<span class="tico"><img src="img/pets/${S.petOn||'dog'}.png" alt="" style="width:22px;height:22px;object-fit:contain"><em class="${Object.keys(petOwn()).length?'':'z zero'}">${Object.keys(petOwn()).length}</em></span>펫`;tabs.appendChild(b);b.onclick=()=>{bagTab='pet';renderBag();};
  if(bagTab!=='pet')return;tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));let el=tabs.nextSibling;while(el){const nx=el.nextSibling;el.remove();el=nx;}tabs.insertAdjacentHTML('afterend',petTabHTML());
@@ -3827,7 +3828,128 @@ FHOOK.push(dt=>{if(typeof scene==='undefined')return;const on=petOn()&&started&&
 RHOOK.push((r,p,dt)=>{if(!petOn())return;const k=p.ex&&p.ex.pt,on=k&&PETS.some(x=>x.k===k)&&!(p.ex&&p.ex.ts!=null);let e=PETW.peers.get(p.id);if(!on){if(e){scene.remove(e.g);PETW.peers.delete(p.id);}return;}
  if(!e||e.k!==k){if(e)scene.remove(e.g);e={k,g:petMesh(k)};e.g.position.copy(r.c.o.position);scene.add(e.g);PETW.peers.set(p.id,e);}petFollow(e.g,r.c,dt);});
 {const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};if(petOn()&&S.petOn&&petOwn()[S.petOn])o.pt=String(S.petOn);return Object.keys(o).length?o:null;};}
-window.NK89.pets={PETS,petGet,petCfg,PETW};
+window.NK89.pets={PETS,petGet,petCfg,PETW,PETB};
+// ───────── v91 🐾 펫 능력 — 공통: 입질 대기 −n% · 낚으면 골드 주머니 확률 n% / 전설·신화: 상자 확률 +n% · 다른 유저 펫과 만나면 하트 + 둘 다 경험치 ─────────
+const PET_AB={wait:[2,3,4,5,6,8],gold:[3,4,5,6,7,10],box:[0,0,0,0,3,5]},PET_GOLD=[10,20,40,70,120,200];
+const petCur=()=>{if(!petOn()||!S.petOn||!petOwn()[S.petOn])return null;return PETS.find(p=>p.k===S.petOn)||null;};
+function petAbTxt(p){const g=p.g,a=[`입질 대기 −${PET_AB.wait[g]}%`,`낚으면 ${PET_AB.gold[g]}% 확률로 골드 주머니 (🪙 ${PET_GOLD[g]})`];if(PET_AB.box[g])a.push(`상자 확률 +${PET_AB.box[g]}%`);return a;}
+{const w=V14.fx.waitMul;V14.fx.waitMul=function(){const p=petCur();return w.apply(this,arguments)*(p?1-PET_AB.wait[p.g]/100:1);};}
+{const bc=SYS.boxChance;SYS.boxChance=function(){const p=petCur();return bc.apply(this,arguments)*(p?1+PET_AB.box[p.g]/100:1);};}
+{const xc=xpCatch;xpCatch=function(){const r=xc.apply(this,arguments);try{const p=petCur();if(p&&Math.random()*100<PET_AB.gold[p.g]){const g=PET_GOLD[p.g];S.coins+=g;save();hud();setTimeout(()=>miniToast(`🐾 ${p.n}이(가) 골드 주머니를 찾았어요 · 🪙 +${g}`,2000),900);petHeart(PETW.me,'#ffd36e');}}catch(e){}return r;};}
+// 하트
+let HTX=null;function petHeart(g,col){if(!g||typeof scene==='undefined')return;if(!HTX){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');x.fillStyle='#fff';x.beginPath();x.moveTo(32,56);x.bezierCurveTo(2,34,10,6,32,20);x.bezierCurveTo(54,6,62,34,32,56);x.fill();HTX=new THREE.CanvasTexture(c);}
+ for(let i=0;i<3;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:HTX,color:col||'#ff6f91',transparent:true,depthWrite:false}));s.scale.setScalar(.32);const o=g.position;s.position.set(o.x+(i-1)*.22,o.y+.9,o.z);scene.add(s);const t0=performance.now()+i*160;
+  const tick=()=>{const t=(performance.now()-t0)/1400;if(t<0)return requestAnimationFrame(tick);if(t>=1){scene.remove(s);s.material.dispose();return;}s.position.y=o.y+.9+t*.9;s.material.opacity=1-t;requestAnimationFrame(tick);};requestAnimationFrame(tick);}}
+// 다른 유저 펫과 만나면 (3m 안) — 같은 유저와는 10분에 한 번
+const PMEET=new Map();
+setInterval(()=>{try{const g=PETW.me,p=petCur();if(!g||!p)return;const now=Date.now();for(const [id,e] of PETW.peers){const d=Math.hypot(e.g.position.x-g.position.x,e.g.position.z-g.position.z);if(d>3)continue;if(now-(PMEET.get(id)||0)<600000)continue;PMEET.set(id,now);petHeart(g);petHeart(e.g);
+ let nm='이웃';try{const pp=(NK_RT.peers()||[]).find(x=>x.id===id);if(pp&&pp.nick)nm=String(pp.nick).slice(0,10);}catch(e){}addXP(10,'🐾 펫 친구');miniToast(`💞 ${p.n}이(가) ${nm}님의 펫과 인사했어요 · 경험치 +10`,2400);}}catch(e){}},700);
+window.NK89.pets.ab={PET_AB,PET_GOLD,petHeart};
+// ───────── v91 🛷 탈것 — 산타 썰매·자동차(신화 상자) · 루돌프·큰 강아지(전설+) · 눈썰매(영웅+) 에서 드물게 ─────────
+LAB.push({k:'veh',n:'🛷 탈것',d:'행운 상자에서 드물게 탈것이 나와요: 눈썰매(영웅 이상 상자) · 루돌프·큰 강아지(전설 이상) · 산타 썰매·자동차(신화 상자). 가방 › 🛷 탈것에서 고르고, 화면 오른쪽 「타기」 버튼으로 타고 내려요. 타면 이동 속도 +30%, 같은 호숫가 유저에게도 보여요. 확률은 아래 「🛷 탈것 설정」에서 바꿔요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
+// 탈것 모델 (박스 로우폴리 · 펫과 같은 톤) — 앞쪽 = +z, 바닥 y=0, 타는 자리 seat:[x,y,z]
+const VEHB=(()=>{const T=THREE,M={},mat=(c,e)=>M[c+(e?'e':'')]||(M[c+(e?'e':'')]=e?new T.MeshBasicMaterial({color:c}):new T.MeshLambertMaterial({color:c,flatShading:true}));
+ const B=(g,w,h,d,c,x,y,z,r,e)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),mat(c,e));o.position.set(x,y,z);if(r)o.rotation.set(r[0]||0,r[1]||0,r[2]||0);g.add(o);return o;};
+ const C=(g,rt,rb,h,c,x,y,z,r,seg)=>{const o=new T.Mesh(new T.CylinderGeometry(rt,rb,h,seg||10),mat(c));o.position.set(x,y,z);if(r)o.rotation.set(r[0]||0,r[1]||0,r[2]||0);g.add(o);return o;};
+ const S=(g,rad,c,x,y,z,e)=>{const o=new T.Mesh(new T.SphereGeometry(rad,10,8),mat(c,e));o.position.set(x,y,z);g.add(o);return o;};
+ function runners(g,len,w,c){[-w,w].forEach(x=>{B(g,.07,.07,len,c,x,.05,0);B(g,.07,.07,.4,c,x,.2,len/2+.08,[-.9,0,0]);[-len*.3,len*.3].forEach(z=>B(g,.05,.32,.05,c,x,.22,z));});}
+ function deer(g,x,z,s,nose){const d=new T.Group();const br='#9a6a44',dk='#6e4a2e',cr='#f1e2c8';
+  B(d,.42,.36,.9,br,0,.78,0);B(d,.3,.26,.36,br,0,1.12,.48,[-.35,0,0]);B(d,.26,.28,.32,br,0,1.32,.66);B(d,.18,.16,.2,cr,0,1.26,.84);S(d,.07,nose?'#ff3b30':'#3a2a22',0,1.3,.95,!!nose);
+  [-.08,.08].forEach(ex=>B(d,.05,.06,.02,'#2b2230',ex,1.4,.82));[-1,1].forEach(sd=>{B(d,.04,.26,.04,dk,sd*.1,1.58,.6,[0,0,sd*-.3]);B(d,.04,.14,.04,dk,sd*.18,1.66,.62,[0,0,sd*-1.1]);B(d,.04,.12,.04,dk,sd*.14,1.72,.66,[.4,0,0]);B(d,.12,.06,.04,br,sd*.18,1.42,.6,[0,0,sd*.5]);});
+  [[-.14,.32],[.14,.32],[-.14,-.32],[.14,-.32]].forEach(([lx,lz])=>{B(d,.1,.62,.1,br,lx,.31,lz);B(d,.11,.08,.12,dk,lx,.04,lz);});B(d,.12,.12,.12,cr,0,.9,-.48);
+  if(nose)B(d,.46,.08,.3,'#c8382e',0,.98,-.02);d.position.set(x,0,z);d.scale.setScalar(s);g.add(d);return d;}
+ const V={
+  santa(){const g=new T.Group();runners(g,2.2,.55,'#e8c35a');B(g,1.2,.5,1.9,'#c8382e',0,.6,0);B(g,1.24,.08,1.94,'#e8c35a',0,.86,0);B(g,1.2,.7,.2,'#c8382e',0,1.05,-.86);B(g,1.24,.08,.24,'#e8c35a',0,1.42,-.86);B(g,1.2,.42,.18,'#c8382e',0,.92,.9,[-.3,0,0]);
+   B(g,1.0,.12,.5,'#7a2a26',0,.9,-.5);B(g,1.0,.12,.5,'#7a2a26',0,.9,.32);
+   // 산타 (앞자리)
+   const sa=new T.Group();B(sa,.5,.55,.42,'#d8382e',0,.32,0);B(sa,.52,.1,.44,'#ffffff',0,.06,0);B(sa,.36,.34,.34,'#f3c9a8',0,.76,0);B(sa,.4,.24,.2,'#ffffff',0,.62,.12);B(sa,.4,.18,.38,'#d8382e',0,1.0,0);C(sa,.0,.16,.3,'#d8382e',0,1.22,-.06,[-.4,0,0],6);S(sa,.07,'#ffffff',0,1.34,-.16);B(sa,.42,.06,.4,'#ffffff',0,.92,0);[-.08,.08].forEach(ex=>B(sa,.05,.05,.02,'#2b2230',ex,.8,.17));sa.position.set(0,.9,.38);g.add(sa);
+   B(g,.5,.4,.4,'#2e7d55',.3,1.1,-.4,[0,.3,0]);S(g,.12,'#e8c35a',.3,1.36,-.4);
+   // 순록 두 마리 + 줄
+   deer(g,-.4,2.4,.95,false);deer(g,.4,2.4,.95,false);deer(g,0,3.9,.95,true);
+   [[-.4,2.0],[.4,2.0]].forEach(([x,z])=>B(g,.03,.03,1.3,'#5a3a2a',x,.95,1.4));B(g,.03,.03,1.6,'#5a3a2a',0,.95,3.2);
+   g.userData.seat=[0,.92,-.45];return g;},
+  sled(){const g=new T.Group();runners(g,1.6,.36,'#8a5a3a');for(let i=0;i<5;i++)B(g,.86,.07,.26,'#c8945e',0,.4,-.6+i*.3);B(g,.08,.08,1.5,'#8a5a3a',-.4,.36,0);B(g,.08,.08,1.5,'#8a5a3a',.4,.36,0);
+   const r=new T.Mesh(new T.TorusGeometry(.12,.02,6,12),mat('#e8584a'));r.position.set(0,.5,.86);g.add(r);B(g,.02,.02,.5,'#e8584a',0,.45,.62);g.userData.seat=[0,.46,-.1];return g;},
+  rudolph(){const g=new T.Group();deer(g,0,0,1.55,true);B(g,.5,.08,.46,'#2e6b4a',0,1.62,-.05);B(g,.52,.05,.48,'#e8c35a',0,1.58,-.05);[-1,1].forEach(s=>{B(g,.04,.42,.04,'#3a2a22',s*.3,1.34,-.05);B(g,.12,.04,.1,'#3a2a22',s*.3,1.12,-.05);});
+   const bells=[-.25,0,.25];bells.forEach(x=>S(g,.05,'#ffd27a',x,1.55,.62));g.userData.seat=[0,1.66,-.08];return g;},
+  dog(){const g=new T.Group();const c='#e0a35c',w='#fff1dc',k='#b97a3a';B(g,.9,.6,1.4,c,0,.9,0);B(g,.7,.66,.7,c,0,1.35,.8);B(g,.38,.28,.32,w,0,1.2,1.2);B(g,.12,.1,.08,'#2b2230',0,1.3,1.38);[-.17,.17].forEach(x=>B(g,.1,.12,.04,'#2b2230',x,1.48,1.15));
+   [-.26,.26].forEach(x=>B(g,.2,.28,.12,k,x,1.78,.74,[0,0,x<0?.25:-.25]));[[-.3,.48],[.3,.48],[-.3,-.48],[.3,-.48]].forEach(([x,z])=>B(g,.22,.62,.22,c,x,.31,z));B(g,.14,.14,.5,c,0,1.1,-.8,[.7,0,0]);
+   B(g,.92,.12,.7,'#4ea3ea',0,1.25,-.05);B(g,.5,.24,.08,'#e8584a',0,1.1,.47);g.userData.seat=[0,1.31,-.1];return g;},
+  car(){const g=new T.Group();const c='#7fd3c2',d='#3d3d4a';B(g,1.4,.42,2.2,c,0,.55,0);B(g,1.4,.22,.9,c,0,.86,.62);B(g,.08,.3,1.0,c,-.66,.92,-.3);B(g,.08,.3,1.0,c,.66,.92,-.3);B(g,1.4,.3,.1,c,0,.92,-.86);B(g,1.18,.34,.04,'#cfefff',0,1.12,.2,[-.45,0,0]);B(g,1.42,.08,2.24,'#ffffff',0,.78,0);
+   B(g,1.2,.12,.7,'#f6efe3',0,.8,-.3);B(g,.9,.3,.2,'#f6efe3',0,1.0,-.6);
+   [[-.62,.72],[.62,.72],[-.62,-.72],[.62,-.72]].forEach(([x,z])=>{C(g,.26,.26,.2,d,x,.28,z,[0,0,Math.PI/2],12);C(g,.12,.12,.22,'#d8d8d8',x,.28,z,[0,0,Math.PI/2],8);});
+   [-.42,.42].forEach(x=>{S(g,.12,'#fff7c2',x,.66,1.1,true);B(g,.2,.06,.06,'#e8584a',x,.6,-1.11);});B(g,.5,.12,.06,'#e8c35a',0,.5,1.12);
+   const sw=new T.Mesh(new T.TorusGeometry(.13,.025,6,12),mat(d));sw.position.set(-.3,1.12,.05);sw.rotation.x=-.9;g.add(sw);g.userData.seat=[-.3,.86,-.32];return g;}
+ };
+ return {V,deer};})();
+
+const VEHS=[{k:'sled',n:'눈썰매',g:3,need:3,sc:1.9},{k:'rudolph',n:'루돌프',g:4,need:4,sc:1.55},{k:'dog',n:'큰 강아지',g:4,need:4,sc:1.7},{k:'santa',n:'산타 썰매',g:5,need:5,sc:1.7},{k:'car',n:'자동차',g:5,need:5,sc:1.8}];
+const VEH_DEF={r3:.4,r4:.3,r5:.25,spd:30};
+const vehOn=()=>!PREV&&opt('veh','off')==='on';
+const vehOwn=()=>(S.vehz&&typeof S.vehz==='object')?S.vehz:(S.vehz={});
+function vehCfg(){let c=null;try{c=(mvPlay()||{}).vehCfg;}catch(e){}return Object.assign({},VEH_DEF,c||{});}
+function vehGet(k,how){const v=VEHS.find(x=>x.k===k);if(!v||vehOwn()[k])return false;vehOwn()[k]={at:Date.now(),how};if(!S.vehOn)S.vehOn=k;save();
+ let m=$('petPop');if(!m){m=document.createElement('div');m.id='petPop';m.className='modal';document.body.appendChild(m);}const G=SYS.GRADES[v.g];
+ m.innerHTML=`<div class="card petpop" style="--c:${G[1]}"><div class="ppg">${G[0]} 탈것</div><img class="ppi" src="img/veh/${v.k}.png" alt=""><h3>${v.n}</h3><p class="small muted">${how==='box'?'행운 상자에서 나왔어요!':'새 탈것이 생겼어요!'}<br>가방 › 🛷 탈것에서 고르고 「타기」로 타요</p><div class="two"><button type="button" data-pp="go" class="acc">바로 타기</button><button type="button" data-pp="x">확인</button></div></div>`;
+ m.querySelector('[data-pp="go"]').onclick=()=>{S.vehOn=v.k;S.vehRide=1;save();m.classList.remove('show');};m.querySelector('[data-pp="x"]').onclick=()=>m.classList.remove('show');m.classList.add('show');try{sfx.coin();}catch(e){}return true;}
+{const ob=SYS.openBox;SYS.openBox=function(){const r=ob.apply(this,arguments);try{if(vehOn()&&r){const c=vehCfg(),t=r.tier|0,pool=VEHS.filter(v=>t>=v.need&&!vehOwn()[v.k]);for(const v of pool){if(Math.random()*100<(c['r'+v.need]||0)){setTimeout(()=>vehGet(v.k,'box'),2300);r.veh=v.k;break;}}}}catch(e){console.warn(e);}return r;};}
+// 가방 › 🛷 탈것
+function vehTabHTML(){const own=vehOwn(),c=vehCfg();return `<div class="pettab"><div class="pth"><b>🛷 내 탈것 ${Object.keys(own).length}/${VEHS.length}</b><small>타면 이동 속도 +${c.spd}% · 같은 호숫가 유저에게도 보여요</small></div>
+ <div class="ptg">${VEHS.map(v=>{const G=SYS.GRADES[v.g],h=!!own[v.k],on=S.vehOn===v.k;return `<div class="ptc ${h?'':'lock'} ${on?'on':''}" style="--c:${G[1]}"><span class="ptr">${G[0]}</span>${on?'<span class="pton">선택됨</span>':''}<img class="pti" src="img/veh/${v.k}.png" alt=""><b>${v.n}</b><small>${h?'보유 중':`${SYS.GRADES[v.need][0]} 이상 행운 상자 · 🎲 ${c['r'+v.need]}%`}</small>${h?`<button type="button" data-veh="${v.k}" class="${on?'':'acc'}">${on?'✓ 선택됨':'이걸로 타기'}</button>`:''}</div>`;}).join('')}</div>
+ <p class="small muted">상자를 열 때 그 등급 이상이면 아직 없는 탈것 중에서 위 확률로 나와요 (이미 가진 탈것은 다시 안 나와요)</p></div>`;}
+{const _rb=_renderBag;_renderBag=function(){_rb.apply(this,arguments);if(!vehOn()||bagMode==='box')return;const card=$('bag').querySelector('.card'),tabs=card&&card.querySelector('.tabs');if(!tabs||tabs.querySelector('[data-vehtab]'))return;
+ const b=document.createElement('button');b.dataset.vehtab='1';b.className=bagTab==='veh'?'on':'';b.innerHTML=`<span class="tico">🛷<em class="${Object.keys(vehOwn()).length?'':'z zero'}">${Object.keys(vehOwn()).length}</em></span>탈것`;tabs.appendChild(b);b.onclick=()=>{bagTab='veh';renderBag();};
+ if(bagTab!=='veh')return;tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));let el=tabs.nextSibling;while(el){const nx=el.nextSibling;el.remove();el=nx;}tabs.insertAdjacentHTML('afterend',vehTabHTML());
+ card.querySelectorAll('[data-veh]').forEach(x=>x.onclick=()=>{S.vehOn=x.dataset.veh;S.vehRide=1;save();renderBag();});};}
+// 관리자 설정
+function vehAdmHTML(){const c=vehCfg(),e=S.vehEd||(S.vehEd=Object.assign({},c));const f=(k,n,suf)=>`<label>${n} <input type="number" data-ve="${k}" value="${e[k]}" step=".05" min="0" style="width:80px"> ${suf}</label>`;
+ return `<div class="labrow vehadm" style="display:block"><b>🛷 탈것 설정</b> <span class="tg o">모든 유저</span><br><small class="muted">지금 적용 중: 영웅+ ${c.r3}% · 전설+ ${c.r4}% · 신화 ${c.r5}% (탈것마다, 상자 1개당) · 이동 속도 +${c.spd}%</small>
+ <div class="xbg">${f('r3','눈썰매 (영웅 이상 상자)','%')}${f('r4','루돌프·큰 강아지 (전설 이상)','%')}${f('r5','산타 썰매·자동차 (신화 상자)','%')}${f('spd','타면 이동 속도','%')}</div>
+ <p><button class="sm" data-vegive>나에게 탈것 모두 주기 (테스트)</button> <button class="sm" data-veclr>내 탈것 모두 지우기</button> <button class="sm ok" data-vego>✅ 인게임 적용</button></p></div>`;}
+{const _l=labHTML,_b=bindLab;labHTML=function(){return _l.apply(this,arguments).replace(/<\/div>\s*$/,vehAdmHTML()+'</div>');};
+ bindLab=function(root,re){_b.apply(this,arguments);const box=root.querySelector('.vehadm');if(!box)return;box.querySelectorAll('[data-ve]').forEach(i=>i.oninput=()=>{S.vehEd[i.dataset.ve]=Math.max(0,+i.value||0);});
+  box.querySelector('[data-vegive]').onclick=()=>{VEHS.forEach(v=>{vehOwn()[v.k]=vehOwn()[v.k]||{at:Date.now(),how:'test'};});save();toast('🛷 탈것 5개를 모두 넣었어요',1600);re&&re();};
+  box.querySelector('[data-veclr]').onclick=()=>{S.vehz={};S.vehOn=null;S.vehRide=0;save();toast('🛷 내 탈것을 모두 지웠어요',1600);re&&re();};
+  box.querySelector('[data-vego]').onclick=()=>{const e=S.vehEd;if(!confirm(`탈것 설정을 모든 유저에게 적용할까요?\n영웅+ ${e.r3}% · 전설+ ${e.r4}% · 신화 ${e.r5}% · 속도 +${e.spd}%`))return;if(pub({vehCfg:{r3:e.r3,r4:e.r4,r5:e.r5,spd:e.spd}},'탈것 설정을')){S.vehEd=null;setTimeout(()=>re&&re(),600);}};};}
+// 타기 버튼
+const vehCan=()=>vehOn()&&started&&me&&S.vehOn&&vehOwn()[S.vehOn]&&!mySeat&&!TR.riding&&fishing.state==='off';
+setInterval(()=>{let b=$('vehBtn');const show=vehOn()&&started&&S.vehOn&&vehOwn()[S.vehOn]&&!mySeat&&!TR.riding&&!anyModal();if(!show){if(b)b.style.display='none';return;}
+ if(!b){b=document.createElement('button');b.id='vehBtn';b.type='button';document.body.appendChild(b);b.onclick=()=>{S.vehRide=S.vehRide?0:1;save();};}b.style.display='';const v=VEHS.find(x=>x.k===S.vehOn),t=S.vehRide?`🛬 ${v.n}에서 내리기`:`🛷 ${v.n} 타기`;if(b._t!==t){b._t=t;b.textContent=t;b.classList.toggle('on',!!S.vehRide);}},300);
+// 3D
+const VW={me:null,mk:'',peers:new Map()};
+function vehMesh(k){const v=VEHS.find(x=>x.k===k),g=VEHB.V[k]();g.scale.setScalar(v.sc);g.userData.sc=v.sc;return g;}
+function vehSeat(g){const s=g.userData.seat,v=new THREE.Vector3(s[0],s[1],s[2]);g.updateMatrixWorld(true);return g.localToWorld(v);}
+{const mm=mvMul;mvMul=function(){return mm.apply(this,arguments)*(VW.me&&vehCan()&&S.vehRide?1+vehCfg().spd/100:1);};}
+PHOOK.push((dt,moving)=>{if(typeof scene==='undefined')return;const want=vehCan()&&S.vehRide?S.vehOn:'';
+ if(want!==VW.mk){if(VW.me){scene.remove(VW.me);VW.me=null;}VW.mk=want;if(want){VW.me=vehMesh(want);scene.add(VW.me);}if(!want&&me){const p=me.o.position;p.y=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);}}
+ if(!VW.me)return;const p=me.o.position,gy=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);VW.me.position.set(p.x,gy,p.z);VW.me.rotation.y=me.o.rotation.y;const st=vehSeat(VW.me);
+ VW.me.position.x+=p.x-st.x;VW.me.position.z+=p.z-st.z;p.y=st.y;me.play('sit');if(me.rod)me.rod.visible=false;VW.me.userData.t=(VW.me.userData.t||0)+dt*(moving?8:1);VW.me.position.y+=moving?Math.abs(Math.sin(VW.me.userData.t))*.04:0;});
+RHOOK.push((r,p,dt)=>{const k=vehOn()&&p.ex&&p.ex.vh,ok=k&&VEHS.some(v=>v.k===k)&&p.seat==null&&!(p.ex&&p.ex.ts!=null);let e=VW.peers.get(p.id);if(!ok){if(e){scene.remove(e.g);VW.peers.delete(p.id);}return;}
+ if(!e||e.k!==k){if(e)scene.remove(e.g);e={k,g:vehMesh(k)};scene.add(e.g);VW.peers.set(p.id,e);}const o=r.c.o.position,gy=inDeck(o.x,o.z)?.39:Math.max(H(o.x,o.z),.1);e.g.position.set(o.x,gy,o.z);e.g.rotation.y=r.c.o.rotation.y;const st=vehSeat(e.g);e.g.position.x+=o.x-st.x;e.g.position.z+=o.z-st.z;o.y=st.y;r.c.play('sit');if(r.c.rod)r.c.rod.visible=false;});
+FHOOK.push(()=>{for(const [id,e] of VW.peers)if(!remotes.has(id)){scene.remove(e.g);VW.peers.delete(id);}});
+{const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};if(VW.me&&VW.mk)o.vh=VW.mk;return Object.keys(o).length?o:null;};}
+window.NK89.veh={VEHS,vehGet,VW,VEHB};
+window.__nkVehSit=()=>!!(VW.me&&VW.mk);
+// ───────── v91 ⬅ 모바일 뒤로가기 → 종료 확인 (A 아래 시트 · B 오늘 기록 카드) ─────────
+LAB.push({k:'backAsk',n:'⬅ 뒤로가기 종료 확인 (모바일)',d:'휴대폰에서 뒤로가기를 누르면 바로 나가지 않고 확인 창이 떠요. 열린 창이 있으면 먼저 그 창을 닫아요. A 아래에서 올라오는 시트 · B 이번에 낚은 물고기·번 골드를 보여 주는 가운데 카드',scope:'me',o:[['off','끄기 (기본)'],['A','A · 아래 시트'],['B','B · 오늘 기록 카드']]});
+const BK={armed:false,leaving:false,c0:null,n:0,t0:Date.now()};
+const bkMob=()=>matchMedia('(pointer:coarse)').matches||innerWidth<760;
+const bkMode=()=>PREV?'off':opt('backAsk','off');
+{const xc=xpCatch;xpCatch=function(){BK.n++;return xc.apply(this,arguments);};}
+function bkArm(){if(BK.armed||BK.leaving)return;try{history.pushState({nkBack:1},'');BK.armed=true;}catch(e){}}
+setInterval(()=>{if(started&&bkMode()!=='off'&&bkMob()){if(BK.c0==null)BK.c0=S.coins;bkArm();}},1000);
+function bkClose(){const m=$('bkAsk');if(m)m.classList.remove('show');}
+function bkLeave(){BK.leaving=true;bkClose();try{save();}catch(e){}history.back();setTimeout(()=>{/* 이전 페이지가 없으면 그대로 남아요 */BK.leaving=false;toast('브라우저 창을 닫으면 게임이 끝나요 · 진행은 저장됐어요',2600);},700);}
+function bkShow(){const md=bkMode();let m=$('bkAsk');if(!m){m=document.createElement('div');m.id='bkAsk';document.body.appendChild(m);}
+ const lv=myLv(),earn=Math.max(0,(S.coins|0)-(BK.c0|0)),mins=Math.max(1,Math.round((Date.now()-BK.t0)/60000));
+ m.className='bk'+md;m.innerHTML=md==='A'?`<div class="bkdim" data-bk="stay"></div><div class="bksheet"><div class="grab"></div><h3>🎣 낚시를 그만할까요?</h3><p>진행은 자동으로 저장돼요.${opt('resumePos','off')==='on'?'<br>10분 안에 다시 들어오면 지금 자리에서 시작해요.':''}</p><button type="button" class="p" data-bk="stay">계속 낚시하기</button><button type="button" class="g" data-bk="go">게임 나가기</button></div>`
+ :`<div class="bkdim" data-bk="stay"></div><div class="bkcard"><div class="ic">🐟</div><h3>벌써 가시게요?</h3><p>오늘도 즐거운 낚시였어요!</p><div class="stt"><div><b>${BK.n}</b><small>이번에 낚은 물고기</small></div><div><b>🪙 ${earn.toLocaleString()}</b><small>이번에 번 골드</small></div><div><b>Lv.${lv}</b><small>${mins}분 플레이</small></div></div><p class="small">진행은 자동으로 저장돼요</p><div class="two"><button type="button" class="g" data-bk="go">나가기</button><button type="button" class="p" data-bk="stay">더 놀기</button></div></div>`;
+ m.querySelectorAll('[data-bk]').forEach(b=>b.onclick=()=>{if(b.dataset.bk==='go')bkLeave();else{bkClose();bkArm();}});requestAnimationFrame(()=>m.classList.add('show'));}
+addEventListener('popstate',()=>{if(!BK.armed||BK.leaving)return;BK.armed=false;if(bkMode()==='off'||!started)return;
+ // 열린 창이 있으면 먼저 닫기
+ const open=[...document.querySelectorAll('.modal.show')];if(open.length){open.forEach(x=>x.classList.remove('show'));bkArm();return;}
+ const m=$('bkAsk');if(m&&m.classList.contains('show')){bkClose();bkArm();return;}bkShow();});
+window.NK89.back={bkShow,BK};
 // ───────── v90 ⑨ 🚉 기차 요금·경험치 — 역에 설 때마다 조금 내고 조금 받아요 (하루 경험치 상한) ─────────
 LAB.push({k:'trFare',n:'🚉 기차 요금·경험치',d:'기차를 타고 역에 설 때마다 요금을 내고 경험치를 받아요. 기본: 역마다 🪙 10 · 경험치 +6 · 하루 60역까지 경험치 (약 30분). 골드가 모자라면 그 역은 무료(경험치 없음). 수치는 아래 「🚉 기차 요금 설정」에서 바꿔요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 const TR_DEF={fare:10,xp:6,cap:60},TFR={was:null};

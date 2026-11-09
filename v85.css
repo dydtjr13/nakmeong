@@ -173,3 +173,17 @@ html body.mchD:not(.mchBig) #chat #emo{display:none!important}
 #petPop img.ppi{width:150px;height:150px;object-fit:contain;animation:petBob 1.2s ease-in-out infinite;display:block;margin:6px auto 0}#petPop h3{margin:4px 0}#petPop .two{display:flex;gap:8px;margin-top:12px}#petPop .two button{flex:1;padding:11px 0;border-radius:13px;font-weight:800}
 @keyframes petBob{50%{transform:translateY(-6px)}}
 .petadm .xbg{display:flex;flex-wrap:wrap;gap:8px 14px;margin:8px 0}.petadm label{font-size:12.5px}
+
+.ptab{display:flex;flex-direction:column;gap:2px;margin:2px 0}.ptab span{font-size:10.5px;font-weight:700;color:#6a5845;background:rgba(255,255,255,.75);border-radius:6px;padding:1px 5px}
+#vehBtn{position:fixed;right:14px;bottom:150px;z-index:46;border:0;border-radius:16px;padding:10px 16px;font:inherit;font-weight:900;font-size:14px;background:#fffdf8;color:#3d3027;box-shadow:0 6px 18px rgba(40,30,20,.25);cursor:pointer}#vehBtn.on{background:#e8784a;color:#fff}@media(max-width:699px){#vehBtn{bottom:230px;right:10px;font-size:13px;padding:9px 13px}}
+/* v91 뒤로가기 확인 */
+#bkAsk{position:fixed;inset:0;z-index:9500;pointer-events:none;opacity:0;transition:opacity .18s}#bkAsk.show{pointer-events:auto;opacity:1}
+#bkAsk .bkdim{position:absolute;inset:0;background:rgba(30,24,20,.45)}
+#bkAsk .bksheet{position:absolute;left:0;right:0;bottom:0;background:#fffdf8;border-radius:26px 26px 0 0;padding:14px 22px calc(24px + env(safe-area-inset-bottom,0px));box-shadow:0 -10px 30px rgba(0,0,0,.2);transform:translateY(100%);transition:transform .22s ease}#bkAsk.show .bksheet{transform:none}
+#bkAsk .grab{width:42px;height:5px;border-radius:9px;background:#e2d6c4;margin:0 auto 16px}#bkAsk h3{margin:0 0 6px;font-size:20px}#bkAsk p{margin:0 0 14px;color:#7a6a58;font-size:14px;line-height:1.5}
+#bkAsk button{display:flex;align-items:center;justify-content:center;width:100%;height:52px;border:0;border-radius:16px;font:inherit;font-weight:900;font-size:16px;margin-top:10px;cursor:pointer}
+#bkAsk button.p{background:linear-gradient(180deg,#f08a55,#e0663a);color:#fff;box-shadow:0 4px 0 #b9522c}#bkAsk button.g{background:#f1ebe0;color:#6a5845}
+#bkAsk .bkcard{position:absolute;left:24px;right:24px;top:50%;transform:translateY(-46%) scale(.96);transition:transform .2s;background:#fffdf8;border-radius:26px;padding:24px 20px 18px;text-align:center;box-shadow:0 16px 40px rgba(0,0,0,.3);max-width:380px;margin:0 auto}#bkAsk.show .bkcard{transform:translateY(-50%)}
+#bkAsk .bkcard .ic{width:84px;height:84px;margin:-62px auto 10px;border-radius:28px;background:linear-gradient(180deg,#ffd9a8,#f6a96a);display:flex;align-items:center;justify-content:center;font-size:46px;border:4px solid #fffdf8;box-shadow:0 8px 20px rgba(224,102,58,.35)}
+#bkAsk .stt{display:flex;gap:8px;margin:12px 0 8px}#bkAsk .stt div{flex:1;background:#f6efe3;border-radius:14px;padding:9px 4px}#bkAsk .stt b{display:block;font-size:16px}#bkAsk .stt small{color:#8a7660;font-size:11px}
+#bkAsk .two{display:flex;gap:10px}#bkAsk .two button{flex:1}
