@@ -1,0 +1,36 @@
+# v87: 웹사이트를 Cloudflare(fishcozy-site 워커, 정적 파일)에 배포
+# main 에 머지되면: 사이트 만들기(스크립트·CSS 묶기) → Cloudflare 에 올리기 → 확인
+# 필요: GitHub 저장소 Secret `CLOUDFLARE_API_TOKEN` (실시간 워커 배포에 쓰는 것과 같은 토큰)
+# GitHub Pages(dydtjr13.github.io/nakmeong)는 백업 주소로 그대로 남아요.
+name: Deploy site (Cloudflare)
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "workers/**"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-site
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 사이트 만들기 (스크립트·CSS 묶기)
+        run: node tools/build-site.mjs
+      - name: Cloudflare 에 올리기
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes wrangler@4 deploy --config site/wrangler.toml
+      - name: 확인
+        run: |
+          sleep 5
+          curl -fsS -o /dev/null -w "nakmeong.html %{http_code}\n" -L "https://fishcozy-site.mi1ku.workers.dev/nakmeong.html"
+          curl -fsS -o /dev/null -w "index %{http_code}\n" "https://fishcozy-site.mi1ku.workers.dev/"

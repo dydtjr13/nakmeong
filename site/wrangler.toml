@@ -1,0 +1,10 @@
+# v87: 피쉬코지 웹사이트 (Cloudflare Workers 정적 파일) — GitHub Pages 대신 여기서 fishcozy.com 을 서비스
+# 파일은 tools/build-site.mjs 가 만든 _site/ 를 그대로 올려요. 코드(워커 스크립트)는 없어요.
+name = "fishcozy-site"
+account_id = "0dd46e415e6622db15aec7a31865b350"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+[assets]
+directory = "../_site"
+not_found_handling = "none"
