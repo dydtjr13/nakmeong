@@ -956,6 +956,15 @@ export function sanitizePlay(input, prev, opt) {
   if ("charmBest" in input) out.charmBest = pickOf(input.charmBest, ["off", "on"]);
   if ("pets" in input) out.pets = pickOf(input.pets, ["off", "on"]);
   if ("trFare" in input) out.trFare = pickOf(input.trFare, ["off", "on"]);
+  if ("veh" in input) out.veh = pickOf(input.veh, ["off", "on"]);
+  if ("backAsk" in input) out.backAsk = pickOf(input.backAsk, ["off", "A", "B"]);
+  if ("vehCfg" in input) {
+    const v = input.vehCfg;
+    if (v && typeof v === "object" && !Array.isArray(v)) {
+      const n = (x, lo, hi, d) => Math.round(Math.max(lo, Math.min(hi, finite(x, d))) * 100) / 100;
+      out.vehCfg = { r3: n(v.r3, 0, 100, 0.4), r4: n(v.r4, 0, 100, 0.3), r5: n(v.r5, 0, 100, 0.25), spd: n(v.spd, 0, 200, 30) };
+    } else delete out.vehCfg;
+  }
   if ("petCfg" in input) {
     const v = input.petCfg;
     if (v && typeof v === "object" && !Array.isArray(v)) {
