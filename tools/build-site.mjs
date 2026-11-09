@@ -66,6 +66,9 @@ await writeFile(path.join(OUT, `app-${ch}.css`), css);
 first = true;
 html = html.replace(linkRe, () => { if (first) { first = false; return `<link rel="stylesheet" href="app-${ch}.css">`; } return ""; });
 await writeFile(htmlPath, html);
+// v88: 주소 끝의 /nakmeong 없애기 — fishcozy.com/ 에서 바로 게임이 열리고, 예전 주소(/nakmeong.html · /nakmeong)는 / 로 넘어가요 (?뒤 값·#은 그대로)
+await writeFile(path.join(OUT, "index.html"), html);
+await writeFile(htmlPath, `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>피쉬코지 FISH COZY</title><meta http-equiv="refresh" content="0; url=/"><script>location.replace('/'+location.search+location.hash);</script></head><body><p>피쉬코지로 이동 중… <a href="/">바로 가기</a></p></body></html>`);
 
 // ── 캐시 규칙
 await writeFile(path.join(OUT, "_headers"), [
@@ -74,6 +77,8 @@ await writeFile(path.join(OUT, "_headers"), [
   "/*.html",
   "  Cache-Control: public, max-age=0, must-revalidate",
   "/",
+  "  Cache-Control: public, max-age=0, must-revalidate",
+  "/index.html",
   "  Cache-Control: public, max-age=0, must-revalidate",
   "/nakmeong",
   "  Cache-Control: public, max-age=0, must-revalidate",
