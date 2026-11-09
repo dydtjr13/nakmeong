@@ -933,13 +933,36 @@ export function sanitizePlay(input, prev, opt) {
   if ("advNote" in input) out.advNote = pickOf(input.advNote, ["off", "A", "B"]);
   if ("mChat" in input) out.mChat = pickOf(input.mChat, ["off", "A", "B", "D"]);
   if ("welcome" in input) out.welcome = pickOf(input.welcome, ["off", "A", "B"]);
-  if ("deckTank" in input) out.deckTank = pickOf(input.deckTank, ["off", "B"]);
+  if ("deckTank" in input) out.deckTank = pickOf(input.deckTank, ["off", "B", "C", "D"]);
   if ("deckDeco" in input) out.deckDeco = pickOf(input.deckDeco, ["off", "on"]);
+  // v86: 부적 열쇠 · 기차 · 아이템 가격
+  if ("charmKey" in input) out.charmKey = pickOf(input.charmKey, ["off", "on"]);
+  if ("train" in input) out.train = pickOf(input.train, ["off", "A", "B", "C"]);
+  if ("prices" in input) {
+    const v = input.prices;
+    if (v && typeof v === "object" && !Array.isArray(v)) {
+      const o = {};
+      for (const g of ["r", "b", "t", "d", "x"]) {
+        const src = v[g];
+        if (!src || typeof src !== "object" || Array.isArray(src)) continue;
+        const m = {};
+        let n = 0;
+        for (const [k, val] of Object.entries(src)) {
+          if (n >= 80 || !/^[\w-]{1,24}$/.test(k)) continue;
+          const x = Math.round(finite(val, NaN));
+          if (!Number.isFinite(x) || x < 0 || x > 1e9) continue;
+          m[k] = x; n++;
+        }
+        if (n) o[g] = m;
+      }
+      if (Object.keys(o).length) out.prices = o; else delete out.prices;
+    } else delete out.prices;
+  }
   if ("welPos" in input) {
     const w = input.welPos;
     if (w && typeof w === "object" && !Array.isArray(w)) {
       const c = (v, lo, hi, d) => Math.round(Math.max(lo, Math.min(hi, finite(v, d))) * 10) / 10;
-      out.welPos = { x: c(w.x, 0, 100, 3), y: c(w.y, 0, 100, 8), w: c(w.w, 240, 900, 440), fs: c(w.fs, 10, 24, 14.5), op: c(w.op, 0.3, 1, 0.96) };
+      out.welPos = { x: c(w.x, 0, 100, 3), y: c(w.y, 0, 100, 8), w: c(w.w, 240, 900, 440), fs: c(w.fs, 10, 24, 14.5), op: c(w.op, 0.3, 1, 0.96), sp: Math.round(Math.max(0.05, Math.min(3, finite(w.sp, 0.45))) * 100) / 100 };
     } else delete out.welPos;
   }
   if ("tankPlus" in input) out.tankPlus = pickOf(input.tankPlus, ["off", "on"]);

@@ -690,10 +690,17 @@ test("v85: 데크 꾸미기 dc 정리", () => {
 test("v85: play 새 키", () => {
   const o = _spl({ acctSlot: "on", advNote: "B", mChat: "D", welcome: "A", deckTank: "B", deckDeco: "on", welPos: { x: 200, y: 5, w: 10, fs: 13, op: 2 } }, {});
   assert.equal(o.acctSlot, "on"); assert.equal(o.advNote, "B"); assert.equal(o.mChat, "D"); assert.equal(o.welcome, "A"); assert.equal(o.deckTank, "B"); assert.equal(o.deckDeco, "on");
-  assert.deepEqual(o.welPos, { x: 100, y: 5, w: 240, fs: 13, op: 1 });
+  assert.deepEqual(o.welPos, { x: 100, y: 5, w: 240, fs: 13, op: 1, sp: 0.45 });
   assert.equal(_spl({ mChat: "Z" }, {}).mChat, "off");
 });
 import { parseClient as _pc } from "../src/protocol.js";
 test("v85: pose 메시지의 dc 를 통과시켜요", () => {
   assert.deepEqual(_pc(JSON.stringify({ t: "pose", x: 1, z: 1, dc: [[0, 1, 2, 3]] })).dc, [[0, 1, 2, 3]]);
+});
+test("v86: prices · charmKey · train · welPos.sp", () => {
+  const o = _spl({ charmKey: "on", train: "B", prices: { r: { bamboo: 10, "x y": 5, carbon: -1 }, d: { parasol: "3000" }, zz: { a: 1 } }, welPos: { sp: 9 } }, {});
+  assert.equal(o.charmKey, "on"); assert.equal(o.train, "B");
+  assert.deepEqual(o.prices, { r: { bamboo: 10 }, d: { parasol: 3000 } });
+  assert.equal(o.welPos.sp, 3);
+  assert.equal(_spl({ prices: null }, { prices: { r: { a: 1 } } }).prices, undefined);
 });

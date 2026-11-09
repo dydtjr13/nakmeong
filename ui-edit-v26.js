@@ -19,7 +19,7 @@
  const $=id=>document.getElementById(id);let on=false,bar=null,sel=null,hist=[],guides=null,made=[],forced=[];
  const elOf=k=>k==='cutin'?document.querySelector('.cutin:not(.box)')||$('uiPvCut'):$(k);
  const keyOf=e=>e.id==='uiPvCut'||e.classList.contains('cutin')?'cutin':e.id;
- function put(e,v){if(!e)return;e.style.translate=v?`${v[0]}px ${v[1]}px`:'';e.style.scale=v&&v[2]&&v[2]!==1?String(v[2]):'';}
+ function put(e,v){if(!e)return;e.style.translate=v?`${v[0]}px ${v[1]}px`:'';e.style.scale=v&&v[2]&&v[2]!==1?String(v[2]):'';if(e.id==='tq25')e.style.transformOrigin='0 0';}
  function apply(){IDS.forEach(([k])=>{if(k==='cutin'){document.querySelectorAll('.cutin:not(.box)').forEach(e=>put(e,P.cutin));const c=$('uiPvCut');if(c)put(c,P.cutin);}else put($(k),P[k]);});}
  // 동적으로 생기는 알림도 바로 위치 적용
  new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes){if(n.nodeType!==1)continue;const k=n.classList&&n.classList.contains('cutin')&&!n.classList.contains('box')?'cutin':n.id;if(k&&NM[k]&&P[k])put(n,P[k]);if(on&&k&&NM[k])n.dataset.uin=NM[k];}}).observe(document.body,{childList:true});
