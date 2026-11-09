@@ -918,6 +918,13 @@ export function sanitizePlay(input, prev, opt) {
   if ("duckFamily" in input) out.duckFamily = pickOf(input.duckFamily, ["on", "off"]);
   if ("tankPlus" in input) out.tankPlus = pickOf(input.tankPlus, ["off", "on"]);
   if ("dexPlus" in input) out.dexPlus = pickOf(input.dexPlus, ["off", "on"]);
+  // v84: 관리자 › 화면·시안 ✅ 인게임 적용 — { 키: 값 } (영문 키 · 짧은 값, 최대 40개)
+  if ("look" in input) {
+    const L = {};
+    const src = input.look && typeof input.look === "object" && !Array.isArray(input.look) ? input.look : {};
+    for (const k of Object.keys(src).slice(0, 40)) { if (/^[A-Za-z0-9]{1,16}$/.test(k)) { const v = String(src[k] == null ? "" : src[k]).replace(/[^\w.-]/g, "").slice(0, 16); if (v) L[k] = v; } }
+    out.look = L;
+  }
   if ("duckCatch" in input) out.duckCatch = pickOf(input.duckCatch, ["off", "on"]);
   if ("afPay" in input) out.afPay = pickOf(input.afPay, ["off", "A", "B", "C"]);
   if ("duckFun" in input) out.duckFun = pickOf(input.duckFun, ["off", "slide", "flume", "fountain", "all"]);
