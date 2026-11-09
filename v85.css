@@ -117,7 +117,47 @@ html body.mchD:not(.mchBig) #chat #emo{display:none!important}
 #trBtn{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:47;border:0;border-radius:999px;padding:12px 22px;font:inherit;font-weight:900;font-size:15px;background:#fffdf8;color:#5a4632;box-shadow:0 8px 22px rgba(40,30,20,.3);cursor:pointer}
 #trBtn.ready{background:linear-gradient(180deg,#f08a55,#e0663a);color:#fff;box-shadow:0 5px 0 #b9522c,0 10px 24px rgba(0,0,0,.25);animation:trPulse 1.2s ease-in-out infinite}
 @keyframes trPulse{50%{transform:translateX(-50%) scale(1.05)}}
-#trBar{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;background:rgba(255,253,248,.95);border-radius:18px;padding:8px 10px 8px 14px;box-shadow:0 10px 28px rgba(40,30,20,.28);color:#3d3027;max-width:calc(100vw - 20px)}
-#trBar .tn{font-weight:900}#trBar .ts{font-size:13px;color:#6a5845}
-#trBar button{border:0;border-radius:12px;padding:8px 12px;font:inherit;font-weight:800;font-size:13px;background:#f1ebe0;color:#3d3027;cursor:pointer}#trBar button.on{background:#3d3027;color:#fff}#trBar button.go{background:#e8784a;color:#fff}
-@media (max-width:699px){#trBar{top:auto;bottom:118px;font-size:12px}#trBtn{bottom:200px;font-size:14px}}
+/* v89: 기차 정보 바 — 아이콘·글자·버튼 줄 맞춤, 모바일은 아래쪽 가로로 꽉 차게 */
+#trBar{position:fixed;left:50%;top:70px;transform:translateX(-50%);z-index:47;display:flex;align-items:center;gap:10px;background:rgba(255,253,248,.96);border-radius:18px;padding:8px 8px 8px 8px;box-shadow:0 10px 28px rgba(40,30,20,.28);color:#3d3027;max-width:calc(100vw - 20px);white-space:nowrap}
+#trBar svg{width:18px;height:18px;flex:none;display:block}
+#trBar .tri{width:38px;height:38px;border-radius:12px;background:linear-gradient(180deg,#f08a55,#e0663a);color:#fff;display:flex;align-items:center;justify-content:center;flex:none}#trBar .tri svg{width:22px;height:22px}
+#trBar .trt{display:flex;flex-direction:column;justify-content:center;line-height:1.25;min-width:0;padding-right:2px}#trBar .tn{font-weight:900;font-size:14px}#trBar .ts{font-size:12px;color:#6a5845;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
+#trBar .trv{display:flex;align-items:center;gap:2px;background:#f1ebe0;border-radius:13px;padding:3px}
+#trBar .trvl{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:800;color:#8a7660;padding:0 6px 0 5px}#trBar .trvl svg{width:16px;height:16px}
+#trBar button{border:0;font:inherit;cursor:pointer;color:#3d3027;-webkit-tap-highlight-color:transparent}
+#trBar .trv button{height:32px;padding:0 11px;border-radius:10px;background:transparent;font-weight:800;font-size:13px;display:flex;align-items:center}
+#trBar .trv button:hover{background:rgba(61,48,39,.08)}#trBar .trv button.on{background:#3d3027;color:#fff}
+#trBar .troff{height:38px;display:flex;align-items:center;gap:6px;padding:0 13px;border-radius:12px;background:#f1ebe0;font-weight:800;font-size:13px}#trBar .troff.go{background:#e8784a;color:#fff}
+@media (max-width:699px){#trBar{left:8px;right:8px;max-width:none;transform:none;top:auto;bottom:calc(98px + env(safe-area-inset-bottom,0px));flex-wrap:wrap;gap:6px 8px;padding:7px;border-radius:16px;white-space:normal}
+ #trBar .tri{width:32px;height:32px;border-radius:10px}#trBar .tri svg{width:19px;height:19px}#trBar .trt{flex:1 1 0}#trBar .tn{font-size:13px}#trBar .ts{font-size:11.5px}
+ #trBar .troff{height:32px;padding:0 10px;font-size:12px}#trBar .trv{order:3;flex:1 1 100%}#trBar .trvl{padding:0 4px 0 6px}#trBar .trv button{flex:1;justify-content:center;height:30px;padding:0 4px;font-size:12.5px}
+ #trBtn{bottom:200px;font-size:14px}
+ body.trRide #joy,body.trRide #fishBtn{display:none!important}}
+/* v89: 설정 › 날씨 효과 하나씩 */
+.wxeach{padding:4px 2px 10px}.wxeach small{display:block;color:#8a7660;font-size:12px;margin:2px 2px 6px}.wxe{display:flex;flex-wrap:wrap;gap:6px}
+.wxe button{border:1.5px solid #e2d3b8;background:#fbf6ee;color:#a3927c;border-radius:999px;padding:6px 11px;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;text-decoration:line-through}
+.wxe button.on{background:#fff1e8;border-color:#e8784a;color:#3d3027;text-decoration:none}
+.tdefbox{border:2px solid #9fd8a8!important;background:#f3fbf2!important}
+.imgfb{display:inline-flex;align-items:center;justify-content:center;font-size:22px;line-height:1}
+/* v89: 낚싯대 정보 카드 — 등급이 오를수록 화려하게 */
+#rcTip{position:fixed;z-index:9000;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s;width:300px;max-width:calc(100vw - 16px)}#rcTip.show{opacity:1;transform:none}
+#rcTip .rc{position:relative;border-radius:18px;padding:14px 16px 14px;color:#ece6f4;background:#14111b;border:1.5px solid color-mix(in srgb,var(--c) 70%,transparent);overflow:hidden;box-shadow:0 14px 34px rgba(0,0,0,.35);font-size:13px}
+#rcTip .fx{position:absolute;inset:0;pointer-events:none}
+#rcTip .hd{display:flex;gap:12px;align-items:center;position:relative}#rcTip .ic{width:52px;height:52px;border-radius:14px;background:color-mix(in srgb,var(--c) 18%,#1d1926);display:flex;align-items:center;justify-content:center;border:1px solid color-mix(in srgb,var(--c) 45%,transparent);flex:none}#rcTip .ic img{width:44px;height:44px;object-fit:contain}
+#rcTip .nm{font-size:16.5px;font-weight:900;letter-spacing:-.3px}#rcTip .gr{font-size:12px;color:#a59cb4;margin-top:2px}#rcTip .gb{display:inline-block;font-weight:900;color:var(--c);margin-right:6px}
+#rcTip .sr{display:flex;align-items:baseline;gap:10px;margin:10px 0 6px;position:relative}#rcTip .st{color:#ffd45a;font-size:16px;letter-spacing:1px}#rcTip .en{font-weight:900;color:#ffd45a;font-size:16px}#rcTip .lv{margin-left:auto;font-size:11.5px;color:#a59cb4}#rcTip .lv.no{color:#ff8f8f}
+#rcTip .op{position:relative;margin:6px 0 4px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;gap:5px}#rcTip .op>div{display:flex;justify-content:space-between}#rcTip .op b{color:#fff}
+#rcTip .ex{position:relative;border-top:1px solid rgba(255,255,255,.08);padding-top:7px;margin-top:6px;font-size:12px;color:#b8acd0}#rcTip .ex small{display:block;color:#857a96;margin-bottom:2px}
+#rcTip .rceq{position:relative;margin-top:8px;text-align:center;font-size:11.5px;font-weight:900;color:#15121c;background:var(--c);border-radius:8px;padding:3px 0}
+#rcTip .t0{border-color:#3a3644}
+#rcTip .t1 .fx{background:linear-gradient(180deg,rgba(95,196,138,.14),transparent 30%)}
+#rcTip .t2{border-width:2px;box-shadow:0 0 0 1px rgba(78,163,234,.25) inset,0 14px 34px rgba(0,0,0,.35)}#rcTip .t2 .fx{background:linear-gradient(180deg,rgba(78,163,234,.2),transparent 38%)}#rcTip .t2 .ic{box-shadow:0 0 14px rgba(78,163,234,.35)}
+#rcTip .t3{border:2px solid transparent;background:linear-gradient(#16121f,#16121f) padding-box,linear-gradient(140deg,#c79bff,#6a3fb8 45%,#d6b8ff) border-box;box-shadow:0 10px 30px rgba(160,102,224,.3)}#rcTip .t3 .fx{background:radial-gradient(260px 120px at 30% 0,rgba(160,102,224,.32),transparent 70%)}#rcTip .t3 .nm{color:#e7d6ff}
+#rcTip .t4{border:2.5px solid transparent;background:linear-gradient(170deg,#1f1810,#120f0b) padding-box,linear-gradient(135deg,#fff1b8,#c8862a 30%,#ffe08a 52%,#9a5e14 75%,#ffe9a8) border-box;box-shadow:0 12px 34px rgba(244,166,42,.35)}
+#rcTip .t4 .fx{background:radial-gradient(300px 140px at 50% -10%,rgba(255,200,90,.35),transparent 70%),repeating-linear-gradient(45deg,rgba(255,210,120,.02) 0 8px,transparent 8px 16px)}
+#rcTip .t4 .nm{background:linear-gradient(180deg,#fff6cf,#f4b54a 60%,#c8862a);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:18px}#rcTip .t4 .ic{background:radial-gradient(#4a3518,#22190e);border-color:#e8b24a;box-shadow:0 0 18px rgba(244,166,42,.45)}
+#rcTip .t5{border:3px solid transparent;background:radial-gradient(500px 260px at 80% 120%,#3a1838,transparent),linear-gradient(170deg,#1b1024,#0f0a16) padding-box,conic-gradient(from 210deg,#ff8ab0,#ffd36e,#8fffd0,#8fc8ff,#d78bff,#ff8ab0) border-box;box-shadow:0 0 30px rgba(239,95,143,.45),0 0 60px rgba(160,120,255,.25)}
+#rcTip .t5 .fx{background:radial-gradient(1.5px 1.5px at 20% 30%,#fff,transparent),radial-gradient(1.5px 1.5px at 70% 18%,#fff,transparent),radial-gradient(1px 1px at 85% 60%,#fff,transparent),radial-gradient(1px 1px at 40% 75%,#fff,transparent),radial-gradient(1.5px 1.5px at 60% 88%,#ffd36e,transparent),radial-gradient(1px 1px at 12% 85%,#8fffd0,transparent),radial-gradient(380px 160px at 50% -20%,rgba(239,95,143,.38),transparent 70%)}
+#rcTip .t5 .nm{background:linear-gradient(90deg,#ffb3cc,#ffe39a,#a8ffe0,#b6d4ff,#e2b0ff);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:18.5px}#rcTip .t5 .ic{background:radial-gradient(#3b1f45,#1a0f22);border-color:#ff9ac0;box-shadow:0 0 22px rgba(239,95,143,.6)}#rcTip .t5 .gb{background:linear-gradient(90deg,#ff8ab0,#d78bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+#rcTip .cr{position:absolute;width:15px;height:15px;border-color:var(--c);border-style:solid;opacity:.9;z-index:2}#rcTip .cr.tl{left:7px;top:7px;border-width:2px 0 0 2px;border-radius:6px 0 0 0}#rcTip .cr.tr{right:7px;top:7px;border-width:2px 2px 0 0;border-radius:0 6px 0 0}#rcTip .cr.bl{left:7px;bottom:7px;border-width:0 0 2px 2px;border-radius:0 0 0 6px}#rcTip .cr.br{right:7px;bottom:7px;border-width:0 2px 2px 0;border-radius:0 0 6px 0}
+#rcTip .t4 .cr{border-color:#ffd77a}#rcTip .t5 .cr{border-color:#ffd0e2}#rcTip .t3 .st,#rcTip .t4 .st,#rcTip .t5 .st{text-shadow:0 0 8px rgba(255,212,90,.55)}

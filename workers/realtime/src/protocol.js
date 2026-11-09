@@ -117,6 +117,22 @@ export function cleanDeco(v) {
   }
   return out.length ? out : null;
 }
+// v89: 작은 추가 상태 (tk 어항 디자인 · ts 기차 좌석 등) — 영문 소문자 키 4자 · 값 24자 · 최대 6개
+export function cleanEx(v) {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return null;
+  const out = {};
+  let n = 0;
+  for (const k of Object.keys(v)) {
+    if (n >= 6) break;
+    if (!/^[a-z]{1,4}$/.test(k)) continue;
+    const x = v[k];
+    if (typeof x === "number" && Number.isFinite(x)) out[k] = Math.round(Math.max(-1e6, Math.min(1e6, x)) * 100) / 100;
+    else if (typeof x === "string") { const t = x.replace(/[^\w.-]/g, "").slice(0, 24); if (!t) continue; out[k] = t; }
+    else continue;
+    n++;
+  }
+  return n ? out : null;
+}
 export function cleanBrag(b) {
   if (!b || typeof b !== "object" || Array.isArray(b)) return null;
   const k = cleanId(b.k, 24);
@@ -154,6 +170,7 @@ export function sanitizePose(msg, prev) {
     br: msg.br === undefined ? (p.br || null) : cleanBrag(msg.br),
     tt: msg.tt === undefined ? (p.tt || null) : cleanTitle(msg.tt),
     dc: msg.dc === undefined ? (p.dc || null) : cleanDeco(msg.dc),
+    ex: msg.ex === undefined ? (p.ex || null) : cleanEx(msg.ex),
   };
 }
 
@@ -938,6 +955,25 @@ export function sanitizePlay(input, prev, opt) {
   // v86: 부적 열쇠 · 기차 · 아이템 가격
   if ("charmKey" in input) out.charmKey = pickOf(input.charmKey, ["off", "on"]);
   if ("train" in input) out.train = pickOf(input.train, ["off", "A", "B", "C"]);
+  // v89
+  if ("resumePos" in input) out.resumePos = pickOf(input.resumePos, ["off", "on"]);
+  if ("peerLook" in input) out.peerLook = pickOf(input.peerLook, ["off", "on"]);
+  if ("srvAuto" in input) out.srvAuto = pickOf(input.srvAuto, ["off", "on"]);
+  if ("wxEach" in input) out.wxEach = pickOf(input.wxEach, ["off", "on"]);
+  if ("aurora" in input) out.aurora = pickOf(input.aurora, ["old", "A", "B", "C"]);
+  if ("snowSoft" in input) out.snowSoft = pickOf(input.snowSoft, ["off", "A", "B"]);
+  if ("rodCard" in input) out.rodCard = pickOf(input.rodCard, ["off", "on"]);
+  if ("dcOpt" in input) out.dcOpt = pickOf(input.dcOpt, ["off", "on"]);
+  if ("tdef" in input) {
+    const v = input.tdef;
+    if (v && typeof v === "object" && !Array.isArray(v)) {
+      const n = (x, lo, hi, d) => Math.max(lo, Math.min(hi, finite(x, d)));
+      const e = v.ev && typeof v.ev === "object" && !Array.isArray(v.ev) ? v.ev : {};
+      const ev = {};
+      for (const k of ["ms", "mo", "ps", "po"]) { const t = String(e[k] == null ? "" : e[k]).replace(/[^\w]/g, "").slice(0, 4); if (t) ev[k] = t; }
+      out.tdef = { tm: Math.round(n(v.tm, 0.3, 5, 1) * 100) / 100, tf: Math.round(n(v.tf, 0, 30, 0)), ac: flag01(v.ac), am: flag01(v.am), ev, bd: (String(v.bd == null ? "4" : v.bd).match(/[1-5]/) || ["4"])[0], at: Math.round(n(v.at, 0, 4e12, 0)) };
+    } else delete out.tdef;
+  }
   if ("prices" in input) {
     const v = input.prices;
     if (v && typeof v === "object" && !Array.isArray(v)) {
@@ -1261,6 +1297,7 @@ export function parseClient(raw) {
       br: msg.br === undefined ? undefined : msg.br,
       tt: msg.tt === undefined ? undefined : msg.tt,
       dc: msg.dc === undefined ? undefined : msg.dc,
+      ex: msg.ex === undefined ? undefined : msg.ex,
       nick: msg.nick,
       ki: msg.ki,
       lv: msg.lv,
@@ -1305,6 +1342,7 @@ export function publicPeer(att) {
     br: att.br || null,
     tt: att.tt || null,
     dc: att.dc || null,
+    ex: att.ex || null,
     anim: att.anim,
     seat: att.seat,
   };
@@ -1407,6 +1445,7 @@ export function reduce(prev, msg, now, others) {
   att.br = pose.br;
   att.tt = pose.tt;
   att.dc = pose.dc;
+  att.ex = pose.ex;
   att.anim = denied && pose.anim === "sit" ? "idle" : pose.anim;
   att.seat = seat;
   att.seatKey = seatKey;
