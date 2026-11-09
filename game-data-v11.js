@@ -6,9 +6,9 @@
  const R={bamboo:{size:1,speed:1,luck:0,coin:0,desc:'기본 낚싯대'},
   carbon:{size:1.05,speed:.9,luck:0,coin:0,desc:'⚡입질형 · 입질 대기 -10%'},
   silver:{size:1.3,speed:.96,luck:.01,coin:0,desc:'📏크기형 · 대어 +30%'},
-  coral:{size:1.12,speed:.88,luck:.01,coin:.15,fixed:{bait:10},desc:'🪙코인형 · 판매가 +15%, 미끼 미소모 +10%'},
+  coral:{size:1.12,speed:.88,luck:.01,coin:.15,fixed:{bait:10},desc:'🪙골드형 · 판매가 +15%, 미끼 미소모 +10%'},
   sakura:{size:1.15,speed:.76,luck:.02,coin:.05,fixed:{quick:5},desc:'⚡입질형 · 입질 대기 -24%, 빠른입질 +5%'},
-  gold:{size:1.45,speed:.84,luck:.04,coin:.25,box:.1,desc:'🪙코인·크기형 · 판매가 +25%, 대어 +45%, 상자 +10% · 상자 전용'},
+  gold:{size:1.45,speed:.84,luck:.04,coin:.25,box:.1,desc:'🪙골드·크기형 · 판매가 +25%, 대어 +45%, 상자 +10% · 상자 전용'},
   star:{size:1.3,speed:.66,luck:.12,coin:.1,box:.2,fixed:{luck:10},desc:'🌟희귀형 · 희귀 어종 +120%, 입질 -34%, 상자 +20% · 상자 전용'},
   dragon:{size:1.7,speed:.6,luck:.12,coin:.3,box:.25,desc:'🐉만능 최강 · 대어 +70%, 입질 -40%, 희귀 +120%, 판매가 +30% · 상자 전용'}};
  D.RODS.forEach(r=>Object.assign(r,R[r.k]||{}));

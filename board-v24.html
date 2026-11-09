@@ -65,6 +65,8 @@ main{flex:1;overflow:auto;padding:0 18px 18px}
 .rpt{position:fixed;inset:0;background:rgba(40,30,50,.35);display:flex;align-items:center;justify-content:center;z-index:5}.rptc{background:#fff;border-radius:16px;padding:16px;width:min(340px,90vw);display:flex;flex-direction:column;gap:6px}.rptc .btn{width:100%;justify-content:flex-start;background:#fbf6ee}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#3d3a4b;color:#fff;padding:10px 16px;border-radius:12px;font-size:13.5px;font-weight:700;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
 .toast.show{opacity:1}
+.pimg{display:block;margin:12px 0;border-radius:14px;overflow:hidden;background:#f3ece0}.pimg img{display:block;width:100%;height:auto}
+.wimg{margin-bottom:4px}.wpv{display:flex;flex-direction:column;gap:6px;align-items:flex-start}.wpv img{max-width:100%;max-height:240px;border-radius:12px}
 </style>
 </head>
 <body>
@@ -95,7 +97,7 @@ function adminToken(){try{const RT=P&&P.NK_RT;return RT&&RT.isAdmin&&RT.isAdmin(
 function isStaff(){return !!adminToken();}
 function ownerId(){try{return localStorage.getItem('nk_cid')||'';}catch(e){return '';}}
 function bad(t){try{return !!(P&&P.NK_PROF&&P.NK_PROF.has&&P.NK_PROF.has(String(t||'')));}catch(e){return false;}}
-const ERRMSG=e=>/profanity/.test(e.message)?'비속어가 들어 있어 올릴 수 없어요':/admin only/.test(e.message)?'공지·업데이트와 운영자 닉네임은 관리자만 쓸 수 있어요':/not yours/.test(e.message)?'내가 쓴 글만 고칠 수 있어요':'처리하지 못했어요. 다시 시도해 주세요';
+const ERRMSG=e=>/bad image/.test(e.message)?'사진이 너무 크거나 지원하지 않는 형식이에요':/image limit/.test(e.message)?'사진은 하루 20장까지 올릴 수 있어요':/profanity/.test(e.message)?'비속어가 들어 있어 올릴 수 없어요':/admin only/.test(e.message)?'공지·업데이트와 운영자 닉네임은 관리자만 쓸 수 있어요':/not yours/.test(e.message)?'내가 쓴 글만 고칠 수 있어요':'처리하지 못했어요. 다시 시도해 주세요';
 function when(ts){const t=+ts||0;if(!t)return '';const d=Date.now()-t;if(d<60e3)return '방금';if(d<3600e3)return Math.floor(d/60e3)+'분 전';if(d<86400e3)return Math.floor(d/3600e3)+'시간 전';const x=new Date(t);return (x.getMonth()+1)+'.'+x.getDate();}
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),1800);}
 function close(){try{parent.postMessage('nkBoardClose','*');}catch(e){}}
@@ -122,7 +124,7 @@ function paintCats(){
 }
 async function load(){
   loading=true;
-  try{const j=await api('/posts?limit=100');all=(j.posts||[]).map(p=>({id:p.id,k:catKey(p.cat)||'자유',title:p.title,body:p.body,nick:p.nick,ts:p.created_at,cc:p.comment_count||0,mine:!!p.mine,ed:!!p.edited,rp:p.reports||0,hid:!!p.hidden}));return true;}
+  try{const j=await api('/posts?limit=100');all=(j.posts||[]).map(p=>({id:p.id,k:catKey(p.cat)||'자유',title:p.title,body:p.body,nick:p.nick,ts:p.created_at,cc:p.comment_count||0,mine:!!p.mine,ed:!!p.edited,rp:p.reports||0,hid:!!p.hidden,img:p.img||''}));return true;}
   catch(e){return false;}
   finally{loading=false;}
 }
@@ -130,7 +132,7 @@ function filtered(){const s=q.trim().toLowerCase();return all.filter(p=>(cat==='
 function listHTML(){
   const L=filtered();
   if(!L.length)return `<div class="list"><div class="empty">${q?'검색 결과가 없어요.':'아직 글이 없어요.<br>첫 글을 남겨 보세요!'}</div></div>`;
-  return `<div class="list">${L.slice(0,shown).map(p=>`<button class="row" data-id="${esc(p.id)}"><div class="t"><em class="tag ${STAFF.has(p.k)?'n':''}">${esc(p.k)}</em><span>${esc(p.title)}</span>${p.cc?`<em class="cnt">[${p.cc}]</em>`:''}${p.hid?'<em class="tag n">숨김</em>':''}${p.rp?`<em class="cnt" style="color:#e0564f">🚩${p.rp}</em>`:''}</div><div class="m">${esc(p.nick)}${p.mine?' · <b style="color:var(--acc)">내 글</b>':''} · ${esc(when(p.ts))}</div></button>`).join('')}</div>${L.length>shown?'<button class="btn more" id="more">더 보기</button>':''}`;
+  return `<div class="list">${L.slice(0,shown).map(p=>`<button class="row" data-id="${esc(p.id)}"><div class="t"><em class="tag ${STAFF.has(p.k)?'n':''}">${esc(p.k)}</em><span>${esc(p.title)}</span>${p.img?'<em class="cnt" title="사진">📷</em>':''}${p.cc?`<em class="cnt">[${p.cc}]</em>`:''}${p.hid?'<em class="tag n">숨김</em>':''}${p.rp?`<em class="cnt" style="color:#e0564f">🚩${p.rp}</em>`:''}</div><div class="m">${esc(p.nick)}${p.mine?' · <b style="color:var(--acc)">내 글</b>':''} · ${esc(when(p.ts))}</div></button>`).join('')}</div>${L.length>shown?'<button class="btn more" id="more">더 보기</button>':''}`;
 }
 async function showList(reload){
   view='list';
@@ -151,7 +153,7 @@ async function showPost(id){
   const p=all.find(x=>x.id===id);if(!p)return showList(true);
   const m=$('#main');
   const acts=[p.mine?'<button class="btn" id="pedit">✏️ 수정</button>':'',p.mine||isStaff()?'<button class="btn" id="pdel" style="color:#e0564f">🗑 삭제</button>':'',!p.mine?'<button class="btn" id="prep">🚩 신고</button>':'',isStaff()&&p.hid?'<button class="btn" id="punh">숨김 해제</button>':''].join('');
-  m.innerHTML=`<div class="ptop"><button class="back" id="bk">← 목록</button><span class="pacts">${acts}</span></div><article class="post"><em class="tag ${STAFF.has(p.k)?'n':''}">${esc(p.k)}</em><h2>${esc(p.title)}</h2><div class="m">${esc(p.nick)} · ${esc(when(p.ts))}${p.ed?' · 수정됨':''}${isStaff()&&p.rp?` · 🚩 신고 ${p.rp}`:''}</div><div class="body">${esc(p.body)}</div></article><section class="cms"><h3>댓글</h3><div id="cml"><div class="msg">불러오는 중…</div></div><div class="cbox"><input id="cin" maxlength="200" placeholder="${esc(myNick())}(으)로 댓글 남기기"><button class="btn pri" id="cgo">등록</button></div></section>`;
+  m.innerHTML=`<div class="ptop"><button class="back" id="bk">← 목록</button><span class="pacts">${acts}</span></div><article class="post"><em class="tag ${STAFF.has(p.k)?'n':''}">${esc(p.k)}</em><h2>${esc(p.title)}</h2><div class="m">${esc(p.nick)} · ${esc(when(p.ts))}${p.ed?' · 수정됨':''}${isStaff()&&p.rp?` · 🚩 신고 ${p.rp}`:''}</div>${p.img?`<a class="pimg" href="${esc(apiBase()+p.img)}" target="_blank" rel="noopener"><img src="${esc(apiBase()+p.img)}" alt="첨부 사진" loading="lazy"></a>`:''}<div class="body">${esc(p.body)}</div></article><section class="cms"><h3>댓글</h3><div id="cml"><div class="msg">불러오는 중…</div></div><div class="cbox"><input id="cin" maxlength="200" placeholder="${esc(myNick())}(으)로 댓글 남기기"><button class="btn pri" id="cgo">등록</button></div></section>`;
   m.scrollTop=0;
   $('#bk').onclick=()=>showList();
   const paint=async()=>{
@@ -183,7 +185,9 @@ function showWrite(edit){
   const staff=isStaff(),def=edit?edit.k:cat!=='*'&&(staff||!STAFF.has(cat))?cat:'자유';
   const opts=CATS.filter(([k])=>staff||!STAFF.has(k)).map(([k,l])=>`<option value="${esc(k)}" ${k===def?'selected':''}>${esc(l)}</option>`).join('');
   const m=$('#main');
-  m.innerHTML=`<button class="back" id="bk">← 목록</button><div class="form"><div class="who">${edit?'글 수정':esc(myNick())+'(으)로 글을 써요'}</div><label for="wc">게시판</label><select id="wc">${opts}</select><label for="wt">제목</label><input id="wt" maxlength="60" placeholder="제목을 입력하세요"><label for="wb">내용</label><textarea id="wb" maxlength="2000" placeholder="내용을 입력하세요"></textarea><div class="hint"><span id="wn">0</span>/2000</div><div class="acts"><button class="btn" id="wx">취소</button><button class="btn pri" id="wgo">${edit?'수정 완료':'등록'}</button></div></div>`;
+  m.innerHTML=`<button class="back" id="bk">← 목록</button><div class="form"><div class="who">${edit?'글 수정':esc(myNick())+'(으)로 글을 써요'}</div><label for="wc">게시판</label><select id="wc">${opts}</select><label for="wt">제목</label><input id="wt" maxlength="60" placeholder="제목을 입력하세요">${edit?'':`<label>사진 <small style="font-weight:400;color:var(--sub)">(1장 · 게임에서 Print Screen으로 찍은 사진은 자동으로 들어와요)</small></label><div class="wimg" id="wimg"></div>`}<label for="wb">내용</label><textarea id="wb" maxlength="2000" placeholder="내용을 입력하세요"></textarea><div class="hint"><span id="wn">0</span>/2000</div><div class="acts"><button class="btn" id="wx">취소</button><button class="btn pri" id="wgo">${edit?'수정 완료':'등록'}</button></div></div>`;
+  let img='';const paintImg=()=>{const w=$('#wimg');if(!w)return;w.innerHTML=img?`<div class="wpv"><img src="${img}" alt=""><button class="btn" id="wimx" type="button">✕ 사진 빼기</button></div>`:`<label class="btn" for="wfile">📷 사진 고르기</label><input type="file" id="wfile" accept="image/*" hidden>`;const x=$('#wimx');if(x)x.onclick=()=>{img='';paintImg();};const f=$('#wfile');if(f)f.onchange=async()=>{const fl=f.files&&f.files[0];if(!fl)return;try{img=await shrink(fl);paintImg();}catch(e){toast('사진을 읽지 못했어요');}};};
+  if(draft&&!edit){img=draft.img||'';$('#wc').value='자랑';if(draft.title)$('#wt').value=draft.title;draft=null;}paintImg();
   if(edit){$('#wt').value=edit.title;$('#wb').value=edit.body;$('#wn').textContent=edit.body.length;}
   m.scrollTop=0;
   $('#bk').onclick=$('#wx').onclick=()=>edit?showPost(edit.id):showList();
@@ -195,13 +199,16 @@ function showWrite(edit){
     if(bad(title)||bad(body))return toast('비속어가 들어 있어 올릴 수 없어요');
     $('#wgo').disabled=true;
     if(edit){try{await api('/posts/'+encodeURIComponent(edit.id),{method:'PUT',body:JSON.stringify({cat:k,title,body})});Object.assign(edit,{k,title,body,ed:true});toast('수정했어요');showPost(edit.id);}catch(e){toast(ERRMSG(e));$('#wgo').disabled=false;}return;}
-    try{const j=await api('/posts',{method:'POST',body:JSON.stringify({cat:k,title,body,nick:myNick()})});
-      const p=j.post||{};all.unshift({id:p.id,k,title,body,nick:p.nick||myNick(),ts:p.created_at||Date.now(),cc:0,mine:true});
+    try{const j=await api('/posts',{method:'POST',body:JSON.stringify(Object.assign({cat:k,title,body,nick:myNick()},img?{img}:{}))});
+      const p=j.post||{};all.unshift({id:p.id,k,title,body,nick:p.nick||myNick(),ts:p.created_at||Date.now(),cc:0,mine:true,img:p.img||''});
       cat=k;paintCats();toast('글을 올렸어요');showPost(p.id);}
     catch(e){toast(ERRMSG(e));$('#wgo').disabled=false;}
   };
 }
-paintCats();showList(true);
+// v80: 게임에서 찍은 스크린샷을 자랑 게시판 글쓰기로 바로 가져와요 (같은 사이트 localStorage · 10분 안의 것만)
+let draft=null;try{const d=JSON.parse(localStorage.getItem('nk_board_draft')||'null');localStorage.removeItem('nk_board_draft');if(d&&d.img&&Date.now()-(d.t||0)<600e3)draft=d;}catch(e){}
+function shrink(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file),im=new Image();im.onload=()=>{const k=Math.min(1,1600/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);let q=.85,out=c.toDataURL('image/jpeg',q);while(out.length>600*1024&&q>.4){q-=.1;out=c.toDataURL('image/jpeg',q);}res(out);};im.onerror=rej;im.src=u;});}
+paintCats();if(draft){cat='자랑';paintCats();showWrite();load();}else showList(true);
 })();
 </script>
 </body>

@@ -32,7 +32,7 @@
  // 실시간 호수에서는 모두 같은 시각(서버 시각)과 같은 오리 배치로 계산해서, 접속한 사람끼리 거의 같은 장면을 봐요
  // 같은 단계끼리 부딪혀야 다음 단계 · 오리 32마리면 32→16→8→4→2→1 이라 5단계(크기 ×1.2씩, 5단계 ≈ ×2.5)가 끝. 3단계부터 왕관, 5단계는 큰 금왕관
  const FUN_MAXL=5,FUN_COL=['#ffffff','#fff3a0','#bfe8ff','#ffd34a','#ff9ad0','#c8a8ff'];
- const FUN={lv:{},abs:{},lastM:0,crown:null,fac:null,facK:'',rides:{},disp:{},pop:{},tags:[]};const MERGE_MS=1400;
+ const FUN={lv:{},abs:{},lastM:0,crown:null,fac:null,facK:'',rides:{},disp:{},pop:{},tags:[],gone:{}};const MERGE_MS=1400;
  const nowS=()=>{const RT=window.NK_RT;const sk=RT&&Number.isFinite(+RT.clockSkew)?+RT.clockSkew:0;return Date.now()-sk;};
  const funOpt=()=>{try{return String(G().uiOpt?G().uiOpt('duckFun','off'):'off');}catch(e){return 'off';}};
  function burst(x,y,z,col,n){const g=new T.BufferGeometry(),pa=new Float32Array(n*3),vel=[];for(let i=0;i<n;i++){pa[i*3]=x;pa[i*3+1]=y;pa[i*3+2]=z;const a=Math.random()*6.28,s=rnd(.6,1.6);vel.push([Math.cos(a)*s,rnd(1.5,3),Math.sin(a)*s]);}g.setAttribute('position',new T.BufferAttribute(pa,3));
@@ -67,6 +67,8 @@
   const K=new Map(A.map(d=>[d.key,d]));
   // ③ 합체: 가까워지면 큰 쪽(키가 앞선 쪽)으로 흡수, 2분 뒤 다시 톡 나와요
   for(const k in FUN.abs){const a=FUN.abs[k];if(now>a.until||!K.has(k)||!K.has(a.into)){if(K.has(k)&&K.has(a.into)){const d=K.get(a.into);burst(d.x,WY+.3,d.z,'#ffffff',10);const p=FUN.disp[a.into];FUN.disp[k]={x:p?p.x:d.x,z:p?p.z:d.z,sc:.3};}if(FUN.lv[a.into]!=null)FUN.lv[a.into]=Math.min(FUN.lv[a.into],a.prevW!=null?a.prevW:Math.max(0,FUN.lv[a.into]-1));delete FUN.abs[k];}}
+  // v80: 낚인 오리는 5분 동안 숨어요 (내 화면에서만)
+  for(const d of A){const g=FUN.gone[d.key];if(g&&now<g)d._r.hide=true;else if(g)delete FUN.gone[d.key];}
   // v79: 합체는 순간이동 대신 1.4초 동안 헤엄쳐 들어가며 작아지고, 끝나면 반짝 + '합체! Lv.N' 글자
   for(const d of A){const ab=FUN.abs[d.key];if(!ab)continue;const e=now-(ab.t0||0),w=K.get(ab.into);
    if(ab.t0&&e<MERGE_MS&&w){const f=e/MERGE_MS,k=f*f*(3-2*f);d._r.x+=(w.x-d.x)*k;d._r.z+=(w.z-d.z)*k;d._r.yaw=Math.atan2(w.x-d.x,w.z-d.z);d._r.sc=1-.75*k;d._r.busy=true;continue;}
@@ -141,4 +143,4 @@
    if(k>=1){scene.remove(f.ring,f.pts);f.ring.geometry.dispose();f.ring.material.dispose();f.pts.geometry.dispose();f.pts.material.dispose();fx.splice(i,1);}}}
  document.addEventListener('change',e=>{if(e.target.classList&&e.target.classList.contains('duckK')){const v=[...document.querySelectorAll('.duckK:checked')].map(x=>x.value);U().set('duckKinds',v.join(','));}});
  requestAnimationFrame(step);
- window.NK_DUCK={count:()=>ducks.filter(d=>d.st!=='fade').length,drop:(n=1,v)=>{for(let i=0;i<n&&ducks.filter(d=>d.st!=='fade').length<MAX;i++)spawn(v);},clear:()=>{ducks.length=0;everSpawned=0;cycleQ=[];cycleI=0;},list:()=>ducks,fun:()=>FUN,rMax:()=>rMax,cycle:()=>({q:cycleQ.slice(),i:cycleI,n:everSpawned})};})();
+ window.NK_DUCK={caught:(key)=>{const d=ducks.find(x=>x.key===key);const p=FUN.disp[key]||d;if(p){splash(p.x,p.z);burst(p.x,WY+.4,p.z,'#fff3a0',16);}FUN.gone[key]=nowS()+300000;const L=FUN.lv[key]||0;if(L)FUN.lv[key]=0;for(const k in FUN.abs)if(FUN.abs[k].into===key)FUN.abs[k].until=0;return L;},visible:()=>ducks.filter(d=>d._r&&!d._r.hide&&d.st==='swim').map(d=>({key:d.key,x:d._r.x,z:d._r.z,sc:d._r.sc||1,s:d.s,lv:FUN.lv[d.key]||0,busy:!!d._r.busy})),count:()=>ducks.filter(d=>d.st!=='fade').length,drop:(n=1,v)=>{for(let i=0;i<n&&ducks.filter(d=>d.st!=='fade').length<MAX;i++)spawn(v);},clear:()=>{ducks.length=0;everSpawned=0;cycleQ=[];cycleI=0;},list:()=>ducks,fun:()=>FUN,rMax:()=>rMax,cycle:()=>({q:cycleQ.slice(),i:cycleI,n:everSpawned})};})();

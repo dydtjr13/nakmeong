@@ -32,7 +32,7 @@ SYS.openBox=(D,S,rnd=Math.random,src)=>{const ch=SYS.charmSum(D,S),tier=src==='s
     if((x-=RW.bait)<0&&tier<=(D.BOX.baitMaxTier==null?9:D.BOX.baitMaxTier)){const [k,n]=D.BOX.baitPool[tier];S.baits[k]=Math.max(0,S.baits[k]||0)+n;out.push({type:'bait',k,n});return;}
     // v29: 장비 드롭 (희귀+ 상자, 1레벨 제외 — 튜토리얼 전용)
     if(D.WEAR&&D.WEAR.boxRate&&rnd()<D.WEAR.boxRate[tier]){const L=D.WEAR.boxLv[tier].filter(l=>l>1),lv=L[(rnd()*L.length)|0]||10,slot=D.WEAR.slots[(rnd()*4)|0],it=D.WEAR.byK[slot+lv];if(it){const w={id:S.nid++,k:it.k,slot,lv,eq:false,nw:1};S.wear=S.wear||[];S.wear.push(w);out.push({type:'wear',w,it});return;}}
-    // v29: 전설(4)·신화(5) 상자에서는 강화석 제외 → 코인만
+    // v29: 전설(4)·신화(5) 상자에서는 강화석 제외 → 골드만
     const co=D.BOX.coins[tier],st=tier>=4?0:D.BOX.stones[tier];if(st)S.stones=(S.stones||0)+st;S.coins+=co;out.push({type:'stone',st,co});};
   one();if(rnd()<ch.appraise/100){one();out[out.length-1].bonus=true;}
   // v27: 초월 낚싯대(천룡·화룡)는 상자 등급과 상관없이 상자 1개마다 각각 1/10,000 따로 굴림

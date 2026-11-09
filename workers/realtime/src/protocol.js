@@ -894,6 +894,8 @@ export function sanitizePlay(input, prev, opt) {
   }
   if ("deck4" in input) out.deck4 = pickOf(input.deck4, ["off", "A", "B"]);
   if ("boxEarly" in input) out.boxEarly = pickOf(input.boxEarly, ["off", "A", "B"]);
+  if ("duckCatch" in input) out.duckCatch = pickOf(input.duckCatch, ["off", "on"]);
+  if ("afPay" in input) out.afPay = pickOf(input.afPay, ["off", "A", "B", "C"]);
   if ("duckFun" in input) out.duckFun = pickOf(input.duckFun, ["off", "slide", "flume", "fountain", "all"]);
   if ("advOn" in input) out.advOn = pickOf(input.advOn, ["off", "on", "fast"]);
   // v70: 관리자가 정한 유저 처음 화면 배치 {m:{id:[dx,dy,scale]}, pc:{...}}

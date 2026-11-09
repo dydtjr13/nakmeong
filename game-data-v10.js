@@ -13,7 +13,7 @@
  D.AUTO={waitMul:1.25,rareMul:.8,boxMul:.8,reactSec:[.6,1.2],
    gate:'free'}; // 'free' = 누구나 사용 / 'sub' = 구독자만(S.sub===true). 나중에 구독제로 팔 때 'sub'로만 바꾸면 됨
 })(window.NK_DATA);
-// (d) 중반 수집 목표 (1~20시간 구간): 도감 세트 3단계(모두 낚기 → 전설 → 신화) + 누적 목표, 보상 = 코인·강화석·상자·어항 테마
+// (d) 중반 수집 목표 (1~20시간 구간): 도감 세트 3단계(모두 낚기 → 전설 → 신화) + 누적 목표, 보상 = 골드·강화석·상자·어항 테마
 (function(D){const G=[],rw=(co,st,bx,th)=>({co,st,bx,th});
  D.TANK_THEMES=[{k:'mint',n:'민트 연못',top:'#e9f6f4',bot:'#cfeee8'},{k:'sunset',n:'노을 호수',top:'#ffd9b0',bot:'#f6a6a0'},{k:'deep',n:'깊은 물속',top:'#5aa7d8',bot:'#1e4f86'},{k:'sakura',n:'벚꽃 연못',top:'#ffe6ef',bot:'#f7c3d6'},{k:'night',n:'별밤 어항',top:'#1d2550',bot:'#0b1030',stars:1},{k:'gold',n:'황금 수조',top:'#fff4c8',bot:'#f0c860'}];
  D.COMBO.list.forEach(c=>{G.push({id:'set1_'+c.id,lv:1,cat:'세트',n:`${c.n} 모으기`,d:c.ks.length+'종 모두 낚기',t:'set',ks:c.ks,minG:0,r:rw(1000,0,0)});

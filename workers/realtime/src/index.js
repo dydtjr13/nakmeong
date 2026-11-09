@@ -803,14 +803,16 @@ export class LakeRoom extends DurableObject {
           try { ws.send(JSON.stringify({ t: "sanc", sanc: held })); } catch { /* ignore */ }
           return;
         }
-        // v79: 도배 자동 채팅 금지 (관리자 제외)
-        if (!next.att.admin) {
+        // v79: 도배 자동 채팅 금지 · v80: 관리자·운영자는 알림만 (테스트용, 실제 금지·신고 없음)
+        {
           this._spam = this._spam || new Map();
           const nk = next.att.nick, tnow = Date.now();
           const res = spamStep(this._spam.get(nk), next.event.text, tnow);
           this._spam.set(nk, res.rec);
           if (this._spam.size > 500) this._spam.delete(this._spam.keys().next().value);
-          if (res.hit) {
+          if (res.hit && (next.att.admin || next.att.op)) {
+            try { ws.send(JSON.stringify({ t: "spam", n: res.n, ms: res.ms, until: tnow + res.ms, test: 1, flag: res.flag ? 1 : 0 })); } catch { /* ignore */ }
+          } else if (res.hit) {
             const until = tnow + res.ms;
             try { ws.send(JSON.stringify({ t: "spam", n: res.n, ms: res.ms, until })); } catch { /* ignore */ }
             await this.acceptOps(next.att.server, { t: "sanc", nick: nk, mute: until, why: `도배 자동 (${res.n}회)` });

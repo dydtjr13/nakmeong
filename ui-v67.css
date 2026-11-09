@@ -262,3 +262,45 @@ body.umvDrag #umvTb,body.umvDrag #umvPill,body.umvDrag #umvOk{opacity:0;pointer-
 #repDlg .repw{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}#repDlg .repw button{border:1.5px solid #e6dccb;background:#fff;border-radius:999px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}#repDlg .repw button.on{background:#e8784a;border-color:#e8784a;color:#fff}
 #repDlg textarea{width:100%;box-sizing:border-box;min-height:64px;border-radius:12px;border:1.5px solid #e6dccb;padding:8px 10px;font:inherit;font-size:13px;resize:vertical}
 #repDlg details{margin-top:8px;font-size:13px}#repDlg .repb{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+/* v80: 스크린샷 */
+#shotFlash{position:fixed;inset:0;background:#fff;opacity:0;z-index:5000;pointer-events:none}#shotFlash.go{animation:shotF .55s ease-out}@keyframes shotF{0%{opacity:.85}100%{opacity:0}}
+#shotCard{position:fixed;right:16px;bottom:96px;z-index:1300;display:flex;gap:12px;align-items:center;background:#fffdf8;border-radius:16px;padding:10px 34px 10px 10px;box-shadow:0 10px 30px rgba(40,30,20,.25);transform:translateY(16px);opacity:0;pointer-events:none;transition:.25s;max-width:calc(100vw - 32px)}
+#shotCard.on{transform:none;opacity:1;pointer-events:auto}#shotCard img{width:132px;height:80px;object-fit:cover;border-radius:10px}#shotCard b{display:block;font-size:14px}#shotCard small{color:#8a7660;font-size:11.5px}
+#shotCard .shb,#shots .shb{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}#shotCard .shb button,#shots .shb button{border:0;border-radius:10px;padding:6px 10px;font:inherit;font-size:12.5px;font-weight:700;background:#f1ebe0;cursor:pointer}#shotCard .shb .acc,#shots .shb .acc{background:#e8784a;color:#fff}
+#shotCard .shx{position:absolute;top:6px;right:8px;border:0;background:none;font-size:18px;cursor:pointer;color:#8a7660}
+#shots .shc{width:min(880px,calc(100vw - 32px));max-height:86vh;overflow:auto}#shots h2 small{font-size:12px;font-weight:500}
+#shots .shg{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin:10px 0}#shots figure{margin:0;background:#fbf6ee;border-radius:14px;padding:8px}#shots figure img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:10px;cursor:zoom-in}#shots figcaption{font-size:12px;color:#8a7660;margin-top:4px}
+@media(max-width:700px){#shotCard{bottom:150px;right:8px}#shotCard img{width:96px;height:60px}}
+/* v80: 🎟 자동 낚시 이용권 · 광고 창 시안 */
+#afPay .afc{position:relative;background:#fffdf8;border-radius:22px;padding:24px;width:min(640px,calc(100vw - 28px));box-shadow:0 20px 60px rgba(40,30,20,.3)}
+#afPay h2{margin:0 0 4px;font-size:22px}#afPay h4{margin:0 0 10px;font-size:16px}
+#afPay .af2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}#afPay .afcard{background:#fbf6ee;border-radius:18px;padding:16px;position:relative}
+#afPay .afcard.pass{background:linear-gradient(160deg,#fff4d6,#ffe1c4);border:2px solid #f1b25e}
+#afPay .afbadge{position:absolute;top:-10px;right:14px;background:#e8784a;color:#fff;font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 10px;box-shadow:0 4px 10px rgba(232,120,74,.4)}
+#afPay .afads{display:flex;flex-direction:column;gap:8px}#afPay .afads.row{flex-direction:row}#afPay .afads.row .afad{flex:1}
+#afPay .afad{position:relative;display:flex;align-items:center;gap:10px;border:2px solid #eadfcb;background:#fff;border-radius:14px;padding:10px 12px;font:inherit;cursor:pointer;text-align:left}
+#afPay .afad:hover{border-color:#e8784a}#afPay .afad:disabled{opacity:.45;cursor:not-allowed}
+#afPay .afad.best{border-color:#5fb37b;background:#f1fbf3}#afPay .afad em{position:absolute;top:-9px;right:10px;font-style:normal;font-size:10.5px;font-weight:800;background:#5fb37b;color:#fff;border-radius:999px;padding:2px 8px}
+#afPay .afi{width:34px;height:34px;border-radius:50%;background:#3d3027;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+#afPay .aft{display:flex;flex-direction:column;flex:1;line-height:1.25}#afPay .aft small{color:#8a7660;font-size:11.5px}#afPay .afr{font-weight:800;color:#c2621f;white-space:nowrap}
+#afPay .afprice b{font-size:28px;color:#3d3027}#afPay .afprice small{color:#8a7660;margin-left:6px}
+#afPay .afpk{list-style:none;padding:0;margin:10px 0 12px;font-size:13.5px;line-height:1.8}
+#afPay .afbuy{width:100%;border:0;border-radius:14px;padding:13px;font:inherit;font-weight:800;font-size:15.5px;color:#fff;background:linear-gradient(180deg,#f08a55,#e0663a);box-shadow:0 6px 0 #b9522c,0 10px 20px rgba(224,102,58,.35);cursor:pointer;animation:afPulse 2.4s ease-in-out infinite}
+#afPay .afbuy:active{transform:translateY(3px);box-shadow:0 3px 0 #b9522c}@keyframes afPulse{50%{transform:scale(1.02)}}
+#afPay .afnote{display:block;color:#a08a70;font-size:11.5px;margin-top:8px}
+#afPay .afB{padding:0;overflow:hidden}#afPay .afhero{position:relative;text-align:center;padding:30px 26px 22px;background:radial-gradient(circle at 50% 0,#fff2cf,#ffd9b4 70%,#ffc9a0)}
+#afPay .afB .afbadge{top:14px;right:auto;left:16px}#afPay .afbot{font-size:46px}#afPay .afB h2{font-size:24px}#afPay .afB .afpk{display:inline-block;text-align:left}
+#afPay .afor{display:flex;align-items:center;gap:10px;color:#8a7660;font-size:12.5px;margin:16px 22px 10px}#afPay .afor:before,#afPay .afor:after{content:'';flex:1;height:1px;background:#eadfcb}
+#afPay .afB .afads,#afPay .afB .afnote{margin:0 22px}#afPay .afB .afnote{margin-bottom:18px}
+#afPay .afB .close,#afPay .afA .close{position:absolute;top:10px;right:12px}
+#afPay.sheet{align-items:flex-end}#afPay .afC{border-radius:22px 22px 0 0;width:min(520px,100vw);padding:12px 20px 22px}#afPay .afC h3{margin:8px 0 2px}
+#afPay .afgrab{width:44px;height:5px;border-radius:3px;background:#e2d6c2;margin:0 auto 6px}#afPay .afad.pass{background:#fff4d6;border-color:#f1b25e}#afPay .afad.pass .afi{background:#e8784a}
+#afPay .afclose{width:100%;margin-top:10px;border:0;background:#f1ebe0;border-radius:12px;padding:11px;font:inherit;font-weight:700;cursor:pointer}
+@media(max-width:600px){#afPay .af2{grid-template-columns:1fr}#afPay .afads.row{flex-direction:column}}
+#afAd{position:fixed;inset:0;z-index:6000;background:rgba(10,8,6,.92);display:none;align-items:center;justify-content:center}#afAd.on{display:flex}
+#afAd .adv0{width:min(720px,92vw);color:#fff}#afAd .adtag{font-size:12px;opacity:.7;margin-bottom:8px}
+#afAd .adbox0{aspect-ratio:16/9;border-radius:16px;background:linear-gradient(135deg,#2c4a63,#3f6e83 50%,#6aa2a8);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center}
+#afAd .adfish{font-size:56px;animation:adSwim 2s ease-in-out infinite}@keyframes adSwim{50%{transform:translateX(30px) rotate(-6deg)}}#afAd .adbox0 small{opacity:.75}
+#afAd .adbar{height:6px;background:rgba(255,255,255,.2);border-radius:3px;margin:12px 0 10px;overflow:hidden}#afAd .adbar i{display:block;height:100%;width:0;background:#ffcf5a;transition:width .25s linear}
+#afAd .adbt{display:flex;justify-content:space-between;align-items:center}#afAd .adbt button{border:0;border-radius:12px;padding:10px 16px;font:inherit;font-weight:800;background:#ffcf5a;color:#3d3027;cursor:pointer}#afAd .adbt button:disabled{background:rgba(255,255,255,.25);color:rgba(255,255,255,.7);cursor:default}
+#shotCard>div{text-align:left;flex:1;min-width:0}
