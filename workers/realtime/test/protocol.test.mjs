@@ -676,3 +676,24 @@ test("v81 끝난 공지는 다시 읽어도 늘어나지 않고, 고정 공지�
   assert.ok(f.fix && f.until > t + 3000 * 864e5);
   assert.ok(P.mergeNoticeLog([f], null, t + 864e5).active);
 });
+
+// v85
+import { cleanDeco as _cleanDeco, sanitizePose as _sp, sanitizePlay as _spl } from "../src/protocol.js";
+test("v85: 데크 꾸미기 dc 정리", () => {
+  assert.deepEqual(_cleanDeco([[0, 55, 70, 0], [2, 200, -5, 9], "x", [1]]), [[0, 55, 70, 0], [2, 100, 0, 7], [1, 0, 0, 0]]);
+  assert.equal(_cleanDeco("bad"), null);
+  assert.equal(_cleanDeco([[1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]]).length, 4);
+  const p = _sp({ x: 1, z: 2, dc: [[0, 10, 20, 1]] }, {});
+  assert.deepEqual(p.dc, [[0, 10, 20, 1]]);
+  assert.deepEqual(_sp({ x: 1 }, p).dc, [[0, 10, 20, 1]]);
+});
+test("v85: play 새 키", () => {
+  const o = _spl({ acctSlot: "on", advNote: "B", mChat: "D", welcome: "A", deckTank: "B", deckDeco: "on", welPos: { x: 200, y: 5, w: 10, fs: 13, op: 2 } }, {});
+  assert.equal(o.acctSlot, "on"); assert.equal(o.advNote, "B"); assert.equal(o.mChat, "D"); assert.equal(o.welcome, "A"); assert.equal(o.deckTank, "B"); assert.equal(o.deckDeco, "on");
+  assert.deepEqual(o.welPos, { x: 100, y: 5, w: 240, fs: 13, op: 1 });
+  assert.equal(_spl({ mChat: "Z" }, {}).mChat, "off");
+});
+import { parseClient as _pc } from "../src/protocol.js";
+test("v85: pose 메시지의 dc 를 통과시켜요", () => {
+  assert.deepEqual(_pc(JSON.stringify({ t: "pose", x: 1, z: 1, dc: [[0, 1, 2, 3]] })).dc, [[0, 1, 2, 3]]);
+});

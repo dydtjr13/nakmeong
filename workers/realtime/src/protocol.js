@@ -106,6 +106,17 @@ export function sanitizeTitles(input) {
 }
 
 // v55: 물고기 자랑 — 들고 있는 물고기 정보 (없으면 null)
+/** v85: 데크 꾸미기 — 앉은 의자 쪽 절반에 놓은 아이템 [종류, 가로 0~100, 세로 0~100, 회전 0~7] 최대 4개 */
+export function cleanDeco(v) {
+  if (!Array.isArray(v)) return null;
+  const out = [];
+  for (const it of v.slice(0, 4)) {
+    if (!Array.isArray(it)) continue;
+    const n = (x, hi) => Math.max(0, Math.min(hi, Math.round(Number(x) || 0)));
+    out.push([n(it[0], 15), n(it[1], 100), n(it[2], 100), n(it[3], 7)]);
+  }
+  return out.length ? out : null;
+}
 export function cleanBrag(b) {
   if (!b || typeof b !== "object" || Array.isArray(b)) return null;
   const k = cleanId(b.k, 24);
@@ -142,6 +153,7 @@ export function sanitizePose(msg, prev) {
     fg: fish === "catch" ? Math.max(0, Math.min(5, Math.round(Number(msg.fg) || 0))) : 0,
     br: msg.br === undefined ? (p.br || null) : cleanBrag(msg.br),
     tt: msg.tt === undefined ? (p.tt || null) : cleanTitle(msg.tt),
+    dc: msg.dc === undefined ? (p.dc || null) : cleanDeco(msg.dc),
   };
 }
 
@@ -916,6 +928,20 @@ export function sanitizePlay(input, prev, opt) {
   if ("nightGlow" in input) out.nightGlow = pickOf(input.nightGlow, ["off", "A", "B", "C", "D", "E"]);
   if ("duckMerge" in input) out.duckMerge = pickOf(input.duckMerge, ["on", "off"]);
   if ("duckFamily" in input) out.duckFamily = pickOf(input.duckFamily, ["on", "off"]);
+  // v85: 계정 칸 · 모험 알림 · 모바일 채팅 · 환영 문구 · 데크 어항 위치 · 데크 꾸미기
+  if ("acctSlot" in input) out.acctSlot = pickOf(input.acctSlot, ["off", "on"]);
+  if ("advNote" in input) out.advNote = pickOf(input.advNote, ["off", "A", "B"]);
+  if ("mChat" in input) out.mChat = pickOf(input.mChat, ["off", "A", "B", "D"]);
+  if ("welcome" in input) out.welcome = pickOf(input.welcome, ["off", "A", "B"]);
+  if ("deckTank" in input) out.deckTank = pickOf(input.deckTank, ["off", "B"]);
+  if ("deckDeco" in input) out.deckDeco = pickOf(input.deckDeco, ["off", "on"]);
+  if ("welPos" in input) {
+    const w = input.welPos;
+    if (w && typeof w === "object" && !Array.isArray(w)) {
+      const c = (v, lo, hi, d) => Math.round(Math.max(lo, Math.min(hi, finite(v, d))) * 10) / 10;
+      out.welPos = { x: c(w.x, 0, 100, 3), y: c(w.y, 0, 100, 8), w: c(w.w, 240, 900, 440), fs: c(w.fs, 10, 24, 14.5), op: c(w.op, 0.3, 1, 0.96) };
+    } else delete out.welPos;
+  }
   if ("tankPlus" in input) out.tankPlus = pickOf(input.tankPlus, ["off", "on"]);
   if ("dexPlus" in input) out.dexPlus = pickOf(input.dexPlus, ["off", "on"]);
   // v84: 관리자 › 화면·시안 ✅ 인게임 적용 — { 키: 값 } (영문 키 · 짧은 값, 최대 40개)
@@ -1211,6 +1237,7 @@ export function parseClient(raw) {
       t: msg.t,
       br: msg.br === undefined ? undefined : msg.br,
       tt: msg.tt === undefined ? undefined : msg.tt,
+      dc: msg.dc === undefined ? undefined : msg.dc,
       nick: msg.nick,
       ki: msg.ki,
       lv: msg.lv,
@@ -1254,6 +1281,7 @@ export function publicPeer(att) {
     fg: att.fg | 0,
     br: att.br || null,
     tt: att.tt || null,
+    dc: att.dc || null,
     anim: att.anim,
     seat: att.seat,
   };
@@ -1353,6 +1381,7 @@ export function reduce(prev, msg, now, others) {
   att.fg = pose.fg;
   att.br = pose.br;
   att.tt = pose.tt;
+  att.dc = pose.dc;
   att.anim = denied && pose.anim === "sit" ? "idle" : pose.anim;
   att.seat = seat;
   att.seatKey = seatKey;

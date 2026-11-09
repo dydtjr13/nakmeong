@@ -313,7 +313,7 @@
       const prev = peers.get(m.id) || { id: m.id };
       peers.set(m.id, Object.assign(prev, {
         id: m.id, nick: m.nick || prev.nick, ki: m.ki, lv: m.lv,
-        x: m.x, z: m.z, y: m.y, d: m.d, fish: m.fish, fk: m.fk || "", fg: m.fg | 0, anim: m.anim, seat: m.seat, br: m.br || null, tt: m.tt || null,
+        x: m.x, z: m.z, y: m.y, d: m.d, fish: m.fish, fk: m.fk || "", fg: m.fg | 0, anim: m.anim, seat: m.seat, br: m.br || null, tt: m.tt || null, dc: m.dc || null,
       }));
     }
     else if (m.t === "world" && m.world) takeWorld(m.world);
@@ -529,10 +529,11 @@
       nick: String(p.nick || "").slice(0, 10),
       br: p.br || null,
       tt: p.tt || null,
+      dc: p.dc || null,
     };
     const bk = (b) => (b ? b.k + b.at + "|" + (b.lk | 0) : "");
     const tk = (t) => (t ? t.n + t.bg : "");
-    const important = !poseSnap || next.fish !== poseSnap.fish || next.anim !== poseSnap.anim || next.seat !== poseSnap.seat || bk(next.br) !== bk(poseSnap.br) || tk(next.tt) !== tk(poseSnap.tt);
+    const important = !poseSnap || next.fish !== poseSnap.fish || next.anim !== poseSnap.anim || next.seat !== poseSnap.seat || bk(next.br) !== bk(poseSnap.br) || tk(next.tt) !== tk(poseSnap.tt) || JSON.stringify(next.dc) !== JSON.stringify(poseSnap.dc);
     const moved = !poseSnap || Math.hypot(next.x - poseSnap.x, next.z - poseSnap.z) > 0.15 || Math.abs(next.d - poseSnap.d) > 0.35;
     if (!important && !moved && now - poseAt < 5000) return;
     if (important && now - poseAt < 60) { schedule(p, 70); return; }
