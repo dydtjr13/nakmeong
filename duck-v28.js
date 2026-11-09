@@ -73,11 +73,13 @@
   for(const d of A){const ab=FUN.abs[d.key];if(!ab)continue;const e=now-(ab.t0||0),w=K.get(ab.into);
    if(ab.t0&&e<MERGE_MS&&w){const f=e/MERGE_MS,k=f*f*(3-2*f);d._r.x+=(w.x-d.x)*k;d._r.z+=(w.z-d.z)*k;d._r.yaw=Math.atan2(w.x-d.x,w.z-d.z);d._r.sc=1-.75*k;d._r.busy=true;continue;}
    d._r.hide=true;if(!ab.fx&&w){ab.fx=1;burst(w.x,WY+.5,w.z,FUN_COL[ab.lv||1],18+(ab.lv||1)*4);tag(w.key,'합체! Lv.'+((ab.lv||1)+1),FUN_COL[ab.lv||1]);FUN.pop[w.key]=now;}}
-  if(now-FUN.lastM>6000)for(let i=0;i<A.length;i++){const a=A[i];if(a._r.hide||a.st!=='swim')continue;for(let j=i+1;j<A.length;j++){const b=A[j];if(b._r.hide||b.st!=='swim')continue;const la=FUN.lv[a.key]||0,lb=FUN.lv[b.key]||0;if(la!==lb||la>=FUN_MAXL)continue;if(Math.hypot(a.x-b.x,a.z-b.z)<1.5*Math.pow(1.2,la)){const [w,l]=String(a.key)<String(b.key)?[a,b]:[b,a];FUN.abs[l.key]={into:w.key,until:now+300000,prevW:la,t0:now,lv:la+1};FUN.lv[w.key]=la+1;FUN.lastM=now;i=A.length;break;}}}
+  // v83: 🧪 합체·엄마 따라다니기 켜고 끄기 (관리자 › 🦆 오리)
+  const optOn=k=>{try{return String(G().uiOpt?G().uiOpt(k,'on'):'on')!=='off';}catch(e){return true;}};
+  if(optOn('duckMerge')&&now-FUN.lastM>6000)for(let i=0;i<A.length;i++){const a=A[i];if(a._r.hide||a.st!=='swim')continue;for(let j=i+1;j<A.length;j++){const b=A[j];if(b._r.hide||b.st!=='swim')continue;const la=FUN.lv[a.key]||0,lb=FUN.lv[b.key]||0;if(la!==lb||la>=FUN_MAXL)continue;if(Math.hypot(a.x-b.x,a.z-b.z)<1.5*Math.pow(1.2,la)){const [w,l]=String(a.key)<String(b.key)?[a,b]:[b,a];FUN.abs[l.key]={into:w.key,until:now+300000,prevW:la,t0:now,lv:la+1};FUN.lv[w.key]=la+1;FUN.lastM=now;i=A.length;break;}}}
   const PEND={};for(const k in FUN.abs){const ab=FUN.abs[k];if(!ab.fx&&ab.t0)PEND[ab.into]=ab.lv-1;}for(const d of A){const L=FUN.lv[d.key]||0;const shown=PEND[d.key]!=null?PEND[d.key]:L;let sc=shown?Math.pow(1.2,shown):1;const pe=now-(FUN.pop[d.key]||0);if(pe<700)sc*=1+.35*Math.sin(pe/700*Math.PI);if(!d._r.busy)d._r.sc=sc;}
   // ⑤ 엄마 오리 따라 줄서기: 4분마다 100초 동안, 가장 큰 오리를 가까운 오리 넷이 따라가요
   const W=240000,wk=Math.floor(now/W),we=now-wk*W,DUR=100000;
-  if(we<DUR){const fa=Math.min(1,we/5000,(DUR-we)/5000);const pool=A.filter(d=>!d._r.hide&&d.st==='swim');if(pool.length>=3){let mom=pool.slice().sort((a,b)=>(b.s*Math.pow(1.2,FUN.lv[b.key]||0))-(a.s*Math.pow(1.2,FUN.lv[a.key]||0))||String(a.key).localeCompare(String(b.key)))[0];
+  if(we<DUR&&optOn('duckFamily')){const fa=Math.min(1,we/5000,(DUR-we)/5000);const pool=A.filter(d=>!d._r.hide&&d.st==='swim');if(pool.length>=3){let mom=pool.slice().sort((a,b)=>(b.s*Math.pow(1.2,FUN.lv[b.key]||0))-(a.s*Math.pow(1.2,FUN.lv[a.key]||0))||String(a.key).localeCompare(String(b.key)))[0];
     // v79: 엄마·아기 오리는 줄서기 시작 때 한 번만 정해요 (매 순간 다시 고르면 줄이 바뀌며 툭 튀었어요)
     if(FUN.famK!==wk||!FUN.fam||!K.has(FUN.fam.mom)||FUN.fam.kids.some(k=>!K.has(k)||(K.get(k)._r||{}).hide)){FUN.famK=wk;FUN.fam={mom:mom.key,kids:pool.filter(d=>d!==mom).sort((a,b)=>Math.hypot(a.x-mom.x,a.z-mom.z)-Math.hypot(b.x-mom.x,b.z-mom.z)).slice(0,4).map(d=>d.key)};}
     const mom2=K.get(FUN.fam.mom);if(mom2&&!mom2._r.hide)mom=mom2;const kids=FUN.fam.kids.map(k=>K.get(k)).filter(d=>d&&d!==mom&&!d._r.hide);const fw=[Math.sin(mom.yaw),Math.cos(mom.yaw)];
