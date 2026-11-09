@@ -26,6 +26,14 @@
  let e0=null;function draw(e,force){if(!e)return;const S=st(),m=mob(),ph=Date.now()<startT?'start':'on',v=m?(ph==='start'?S.ms:S.mo):(ph==='start'?S.ps:S.po);
   if(v==='off'){root.innerHTML='';lastSig='off';return;}const sig=v+ph+(ph==='on'?Math.floor(Date.now()/1000):'')+(m?'m':'p');if(sig===lastSig&&!force)return;lastSig=sig;
   const vv=!m&&ph==='start'&&/^r/.test(v)?v:v;root.className='evx '+(m?'mob ':'pc ')+vv+' '+ph+(/^r/.test(vv)?' red':'');root.innerHTML=html(vv,ph,e);}
+ // v86: 이벤트 알림에 마우스를 올리면(모바일은 누르면) 어떤 이벤트인지 자세히 보여 줘요
+ function tipHTML(e){const L=e.to?left(e.to-Date.now()):'';return `<b class="et">🎉 ${ttl(e)}</b><ul>${e.coin>1?`<li><span>🪙</span><div><b>골드 ×${e.coin}</b><small>물고기를 팔 때 받는 골드가 ${e.coin}배예요 (판매·자동 판매 모두)</small></div></li>`:''}${e.box>1?`<li><span>🎁</span><div><b>행운 상자 ×${e.box}</b><small>낚시할 때 행운 상자가 나올 확률이 ${e.box}배예요</small></div></li>`:''}</ul><div class="tm">${e.from?`<span>시작 ${kst(e.from)}</span>`:''}<span>${e.to?`끝 ${kst(e.to)} · <b>${L} 남음</b>`:'끝나는 시간 없음'}</span></div><small class="ft">모든 호숫가 · 모든 유저에게 똑같이 적용돼요</small>`;}
+ let tip=null,tipT=0;function tipShow(){const e=info();if(!e||!root||!root.firstElementChild){tipHide();return;}if(!tip){tip=document.createElement('div');tip.id='evTip';document.body.appendChild(tip);}tip.innerHTML=tipHTML(e);const ch=[...root.children].filter(x=>x.getBoundingClientRect().width>0),r=ch.length?ch.map(x=>x.getBoundingClientRect()).reduce((a,b)=>({left:Math.min(a.left,b.left),right:Math.max(a.right,b.right),top:Math.min(a.top,b.top),bottom:Math.max(a.bottom,b.bottom),width:Math.max(a.right,b.right)-Math.min(a.left,b.left)})):root.getBoundingClientRect(),w=Math.min(300,innerWidth-16);tip.style.width=w+'px';let x=r.left+r.width/2-w/2;x=Math.max(8,Math.min(innerWidth-w-8,x));tip.style.left=x+'px';const below=r.bottom+10+170<innerHeight;tip.style.top=(below?r.bottom+10:Math.max(8,r.top-10-tip.offsetHeight))+'px';tip.classList.add('on');}
+ function tipHide(){if(tip)tip.classList.remove('on');}
+ document.addEventListener('mouseover',ev=>{if(root&&ev.target.closest&&ev.target.closest('#evx')&&!ev.target.closest('[data-evx]'))tipShow();});
+ document.addEventListener('mouseout',ev=>{if(root&&ev.target.closest&&ev.target.closest('#evx')&&!(ev.relatedTarget&&ev.relatedTarget.closest&&ev.relatedTarget.closest('#evx')))tipHide();});
+ document.addEventListener('click',ev=>{if(!mob())return;if(ev.target.closest&&ev.target.closest('#evx')&&!ev.target.closest('[data-evx]')){tipShow();clearTimeout(tipT);tipT=setTimeout(tipHide,4500);}else tipHide();});
+ setInterval(()=>{if(tip&&tip.classList.contains('on'))tipShow();},1000);
  setInterval(tick,500);
  window.NK_EV={st,set(o){localStorage.setItem(LSK,JSON.stringify(Object.assign(st(),o)));lastSig='';tick();},preview(){pv=Date.now()+10000;shownKey='';lastSig='';tick();},_left:left};
 })();
