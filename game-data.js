@@ -54,7 +54,6 @@ window.NK_DATA = {
       {f:'sounds/day4_afternoon_pond', n:'오후의 연못'}],
     night: [
       {f:'sounds/night1_frog_chorus', n:'청개구리 합창'},
-      {f:'sounds/night2_nightingale_forest', n:'나이팅게일 밤숲'},
       {f:'sounds/night3_toad_pond', n:'밤 연못 합창'},
       {f:'sounds/night4_campfire_crickets', n:'모닥불 + 귀뚜라미'}]}
 };

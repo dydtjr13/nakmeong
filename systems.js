@@ -27,6 +27,9 @@ SYS.rollTier=(D,masterPct=0,rnd=Math.random)=>{const ws=D.BOX.tiers.map((t,i)=>t
 SYS.boxChance=(D,ch)=>D.BOX.base*(1+ch.treasure/100);
 SYS.openBox=(D,S,rnd=Math.random,src)=>{const ch=SYS.charmSum(D,S),tier=src==='streak'&&D.BOX.streakTiers?SYS.rollTier({BOX:{tiers:D.BOX.streakTiers.map(w=>({w}))}},ch.master,rnd):Math.max(typeof src==='string'&&src.slice(0,2)==='lv'?+src.slice(2):0,SYS.rollTier(D,ch.master,rnd)),out=[],RW=src==='streak'&&D.BOX.streakReward||D.BOX.reward;
   const one=()=>{let x=rnd();
+    // v92: 전설(4)·신화(5) 상자는 '강화석+골드' 칸을 확률에서 아예 빼요 → 장비 확률을 먼저 굴리고, 나머지는 부적·낚싯대·미끼끼리 나눠요
+    if(tier>=4){if(D.WEAR&&D.WEAR.boxRate&&rnd()<D.WEAR.boxRate[tier]){const L=D.WEAR.boxLv[tier].filter(l=>l>1),lv=L[(rnd()*L.length)|0]||10,slot=D.WEAR.slots[(rnd()*4)|0],it=D.WEAR.byK[slot+lv];if(it){const w={id:S.nid++,k:it.k,slot,lv,eq:false,nw:1};S.wear=S.wear||[];S.wear.push(w);out.push({type:'wear',w,it});return;}}
+     const bOk=tier<=(D.BOX.baitMaxTier==null?9:D.BOX.baitMaxTier),tot=RW.charm+RW.rod+(bOk?RW.bait:0);x=rnd()*tot;}
     if((x-=RW.charm)<0){const c=SYS.makeCharm(D,tier,S.nid++,rnd);S.charms.push(c);out.push({type:'charm',c});return;}
     if((x-=RW.rod)<0){const k=SYS.boxRod(D,tier,rnd),g=SYS.makeGear(D,k,S.nid++,rnd,tier);S.gear.push(g);out.push({type:'rod',g});return;}
     if((x-=RW.bait)<0&&tier<=(D.BOX.baitMaxTier==null?9:D.BOX.baitMaxTier)){const [k,n]=D.BOX.baitPool[tier];S.baits[k]=Math.max(0,S.baits[k]||0)+n;out.push({type:'bait',k,n});return;}

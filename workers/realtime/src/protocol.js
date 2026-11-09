@@ -147,6 +147,8 @@ export function cleanBrag(b) {
     lk: Math.max(0, Math.min(9999, Math.round(Number(b.lk) || 0))),
     s: Math.max(0, Math.min(9, Math.round(Number(b.s) || 0))),
     t: Math.max(0, Math.min(4e12, Math.round(Number(b.t) || 0))),
+    vr: ["black", "pink", "red", "gold", "rainbow"].includes(b.vr) ? b.vr : "",
+    st: Math.max(0, Math.min(4, Math.round(Number(b.st) || 0))),
   };
 }
 
@@ -957,12 +959,20 @@ export function sanitizePlay(input, prev, opt) {
   if ("pets" in input) out.pets = pickOf(input.pets, ["off", "on"]);
   if ("trFare" in input) out.trFare = pickOf(input.trFare, ["off", "on"]);
   if ("veh" in input) out.veh = pickOf(input.veh, ["off", "on"]);
+  if ("xpPos" in input) out.xpPos = pickOf(input.xpPos, ["A2", "A4"]);
   if ("backAsk" in input) out.backAsk = pickOf(input.backAsk, ["off", "A", "B"]);
+  if ("petFx" in input) out.petFx = pickOf(input.petFx, ["off", "on"]);
   if ("vehCfg" in input) {
     const v = input.vehCfg;
     if (v && typeof v === "object" && !Array.isArray(v)) {
       const n = (x, lo, hi, d) => Math.round(Math.max(lo, Math.min(hi, finite(x, d))) * 100) / 100;
-      out.vehCfg = { r3: n(v.r3, 0, 100, 0.4), r4: n(v.r4, 0, 100, 0.3), r5: n(v.r5, 0, 100, 0.25), spd: n(v.spd, 0, 200, 30) };
+      const grp = (o, keys, lo, hi, d) => { const r = {}; for (const k of keys) r[k] = n(o && typeof o === "object" ? o[k] : undefined, lo, hi, d[k]); return r; };
+      const VK = ["sled", "rudolph", "dog", "santa", "car"];
+      out.vehCfg = {
+        p: grp(v.p, VK, 0, 100, { sled: 0.4, rudolph: 0.3, dog: 0.3, santa: 0.25, car: 0.25 }),
+        s: grp(v.s, [...VK, "carRb"], 0, 300, { sled: 20, rudolph: 30, dog: 30, santa: 40, car: 40, carRb: 70 }),
+        cc: grp(v.cc, ["mint", "red", "black", "rainbow"], 0, 1000, { mint: 55, red: 25, black: 19, rainbow: 1 }),
+      };
     } else delete out.vehCfg;
   }
   if ("petCfg" in input) {
