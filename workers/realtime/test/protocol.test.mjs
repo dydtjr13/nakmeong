@@ -704,3 +704,16 @@ test("v86: prices · charmKey · train · welPos.sp", () => {
   assert.equal(o.welPos.sp, 3);
   assert.equal(_spl({ prices: null }, { prices: { r: { a: 1 } } }).prices, undefined);
 });
+
+test("v89: pose ex (어항 디자인 · 기차 좌석) 와 tdef", () => {
+  const p = sanitizePose({ x: 1, z: 2, ex: { tk: "glass<b>", ts: 5, BAD: 1, xx: { a: 1 } } }, null);
+  assert.deepEqual(p.ex, { tk: "glassb", ts: 5 });
+  const q = sanitizePose({ x: 1, z: 2 }, p);
+  assert.deepEqual(q.ex, { tk: "glassb", ts: 5 });
+  const r = sanitizePose({ x: 1, z: 2, ex: null }, p);
+  assert.equal(r.ex, null);
+  const pl = sanitizePlay({ tdef: { tm: 9, tf: 3, ac: 0, am: 1, ev: { ms: "e2", po: "r1!" }, bd: "5", at: 123 }, aurora: "B", snowSoft: "zz" }, null, { bump: true });
+  assert.deepEqual(pl.tdef, { tm: 5, tf: 3, ac: 0, am: 1, ev: { ms: "e2", po: "r1" }, bd: "5", at: 123 });
+  assert.equal(pl.aurora, "B");
+  assert.equal(pl.snowSoft, "off");
+});
