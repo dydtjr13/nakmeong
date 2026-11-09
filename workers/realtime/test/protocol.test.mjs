@@ -697,9 +697,9 @@ import { parseClient as _pc } from "../src/protocol.js";
 test("v85: pose 메시지의 dc 를 통과시켜요", () => {
   assert.deepEqual(_pc(JSON.stringify({ t: "pose", x: 1, z: 1, dc: [[0, 1, 2, 3]] })).dc, [[0, 1, 2, 3]]);
 });
-test("v86: prices · charmKey · train · welPos.sp", () => {
-  const o = _spl({ charmKey: "on", train: "B", prices: { r: { bamboo: 10, "x y": 5, carbon: -1 }, d: { parasol: "3000" }, zz: { a: 1 } }, welPos: { sp: 9 } }, {});
-  assert.equal(o.charmKey, "on"); assert.equal(o.train, "B");
+test("v86: prices · charmBest · train · welPos.sp", () => {
+  const o = _spl({ charmBest: "on", train: "B", prices: { r: { bamboo: 10, "x y": 5, carbon: -1 }, d: { parasol: "3000" }, zz: { a: 1 } }, welPos: { sp: 9 } }, {});
+  assert.equal(o.charmBest, "on"); assert.equal(o.train, "B");
   assert.deepEqual(o.prices, { r: { bamboo: 10 }, d: { parasol: 3000 } });
   assert.equal(o.welPos.sp, 3);
   assert.equal(_spl({ prices: null }, { prices: { r: { a: 1 } } }).prices, undefined);
@@ -716,4 +716,14 @@ test("v89: pose ex (어항 디자인 · 기차 좌석) 와 tdef", () => {
   assert.deepEqual(pl.tdef, { tm: 5, tf: 3, ac: 0, am: 1, ev: { ms: "e2", po: "r1" }, bd: "5", at: 123 });
   assert.equal(pl.aurora, "B");
   assert.equal(pl.snowSoft, "off");
+});
+
+test("v90: petCfg · trCfg · 새 테스트 키 · 부적 열쇠 키 삭제", () => {
+  const pl = sanitizePlay({ petCfg: { ph: 9000, pf: "x", rr: 99, mr: 0.02 }, trCfg: { fare: 15, xp: -3, cap: 70 }, pets: "on", trFare: "on", charmBest: "on", charmKey: "on" }, null, { bump: true });
+  assert.deepEqual(pl.petCfg, { ph: 9000, pf: 25000, rr: 50, mr: 0.02, dupR: 3000, dupM: 20000 });
+  assert.deepEqual(pl.trCfg, { fare: 15, xp: 0, cap: 70 });
+  assert.equal(pl.pets, "on"); assert.equal(pl.trFare, "on"); assert.equal(pl.charmBest, "on");
+  assert.equal(pl.charmKey, undefined);
+  const p = sanitizePose({ x: 1, z: 1, ex: { pt: "fox", ts: 3, tk: "s" } }, null);
+  assert.deepEqual(p.ex, { pt: "fox", ts: 3, tk: "s" });
 });

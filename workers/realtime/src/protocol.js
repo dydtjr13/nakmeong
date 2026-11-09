@@ -953,7 +953,23 @@ export function sanitizePlay(input, prev, opt) {
   if ("deckTank" in input) out.deckTank = pickOf(input.deckTank, ["off", "B", "C", "D"]);
   if ("deckDeco" in input) out.deckDeco = pickOf(input.deckDeco, ["off", "on"]);
   // v86: 부적 열쇠 · 기차 · 아이템 가격
-  if ("charmKey" in input) out.charmKey = pickOf(input.charmKey, ["off", "on"]);
+  if ("charmBest" in input) out.charmBest = pickOf(input.charmBest, ["off", "on"]);
+  if ("pets" in input) out.pets = pickOf(input.pets, ["off", "on"]);
+  if ("trFare" in input) out.trFare = pickOf(input.trFare, ["off", "on"]);
+  if ("petCfg" in input) {
+    const v = input.petCfg;
+    if (v && typeof v === "object" && !Array.isArray(v)) {
+      const n = (x, lo, hi, d) => Math.round(Math.max(lo, Math.min(hi, finite(x, d))) * 100) / 100;
+      out.petCfg = { ph: n(v.ph, 0, 1e7, 8000), pf: n(v.pf, 0, 1e7, 25000), rr: n(v.rr, 0, 50, 1.5), mr: n(v.mr, 0, 10, 0.05), dupR: n(v.dupR, 0, 1e7, 3000), dupM: n(v.dupM, 0, 1e7, 20000) };
+    } else delete out.petCfg;
+  }
+  if ("trCfg" in input) {
+    const v = input.trCfg;
+    if (v && typeof v === "object" && !Array.isArray(v)) {
+      const n = (x, lo, hi, d) => Math.round(Math.max(lo, Math.min(hi, finite(x, d))));
+      out.trCfg = { fare: n(v.fare, 0, 100000, 30), xp: n(v.xp, 0, 100000, 12), cap: n(v.cap, 0, 1000, 40) };
+    } else delete out.trCfg;
+  }
   if ("train" in input) out.train = pickOf(input.train, ["off", "A", "B", "C"]);
   // v89
   if ("resumePos" in input) out.resumePos = pickOf(input.resumePos, ["off", "on"]);
