@@ -59,7 +59,9 @@ body.don-off #bDon{display:none!important}
     sy.appendChild($("bTime"));
     sy.appendChild(menu);
     sy.appendChild(drop);
-    [...sy.children].forEach((c) => { if (![ "bDon", "bTime", "bMenu51", "mDrop51" ].includes(c.id)) drop.appendChild(c); });
+    [...sy.children].forEach((c) => { if (![ "bDon", "bTime", "bMenu51", "mDrop51", "bOpM" ].includes(c.id)) drop.appendChild(c); });
+    // v79: 운영자 모드 버튼은 맨 앞
+    if ($("bOpM")) sy.insertBefore($("bOpM"), sy.firstChild);
     document.body.classList.toggle("don-off", donOff());
   }
   document.addEventListener("pointerdown", (e) => { if (!e.target.closest("#mDrop51,#bMenu51")) close(); });

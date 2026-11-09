@@ -37,6 +37,11 @@ import {
   sanitizeSancMap,
   sanitizeStage,
   sanitizeWorld,
+  opAllowed,
+  sanitizeStaff,
+  sanitizeReport,
+  mergeReports,
+  spamStep,
 } from "./protocol.js";
 
 function hostOf(request) {
@@ -211,6 +216,7 @@ export class LakeRoom extends DurableObject {
       stage: await this.opsGet("stage", null),
       play: await this.opsGet("play", null),
       titles: await this.opsGet("titles", {}),
+      staff: sanitizeStaff(await this.opsGet("staff", {})),
       cues,
       recovers,
       losses: losses.slice(0, 40),
@@ -334,6 +340,41 @@ export class LakeRoom extends DurableObject {
       this.broadcast({ t: "recoverAck", id: msg.id, nick: msg.nick });
       return;
     }
+    // v79: 운영자 목록 · 신고
+    if (msg.t === "staff") {
+      const st = sanitizeStaff(msg.staff);
+      await this.opsPut("staff", st);
+      this.broadcast({ t: "staff", staff: st });
+      for (const ws of this.openSockets()) {
+        const att = this.attachment(ws);
+        if (!att || !att.op) continue;
+        const row = st[att.op.id];
+        if (!row || row.n !== att.nick) {
+          delete att.op;
+          try { ws.serializeAttachment(att); ws.send(JSON.stringify({ t: "opAuth", ok: false, revoked: 1 })); } catch { /* ignore */ }
+        } else {
+          att.op = { id: att.op.id, r: row.r, p: row.p };
+          try { ws.serializeAttachment(att); ws.send(JSON.stringify({ t: "opAuth", ok: true, op: att.op.id, r: row.r, p: row.p, n: row.n })); } catch { /* ignore */ }
+        }
+      }
+      return;
+    }
+    if (msg.t === "reports") {
+      const rows = (Array.isArray(msg.rows) ? msg.rows : []).map((r) => sanitizeReport(r, r && r.t || now, r && r.from)).filter(Boolean).slice(0, 10);
+      if (!rows.length) return;
+      const list = mergeReports(await this.opsGet("reports", []), rows, now);
+      await this.opsPut("reports", list);
+      this.toStaff({ t: "reports", rows });
+      return;
+    }
+    if (msg.t === "repDone") {
+      const list = (await this.opsGet("reports", [])).filter((x) => x && (!msg.del || x.id !== msg.id));
+      const hit = list.find((x) => x.id === msg.id);
+      if (hit) hit.done = 1;
+      await this.opsPut("reports", list);
+      this.toStaff({ t: "repDone", id: msg.id, del: !!msg.del });
+      return;
+    }
     if (msg.t === "losses") {
       const rows = [];
       for (const row of (Array.isArray(msg.losses) ? msg.losses : []).slice(0, 20)) {
@@ -431,6 +472,19 @@ export class LakeRoom extends DurableObject {
     if (msg.t === "recoverAck") {
       if (!msg.nick || msg.id == null) return;
       await this.fan(fromId, all, { t: "recoverAck", id: msg.id, nick: msg.nick });
+      return;
+    }
+    if (msg.t === "staff") {
+      await this.fan(fromId, all, { t: "staff", staff: sanitizeStaff(msg.staff) });
+      return;
+    }
+    if (msg.t === "reports") {
+      await this.fan(fromId, all, { t: "reports", rows: msg.rows });
+      return;
+    }
+    if (msg.t === "repDone") {
+      if (!msg.id) return;
+      await this.fan(fromId, all, { t: "repDone", id: msg.id, del: !!msg.del });
       return;
     }
     if (msg.t === "losses") {
@@ -594,11 +648,63 @@ export class LakeRoom extends DurableObject {
       const token = ok ? await boardToken(this.env.ADMIN_PASSWORD) : "";
       const keep = ok && !byTok ? await adminKeepToken(this.env.ADMIN_PASSWORD) : "";
       try { ws.send(JSON.stringify({ t: "auth", ok, token, keep, tok: byTok ? 1 : 0 })); } catch { /* ignore */ }
+      if (ok) await this.sendReports(ws);
       if (!ok && tries >= 5) { try { ws.close(4006, "auth"); } catch { /* ignore */ } }
       return;
     }
-    if (ADMIN_OPS.has(msg.t) && !prev.admin) {
+    // v79: 운영자는 관리자가 준 권한에 해당하는 메시지만 보낼 수 있어요
+    if (ADMIN_OPS.has(msg.t) && !prev.admin && !(prev.op && opAllowed(prev.op.p, msg.t))) {
       try { ws.send(JSON.stringify({ t: "auth", ok: false, need: 1 })); } catch { /* ignore */ }
+      return;
+    }
+    if (msg.t === "staffAdd") {
+      if (!prev.ready) return;
+      const target = this.openSockets().find((w) => { const a = this.attachment(w); return a && a.ready && a.id === msg.id && a.nick; });
+      const tAtt = target && this.attachment(target);
+      if (!tAtt) { try { ws.send(JSON.stringify({ t: "staffAddRes", ok: false, why: "offline" })); } catch { /* ignore */ } return; }
+      const staff = sanitizeStaff(await this.opsGet("staff", {}));
+      for (const k of Object.keys(staff)) if (staff[k].n === tAtt.nick) delete staff[k];
+      if (Object.keys(staff).length >= 50) { try { ws.send(JSON.stringify({ t: "staffAddRes", ok: false, why: "full" })); } catch { /* ignore */ } return; }
+      const opId = [...crypto.getRandomValues(new Uint8Array(8))].map((b) => b.toString(16).padStart(2, "0")).join("");
+      staff[opId] = { n: tAtt.nick, r: msg.r || "운영자", p: msg.p || [], t: Date.now() };
+      const tok = await hmacHex(this.env.ADMIN_PASSWORD || "", "op:" + opId);
+      try { target.send(JSON.stringify({ t: "staffTok", op: opId, tok, r: staff[opId].r, p: staff[opId].p, n: tAtt.nick })); } catch { /* ignore */ }
+      await this.acceptOps(prev.server, { t: "staff", staff });
+      try { ws.send(JSON.stringify({ t: "staffAddRes", ok: true, n: tAtt.nick })); } catch { /* ignore */ }
+      return;
+    }
+    if (msg.t === "opAuth") {
+      const att = this.attachment(ws) || prev;
+      if (msg.out || !msg.tok) { delete att.op; ws.serializeAttachment(att); return; }
+      const staff = sanitizeStaff(await this.opsGet("staff", {}));
+      const row = staff[msg.op];
+      const ok = !!(row && this.env.ADMIN_PASSWORD && row.n === att.nick && await sameSecret(msg.tok, await hmacHex(this.env.ADMIN_PASSWORD, "op:" + msg.op)));
+      if (ok) att.op = { id: msg.op, r: row.r, p: row.p };
+      else delete att.op;
+      ws.serializeAttachment(att);
+      try { ws.send(JSON.stringify(ok ? { t: "opAuth", ok: true, op: msg.op, r: row.r, p: row.p, n: row.n } : { t: "opAuth", ok: false, gone: row ? 0 : 1 })); } catch { /* ignore */ }
+      if (ok && (row.p.includes("rep") || row.p.includes("sanc"))) await this.sendReports(ws);
+      return;
+    }
+    if (msg.t === "report") {
+      if (!prev.ready) return;
+      const att = this.attachment(ws) || prev;
+      const now = Date.now();
+      att.repAt = (att.repAt || []).filter((x) => now - x < 10 * 60e3);
+      if (att.repAt.length >= 5) { try { ws.send(JSON.stringify({ t: "reportRes", ok: false, why: "many" })); } catch { /* ignore */ } return; }
+      let nick = msg.nick;
+      if (msg.id) { const hit = this.readyOthers(ws).find((a) => a.id === msg.id); if (hit) nick = hit.nick; }
+      const row = sanitizeReport({ kind: "user", nick, why: msg.why, memo: msg.memo, lines: msg.lines }, now, att.nick);
+      if (!row || row.nick === sanitizeNick(att.nick)) { try { ws.send(JSON.stringify({ t: "reportRes", ok: false, why: "bad" })); } catch { /* ignore */ } return; }
+      att.repAt.push(now);
+      ws.serializeAttachment(att);
+      await this.acceptOps(prev.server, { t: "reports", rows: [row] });
+      try { ws.send(JSON.stringify({ t: "reportRes", ok: true, nick: row.nick })); } catch { /* ignore */ }
+      return;
+    }
+    if (msg.t === "repDone" || msg.t === "staff") {
+      if (!prev.ready) return;
+      await this.acceptOps(prev.server, msg);
       return;
     }
     if (msg.t === "gameGet") {
@@ -680,6 +786,8 @@ export class LakeRoom extends DurableObject {
         }
       }
     }
+    // v79: '운영자'·'관리자' 칭호는 진짜 운영자·관리자만 달 수 있어요
+    if (play.tt && typeof play.tt === "object" && !prev.admin && !helloAdmin && !prev.op && /운영자|관리자|gm/i.test(String(play.tt.n || ""))) play = Object.assign({}, play, { tt: null });
     const others = this.readyOthers(ws).map((a) => ({ id: a.id, seatKey: a.seatKey }));
     const next = reduce(prev, play, Date.now(), others);
     if (next.drop) return;
@@ -694,6 +802,21 @@ export class LakeRoom extends DurableObject {
         if (banRow && banRow.mute > Date.now()) {
           try { ws.send(JSON.stringify({ t: "sanc", sanc: held })); } catch { /* ignore */ }
           return;
+        }
+        // v79: 도배 자동 채팅 금지 (관리자 제외)
+        if (!next.att.admin) {
+          this._spam = this._spam || new Map();
+          const nk = next.att.nick, tnow = Date.now();
+          const res = spamStep(this._spam.get(nk), next.event.text, tnow);
+          this._spam.set(nk, res.rec);
+          if (this._spam.size > 500) this._spam.delete(this._spam.keys().next().value);
+          if (res.hit) {
+            const until = tnow + res.ms;
+            try { ws.send(JSON.stringify({ t: "spam", n: res.n, ms: res.ms, until })); } catch { /* ignore */ }
+            await this.acceptOps(next.att.server, { t: "sanc", nick: nk, mute: until, why: `도배 자동 (${res.n}회)` });
+            if (res.flag) await this.acceptOps(next.att.server, { t: "reports", rows: [sanitizeReport({ kind: "spam", nick: nk, n: res.n, lines: [next.event.text] }, tnow)] });
+            return;
+          }
         }
       }
       this.broadcast(next.event, ws);
@@ -732,6 +855,7 @@ export class LakeRoom extends DurableObject {
         ...ops,
         game: await this.gamePublic(),
       }));
+      if (next.att.admin) await this.sendReports(ws);
       this.broadcast({ t: "join", n, peer: next.pub }, ws);
       console.log(JSON.stringify({ event: "join", server: next.att.server, n }));
       return;
@@ -793,6 +917,19 @@ export class LakeRoom extends DurableObject {
   }
 
   // ───────── v55: 초성·밸런스 게임 ─────────
+  /** v79: 관리자 + 신고를 볼 수 있는 운영자에게만 */
+  toStaff(obj) {
+    const text = JSON.stringify(obj);
+    for (const ws of this.openSockets()) {
+      const att = this.attachment(ws);
+      if (att && att.ready && (att.admin || (att.op && (att.op.p.includes("rep") || att.op.p.includes("sanc"))))) { try { ws.send(text); } catch { /* ignore */ } }
+    }
+  }
+  async sendReports(ws) {
+    const list = mergeReports(await this.opsGet("reports", []), null, Date.now());
+    try { ws.send(JSON.stringify({ t: "reports", all: list })); } catch { /* ignore */ }
+  }
+
   toAdmins(obj) {
     const text = JSON.stringify(obj);
     for (const ws of this.openSockets()) {

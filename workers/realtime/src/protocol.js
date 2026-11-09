@@ -14,11 +14,11 @@ export const HELLO_MS = 20000;
 export const MAX_MSG = 900;
 /** 공지·이벤트·밸런스·금칙어처럼 본문이 긴 운영 메시지. 채팅·포즈는 MAX_MSG. */
 export const MAX_OPS = 48000;
-const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses", "game", "gameNow", "titles"]);
+const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses", "game", "gameNow", "titles", "staff"]);
 
 const FISH = new Set(["off", "cast", "bite", "catch"]);
 /** v52: 서버 인증된 관리자 소켓만 보낼 수 있는 운영 메시지 */
-export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet", "titles"]);
+export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet", "titles", "staff", "staffAdd", "repDone"]);
 function cleanId(v, max) {
   return String(v == null ? "" : v).replace(/[^\w.-]/g, "").slice(0, max || 40);
 }
@@ -310,15 +310,21 @@ const DUCK_SIZES = [0.72, 1, 1.28, 1.55, 1.9];
 // 속도 단위: 초당 호수 좌표 거리. 관리자 값 0 / 0.5 / 1 / 1.5 / 2.5 → 멈춤 / 아주 느리게 / 느리게 / 보통 / 조금 빠르게
 const DUCK_SPD = [[0, 0], [0.5, 0.025], [1, 0.05], [1.5, 0.09], [2.5, 0.15]];
 export function duckSpeed(spd) {
-  const v = Number(spd);
+  // v79: 관리자가 숫자(0~5)로 직접 넣어요. 표의 값 사이는 직선으로 이어요 (2.5 이상은 1당 +0.06, 5에서 초당 0.3).
+  const v = Math.min(5, Number(spd));
   if (!Number.isFinite(v) || v <= 0) return 0;
-  for (const [k, u] of DUCK_SPD) if (Math.abs(k - v) < 1e-6) return u;
-  return Math.min(0.2, v * 0.06);
+  for (let j = 1; j < DUCK_SPD.length; j++) {
+    const [k0, u0] = DUCK_SPD[j - 1], [k1, u1] = DUCK_SPD[j];
+    if (v <= k1) return u0 + (u1 - u0) * (v - k0) / (k1 - k0);
+  }
+  return 0.15 + (v - 2.5) * 0.06;
 }
 function duckPoint(seed, i, k, R) {
   const h = mix32(mix32(seed, 500 + i), (k | 0) >>> 0);
   const h2 = mix32(h, 77);
-  const r = Math.sqrt((h % 100000) / 100000) * R * 0.85;
+  // v79: 지점의 40%는 바깥 고리(데크 끝 가까이), 나머지는 호수 안쪽 전체에 고르게 → 한 곳에 몰리지 않아요
+  const u = (h % 100000) / 100000;
+  const r = (h >>> 20) % 10 < 4 ? R * (0.8 + 0.15 * u) : Math.sqrt(u) * R * 0.8;
   const a = ((h2 % 100000) / 100000) * Math.PI * 2;
   return [Math.cos(a) * r, Math.sin(a) * r];
 }
@@ -341,7 +347,8 @@ function duckPos(seed, i, ageMs, R, v) {
   x += Math.sin(s * 0.09 + ph) * amp;
   z += Math.cos(s * 0.07 + ph * 1.3) * amp;
   const r = Math.hypot(x, z), lim = R * 0.95;
-  if (r > lim) { x *= lim / r; z *= lim / r; }
+  // v79: 벽에 닿으면 미끄러지지 않고 튕겨 안쪽으로 방향을 바꿔요
+  if (r > lim) { const k = Math.max(0.5 * lim, 2 * lim - r) / r; x *= k; z *= k; }
   return [x, z];
 }
 export function sharedDucks(now, world, opt) {
@@ -864,7 +871,7 @@ export function sanitizePlay(input, prev, opt) {
   if ("duckMax" in input) out.duckMax = Math.max(0, Math.min(32, Math.round(finite(input.duckMax, base.duckMax != null ? base.duckMax : 8))));
   // v48: "rand"(랜덤)를 숫자 1로 바꾸지 않고 그대로 전달
   if ("duckSize" in input) out.duckSize = String(input.duckSize) === "rand" ? "rand" : snapList(input.duckSize, DUCK_SIZE, base.duckSize === "rand" ? 1 : snapList(base.duckSize, DUCK_SIZE, 1));
-  if ("duckSpeed" in input) out.duckSpeed = snapList(input.duckSpeed, DUCK_SPEED, snapList(base.duckSpeed, DUCK_SPEED, 1));
+  if ("duckSpeed" in input) out.duckSpeed = Math.round(Math.max(0, Math.min(5, finite(input.duckSpeed, base.duckSpeed != null ? +base.duckSpeed : 1.5))) * 100) / 100;
   if ("duckKinds" in input) out.duckKinds = cleanKinds(input.duckKinds, base.duckKinds);
   if ("tutOff" in input) out.tutOff = flag01(input.tutOff);
   if ("donOff" in input) out.donOff = flag01(input.donOff);
@@ -886,6 +893,7 @@ export function sanitizePlay(input, prev, opt) {
     else delete out.boxShop;
   }
   if ("deck4" in input) out.deck4 = pickOf(input.deck4, ["off", "A", "B"]);
+  if ("boxEarly" in input) out.boxEarly = pickOf(input.boxEarly, ["off", "A", "B"]);
   if ("duckFun" in input) out.duckFun = pickOf(input.duckFun, ["off", "slide", "flume", "fountain", "all"]);
   if ("advOn" in input) out.advOn = pickOf(input.advOn, ["off", "on", "fast"]);
   // v70: 관리자가 정한 유저 처음 화면 배치 {m:{id:[dx,dy,scale]}, pc:{...}}
@@ -1138,6 +1146,24 @@ export function parseClient(raw) {
     if (!Array.isArray(msg.losses)) return null;
     return { t: "losses", losses: msg.losses.slice(0, 20) };
   }
+  // v79: 운영자 · 신고
+  if (msg.t === "staff") return msg.staff && typeof msg.staff === "object" && !Array.isArray(msg.staff) ? { t: "staff", staff: msg.staff } : null;
+  if (msg.t === "staffAdd") {
+    const id = cleanId(msg.id, 40);
+    return id ? { t: "staffAdd", id, r: cleanText(msg.r || "운영자", 12), p: cleanPerms(msg.p) } : null;
+  }
+  if (msg.t === "opAuth") {
+    const op = String(msg.op || "").replace(/[^\w-]/g, "").slice(0, 32);
+    return op && typeof msg.tok === "string" ? { t: "opAuth", op, tok: msg.tok.slice(0, 80), out: !!msg.out } : (msg.out ? { t: "opAuth", out: true } : null);
+  }
+  if (msg.t === "report") {
+    return {
+      t: "report", id: cleanId(msg.id, 40), nick: msg.nick == null ? "" : String(msg.nick).slice(0, 40),
+      why: cleanText(msg.why || "", 12), memo: cleanText(msg.memo || "", 120),
+      lines: (Array.isArray(msg.lines) ? msg.lines : []).slice(-5).map((x) => cleanText(x, 90)),
+    };
+  }
+  if (msg.t === "repDone") return { t: "repDone", id: String(msg.id || "").replace(/[^\w-]/g, "").slice(0, 24), del: !!msg.del };
   if (msg.t === "chat" || msg.t === "emote") {
     const text = cleanText(msg.text, msg.t === "emote" ? 8 : 80);
     if (!text) return null;
@@ -1301,4 +1327,87 @@ export function reduce(prev, msg, now, others) {
   att.ready = true;
 
   return { att, drop: false, first, denied, pub: publicPeer(att) };
+}
+
+// ───────── v79: 운영자(스태프) · 신고 · 도배 자동 제재 ─────────
+/** 운영자 권한 키. 관리자 창 탭과 같은 이름이에요. test(테스트·디버그)는 최고관리자만. */
+export const STAFF_PERMS = ["dash", "user", "give", "sanc", "rep", "rec", "time", "map", "bal", "ev", "ann", "prof", "look", "lab", "op"];
+/** 관리자 전용 메시지 → 필요한 권한(하나라도 있으면 허용) */
+export const OP_NEED = {
+  sanc: ["sanc"], grant: ["give"], grants: ["give"], gift: ["give"], recover: ["rec"], world: ["time"],
+  stage: ["map"], play: ["map", "look", "lab", "bal"], balance: ["bal"], event: ["ev"], cue: ["ev"],
+  game: ["ev"], gameNow: ["ev"], gameGet: ["ev"], notice: ["ann"], prof: ["prof"], titles: ["user"],
+  staff: ["op"], staffAdd: ["op"], repDone: ["rep", "sanc"],
+};
+export function opAllowed(perms, t) {
+  const need = OP_NEED[t];
+  if (!need || !Array.isArray(perms)) return false;
+  return need.some((p) => perms.includes(p));
+}
+export function cleanPerms(p) {
+  return [...new Set((Array.isArray(p) ? p : []).filter((x) => STAFF_PERMS.includes(x)))];
+}
+/** 운영자 목록 { opId: { n, r, p, t } } — 최대 50명 */
+export function sanitizeStaff(map) {
+  const out = {};
+  if (!map || typeof map !== "object" || Array.isArray(map)) return out;
+  for (const k of Object.keys(map)) {
+    if (Object.keys(out).length >= 50) break;
+    const id = String(k).replace(/[^\w-]/g, "").slice(0, 32);
+    const row = map[k];
+    if (!id || !row || typeof row !== "object") continue;
+    const n = sanitizeNick(row.n);
+    if (!String(row.n || "").trim()) continue;
+    out[id] = { n, r: cleanText(row.r || "운영자", 12) || "운영자", p: cleanPerms(row.p), t: Math.round(finite(row.t, 0)) };
+  }
+  return out;
+}
+/** 신고 한 줄: kind = user(유저 신고) | spam(도배 자동 감지) */
+export function sanitizeReport(input, now, from) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  if (!input || typeof input !== "object" || Array.isArray(input)) return null;
+  if (!String(input.nick || "").trim()) return null;
+  const kind = input.kind === "spam" ? "spam" : "user";
+  const WHY = ["욕설·비하", "도배", "부적절한 닉네임", "사기·거래", "불법 프로그램", "기타"];
+  const why = kind === "spam" ? "도배" : (WHY.includes(input.why) ? input.why : "기타");
+  const lines = (Array.isArray(input.lines) ? input.lines : []).slice(-5).map((s) => cleanText(s, 90)).filter(Boolean);
+  return {
+    id: String(input.id || (t.toString(36) + Math.random().toString(36).slice(2, 6))).replace(/[^\w-]/g, "").slice(0, 24),
+    t, kind, nick: sanitizeNick(input.nick), from: kind === "spam" ? "자동 감지" : sanitizeNick(from || "낚시꾼"),
+    why, memo: cleanText(input.memo || "", 120), lines, sv: Math.max(0, Math.min(4, Math.round(finite(input.sv, 0)))),
+    n: Math.max(1, Math.min(999, Math.round(finite(input.n, 1)))), done: input.done ? 1 : 0,
+  };
+}
+/** 최근 14일 · 최대 200건. 같은 사람이 같은 대상 신고를 10분 안에 또 하면 하나로 */
+export function mergeReports(prev, incoming, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  const out = (Array.isArray(prev) ? prev : []).filter((x) => x && x.id && x.t > t - 14 * 864e5);
+  for (const row of Array.isArray(incoming) ? incoming : (incoming ? [incoming] : [])) {
+    if (!row || !row.id || out.some((x) => x.id === row.id)) continue;
+    const dup = out.find((x) => x.kind === row.kind && x.nick === row.nick && x.from === row.from && row.t - x.t < 10 * 60e3 && !x.done);
+    if (dup) { dup.n = (dup.n | 0) + (row.n | 0 || 1); dup.t = row.t; if (row.lines.length) dup.lines = row.lines; continue; }
+    out.unshift(row);
+  }
+  return out.slice(0, 200);
+}
+/** 도배 감지: 10초에 5번 이상 · 또는 30초 안에 같은 말 3번.
+ *  1~3번째 적발 1분, 4번째부터 5분 채팅 금지. 1시간에 6번 이상이면 악성 도배자로 관리자·운영자에게 알려요. */
+export const SPAM = { win: 10e3, max: 5, same: 3, sameWin: 30e3, short: 60e3, long: 5 * 60e3, longAfter: 3, flagAt: 6, hour: 3600e3 };
+export function spamStep(rec, text, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  const r = rec && typeof rec === "object" ? rec : {};
+  r.ts = (r.ts || []).filter((x) => t - x[0] < SPAM.sameWin);
+  r.strikes = (r.strikes || []).filter((x) => t - x < SPAM.hour);
+  const key = String(text || "").replace(/\s+/g, "").toLowerCase();
+  r.ts.push([t, key]);
+  const burst = r.ts.filter((x) => t - x[0] < SPAM.win).length >= SPAM.max;
+  const same = key && r.ts.filter((x) => x[1] === key).length >= SPAM.same;
+  if (!(burst || same)) return { rec: r, hit: false };
+  r.ts = [];
+  r.strikes.push(t);
+  const n = r.strikes.length;
+  const ms = n > SPAM.longAfter ? SPAM.long : SPAM.short;
+  const flag = n >= SPAM.flagAt && !(r.flagAt && t - r.flagAt < SPAM.hour);
+  if (flag) r.flagAt = t;
+  return { rec: r, hit: true, n, ms, flag };
 }

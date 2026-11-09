@@ -174,8 +174,60 @@
     if (m.cues) takeCues(m.cues);
     if (m.recovers) takeRecovers(m.recovers);
     if (m.losses) takeLosses(m.losses);
+    if (m.staff) takeStaff(m.staff);
+    // v79: 운영자로 등록된 브라우저면 접속할 때 운영자 토큰을 보내요
+    RT.op = null;
+    { const o = opGet(); if (o) setTimeout(() => { if (RT.mode === "on") send({ t: "opAuth", op: o.op, tok: o.tok }); }, 400); }
     try { dispatchEvent(new CustomEvent("nk-rt-welcome", { detail: m })); } catch (e) { /* ignore */ }
   }
+
+  // ───────── v79: 운영자 · 신고 · 도배 ─────────
+  function opGet() { try { const o = JSON.parse(localStorage.getItem("nk_op") || "null"); return o && o.op && o.tok ? o : null; } catch (e) { return null; } }
+  function opSet(o) { try { if (o) localStorage.setItem("nk_op", JSON.stringify(o)); else localStorage.removeItem("nk_op"); } catch (e) { /* ignore */ } }
+  RT.staff = {};
+  RT.reports = [];
+  function takeStaff(st) {
+    RT.staff = st && typeof st === "object" ? st : {};
+    try { dispatchEvent(new CustomEvent("nk-rt-staff", { detail: RT.staff })); } catch (e) { /* ignore */ }
+  }
+  function takeReports(m) {
+    if (Array.isArray(m.all)) RT.reports = m.all.slice();
+    else (m.rows || []).forEach((r) => {
+      const i = RT.reports.findIndex((x) => x.id === r.id || (x.kind === r.kind && x.nick === r.nick && x.from === r.from && !x.done && r.t - x.t < 600000));
+      if (i >= 0) { RT.reports[i] = Object.assign({}, RT.reports[i], r, { n: (RT.reports[i].n | 0) + (r.n | 0 || 1), id: RT.reports[i].id }); const x = RT.reports.splice(i, 1)[0]; RT.reports.unshift(x); }
+      else RT.reports.unshift(r);
+    });
+    RT.reports = RT.reports.slice(0, 200);
+    try { dispatchEvent(new CustomEvent("nk-rt-reports", { detail: m })); } catch (e) { /* ignore */ }
+  }
+  function onStaffMsg(m) {
+    if (m.t === "staff") { takeStaff(m.staff); return true; }
+    if (m.t === "staffTok") { opSet({ op: m.op, tok: m.tok }); send({ t: "opAuth", op: m.op, tok: m.tok }); return true; }
+    if (m.t === "opAuth") {
+      RT.op = m.ok ? { op: m.op, r: m.r || "운영자", p: Array.isArray(m.p) ? m.p : [], n: m.n || "" } : null;
+      if (!m.ok && (m.revoked || m.gone)) opSet(null);
+      try { dispatchEvent(new CustomEvent("nk-rt-op", { detail: RT.op })); } catch (e) { /* ignore */ }
+      return true;
+    }
+    if (m.t === "reports") { takeReports(m); return true; }
+    if (m.t === "repDone") {
+      if (m.del) RT.reports = RT.reports.filter((x) => x.id !== m.id); else RT.reports.forEach((x) => { if (x.id === m.id) x.done = 1; });
+      try { dispatchEvent(new CustomEvent("nk-rt-reports", { detail: m })); } catch (e) { /* ignore */ }
+      return true;
+    }
+    if (m.t === "spam" || m.t === "reportRes" || m.t === "staffAddRes") {
+      try { dispatchEvent(new CustomEvent("nk-rt-" + m.t.toLowerCase(), { detail: m })); } catch (e) { /* ignore */ }
+      return true;
+    }
+    return false;
+  }
+  RT.isOp = function () { return !!RT.op; };
+  RT.opCan = function (k) { return !!(RT.admin || (RT.op && RT.op.p.includes(k))); };
+  RT.report = function (row) { if (RT.mode !== "on") return false; send(Object.assign({ t: "report" }, row || {})); return true; };
+  RT.staffAdd = function (id, r, p) { return RT.mode === "on" ? (send({ t: "staffAdd", id, r, p }), true) : false; };
+  RT.setStaff = function (staff) { return RT.mode === "on" ? (send({ t: "staff", staff: staff || {} }), true) : false; };
+  RT.repDone = function (id, del) { return RT.mode === "on" ? (send({ t: "repDone", id, del: !!del }), true) : false; };
+  RT.opLeave = function () { opSet(null); RT.op = null; if (RT.mode === "on") send({ t: "opAuth", out: true }); try { dispatchEvent(new CustomEvent("nk-rt-op", { detail: null })); } catch (e) { /* ignore */ } };
 
   function takeNotice(n) {
     RT.notice = n || null;
@@ -253,6 +305,7 @@
 
   function onMessage(m) {
     if (!m || typeof m !== "object") return;
+    if (onStaffMsg(m)) return;
     if (typeof m.n === "number" && (m.t === "welcome" || m.t === "join" || m.t === "leave")) RT.n = m.n;
     if (m.t === "join" && m.peer && m.peer.id !== RT.id) peers.set(m.peer.id, m.peer);
     else if (m.t === "leave" && m.id) peers.delete(m.id);
