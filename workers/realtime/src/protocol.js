@@ -992,11 +992,14 @@ export function sanitizePlay(input, prev, opt) {
   if ("lvSt" in input) out.lvSt = pickOf(input.lvSt, ["1", "3", "old"]);
   if ("cook" in input) out.cook = pickOf(input.cook, ["off", "on"]);
   if ("ckPos" in input) out.ckPos = pickOf(input.ckPos, ["ext", "back", "side"]);
+  if ("ckSnd" in input) out.ckSnd = pickOf(input.ckSnd, ["B", "A", "off"]);
+  if ("tank3" in input) out.tank3 = pickOf(input.tank3, ["off", "on"]);
   if ("profView" in input) out.profView = pickOf(input.profView, ["on", "off"]);
   if ("timeIco" in input) out.timeIco = pickOf(input.timeIco, ["A", "B", "C", "old"]);
   if ("wearShop" in input) out.wearShop = pickOf(input.wearShop, ["off", "on"]);
   if ("sumSt" in input) out.sumSt = pickOf(input.sumSt, ["B", "A", "C", "old"]);
   if ("profSt" in input) out.profSt = pickOf(input.profSt, ["A", "B", "C"]);
+  if ("pouchCfg" in input) { const v = input.pouchCfg, o = { gp: [], gl: 1 }; if (v && typeof v === "object") { if (Array.isArray(v.gp)) o.gp = v.gp.slice(0, 6).map((x) => { const n = Number(x); return Number.isFinite(n) ? Math.max(0, Math.min(100, Math.round(n * 10) / 10)) : 0; }); const g = Number(v.gl); if (Number.isFinite(g)) o.gl = Math.max(0, Math.min(20, Math.round(g * 10) / 10)); } out.pouchCfg = o; }
   if ("wearCfg" in input) { const v = input.wearCfg, o = {}; if (v && typeof v === "object") for (const k of ["1", "10", "20", "30", "40"]) { const n = Number(v[k]); if (Number.isFinite(n) && n >= 0) o[k] = Math.min(1e7, Math.round(n)); } out.wearCfg = o; }
   if ("vehCfg" in input) {
     const v = input.vehCfg;
