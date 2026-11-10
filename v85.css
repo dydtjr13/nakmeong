@@ -651,3 +651,57 @@ body.flying #prompt,body.flying #fishBtn{display:none!important}#flyUD button sm
 .fzset>div{min-width:0}
 .fzset.ok{flex-direction:column;align-items:stretch;gap:7px}
 .fzset.ok button{width:100%;white-space:nowrap;padding:8px 0}
+/* v104 상점 되팔기 */
+button.sellb{background:#fff4e2;color:#a8641a;border:1.5px solid #f0c890;border-radius:999px;font-weight:800;font-size:12.5px;padding:5px 10px;white-space:nowrap;cursor:pointer;margin-top:4px}
+button.sellb:hover{background:#ffe7c2}
+.tkA-filt button.unlk{background:#fff4e2;color:#a8641a;border-color:#f0c890;white-space:nowrap}
+.tkA-bar button{white-space:nowrap}
+/* v104 합성 버튼 B · 한 번에 합성 */
+.fzgoB{display:grid;grid-template-columns:auto 1fr 1.25fr;gap:10px;align-items:center;background:#fff;border-radius:18px;padding:11px 13px;margin-top:10px;box-shadow:0 2px 0 #efe4d2}
+.fzgoB .need{display:flex;flex-direction:column;font-size:12px;color:#8a7560;font-weight:700;white-space:nowrap}
+.fzgoB .need b{display:flex;align-items:center;gap:4px;font-size:18px;color:#4a3a2c}.fzgoB .need img{width:24px;height:auto}
+.fzgoB button{border:0;border-radius:15px;font-weight:900;font-size:16px;padding:12px 8px;white-space:nowrap;cursor:pointer;font-family:inherit;color:#fff}
+.fzgoB button small{font-size:11.5px;font-weight:700;opacity:.9}
+.fzgoB .one{background:linear-gradient(#ffb070,#f2914c);box-shadow:0 4px 0 #d27236}
+.fzgoB .all{background:linear-gradient(#8a6af4,#5b3fd6);box-shadow:0 4px 0 #4027a8}
+.fzgoB button:disabled{filter:grayscale(.6);opacity:.55;cursor:default}
+.fzgoN{margin:7px 2px 0;text-align:center;font-size:12px;color:#a08a70;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fmgo .fzgoB{grid-template-columns:auto 1fr;margin-top:0}.fmgo .fzgoB .all{grid-column:1/-1}
+.fmgo .fzgoN{white-space:normal}
+.fzall .fzrc{max-width:min(500px,92vw)}
+.fzag{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px;margin:12px 0 4px}
+.fzat{background:#fff;border-radius:16px;padding:10px 6px;box-shadow:0 2px 0 #efe4d2;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
+.fzat b,.fzat small{white-space:nowrap}.fzat b{font-size:14.5px}.fzat small{font-size:11.5px;color:#8a7560}
+.fzat .fzi{width:74px;height:46px;object-fit:contain}
+.fzat.v{background:var(--vb);box-shadow:0 0 0 2px var(--vc)}.fzat.v b,.fzat.v small{color:var(--vc);font-weight:800}
+.fzat.fail{background:#f1ecfb}.fzat.fail b{color:#7a5cd0}.fzab{font-size:30px;height:46px;display:flex;align-items:center}
+.fzas{margin:2px 0;font-size:13px;color:#8a7560}
+.fzall .fzrc{width:min(520px,92vw)}
+.fzall .fzag{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));width:100%}
+.fzat b{color:#4a3a2c}
+#fuse .fmgo{display:block}
+#fuse .fmgo .fzgoB{grid-template-columns:auto 1fr}
+#fuse .fmgo .fzgoB button{font-size:15px;padding:11px 6px}
+#fuse .fmgo .fzgoN{white-space:normal;font-size:11.5px}
+.fzall .fzag{grid-template-columns:repeat(auto-fit,148px);justify-content:center}
+/* v104 요리창: 오른쪽 = 실제 3D 그릴 그림 + 지금 물고기 그림 */
+.ckcard2{width:min(900px,96vw)}
+#ckDlg .ckR.ck3{width:48%;background:#3a2014}
+.ck3 .ckg3{position:absolute;inset:0;background:url(img/cook/grill3d.jpg) 50% 62%/cover no-repeat}
+.ck3 .ckglow{position:absolute;inset:0;background:radial-gradient(ellipse 38% 26% at 51% 52%,rgba(255,150,50,.35),transparent 70%),linear-gradient(rgba(255,170,90,.18),rgba(255,120,40,.05) 50%,rgba(40,15,5,.15));mix-blend-mode:screen;pointer-events:none}
+.ck3.on .ckglow{animation:ckGl 1.4s ease-in-out infinite alternate}
+@keyframes ckGl{from{opacity:.7}to{opacity:1}}
+.ck3 .ckfish{top:47%;transform:translate(-50%,-58%) rotate(-8deg)}
+.ck3 .ckfish.flip{transform:translate(-50%,-58%) rotate(-8deg) scaleX(-1)}
+.ck3 .ckfish .ckgf{width:min(250px,38vw);filter:sepia(calc(var(--d)*.7)) saturate(calc(1 + var(--d)*.8)) brightness(calc(1 - var(--d)*.1)) drop-shadow(0 6px 4px rgba(40,10,0,.45))}
+.ck3 .cksp i{position:absolute;width:6px;height:6px;border-radius:50%;background:#ffd25e;box-shadow:0 0 8px #ffb02e;left:50%;top:50%;animation:ckSp 1.6s linear infinite;opacity:0}
+.ck3 .cksp i:nth-child(2){left:44%;animation-delay:.3s}.ck3 .cksp i:nth-child(3){left:57%;animation-delay:.6s}.ck3 .cksp i:nth-child(4){left:48%;animation-delay:.9s}.ck3 .cksp i:nth-child(5){left:61%;animation-delay:1.1s}.ck3 .cksp i:nth-child(6){left:40%;animation-delay:1.3s}
+@keyframes ckSp{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(-150px);opacity:0}}
+#ckDlg .ckL .ckfs{grid-template-columns:repeat(3,1fr);gap:10px}
+#ckDlg .ckL .ckf{height:88px}#ckDlg .ckL .ckf img{max-height:58px;width:84%;margin-bottom:10px}#ckDlg .ckL .ckf em{font-size:11.5px}
+#ckDlg .ckL .ckf .ckfn{position:absolute;left:8px;bottom:5px;font-size:12px;font-weight:800;color:#3a4a5a;white-space:nowrap}
+.ckL .ckf em{white-space:nowrap}
+@media (max-width:760px){#ckDlg .ckR.ck3{width:100%;height:220px}}
+#ckDlg .ckn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tkunl{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff4e2;border:1.5px solid #f0c890;border-radius:12px;padding:6px 10px;margin-bottom:8px}
+.tkunl button{white-space:nowrap;background:#fff;border:1.5px solid #f0c890;color:#a8641a;font-weight:800;border-radius:999px;padding:5px 12px;cursor:pointer}
