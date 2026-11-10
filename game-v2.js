@@ -1,7 +1,7 @@
 /* 피쉬코지 FISH COZY (구 피쉬레스트/낚멍) v2 — 3D 로우폴리 파스텔 (three.js r147, 일반 script 빌드: file:// 더블클릭 실행 가능) */
 (()=>{
 let V14=null,V15=null;
-const FHOOK=[];// v86: 매 프레임 불리는 테스트 기능 (기차 등)
+const FHOOK=[];const LTNS=()=>!!window.NK_NOSLIM;// v86: 매 프레임 불리는 테스트 기능 (기차 등)
 const RHOOK=[];const PHOOK=[];// v91: 내 캐릭터가 움직인 뒤 불려요 (탈것)// v89: 다른 유저 캐릭터 위치를 정한 뒤 불려요 (기차 좌석에 붙이기 등)
 THREE.ColorManagement.legacyMode=false;
 const D=NK_DATA,$=id=>document.getElementById(id),qs=new URLSearchParams(location.search);
@@ -508,7 +508,7 @@ function ensureDeckSeats(){decks.forEach(d=>{if(!d||d.i===0)return;
   const has=SEATS.some(s=>s.kind==='stool'&&!s.twin&&(s.deck===d||s.deck===d.i||(s.deck&&s.deck.i)===d.i));
   if(has)return;
   for(const side of [-.55,.55]){const x=d.tip.x+d.ca*.05-d.sa*side,z=d.tip.z+d.sa*.05+d.ca*side;SEATS.push({x,z,y:.96,cap:1,occ:[],deck:d,kind:'stool',virt:1});}});}
-function updMyTankExt(){if(!window.NK_TANKX||!myTankPos||myTankK===S.tankK)return;myTankK=S.tankK;if(myTankX){scene.remove(myTankX);const i=tankPickers.indexOf(myTankX);if(i>=0)tankPickers.splice(i,1);}const T=D.TANKS.find(t=>t.k===S.tankK),x=NK_TANKX(T.design,{W:3.2,H:1.9,D:1.5,y0:1.25,sh:1.25});const g=x.g;g.scale.setScalar(.42);g.position.set(myTankPos.x,.39+(myTankPos.y||0),myTankPos.z);g.rotation.y=myTankPos.ry;g.traverse(m=>m.userData.myTank=true);scene.add(g);myTankX=g;tankPickers.push(g);}let lanGlow=null;
+function updMyTankExt(){if(!window.NK_TANKX||!myTankPos||myTankK===S.tankK)return;myTankK=S.tankK;if(myTankX){scene.remove(myTankX);const i=tankPickers.indexOf(myTankX);if(i>=0)tankPickers.splice(i,1);}const T=D.TANKS.find(t=>t.k===S.tankK),x=NK_TANKX(T.design,{W:3.2,H:1.9,D:1.5,y0:1.25,sh:1.25});try{if(window.NK89&&NK89.slimGroup&&!LTNS())NK89.slimGroup(x.g);}catch(e){}const g=x.g;g.scale.setScalar(.42);g.position.set(myTankPos.x,.39+(myTankPos.y||0),myTankPos.z);g.rotation.y=myTankPos.ry;g.traverse(m=>m.userData.myTank=true);scene.add(g);myTankX=g;tankPickers.push(g);}let lanGlow=null;
 const inDeck=(x,z)=>decks.some(d=>{const dx=x-d.cx,dz=z-d.cz,al=dx*d.ca+dz*d.sa,sd=-dx*d.sa+dz*d.ca;if(d.tw){const w=d.tw.sh*2,h=d.tw.hw||1.4;if(Math.abs(al)<4.4&&sd>-h&&sd<w+h&&(d.tw.kind==='A'||sd<h||sd>w-h||Math.abs(Math.abs(al)-3.9)<.4))return true;}if(DW&&d.tw){const s2=sd-d.tw.sh*2;if(Math.abs(al)<4.4&&Math.abs(s2)<DW.w/2-.1)return true;if(DW.ext.some(([x0,x1,z0,z1])=>s2>x0+.1&&s2<x1-.1&&-al>z0&&-al<z1))return true;}if(!DW)return Math.abs(al)<4.4&&Math.abs(sd)<1.4;const zz=-al;if(Math.abs(al)<4.4&&Math.abs(sd)<DW.w/2-.1)return true;return DW.ext.some(([x0,x1,z0,z1])=>sd>x0+.1&&sd<x1-.1&&zz>z0&&zz<z1);});
 // 어항 안 작은 물고기 (월드 표시용, 인스턴싱)
 let worldFish=null;
@@ -904,8 +904,8 @@ const ROD_POSE={p:[-.15,.25,.16],rx:.95,rz:.14,arm:-1.0};
 // v105: 낚싯대를 캐릭터마다 손끝(손 가운데)에 맞춰요 — 팔 뼈 기준으로 손 위치를 재서 몸 기준 좌표로 저장
 function rodHand(c){try{const o=c.o,arm=c.arm;if(!arm)return null;const P=ROD_POSE,sv=arm.rotation.clone();arm.rotation.set(P.arm,0,0);o.updateMatrixWorld(true);const pts=[],sh=new THREE.Vector3();arm.getWorldPosition(sh);
  o.traverse(m=>{if(!m.isSkinnedMesh||!m.boneTransform)return;const sk=m.skeleton,bi=sk.bones.indexOf(arm);if(bi<0)return;sk.update();const si=m.geometry.attributes.skinIndex,sw=m.geometry.attributes.skinWeight,n=m.geometry.attributes.position.count;if(!si)return;
-  for(let i=0;i<n;i++){const IX=[si.getX(i),si.getY(i),si.getZ(i),si.getW(i)],WX=[sw.getX(i),sw.getY(i),sw.getZ(i),sw.getW(i)];let w=0;for(let j=0;j<4;j++)if(IX[j]===bi)w+=WX[j];if(w>.6){const v=new THREE.Vector3();m.boneTransform(i,v);pts.push(m.localToWorld(v));}}});
- arm.rotation.copy(sv);if(pts.length<4){o.updateMatrixWorld(true);return null;}let mx=0;pts.forEach(q=>{mx=Math.max(mx,q.distanceTo(sh));});const far=pts.filter(q=>q.distanceTo(sh)>mx*.9),hc=new THREE.Vector3();far.forEach(q=>hc.add(q));hc.multiplyScalar(1/far.length);
+  for(let i=0;i<n;i++){const IX=[si.getX(i),si.getY(i),si.getZ(i),si.getW(i)],WX=[sw.getX(i),sw.getY(i),sw.getZ(i),sw.getW(i)];let w=0;for(let j=0;j<4;j++)if(IX[j]===bi)w+=WX[j];if(w>.6){const v=new THREE.Vector3().fromBufferAttribute(m.geometry.attributes.position,i);m.boneTransform(i,v);pts.push(m.localToWorld(v));}}});
+ const shL=o.worldToLocal(sh.clone()),sgn=Math.sign(shL.x)||-1;const own=pts.filter(q=>Math.sign(o.worldToLocal(q.clone()).x-shL.x*.3)===sgn);pts.length=0;pts.push(...own);arm.rotation.copy(sv);if(pts.length<4){o.updateMatrixWorld(true);return null;}let mx=0;pts.forEach(q=>{mx=Math.max(mx,q.distanceTo(sh));});const far=pts.filter(q=>q.distanceTo(sh)>mx*.9),hc=new THREE.Vector3();far.forEach(q=>hc.add(q));hc.multiplyScalar(1/far.length);
  const loc=o.worldToLocal(hc.clone());o.updateMatrixWorld(true);if(!isFinite(loc.x)||loc.length()>2)return null;return loc;}catch(e){window.__rhW=e.message;return null;}}
 function poseRod(c,dt){if(!c.rod.visible||!c.arm)return;if(c.rodP===undefined){c.rodP=rodHand(c);if(c.rodP){c.rod.position.x=c.rodP.x;c.rod.position.z=c.rodP.z;}}const P=ROD_POSE,t=performance.now()/1000;let rx=P.rx,ax=P.arm;
   if(c===me&&castT>=0&&castT<1){const k=castT;rx=k<.3?P.rx+(-.35-P.rx)*(k/.3):-.35+(P.rx+.35)*(1-Math.pow(1-(k-.3)/.7,3));ax=P.arm+(k<.3?-.5*(k/.3):-.5*(1-(k-.3)/.7));}
@@ -933,7 +933,7 @@ function mergeStatic(root){root.updateMatrixWorld(true);const inv=new THREE.Matr
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
   const mt=L[0].material.clone();mt.vertexColors=true;mt.color.set(0xffffff);const mm=new THREE.Mesh(g,mt);mm.castShadow=L[0].castShadow;mm.receiveShadow=L[0].receiveShadow;mm.frustumCulled=false;root.add(mm);L.forEach(m=>m.parent.remove(m));n+=L.length-1;});return n;}
 function makeChar(ki,name){const K=KINDS[ki]||KINDS[0],src=K.animal?{scene:null,animations:[]}:G[K.k];let o;
-  if(K.animal){o=new THREE.Group();const rig=NK_CHARS.buildAnimal(K.animal);rig.scale.setScalar(1/2.6);o.add(rig);const ar=rig.getObjectByName('arm-right');o.add(ar);ar.position.multiplyScalar(1/2.6);const hd=rig.getObjectByName('head');o.add(hd);hd.position.multiplyScalar(1/2.6);if(S.mergeOff!==true)mergeStatic(rig);o.scale.setScalar(2.6*K.s);scene.add(o);o.userData.rig=rig;}
+  if(K.animal){o=new THREE.Group();const rig=NK_CHARS.buildAnimal(K.animal);rig.scale.setScalar(1/2.6);o.add(rig);const ar=rig.getObjectByName('arm-right');o.add(ar);ar.position.multiplyScalar(1/2.6);const hd=rig.getObjectByName('head');o.add(hd);hd.position.multiplyScalar(1/2.6);if(S.mergeOff!==true){mergeStatic(rig);/* v106: 머리·팔·다리 조각도 각각 한 덩어리로 (움직이는 축은 그대로) */try{if(!LTNS()){mergeStatic(hd);mergeStatic(ar);const lg=[];rig.traverse(m=>{if(m.name==='leg'&&!m.isMesh)lg.push(m);});lg.forEach(l=>mergeStatic(l));}}catch(e){}}o.scale.setScalar(2.6*K.s);scene.add(o);o.userData.rig=rig;}
   else{o=THREE.SkeletonUtils.clone(src.scene);o.scale.setScalar(2.6*K.s);scene.add(o);if(K.rc)kRecolor(o,K.rc);if(K.myth&&window.NK_MYTH)NK_MYTH(o,K.myth);if(K.sk)kRecolor(o,K.sk,1);if(K.hat)kHat(o,K.hat);if(K.prop&&window.NK_CHARS){try{const mx=new THREE.AnimationMixer(o),cl=src.animations.find(a=>/idle/i.test(a.name));if(cl){mx.clipAction(cl).play();mx.update(.6);}NK_CHARS.addProp(o,K.prop);mx.stopAllAction();}catch(e){console.warn(e);}}}
   const mixer=new THREE.AnimationMixer(o),acts={};src.animations.forEach(a=>acts[a.name]=mixer.clipAction(a));
   const arm=o.getObjectByName('arm-right');const rodM=new THREE.Group();const rc=new THREE.Mesh(new THREE.CylinderGeometry(.006,.014,.95,5),new THREE.MeshLambertMaterial({color:'#7a5236'}));rc.position.y=.47;rodM.add(rc);
@@ -942,7 +942,14 @@ function makeChar(ki,name){const K=KINDS[ki]||KINDS[0],src=K.animal?{scene:null,
   const tip=new THREE.Object3D();tip.position.y=.95;rodM.add(tip);rc.visible=reel.visible=false;
   const tag=makeTag(name);scene.add(tag);const bub=makeBub();scene.add(bub);
   const c={o,mixer,acts,cur:null,rod:rodM,arm,reelT:0,tip,tag,bub,head:o.getObjectByName('head'),name,h:1.9*K.s,dir:0};c.play=n=>{if(c.cur===n||!acts[n])return;const a=acts[n];a.reset().fadeIn(.2).play();if(c.cur&&acts[c.cur])acts[c.cur].fadeOut(.2);c.cur=n;};if(K.animal){c.rig=o.userData.rig;c.legs=[];c.rig.traverse(m=>{if(m.name==='leg')c.legs.push(m);});c.play=n=>{c.cur=n;};}
-  else if(acts['holding-right']&&arm){try{const a=acts['holding-right'];a.play();mixer.update(.5);c.holdQ=arm.quaternion.clone();a.stop();}catch(e){}}c.play('idle');chars.push(c);setCharRod(c,'bamboo',0);return c;}
+  else if(acts['holding-right']&&arm){try{const a=acts['holding-right'];a.play();mixer.update(.5);c.holdQ=arm.quaternion.clone();a.stop();}catch(e){}}c.play('idle');chars.push(c);setCharRod(c,'bamboo',0);if(!K.animal&&!K.myth&&!LTNS())try{skinMergeHead(o);}catch(e){}return c;}
+// v106: 몸·머리 두 덩어리를 한 덩어리로 (같은 뼈대 · 같은 그림) → 캐릭터마다 드로우콜 1개 줄어요
+function skinMergeHead(o){const b=o.getObjectByName('body-mesh'),h=o.getObjectByName('head-mesh');if(!b||!h||!b.isSkinnedMesh||!h.isSkinnedMesh||b.parent!==h.parent||!h.visible)return;if(b.skeleton.bones.length!==h.skeleton.bones.length||b.skeleton.bones.some((x,i)=>x!==h.skeleton.bones[i]))return;if(b.material.map!==h.material.map){if(!b.material.map||!h.material.map||b.material.map.image===h.material.map.image)return;/* 몸만 색을 바꾼 캐릭터: 머리 칸은 그대로라 몸 그림을 같이 써요 */}
+ const A=b.geometry,B=h.geometry,keys=['position','normal','uv','skinIndex','skinWeight'];if(keys.some(k=>!A.attributes[k]||!B.attributes[k]))return;const G=new THREE.BufferGeometry(),na=A.attributes.position.count;
+ const GET=['getX','getY','getZ','getW'];for(const k of keys){const a=A.attributes[k],bb=B.attributes[k],n=a.itemSize,T=k==='skinIndex'?Uint16Array:Float32Array,arr=new T((a.count+bb.count)*n);let w=0;for(const at of [a,bb])for(let i=0;i<at.count;i++)for(let j=0;j<n;j++)arr[w++]=at[GET[j]](i);G.setAttribute(k,new THREE.BufferAttribute(arr,n,false));}
+ const ia=A.index?Array.from({length:A.index.count},(_,i)=>A.index.getX(i)):[...Array(na).keys()],ib=B.index?Array.from({length:B.index.count},(_,i)=>B.index.getX(i)):[...Array(B.attributes.position.count).keys()];G.setIndex(ia.concat(ib.map(i=>i+na)));G.computeBoundingSphere();G.computeBoundingBox();
+ b.geometry=G;h.visible=false;h.userData.merged=1;}
+
 function setCharRod(c,k,star){if(!window.NK_ROD3D)return;if(c.rodK===k+star)return;c.rodK=k+star;if(c.rodMdl)c.rod.remove(c.rodMdl);const m=NK_ROD3D(k,star);if(S.mergeOff!==true)mergeStatic(m);c.rod.add(m);c.rodMdl=m;c.tip=m.userData.tip;}
 const _hv=new THREE.Vector3();function makeBub(){const cv=document.createElement('canvas');cv.width=512;cv.height=176;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv),depthTest:false,transparent:true}));sp.renderOrder=10;sp.visible=false;sp.userData={cv,last:null};return sp;}
 function drawBub(sp,b){const key=b?(b.emo?'e:':'t:')+b.txt+b.t:'';if(sp.userData.last===key)return;sp.userData.last=key;const x=sp.userData.cv.getContext('2d');x.clearRect(0,0,512,176);if(!b){sp.visible=false;return;}sp.visible=true;
@@ -3564,7 +3571,8 @@ function seatFrame(s){if(!s||s.kind!=='stool'||s.virt&&!s.deck)return null;const
  if(!LW){let cx=dk.cx,cz=dk.cz;if(s.twin&&dk.tw){cx=dk.tw.cx;cz=dk.tw.cz;}const ca=dk.ca,sa=dk.sa;LW=(x,z)=>[cx-ca*z-sa*x,cz-sa*z+ca*x];}
  const o=LW(0,0),e=LW(1,0),lx=(s.x-o[0])*(e[0]-o[0])+(s.z-o[1])*(e[1]-o[1]),side=lx<0?-1:1;return {LW,hw,side,ry:-dk.a+Math.PI/2};}
 const toLocal=(F,u,v)=>[F.side*(.3+u/100*(F.hw-.6)),-3.4+v/100*7.0];
-function decoBuild(grp,F,list){while(grp.children.length)grp.remove(grp.children[0]);if(!F||!list)return;list.slice(0,4).forEach(([id,u,v,r])=>{const x=DECO[id];if(!x)return;const m=decoMesh(x.k),[lx,lz]=toLocal(F,u,v),w=F.LW(lx,lz);m.position.set(w[0],.39,w[1]);m.rotation.y=F.ry+(r|0)*Math.PI/4;grp.add(m);});}
+function decoBuild(grp,F,list){_decoBuild(grp,F,list);try{if(window.NK89&&NK89.slimGroup&&!LTNS()&&grp.children.length){grp.userData.slim=0;NK89.slimGroup(grp);}}catch(e){}}
+function _decoBuild(grp,F,list){while(grp.children.length)grp.remove(grp.children[0]);if(!F||!list)return;list.slice(0,4).forEach(([id,u,v,r])=>{const x=DECO[id];if(!x)return;const m=decoMesh(x.k),[lx,lz]=toLocal(F,u,v),w=F.LW(lx,lz);m.position.set(w[0],.39,w[1]);m.rotation.y=F.ry+(r|0)*Math.PI/4;grp.add(m);});}
 const MY={g:null,key:''},PEER=new Map();
 function myList(){if(!decoOn()||!mySeat||mySeat.kind!=='stool')return null;const z=dS();return z.pl.length?z.pl.map(p=>p.slice(0,4)):null;}
 window.NK_DECO_DC=()=>myList();
@@ -3781,7 +3789,7 @@ function peerTanks(){if(typeof scene==='undefined'||!window.NK_TANKX)return;cons
  for(const [k,r] of PTK)if(want.get(k)!==r.tk){ptkDrop(k,r);PTK.delete(k);}
  for(const [k,tk] of want){if(PTK.has(k))continue;const sl=tankSlot(k);if(!sl)continue;const t=sl.t,T=D.TANKS.find(x=>x.k===tk);
   M4.compose(V.set(t.x,-50,t.z),Q.identity(),SC.set(.001,.001,.001));sl.S.setMatrixAt(sl.j,M4);sl.G.setMatrixAt(sl.j,M4);sl.S.instanceMatrix.needsUpdate=sl.G.instanceMatrix.needsUpdate=true;
-  const x=NK_TANKX(T.design,{W:3.2,H:1.9,D:1.5,y0:1.25,sh:1.25}),g=x.g;g.scale.setScalar(.42);g.position.set(t.x,.39+(t.y||0),t.z);g.rotation.y=t.ry;g.userData.ptkD=wantD.get(k);scene.add(g);PTK.set(k,{g,tk});}}
+  const x=NK_TANKX(T.design,{W:3.2,H:1.9,D:1.5,y0:1.25,sh:1.25}),g=x.g;try{if(window.NK89&&NK89.slimGroup&&!LTNS())NK89.slimGroup(g);}catch(e){}g.scale.setScalar(.42);g.position.set(t.x,.39+(t.y||0),t.z);g.rotation.y=t.ry;g.userData.ptkD=wantD.get(k);scene.add(g);PTK.set(k,{g,tk});}}
 setInterval(()=>{try{peerTanks();}catch(e){console.warn(e);}},700);
 
 // ───────── ⑤ 사람 있는 호숫가로 ─────────
@@ -4530,7 +4538,7 @@ function dcReport(){const cats=new Map(),add=(k,n)=>cats.set(k,(cats.get(k)||0)+
  try{(bots||[]).forEach(b=>{if(b&&b.c){tag(b.c.o,'봇 캐릭터');tag(b.c.tag,'이름표·말풍선');tag(b.c.bub,'이름표·말풍선');}});}catch(e){}
  try{tag(PETW.me,'펫');for(const x of PETW.peers.values())tag(x.g,'펫');}catch(e){}try{tag(VW.me,'탈것');for(const x of VW.peers.values())tag(x.g,'탈것');}catch(e){}
  try{tag(CK.g,'그릴');tag(CK.plat,'그릴');for(const x of CKR.values()){tag(x.g,'그릴');tag(x.plat,'그릴');}}catch(e){}try{for(const x of NBW.cur.values())tag(x.g,'네온 간판');}catch(e){}
- try{const g=MAPV.st().g;tag(g,'맵 풍경 (시안)');}catch(e){}try{WMG.out.forEach(m=>tag(m,'합친 호숫가 소품'));}catch(e){}try{tag(TR.g,'기차');}catch(e){}try{tag(LOD.im,'멀리 있는 유저 말뚝');}catch(e){}
+ try{const g=MAPV.st().g;tag(g,'맵 풍경 (시안)');}catch(e){}try{for(const x of PTK.values())tag(x.g,'어항 (다른 유저)');}catch(e){}try{tag(myTankX,'어항 (내 것)');}catch(e){}try{for(const x of PEER.values())tag(x.g,'데크 꾸미기');tag(MY.g,'데크 꾸미기');}catch(e){}try{WMG.out.forEach(m=>tag(m,'합친 호숫가 소품'));}catch(e){}try{tag(TR.g,'기차');}catch(e){}try{tag(LOD.im,'멀리 있는 유저 말뚝');}catch(e){}
  const fr=new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse));const vis=o=>{let x=o;while(x){if(!x.visible)return false;x=x.parent;}return true;};
  scene.traverse(o=>{if(!(o.isMesh||o.isSprite||o.isPoints||o.isLine))return;if(!vis(o)||!o.layers.test(cam.layers))return;if(o.frustumCulled){try{if(o.isSprite){if(!fr.containsPoint(o.getWorldPosition(new THREE.Vector3())))return;}else if(!fr.intersectsObject(o))return;}catch(e){}}
   let x=o,k=null;while(x&&!k){k=own.get(x);x=x.parent;}if(!k){let t=o;while(t.parent&&t.parent!==scene)t=t.parent;k=o.isPoints?'눈·비·반딧불 (입자)':o.isSprite?'스프라이트 (연기·효과)':o.isInstancedMesh?'호숫가 소품 (종류별)':t.userData&&t.userData.tankPick?'어항':(t.name||'')?'기타: '+t.name:'기타 물체';}
@@ -4731,6 +4739,10 @@ addEventListener('nk-rt-admonly',()=>{alertBox('<h3>🧪 테스트 서버</h3><p
 window.NK89.nc={NCK,ncApply,ncRestore,ncOn};
 
 // v101 ── 🐠 어항 3개 (시안 A · 테스트 기능): 어항마다 넣을 물고기 규칙 · 새로 낚은 물고기는 규칙대로 · 데크에는 가장 큰 어항
+LAB.push({k:'tankHide',n:'🐠 데크 어항 끄기 (드로우콜 확인)',d:'데크에 놓인 어항을 숨겨요. 「다른 유저 어항만」은 다른 유저가 앉은 자리의 어항만, 「모든 데크 어항」은 빈 데크 어항과 내 어항까지 모두 숨겨요. 어항 창(F/E)은 그대로 열려요',scope:'me',o:[['off','보이기 (기본)'],['peer','다른 유저 어항만 숨기기'],['all','모든 데크 어항 숨기기']]});
+{let thPrev='';FHOOK.push(()=>{const m=opt('tankHide','off');const on=m!=='all';const pon=m==='off';
+ try{for(const x of PTK.values())if(x.g)x.g.visible=pon;}catch(e){}try{if(myTankX)myTankX.visible=on;}catch(e){}
+ if(m===thPrev)return;thPrev=m;try{if(DTANK.stand)DTANK.stand.visible=on;if(DTANK.glass)DTANK.glass.visible=on;}catch(e){}try{for(const k in TANKX){const t=TANKX[k];if(t.S)t.S.visible=on;if(t.G)t.G.visible=on;}}catch(e){}try{TWT.forEach(t=>{if(t&&t.S)t.S.visible=on;if(t&&t.G)t.G.visible=on;});}catch(e){}try{if(myTankX)myTankX.visible=on;}catch(e){}});}
 LAB.push({k:'mythChar',n:'✨ 신화 캐릭터 (로봇·유령)',d:'시작 화면 캐릭터 고르기에 「✨ 신화」 탭이 생겨요. 지금 캐릭터 몸 그대로 은빛 TV 머리 로봇 · 다리 없이 꼬리로 떠다니는 유령이에요 (걷기·낚시·앉기 동작 그대로). 다른 유저 화면에도 로봇으로 보여요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'tank3',n:'🐠 어항 3개 · 규칙 정리',d:'가진 어항 중 3개까지 같이 써요. 어항 창 위에 어항 3칸이 생기고, 어항마다 「넣을 물고기」(등급·변이·크기·종류)를 골라 두면 새로 낚은 물고기가 규칙대로 들어가요. 데크에는 가장 큰 어항이 보여요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 const tk3On=()=>!PREV&&opt('tank3','off')==='on';window.NK_tk3On=tk3On;
