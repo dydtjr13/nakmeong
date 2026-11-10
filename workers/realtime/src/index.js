@@ -33,6 +33,8 @@ import {
   sanitizeNotice,
   sanitizePlay,
   sanitizeVmod,
+  sanitizeVbxOne,
+  VB_MAX,
   sanitizeProf,
   sanitizeRecover,
   sanitizeSancMap,
@@ -171,6 +173,12 @@ export class LakeRoom extends DurableObject {
     return this._ops[key];
   }
 
+  async vbxAll() {
+    const out = {};
+    for (const k of await this.opsGet("vbxList", [])) { const d = await this.opsGet("vbx:" + k, null); if (d) out[k] = d; }
+    return out;
+  }
+
   async opsPut(key, value) {
     if (!this._ops) this._ops = {};
     this._ops[key] = value;
@@ -218,6 +226,7 @@ export class LakeRoom extends DurableObject {
       play: await this.opsGet("play", null),
       titles: await this.opsGet("titles", {}),
       vmod: await this.opsGet("vmod", {}),
+      vbx: await this.vbxAll(),
       staff: sanitizeStaff(await this.opsGet("staff", {})),
       cues,
       recovers,
@@ -253,6 +262,15 @@ export class LakeRoom extends DurableObject {
     }
     if (msg.t === "gameNow") {
       await this.gameStart(msg.kind);
+      return;
+    }
+    if (msg.t === "vbx") {
+      const d = msg.d ? sanitizeVbxOne(msg.d) : null;
+      const list = (await this.opsGet("vbxList", [])).filter((k) => k !== msg.k);
+      if (d) { if (list.length >= VB_MAX) return; list.push(msg.k); }
+      await this.opsPut("vbx:" + msg.k, d);
+      await this.opsPut("vbxList", list);
+      this.broadcast({ t: "vbx", k: msg.k, d });
       return;
     }
     if (msg.t === "vmod") {
@@ -399,6 +417,12 @@ export class LakeRoom extends DurableObject {
   async acceptOps(fromId, msg) {
     const now = Date.now();
     const all = [1, 2, 3, 4];
+    if (msg.t === "vbx") {
+      const d = msg.d ? sanitizeVbxOne(msg.d) : null;
+      if (msg.d && !d) return;
+      await this.fan(fromId, all, { t: "vbx", k: msg.k, d });
+      return;
+    }
     if (msg.t === "vmod") {
       const v = sanitizeVmod(msg.vmod);
       if (JSON.stringify(v).length > 44000) return;
@@ -744,7 +768,7 @@ export class LakeRoom extends DurableObject {
       try { ws.send(JSON.stringify({ t: "gamecfg", cfg })); } catch { /* ignore */ }
       return;
     }
-    if (msg.t === "game" || msg.t === "gameNow" || msg.t === "titles" || msg.t === "vmod") {
+    if (msg.t === "game" || msg.t === "gameNow" || msg.t === "titles" || msg.t === "vmod" || msg.t === "vbx") {
       if (!prev.ready) return;
       await this.acceptOps(prev.server, msg);
       return;

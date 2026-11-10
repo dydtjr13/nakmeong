@@ -780,3 +780,22 @@ test("v108 탈것 편집기 데이터 정리", () => {
   assert.equal(v.pig.parts[1].g, undefined);
   assert.equal(v.pig.groups.g1.par, undefined);
 });
+
+import { sanitizeVbxOne, vbxKey, parseClient as pc109 } from "../src/protocol.js";
+test("v109 vbx: 새 탈것 블럭 데이터 정리", () => {
+  assert.equal(vbxKey("xbear"), "xbear");
+  assert.equal(vbxKey("bear"), null);
+  assert.equal(vbxKey("x<a>"), null);
+  const d = sanitizeVbxOne({ t: "veh", n: "<b>곰</b>", vu: 9, pal: ["#ABCDEF", "red"], groups: { g1: { p: [0, 1, 0], leg: 0, par: "zz", nm: "다리<1>" } }, vox: { "": "AAAAAA==", g1: "AAAA", g9: "AAAA", bad: "!!!!" }, shop: { how: "box", g: 9, p: 500, spd: 40 } });
+  assert.equal(d.n, "b곰/b");
+  assert.equal(d.vu, 0.3);
+  assert.deepEqual(d.pal, ["#abcdef", "#cccccc"]);
+  assert.equal(d.groups.g1.par, undefined);
+  assert.equal(d.groups.g1.nm, "다리1");
+  assert.deepEqual(Object.keys(d.vox).sort(), ["", "g1"]);
+  assert.deepEqual(d.shop, { how: "box", pr: 0, g: 5, p: 100, spd: 40, on: false });
+  assert.equal(sanitizeVbxOne({ vox: {} }), null);
+  const m = pc109(JSON.stringify({ t: "vbx", k: "xbear", d: null }));
+  assert.deepEqual(m, { t: "vbx", k: "xbear", d: null });
+  assert.equal(pc109(JSON.stringify({ t: "vbx", k: "bear", d: {} })), null);
+});

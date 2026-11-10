@@ -4135,7 +4135,7 @@ function vehGet(k,how,cc){const v=VEHS.find(x=>x.k===k);if(!v)return false;const
 function vehTabHTML(){const own=vehOwn(),c=vehCfg();return `<div class="pettab"><div class="pth"><b>🛷 내 탈것 ${Object.keys(own).length}/${VEHS.length}</b><small>탈것마다 이동 속도가 달라요 · 같은 호숫가 유저에게도 보여요 · 자동차는 옆자리에 한 명 더 탈 수 있어요</small></div>
  <div class="ptg">${VEHS.map(v=>{const G=SYS.GRADES[v.g],h=!!own[v.k],on=S.vehOn===v.k,cc=v.k==='car'&&h?carCol():'';return `<div class="ptc ${h?'':'lock'} ${on?'on':''}" style="--c:${G[1]}"><span class="ptr">${G[0]}</span>${on?'<span class="pton">선택됨</span>':''}<img class="pti ${v.k==='car'?'carimg cc-'+(cc||'mint'):''}" src="${vehImgOf(v.k)}" alt=""><b>${cc&&cc!=='mint'?CARN[cc]+' ':''}${v.n}</b><div class="ptab"><span>🏃 +${v.k==='car'?vehSpd(vehKey('car')):c.s[v.k]}%</span></div>
   ${v.k==='car'&&h?`<div class="ccs">${CARS.map(([k,n])=>{const has=(own.car.cs||[own.car.c||'mint']).includes(k);return `<button type="button" class="ccb cc-${k} ${cc===k?'on':''}" ${has?`data-carc="${k}"`:'disabled'} title="${n}${has?'':' (아직 없어요)'}"></button>`;}).join('')}</div>`:''}
-  <small>${h?'보유 중':v.fly?'상점 › ✈️ 하늘 탈것':`${SYS.GRADES[v.need][0]}${v.need<5?' 이상':''} 행운 상자 · 🎲 ${c.p[v.k]}%`}</small>${h?`<button type="button" data-veh="${v.k}" class="${on?'':'acc'}">${on?'✓ 선택됨':'이걸로 타기'}</button>`:''}</div>`;}).join('')}</div>
+  <small>${h?'보유 중':v.fly?'상점 › 🚗 탈것':`${SYS.GRADES[v.need][0]}${v.need<5?' 이상':''} 행운 상자 · 🎲 ${c.p[v.k]}%`}</small>${h?`<button type="button" data-veh="${v.k}" class="${on?'':'acc'}">${on?'✓ 선택됨':'이걸로 타기'}</button>`:''}</div>`;}).join('')}</div>
  <p class="small muted">상자를 열 때 그 등급 이상이면 아직 없는 탈것 중에서 위 확률로 나와요. 자동차는 민트·레드·블랙·🌈무지개 중 하나로 나오고, 없는 색이면 또 나올 수 있어요 (무지개는 아주 드물고 가장 빨라요)</p></div>`;}
 {const _rb=_renderBag;_renderBag=function(){_rb.apply(this,arguments);if(!vehOn()||bagMode==='box')return;const card=$('bag').querySelector('.card'),tabs=card&&card.querySelector('.tabs');if(!tabs||tabs.querySelector('[data-vehtab]'))return;
  const b=document.createElement('button');b.dataset.vehtab='1';b.className=bagTab==='veh'?'on':'';b.innerHTML=`<span class="tico">🛷<em class="${Object.keys(vehOwn()).length?'':'z zero'}">${Object.keys(vehOwn()).length}</em></span>탈것`;tabs.appendChild(b);b.onclick=()=>{bagTab='veh';renderBag();};
@@ -4233,7 +4233,7 @@ const isFly=k=>{const F=FLY[vehBase(k)];return !!F&&!F.ground;};
 VEHS.push(...Object.keys(FLY).map(k=>({k,n:FLY[k].n,g:5,need:5,sc:FLY[k].sc,fly:1})));
 Object.keys(FLY).forEach(k=>{VEH_DEF.s[k]=FLY[k].spd;});
 const flyOwn=k=>{const o=vehOwn()[k];if(!o)return null;if(!o.cs)o.cs=[o.c||FLY[k].cols[0][0]];if(!o.c||!o.cs.includes(o.c))o.c=o.cs[0];return o;};
-function vehImgOf(k){if(FLY[k]){const o=flyOwn(k);return 'img/veh/fly-'+k+'-'+(o?o.c:FLY[k].cols[0][0])+'.png';}return 'img/veh/'+k+'.png';}
+function vehImgOf(k){if(FLY[k]&&FLY[k].vbx){try{return flyThumb(flyKey(k));}catch(e){return '';}}if(FLY[k]){const o=flyOwn(k);return 'img/veh/fly-'+k+'-'+(o?o.c:FLY[k].cols[0][0])+'.png';}return 'img/veh/'+k+'.png';}
 function flyKey(k){if(!FLY[k])return null;const o=flyOwn(k);return k+'.'+(o?o.c:FLY[k].cols[0][0]);}
 function flySpd(x){const b=vehBase(x);if(!FLY[b])return null;const c=vehCfg();let v=+(c.s[b]!=null?c.s[b]:FLY[b].spd);if(vehCc(x)==='rainbow')v+=15;return v;}
 // 모델 (둥글게 · 부드러운 명암)
@@ -4349,11 +4349,11 @@ setInterval(()=>{let b=$('flyUD');document.body.classList.toggle('flying',flyNow
 FHOOK.push(()=>{if(flyNow()&&nearSpot){nearSpot=null;try{$('fishBtn').style.display='none';}catch(e){}}});
 // 내릴 때: 아래가 물이면 가까운 땅·데크로
 let flyWas=false;FHOOK.push(()=>{const f=!!(VW.mk&&isFly(VW.mk)&&S.vehRide);if(flyWas&&!f&&me){const p=me.o.position;const ok=(x,z)=>{try{return walk(x,z);}catch(e){return true;}};if(!ok(p.x,p.z)){let best=null;for(let r=1;r<40&&!best;r+=1.5)for(let a=0;a<16&&!best;a++){const x=p.x+Math.cos(a/16*Math.PI*2)*r,z=p.z+Math.sin(a/16*Math.PI*2)*r;if(ok(x,z))best=[x,z];}if(best){p.x=best[0];p.z=best[1];}}p.y=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);miniToast('🛬 내려왔어요',1200);}flyWas=f;});
-// 상점 「✈️ 하늘 탈것」 탭
+// 상점 「🚗 탈것」 탭
 {const _rs4=_renderShop;_renderShop=function(){if(!vehOn()&&shopTab==='fly')shopTab='rod';_rs4.apply(this,arguments);if(!vehOn())return;const sh=$('shop'),tabs=sh.querySelector('.tabs');if(!tabs)return;
- const tb=document.createElement('button');tb.dataset.tab='fly';tb.className=shopTab==='fly'?'on':'';tb.textContent='✈️ 하늘 탈것';const sell=tabs.querySelector('[data-tab="sell"]');tabs.insertBefore(tb,sell||null);tb.onclick=()=>{shopTab='fly';renderShop();};
+ const tb=document.createElement('button');tb.dataset.tab='fly';tb.className=shopTab==='fly'?'on':'';tb.textContent='🚗 탈것';const sell=tabs.querySelector('[data-tab="sell"]');tabs.insertBefore(tb,sell||null);tb.onclick=()=>{shopTab='fly';renderShop();};
  if(shopTab!=='fly')return;tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===tb));const grid=tabs.nextElementSibling;if(!grid)return;grid.className='flyshop';
- grid.innerHTML=`<p class="small muted" style="grid-column:1/-1">물 위로도 날아다녀요 · 가방 › 탈것에서 고르고 「🚗 타기」 · 하늘에서는 낚시 못 해요 · 색마다 따로 사요 (무지개는 더 빨라요)</p>`+Object.entries(FLY).map(([k,F])=>{const o=flyOwn(k);if(F.ground)return robShopHTML(k,F,o);return `<div class="flyc"><div class="flyh"><b>${{plane:'✈️',archae:'🦖',balloon:'🎈'}[k]} ${F.n}</b><small>속도 +${F.spd}%</small></div><div class="flycs">${F.cols.map(([c,n,pr])=>{const own=o&&o.cs.includes(c),on=own&&o.c===c&&S.vehOn===k;return `<div class="flyo ${on?'on':''}"><img data-flyimg="${k}.${c}" alt=""><b>${n}</b><small>🪙 ${pr.toLocaleString()}</small>${own?`<button type="button" class="${on?'':'acc'}" data-flyon="${k}.${c}" ${on?'disabled':''}>${on?'타는 중':'이걸로'}</button>${on?'':`<button type="button" class="sellb" data-flysell="${k}.${c}">💰 🪙 ${sellPr(pr).toLocaleString()}</button>`}`:`<button type="button" class="acc" data-flybuy="${k}.${c}" ${S.coins<pr?'disabled':''}>구매</button>`}</div>`;}).join('')}</div></div>`;}).join('');
+ grid.innerHTML=`<p class="small muted" style="grid-column:1/-1">가방 › 탈것에서 고르고 「🚗 타기」 · 나는 탈것은 물 위로도 다니고 하늘에서는 낚시 못 해요 · 색마다 따로 사요</p>`+Object.entries(FLY).map(([k,F])=>{const o=flyOwn(k);if(F.vbx&&F.how==='box')return '';if(F.ground)return robShopHTML(k,F,o);return `<div class="flyc"><div class="flyh"><b>${{plane:'✈️',archae:'🦖',balloon:'🎈'}[k]} ${F.n}</b><small>속도 +${F.spd}%</small></div><div class="flycs">${F.cols.map(([c,n,pr])=>{const own=o&&o.cs.includes(c),on=own&&o.c===c&&S.vehOn===k;return `<div class="flyo ${on?'on':''}"><img data-flyimg="${k}.${c}" alt=""><b>${n}</b><small>🪙 ${pr.toLocaleString()}</small>${own?`<button type="button" class="${on?'':'acc'}" data-flyon="${k}.${c}" ${on?'disabled':''}>${on?'타는 중':'이걸로'}</button>${on?'':`<button type="button" class="sellb" data-flysell="${k}.${c}">💰 🪙 ${sellPr(pr).toLocaleString()}</button>`}`:`<button type="button" class="acc" data-flybuy="${k}.${c}" ${S.coins<pr?'disabled':''}>구매</button>`}</div>`;}).join('')}</div></div>`;}).join('');
  grid.querySelectorAll('[data-flybuy]').forEach(b=>b.onclick=()=>{const [k,c]=b.dataset.flybuy.split('.'),F=FLY[k],it=F.cols.find(x=>x[0]===c);if(!it||S.coins<it[2])return;if(!confirm(`${F.n} (${it[1]})을 ${it[2].toLocaleString()}골드에 살까요?`))return;S.coins-=it[2];const own=vehOwn();if(!own[k])own[k]={at:Date.now(),how:'shop',c,cs:[c]};else{flyOwn(k);if(!own[k].cs.includes(c))own[k].cs.push(c);own[k].c=c;}S.vehOn=k;save();hud();try{sfx.coin();}catch(e){}toast(`${F.n} (${it[1]}) 구매! 「🚗 타기」를 누르면 ${F.ground?'타요':'날아올라요'}`,2400);renderShop();});
  grid.querySelectorAll('[data-robsw]').forEach(b=>b.onclick=()=>{const [k,c]=b.dataset.robsw.split('.');ROBSEL[k]=c;renderShop();});
  grid.querySelectorAll('[data-flysell]').forEach(b=>b.onclick=()=>{const [k,c]=b.dataset.flysell.split('.'),F=FLY[k],it=F.cols.find(x=>x[0]===c);if(!it)return;sellAsk(`${F.n} (${it[1]})`,sellPr(it[2]),()=>{const o=flyOwn(k);if(!o||!o.cs.includes(c)||(o.c===c&&S.vehOn===k))return false;o.cs=o.cs.filter(x=>x!==c);if(!o.cs.length){delete vehOwn()[k];if(S.vehOn===k){S.vehOn=null;S.vehRide=0;}}else if(o.c===c)o.c=o.cs[0];});});
@@ -4365,7 +4365,7 @@ window.NK89.flyThumb=k=>flyThumb(k);
 function flyThumb(key){if(FLYT[key])return FLYT[key];if(!flyR){flyR=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});flyR.setSize(240,160);flyR.outputEncoding=THREE.sRGBEncoding;}
  const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x8899aa,.85));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(3,5,4);sc.add(dl);const g=vehMesh(key);g.scale.setScalar(1);g.rotation.y=.9;sc.add(g);
  const bb=new THREE.Box3().setFromObject(g),ct=bb.getCenter(new THREE.Vector3()),r=bb.getSize(new THREE.Vector3()).length()/2;const c=new THREE.PerspectiveCamera(30,1.5,.1,100);c.position.copy(ct).add(new THREE.Vector3(.4,.45,1).normalize().multiplyScalar(r/Math.sin(15*Math.PI/180)*((FLY[vehBase(key)]||{}).ground?.78:.62)));c.lookAt(ct);flyR.render(sc,c);FLYT[key]=flyR.domElement.toDataURL('image/png');return FLYT[key];}
-function flyThumbs(root){root.querySelectorAll('[data-flyimg]').forEach(im=>{const k=im.dataset.flyimg;if(window.NK89&&NK89.VM&&(NK89.VM.VMOD.map[vehBase(k)]||NK89.VM.VMOD.local[vehBase(k)])){try{im.src=flyThumb(k);return;}catch(e){}}im.onerror=()=>{im.onerror=null;try{im.src=flyThumb(k);}catch(e){im.style.visibility='hidden';}};im.src='img/veh/fly-'+k.replace('.','-')+'.png';});}
+function flyThumbs(root){root.querySelectorAll('[data-flyimg]').forEach(im=>{const k=im.dataset.flyimg;if((FLY[vehBase(k)]||{}).vbx){try{im.src=flyThumb(k);}catch(e){}return;}if(window.NK89&&NK89.VM&&(NK89.VM.VMOD.map[vehBase(k)]||NK89.VM.VMOD.local[vehBase(k)])){try{im.src=flyThumb(k);return;}catch(e){}}im.onerror=()=>{im.onerror=null;try{im.src=flyThumb(k);}catch(e){im.style.visibility='hidden';}};im.src='img/veh/fly-'+k.replace('.','-')+'.png';});}
 window.NK89.fly={FLY,flyOwn,flyThumb,flyNow};
 
 // v93 장착 장비 창 A·B (시안 → 테스트) · 낚싯대 타일 작게
@@ -4968,7 +4968,7 @@ for(const k in FLYB){const f=FLYB[k];FLYB[k]=function(){return slimGroup(f.apply
 // 탈것 모양을 데이터(조각 목록)로 바꿔서 관리자가 화면에서 고치고 모든 유저에게 적용해요.
 // 데이터가 있으면 그 데이터로 만들고, 없으면 원래 코드로 만들어요.
 const VMOD={map:{},local:{},ver:0};
-const VM_KEYS=()=>Object.keys(FLY).filter(k=>FLY[k].ground);
+const VM_KEYS=()=>Object.keys(FLY).filter(k=>FLY[k].ground&&!FLY[k].vbx);
 function vmPal(k){if(FLY[k]&&FLY[k].ani&&ANIM_C[k])return JSON.parse(JSON.stringify(ANIM_C[k]));if(k==='robot')return JSON.parse(JSON.stringify(ROBC));return {};}
 const vmGet=k=>VMOD.local[k]||VMOD.map[k]||null;
 const VMG={},VMM={};
@@ -5002,6 +5002,55 @@ for(const k in FLYB){const f=FLYB[k];FLYB[k]=function(cc){const d=vmGet(k);if(d)
 addEventListener('nk-rt-vmod',e=>{VMOD.map=e.detail||{};vmRefresh();try{if($('shop')&&$('shop').classList.contains('show'))renderShop();}catch(_){}});
 try{if(window.NK_RT&&NK_RT.vmod)VMOD.map=NK_RT.vmod;}catch(e){}
 window.NK89.VM={VMOD,vmExport,vmBuild,vmRefresh,FLYB_RAW};
+// v109 ── 🧱 블럭으로 만든 새 탈것 (관리자 「🧱 새로 만들기」 편집기 · 서버 vbx)
+// 블럭 1개 = 4바이트: x·y·z (7비트씩, -64~63) · 크기 1~4 (2비트) · 색 번호 0~63 (6비트)
+const VBX={map:{},local:{}};
+const vbGet=k=>VBX.local[k]||VBX.map[k]||null;
+function vbDec(b64){const out=[];if(!b64)return out;let s;try{s=atob(b64);}catch(e){return out;}for(let i=0;i+3<s.length;i+=4){const n=((s.charCodeAt(i)<<24)>>>0)+(s.charCodeAt(i+1)<<16)+(s.charCodeAt(i+2)<<8)+s.charCodeAt(i+3);out.push([((n>>>22)&127)-64,((n>>>15)&127)-64,((n>>>8)&127)-64,((n>>>6)&3)+1,n&63]);}return out;}
+function vbEnc(L){let s='';for(const [x,y,z,sz,c] of L){const n=((((x+64)&127)<<22)|(((y+64)&127)<<15)|(((z+64)&127)<<8)|((((sz|0)-1)&3)<<6)|((c|0)&63))>>>0;s+=String.fromCharCode(n>>>24,(n>>>16)&255,(n>>>8)&255,n&255);}return btoa(s);}
+const VBF=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
+// 블럭 목록 → 면 하나로 합친 모양 (보이지 않는 안쪽 면은 빼요) · off = 묶음 회전 중심 (블럭 칸 단위가 아닌 m)
+function vbGeo(L,pal,vu,off,tint){const occ=new Set();for(const [x,y,z,s] of L)for(let i=0;i<s;i++)for(let j=0;j<s;j++)for(let k=0;k<s;k++)occ.add((x+i)+','+(y+j)+','+(z+k));
+ const P=[],N=[],C=[],I=[];const col=new THREE.Color(),o=off||[0,0,0];
+ for(const [x,y,z,s,c] of L){col.set(tint||pal[c]||'#cccccc');for(let f=0;f<6;f++){const n=VBF[f],ax=n[0]?0:n[1]?1:2,sg=n[ax];
+   let hid=true;for(let a=0;a<s&&hid;a++)for(let b=0;b<s&&hid;b++){const q=[x,y,z];q[ax]+=sg>0?s:-1;q[(ax+1)%3]+=a;q[(ax+2)%3]+=b;if(!occ.has(q.join(',')))hid=false;}if(hid)continue;
+   const base=P.length/3,u=(ax+1)%3,v=(ax+2)%3,sh=f===3?.78:f===2?1.04:1;
+   for(const [a,b] of [[0,0],[1,0],[1,1],[0,1]]){const q=[x,y,z];q[ax]+=sg>0?s:0;q[u]+=a*s;q[v]+=b*s;P.push(q[0]*vu-o[0],q[1]*vu-o[1],q[2]*vu-o[2]);N.push(n[0],n[1],n[2]);C.push(Math.min(1,col.r*sh),Math.min(1,col.g*sh),Math.min(1,col.b*sh));}
+   if(sg>0)I.push(base,base+1,base+2,base,base+2,base+3);else I.push(base,base+2,base+1,base,base+3,base+2);}}
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setIndex(I);g.computeBoundingSphere();return g;}
+let VBMAT=null;const vbMat=()=>VBMAT||(VBMAT=new THREE.MeshLambertMaterial({vertexColors:true}));
+// 데이터 → 모델 (묶음 = 다리·머리·꼬리처럼 따로 움직이는 덩어리, p = 회전 중심)
+function vbBuild(d,opt){const T=THREE,root=new T.Group(),g=new T.Group();root.add(g);const vu=d.vu||.1,G={'':g},A={'':[0,0,0]},legs=[],heads=[],arms=[];let tail=null;opt=opt||{};
+ const mk=(id,dep)=>{if(G[id])return G[id];const q=(d.groups||{})[id];if(!q||dep>12)return g;const par=q.par&&d.groups[q.par]?q.par:'';const pg=mk(par,dep+1);const P=q.p||[0,0,0],PP=A[par]||[0,0,0],n=new T.Group();n.position.set(P[0]-PP[0],P[1]-PP[1],P[2]-PP[2]);if(q.r&&!opt.raw)n.rotation.set(q.r[0],q.r[1],q.r[2]);if(q.s&&!opt.raw)n.scale.setScalar(q.s);pg.add(n);G[id]=n;A[id]=P;n.userData.vbg=id;if(q.leg!=null)legs.push({p:n,ph:q.leg});if(q.arm!=null)arms.push({p:n,ph:q.arm});if(q.head)heads.push(n);if(q.tail)tail=n;return n;};
+ Object.keys(d.groups||{}).forEach(id=>mk(id,0));
+ const vox=opt.vox||d.vox||{};for(const id in vox){const L=typeof vox[id]==='string'?vbDec(vox[id]):vox[id];if(!L.length)continue;const m=new T.Mesh(vbGeo(L,d.pal||[],vu,A[id]||[0,0,0],opt.tint&&opt.tint(id)),vbMat());m.castShadow=true;m.receiveShadow=!!opt.edit;m.userData.vbg=id;(G[id]||g).add(m);}
+ const z=d.zoom||1;g.scale.setScalar(z);const seat=(d.seat||[0,1.2,0]).map(v=>v*z);
+ root.userData={seat,legs,heads,arms,pose:'ride',vm:1,vbx:1};Object.defineProperty(root.userData,'G',{value:G,enumerable:false});if(tail)root.userData.tail=tail;return root;}
+// 게임에 등록: 상점 「🚗 탈것」·가방·행운 상자에서 나와요
+function vbReg(){const keys=new Set([...Object.keys(VBX.map),...Object.keys(VBX.local)].filter(k=>{const d=vbGet(k);return d&&d.t!=='chr';}));
+ for(const k of Object.keys(FLY))if(FLY[k].vbx&&!keys.has(k)){delete FLY[k];delete FLYB[k];delete FLYB_RAW[k];delete VEH_DEF.p[k];const i=VEHS.findIndex(v=>v.k===k);if(i>=0)VEHS.splice(i,1);if(S.vehOn===k){S.vehOn=null;S.vehRide=0;}}
+ for(const k of keys){const d=vbGet(k),sp=d.shop||{},how=sp.how==='box'?'box':'shop',gr=Math.max(1,Math.min(5,(sp.g|0)||3));
+  FLY[k]={n:d.n||'새 탈것',sc:1,alt:0,spd:sp.spd!=null?+sp.spd:30,ground:1,ani:1,ico:'🧱',vbx:1,how,cols:[['v','기본',Math.max(0,+sp.pr||0)]]};
+  FLYB[k]=FLYB_RAW[k]=()=>slimGroup(vbBuild(vbGet(k)));try{ANIM_C[k]={v:{a:(d.pal||[])[0]||'#cccccc',b:(d.pal||[])[1]||(d.pal||[])[0]||'#999999'}};}catch(e){}VEH_DEF.s[k]=FLY[k].spd;if(how==='box')VEH_DEF.p[k]=+sp.p||0;else delete VEH_DEF.p[k];
+  let v=VEHS.find(x=>x.k===k);if(!v){v={k};VEHS.push(v);}Object.assign(v,{n:FLY[k].n,g:how==='box'?gr:5,need:how==='box'?gr:9,sc:1,fly:how==='box'?0:1});}
+ try{vmRefresh();}catch(e){}}
+// 블럭 캐릭터: 지금 캐릭터 뼈(몸통·머리·팔·다리)에 블럭 묶음을 붙이고 원래 몸은 숨겨요 (움직임은 원래 애니메이션 그대로)
+function vbCharOn(c,k){if(!c||!c.o||c._vc===k)return;if(c._vcG){c._vcG.forEach(g=>{if(g.parent)g.parent.remove(g);g.traverse(x=>{if(x.geometry)x.geometry.dispose();});});c._vcG=null;}if(c._vcH){c._vcH.forEach(m=>m.visible=true);c._vcH=null;}c._vc=k;
+ const d=k&&vbGet(k);if(!d||d.t!=='chr')return;const T=THREE,o=c.o,sks=[];o.traverse(m=>{if(m.isSkinnedMesh)sks.push(m);});const bm=sks.find(m=>m.skeleton&&m.skeleton.bones.some(b=>b.name==='torso'));if(!bm)return;
+ o.updateMatrixWorld(true);const sk=bm.skeleton,mw=new T.Matrix4().multiplyMatrices(bm.matrixWorld,bm.bindMatrix);
+ const bone=n=>{const i=sk.bones.findIndex(b=>b.name===n);if(i<0)return null;return {b:sk.bones[i],w:mw.clone().multiply(new T.Matrix4().copy(sk.boneInverses[i]).invert())};};
+ const pos=new T.Vector3(),q=new T.Quaternion(),sc=new T.Vector3();o.matrixWorld.decompose(pos,q,sc);const sf=(c.h||1.9)/2*(d.zoom||1),X=new T.Matrix4().compose(pos,q,new T.Vector3(sf,sf,sf));
+ const vu=d.vu||.07,out=[];
+ for(const id in d.vox||{}){const L=vbDec(d.vox[id]);if(!L.length)continue;const gq=(d.groups||{})[id]||{},P=gq.p||[0,0,0],B=bone(gq.bone||'torso')||bone('torso');if(!B)continue;
+  const m=new T.Mesh(vbGeo(L,d.pal||[],vu,P),vbMat());m.castShadow=true;const box=new T.Group();box.add(m);
+  const rest=X.clone().multiply(new T.Matrix4().makeTranslation(P[0],P[1],P[2]));const loc=new T.Matrix4().copy(B.w).invert().multiply(rest);loc.decompose(box.position,box.quaternion,box.scale);B.b.add(box);out.push(box);}
+ c._vcG=out;c._vcH=sks.filter(m=>m.visible);c._vcH.forEach(m=>m.visible=false);}
+PHOOK.push(()=>{if(typeof me==='undefined'||!me)return;const k=S.vchr&&vbGet(S.vchr)?S.vchr:'';if(me._vc!==k)vbCharOn(me,k);});
+RHOOK.push((r,p)=>{if(!r||!r.c)return;const k=(p&&p.ex&&p.ex.vc)||'';if(r.c._vc!==k&&(!k||vbGet(k)))vbCharOn(r.c,k);});
+{const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=(_px&&_px())||{};if(S.vchr&&vbGet(S.vchr))o.vc=S.vchr;return Object.keys(o).length?o:null;};}
+addEventListener('nk-rt-vbx',e=>{VBX.map=Object.assign({},e.detail||{});vbReg();try{if($('shop')&&$('shop').classList.contains('show'))renderShop();}catch(_){}});
+try{if(window.NK_RT&&NK_RT.vbx){VBX.map=Object.assign({},NK_RT.vbx);vbReg();}}catch(e){}
+window.NK89.VB={VBX,vbGet,vbDec,vbEnc,vbGeo,vbBuild,vbReg,vbMat,FLY,toast:(a,b)=>toast(a,b),confirmBox:(a,b)=>confirmBox(a,b),isAdm:()=>{try{return NK_ADM.ok();}catch(e){return false;}},flyThumb:k=>flyThumb(k),grades:()=>SYS.GRADES,wear:k=>{S.vchr=k||null;save();},worn:()=>S.vchr||''};
 
 // ── 편집기 화면 ──
 const VE={k:null,cc:null,d:null,sel:null,undo:[],redo:[],R:null,sc:null,cam:null,root:null,yaw:.7,pit:.35,dist:7,walk:false,t:0,raf:0,box:null};
@@ -5117,8 +5166,8 @@ function vePub(){const RT=window.NK_RT;if(!RT||RT.status()!=='on'||!RT.setVmod){
 addEventListener('keydown',e=>{const m=$('vmEd');if(!m||!m.classList.contains('show'))return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!/INPUT|TEXTAREA/.test((e.target||{}).tagName||'')){e.preventDefault();const b=m.querySelector(e.shiftKey?'[data-veredo]':'[data-veundo]');if(b&&!b.disabled)b.click();}if(e.key==='Escape')veClose();},true);
 window.NK89.VE={VE,veOpen,veClose};
 // 관리자 › 🧪 테스트 기능 맨 위에 「🛠 탈것 편집기」
-{const _l=labHTML,_b=bindLab;labHTML=function(){const h=_l.apply(this,arguments),box=`<div class="labrow wpadm veadm" style="display:block"><b>🛠 탈것 편집기</b> <span class="tg">관리자</span><p class="small muted" style="margin:4px 0 8px">코끼리·기린·카피바라·돼지·로봇 모양과 색을 화면에서 고치고 모든 유저에게 적용해요 · 사진을 넣으면 그 사진 색으로 칠해요</p><button class="sm ok" data-veopen>🛠 편집기 열기</button> <small class="muted">수정된 탈것: ${Object.keys(VMOD.map).map(k=>FLY[k]?FLY[k].n:k).join(', ')||'없음'}</small></div>`,i=h.indexOf('<div class="labsum">');return i>=0?h.slice(0,i)+box+h.slice(i):h.replace(/<\/div>\s*$/,box+'</div>');};
- bindLab=function(root){try{_b.apply(this,arguments);}catch(e){console.warn(e);}const b=root.querySelector('[data-veopen]');if(b)b.onclick=()=>veOpen();};}
+{const _l=labHTML,_b=bindLab;labHTML=function(){const h=_l.apply(this,arguments),box=`<div class="labrow wpadm veadm" style="display:block"><b>🛠 탈것·캐릭터 편집기</b> <span class="tg">관리자</span><p class="small muted" style="margin:4px 0 8px">🧱 새로 만들기: 블럭을 쌓아 새 탈것·캐릭터를 만들어요 (사진으로 모양 잡기 · 건축/상세 조정 모드) · 🛠 고치기: 지금 있는 코끼리·기린·카피바라·돼지·로봇 모양과 색</p><button class="sm ok" data-vbopen>🧱 새 탈것·캐릭터 만들기</button> <button class="sm" data-veopen>🛠 지금 탈것 고치기</button>${(()=>{const L=Object.keys(Object.assign({},VBX.map,VBX.local)).filter(k=>{const d=vbGet(k);return d&&d.t==='chr';});return L.length?` <label class="small">🧍 내 캐릭터 <select data-vbwear><option value="">원래 캐릭터</option>${L.map(k=>`<option value="${k}" ${S.vchr===k?'selected':''}>${String(vbGet(k).n||k).replace(/[<>&"]/g,'')}</option>`).join('')}</select></label>`:'';})()} <small class="muted">수정된 탈것: ${Object.keys(VMOD.map).map(k=>FLY[k]?FLY[k].n:k).join(', ')||'없음'}</small></div>`,i=h.indexOf('<div class="labsum">');return i>=0?h.slice(0,i)+box+h.slice(i):h.replace(/<\/div>\s*$/,box+'</div>');};
+ bindLab=function(root){try{_b.apply(this,arguments);}catch(e){console.warn(e);}const b=root.querySelector('[data-veopen]');if(b)b.onclick=()=>veOpen();const vb=root.querySelector('[data-vbopen]');if(vb)vb.onclick=()=>{if(window.NK_VBED)NK_VBED.open();};const vw=root.querySelector('[data-vbwear]');if(vw)vw.onchange=()=>{S.vchr=vw.value||null;save();toast(vw.value?'🧍 블럭 캐릭터를 입었어요':'원래 캐릭터로 돌아왔어요',1600);};};}
 {const _t=trLoco;trLoco=function(){return slimGroup(_t.apply(this,arguments));};}
 const CKMAT={};
 function ckSlim(G){G.updateMatrixWorld(true);const metal=[],coal=[],rm=[];G.traverse(o=>{if(o.isLight){rm.push(o);return;}if(!o.isMesh||o.material.blending===THREE.AdditiveBlending)return;const mt=o.material;if(mt.emissive&&mt.emissive.getHex()!==0){coal.push([o.geometry,o.matrixWorld.clone(),mt.emissive.clone().lerp(new THREE.Color('#ffb070'),.15).multiplyScalar(.6+mt.emissiveIntensity*.5)]);rm.push(o);}else{metal.push([o.geometry,o.matrixWorld.clone(),mt.color.clone()]);rm.push(o);}});
