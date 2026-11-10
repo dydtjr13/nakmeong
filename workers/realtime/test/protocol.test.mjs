@@ -799,3 +799,11 @@ test("v109 vbx: 새 탈것 블럭 데이터 정리", () => {
   assert.deepEqual(m, { t: "vbx", k: "xbear", d: null });
   assert.equal(pc109(JSON.stringify({ t: "vbx", k: "bear", d: {} })), null);
 });
+
+test("v110 탈것 설정 B · 미션 보상 여러 개", () => {
+  const pl = _spl({ vehCfg: { p: { xbear: 0.5, pig: 2 }, s: { robot: 50 }, how: { pig: "box", sled: "shop", bad: "evil" }, g: { pig: 9 }, pr: { sled: 1234567.8 } }, msCfg: { d: [{ t: "catch", n: 5, rw: { co: 100, st: 3, bn: 2, bg: 4 } }, { t: "rare", n: 2, r: "bx", v: 3 }], m: [{ t: "fuse", n: 30, rw: { ess: 5 } }], s: [{ d: 7, rw: { bn: 1, bg: 9 } }] } }, {});
+  assert.equal(pl.vehCfg.p.xbear, 0.5); assert.equal(pl.vehCfg.p.sled, 0.4); assert.equal(pl.vehCfg.s.robot, 50);
+  assert.deepEqual(pl.vehCfg.how, { pig: "box", sled: "shop" }); assert.equal(pl.vehCfg.g.pig, 5); assert.equal(pl.vehCfg.pr.sled, 1234568);
+  assert.deepEqual(pl.msCfg.d[0].rw, { co: 100, st: 3, bn: 2, bg: 4 }); assert.deepEqual(pl.msCfg.d[1].rw, { bn: 1, bg: 3 });
+  assert.deepEqual(pl.msCfg.m[0], { t: "fuse", n: 30, rw: { ess: 5 } }); assert.deepEqual(pl.msCfg.s[0].rw, { bn: 1, bg: 5 });
+});

@@ -772,3 +772,42 @@ button.sellb:hover{background:#ffe7c2}
 @media(max-width:900px){#vmEd .veBody{flex-direction:column}#vmEd .veList{width:auto;height:120px;border-right:0;border-bottom:1.5px solid #eadfcc}#vmEd .vePanel{width:auto;height:240px;border-left:0;border-top:1.5px solid #eadfcc}}
 #vmEd .vep,#vmEd .vegh,#vmEd .veadd{box-shadow:none;min-height:0;margin:1px 0}
 #vmEd .vep{background:transparent}
+/* v110 탈것 설정 B */
+.vehadm .vetw{overflow-x:auto;margin:8px 0}
+.vehadm .vet2{min-width:640px;table-layout:fixed}.vehadm .vet2 th:nth-child(1){width:112px}.vehadm .vet2 th:nth-child(2){width:96px}.vehadm .vet2 th:nth-child(3){width:96px}.vehadm .vet2 th:nth-child(4){width:84px}.vehadm .vet2 th:nth-child(5){width:150px}.vehadm .vet2 select{max-width:90px;padding:2px}.vehadm .vet2 td{overflow:hidden}
+.vehadm .vet2 td{white-space:nowrap}
+.vehadm .vtn{display:inline-flex;align-items:center;gap:6px;font-weight:700}
+.vehadm .vpill{display:inline-flex;background:#efe3d0;border-radius:999px;padding:2px;gap:2px}
+.vehadm .vpill button{border:0;background:transparent;border-radius:999px;padding:4px 10px;font-size:12px;color:#5a4a3a;cursor:pointer;min-height:0}
+.vehadm .vpill button.on{background:#fff;color:#1f6f6a;font-weight:800;box-shadow:0 1px 0 #d9c8ad}
+.vehadm .voff{color:#b3a38c;font-size:12px}
+.vehadm .vet2 input[type=number]{width:52px}.vehadm .vet2 input.vpr{width:88px}
+.vehadm .vsp{display:inline-flex;align-items:center;gap:4px}.vehadm .vsp input{width:64px;accent-color:#1f6f6a}.vehadm .vsp b{width:44px;text-align:right;color:#1f6f6a;font-size:12px}
+.vehadm .vet2 tr.isbox td{background:#fffaf0}
+.vehadm .vesum{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:6px 0}
+.vehadm .vesum span{display:flex;align-items:center;gap:6px;background:#f6efe3;border-radius:10px;padding:6px 8px;font-size:11.5px;line-height:1.3}
+.vehadm .vesum img{width:26px;height:26px;object-fit:contain}.vehadm .vesum b{display:block;font-size:12px}
+@media (max-width:700px){.vehadm .vesum{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* v110 미션 설정 C */
+#msDlg .mi .mrw{font-size:11.5px;font-weight:800;color:#8a4a1e;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msc .mscg{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:12px;margin:8px 0}
+.msc .msprev{background:#fffaf0;border:1.5px solid #e9dcc6;border-radius:16px;padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px}.msc .mscal .cal{max-width:300px}
+.msc h6{margin:4px 0 6px;font-size:13px}.msc h6 small{font-weight:500;color:#8a7660;font-size:11px}
+.msc .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.msc .cal button{aspect-ratio:1;padding:0;border-radius:8px;background:#fbf6ec;border:1px solid #ecdfc9;position:relative;cursor:pointer;min-height:0;display:flex;align-items:center;justify-content:center}
+.msc .cal button span{position:absolute;left:3px;top:1px;font-size:9.5px;color:#8a7660}.msc .cal button img{width:70%;height:70%;object-fit:contain}
+.msc .cal button.rw{background:#fff3c4;border-color:#e8c06a}.msc .cal button.sel{box-shadow:0 0 0 2.5px #c8501e}
+.msc .msas{margin-bottom:6px}
+.msc .msar{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:1.5px solid #e9dcc6;background:#fff;border-radius:10px;padding:6px 8px;margin-bottom:4px;cursor:pointer;min-height:0}
+.msc .msar.on{border-color:#c8501e;box-shadow:0 0 0 2px #c8501e}
+.msc .msar .mic{font-size:15px}.msc .msar .mtx{flex:1;min-width:0;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.msc .msar b{font-size:11px;color:#8a4a1e;white-space:nowrap}
+.msc .msadd{width:100%;border:1.5px dashed #b9a688;background:transparent;border-radius:10px;padding:5px;font-size:12px;cursor:pointer;min-height:0}
+.msc .msed{background:#fff;border:2px solid #c8501e;border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:7px;align-self:start}
+.msc .mskd{color:#8a4a1e;font-weight:800;font-size:11.5px}.msc .mstt{font-size:16px}
+.msc .msf{display:flex;flex-direction:column;gap:3px;font-size:12px}.msc .msf select,.msc .msf input{width:100%}
+.msc .msrw{display:grid;grid-template-columns:18px minmax(0,1fr) 76px;align-items:center;gap:6px;font-size:12.5px}.msc .msrw input[type=number]{width:76px;text-align:right}
+.msc .msbx{display:flex;align-items:center;gap:4px;white-space:nowrap}.msc .msbx select{padding:2px}
+.msc .msdel{align-self:flex-start;margin-top:4px}
+@media(max-width:900px){.msc .mscg{grid-template-columns:1fr}.msc .msprev{grid-template-columns:1fr}}
+.msc .msar.on{background:#fff7f0!important;color:#3a2f25!important}
+.msc .msf select,.msc .msf input{width:100%!important;box-sizing:border-box}

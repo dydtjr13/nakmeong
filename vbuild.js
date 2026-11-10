@@ -1,4 +1,4 @@
-// v109 ── 🧱 새 탈것·캐릭터 만들기 (관리자 › 🧪 테스트 기능)
+// v109 ── 🧱 새 탈것·캐릭터·펫 만들기 (관리자 › 🧪 테스트 기능) · v110 구역 나누기 · ✨ 다듬기 · 저장/불러오기
 // 건축 모드: 마인크래프트처럼 블럭 쌓기 (왼쪽 클릭 쌓기 · 꾹 눌러 끌면 영역 채우기 · 오른쪽 클릭 지우기 · 오른쪽 끌기 돌리기)
 // 상세 조정 모드: 묶음(몸통·머리·다리·꼬리)마다 회전 중심·회전·크기·역할 · 타는 자리 · 전체 크기
 (function () {
@@ -12,11 +12,18 @@
   const SW = ['#f4f1ea', '#d9d2c5', '#9aa3ad', '#5c6470', '#2c2a30', '#f2b8c6', '#e8708a', '#c8323a', '#f08a4b', '#f5c63c', '#fff0b0', '#c9a37a', '#8a5a3a', '#5a3a24', '#a8d86e', '#4f9a52', '#2f6b4a', '#9fe0d8', '#3f8f8a', '#8fc8f0', '#3d7fd1', '#2a3f7a', '#b98be0', '#6e4aa8'];
   const ROLE = { '': '역할 없음', leg: '다리 (걸을 때 앞뒤로)', arm: '팔 (걸을 때 앞뒤로)', head: '머리 (끄덕끄덕)', tail: '꼬리 (좌우로 흔들)' };
   const BONE = { torso: '몸통', head: '머리', 'arm-left': '왼팔', 'arm-right': '오른팔', 'leg-left': '왼다리', 'leg-right': '오른다리' };
+  // v110 구역(몸 부분) — 왼쪽 = +x (앞이 +z 일 때)
+  const PARTS = {
+    veh: [['', '몸통', {}], ['h', '머리', { head: 1 }], ['t', '꼬리', { tail: 1 }], ['lfl', '앞다리 왼', { leg: 0 }], ['lfr', '앞다리 오른', { leg: Math.PI }], ['lbl', '뒷다리 왼', { leg: Math.PI }], ['lbr', '뒷다리 오른', { leg: 0 }], ['wl', '날개 왼', {}], ['wr', '날개 오른', {}], ['e', '장식', {}]],
+    chr: [['', '기타 (몸통에 붙어요)', {}], ['b', '몸통', { bone: 'torso' }], ['h', '머리', { head: 1, bone: 'head' }], ['al', '왼팔', { arm: 0, bone: 'arm-left' }], ['ar', '오른팔', { arm: Math.PI, bone: 'arm-right' }], ['ll', '왼다리', { leg: Math.PI, bone: 'leg-left' }], ['lr', '오른다리', { leg: 0, bone: 'leg-right' }]],
+  };
+  const MIRP = { lfl: 'lfr', lfr: 'lfl', lbl: 'lbr', lbr: 'lbl', wl: 'wr', wr: 'wl', al: 'ar', ar: 'al', ll: 'lr', lr: 'll' };
+  const partsOf = () => PARTS[E.d && E.d.t === 'chr' ? 'chr' : 'veh'];
   const GC = ['#e8708a', '#3d7fd1', '#f5c63c', '#4f9a52', '#b98be0', '#f08a4b', '#3f8f8a', '#8a5a3a', '#c8323a', '#2a3f7a'];
 
   // ── 상태
   const E = {
-    k: null, d: null, V: {}, mode: 'build', tool: 'add', size: 1, er: 1, col: 0, mir: true, gid: '', sel: '', walk: false, tint: false, ppl: true,
+    k: null, d: null, V: {}, mode: 'build', tool: 'add', brush: 1, sm: 2, size: 1, er: 1, col: 0, mir: true, gid: '', sel: '', walk: false, tint: false, ppl: true,
     undo: [], redo: [], R: null, sc: null, cam: null, root: null, ghost: null, raf: 0, yaw: 0.9, pit: 0.45, dist: 6, tgt: null, t: 0, occ: null, dirtyT: 0,
   };
   const ck = (x, y, z) => x + ',' + y + ',' + z;
@@ -56,7 +63,7 @@
     E.dirtyT = setTimeout(saveDraft, 600);
   }
   function drafts() { try { return JSON.parse(localStorage.getItem(DRAFT) || '{}') || {}; } catch (e) { return {}; } }
-  function saveDraft() { if (!E.k) return; try { const o = drafts(); o[E.k] = data(); localStorage.setItem(DRAFT, JSON.stringify(o)); } catch (e) { toast('내 컴퓨터에 저장할 공간이 모자라요', 1600); } }
+  function saveDraft() { if (!E.k) return; try { const o = drafts(), d = data(); d.at = Date.now(); o[E.k] = d; localStorage.setItem(DRAFT, JSON.stringify(o)); localStorage.setItem('nk_vb_last', E.k); } catch (e) { toast('내 컴퓨터에 저장할 공간이 모자라요', 1600); } }
 
   // 칸 → 어떤 블럭이 차지하는지
   function occ() {
@@ -77,11 +84,12 @@
   }
   const inR = (v) => v >= -64 && v <= 63;
   function canPut(x, y, z, s) { const o = occ(); for (let i = 0; i < s; i++) for (let j = 0; j < s; j++) for (let k = 0; k < s; k++) { if (!inR(x + i) || !inR(y + j) || !inR(z + k) || y + j < 0) return false; if (o.has(ck(x + i, y + j, z + k))) return false; } return true; }
-  function put(x, y, z, s, c) {
+  function put(x, y, z, s, c, gid) {
     if (count() >= MAXB) return false;
     if (!canPut(x, y, z, s)) return false;
-    const b = [x, y, z, s, c]; E.V[E.gid].set(ck(x, y, z), b);
-    const o = occ(); for (let i = 0; i < s; i++) for (let j = 0; j < s; j++) for (let k = 0; k < s; k++) o.set(ck(x + i, y + j, z + k), [E.gid, ck(x, y, z)]);
+    const G = gid != null && E.V[gid] ? gid : E.gid; if (!E.V[G]) E.V[G] = new Map();
+    const b = [x, y, z, s, c]; E.V[G].set(ck(x, y, z), b);
+    const o = occ(); for (let i = 0; i < s; i++) for (let j = 0; j < s; j++) for (let k = 0; k < s; k++) o.set(ck(x + i, y + j, z + k), [G, ck(x, y, z)]);
     return true;
   }
   function delCell(x, y, z) { const h = occ().get(ck(x, y, z)); if (!h) return false; E.V[h[0]].delete(h[1]); E.occ = null; return true; }
@@ -92,16 +100,22 @@
   function boxFill(m, x0, y0, z0, w, h, l, c) { for (let x = x0; x < x0 + w; x++) for (let y = y0; y < y0 + h; y++) for (let z = z0; z < z0 + l; z++) m.set(ck(x, y, z), [x, y, z, 1, c]); }
   function tpl(kind, t) {
     const V = VB();
-    const d = { v: 1, t, n: t === 'chr' ? '새 캐릭터' : '새 탈것', vu: t === 'chr' ? 0.07 : 0.1, seat: [0, 1.25, 0], zoom: 1, pal: t === 'chr' ? ['#f2d2b6', '#3d7fd1', '#2a3f7a', '#5a3a24', '#2c2a30', '#f4f1ea'] : ['#c9a37a', '#8a5a3a', '#2c2a30', '#f4f1ea', '#e8708a', '#5a3a24'], groups: {}, vox: {} };
+    const d = { v: 1, t, n: t === 'chr' ? '새 캐릭터' : t === 'pet' ? '새 펫' : '새 탈것', vu: t === 'chr' ? 0.07 : t === 'pet' ? 0.035 : 0.1, seat: [0, 1.25, 0], zoom: 1, pal: t === 'chr' ? ['#f2d2b6', '#3d7fd1', '#2a3f7a', '#5a3a24', '#2c2a30', '#f4f1ea'] : ['#c9a37a', '#8a5a3a', '#2c2a30', '#f4f1ea', '#e8708a', '#5a3a24'], groups: {}, vox: {} };
     const M = {};
     const g = (id, q) => { d.groups[id] = q; M[id] = new Map(); return M[id]; };
     M[''] = new Map();
     if (kind === 'animal') {
       boxFill(M[''], -5, 6, -9, 10, 7, 18, 0);
       const h = g('h', { nm: '머리', head: 1, p: [0, 1.15, 0.85] }); boxFill(h, -4, 10, 9, 8, 7, 7, 0); boxFill(h, -2, 10, 16, 4, 3, 2, 1); boxFill(h, -3, 14, 15, 2, 1, 1, 2); boxFill(h, 1, 14, 15, 2, 1, 1, 2);
-      [['l1', -5, 6, 0], ['l2', 2, 6, Math.PI], ['l3', -5, -8, Math.PI], ['l4', 2, -8, 0]].forEach(([id, x, z, ph], i) => { const m = g(id, { nm: '다리' + (i + 1), leg: ph, p: [(x + 1.5) * 0.1, 0.6, (z + 1.5) * 0.1] }); boxFill(m, x, 0, z, 3, 6, 3, 0); boxFill(m, x, 0, z, 3, 1, 3, 1); });
+      [['lfr', -5, 6, Math.PI], ['lfl', 2, 6, 0], ['lbr', -5, -8, 0], ['lbl', 2, -8, Math.PI]].forEach(([id, x, z, ph]) => { const m = g(id, { nm: PARTS.veh.find((q) => q[0] === id)[1], leg: ph, p: [(x + 1.5) * 0.1, 0.6, (z + 1.5) * 0.1] }); boxFill(m, x, 0, z, 3, 6, 3, 0); boxFill(m, x, 0, z, 3, 1, 3, 1); });
       const tl = g('t', { nm: '꼬리', tail: 1, p: [0, 1.1, -0.9] }); boxFill(tl, -1, 10, -14, 2, 2, 5, 1);
       d.seat = [0, 1.3, -0.1];
+    } else if (kind === 'pet') {
+      d.pal = ['#f0b070', '#fff1dc', '#2b2230', '#f29ab0', '#c47a3a', '#ffffff'];
+      boxFill(M[''], -4, 5, -6, 8, 6, 12, 0); boxFill(M[''], -3, 5, -5, 6, 1, 9, 1);
+      const h = g('h', { nm: '머리', head: 1, p: [0, 0.38, 0.2] }); boxFill(h, -4, 9, 5, 8, 7, 7, 0); boxFill(h, -2, 9, 12, 4, 3, 1, 1); boxFill(h, -3, 13, 12, 2, 1, 1, 2); boxFill(h, 1, 13, 12, 2, 1, 1, 2); boxFill(h, -4, 16, 7, 2, 2, 2, 0); boxFill(h, 2, 16, 7, 2, 2, 2, 0);
+      [['lfl', 1, 3, 0], ['lfr', -3, 3, Math.PI], ['lbl', 1, -5, Math.PI], ['lbr', -3, -5, 0]].forEach(([id, x, z, ph]) => { const m = g(id, { nm: PARTS.veh.find((q) => q[0] === id)[1], leg: ph, p: [(x + 1) * 0.035, 0.175, (z + 1) * 0.035] }); boxFill(m, x, 0, z, 2, 5, 2, 0); });
+      const tl = g('t', { nm: '꼬리', tail: 1, p: [0, 0.35, -0.21] }); boxFill(tl, -1, 9, -10, 2, 2, 4, 4);
     } else if (kind === 'chr') {
       const b = g('b', { nm: '몸통', bone: 'torso', p: [0, 0.84, 0] }); boxFill(b, -4, 12, -2, 8, 10, 4, 1);
       const h = g('h', { nm: '머리', head: 1, bone: 'head', p: [0, 1.54, 0] }); boxFill(h, -4, 22, -4, 8, 8, 8, 0); boxFill(h, -4, 28, -4, 8, 2, 8, 3); boxFill(h, -2, 25, 4, 1, 1, 1, 4); boxFill(h, 1, 25, 4, 1, 1, 1, 4);
@@ -126,8 +140,9 @@
     if (!m) { m = document.createElement('div'); m.id = 'vbEd'; document.body.appendChild(m); }
     m.classList.add('show'); document.body.classList.add('vbOpen');
     const dr = drafts();
-    const k0 = k || E.k || Object.keys(dr)[0] || Object.keys(V.VBX.map)[0];
-    if (k0 && (dr[k0] || V.vbGet(k0))) { E.k = k0; load(dr[k0] || V.vbGet(k0)); }
+    let last = ''; try { last = localStorage.getItem('nk_vb_last') || ''; } catch (e) { /* ignore */ }
+    const k0 = k || E.k || (dr[last] ? last : '') || Object.keys(dr).sort((a, b) => (dr[b].at || 0) - (dr[a].at || 0))[0] || Object.keys(V.VBX.map)[0];
+    if (k0 && (dr[k0] || V.vbGet(k0))) { E.k = k0; load(dr[k0] || V.vbGet(k0)); if (!dr[k0]) saveDraft(); }
     else { E.k = newKey(); load(tpl('animal', 'veh')); saveDraft(); }
     E.undo = []; E.redo = [];
     ui(); gl(); fit();
@@ -149,18 +164,19 @@
       m.addEventListener('contextmenu', (e) => { if (e.target.id === 'vbCv') e.preventDefault(); });
     }
     const d = E.d, chr = d.t === 'chr';
+    const TI = { veh: '🐾', chr: '🧍', pet: '🐶' };
     m.querySelector('.vbTop').innerHTML = `<b class="vbT">🧱 만들기</b>
-      <select data-vbk aria-label="작업 고르기">${projList()}</select>
-      <button type="button" data-vbnew="veh">＋ 탈것</button><button type="button" data-vbnew="chr">＋ 캐릭터</button>
-      <span class="vbSeg"><button type="button" data-vbm="build" class="${E.mode === 'build' ? 'on' : ''}">🧱 건축</button><button type="button" data-vbm="detail" class="${E.mode === 'detail' ? 'on' : ''}">🎛 상세 조정</button></span>
+      <span class="vbNm" title="${esc(d.n)}">${TI[d.t] || '🐾'} ${esc(d.n)}</span>
+      <button type="button" data-vbsave>💾 저장</button><button type="button" data-vbload>📂 불러오기</button>
+      <button type="button" data-vbnewm>＋ 새로 만들기</button>
+      <span class="vbSeg"><button type="button" data-vbm="build" class="${E.mode === 'build' ? 'on' : ''}">🧱 건축</button><button type="button" data-vbm="part" class="${E.mode === 'part' ? 'on' : ''}">🏷 구역 나누기</button><button type="button" data-vbm="detail" class="${E.mode === 'detail' ? 'on' : ''}">🎛 상세 조정</button></span>
       <button type="button" data-vbu ${E.undo.length ? '' : 'disabled'} aria-label="되돌리기" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-vbr ${E.redo.length ? '' : 'disabled'} aria-label="다시하기" title="다시하기 (Ctrl+Y)">↷</button>
       <button type="button" data-vbphoto>📷 사진으로 모양</button>
       <span class="vbSp"></span>
       <button type="button" class="acc" data-vbreg>✅ 게임에 등록</button>
       <button type="button" data-vbx aria-label="닫기">✕</button>`;
     const q = (s) => m.querySelector(s);
-    q('[data-vbk]').onchange = (e) => { saveDraft(); const k = e.target.value, dd = drafts()[k] || VB().vbGet(k); if (!dd) return; E.k = k; load(dd); E.undo = []; E.redo = []; changed(true); fit(); };
-    m.querySelectorAll('[data-vbnew]').forEach((b) => (b.onclick = () => newDlg(b.dataset.vbnew)));
+    q('[data-vbsave]').onclick = saveDlg; q('[data-vbload]').onclick = loadDlg; q('[data-vbnewm]').onclick = () => newDlg();
     m.querySelectorAll('[data-vbm]').forEach((b) => (b.onclick = () => { E.mode = b.dataset.vbm; if (E.mode === 'detail' && !E.sel) E.sel = E.gid; changed(true); }));
     q('[data-vbu]').onclick = undo; q('[data-vbr]').onclick = redo;
     q('[data-vbphoto]').onclick = photoDlg;
@@ -168,7 +184,8 @@
     q('[data-vbx]').onclick = close;
     m.querySelector('.vbHint').textContent = E.mode === 'build'
       ? '왼쪽 클릭 쌓기 · 꾹 눌러 끌기 = 영역 · 오른쪽 클릭 지우기 · 오른쪽 끌기 돌리기 · 휠 확대 · 가운데 끌기 옮기기'
-      : '묶음을 눌러 고르기 · 끌어서 돌리기 · 휠 확대 · 「걷기 보기」로 움직임 확인';
+      : E.mode === 'part' ? '블럭을 눌러 지금 구역으로 칠하기 · 꾹 눌러 끌기 = 영역 · 오른쪽 끌기 돌리기 · 휠 확대'
+      : '구역을 눌러 고르기 · 끌어서 돌리기 · 휠 확대 · 「걷기 보기」로 움직임 확인';
     left(); side();
     void chr;
   }
@@ -178,11 +195,11 @@
       const pal = E.d.pal;
       L.innerHTML = `<h5>도구</h5><div class="vbTools">
         <button type="button" data-vbt="add" class="${E.tool === 'add' ? 'on' : ''}">🧱 쌓기</button><button type="button" data-vbt="del" class="${E.tool === 'del' ? 'on' : ''}">🧽 지우기</button>
-        <button type="button" data-vbt="pick" class="${E.tool === 'pick' ? 'on' : ''}">💧 색 집기</button><button type="button" data-vbt="grp" class="${E.tool === 'grp' ? 'on' : ''}">🏷 묶음 칠하기</button></div>
+        <button type="button" data-vbt="pick" class="${E.tool === 'pick' ? 'on' : ''}">💧 색 집기</button><button type="button" data-vbsm2>✨ 다듬기</button></div>
         <h5>블럭 크기 <small>1~4칸</small></h5><div class="vbNum">${[1, 2, 3, 4].map((s) => `<button type="button" data-vbs="${s}" class="${E.size === s ? 'on' : ''}">${s}</button>`).join('')}</div>
         <h5>지우개 크기</h5><div class="vbNum">${[1, 2, 3, 5].map((s) => `<button type="button" data-vbe="${s}" class="${E.er === s ? 'on' : ''}">${s}</button>`).join('')}</div>
         <label class="vbChk"><input type="checkbox" data-vbmir ${E.mir ? 'checked' : ''}> ⇋ 좌우 대칭으로 쌓기</label>
-        <label class="vbChk"><input type="checkbox" data-vbtint ${E.tint ? 'checked' : ''}> 🏷 묶음 색으로 보기</label>
+        <label class="vbChk"><input type="checkbox" data-vbtint ${E.tint ? 'checked' : ''}> 🏷 구역 색으로 보기</label>
         <label class="vbChk"><input type="checkbox" data-vbppl ${E.ppl ? 'checked' : ''}> 🧍 사람 크기 같이 보기</label>
         <h5>블럭 색</h5><div class="vbPal">${pal.map((c, i) => `<button type="button" data-vbc="${i}" class="${E.col === i ? 'on' : ''}" style="background:${c}" aria-label="색 ${i + 1}"></button>`).join('')}</div>
         <div class="vbPal more">${SW.filter((c) => !pal.includes(c)).map((c) => `<button type="button" data-vbsw="${c}" style="background:${c}" aria-label="색 추가"></button>`).join('')}</div>
@@ -191,19 +208,33 @@
       L.querySelectorAll('[data-vbs]').forEach((b) => (b.onclick = () => { E.size = +b.dataset.vbs; left(); }));
       L.querySelectorAll('[data-vbe]').forEach((b) => (b.onclick = () => { E.er = +b.dataset.vbe; left(); }));
       L.querySelector('[data-vbmir]').onchange = (e) => { E.mir = e.target.checked; };
+      L.querySelector('[data-vbsm2]').onclick = smoothDlg;
       L.querySelector('[data-vbtint]').onchange = (e) => { E.tint = e.target.checked; scene(); };
       L.querySelector('[data-vbppl]').onchange = (e) => { E.ppl = e.target.checked; scene(); };
       L.querySelectorAll('[data-vbc]').forEach((b) => (b.onclick = () => { E.col = +b.dataset.vbc; if (E.tool !== 'add') E.tool = 'add'; left(); }));
       L.querySelectorAll('[data-vbsw]').forEach((b) => (b.onclick = () => { E.col = colIdx(b.dataset.vbsw); E.tool = 'add'; left(); }));
       const cu = L.querySelector('[data-vbcus]');
       cu.onchange = () => { E.col = colIdx(cu.value); E.tool = 'add'; left(); };
+    } else if (E.mode === 'part') {
+      const P = partsOf(), extra = Object.keys(E.d.groups).filter((id) => !P.some((q) => q[0] === id));
+      L.innerHTML = `<h5>칠할 구역</h5><div class="vbParts">${P.map(([id, n]) => `<button type="button" data-vbp="${id}" class="${E.gid === id ? 'on' : ''}"><i style="background:${grpCol(id)}"></i>${n}<small>${(E.V[id] || new Map()).size || ''}</small></button>`).join('')}${extra.map((id) => `<button type="button" data-vbp="${id}" class="${E.gid === id ? 'on' : ''}"><i style="background:${grpCol(id)}"></i>${esc(grpName(id))}<small>${E.V[id].size || ''}</small></button>`).join('')}</div>
+        <h5>붓 크기</h5><div class="vbNum">${[1, 2, 3, 5].map((s) => `<button type="button" data-vbb="${s}" class="${E.brush === s ? 'on' : ''}">${s}</button>`).join('')}</div>
+        <label class="vbChk"><input type="checkbox" data-vbmir ${E.mir ? 'checked' : ''}> ⇋ 반대쪽도 같이 (왼 ↔ 오른)</label>
+        <p class="vbNote">누른 곳부터 블럭이 이어진 데까지 한 번에 칠해져요 (다리 옆을 누르면 그 다리 두께만큼)</p>
+        <button type="button" class="vbWide acc" data-vbauto>🤖 자동으로 나누기</button>
+        <button type="button" class="vbWide" data-vbclear>모두 ${E.d.t === 'chr' ? '기타' : '몸통'}으로 되돌리기</button>`;
+      L.querySelectorAll('[data-vbp]').forEach((b) => (b.onclick = () => { E.gid = b.dataset.vbp; ensurePart(E.gid); left(); side(); scene(); }));
+      L.querySelectorAll('[data-vbb]').forEach((b) => (b.onclick = () => { E.brush = +b.dataset.vbb; left(); }));
+      L.querySelector('[data-vbmir]').onchange = (e) => { E.mir = e.target.checked; };
+      L.querySelector('[data-vbauto]').onclick = () => { push(); const n = autoSplit(); changed(true); toast(n ? `🤖 ${n}개 구역으로 나눴어요 · 틀린 곳은 칠해서 고쳐요` : '나눌 곳을 찾지 못했어요 · 직접 칠해 주세요', 2200); };
+      L.querySelector('[data-vbclear]').onclick = () => { push(); const all = new Map(); for (const g in E.V) for (const [k, b] of E.V[g]) all.set(k, b); E.V = { '': all }; for (const id in E.d.groups) E.V[id] = new Map(); E.gid = ''; changed(true); };
     } else {
       const d = E.d, z = d.zoom || 1;
       L.innerHTML = `<h5>${d.t === 'chr' ? '🧍 캐릭터' : '🐾 탈것'} 전체</h5>
         <label class="vbF">이름<input type="text" maxlength="14" value="${esc(d.n)}" data-vbn></label>
         ${row('전체 크기', 'zoom', 0, z, 0.4, 2.5, 0.01)}
         ${row('칸 cm', 'vu', 0, Math.round((d.vu || 0.1) * 100), 2, 30, 1)}
-        ${d.t === 'chr' ? '' : `<h5>타는 자리 <button type="button" class="vbMini" data-vbseat>자동</button></h5>${['좌우', '높이', '앞뒤'].map((n, j) => row(n, 'seat', j, d.seat[j], -3, 4, 0.01)).join('')}`}
+        ${d.t !== 'veh' ? '' : `<h5>타는 자리 <button type="button" class="vbMini" data-vbseat>자동</button></h5>${['좌우', '높이', '앞뒤'].map((n, j) => row(n, 'seat', j, d.seat[j], -3, 4, 0.01)).join('')}`}
         <label class="vbChk"><input type="checkbox" data-vbwalk ${E.walk ? 'checked' : ''}> 🚶 걷기 보기</label>
         <label class="vbChk"><input type="checkbox" data-vbppl ${E.ppl ? 'checked' : ''}> 🧍 사람 크기 같이 보기</label>
         <p class="vbNote">건축 모드에서는 회전·크기가 풀린 원래 자리로 보여요</p>`;
@@ -231,9 +262,22 @@
   }
   function side() {
     const R = $('vbEd') && $('vbEd').querySelector('.vbR'); if (!R) return;
-    const d = E.d, ids = ['', ...Object.keys(d.groups)], cur = E.mode === 'build' ? E.gid : E.sel;
-    let h = `<h5>묶음 <small>${E.mode === 'build' ? '새 블럭이 들어갈 곳' : '눌러서 고치기'}</small></h5><div class="vbGs">${ids.map((id) => { const q = d.groups[id] || {}, n = (E.V[id] || new Map()).size; const tag = q.leg != null ? '다리' : q.arm != null ? '팔' : q.head ? '머리' : q.tail ? '꼬리' : ''; return `<button type="button" data-vbg="${id}" class="${cur === id ? 'on' : ''}"><i style="background:${grpCol(id)}"></i>${esc(grpName(id))}${tag ? `<em>${tag}</em>` : ''}<small>${n}</small></button>`; }).join('')}</div>
-      <div class="vbGb"><button type="button" data-vbgadd>＋ 새 묶음</button>${cur ? '<button type="button" data-vbgdel>묶음 풀기</button>' : ''}</div>`;
+    const d = E.d, ids = ['', ...Object.keys(d.groups)].filter((id) => !id || (E.V[id] && E.V[id].size) || E.mode === 'detail'), cur = E.mode === 'detail' ? E.sel : E.gid;
+    if (E.mode !== 'detail') {
+      const n = count();
+      R.innerHTML = `<h5>구역 <small>${E.mode === 'build' ? '눌러서 구역 나누기로' : '지금 칠하는 구역'}</small></h5><div class="vbGs">${ids.map((id) => { const c = (E.V[id] || new Map()).size; return `<button type="button" data-vbg="${id}" class="${E.mode === 'part' && cur === id ? 'on' : ''}"><i style="background:${grpCol(id)}"></i>${esc(grpName(id))}<small>${c}</small></button>`; }).join('')}</div>
+        <p class="vbNote">${E.mode === 'build' ? '새 블럭은 붙인 블럭과 같은 구역에 들어가요. 다 만든 뒤 「🏷 구역 나누기」에서 머리·다리·꼬리를 칠해서 나눠요' : '「🤖 자동으로 나누기」로 먼저 나눈 뒤, 틀린 곳만 칠해서 고치면 빨라요'}</p>
+        <hr><h5>✨ 다듬기</h5><p class="vbNote">대충 만든 모양의 튀어나온 블럭·구멍·모서리를 정리하고 얼룩진 색을 맞춰요</p>
+        <div class="vbNum">${[[1, '약하게'], [2, '보통'], [3, '세게']].map(([v, t]) => `<button type="button" data-vbsm="${v}" class="${E.sm === v ? 'on' : ''}">${t}</button>`).join('')}</div>
+        <button type="button" class="vbWide acc" data-vbsmgo>✨ 다듬기</button>
+        <p class="vbNote">블럭 ${n.toLocaleString()} / ${MAXB.toLocaleString()}</p>`;
+      R.querySelectorAll('[data-vbg]').forEach((b) => (b.onclick = () => { E.gid = b.dataset.vbg; E.mode = 'part'; changed(true); }));
+      R.querySelectorAll('[data-vbsm]').forEach((b) => (b.onclick = () => { E.sm = +b.dataset.vbsm; side(); }));
+      R.querySelector('[data-vbsmgo]').onclick = () => doSmooth(E.sm);
+      info(); topBtns(); return;
+    }
+    let h = `<h5>구역 <small>눌러서 고치기</small></h5><div class="vbGs">${ids.map((id) => { const q = d.groups[id] || {}, n = (E.V[id] || new Map()).size; const tag = q.leg != null ? '다리' : q.arm != null ? '팔' : q.head ? '머리' : q.tail ? '꼬리' : ''; return `<button type="button" data-vbg="${id}" class="${cur === id ? 'on' : ''}"><i style="background:${grpCol(id)}"></i>${esc(grpName(id))}${tag ? `<em>${tag}</em>` : ''}<small>${n}</small></button>`; }).join('')}</div>
+      <div class="vbGb"><button type="button" data-vbgadd>＋ 새 구역</button>${cur ? '<button type="button" data-vbgdel>구역 풀기</button>' : ''}</div>`;
     if (E.mode === 'detail' && E.sel && d.groups[E.sel]) {
       const q = d.groups[E.sel], r = q.r || [0, 0, 0], role = q.leg != null ? 'leg' : q.arm != null ? 'arm' : q.head ? 'head' : q.tail ? 'tail' : '';
       h += `<hr><h5>${esc(grpName(E.sel))}</h5>
@@ -249,11 +293,11 @@
       h += `<hr><p class="vbNote">${E.sel === '' ? '몸통은 움직이지 않아요. 다리·머리·꼬리 묶음을 고르면 회전 중심과 역할을 정할 수 있어요' : ''}</p>`;
     }
     R.innerHTML = h;
-    R.querySelectorAll('[data-vbg]').forEach((b) => (b.onclick = () => { const id = b.dataset.vbg; if (E.mode === 'build') E.gid = id; else E.sel = id; side(); scene(); }));
+    R.querySelectorAll('[data-vbg]').forEach((b) => (b.onclick = () => { E.sel = b.dataset.vbg; side(); scene(); }));
     R.querySelector('[data-vbgadd]').onclick = () => {
       push(); let i = 1; while (d.groups['g' + i]) i++;
       const id = 'g' + i; d.groups[id] = { nm: '묶음 ' + i, p: [0, 0.5, 0] }; E.V[id] = new Map();
-      if (E.mode === 'build') { E.gid = id; E.tool = 'grp'; toast('🏷 「묶음 칠하기」로 블럭을 눌러 이 묶음에 넣어요', 2000); } else E.sel = id;
+      E.sel = id;
       changed(true);
     };
     const gd = R.querySelector('[data-vbgdel]');
@@ -336,10 +380,10 @@
     // 앞쪽 표시
     const ar = new T.Mesh(new T.ConeGeometry(0.12, 0.3, 3), new T.MeshBasicMaterial({ color: '#c8501e' })); ar.rotation.x = Math.PI / 2; ar.position.set(0, 0.02, (n * vu) / 2 - 0.25); add(ar);
     // 모델
-    const raw = E.mode === 'build';
+    const raw = E.mode !== 'detail';
     const dd = Object.assign({}, d, raw ? { zoom: 1 } : {});
     const vox = {}; for (const g in E.V) vox[g] = [...E.V[g].values()];
-    E.root = V.vbBuild(dd, { vox, raw, edit: 1, tint: raw && E.tint ? (id) => grpCol(id) : null });
+    E.root = V.vbBuild(dd, { vox, raw, edit: 1, tint: E.mode === 'part' || (raw && E.tint) ? (id) => grpCol(id) : null });
     add(E.root);
     if (E.ppl) { const p = person(); p.position.set((bounds() ? (bounds()[3] + 1) * vu * (raw ? 1 : d.zoom || 1) : 0) + 0.9, 0, 0); add(p); p.traverse((x) => { x.userData.keep = 1; }); }
     if (!raw) {
@@ -349,7 +393,7 @@
         const tg = G[E.sel]; E.box = new T.BoxHelper(tg, 0xff5a1f); add(E.box);
         const pv = new T.Mesh(new T.SphereGeometry(0.06, 12, 8), new T.MeshBasicMaterial({ color: '#ff5a1f', depthTest: false })); pv.renderOrder = 9; tg.add(pv); pv.userData.vbTmp = 1;
       }
-    } else if (E.tint === false && E.gid && E.V[E.gid] && E.V[E.gid].size) {
+    } else if (false) {
       // 지금 묶음을 살짝 표시
       const b = bounds(E.gid); if (b) { const h = new T.Box3(new T.Vector3(b[0] * vu, b[1] * vu, b[2] * vu), new T.Vector3((b[3] + 1) * vu, (b[4] + 1) * vu, (b[5] + 1) * vu)); add(new T.Box3Helper(h, 0x3d7fd1)); }
     }
@@ -359,7 +403,7 @@
     info();
   }
   function fit() {
-    const b = bounds(), vu = E.d.vu || 0.1, z = E.mode === 'build' ? 1 : E.d.zoom || 1;
+    const b = bounds(), vu = E.d.vu || 0.1, z = E.mode !== 'detail' ? 1 : E.d.zoom || 1;
     if (!b || !E.tgt) { if (E.tgt) E.tgt.set(0, 0.8, 0); E.dist = 6; return; }
     const c = [((b[0] + b[3] + 1) / 2) * vu * z, ((b[1] + b[4] + 1) / 2) * vu * z, ((b[2] + b[5] + 1) / 2) * vu * z], r = Math.max((b[3] - b[0] + 1), (b[4] - b[1] + 1), (b[5] - b[2] + 1)) * vu * z;
     E.tgt.set(c[0], c[1], c[2]); E.dist = Math.max(2, r * 2.4);
@@ -399,14 +443,16 @@
     cv.onpointerdown = (e) => {
       cv.setPointerCapture(e.pointerId);
       dn = { b: e.button, x: e.clientX, y: e.clientY, mv: 0, lx: e.clientX, ly: e.clientY, h: null };
-      if (E.mode === 'build' && e.button === 0) { const h = hit(e); if (h) { dn.h = h; const tool = E.tool; const c = tool === 'add' ? origin(h, E.size) : h.in || h.out; dn.st = { ax: h.ax, sg: h.sg, layer: c[h.ax], c0: c }; } }
+      if (E.mode === 'build' && e.button === 0) { const h = hit(e); if (h) { dn.h = h; const tool = E.tool; const c = tool === 'add' ? origin(h, E.size) : h.in || h.out; dn.st = { ax: h.ax, sg: h.sg, layer: c[h.ax], c0: c, g: (h.in && (occ().get(ck(...h.in)) || [''])[0]) || '' }; } }
+      if (E.mode === 'part' && e.button === 0) { const h = hit(e); if (h && h.in) { dn.h = h; dn.st = { ax: h.ax, sg: h.sg, layer: h.in[h.ax], c0: h.in }; } }
     };
     cv.onpointermove = (e) => {
-      if (!dn) { if (E.mode === 'build') hover(e); return; }
+      if (!dn) { if (E.mode !== 'detail') hover(e); return; }
       const dx = e.clientX - dn.lx, dy = e.clientY - dn.ly; dn.mv += Math.abs(dx) + Math.abs(dy); dn.lx = e.clientX; dn.ly = e.clientY;
       const orbit = E.mode === 'detail' ? dn.b === 0 || dn.b === 2 : dn.b === 2 || e.altKey;
       if (orbit) { E.yaw -= dx * 0.01; E.pit = Math.max(-0.1, Math.min(1.5, E.pit + dy * 0.01)); return; }
       if (dn.b === 1) { const r = new THREE.Vector3(), u = new THREE.Vector3(); E.cam.matrixWorld.extractBasis(r, u, new THREE.Vector3()); const k = E.dist * 0.0015; E.tgt.addScaledVector(r, -dx * k).addScaledVector(u, dy * k); return; }
+      if (E.mode === 'part' && dn.b === 0 && dn.st && dn.mv > 6) { const c = planeCell(e, dn.st); if (!c) return; dn.c1 = c; const a = dn.st.c0, mn = [0, 1, 2].map((i) => Math.min(a[i], c[i])), mxv = [0, 1, 2].map((i) => Math.max(a[i], c[i])); showGhost(mn, mxv, grpCol(E.gid)); return; }
       if (E.mode === 'build' && dn.b === 0 && dn.st && dn.mv > 6) {
         const c = planeCell(e, dn.st); if (!c) return; dn.c1 = c;
         const s = E.tool === 'add' ? E.size : 1, a = dn.st.c0, mn = [0, 1, 2].map((i) => Math.min(a[i], c[i])), mxv = [0, 1, 2].map((i) => Math.max(a[i], c[i]) + (E.tool === 'add' ? s - 1 : 0));
@@ -417,6 +463,7 @@
     cv.onpointerup = (e) => {
       const d0 = dn; dn = null; if (!d0) return;
       if (E.mode === 'detail') { if (d0.mv < 5 && d0.b === 0) pickGroup(e); return; }
+      if (E.mode === 'part') { if (d0.b !== 0) return; if (d0.mv > 6 && d0.st && d0.c1) { paintArea(d0.st, d0.c1); return; } if (d0.mv < 6 && d0.h) paint(d0.h); return; }
       if (d0.b === 2 && d0.mv < 5) { const h = hit(e); if (h && h.in) erase(h.in); return; }
       if (d0.b !== 0 || e.altKey) return;
       if (d0.mv > 6 && d0.st && d0.c1) { area(d0.st, d0.c1); return; }
@@ -427,6 +474,7 @@
   }
   function hover(e) {
     if (!E.root) return; const h = hit(e); if (!h) { E.ghost.visible = false; return; }
+    if (E.mode === 'part') { if (!h.in) { E.ghost.visible = false; return; } const r = E.brush, o = h.in.map((v, i) => (i === h.ax ? v : v - Math.floor((r - 1) / 2))), m2 = o.map((v, i) => (i === h.ax ? v : v + r - 1)); showGhost(o, m2, grpCol(E.gid)); return; }
     if (E.tool === 'add') { const o = origin(h, E.size), s = E.size; showGhost(o, [o[0] + s - 1, o[1] + s - 1, o[2] + s - 1], E.d.pal[E.col] || '#3d7fd1'); }
     else if (E.tool === 'del' && h.in) { const r = E.er, o = h.in.map((v) => v - Math.floor((r - 1) / 2)); showGhost(o, [o[0] + r - 1, o[1] + r - 1, o[2] + r - 1], '#e8505a'); }
     else if (h.in) showGhost(h.in, h.in, E.tool === 'grp' ? grpCol(E.gid) : '#ffffff');
@@ -435,8 +483,9 @@
   function click(h) {
     if (E.tool === 'add') {
       const o = origin(h, E.size), s = E.size; push();
-      let ok = put(o[0], o[1], o[2], s, E.col);
-      if (E.mir) { const x2 = mx(o[0], s); if (x2 !== o[0]) ok = put(x2, o[1], o[2], s, E.col) || ok; }
+      const hg = h.in && occ().get(ck(...h.in)), g = hg ? hg[0] : '', g2 = MIRP[g] && E.V[MIRP[g]] ? MIRP[g] : g;
+      let ok = put(o[0], o[1], o[2], s, E.col, g);
+      if (E.mir) { const x2 = mx(o[0], s); if (x2 !== o[0]) ok = put(x2, o[1], o[2], s, E.col, g2) || ok; }
       if (!ok) { E.undo.pop(); if (count() >= MAXB) toast(`블럭은 ${MAXB.toLocaleString()}개까지예요`, 1600); return; }
       changed();
     } else if (E.tool === 'del') { if (h.in) erase(h.in); }
@@ -451,7 +500,7 @@
   function area(st, c1) {
     push(); let n = 0; const ax = st.ax;
     if (E.tool === 'add') {
-      const s = E.size; for (const c of rectCells(st.c0, c1, ax, s)) { if (put(c[0], c[1], c[2], s, E.col)) n++; if (E.mir) { const x2 = mx(c[0], s); if (x2 !== c[0] && put(x2, c[1], c[2], s, E.col)) n++; } }
+      const s = E.size, g = st.g || ''; for (const c of rectCells(st.c0, c1, ax, s)) { if (put(c[0], c[1], c[2], s, E.col, g)) n++; if (E.mir) { const x2 = mx(c[0], s); if (x2 !== c[0] && put(x2, c[1], c[2], s, E.col, MIRP[g] && E.V[MIRP[g]] ? MIRP[g] : g)) n++; } }
     } else if (E.tool === 'del') {
       const r = E.er; for (const c of rectCells(st.c0, c1, ax, 1)) for (let k = 0; k < r; k++) { const q = c.slice(); q[ax] -= k * (st.sg || 1); if (delCell(...q)) n++; if (E.mir && delCell(-q[0] - 1, q[1], q[2])) n++; }
     } else if (E.tool === 'grp') {
@@ -469,16 +518,140 @@
   function redo() { if (!E.redo.length) return; E.undo.push(snap()); const d = JSON.parse(E.redo.pop()); load(d); changed(true); }
 
   // ── 새로 만들기
-  function newDlg(t) {
+  function newDlg(t0) {
     const V = VB();
-    V.confirmBox(`<h3>${t === 'chr' ? '🧍 새 캐릭터' : '🐾 새 탈것'}</h3><p class="small muted">어떻게 시작할까요?</p>
-      <div class="vbPick">${t === 'chr' ? '<label><input type="radio" name="vbtp" value="chr" checked> 기본 사람 모양 (머리·몸·팔·다리)</label>' : '<label><input type="radio" name="vbtp" value="animal" checked> 네발 동물 기본 모양</label>'}
+    V.confirmBox(`<h3>＋ 새로 만들기</h3><p class="small muted">무엇을 만들까요?</p>
+      <div class="vbSeg vbKind"><button type="button" data-nk="veh" class="${(t0 || 'veh') === 'veh' ? 'on' : ''}">🐾 탈것</button><button type="button" data-nk="pet" class="${t0 === 'pet' ? 'on' : ''}">🐶 펫</button><button type="button" data-nk="chr" class="${t0 === 'chr' ? 'on' : ''}">🧍 캐릭터</button></div>
+      <div class="vbPick"><label><input type="radio" name="vbtp" value="base" checked> <span data-nkb>기본 모양에서 시작</span></label>
       <label><input type="radio" name="vbtp" value="empty"> 빈 판에서 쌓기</label>
       <label><input type="radio" name="vbtp" value="photo"> 📷 사진으로 모양 잡기</label></div>`, () => {
-      const v = (document.querySelector('input[name=vbtp]:checked') || {}).value || 'empty';
-      saveDraft(); E.k = newKey(); load(tpl(v === 'photo' ? 'empty' : v, t)); E.undo = []; E.redo = []; E.mode = 'build'; E.gid = ''; saveDraft(); changed(true); fit();
+      const v = (document.querySelector('input[name=vbtp]:checked') || {}).value || 'empty', t = E._nk || 'veh';
+      saveDraft(); E.k = newKey(); load(tpl(v === 'photo' || v === 'empty' ? 'empty' : t === 'chr' ? 'chr' : t === 'pet' ? 'pet' : 'animal', t)); E.undo = []; E.redo = []; E.mode = 'build'; E.gid = ''; saveDraft(); changed(true); fit();
       if (v === 'photo') setTimeout(photoDlg, 50);
     });
+    E._nk = t0 || 'veh';
+    const m = $('confirm'), lab = { veh: '네발 동물 기본 모양', pet: '작은 동물 기본 모양 (펫 크기)', chr: '기본 사람 모양 (머리·몸·팔·다리)' };
+    const sync = () => { m.querySelectorAll('[data-nk]').forEach((b) => b.classList.toggle('on', b.dataset.nk === E._nk)); const l = m.querySelector('[data-nkb]'); if (l) l.textContent = lab[E._nk]; };
+    m.querySelectorAll('[data-nk]').forEach((b) => (b.onclick = () => { E._nk = b.dataset.nk; sync(); })); sync();
+  }
+
+  // ── 구역 나누기 (v110)
+  function ensurePart(id) {
+    if (!id) return; if (!E.V[id]) E.V[id] = new Map();
+    if (!E.d.groups[id]) { const pr = partsOf().find((q) => q[0] === id); E.d.groups[id] = Object.assign({ nm: pr ? pr[1] : '구역', p: [0, 0.5, 0] }, pr ? JSON.parse(JSON.stringify(pr[2])) : {}); }
+  }
+  function assignCell(x, y, z, gid) { const h = occ().get(ck(x, y, z)); if (!h || h[0] === gid) return false; const b = E.V[h[0]].get(h[1]); E.V[h[0]].delete(h[1]); E.V[gid].set(h[1], b); E.occ = null; return true; }
+  // 누른 칸부터 블럭이 이어진 데까지 (맞은 면 안쪽 방향으로)
+  function paintRun(c, ax, sg, gid) {
+    const o = occ(); let n = 0, q = c.slice();
+    // 겉면 찾기: 조금 바깥에서 안쪽으로
+    q[ax] += sg * 2; let k = 0; while (!o.has(ck(...q)) && k < 6) { q[ax] -= sg; k++; }
+    while (o.has(ck(...q)) && inR(q[ax])) { if (assignCell(q[0], q[1], q[2], gid)) n++; q[ax] -= sg; }
+    return n;
+  }
+  function paintAt(c, ax, sg) {
+    const gid = E.gid; ensurePart(gid); const r = E.brush, u = (ax + 1) % 3, v = (ax + 2) % 3, off = Math.floor((r - 1) / 2); let n = 0; const touched = new Set([gid]);
+    for (let i = 0; i < r; i++) for (let j = 0; j < r; j++) {
+      const q = c.slice(); q[u] += i - off; q[v] += j - off; n += paintRun(q, ax, sg, gid);
+      if (E.mir) { const g2 = MIRP[gid] || gid; ensurePart(g2); touched.add(g2); const m2 = q.slice(); m2[0] = -m2[0] - 1; n += paintRun(m2, ax, ax === 0 ? -sg : sg, g2); }
+    }
+    touched.forEach((g) => { if (g) autoPivot(g); });
+    return n;
+  }
+  function paint(h) { push(); const n = paintAt(h.in, h.ax, h.sg); if (!n) { E.undo.pop(); return; } changed(true); }
+  function paintArea(st, c1) {
+    push(); let n = 0; const b0 = E.brush; E.brush = 1;
+    for (const c of rectCells(st.c0, c1, st.ax, 1)) n += paintAt(c, st.ax, st.sg);
+    E.brush = b0; if (E.ghost) E.ghost.visible = false;
+    if (!n) { E.undo.pop(); return; } changed(true);
+  }
+  // 낱칸으로 풀기 / 다시 묶기
+  function unpack() { const out = new Map(); for (const g in E.V) for (const b of E.V[g].values()) { const s = b[3]; for (let i = 0; i < s; i++) for (let j = 0; j < s; j++) for (let k = 0; k < s; k++) out.set(ck(b[0] + i, b[1] + j, b[2] + k), { x: b[0] + i, y: b[1] + j, z: b[2] + k, g, c: b[4] }); } return out; }
+  function repack(cells) { const by = {}; for (const id of ['', ...Object.keys(E.d.groups)]) by[id] = new Map(); for (const q of cells.values()) { if (!by[q.g]) by[q.g] = new Map(); by[q.g].set(ck(q.x, q.y, q.z), [q.x, q.y, q.z, 1, q.c]); } E.V = {}; for (const g in by) E.V[g] = pack(by[g]); E.occ = null; }
+  function autoSplit() {
+    const C = unpack(); if (!C.size) return 0; const b = bounds(); const has = (x, y, z) => C.has(ck(x, y, z)); const set = (q, g) => { q.g = g; };
+    for (const q of C.values()) q.g = '';
+    const used = new Set();
+    if (E.d.t === 'chr') {
+      const H = b[4] - b[1] + 1, yh = b[1] + Math.round(H * 0.72), yl = b[1] + Math.round(H * 0.42);
+      for (const q of C.values()) {
+        if (q.y >= yh) set(q, 'h'); else if (q.y < yl) set(q, q.x >= 0 ? 'll' : 'lr');
+        else { // 가운데: x=0 에서 이어진 줄 = 몸통, 나머지 = 팔
+          let inT = false; const dir = q.x >= 0 ? -1 : 1; let x = q.x; inT = true; while (x !== 0 && x !== -1) { x += dir; if (!has(x, q.y, q.z)) { inT = false; break; } } set(q, inT ? 'b' : q.x >= 0 ? 'al' : 'ar');
+        }
+      }
+    } else {
+      const comps = (y) => { const seen = new Set(), L = []; for (const q of C.values()) { if (q.y !== y || seen.has(ck(q.x, y, q.z))) continue; const st = [[q.x, q.z]]; seen.add(ck(q.x, y, q.z)); let n = 0; while (st.length) { const [x, z] = st.pop(); n++; for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const k = ck(x + dx, y, z + dz); if (C.has(k) && !seen.has(k)) { seen.add(k); st.push([x + dx, z + dz]); } } } L.push(n); } return L.length; };
+      let legTop = -999; const y0 = b[1], H = b[4] - b[1] + 1;
+      if (comps(y0) >= 2) { legTop = y0; while (legTop + 1 < y0 + H * 0.6 && comps(legTop + 1) >= 2) legTop++; }
+      const midZ = (b[2] + b[5] + 1) / 2;
+      if (legTop >= y0) {
+        // 다리 덩어리 (3D, 다리 구간 안에서만)
+        const seen = new Set(), L = [];
+        for (const q of C.values()) { if (q.y !== y0 || seen.has(ck(q.x, q.y, q.z))) continue; const st = [q], mem = []; seen.add(ck(q.x, q.y, q.z)); while (st.length) { const p = st.pop(); mem.push(p); for (const [dx, dy, dz] of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) { const k = ck(p.x + dx, p.y + dy, p.z + dz), r = C.get(k); if (r && r.y <= legTop && !seen.has(k)) { seen.add(k); st.push(r); } } } L.push(mem); }
+        for (const mem of L) {
+          const parts = mem.some((p) => p.x >= 0) && mem.some((p) => p.x < 0) && mem.length > 6 ? [mem.filter((p) => p.x >= 0), mem.filter((p) => p.x < 0)] : [mem];
+          for (const pm of parts) { if (!pm.length) continue; const cz = pm.reduce((a, p) => a + p.z + 0.5, 0) / pm.length, cx = pm.reduce((a, p) => a + p.x + 0.5, 0) / pm.length; const id = (cz >= midZ ? 'lf' : 'lb') + (cx >= 0 ? 'l' : 'r'); pm.forEach((p) => set(p, id)); used.add(id); }
+        }
+      }
+      const top = Math.max(legTop, y0 - 1), len = b[5] - b[2] + 1, hz = b[5] - Math.round(len * 0.3), yMid = top + Math.max(1, Math.round((b[4] - top) * 0.35)), tz = b[2] + Math.round(len * 0.18);
+      const wAt = {}; for (const q of C.values()) if (q.y > top) { const w = wAt[q.z] || (wAt[q.z] = [99, -99]); w[0] = Math.min(w[0], q.x); w[1] = Math.max(w[1], q.x); }
+      let wMax = 1; for (const z in wAt) wMax = Math.max(wMax, wAt[z][1] - wAt[z][0] + 1);
+      for (const q of C.values()) { if (q.y <= top) continue; if (q.z >= hz && q.y >= yMid) set(q, 'h'); else if (q.z <= tz && wAt[q.z] && wAt[q.z][1] - wAt[q.z][0] + 1 < wMax * 0.5) set(q, 't'); }
+    }
+    const ids = new Set([...C.values()].map((q) => q.g)); ids.forEach((id) => ensurePart(id));
+    repack(C); ids.forEach((id) => { if (id) autoPivot(id); });
+    if (E.d.t === 'veh') autoSeat();
+    return [...ids].filter((id) => E.V[id] && E.V[id].size).length;
+  }
+
+  // ── ✨ 다듬기 (v110): 튀어나온 블럭 빼기 · 작은 구멍 메우기 · 모서리 둥글게 · 얼룩진 색 맞추기
+  function smoothDlg() { E.mode = 'build'; side(); doSmooth(E.sm); }
+  function doSmooth(level) {
+    const C = unpack(); if (!C.size) return; push();
+    const N6 = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]], N26 = []; for (let x = -1; x <= 1; x++) for (let y = -1; y <= 1; y++) for (let z = -1; z <= 1; z++) if (x || y || z) N26.push([x, y, z]);
+    const passes = level >= 3 ? 2 : 1, corner = level === 1 ? 0 : level === 2 ? 7 : 8;
+    for (let it = 0; it < passes; it++) {
+      const cur = new Map(C), cand = new Set();
+      for (const q of cur.values()) for (const [dx, dy, dz] of N6) { const k = ck(q.x + dx, q.y + dy, q.z + dz); if (!cur.has(k) && q.y + dy >= 0) cand.add(k); }
+      // 구멍 메우기: 6면 중 4면 이상이 막힌 빈칸
+      for (const k of cand) { const [x, y, z] = k.split(',').map(Number); const nb = N6.map(([dx, dy, dz]) => cur.get(ck(x + dx, y + dy, z + dz))).filter(Boolean); if (nb.length >= 4) { const cnt = {}; nb.forEach((r) => { const key = r.g + '|' + r.c; cnt[key] = (cnt[key] || 0) + 1; }); const best = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0][0].split('|'); C.set(k, { x, y, z, g: best[0], c: +best[1] }); } }
+      // 튀어나온 블럭 · 모서리
+      for (const [k, q] of cur) { const n6 = N6.filter(([dx, dy, dz]) => cur.has(ck(q.x + dx, q.y + dy, q.z + dz))).length; if (n6 <= 1 && q.y > 0) { C.delete(k); continue; } if (corner && q.y > 0) { const n26 = N26.filter(([dx, dy, dz]) => cur.has(ck(q.x + dx, q.y + dy, q.z + dz))).length; if (n26 <= corner && n6 <= 3) C.delete(k); } }
+    }
+    // 색 맞추기: 겉면 블럭 중 주변과 혼자 다른 색
+    const snap0 = new Map(C);
+    for (const q of C.values()) { const nb = N6.map(([dx, dy, dz]) => snap0.get(ck(q.x + dx, q.y + dy, q.z + dz))).filter(Boolean); if (nb.length === 6 || nb.some((r) => r.c === q.c)) continue; const cnt = {}; nb.forEach((r) => { cnt[r.c] = (cnt[r.c] || 0) + 1; }); const best = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0]; if (best && best[1] >= (level >= 2 ? 2 : 3)) q.c = +best[0]; }
+    if (C.size > MAXB * 1.6) { E.undo.pop(); toast('블럭이 너무 많아져요', 1600); return; }
+    const before = count(); repack(C); if (count() > MAXB) { const d = JSON.parse(E.undo.pop()); load(d); toast(`다듬으면 블럭이 ${MAXB.toLocaleString()}개를 넘어요`, 1800); changed(true); return; }
+    changed(true); toast(`✨ 다듬었어요 (블럭 ${before.toLocaleString()} → ${count().toLocaleString()}) · 마음에 안 들면 ↶`, 2200);
+  }
+
+  // ── 저장 · 불러오기 (v110)
+  function saveDlg() {
+    const V = VB();
+    V.confirmBox(`<h3>💾 저장</h3><p class="small muted">이 컴퓨터(브라우저)에 저장해요 · 만드는 중에도 자동으로 저장돼요. 다른 컴퓨터에서 이어서 하려면 「파일로 내보내기」로 받아 두세요</p>
+      <label class="vbF" style="text-align:left">이름<input type="text" id="vbSn" maxlength="14" value="${esc(E.d.n)}"></label>
+      <p><button type="button" class="sm" data-vbcopy>📄 다른 이름으로 하나 더 저장</button> <button type="button" class="sm" data-vbfile>⬇ 파일로 내보내기</button></p>`, () => { E.d.n = ($('vbSn').value || E.d.n).replace(/[<>]/g, '').slice(0, 14); saveDraft(); ui(); toast('💾 저장했어요', 1200); });
+    const m = $('confirm');
+    m.querySelector('[data-vbcopy]').onclick = () => { m.classList.remove('show'); E.d.n = ($('vbSn').value || E.d.n).replace(/[<>]/g, '').slice(0, 12) + ' 2'; E.k = newKey(); saveDraft(); ui(); toast('📄 새 이름으로 하나 더 저장했어요', 1400); };
+    m.querySelector('[data-vbfile]').onclick = () => { const d = data(); d.n = ($('vbSn').value || d.n).slice(0, 14); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(d)], { type: 'application/json' })); a.download = (d.n || 'block') + '.json'; document.body.appendChild(a); a.click(); a.remove(); };
+  }
+  function loadDlg() {
+    const V = VB(); saveDraft(); const dr = drafts(), all = {};
+    for (const k in dr) all[k] = { d: dr[k], where: '내 컴퓨터' };
+    for (const k in V.VBX.local) all[k] = { d: all[k] ? all[k].d : V.VBX.local[k], where: (all[k] ? '내 컴퓨터 · ' : '') + '내 화면에서만' };
+    for (const k in V.VBX.map) all[k] = { d: all[k] ? all[k].d : V.VBX.map[k], where: (all[k] ? all[k].where + ' · ' : '') + '게임에 있음' };
+    const TI = { veh: '🐾 탈것', chr: '🧍 캐릭터', pet: '🐶 펫' }, ks = Object.keys(all).sort((a, b) => ((all[b].d.at || 0) - (all[a].d.at || 0)));
+    V.confirmBox(`<h3>📂 불러오기</h3><div class="vbLd">${ks.map((k) => { const x = all[k], nb = Object.values(x.d.vox || {}).reduce((a, v) => a + Math.round(v.length * 0.75 / 4), 0); return `<div class="vbLr ${k === E.k ? 'on' : ''}"><button type="button" class="vbLo" data-ldo="${k}"><b>${esc(x.d.n || k)}</b><small>${TI[x.d.t] || TI.veh} · 블럭 ${nb.toLocaleString()} · ${x.where}${x.d.at ? ' · ' + new Date(x.d.at).toLocaleDateString() : ''}</small></button>${dr[k] ? `<button type="button" class="vbLx" data-ldx="${k}" aria-label="지우기">지우기</button>` : ''}</div>`; }).join('') || '<p class="small muted">저장된 것이 없어요</p>'}</div>
+      <p><button type="button" class="sm" data-ldfile>⬆ 파일에서 불러오기</button><input type="file" accept=".json,application/json" data-ldin hidden></p>`, () => {});
+    const m = $('confirm'), yes = $('cfYes'); if (yes) yes.style.display = 'none';
+    const done = () => { if (yes) yes.style.display = ''; m.classList.remove('show'); };
+    const no = $('cfNo'); if (no) { no.textContent = '닫기'; const o = no.onclick; no.onclick = () => { if (yes) yes.style.display = ''; no.textContent = '취소'; o && o(); }; }
+    m.querySelectorAll('[data-ldo]').forEach((b) => (b.onclick = () => { const k = b.dataset.ldo, d = all[k] && all[k].d; if (!d) return; done(); E.k = k; load(d); E.undo = []; E.redo = []; E.mode = 'build'; saveDraft(); changed(true); fit(); toast(`📂 「${d.n}」을(를) 불러왔어요`, 1400); }));
+    m.querySelectorAll('[data-ldx]').forEach((b) => (b.onclick = () => { const k = b.dataset.ldx; if (!confirm(`「${(dr[k] || {}).n || k}」을(를) 이 컴퓨터에서 지울까요? (게임에 등록된 것은 그대로예요)`)) return; const o = drafts(); delete o[k]; try { localStorage.setItem(DRAFT, JSON.stringify(o)); } catch (e) { /* ignore */ } b.closest('.vbLr').remove(); }));
+    const fi = m.querySelector('[data-ldin]'); m.querySelector('[data-ldfile]').onclick = () => fi.click();
+    fi.onchange = () => { const f = fi.files[0]; if (!f) return; f.text().then((t) => { try { const d = JSON.parse(t); if (!d || typeof d.vox !== 'object') throw 0; done(); E.k = newKey(); load(d); E.undo = []; E.redo = []; saveDraft(); changed(true); fit(); toast('📂 파일에서 불러왔어요', 1400); } catch (e) { toast('이 편집기 파일이 아니에요', 1600); } }); };
   }
 
   // ── 사진 → 블럭 (옆모습 사진: 배경을 지우고 → 두께를 줘서 둥글게 → 사진 색)
@@ -624,22 +797,24 @@
       const dl = m.querySelector('[data-rdel]'); if (dl) dl.onclick = () => { m.classList.remove('show'); const RT = window.NK_RT; if (RT && RT.setVbx && RT.setVbx(E.k, null)) toast('서버에서 뺐어요', 1600); else toast('서버에 연결된 상태에서만 할 수 있어요', 2000); };
       return;
     }
-    V.confirmBox(`<h3>✅ 게임에 등록</h3>
+    const pet = d.t === 'pet', loc = !!V.VBX.local[E.k];
+    V.confirmBox(`<h3>✅ 게임에 등록 <small class="muted">${pet ? '🐶 펫' : '🐾 탈것'}</small></h3>
       <div class="vbReg">
       <label class="vbF">이름<input type="text" id="vbRn" maxlength="14" value="${esc(d.n)}"></label>
       <div class="vbF">얻는 방법<span class="vbSeg"><button type="button" data-rh="shop" class="${sp.how !== 'box' ? 'on' : ''}">상점에서 팔기</button><button type="button" data-rh="box" class="${sp.how === 'box' ? 'on' : ''}">행운 상자에서</button></span></div>
-      <label class="vbF rshop">가격 (골드)<input type="number" id="vbRp" min="0" step="100000" value="${sp.pr != null ? sp.pr : 3000000}"></label>
-      <label class="vbF rbox">나오는 상자<select id="vbRg">${[1, 2, 3, 4, 5].map((g) => `<option value="${g}" ${(sp.g || 3) === g ? 'selected' : ''}>${G[g][0]} 상자 이상</option>`).join('')}</select></label>
+      <label class="vbF rshop">가격 (골드)<input type="number" id="vbRp" min="0" step="${pet ? 1000 : 100000}" value="${sp.pr != null ? sp.pr : pet ? 30000 : 3000000}"></label>
+      <label class="vbF ${pet ? '' : 'rbox'}">${pet ? '등급 <small class="muted">(상자로 얻으면 이 등급 이상 상자에서 나와요)</small>' : '나오는 상자'}<select id="vbRg">${(pet ? [0, 1, 2, 3, 4, 5] : [1, 2, 3, 4, 5]).map((g) => `<option value="${g}" ${(sp.g != null ? sp.g : pet ? 2 : 3) === g ? 'selected' : ''}>${G[g][0]}${pet ? '' : ' 상자 이상'}</option>`).join('')}</select></label>
       <label class="vbF rbox">확률 (상자 1개당 %)<input type="number" id="vbRq" min="0" max="100" step="0.05" value="${sp.p != null ? sp.p : 0.2}"></label>
-      <label class="vbF">속도 +%<input type="number" id="vbRs" min="0" max="150" step="5" value="${sp.spd != null ? sp.spd : 30}"></label>
-      </div><p class="small muted">「모든 유저」를 누르면 서버에 올라가요 · 탈것 테스트 기능이 켜진 유저에게 보여요${pub ? ' · 이미 게임에 있어요 (덮어써요)' : ''}</p>
-      <p><button type="button" class="sm" data-rlocal>👁 내 화면에서만 보기</button>${pub ? ' <button type="button" class="sm" data-rdel>게임에서 빼기</button>' : ''}</p>`, () => { take(); publish(false); });
+      <label class="vbF" ${pet ? 'style="display:none"' : ''}>속도 +%<input type="number" id="vbRs" min="0" max="150" step="5" value="${sp.spd != null ? sp.spd : 30}"></label>
+      </div><p class="small muted">「모든 유저」를 누르면 서버에 올라가요 · ${pet ? '펫' : '탈것'} 테스트 기능이 켜진 유저에게 보여요${pub ? ' · 이미 게임에 있어요 (덮어써요)' : ''}</p>
+      <p><button type="button" class="sm" data-rlocal>👁 내 화면에서만 보기</button>${loc ? ' <button type="button" class="sm" data-rloff>내 화면에서 빼기</button>' : ''}${pub ? ' <button type="button" class="sm" data-rdel>게임에서 빼기</button>' : ''}</p>`, () => { take(); publish(false); });
     const m = $('confirm'); let how = sp.how === 'box' ? 'box' : 'shop';
     const sh = () => { m.querySelectorAll('.rshop').forEach((x) => (x.style.display = how === 'shop' ? '' : 'none')); m.querySelectorAll('.rbox').forEach((x) => (x.style.display = how === 'box' ? '' : 'none')); m.querySelectorAll('[data-rh]').forEach((b) => b.classList.toggle('on', b.dataset.rh === how)); };
     m.querySelectorAll('[data-rh]').forEach((b) => (b.onclick = () => { how = b.dataset.rh; sh(); })); sh();
     const yes = $('cfYes'); if (yes) yes.textContent = '✅ 모든 유저에게';
-    function take() { d.n = ($('vbRn').value || d.n).replace(/[<>]/g, '').slice(0, 14) || '새 탈것'; d.shop = { how, pr: Math.max(0, +$('vbRp').value || 0), g: +$('vbRg').value || 3, p: Math.max(0, Math.min(100, +$('vbRq').value || 0)), spd: Math.max(0, Math.min(150, +$('vbRs').value || 0)) }; saveDraft(); }
+    function take() { d.n = ($('vbRn').value || d.n).replace(/[<>]/g, '').slice(0, 14) || '새 탈것'; d.shop = { how, pr: Math.max(0, +$('vbRp').value || 0), g: +$('vbRg').value, p: Math.max(0, Math.min(100, +$('vbRq').value || 0)), spd: Math.max(0, Math.min(150, +$('vbRs').value || 0)) }; saveDraft(); }
     m.querySelector('[data-rlocal]').onclick = () => { take(); m.classList.remove('show'); publish(true); };
+    const lo = m.querySelector('[data-rloff]'); if (lo) lo.onclick = () => { m.classList.remove('show'); delete V.VBX.local[E.k]; V.vbSaveLocal(); V.vbReg(); toast('내 화면에서 뺐어요', 1400); };
     const dl = m.querySelector('[data-rdel]'); if (dl) dl.onclick = () => { m.classList.remove('show'); if (!confirm(`「${d.n}」을(를) 게임에서 뺄까요? (산 사람 가방에서도 안 보여요)`)) return; const RT = window.NK_RT; if (RT && RT.setVbx && RT.setVbx(E.k, null)) toast('게임에서 뺐어요', 1600); else toast('서버에 연결된 상태에서만 할 수 있어요', 2000); };
   }
   function publish(local) {
@@ -647,9 +822,9 @@
     if (!dd.vox[''] && !Object.keys(dd.vox).length) { toast('블럭을 먼저 쌓아 주세요', 1600); return; }
     const len = Object.values(dd.vox).reduce((a, v) => a + v.length, 0);
     if (len > 36000) { toast('블럭이 너무 많아요 · 조금 줄여 주세요', 2200); return; }
-    if (local) { V.VBX.local[E.k] = dd; V.vbReg(); toast('👁 내 화면에서만 상점 › 🚗 탈것에 보여요 (탈것 테스트 기능이 켜져 있어야 해요)', 2600); ui(); return; }
+    if (local) { dd.at = Date.now(); V.VBX.local[E.k] = dd; V.vbSaveLocal(); V.vbReg(); saveDraft(); toast(dd.t === 'pet' ? '👁 내 화면에서만 상점 › 🐾 펫에 보여요 (새로고침해도 남아요)' : '👁 내 화면에서만 상점 › 🚗 탈것에 보여요 (새로고침해도 남아요)', 2600); ui(); return; }
     const RT = window.NK_RT; if (!RT || RT.status() !== 'on' || !RT.setVbx) { toast('서버에 연결된 상태에서만 모든 유저에게 등록할 수 있어요', 2200); return; }
-    if (RT.setVbx(E.k, dd)) { delete V.VBX.local[E.k]; toast(`✅ 「${dd.n}」을(를) ${dd.t === 'chr' ? '서버에 저장했어요' : '게임에 등록했어요'}`, 2200); setTimeout(ui, 800); }
+    if (RT.setVbx(E.k, dd)) { delete V.VBX.local[E.k]; V.vbSaveLocal(); saveDraft(); toast(`✅ 「${dd.n}」을(를) ${dd.t === 'chr' ? '서버에 저장했어요' : '게임에 등록했어요'}`, 2200); setTimeout(ui, 800); }
   }
 
   // ── 단축키
@@ -663,7 +838,7 @@
     if (e.key === 'Escape') { e.stopImmediatePropagation(); close(); return; }
     if (E.mode !== 'build') return;
     if (k.length === 1 && '1234'.includes(k)) { E.size = +k; left(); }
-    else if (k === 'b') { E.tool = 'add'; left(); } else if (k === 'e') { E.tool = 'del'; left(); } else if (k === 'i') { E.tool = 'pick'; left(); } else if (k === 'g') { E.tool = 'grp'; left(); }
+    else if (k === 'b') { E.tool = 'add'; left(); } else if (k === 'e') { E.tool = 'del'; left(); } else if (k === 'i') { E.tool = 'pick'; left(); } else if (k === 'g') { E.mode = 'part'; changed(true); }
     else if (k === 'm') { E.mir = !E.mir; left(); }
     e.stopImmediatePropagation();
   }, true);
@@ -704,6 +879,14 @@
 #vbEd .vbMini{padding:2px 8px!important;font-size:11.5px;margin-left:auto}
 #vbEd .vbMv{display:grid;grid-template-columns:1fr 1fr;gap:4px}#vbEd .vbMv button{padding:5px 4px}
 #vbEd .vbNote{font-size:12px;color:#7a6650;margin:8px 0}
+#vbEd .vbNm{font-weight:700;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}
+#vbEd .vbParts{display:flex;flex-direction:column;gap:4px}#vbEd .vbParts button{display:flex;align-items:center;gap:6px;text-align:left;padding:5px 8px}#vbEd .vbParts i{width:10px;height:10px;border-radius:50%;flex:none}#vbEd .vbParts small{margin-left:auto;opacity:.7}#vbEd .vbParts button.on{background:#1f6f6a;border-color:#1f6f6a;color:#fff}
+#vbEd .vbWide{width:100%;margin-top:6px}
+#confirm .vbKind{margin:6px auto 2px}#confirm .vbKind button{border:0;padding:6px 12px;border-radius:8px;background:transparent}#confirm .vbKind button.on{background:#1f6f6a;color:#fff}
+#confirm .vbLd{max-height:46vh;overflow:auto;display:flex;flex-direction:column;gap:6px;text-align:left;margin:8px 0}
+#confirm .vbLr{display:flex;gap:6px;align-items:stretch}#confirm .vbLr.on .vbLo{border-color:#1f6f6a}
+#confirm .vbLo{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:left;border:1.5px solid #e2d3bb;background:#fff;border-radius:10px;padding:7px 10px;cursor:pointer}#confirm .vbLo small{color:#7a6650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#confirm .vbLx{border:1.5px solid #e2d3bb;background:#fff;border-radius:10px;padding:0 10px;cursor:pointer;color:#b8323a;white-space:nowrap}
 #confirm .vbPick{display:flex;flex-direction:column;gap:8px;text-align:left;margin:10px 0}
 #confirm .vbPv{display:block;margin:8px auto;background:#f6efe3;border-radius:8px;max-width:100%}
 #confirm .vbPf{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;text-align:left;font-size:13px}#confirm .vbPf label{display:flex;flex-direction:column;gap:3px}

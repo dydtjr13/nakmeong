@@ -114,7 +114,7 @@ export const VB_MAX = 12;
 export function vbxKey(k) { return typeof k === "string" && VB_KEY.test(k) ? k : null; }
 export function sanitizeVbxOne(d) {
   if (!d || typeof d !== "object" || Array.isArray(d)) return null;
-  const out = { v: 1, t: d.t === "chr" ? "chr" : "veh", n: String(d.n || "새 탈것").replace(/[<>]/g, "").slice(0, 14), vu: Math.max(0.02, Math.min(0.3, Number(d.vu) || 0.08)), seat: VM_V3(d.seat, 20) || [0, 1.2, 0], zoom: Math.max(0.3, Math.min(3, Number(d.zoom) || 1)), pal: [], groups: {}, vox: {} };
+  const out = { v: 1, t: d.t === "chr" || d.t === "pet" ? d.t : "veh", n: String(d.n || "새 탈것").replace(/[<>]/g, "").slice(0, 14), vu: Math.max(0.02, Math.min(0.3, Number(d.vu) || 0.08)), seat: VM_V3(d.seat, 20) || [0, 1.2, 0], zoom: Math.max(0.3, Math.min(3, Number(d.zoom) || 1)), pal: [], groups: {}, vox: {} };
   if (Array.isArray(d.pal)) out.pal = d.pal.slice(0, 64).map((c) => (typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c) ? c.toLowerCase() : "#cccccc"));
   if (d.groups && typeof d.groups === "object") for (const [k, q] of Object.entries(d.groups).slice(0, 24)) { if (!VM_ID.test(k) || !k || !q || typeof q !== "object") continue; const o = { p: VM_V3(q.p, 20) || [0, 0, 0] }; const r = VM_V3(q.r, 7); if (r && r.some((x) => x)) o.r = r; if (q.s != null) o.s = Math.max(0.05, Math.min(10, Number(q.s) || 1)); if (typeof q.par === "string" && VM_ID.test(q.par) && q.par !== k) o.par = q.par; if (q.leg != null) o.leg = VM_NUM(q.leg, 7); if (q.arm != null) o.arm = VM_NUM(q.arm, 7); if (q.head) o.head = 1; if (q.tail) o.tail = 1; if (typeof q.nm === "string") o.nm = q.nm.replace(/[<>]/g, "").slice(0, 12); if (typeof q.bone === "string" && /^[a-z-]{2,16}$/.test(q.bone)) o.bone = q.bone; out.groups[k] = o; }
   for (const q of Object.values(out.groups)) if (q.par && !out.groups[q.par]) delete q.par;
@@ -1004,14 +1004,15 @@ export function sanitizePlay(input, prev, opt) {
   if ("eqWin" in input) out.eqWin = pickOf(input.eqWin, ["off", "A", "B"]);
   if ("mission" in input) out.mission = pickOf(input.mission, ["off", "on"]);
   if ("msCfg" in input) {
+    // v110: 미션마다 보상 여러 개 (rw: 골드·경험치·강화석·정수·상자 등급과 개수) · 이번 달 미션(m)
     const v = input.msCfg, T = ["catch", "rare", "legend", "sell", "box", "social", "fuse", "gold"], R = ["co", "xp", "bx", "st", "ess"];
     const num = (q, lo, hi, d) => { const n = Number(q); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, Math.round(n))) : d; };
-    const row = (x) => x && typeof x === "object" ? { t: T.includes(x.t) ? x.t : "catch", n: num(x.n, 1, 1e6, 10), r: R.includes(x.r) ? x.r : "co", v: num(x.v, 0, 1e7, 0) } : null;
+    const rwOf = (x) => { const w = x && typeof x.rw === "object" && x.rw ? x.rw : null, o = {}; if (w) { for (const k of ["co", "xp", "st", "ess"]) { const n = num(w[k], 0, 1e8, 0); if (n) o[k] = n; } const bn = num(w.bn, 0, 50, 0); if (bn) { o.bn = bn; o.bg = num(w.bg, 0, 5, 2); } } else if (x && R.includes(x.r)) { const n = num(x.v, 0, 1e8, 0); if (x.r === "bx") { o.bn = 1; o.bg = Math.max(0, Math.min(5, n)); } else if (n) o[x.r] = n; } return o; };
+    const row = (x) => x && typeof x === "object" ? { t: T.includes(x.t) ? x.t : "catch", n: num(x.n, 1, 1e7, 10), rw: rwOf(x) } : null;
     const o = {};
     if (v && typeof v === "object") {
-      if (Array.isArray(v.d)) o.d = v.d.slice(0, 5).map(row).filter(Boolean);
-      if (Array.isArray(v.w)) o.w = v.w.slice(0, 5).map(row).filter(Boolean);
-      if (Array.isArray(v.s)) o.s = v.s.slice(0, 6).map((x) => x && typeof x === "object" ? { d: num(x.d, 1, 31, 7), r: R.includes(x.r) ? x.r : "bx", v: num(x.v, 0, 1e7, 2) } : null).filter(Boolean);
+      for (const g of ["d", "w", "m"]) if (Array.isArray(v[g])) o[g] = v[g].slice(0, 10).map(row).filter(Boolean);
+      if (Array.isArray(v.s)) o.s = v.s.slice(0, 10).map((x) => x && typeof x === "object" ? { d: num(x.d, 1, 31, 7), rw: rwOf(x) } : null).filter(Boolean);
     }
     out.msCfg = o;
   }
@@ -1029,7 +1030,7 @@ export function sanitizePlay(input, prev, opt) {
   if ("neonBB" in input) out.neonBB = pickOf(input.neonBB, ["off", "on"]);
   if ("lvSt" in input) out.lvSt = pickOf(input.lvSt, ["1", "3", "old"]);
   if ("cook" in input) out.cook = pickOf(input.cook, ["off", "on"]);
-  if ("ckPos" in input) out.ckPos = pickOf(input.ckPos, ["ext", "back", "side"]);
+  if ("ckPos" in input) out.ckPos = pickOf(input.ckPos, ["ext", "back", "side", "mine", "off"]);
   if ("ckSnd" in input) out.ckSnd = pickOf(input.ckSnd, ["B", "A", "off"]);
   if ("tank3" in input) out.tank3 = pickOf(input.tank3, ["off", "on"]);
   if ("mythChar" in input) out.mythChar = pickOf(input.mythChar, ["off", "on"]);
@@ -1044,13 +1045,21 @@ export function sanitizePlay(input, prev, opt) {
   if ("vehCfg" in input) {
     const v = input.vehCfg;
     if (v && typeof v === "object" && !Array.isArray(v)) {
+      // v110: 탈것마다 (기본 5종 + 상점 탈것 + 새로 만든 탈것) 확률·속도·얻는 방법·상자 등급·가격
       const n = (x, lo, hi, d) => Math.round(Math.max(lo, Math.min(hi, finite(x, d))) * 100) / 100;
-      const grp = (o, keys, lo, hi, d) => { const r = {}; for (const k of keys) r[k] = n(o && typeof o === "object" ? o[k] : undefined, lo, hi, d[k]); return r; };
-      const VK = ["sled", "rudolph", "dog", "santa", "car"];
+      const KEY = /^[a-z][a-zA-Z0-9]{1,15}$/;
+      const map = (o, f) => { const r = {}; if (o && typeof o === "object" && !Array.isArray(o)) for (const [k, x] of Object.entries(o).slice(0, 60)) { if (!KEY.test(k)) continue; const y = f(x); if (y !== undefined) r[k] = y; } return r; };
+      const ok = (x) => x !== null && x !== "" && Number.isFinite(Number(x));
+      const p = map(v.p, (x) => (ok(x) ? n(x, 0, 100, 0) : undefined)), sp = map(v.s, (x) => (ok(x) ? n(x, 0, 300, 0) : undefined));
+      const dp = { sled: 0.4, rudolph: 0.3, dog: 0.3, santa: 0.25, car: 0.25 }, ds = { sled: 20, rudolph: 30, dog: 30, santa: 40, car: 40, carRb: 70 };
+      for (const k in dp) if (p[k] == null) p[k] = dp[k];
+      for (const k in ds) if (sp[k] == null) sp[k] = ds[k];
       out.vehCfg = {
-        p: grp(v.p, VK, 0, 100, { sled: 0.4, rudolph: 0.3, dog: 0.3, santa: 0.25, car: 0.25 }),
-        s: grp(v.s, [...VK, "carRb"], 0, 300, { sled: 20, rudolph: 30, dog: 30, santa: 40, car: 40, carRb: 70 }),
-        cc: grp(v.cc, ["mint", "red", "black", "rainbow"], 0, 1000, { mint: 55, red: 25, black: 19, rainbow: 1 }),
+        p, s: sp,
+        cc: (() => { const d = { mint: 55, red: 25, black: 19, rainbow: 1 }, r = {}; for (const k in d) r[k] = n(v.cc && typeof v.cc === "object" ? v.cc[k] : undefined, 0, 1000, d[k]); return r; })(),
+        how: map(v.how, (x) => (x === "shop" || x === "box" ? x : undefined)),
+        g: map(v.g, (x) => { const y = Math.round(Number(x)); return Number.isFinite(y) ? Math.max(1, Math.min(5, y)) : undefined; }),
+        pr: map(v.pr, (x) => { const y = Number(x); return Number.isFinite(y) ? Math.max(0, Math.min(1e10, Math.round(y))) : undefined; }),
       };
     } else delete out.vehCfg;
   }

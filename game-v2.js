@@ -3962,7 +3962,7 @@ const PSRC={shop:'상점',box:'행운 상자',lv:'레벨 50 보상'};
 const petG=k=>{const p=PETS.find(x=>x.k===k);return p?SYS.GRADES[p.g]:SYS.GRADES[0];};
 function petGet(k,how){const own=petOwn(),p=PETS.find(x=>x.k===k);if(!p)return false;if(own[k]){return false;}own[k]={at:Date.now(),how};if(!S.petOn)S.petOn=k;save();try{petPop(p,how);}catch(e){toast(`🐾 ${p.n}을(를) 얻었어요!`,2400);}return true;}
 function petPop(p,how){let m=$('petPop');if(!m){m=document.createElement('div');m.id='petPop';m.className='modal';document.body.appendChild(m);}const G=SYS.GRADES[p.g];
- m.innerHTML=`<div class="card petpop" style="--c:${G[1]}"><div class="ppg">${G[0]} 펫</div><img class="ppi" src="img/pets/${p.k}.png" alt=""><h3>${p.n}</h3>${mine?petLvBar(p.k):''}<p class="small muted">${how==='box'?'행운 상자에서 나왔어요!':how==='lv'?'레벨 50 축하 선물이에요!':'새 친구가 생겼어요!'}<br>가방 › 🐾 펫에서 데리고 다닐 수 있어요</p><div class="two"><button type="button" data-pp="go" class="acc">데리고 다니기</button><button type="button" data-pp="x">확인</button></div></div>`;
+ m.innerHTML=`<div class="card petpop" style="--c:${G[1]}"><div class="ppg">${G[0]} 펫</div><img class="ppi" src="${petImg(p.k)}" alt=""><h3>${p.n}</h3>${mine?petLvBar(p.k):''}<p class="small muted">${how==='box'?'행운 상자에서 나왔어요!':how==='lv'?'레벨 50 축하 선물이에요!':'새 친구가 생겼어요!'}<br>가방 › 🐾 펫에서 데리고 다닐 수 있어요</p><div class="two"><button type="button" data-pp="go" class="acc">데리고 다니기</button><button type="button" data-pp="x">확인</button></div></div>`;
  m.querySelector('[data-pp="go"]').onclick=()=>{S.petOn=p.k;save();m.classList.remove('show');try{renderBag();}catch(e){}};m.querySelector('[data-pp="x"]').onclick=()=>m.classList.remove('show');m.classList.add('show');try{sfx.coin();}catch(e){}}
 // 상자: 희귀(여우·강아지·고양이) · 신화(오리·토끼). 상자 등급이 높을수록 조금 더 잘 나와요 (일반 ×0.5 … 신화 ×4)
 const PTM=[.5,.75,1,1.5,2.5,4];
@@ -3972,18 +3972,18 @@ const PTM=[.5,.75,1,1.5,2.5,4];
 setInterval(()=>{try{if(petOn()&&started&&myLv()>=50&&!petOwn().penguin)petGet('penguin','lv');}catch(e){}},3000);
 // 가방 › 🐾 펫
 function petTabHTML(){const own=petOwn(),c=petCfg(),n=Object.keys(own).length;return `<div class="pettab"><div class="pth"><b>🐾 내 펫 ${n}/${PETS.length}</b><small>고른 펫이 나를 따라다녀요 · 같은 호숫가 유저에게도 보여요</small>${S.petOn?'<button type="button" data-pet="off">데리고 다니지 않기</button>':''}</div>
- <div class="ptg">${PETS.map(p=>{const G=SYS.GRADES[p.g],h=!!own[p.k],on=S.petOn===p.k;return `<div class="ptc ${h?'':'lock'} ${on?'on':''}" style="--c:${G[1]}"><span class="ptr">${G[0]}</span>${on?'<span class="pton">함께 다니는 중</span>':''}<img class="pti" src="img/pets/${p.k}.png" alt=""><b>${p.n}</b>${h?petLvBar(p.k):''}<div class="ptab">${petAbTxt(p).map(x=>`<span>${x}</span>`).join('')}</div><small>${h?'보유 중':p.src==='shop'?`상점 🪙 ${(p.k==='hedgehog'?c.ph:c.pf).toLocaleString()}`:p.src==='lv'?'레벨 50 보상':p.g===5?`행운 상자 (아주 드물게)`:'행운 상자'}</small>${h?`<button type="button" data-pet="${p.k}" class="${on?'':'acc'}">${on?'✓ 선택됨':'데리고 다니기'}</button>`:p.src==='shop'?`<button type="button" data-petshop>상점 가기</button>`:''}</div>`;}).join('')}</div>
+ <div class="ptg">${PETS.map(p=>{const G=SYS.GRADES[p.g],h=!!own[p.k],on=S.petOn===p.k;return `<div class="ptc ${h?'':'lock'} ${on?'on':''}" style="--c:${G[1]}"><span class="ptr">${G[0]}</span>${on?'<span class="pton">함께 다니는 중</span>':''}<img class="pti" src="${petImg(p.k)}" alt=""><b>${p.n}</b>${h?petLvBar(p.k):''}<div class="ptab">${petAbTxt(p).map(x=>`<span>${x}</span>`).join('')}</div><small>${h?'보유 중':p.src==='shop'?`상점 🪙 ${(p.k==='hedgehog'?c.ph:c.pf).toLocaleString()}`:p.src==='lv'?'레벨 50 보상':p.g===5?`행운 상자 (아주 드물게)`:'행운 상자'}</small>${h?`<button type="button" data-pet="${p.k}" class="${on?'':'acc'}">${on?'✓ 선택됨':'데리고 다니기'}</button>`:p.src==='shop'?`<button type="button" data-petshop>상점 가기</button>`:''}</div>`;}).join('')}</div>
  <p class="small muted">데리고 다니는 펫 1마리의 능력만 적용돼요 · 다른 유저 펫과 3m 안에서 만나면 💞 둘 다 경험치 +10 (같은 유저와는 10분에 한 번) · 상자에서 펫 나올 확률: 희귀 ${c.rr}% · 신화 ${c.mr}% (상자 등급이 높을수록 더 잘 나와요)</p></div>`;}
 {const _rb=_renderBag;_renderBag=function(){_rb.apply(this,arguments);if(!petOn()||bagMode==='box')return;const card=$('bag').querySelector('.card'),tabs=card&&card.querySelector('.tabs');if(!tabs||tabs.querySelector('[data-pettab]'))return;
- const b=document.createElement('button');b.dataset.pettab='1';b.className=bagTab==='pet'?'on':'';b.innerHTML=`<span class="tico"><img src="img/pets/${S.petOn||'dog'}.png" alt="" style="width:22px;height:22px;object-fit:contain"><em class="${Object.keys(petOwn()).length?'':'z zero'}">${Object.keys(petOwn()).length}</em></span>펫`;tabs.appendChild(b);b.onclick=()=>{bagTab='pet';renderBag();};
+ const b=document.createElement('button');b.dataset.pettab='1';b.className=bagTab==='pet'?'on':'';b.innerHTML=`<span class="tico"><img src="${petImg(S.petOn||'dog')}" alt="" style="width:22px;height:22px;object-fit:contain"><em class="${Object.keys(petOwn()).length?'':'z zero'}">${Object.keys(petOwn()).length}</em></span>펫`;tabs.appendChild(b);b.onclick=()=>{bagTab='pet';renderBag();};
  if(bagTab!=='pet')return;tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));let el=tabs.nextSibling;while(el){const nx=el.nextSibling;el.remove();el=nx;}tabs.insertAdjacentHTML('afterend',petTabHTML());
  card.querySelectorAll('[data-pet]').forEach(x=>x.onclick=()=>{S.petOn=x.dataset.pet==='off'?null:x.dataset.pet;save();renderBag();});card.querySelectorAll('[data-petshop]').forEach(x=>x.onclick=()=>{closeM('bag');shopTab='pet';renderShop();openM('shop');});};}
 // 상점 › 🐾 펫
 {const _rs=_renderShop;_renderShop=function(){if(!petOn()&&shopTab==='pet')shopTab='rod';_rs.apply(this,arguments);if(!petOn())return;const sh=$('shop'),tabs=sh&&sh.querySelector('.tabs');if(!tabs||tabs.querySelector('[data-tab="pet"]'))return;
  const tb=document.createElement('button');tb.dataset.tab='pet';tb.textContent='🐾 펫';const sell=tabs.querySelector('[data-tab="sell"]');tabs.insertBefore(tb,sell||null);tb.onclick=()=>{shopTab='pet';renderShop();};
  if(shopTab!=='pet')return;tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===tb));const grid=tabs.nextElementSibling;if(!grid)return;grid.className='grid';const c=petCfg(),own=petOwn();
- grid.innerHTML=PETS.filter(p=>p.src==='shop').map(p=>{const pr=p.k==='hedgehog'?c.ph:c.pf,G=SYS.GRADES[p.g],h=!!own[p.k];return `<div class="item petitem" style="--c:${G[1]}"><span class="ptr">${G[0]}</span><img src="img/pets/${p.k}.png" alt="" class="sico"><h4>${p.n}</h4><div class="small">나를 따라다니는 ${G[0]} 펫</div><div class="price">🪙 ${pr.toLocaleString()}</div>${h?'<button disabled>보유 중</button>':`<button class="acc" data-buypet="${p.k}" ${S.coins<pr?'disabled':''}>구매</button>`}</div>`;}).join('')+`<p class="small muted" style="grid-column:1/-1">아기 여우·강아지·고양이(희귀)와 아기 오리·하얀 토끼(신화)는 행운 상자에서, 펭귄(전설)은 레벨 50 보상으로 받아요.</p>`;
- grid.querySelectorAll('[data-buypet]').forEach(b=>b.onclick=()=>{const k=b.dataset.buypet,pr=k==='hedgehog'?c.ph:c.pf;if(S.coins<pr||own[k])return;S.coins-=pr;try{sfx.coin();}catch(e){}hud();petGet(k,'shop');renderShop();});};}
+ grid.innerHTML=PETS.filter(p=>p.src==='shop').map(p=>{const pr=p.vbx?p.pr:p.k==='hedgehog'?c.ph:c.pf,G=SYS.GRADES[p.g],h=!!own[p.k];return `<div class="item petitem" style="--c:${G[1]}"><span class="ptr">${G[0]}</span><img src="${petImg(p.k)}" alt="" class="sico"><h4>${p.n}</h4><div class="small">나를 따라다니는 ${G[0]} 펫</div><div class="price">🪙 ${pr.toLocaleString()}</div>${h?'<button disabled>보유 중</button>':`<button class="acc" data-buypet="${p.k}" ${S.coins<pr?'disabled':''}>구매</button>`}</div>`;}).join('')+`<p class="small muted" style="grid-column:1/-1">아기 여우·강아지·고양이(희귀)와 아기 오리·하얀 토끼(신화)는 행운 상자에서, 펭귄(전설)은 레벨 50 보상으로 받아요.</p>`;
+ grid.querySelectorAll('[data-buypet]').forEach(b=>b.onclick=()=>{const k=b.dataset.buypet,pp=PETS.find(x=>x.k===k)||{},pr=pp.vbx?pp.pr:k==='hedgehog'?c.ph:c.pf;if(S.coins<pr||own[k])return;S.coins-=pr;try{sfx.coin();}catch(e){}hud();petGet(k,'shop');renderShop();});};}
 // 관리자 › 🧪 테스트 기능: 🐾 펫 설정 (가격·확률 → ✅ 인게임 적용)
 function petAdmHTML(){const c=petCfg(),e=S.petEd||(S.petEd=Object.assign({},c));const f=(k,n,step,suf)=>`<label>${n} <input type="number" data-pe="${k}" value="${e[k]}" step="${step}" min="0" style="width:96px"> ${suf}</label>`;
  return `<div class="labrow petadm" style="display:block"><b>🐾 펫 설정</b> <span class="tg o">모든 유저</span><br><small class="muted">지금 적용 중: 고슴도치 🪙${c.ph.toLocaleString()} · 청개구리 🪙${c.pf.toLocaleString()} · 상자 희귀 ${c.rr}% · 신화 ${c.mr}% · 이미 가진 펫이 또 나오면 골드 ${c.dupR.toLocaleString()} / ${c.dupM.toLocaleString()}</small>
@@ -4026,7 +4026,7 @@ function petLvBar(k){const l=petLv(k),xp=petXpOf(k),a=l>1?petNeed(l-1):0,b=petNe
 // v92 펫 눌러서 정보 보기
 function petInfo(k,owner,mine){const p=PETS.find(x=>x.k===k);if(!p)return;let m=$('petInfo');if(!m){m=document.createElement('div');m.id='petInfo';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});}const G=SYS.GRADES[p.g];
  const src={shop:'상점',box:'행운 상자',lv:'레벨 50 보상'}[p.src]||'';const ab=[`⏱️ 입질 대기 <b>-${petAb(p,'wait')}%</b>`,`🪙 낚시 성공 시 골드 주머니 <b>${petAb(p,'gold')}%</b> (${petGold(p)}골드)`];if(petAb(p,'box'))ab.push(`🎁 상자 획득 확률 <b>+${petAb(p,'box')}%</b>`);ab.push('💞 다른 펫과 만나면 하트 + 경험치 10');
- m.innerHTML=`<div class="card petpop pinfo" style="--c:${G[1]}"><button class="close" data-pix>×</button><div class="ppg">${G[0]} 펫</div><img class="ppi" src="img/pets/${p.k}.png" alt=""><h3>${p.n}</h3>${mine?petLvBar(p.k):''}<p class="small muted">${mine?'내 펫이에요':`<b>${escRT(owner||'')}</b>님의 펫이에요`}${src?' · 얻는 곳: '+src:''}</p><ul class="piab">${ab.map(x=>`<li>${x}</li>`).join('')}</ul>${mine?'<div class="two"><button type="button" data-pi="bag" class="acc">가방에서 보기</button><button type="button" data-pi="off">쉬게 하기</button></div>':''}</div>`;
+ m.innerHTML=`<div class="card petpop pinfo" style="--c:${G[1]}"><button class="close" data-pix>×</button><div class="ppg">${G[0]} 펫</div><img class="ppi" src="${petImg(p.k)}" alt=""><h3>${p.n}</h3>${mine?petLvBar(p.k):''}<p class="small muted">${mine?'내 펫이에요':`<b>${escRT(owner||'')}</b>님의 펫이에요`}${src?' · 얻는 곳: '+src:''}</p><ul class="piab">${ab.map(x=>`<li>${x}</li>`).join('')}</ul>${mine?'<div class="two"><button type="button" data-pi="bag" class="acc">가방에서 보기</button><button type="button" data-pi="off">쉬게 하기</button></div>':''}</div>`;
  m.querySelector('[data-pix]').onclick=()=>m.classList.remove('show');const bg=m.querySelector('[data-pi="bag"]');if(bg)bg.onclick=()=>{m.classList.remove('show');try{openBag();bagTab='pet';renderBag();}catch(e){}};const of=m.querySelector('[data-pi="off"]');if(of)of.onclick=()=>{S.petOn=null;save();m.classList.remove('show');miniToast('🐾 펫이 쉬러 갔어요',1400);};m.classList.add('show');}
 // v92 펫 빛 효과 (시안 · 테스트) — 반짝이 입자 없이 발밑 빛 고리 + 광채만. 내 화면에서만 그려요
 LAB.push({k:'petFx',n:'✨ 펫 빛 효과 (시안)',d:'데리고 다니는 펫 발밑에 등급 색의 은은한 빛 고리와 광채가 생겨요. 반짝이 입자는 없어요. 일반 펄 실버 · 고급 제이드 · 희귀 사파이어 · 영웅 아메시스트 · 전설 샴페인 골드 · 신화 로즈 골드(빛이 천천히 흘러요). 내 화면에서만 그려서 서버 부담이 없어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
@@ -4115,7 +4115,12 @@ const vehOn=()=>!PREV&&opt('veh','off')==='on';
 const vehOwn=()=>(S.vehz&&typeof S.vehz==='object')?S.vehz:(S.vehz={});
 function vehCfg(){let c=null;try{c=(mvPlay()||{}).vehCfg;}catch(e){}c=c||{};const o={p:Object.assign({},VEH_DEF.p),s:Object.assign({},VEH_DEF.s),cc:Object.assign({},VEH_DEF.cc)};
  if(c.r3!=null&&!c.p){o.p.sled=+c.r3;o.p.rudolph=o.p.dog=+c.r4;o.p.santa=o.p.car=+c.r5;}if(c.spd!=null&&!c.s)for(const k in o.s)o.s[k]=+c.spd;
- if(c.p)Object.assign(o.p,c.p);if(c.s)Object.assign(o.s,c.s);if(c.cc)Object.assign(o.cc,c.cc);return o;}
+ if(c.p)Object.assign(o.p,c.p);if(c.s)Object.assign(o.s,c.s);if(c.cc)Object.assign(o.cc,c.cc);o.how=Object.assign({},c.how||{});o.g=Object.assign({},c.g||{});o.pr=Object.assign({},c.pr||{});return o;}
+// v110 탈것 설정 B: 얻는 방법(상점/상자) · 나오는 상자 등급 · 가격
+const VEH_PR0={sled:3000000,rudolph:4000000,dog:4000000,santa:6000000,car:5000000};
+function vehHow(k,c){c=c||vehCfg();if(c.how&&c.how[k])return c.how[k];const F=typeof FLY!=='undefined'&&FLY[k];if(F&&F.vbx)return F.how||'shop';return F?'shop':'box';}
+function vehNeed(k,c){c=c||vehCfg();if(c.g&&c.g[k]!=null)return Math.max(1,Math.min(5,c.g[k]|0));const v=VEHS.find(x=>x.k===k);return v?Math.max(1,Math.min(5,v.need|0)):5;}
+function vehPr(k,c){c=c||vehCfg();if(c.pr&&c.pr[k]!=null)return Math.max(0,+c.pr[k]||0);const F=typeof FLY!=='undefined'&&FLY[k];if(F)return F.cols[0][2];return VEH_PR0[k]||4000000;}
 // 내 자동차 색: 가진 색들(cs) 중 고른 색(c)
 const carCol=()=>{const o=vehOwn().car;if(!o)return 'mint';if(!o.cs)o.cs=[o.c||'mint'];return o.c&&o.cs.includes(o.c)?o.c:o.cs[0];};
 const vehKey=k=>{const f=flyKey(k);if(f)return f;return k==='car'&&carCol()!=='mint'?'car.'+carCol():k;};// 다른 유저에게 보내는 이름 (car.red 등)
@@ -4129,33 +4134,45 @@ function vehGet(k,how,cc){const v=VEHS.find(x=>x.k===k);if(!v)return false;const
  m.innerHTML=`<div class="card petpop ${k==='car'?'cc-'+cc:''}" style="--c:${G[1]}"><div class="ppg">${G[0]} 탈것</div><img class="ppi ${k==='car'?'carimg cc-'+cc:''}" src="${vehImgOf(v.k)}" alt=""><h3>${cn}${v.n}${cc==='rainbow'?' 🌈':''}</h3><p class="small muted">${how==='box'?'행운 상자에서 나왔어요!':'새 탈것이 생겼어요!'}${cc==='rainbow'?'<br><b>아주아주 드문 무지개 자동차! 가장 빨라요</b>':''}<br>가방 › 🛷 탈것에서 고르고 「타기」로 타요</p><div class="two"><button type="button" data-pp="go" class="acc">바로 타기</button><button type="button" data-pp="x">확인</button></div></div>`;
  m.querySelector('[data-pp="go"]').onclick=()=>{S.vehOn=v.k;S.vehRide=1;save();m.classList.remove('show');};m.querySelector('[data-pp="x"]').onclick=()=>m.classList.remove('show');m.classList.add('show');try{sfx.coin();}catch(e){}return true;}
 {const ob=SYS.openBox;SYS.openBox=function(){const r=ob.apply(this,arguments);try{if(vehOn()&&r){const c=vehCfg(),t=r.tier|0,own=vehOwn();
-  const pool=VEHS.filter(v=>t>=v.need&&(v.k==='car'?!(own.car&&(own.car.cs||[]).length>=CARS.length):!own[v.k]));
+  const pool=VEHS.filter(v=>vehHow(v.k,c)==='box'&&t>=vehNeed(v.k,c)&&(v.k==='car'?!(own.car&&(own.car.cs||[]).length>=CARS.length):!own[v.k]));
   for(const v of pool){if(Math.random()*100<(+c.p[v.k]||0)){if(v.k==='car'){const cc=rollCar();if(own.car&&(own.car.cs||[own.car.c||'mint']).includes(cc))continue;setTimeout(()=>vehGet('car','box',cc),2300);r.veh='car.'+cc;break;}setTimeout(()=>vehGet(v.k,'box'),2300);r.veh=v.k;break;}}}}catch(e){console.warn(e);}return r;};}
 // 가방 › 🛷 탈것
 function vehTabHTML(){const own=vehOwn(),c=vehCfg();return `<div class="pettab"><div class="pth"><b>🛷 내 탈것 ${Object.keys(own).length}/${VEHS.length}</b><small>탈것마다 이동 속도가 달라요 · 같은 호숫가 유저에게도 보여요 · 자동차는 옆자리에 한 명 더 탈 수 있어요</small></div>
  <div class="ptg">${VEHS.map(v=>{const G=SYS.GRADES[v.g],h=!!own[v.k],on=S.vehOn===v.k,cc=v.k==='car'&&h?carCol():'';return `<div class="ptc ${h?'':'lock'} ${on?'on':''}" style="--c:${G[1]}"><span class="ptr">${G[0]}</span>${on?'<span class="pton">선택됨</span>':''}<img class="pti ${v.k==='car'?'carimg cc-'+(cc||'mint'):''}" src="${vehImgOf(v.k)}" alt=""><b>${cc&&cc!=='mint'?CARN[cc]+' ':''}${v.n}</b><div class="ptab"><span>🏃 +${v.k==='car'?vehSpd(vehKey('car')):c.s[v.k]}%</span></div>
   ${v.k==='car'&&h?`<div class="ccs">${CARS.map(([k,n])=>{const has=(own.car.cs||[own.car.c||'mint']).includes(k);return `<button type="button" class="ccb cc-${k} ${cc===k?'on':''}" ${has?`data-carc="${k}"`:'disabled'} title="${n}${has?'':' (아직 없어요)'}"></button>`;}).join('')}</div>`:''}
-  <small>${h?'보유 중':v.fly?'상점 › 🚗 탈것':`${SYS.GRADES[v.need][0]}${v.need<5?' 이상':''} 행운 상자 · 🎲 ${c.p[v.k]}%`}</small>${h?`<button type="button" data-veh="${v.k}" class="${on?'':'acc'}">${on?'✓ 선택됨':'이걸로 타기'}</button>`:''}</div>`;}).join('')}</div>
- <p class="small muted">상자를 열 때 그 등급 이상이면 아직 없는 탈것 중에서 위 확률로 나와요. 자동차는 민트·레드·블랙·🌈무지개 중 하나로 나오고, 없는 색이면 또 나올 수 있어요 (무지개는 아주 드물고 가장 빨라요)</p></div>`;}
+  <small>${h?'보유 중':vehHow(v.k,c)==='shop'?'상점 › 🚗 탈것':`${SYS.GRADES[vehNeed(v.k,c)][0]}${vehNeed(v.k,c)<5?' 이상':''} 행운 상자 · 🎲 ${c.p[v.k]||0}%`}</small>${h?`<button type="button" data-veh="${v.k}" class="${on?'':'acc'}">${on?'✓ 선택됨':'이걸로 타기'}</button>`:''}</div>`;}).join('')}</div>
+ <p class="small muted">상자 탈것은 그 등급 이상 상자를 열 때 아직 없는 것 중에서 위 확률로 나와요. 상점 탈것은 상점 › 🚗 탈것에서 사요. 자동차는 민트·레드·블랙·🌈무지개 중 하나로 나오고, 없는 색이면 또 나올 수 있어요 (무지개는 아주 드물고 가장 빨라요)</p></div>`;}
 {const _rb=_renderBag;_renderBag=function(){_rb.apply(this,arguments);if(!vehOn()||bagMode==='box')return;const card=$('bag').querySelector('.card'),tabs=card&&card.querySelector('.tabs');if(!tabs||tabs.querySelector('[data-vehtab]'))return;
  const b=document.createElement('button');b.dataset.vehtab='1';b.className=bagTab==='veh'?'on':'';b.innerHTML=`<span class="tico">🛷<em class="${Object.keys(vehOwn()).length?'':'z zero'}">${Object.keys(vehOwn()).length}</em></span>탈것`;tabs.appendChild(b);b.onclick=()=>{bagTab='veh';renderBag();};
  if(bagTab!=='veh')return;tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));let el=tabs.nextSibling;while(el){const nx=el.nextSibling;el.remove();el=nx;}tabs.insertAdjacentHTML('afterend',vehTabHTML());
  card.querySelectorAll('[data-veh]').forEach(x=>x.onclick=()=>{S.vehOn=x.dataset.veh;S.vehRide=1;save();renderBag();});
  card.querySelectorAll('[data-carc]').forEach(x=>x.onclick=()=>{vehOwn().car.c=x.dataset.carc;save();renderBag();});};}
 // 관리자 설정 — 탈것마다 확률 · 속도 한 줄씩
-function vehAdmHTML(){const c=vehCfg(),e=S.vehEd2||(S.vehEd2=JSON.parse(JSON.stringify(c)));const inp=(grp,k,step)=>`<input type="number" data-ve="${grp}.${k}" value="${e[grp][k]}" step="${step}" min="0">`;
- return `<div class="labrow vehadm" style="display:block"><b>🛷 탈것 설정</b> <span class="tg o">모든 유저</span>
- <table class="vet"><thead><tr><th>탈것</th><th>나오는 상자</th><th>확률 %<small>상자 1개당</small></th><th>속도 +%</th></tr></thead><tbody>
- ${VEHS.map(v=>`<tr><td><img src="${vehImgOf(v.k)}" alt="">${v.n}</td><td>${SYS.GRADES[v.need][0]}${v.need<5?' 이상':''}</td><td>${inp('p',v.k,.05)}</td><td>${inp('s',v.k,5)}</td></tr>`).join('')}
- <tr class="rb"><td><img class="carimg cc-rainbow" src="img/veh/car.png" alt="">🌈 무지개 자동차</td><td>자동차 중</td><td class="muted">아래 비율</td><td>${inp('s','carRb',5)}</td></tr></tbody></table>
- <div class="vecc"><b>🚗 자동차 색 비율</b> ${CARS.map(([k,n])=>`<label><i class="ccb cc-${k}"></i>${n} ${inp('cc',k,1)}</label>`).join('')}<small class="muted">자동차가 나오면 이 비율로 색을 정해요 · 지금 무지개 ${(()=>{let t=0;CARS.forEach(([k])=>t+=+e.cc[k]||0);return t?(e.cc.rainbow/t*100).toFixed(1):0;})()}%</small></div>
+function vehAdmHTML(){const c=vehCfg(),e=S.vehEd2&&S.vehEd2.how?S.vehEd2:(S.vehEd2=JSON.parse(JSON.stringify(c)));const G=SYS.GRADES;
+ const tot={1:0,2:0,3:0,4:0,5:0};
+ const rows=VEHS.map(v=>{const k=v.k,how=vehHow(k,e),g=vehNeed(k,e),box=how==='box',F=FLY[k],ncol=F?F.cols.length:k==='car'?CARS.length:1;if(box)for(let t=g;t<=5;t++)tot[t]+=+e.p[k]||0;const sp=e.s[k]!=null?e.s[k]:(F?F.spd:0);
+  return `<tr class="${box?'isbox':'isshop'}"><td><span class="vtn"><img src="${vehImgOf(k)}" alt="">${v.n}</span></td>
+  <td><span class="vpill"><button type="button" class="${box?'':'on'}" data-vhow="${k}.shop">상점</button><button type="button" class="${box?'on':''}" data-vhow="${k}.box">상자</button></span></td>
+  <td>${box?`<select data-vg="${k}">${[1,2,3,4,5].map(t=>`<option value="${t}" ${t===g?'selected':''}>${G[t][0]}${t<5?' 이상':''}</option>`).join('')}</select>`:'<span class="voff">안 나와요</span>'}</td>
+  <td>${box?`<input type="number" data-ve="p.${k}" value="${+e.p[k]||0}" step=".05" min="0" max="100"> %`:'<span class="voff">—</span>'}</td>
+  <td>${box?'<span class="voff">팔지 않아요</span>':`<input type="number" data-ve="pr.${k}" value="${vehPr(k,e)}" step="100000" min="0" class="vpr"> <small class="muted">× ${ncol}색</small>`}</td>
+  <td><span class="vsp"><input type="range" min="0" max="150" step="5" data-ve="s.${k}" value="${sp}"><b data-vsb="${k}">+${sp}%</b></span></td></tr>`;}).join('');
+ return `<div class="labrow vehadm" style="display:block"><b>🛷 탈것 설정</b> <span class="tg o">모든 유저</span> <small class="muted">한 줄에 탈것 하나 · 「얻는 방법」에 안 쓰는 칸은 잠겨요</small>
+ <div class="vetw"><table class="vet vet2"><thead><tr><th>탈것</th><th>얻는 방법</th><th>나오는 상자</th><th>확률 <small>상자 1개당</small></th><th>가격 <small>색마다</small></th><th>속도</th></tr></thead><tbody>${rows}
+ <tr class="rb"><td><span class="vtn"><img class="carimg cc-rainbow" src="img/veh/car.png" alt="">🌈 무지개 자동차</span></td><td colspan="4" class="muted">자동차 중 아래 비율</td><td><span class="vsp"><input type="range" min="0" max="150" step="5" data-ve="s.carRb" value="${e.s.carRb}"><b data-vsb="carRb">+${e.s.carRb}%</b></span></td></tr></tbody></table></div>
+ <div class="vesum">${[1,2,3,4,5].map(t=>`<span><img src="img/box/t${t}.png" alt=""><b>${G[t][0]} 상자</b> 탈것 나올 확률 ${Math.round(tot[t]*100)/100}%</span>`).join('')}</div>
+ <div class="vecc"><b>🚗 자동차 색 비율</b> ${CARS.map(([k,n])=>`<label><i class="ccb cc-${k}"></i>${n} <input type="number" data-ve="cc.${k}" value="${e.cc[k]}" step="1" min="0"></label>`).join('')}</div>
  <p><button class="sm" data-vegive>나에게 탈것 모두 주기 (테스트)</button> <button class="sm" data-veclr>내 탈것 모두 지우기</button> <button class="sm" data-verst>기본값으로</button> <button class="sm ok" data-vego>✅ 인게임 적용</button></p></div>`;}
-{const _l=labHTML,_b=bindLab;labHTML=function(){return _l.apply(this,arguments).replace(/<\/div>\s*$/,vehAdmHTML()+'</div>');};
- bindLab=function(root,re){try{_b.apply(this,arguments);}catch(e){console.warn(e);}const box=root.querySelector('.vehadm');if(!box)return;box.querySelectorAll('[data-ve]').forEach(i=>i.oninput=()=>{const [g,k]=i.dataset.ve.split('.');S.vehEd2[g][k]=Math.max(0,+i.value||0);});
-  box.querySelector('[data-vegive]').onclick=()=>{VEHS.forEach(v=>{if(v.k==='car'){vehOwn().car={at:Date.now(),how:'test',c:'mint',cs:CARS.map(x=>x[0])};}else vehOwn()[v.k]=vehOwn()[v.k]||{at:Date.now(),how:'test'};});save();toast('🛷 탈것 5개와 자동차 4색을 모두 넣었어요',1600);re&&re();};
+{const _l=labHTML,_b=bindLab;labHTML=function(){return _l.apply(this,arguments).replace(/<\/div>\s*$/,(()=>{try{return vehAdmHTML();}catch(e){console.warn('vehAdm',e);return '';}})()+'</div>');};
+ bindLab=function(root,re){try{_b.apply(this,arguments);}catch(e){console.warn(e);}const box=root.querySelector('.vehadm');if(!box)return;const E2=()=>S.vehEd2;
+  box.querySelectorAll('[data-ve]').forEach(i=>i.oninput=()=>{const [g,k]=i.dataset.ve.split('.');E2()[g]=E2()[g]||{};E2()[g][k]=Math.max(0,+i.value||0);const b=box.querySelector(`[data-vsb="${k}"]`);if(b&&g==='s')b.textContent='+'+i.value+'%';});
+  box.querySelectorAll('[data-ve^="p."]').forEach(i=>i.onchange=()=>re&&re());
+  box.querySelectorAll('[data-vhow]').forEach(b=>b.onclick=()=>{const [k,h]=b.dataset.vhow.split('.');E2().how[k]=h;if(h==='box'&&E2().p[k]==null)E2().p[k]=.2;re&&re();});
+  box.querySelectorAll('[data-vg]').forEach(x=>x.onchange=()=>{E2().g[x.dataset.vg]=+x.value;re&&re();});
+  box.querySelector('[data-vegive]').onclick=()=>{VEHS.forEach(v=>{if(v.k==='car'){vehOwn().car={at:Date.now(),how:'test',c:'mint',cs:CARS.map(x=>x[0])};}else vehOwn()[v.k]=vehOwn()[v.k]||{at:Date.now(),how:'test'};});save();toast('🛷 탈것을 모두 넣었어요',1600);re&&re();};
   box.querySelector('[data-veclr]').onclick=()=>{S.vehz={};S.vehOn=null;S.vehRide=0;save();toast('🛷 내 탈것을 모두 지웠어요',1600);re&&re();};
-  box.querySelector('[data-verst]').onclick=()=>{S.vehEd2=JSON.parse(JSON.stringify(VEH_DEF));re&&re();};
-  box.querySelector('[data-vego]').onclick=()=>{const e=S.vehEd2;if(!confirm('탈것 확률·속도·자동차 색 비율을 모든 유저에게 적용할까요?'))return;if(pub({vehCfg:{p:e.p,s:e.s,cc:e.cc}},'탈것 설정을')){S.vehEd2=null;setTimeout(()=>re&&re(),600);}};};}
+  box.querySelector('[data-verst]').onclick=()=>{S.vehEd2=JSON.parse(JSON.stringify(Object.assign({},VEH_DEF,{how:{},g:{},pr:{}})));re&&re();};
+  box.querySelector('[data-vego]').onclick=()=>{const e=S.vehEd2;if(!confirm('탈것 얻는 방법·확률·가격·속도·자동차 색 비율을 모든 유저에게 적용할까요?'))return;if(pub({vehCfg:{p:e.p,s:e.s,cc:e.cc,how:e.how,g:e.g,pr:e.pr}},'탈것 설정을')){S.vehEd2=null;setTimeout(()=>re&&re(),600);}};};}
 // 타기 버튼 (옆자리 손님이면 내리기)
 const VPAS={id:null,at:0};
 const vehCan=()=>vehOn()&&started&&me&&S.vehOn&&vehOwn()[S.vehOn]&&!mySeat&&!TR.riding&&fishing.state==='off'&&!VPAS.id;
@@ -4350,11 +4367,16 @@ FHOOK.push(()=>{if(flyNow()&&nearSpot){nearSpot=null;try{$('fishBtn').style.disp
 // 내릴 때: 아래가 물이면 가까운 땅·데크로
 let flyWas=false;FHOOK.push(()=>{const f=!!(VW.mk&&isFly(VW.mk)&&S.vehRide);if(flyWas&&!f&&me){const p=me.o.position;const ok=(x,z)=>{try{return walk(x,z);}catch(e){return true;}};if(!ok(p.x,p.z)){let best=null;for(let r=1;r<40&&!best;r+=1.5)for(let a=0;a<16&&!best;a++){const x=p.x+Math.cos(a/16*Math.PI*2)*r,z=p.z+Math.sin(a/16*Math.PI*2)*r;if(ok(x,z))best=[x,z];}if(best){p.x=best[0];p.z=best[1];}}p.y=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);miniToast('🛬 내려왔어요',1200);}flyWas=f;});
 // 상점 「🚗 탈것」 탭
+// v110 상점 가격 (관리자 › 탈것 설정 「가격」) · 상자 탈것도 「상점」으로 바꾸면 여기서 팔아요
+const FLYPR0={};function vehApplyPr(){const c=vehCfg();for(const k in FLY){const F=FLY[k];if(!FLYPR0[k])FLYPR0[k]=F.cols.map(x=>x[2]);F.cols.forEach((x,i)=>{x[2]=c.pr[k]!=null?+c.pr[k]:FLYPR0[k][i];});}}
+function vsShopHTML(){const c=vehCfg(),own=vehOwn();return VEHS.filter(v=>!FLY[v.k]&&vehHow(v.k,c)==='shop').map(v=>{const k=v.k,h=!!own[k],pr=vehPr(k,c),on=h&&S.vehOn===k;return `<div class="flyc robc"><div class="flyh"><b>${v.n}</b><small>속도 +${k==='car'?c.s.car:c.s[k]||0}% · 땅으로만 다녀요</small></div><div class="robb"><img class="robim ${k==='car'?'carimg cc-mint':''}" src="${vehImgOf(k)}" alt=""><div class="robi"><b class="robn">${v.n}${h?' <span class="robo">보유</span>':''}</b><small>🪙 ${pr.toLocaleString()}</small><div class="robgo">${h?`<button type="button" class="${on?'':'acc'}" data-vson="${k}" ${on?'disabled':''}>${on?'타는 중':'이걸로'}</button>`:`<button type="button" class="acc" data-vsbuy="${k}" ${S.coins<pr?'disabled':''}>구매</button>`}</div></div></div></div>`;}).join('');}
 {const _rs4=_renderShop;_renderShop=function(){if(!vehOn()&&shopTab==='fly')shopTab='rod';_rs4.apply(this,arguments);if(!vehOn())return;const sh=$('shop'),tabs=sh.querySelector('.tabs');if(!tabs)return;
  const tb=document.createElement('button');tb.dataset.tab='fly';tb.className=shopTab==='fly'?'on':'';tb.textContent='🚗 탈것';const sell=tabs.querySelector('[data-tab="sell"]');tabs.insertBefore(tb,sell||null);tb.onclick=()=>{shopTab='fly';renderShop();};
- if(shopTab!=='fly')return;tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===tb));const grid=tabs.nextElementSibling;if(!grid)return;grid.className='flyshop';
- grid.innerHTML=`<p class="small muted" style="grid-column:1/-1">가방 › 탈것에서 고르고 「🚗 타기」 · 나는 탈것은 물 위로도 다니고 하늘에서는 낚시 못 해요 · 색마다 따로 사요</p>`+Object.entries(FLY).map(([k,F])=>{const o=flyOwn(k);if(F.vbx&&F.how==='box')return '';if(F.ground)return robShopHTML(k,F,o);return `<div class="flyc"><div class="flyh"><b>${{plane:'✈️',archae:'🦖',balloon:'🎈'}[k]} ${F.n}</b><small>속도 +${F.spd}%</small></div><div class="flycs">${F.cols.map(([c,n,pr])=>{const own=o&&o.cs.includes(c),on=own&&o.c===c&&S.vehOn===k;return `<div class="flyo ${on?'on':''}"><img data-flyimg="${k}.${c}" alt=""><b>${n}</b><small>🪙 ${pr.toLocaleString()}</small>${own?`<button type="button" class="${on?'':'acc'}" data-flyon="${k}.${c}" ${on?'disabled':''}>${on?'타는 중':'이걸로'}</button>${on?'':`<button type="button" class="sellb" data-flysell="${k}.${c}">💰 🪙 ${sellPr(pr).toLocaleString()}</button>`}`:`<button type="button" class="acc" data-flybuy="${k}.${c}" ${S.coins<pr?'disabled':''}>구매</button>`}</div>`;}).join('')}</div></div>`;}).join('');
+ if(shopTab!=='fly')return;try{vehApplyPr();}catch(e){}tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===tb));const grid=tabs.nextElementSibling;if(!grid)return;grid.className='flyshop';
+ grid.innerHTML=`<p class="small muted" style="grid-column:1/-1">가방 › 탈것에서 고르고 「🚗 타기」 · 나는 탈것은 물 위로도 다니고 하늘에서는 낚시 못 해요 · 색마다 따로 사요</p>`+vsShopHTML()+Object.entries(FLY).map(([k,F])=>{const o=flyOwn(k);if(vehHow(k)!=='shop')return '';if(F.ground)return robShopHTML(k,F,o);return `<div class="flyc"><div class="flyh"><b>${{plane:'✈️',archae:'🦖',balloon:'🎈'}[k]} ${F.n}</b><small>속도 +${F.spd}%</small></div><div class="flycs">${F.cols.map(([c,n,pr])=>{const own=o&&o.cs.includes(c),on=own&&o.c===c&&S.vehOn===k;return `<div class="flyo ${on?'on':''}"><img data-flyimg="${k}.${c}" alt=""><b>${n}</b><small>🪙 ${pr.toLocaleString()}</small>${own?`<button type="button" class="${on?'':'acc'}" data-flyon="${k}.${c}" ${on?'disabled':''}>${on?'타는 중':'이걸로'}</button>${on?'':`<button type="button" class="sellb" data-flysell="${k}.${c}">💰 🪙 ${sellPr(pr).toLocaleString()}</button>`}`:`<button type="button" class="acc" data-flybuy="${k}.${c}" ${S.coins<pr?'disabled':''}>구매</button>`}</div>`;}).join('')}</div></div>`;}).join('');
  grid.querySelectorAll('[data-flybuy]').forEach(b=>b.onclick=()=>{const [k,c]=b.dataset.flybuy.split('.'),F=FLY[k],it=F.cols.find(x=>x[0]===c);if(!it||S.coins<it[2])return;if(!confirm(`${F.n} (${it[1]})을 ${it[2].toLocaleString()}골드에 살까요?`))return;S.coins-=it[2];const own=vehOwn();if(!own[k])own[k]={at:Date.now(),how:'shop',c,cs:[c]};else{flyOwn(k);if(!own[k].cs.includes(c))own[k].cs.push(c);own[k].c=c;}S.vehOn=k;save();hud();try{sfx.coin();}catch(e){}toast(`${F.n} (${it[1]}) 구매! 「🚗 타기」를 누르면 ${F.ground?'타요':'날아올라요'}`,2400);renderShop();});
+ grid.querySelectorAll('[data-vsbuy]').forEach(b=>b.onclick=()=>{const k=b.dataset.vsbuy,v=VEHS.find(x=>x.k===k),pr=vehPr(k);if(!v||S.coins<pr||vehOwn()[k])return;if(!confirm(`${v.n}을(를) ${pr.toLocaleString()}골드에 살까요?`))return;S.coins-=pr;vehGet(k,'shop',k==='car'?'mint':undefined);save();hud();renderShop();});
+ grid.querySelectorAll('[data-vson]').forEach(b=>b.onclick=()=>{S.vehOn=b.dataset.vson;S.vehRide=1;save();renderShop();});
  grid.querySelectorAll('[data-robsw]').forEach(b=>b.onclick=()=>{const [k,c]=b.dataset.robsw.split('.');ROBSEL[k]=c;renderShop();});
  grid.querySelectorAll('[data-flysell]').forEach(b=>b.onclick=()=>{const [k,c]=b.dataset.flysell.split('.'),F=FLY[k],it=F.cols.find(x=>x[0]===c);if(!it)return;sellAsk(`${F.n} (${it[1]})`,sellPr(it[2]),()=>{const o=flyOwn(k);if(!o||!o.cs.includes(c)||(o.c===c&&S.vehOn===k))return false;o.cs=o.cs.filter(x=>x!==c);if(!o.cs.length){delete vehOwn()[k];if(S.vehOn===k){S.vehOn=null;S.vehRide=0;}}else if(o.c===c)o.c=o.cs[0];});});
  grid.querySelectorAll('[data-flyon]').forEach(b=>b.onclick=()=>{const [k,c]=b.dataset.flyon.split('.');const o=flyOwn(k);if(!o)return;o.c=c;S.vehOn=k;S.vehRide=1;save();renderShop();});
@@ -4422,7 +4444,7 @@ const petRodK=k=>{const g=petRodG(k)||SYS.gearOf(S);return g?g.k:'bamboo';};
 // 가방 › 펫 탭 위에 펫 장비 칸
 function petEqHTML(){const k=S.petOn;if(!k||!petFishOn())return '';const p=PETS.find(x=>x.k===k);if(!p)return '';const g=petRodG(k),R=g&&D.RODS.find(x=>x.k===g.k),G=SYS.GRADES[p.g];
  const soon=(ic,n)=>`<div class="pes soon" title="업데이트 예정이에요"><span class="sn">${n}</span><span class="ic">${ic}</span><b>업데이트 예정</b></div>`;
- return `<div class="peq" style="--c:${G[1]}"><div class="peh">🐾 ${p.n} 장비<small>칸에 마우스를 올리면 설명이 나와요</small></div><div class="peg"><div class="pav"><img src="img/pets/${p.k}.png" alt=""></div>
+ return `<div class="peq" style="--c:${G[1]}"><div class="peh">🐾 ${p.n} 장비<small>칸에 마우스를 올리면 설명이 나와요</small></div><div class="peg"><div class="pav"><img src="${petImg(p.k)}" alt=""></div>
   <div class="pes rod ${g?'on':''}" data-pes="rod" title="${g?`${R.n} ★${g.star||0}${g.enh?' +'+g.enh:''} · 펫이 이 낚싯대로 낚아요`:'비어 있으면 주인 낚싯대와 같은 모양으로 낚아요'}"><span class="sn">낚싯대</span>${g?RIMG(g.k,'pri'):`<span class="ic">🎣</span>`}<b>${g?R.n.replace(' 낚싯대',''):'주인과 같게'}</b><small>${g?'★'.repeat(g.star||0)+(g.enh?' +'+g.enh:''):'눌러서 끼우기'}</small></div>
   ${soon('🎩','모자')}${soon('👕','옷')}${soon('🎀','장신구')}</div>
   <div class="pepick" hidden><small>펫에게 줄 낚싯대를 골라요 (내 낚싯대와 겹쳐도 돼요)</small><div class="pepg"><button type="button" data-perod="">주인과 같게</button>${(S.gear||[]).slice().sort((a,b)=>D.RODS.findIndex(r=>r.k===b.k)-D.RODS.findIndex(r=>r.k===a.k)||b.star-a.star).slice(0,30).map(x=>{const r=D.RODS.find(y=>y.k===x.k)||{n:x.k};return `<button type="button" data-perod="${x.id}" class="${g&&g.id===x.id?'on':''}">${RIMG(x.k,'pri')}<span>${r.n.replace(' 낚싯대','')}${x.star?' ★'+x.star:''}${x.enh?' +'+x.enh:''}</span></button>`;}).join('')}</div></div>
@@ -4487,18 +4509,20 @@ FHOOK.push(()=>{for(const id of PFR.keys())if(!remotes.has(id)||!PETW.peers.has(
 LAB.push({k:'mission',n:'🗓 미션 (출석 달력)',d:'메뉴에 「미션」이 생겨요. 오늘의 미션 3개를 다 받으면 달력에 도장 1개 · 7·14·21·28번째 도장마다 큰 보상 · 이번 주 미션 2개. 매일 오전 9시에 새로 고쳐져요. 아래 표에서 미션·횟수·보상을 바꾸고 ✅ 인게임 적용',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 const msOn=()=>opt('mission','off')==='on';
 const MT={catch:['🎣','물고기 {n}마리 낚기'],rare:['💎','희귀 이상 {n}마리 낚기'],legend:['✨','전설 이상 {n}마리 낚기'],sell:['🏷','물고기 {n}마리 팔기'],box:['🎁','행운 상자 {n}개 열기'],social:['👋','인사·좋아요 {n}번'],fuse:['⚗','합성 {n}번 하기'],gold:['🪙','골드 {n} 벌기']};
-const MR={co:['🪙','골드'],xp:['⭐','경험치'],bx:['🎁','상자'],st:['💎','강화석'],ess:['🧪','물고기 정수']};
 const BXN=['일반','고급','희귀','영웅','전설','신화'];
-const MS_DEF={d:[{t:'catch',n:30,r:'co',v:1500},{t:'rare',n:3,r:'bx',v:1},{t:'sell',n:10,r:'co',v:800}],w:[{t:'catch',n:400,r:'co',v:12000},{t:'legend',n:3,r:'bx',v:2}],s:[{d:7,r:'bx',v:2},{d:14,r:'bx',v:3},{d:21,r:'bx',v:4},{d:28,r:'bx',v:5}]};
-function msCfg(){let c=null;try{c=(mvPlay()||{}).msCfg;}catch(e){}const o=JSON.parse(JSON.stringify(MS_DEF));if(c&&typeof c==='object'){['d','w','s'].forEach(k=>{if(Array.isArray(c[k])&&c[k].length)o[k]=c[k];});}if(S.msEd&&NK_ADM.ok())return JSON.parse(JSON.stringify(S.msEd));return o;}
+// v110 보상 여러 개: rw={co 골드, xp 경험치, st 강화석, ess 정수, bg 상자 등급, bn 상자 개수} · 이번 달 미션(m)
+const MS_DEF={d:[{t:'catch',n:30,rw:{co:1500,st:2}},{t:'rare',n:3,rw:{bg:2,bn:1}},{t:'sell',n:10,rw:{co:800,xp:200}}],w:[{t:'catch',n:400,rw:{co:12000,st:10}},{t:'legend',n:3,rw:{bg:4,bn:2}}],m:[{t:'catch',n:1500,rw:{co:40000,st:30}},{t:'fuse',n:30,rw:{bg:4,bn:3}}],s:[{d:7,rw:{bg:2,bn:2,st:5}},{d:14,rw:{bg:3,bn:3}},{d:21,rw:{bg:4,bn:2,st:10}},{d:28,rw:{bg:5,bn:1,co:30000}}]};
+function msNorm(x){if(!x||typeof x!=='object')return x;if(x.rw&&typeof x.rw==='object')return x;const rw={};if(x.r==='bx'){rw.bg=x.v|0;rw.bn=1;}else if(x.r)rw[x.r]=+x.v||0;const o=Object.assign({},x,{rw});delete o.r;delete o.v;return o;}
+function msCfg(){if(S.msEd&&NK_ADM.ok())return JSON.parse(JSON.stringify(S.msEd));let c=null;try{c=(mvPlay()||{}).msCfg;}catch(e){}const o=JSON.parse(JSON.stringify(MS_DEF));if(c&&typeof c==='object'){['d','w','m','s'].forEach(k=>{if(Array.isArray(c[k]))o[k]=c[k].map(msNorm);});}return o;}
 // 오전 9시(한국) = UTC 0시 기준으로 날·주·달을 나눠요
 const msDay=()=>new Date().toISOString().slice(0,10),msMon=()=>msDay().slice(0,7),msWeek=()=>{const d=new Date(),dw=(d.getUTCDay()+6)%7;return new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()-dw)).toISOString().slice(0,10);};
-function msS(){const M=S.ms&&typeof S.ms==='object'?S.ms:(S.ms={});if(M.d!==msDay()){M.d=msDay();M.dp={};M.dc=[];}if(M.w!==msWeek()){M.w=msWeek();M.wp={};M.wc=[];}if(M.m!==msMon()){M.m=msMon();M.st=[];M.mc=[];}return M;}
-function msAdd(t,n){if(!msOn())return;const M=msS();M.dp[t]=(M.dp[t]|0)+n;M.wp[t]=(M.wp[t]|0)+n;msBadge();}
+function msS(){const M=S.ms&&typeof S.ms==='object'?S.ms:(S.ms={});if(M.d!==msDay()){M.d=msDay();M.dp={};M.dc=[];}if(M.w!==msWeek()){M.w=msWeek();M.wp={};M.wc=[];}if(M.m!==msMon()){M.m=msMon();M.st=[];M.mc=[];M.mp={};M.mm=[];}if(!M.mp)M.mp={};if(!M.mm)M.mm=[];return M;}
+function msAdd(t,n){if(!msOn())return;const M=msS();M.dp[t]=(M.dp[t]|0)+n;M.wp[t]=(M.wp[t]|0)+n;M.mp[t]=(M.mp[t]|0)+n;msBadge();}
 const msTxt=x=>(MT[x.t]||['❓','?'])[1].replace('{n}',(+x.n).toLocaleString());
-const msRw=x=>x.r==='bx'?`🎁 ${BXN[x.v|0]||''} 상자`:`${MR[x.r][0]} ${(+x.v).toLocaleString()}`;
-function msGive(x,why){if(x.r==='co'){S.coins+=+x.v;S.earned=(S.earned||0)+(+x.v);}else if(x.r==='xp')addXP(+x.v,why);else if(x.r==='bx'){S.boxes.push('lv'+Math.max(0,Math.min(5,x.v|0)));try{updBagBadge();}catch(e){}}else if(x.r==='st')S.stones=(S.stones||0)+(+x.v);else if(x.r==='ess'){try{const z=fzS();z.ess=(z.ess|0)+(+x.v);}catch(e){}}save();hud();try{sfx.coin();}catch(e){}}
-function msReady(){const M=msS(),C=msCfg();let n=0;C.d.forEach((x,i)=>{if(!M.dc.includes(i)&&(M.dp[x.t]|0)>=x.n)n++;});C.w.forEach((x,i)=>{if(!M.wc.includes(i)&&(M.wp[x.t]|0)>=x.n)n++;});const sn=M.st.length;C.s.forEach((x,i)=>{if(sn>=x.d&&!M.mc.includes(i))n++;});return n;}
+function msRw(x){const w=(msNorm(x)||{}).rw||{},a=[];if(w.co)a.push(`🪙 ${(+w.co).toLocaleString()}`);if(w.bn)a.push(`🎁 ${BXN[w.bg|0]||''} 상자${w.bn>1?' ×'+w.bn:''}`);if(w.st)a.push(`💎 ${w.st}`);if(w.xp)a.push(`⭐ ${(+w.xp).toLocaleString()}`);if(w.ess)a.push(`🧪 ${w.ess}`);return a.join(' · ')||'보상 없음';}
+function msGive(x,why){const w=(msNorm(x)||{}).rw||{};if(w.co){S.coins+=+w.co;S.earned=(S.earned||0)+(+w.co);}if(w.xp)addXP(+w.xp,why);if(w.bn){for(let i=0;i<(w.bn|0);i++)S.boxes.push('lv'+Math.max(0,Math.min(5,w.bg|0)));S.newBox=(S.newBox||0)+(w.bn|0);try{updBagBadge();}catch(e){}}if(w.st)S.stones=(S.stones||0)+(+w.st);if(w.ess){try{const z=fzS();z.ess=(z.ess|0)+(+w.ess);}catch(e){}}save();hud();try{sfx.coin();}catch(e){}}
+const MSG=[['d','dp','dc'],['w','wp','wc'],['m','mp','mm']];
+function msReady(){const M=msS(),C=msCfg();let n=0;MSG.forEach(([g,pk,ck])=>(C[g]||[]).forEach((x,i)=>{if(!M[ck].includes(i)&&(M[pk][x.t]|0)>=x.n)n++;}));const sn=M.st.length;(C.s||[]).forEach((x,i)=>{if(sn>=x.d&&!M.mc.includes(i))n++;});return n;}
 function msBadge(){const b=$('bMs');if(!b)return;const n=msOn()?msReady():0;let e=b.querySelector('.msn');if(!e){e=document.createElement('i');e.className='msn';b.appendChild(e);}e.textContent=n||'';e.style.display=n?'':'none';}
 // 세기
 {const _cf=catchFish;catchFish=function(){const r=_cf.apply(this,arguments);try{if(msOn()){msAdd('catch',1);const g=catchPose&&catchPose.fg|0;if(g>=2)msAdd('rare',1);if(g>=3)msAdd('legend',1);}}catch(e){}return r;};}
@@ -4508,43 +4532,60 @@ function msBadge(){const b=$('bMs');if(!b)return;const n=msOn()?msReady():0;let 
 {const R=window.NK_RT;if(R&&R.like){const _lk=R.like;R.like=function(){try{if(msOn())msAdd('social',1);}catch(e){}return _lk.apply(this,arguments);};}}
 {const _fd=fzDo;fzDo=function(G,mats){const b=FZ.busy;const r=_fd.apply(this,arguments);try{if(!b&&FZ.busy&&msOn())msAdd('fuse',1);}catch(e){}return r;};}
 // 창
-function msHTML(){const M=msS(),C=msCfg(),now=new Date(),dim=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()+1,0)).getUTCDate(),td=now.getUTCDate(),sn=M.st.length,mon=now.getUTCMonth()+1;
- const big={};C.s.forEach((x,i)=>big[x.d]=[x,i]);
- const cells=Array.from({length:Math.max(28,Math.min(31,dim))},(_,i)=>{const n=i+1,st=n<=sn,b=big[n],got=b&&M.mc.includes(b[1]);return `<div class="${st?'st':''} ${b?'rw':''} ${n===sn+1?'nx':''} ${b&&sn>=n&&!got?'ready':''}" ${b&&sn>=n&&!got?`data-msst="${b[1]}"`:''} title="${b?`도장 ${n}개: ${msRw(b[0])}${got?' (받음)':''}`:`도장 ${n}개째`}">${b?`<img src="img/box/t${Math.min(5,b[0].r==='bx'?b[0].v|0:2)}.png" alt="">`:''}<span>${n}</span>${got?'<em>✓</em>':''}</div>`;}).join('');
- const row=(x,i,P,Cl,k)=>{const cur=Math.min(+x.n,P[x.t]|0),ok=cur>=x.n,dn=Cl.includes(i);return `<div class="mi ${dn?'done':''}"><div class="ic">${(MT[x.t]||['❓'])[0]}</div><div class="tx"><b>${msTxt(x)}</b><div class="pg"><i style="width:${Math.min(100,cur/x.n*100)}%"></i></div></div><div class="n">${cur.toLocaleString()} / ${(+x.n).toLocaleString()}</div><div class="rw"><span>${msRw(x)}</span></div><button type="button" class="go ${dn?'dn':ok?'ok':'no'}" ${ok&&!dn?`data-msget="${k}${i}"`:'disabled'}>${dn?'받음':ok?'받기':'진행 중'}</button></div>`;};
+function msCal(C,M,opt){const now=new Date(),dim=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()+1,0)).getUTCDate(),sn=M?M.st.length:0;const big={};(C.s||[]).forEach((x,i)=>big[x.d]=[x,i]);
+ return Array.from({length:Math.max(28,Math.min(31,dim))},(_,i)=>{const n=i+1,b=big[n];if(opt&&opt.adm){const on=opt.sel==='s'+(b?b[1]:'x')&&b;return `<button type="button" class="${b?'rw':''} ${on?'sel':''}" data-msac="${n}" title="${b?`도장 ${n}개: ${msRw(b[0])}`:`${n}번째 · 눌러서 보상 넣기`}">${b?`<img src="img/box/t${Math.min(5,(msNorm(b[0]).rw.bn?msNorm(b[0]).rw.bg:2)|0)}.png" alt="">`:''}<span>${n}</span></button>`;}
+  const st=n<=sn,got=b&&M.mc.includes(b[1]);return `<div class="${st?'st':''} ${b?'rw':''} ${n===sn+1?'nx':''} ${b&&sn>=n&&!got?'ready':''}" ${b&&sn>=n&&!got?`data-msst="${b[1]}"`:''} title="${b?`도장 ${n}개: ${msRw(b[0])}${got?' (받음)':''}`:`도장 ${n}개째`}">${b?`<img src="img/box/t${Math.min(5,(msNorm(b[0]).rw.bn?msNorm(b[0]).rw.bg:2)|0)}.png" alt="">`:''}<span>${n}</span>${got?'<em>✓</em>':''}</div>`;}).join('');}
+function msHTML(){const M=msS(),C=msCfg(),now=new Date(),dim=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()+1,0)).getUTCDate(),sn=M.st.length,mon=now.getUTCMonth()+1;
+ const row=(x,i,P,Cl,k)=>{const cur=Math.min(+x.n,P[x.t]|0),ok=cur>=x.n,dn=Cl.includes(i);return `<div class="mi ${dn?'done':''}"><div class="ic">${(MT[x.t]||['❓'])[0]}</div><div class="tx"><b>${msTxt(x)}</b><div class="pg"><i style="width:${Math.min(100,cur/x.n*100)}%"></i></div><div class="mrw">${msRw(x)}</div></div><div class="n">${cur.toLocaleString()} / ${(+x.n).toLocaleString()}</div><button type="button" class="go ${dn?'dn':ok?'ok':'no'}" ${ok&&!dn?`data-msget="${k}${i}"`:'disabled'}>${dn?'받음':ok?'받기':'진행 중'}</button></div>`;};
  const allD=C.d.every((x,i)=>M.dc.includes(i)),stampToday=M.stD===msDay();
+ const sec=(g,t,sm)=>(C[g]||[]).length?`<b class="msh">${t} <small>${sm}</small></b>${C[g].map((x,i)=>row(x,i,M[{d:'dp',w:'wp',m:'mp'}[g]],M[{d:'dc',w:'wc',m:'mm'}[g]],g)).join('')}`:'';
  return `<div class="card mswin"><button class="close" data-msx>×</button><h2>🗓 ${mon}월 낚시 달력 <small>오늘의 미션 ${C.d.length}개를 다 받으면 도장 1개 · 매일 오전 9시 새로 고침</small></h2>
- <div class="msg2"><div><div class="cal">${cells}</div><p class="small muted">도장 ${sn}/${dim} · ${C.s.map(x=>`${x.d}번째 ${msRw(x)}`).join(' · ')}</p></div>
- <div><b class="msh">오늘의 미션 ${allD?(stampToday?'· ✅ 오늘 도장 찍었어요':''):''}</b>${C.d.map((x,i)=>row(x,i,M.dp,M.dc,'d')).join('')}
- <b class="msh">이번 주 <small>월요일 오전 9시 새로 고침</small></b>${C.w.map((x,i)=>row(x,i,M.wp,M.wc,'w')).join('')}</div></div></div>`;}
+ <div class="msg2"><div><div class="cal">${msCal(C,M)}</div><p class="small muted">도장 ${sn}/${dim} · ${(C.s||[]).map(x=>`${x.d}번째 ${msRw(x)}`).join(' / ')}</p></div>
+ <div>${sec('d','오늘의 미션',allD?(stampToday?'✅ 오늘 도장 찍었어요':''):'매일 오전 9시')}${sec('w','이번 주','월요일 오전 9시 새로 고침')}${sec('m','이번 달','1일 오전 9시 새로 고침')}</div></div></div>`;}
 function openMs(){if(!msOn())return;let m=$('msDlg');if(!m){m=document.createElement('div');m.id='msDlg';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)closeM('msDlg');});}
  const draw=()=>{m.innerHTML=msHTML();m.querySelector('[data-msx]').onclick=()=>closeM('msDlg');
-  m.querySelectorAll('[data-msget]').forEach(b=>b.onclick=()=>{const k=b.dataset.msget[0],i=+b.dataset.msget.slice(1),M=msS(),C=msCfg(),L=k==='d'?C.d:C.w,Cl=k==='d'?M.dc:M.wc,P=k==='d'?M.dp:M.wp,x=L[i];if(!x||Cl.includes(i)||(P[x.t]|0)<x.n)return;Cl.push(i);msGive(x,'미션 「'+msTxt(x)+'」');miniToast(`🎉 ${msTxt(x)} · ${msRw(x)}`,1800);
+  m.querySelectorAll('[data-msget]').forEach(b=>b.onclick=()=>{const k=b.dataset.msget[0],i=+b.dataset.msget.slice(1),M=msS(),C=msCfg(),G=MSG.find(x=>x[0]===k),L=C[k]||[],Cl=M[G[2]],P=M[G[1]],x=L[i];if(!x||Cl.includes(i)||(P[x.t]|0)<x.n)return;Cl.push(i);msGive(x,'미션 「'+msTxt(x)+'」');miniToast(`🎉 ${msTxt(x)} · ${msRw(x)}`,1800);
    if(k==='d'&&C.d.every((y,j)=>M.dc.includes(j))&&M.stD!==msDay()){M.stD=msDay();M.st.push(msDay());setTimeout(()=>miniToast(`📮 오늘 도장 쾅! (${M.st.length}번째)`,2000),700);}save();draw();msBadge();});
   m.querySelectorAll('[data-msst]').forEach(b=>b.onclick=()=>{const i=+b.dataset.msst,M=msS(),C=msCfg(),x=C.s[i];if(!x||M.mc.includes(i)||M.st.length<x.d)return;M.mc.push(i);msGive(x,`도장 ${x.d}개 보상`);miniToast(`🎁 도장 ${x.d}개 보상 · ${msRw(x)}`,2000);save();draw();msBadge();});};
  draw();openM('msDlg');}
 // 메뉴 버튼
 setInterval(()=>{const sy=$('mSys');if(!sy)return;let b=$('bMs');if(!msOn()){if(b)b.remove();return;}if(!b){const tpl=$('bBoard')||$('bSave');b=document.createElement('button');b.id='bMs';b.type='button';b.innerHTML='<b class="mi"><img src="icons/emoji-png/1f4c5.png" alt="" class="fti"></b><small class="ml">미션</small>';if(tpl)b.className=tpl.className.replace(/\bon\b/,'');b.onclick=e=>{e.stopPropagation();document.body.classList.remove('menu-open');openMs();};sy.insertBefore(b,sy.firstChild);}msBadge();},1500);
-// 관리자 › 테스트 기능: 미션 표
-function msAdmHTML(){const C=S.msEd||msCfg(),sel=(o,v,a)=>`<select ${a}>${Object.entries(o).map(([k,x])=>`<option value="${k}" ${k===v?'selected':''}>${x[0]} ${x[1].replace(' {n}','').replace('{n}','N')}</option>`).join('')}</select>`;
- const rw=(x,a)=>`${sel(MR,x.r,`data-msr="${a}"`)}${x.r==='bx'?`<select data-msv="${a}">${BXN.map((n,i)=>`<option value="${i}" ${(x.v|0)===i?'selected':''}>${n} 상자</option>`).join('')}</select>`:`<input type="number" min="0" step="100" data-msv="${a}" value="${x.v}">`}`;
- const mrow=(x,g,i)=>`<tr><td>${sel(MT,x.t,`data-mst="${g}.${i}"`)}</td><td><input type="number" min="1" data-msn="${g}.${i}" value="${x.n}"></td><td>${rw(x,g+'.'+i)}</td></tr>`;
- return `<div class="labrow msadm" style="display:block"><b>🗓 미션 설정</b> <span class="tg o">모든 유저</span>
- <div class="msag"><div><h6>오늘의 미션 (3칸)</h6><table><tr><th>할 일</th><th>횟수</th><th>보상</th></tr>${C.d.map((x,i)=>mrow(x,'d',i)).join('')}</table>
- <h6>이번 주 (2칸)</h6><table><tr><th>할 일</th><th>횟수</th><th>보상</th></tr>${C.w.map((x,i)=>mrow(x,'w',i)).join('')}</table></div>
- <div><h6>출석 도장 보상</h6><table><tr><th>도장</th><th>보상</th></tr>${C.s.map((x,i)=>`<tr><td><input type="number" min="1" max="31" data-mssd="${i}" value="${x.d}">번째</td><td>${rw(x,'s.'+i)}</td></tr>`).join('')}</table>
- <p class="small muted">오늘의 미션을 다 받으면 도장 1개 · 달이 바뀌면 도장이 처음부터 · 하루 30~60분 노는 유저 기준 기본값이에요</p></div></div>
+// 관리자 › 테스트 기능: 미션 설정 C — 유저 화면 그대로 보면서 눌러서 고치기
+const MSGN={d:'오늘의 미션',w:'이번 주',m:'이번 달'};
+function msAdmHTML(){const C=S.msEd||msCfg(),sel=S.msSel||'d0',kind=sel[0],idx=+sel.slice(1);
+ const it=kind==='s'?(C.s||[])[idx]:(C[kind]||[])[idx];
+ const row=(g,x,i)=>`<button type="button" class="msar ${sel===g+i?'on':''}" data-mssel="${g}${i}"><span class="mic">${(MT[x.t]||['❓'])[0]}</span><span class="mtx">${msTxt(x)}</span><b>${msRw(x)}</b></button>`;
+ const sec=g=>`<div class="msas"><h6>${MSGN[g]} <small>${(C[g]||[]).length}/10</small></h6>${(C[g]||[]).map((x,i)=>row(g,x,i)).join('')}${(C[g]||[]).length<10?`<button type="button" class="msadd" data-msadd="${g}">＋ ${MSGN[g]} 추가</button>`:''}</div>`;
+ let ed='<p class="small muted">왼쪽에서 미션이나 달력 칸을 눌러 고쳐요</p>';
+ if(it){const w=msNorm(it).rw||{};const rrow=(k,n,step)=>`<label class="msrw"><input type="checkbox" data-mson="${k}" ${w[k]?'checked':''}><span>${n}</span><input type="number" min="0" step="${step}" data-msv="${k}" value="${w[k]||0}"></label>`;
+  ed=`<div class="msed"><small class="mskd">${kind==='s'?'출석 도장':MSGN[kind]+' '+(idx+1)}</small><b class="mstt">${kind==='s'?`${it.d}번째 도장`:msTxt(it)}</b>
+  ${kind==='s'?`<label class="msf">몇 번째 도장<input type="number" min="1" max="31" data-msd value="${it.d}"></label>`:`<label class="msf">할 일<select data-mst>${Object.entries(MT).map(([k,x])=>`<option value="${k}" ${k===it.t?'selected':''}>${x[0]} ${x[1].replace(' {n}','').replace('{n}','N')}</option>`).join('')}</select></label><label class="msf">횟수<input type="number" min="1" data-msn value="${it.n}"></label>`}
+  <div class="msf">보상 <small class="muted">체크한 것만 줘요</small></div>
+  ${rrow('co','🪙 골드',100)}${rrow('xp','⭐ 경험치',50)}${rrow('st','💎 강화석',1)}${rrow('ess','🧪 물고기 정수',1)}
+  <label class="msrw"><input type="checkbox" data-mson="bn" ${w.bn?'checked':''}><span class="msbx">🎁 <select data-msbg>${BXN.map((n,i)=>`<option value="${i}" ${(w.bg|0)===i?'selected':''}>${n}</option>`).join('')}</select> 상자</span><input type="number" min="0" max="50" step="1" data-msv="bn" value="${w.bn||0}"></label>
+  <button type="button" class="sm msdel" data-msdel>이 ${kind==='s'?'도장 보상':'미션'} 지우기</button></div>`;}
+ return `<div class="labrow msadm msc" style="display:block"><b>🗓 미션 설정</b> <span class="tg o">모든 유저</span> <small class="muted">유저가 보는 화면 그대로 · 고칠 곳을 누르세요</small>
+ <div class="mscg"><div class="msprev"><div class="mscal"><h6>달력 <small>노란 칸 = 도장 보상 · 빈 칸을 누르면 추가</small></h6><div class="cal">${msCal(C,null,{adm:1,sel})}</div></div><div class="msls">${sec('d')}${sec('w')}${sec('m')}</div></div>${ed}</div>
  <p><button class="sm" data-msrst>기본값으로</button> <button class="sm" data-msme>내 진행도 지우기 (테스트)</button> <button class="sm" data-msfill>내 미션 다 채우기 (테스트)</button> <button class="sm ok" data-msgo>✅ 인게임 적용</button></p></div>`;}
-{const _l=labHTML,_b=bindLab;labHTML=function(){return _l.apply(this,arguments).replace(/<\/div>\s*$/,msAdmHTML()+'</div>');};
- bindLab=function(root,re){try{_b.apply(this,arguments);}catch(e){console.warn(e);}const box=root.querySelector('.msadm');if(!box)return;const ed=()=>S.msEd||(S.msEd=JSON.parse(JSON.stringify(msCfg())));const at=a=>{const [g,i]=a.split('.');return ed()[g][+i];};
-  box.querySelectorAll('[data-mst]').forEach(e=>e.onchange=()=>{at(e.dataset.mst).t=e.value;save();});
-  box.querySelectorAll('[data-msn]').forEach(e=>e.onchange=()=>{at(e.dataset.msn).n=Math.max(1,+e.value|0);save();});
-  box.querySelectorAll('[data-msr]').forEach(e=>e.onchange=()=>{const x=at(e.dataset.msr);x.r=e.value;x.v=e.value==='bx'?2:e.value==='co'?1000:e.value==='xp'?200:e.value==='st'?3:1;save();re&&re();});
-  box.querySelectorAll('[data-msv]').forEach(e=>e.onchange=()=>{at(e.dataset.msv).v=Math.max(0,+e.value||0);save();});
-  box.querySelectorAll('[data-mssd]').forEach(e=>e.onchange=()=>{ed().s[+e.dataset.mssd].d=Math.max(1,Math.min(31,+e.value|0));save();});
-  box.querySelector('[data-msrst]').onclick=()=>{S.msEd=JSON.parse(JSON.stringify(MS_DEF));save();re&&re();};
+{const _l=labHTML,_b=bindLab;labHTML=function(){return _l.apply(this,arguments).replace(/<\/div>\s*$/,(()=>{try{return msAdmHTML();}catch(e){console.warn('msAdm',e);return '';}})()+'</div>');};
+ bindLab=function(root,re){try{_b.apply(this,arguments);}catch(e){console.warn(e);}const box=root.querySelector('.msadm');if(!box)return;
+  const ed=()=>{if(!S.msEd){const c=msCfg();S.msEd={d:c.d.map(msNorm),w:c.w.map(msNorm),m:(c.m||[]).map(msNorm),s:(c.s||[]).map(msNorm)};}return S.msEd;};
+  const cur=()=>{const sel=S.msSel||'d0',k=sel[0],i=+sel.slice(1),E=ed();return k==='s'?E.s[i]:(E[k]||[])[i];};
+  const rr=()=>{save();re&&re();};
+  box.querySelectorAll('[data-mssel]').forEach(b=>b.onclick=()=>{S.msSel=b.dataset.mssel;rr();});
+  box.querySelectorAll('[data-msadd]').forEach(b=>b.onclick=()=>{const g=b.dataset.msadd,E=ed();E[g]=E[g]||[];if(E[g].length>=10)return;E[g].push({t:'catch',n:g==='d'?20:g==='w'?200:1000,rw:{co:g==='d'?1000:g==='w'?8000:30000}});S.msSel=g+(E[g].length-1);rr();});
+  box.querySelectorAll('[data-msac]').forEach(b=>b.onclick=()=>{const n=+b.dataset.msac,E=ed();let i=E.s.findIndex(x=>x.d===n);if(i<0){if(E.s.length>=10){toast('도장 보상은 10개까지예요',1400);return;}E.s.push({d:n,rw:{bg:2,bn:1}});E.s.sort((a,b)=>a.d-b.d);i=E.s.findIndex(x=>x.d===n);}S.msSel='s'+i;rr();});
+  const x=cur();if(x){x.rw=x.rw||{};
+   const t=box.querySelector('[data-mst]');if(t)t.onchange=()=>{x.t=t.value;rr();};
+   const n=box.querySelector('[data-msn]');if(n)n.onchange=()=>{x.n=Math.max(1,+n.value|0);rr();};
+   const d=box.querySelector('[data-msd]');if(d)d.onchange=()=>{x.d=Math.max(1,Math.min(31,+d.value|0));const E=ed();E.s.sort((a,b)=>a.d-b.d);S.msSel='s'+E.s.indexOf(x);rr();};
+   box.querySelectorAll('[data-mson]').forEach(c=>c.onchange=()=>{const k=c.dataset.mson;if(c.checked){x.rw[k]=x.rw[k]||(k==='co'?1000:k==='xp'?200:k==='bn'?1:k==='st'?3:1);if(k==='bn'&&x.rw.bg==null)x.rw.bg=2;}else{delete x.rw[k];if(k==='bn')delete x.rw.bg;}rr();});
+   box.querySelectorAll('[data-msv]').forEach(v=>v.onchange=()=>{const k=v.dataset.msv,n=Math.max(0,+v.value||0);if(n)x.rw[k]=n;else delete x.rw[k];if(k==='bn'&&n&&x.rw.bg==null)x.rw.bg=2;rr();});
+   const bg=box.querySelector('[data-msbg]');if(bg)bg.onchange=()=>{x.rw.bg=+bg.value;if(!x.rw.bn)x.rw.bn=1;rr();};
+   const del=box.querySelector('[data-msdel]');if(del)del.onclick=()=>{const sel=S.msSel||'d0',k=sel[0],i=+sel.slice(1),E=ed();(k==='s'?E.s:E[k]).splice(i,1);S.msSel=k==='s'?'d0':k+Math.max(0,i-1);if(k!=='s'&&!E[k].length)S.msSel='d0';rr();};}
+  box.querySelector('[data-msrst]').onclick=()=>{S.msEd=JSON.parse(JSON.stringify(MS_DEF));S.msSel='d0';rr();};
   box.querySelector('[data-msme]').onclick=()=>{S.ms={};save();msBadge();toast('🗓 내 미션 진행도를 지웠어요',1400);};
-  box.querySelector('[data-msfill]').onclick=()=>{const M=msS(),C=msCfg();C.d.forEach(x=>M.dp[x.t]=Math.max(M.dp[x.t]|0,x.n));C.w.forEach(x=>M.wp[x.t]=Math.max(M.wp[x.t]|0,x.n));save();msBadge();toast('🗓 오늘·이번 주 미션을 다 채웠어요 (받기는 직접)',1600);};
+  box.querySelector('[data-msfill]').onclick=()=>{const M=msS(),C=msCfg();MSG.forEach(([g,pk])=>(C[g]||[]).forEach(x=>M[pk][x.t]=Math.max(M[pk][x.t]|0,x.n)));save();msBadge();toast('🗓 오늘·이번 주·이번 달 미션을 다 채웠어요 (받기는 직접)',1600);};
   box.querySelector('[data-msgo]').onclick=()=>{const E=ed();if(!confirm('미션 설정을 모든 유저에게 적용할까요?'))return;if(pub({msCfg:E},'미션 설정을')){S.msEd=null;save();setTimeout(()=>re&&re(),600);}};};}
 window.NK89.ms={openMs,msS,msCfg,msAdd};
 // v97 ── 🪵 데크 판 색 · 무늬 (상점 › 데크 꾸미기에서 사기) — 앉은 데크를 먼저 꾸민 사람의 색이 보여요
@@ -4881,7 +4922,8 @@ function pouchAdmHTML(){const c=pouchCfg(),G=['일반','고급','희귀','영웅
 try{const U0=D.GEAR.up||{};D.GEAR.up=Object.assign({bamboo:{to:'carbon',n:10,coin:100},carbon:{to:'silver',n:10,coin:500},silver:{to:'coral',n:10,coin:1500},coral:{to:'sakura',n:10,coin:3000},sakura:{to:'gold',n:10,coin:4000}},U0);}catch(e){}
 // v99 ── 🔥 요리: 데크 숯불 그릴 (A) + 효과 칩·포만감 (C) · 테스트 기능
 LAB.push({k:'cook',n:'🔥 요리 · 물고기 구이',d:'데크 의자에 앉으면 옆에 숯불 그릴이 놓이고 「🔥 그릴」 버튼이 생겨요. 어항 물고기를 구워 먹으면 n분 동안 효과(경험치·대어·빠른입질·희귀어·판매가). 등급·크기·변이로 세져요. 많이 먹으면 포만감이 차서 캐릭터가 조금씩 커져요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
-LAB.push({k:'ckPos',n:'🔥 그릴 놓는 자리',d:'의자와 안 겹치게 고른 자리 3가지. 덧판: 데크 오른쪽(바깥)에 작은 판을 덧대고 그 위 / 뒤: 의자 바로 뒤 / 안쪽 옆: 의자 옆 데크 안쪽',scope:'me',o:[['ext','데크 옆 덧판 (기본)'],['back','의자 뒤'],['side','의자 안쪽 옆']]});
+LAB.push({k:'ckPos',n:'🔥 그릴 놓는 자리',d:'의자와 안 겹치게 고른 자리 3가지. 덧판: 데크 오른쪽(바깥)에 작은 판을 덧대고 그 위 / 뒤: 의자 바로 뒤 / 안쪽 옆: 의자 옆 데크 안쪽',scope:'me',o:[['ext','데크 옆 덧판 (기본)'],['back','의자 뒤'],['side','의자 안쪽 옆'],['mine','내 그릴만 보이기 (덧판)'],['off','끄기 (그릴 안 보여요)']]});
+const ckPosOf=()=>{const v=opt('ckPos','ext');return v==='back'||v==='side'?v:'ext';};
 const ckOn=()=>!PREV&&opt('cook','off')==='on';
 const CKE={xp:['⭐','경험치'],pouch:['💰','골드 주머니'],box:['🎁','상자 확률']};
 // v101: 효과는 3가지 — 민물=⭐경험치 · 육식어=💰골드 주머니 · 귀한 어종=🎁상자
@@ -5033,7 +5075,22 @@ function vbReg(){const keys=new Set([...Object.keys(VBX.map),...Object.keys(VBX.
   FLY[k]={n:d.n||'새 탈것',sc:1,alt:0,spd:sp.spd!=null?+sp.spd:30,ground:1,ani:1,ico:'🧱',vbx:1,how,cols:[['v','기본',Math.max(0,+sp.pr||0)]]};
   FLYB[k]=FLYB_RAW[k]=()=>slimGroup(vbBuild(vbGet(k)));try{ANIM_C[k]={v:{a:(d.pal||[])[0]||'#cccccc',b:(d.pal||[])[1]||(d.pal||[])[0]||'#999999'}};}catch(e){}VEH_DEF.s[k]=FLY[k].spd;if(how==='box')VEH_DEF.p[k]=+sp.p||0;else delete VEH_DEF.p[k];
   let v=VEHS.find(x=>x.k===k);if(!v){v={k};VEHS.push(v);}Object.assign(v,{n:FLY[k].n,g:how==='box'?gr:5,need:how==='box'?gr:9,sc:1,fly:how==='box'?0:1});}
+ // v110 🐾 블럭 펫
+ const pk=new Set([...Object.keys(VBX.map),...Object.keys(VBX.local)].filter(k=>{const d=vbGet(k);return d&&d.t==='pet';}));
+ for(let i=PETS.length-1;i>=0;i--)if(PETS[i].vbx&&!pk.has(PETS[i].k)){if(S.petOn===PETS[i].k)S.petOn=null;PETS.splice(i,1);}
+ for(const k of pk){const d=vbGet(k),sp=d.shop||{},how=sp.how==='box'?'box':'shop';let p=PETS.find(x=>x.k===k);if(!p){p={k,vbx:1};PETS.push(p);}Object.assign(p,{n:d.n||'새 펫',g:Math.max(0,Math.min(5,sp.g!=null?sp.g|0:2)),src:how,pr:Math.max(0,+sp.pr||0),p:Math.max(0,+sp.p||0)});delete VBTH[k];}
+ try{for(const [id,e] of PETW.peers)if(pk.has(e.k)){scene.remove(e.g);PETW.peers.delete(id);}if(PETW.me&&pk.has(PETW.mk)){scene.remove(PETW.me);PETW.me=null;PETW.mk='';}}catch(e){}
  try{vmRefresh();}catch(e){}}
+// 블럭 모델 썸네일 (가방·상점 그림)
+const VBTH={};let vbTR=null;
+function vbThumb(k){if(VBTH[k])return VBTH[k];const d=vbGet(k);if(!d)return '';try{if(!vbTR){vbTR=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});vbTR.setSize(200,200);vbTR.outputEncoding=THREE.sRGBEncoding;}
+ const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x8899aa,.85));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(3,5,4);sc.add(dl);const g=vbBuild(d);g.rotation.y=.7;sc.add(g);
+ const bb=new THREE.Box3().setFromObject(g),ct=bb.getCenter(new THREE.Vector3()),r=bb.getSize(new THREE.Vector3()).length()/2;const c=new THREE.PerspectiveCamera(30,1,.01,100);c.position.copy(ct).add(new THREE.Vector3(.35,.4,1).normalize().multiplyScalar(r/Math.sin(15*Math.PI/180)*.85));c.lookAt(ct);vbTR.render(sc,c);return VBTH[k]=vbTR.domElement.toDataURL('image/png');}catch(e){return '';}}
+const petImg=k=>{const p=PETS.find(x=>x.k===k);return p&&p.vbx?vbThumb(k):'img/pets/'+k+'.png';};
+// 블럭 펫: 상자에서 나오기 (등급 이상 상자 · 확률)
+{const ob=SYS.openBox;SYS.openBox=function(){const r=ob.apply(this,arguments);try{if(petOn()&&r&&!r.pet){const t=r.tier|0,own=petOwn();for(const p of PETS){if(!p.vbx||p.src!=='box'||t<p.g||own[p.k])continue;if(Math.random()*100<(p.p||0)){setTimeout(()=>petGet(p.k,'box'),1800);r.pet=p.k;break;}}}}catch(e){console.warn(e);}return r;};}
+{const _pm=petMesh;petMesh=function(k){const p=PETS.find(x=>x.k===k);if(p&&p.vbx&&vbGet(k)){const g=vbBuild(vbGet(k));g.userData.vbpet=1;return g;}return _pm.apply(this,arguments);};}
+{const _pf=petFollow;petFollow=function(g){_pf.apply(this,arguments);const u=g.userData;if(u.vbpet){const mv=u._px!=null&&Math.hypot(g.position.x-u._px,g.position.z-u._pz)>.004;u._px=g.position.x;u._pz=g.position.z;u._w=(u._w||0)+(mv?.25:0);(u.legs||[]).forEach(l=>{l.p.rotation.x=mv?Math.sin(u._w+l.ph)*.6:0;});if(u.tail)u.tail.rotation.y=Math.sin((u.t||0)*.6)*.35;}};}
 // 블럭 캐릭터: 지금 캐릭터 뼈(몸통·머리·팔·다리)에 블럭 묶음을 붙이고 원래 몸은 숨겨요 (움직임은 원래 애니메이션 그대로)
 function vbCharOn(c,k){if(!c||!c.o||c._vc===k)return;if(c._vcG){c._vcG.forEach(g=>{if(g.parent)g.parent.remove(g);g.traverse(x=>{if(x.geometry)x.geometry.dispose();});});c._vcG=null;}if(c._vcH){c._vcH.forEach(m=>m.visible=true);c._vcH=null;}c._vc=k;
  const d=k&&vbGet(k);if(!d||d.t!=='chr')return;const T=THREE,o=c.o,sks=[];o.traverse(m=>{if(m.isSkinnedMesh)sks.push(m);});const bm=sks.find(m=>m.skeleton&&m.skeleton.bones.some(b=>b.name==='torso'));if(!bm)return;
@@ -5049,8 +5106,12 @@ PHOOK.push(()=>{if(typeof me==='undefined'||!me)return;const k=S.vchr&&vbGet(S.v
 RHOOK.push((r,p)=>{if(!r||!r.c)return;const k=(p&&p.ex&&p.ex.vc)||'';if(r.c._vc!==k&&(!k||vbGet(k)))vbCharOn(r.c,k);});
 {const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=(_px&&_px())||{};if(S.vchr&&vbGet(S.vchr))o.vc=S.vchr;return Object.keys(o).length?o:null;};}
 addEventListener('nk-rt-vbx',e=>{VBX.map=Object.assign({},e.detail||{});vbReg();try{if($('shop')&&$('shop').classList.contains('show'))renderShop();}catch(_){}});
+// v110 「내 화면에서만 보기」는 새로고침해도 남아요
+try{const L=JSON.parse(localStorage.getItem('nk_vb_local')||'{}');if(L&&typeof L==='object')VBX.local=L;}catch(e){}
+const vbSaveLocal=()=>{try{localStorage.setItem('nk_vb_local',JSON.stringify(VBX.local));}catch(e){}};
 try{if(window.NK_RT&&NK_RT.vbx){VBX.map=Object.assign({},NK_RT.vbx);vbReg();}}catch(e){}
-window.NK89.VB={VBX,vbGet,vbDec,vbEnc,vbGeo,vbBuild,vbReg,vbMat,FLY,toast:(a,b)=>toast(a,b),confirmBox:(a,b)=>confirmBox(a,b),isAdm:()=>{try{return NK_ADM.ok();}catch(e){return false;}},flyThumb:k=>flyThumb(k),grades:()=>SYS.GRADES,wear:k=>{S.vchr=k||null;save();},worn:()=>S.vchr||''};
+try{vbReg();}catch(e){}
+window.NK89.VB={VBX,vbSaveLocal,vbGet,vbDec,vbEnc,vbGeo,vbBuild,vbReg,vbMat,FLY,toast:(a,b)=>toast(a,b),confirmBox:(a,b)=>confirmBox(a,b),isAdm:()=>{try{return NK_ADM.ok();}catch(e){return false;}},flyThumb:k=>flyThumb(k),grades:()=>SYS.GRADES,wear:k=>{S.vchr=k||null;save();},worn:()=>S.vchr||''};
 
 // ── 편집기 화면 ──
 const VE={k:null,cc:null,d:null,sel:null,undo:[],redo:[],R:null,sc:null,cam:null,root:null,yaw:.7,pit:.35,dist:7,walk:false,t:0,raf:0,box:null};
@@ -5182,20 +5243,20 @@ const CK={g:null,plat:null,seat:null,cook:null};window.NK89.CK=CK;
 function ckSpot(st,pos){const F=st&&seatFrame(st);if(!F)return null;const o=F.LW(0,0),ex=F.LW(1,0),ez=F.LW(0,1);const sx=(st.x-o[0])*(ex[0]-o[0])+(st.z-o[1])*(ex[1]-o[1]),sz=(st.x-o[0])*(ez[0]-o[0])+(st.z-o[1])*(ez[1]-o[1]),sd=sx<0?-1:1;
  let lx,lz;if(pos==='back'){lx=sx;lz=sz-1.35;}else if(pos==='side'){lx=sx-sd*.95;lz=sz-.55;if(Math.abs(lx)<.2)lx=-sd*.25;}else{lx=sd*(F.hw+.55);lz=sz-.35;}const w=F.LW(lx,lz);return {x:w[0],z:w[1],ry:F.ry,plat:pos==='ext'};}
 function ckPlatMesh(){const P=new THREE.Group(),wood=new THREE.MeshLambertMaterial({color:'#d7a878',flatShading:true});for(let i=0;i<3;i++){const b=new THREE.Mesh(new THREE.BoxGeometry(1.15,.16,.36),wood);b.position.set(0,.3,(i-1)*.38);P.add(b);}[[-.45,-.45],[.45,-.45],[-.45,.45],[.45,.45]].forEach(([x,z])=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.07,.08,1.6,6),new THREE.MeshLambertMaterial({color:'#b88a62',flatShading:true}));p.position.set(x,-.5,z);P.add(p);});return P;}
-function ckPlace(){const st=mySeat,pos=opt('ckPos','ext'),sp=ckSpot(st,pos);if(!sp)return false;if(!CK.g){CK.g=ckGrillMesh();scene.add(CK.g);}CK.g.position.set(sp.x,.39,sp.z);CK.g.rotation.y=sp.ry;CK.g.visible=true;
+function ckPlace(){const st=mySeat,pos=ckPosOf(),sp=ckSpot(st,pos);if(!sp)return false;if(!CK.g){CK.g=ckGrillMesh();scene.add(CK.g);}CK.g.position.set(sp.x,.39,sp.z);CK.g.rotation.y=sp.ry;CK.g.visible=true;
  if(sp.plat){if(!CK.plat){CK.plat=ckPlatMesh();scene.add(CK.plat);}CK.plat.position.set(sp.x,0,sp.z);CK.plat.rotation.y=sp.ry;CK.plat.visible=true;}else if(CK.plat)CK.plat.visible=false;CK.seat=st;CK.pos=pos;return true;}
 // v100: 다른 유저 그릴도 보여요 (ex.ck = 자리 + 굽는 중 + 물고기)
 {const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};try{if(CK.seat&&CK.g&&CK.g.visible)o.ck=(CK.pos||'ext')[0]+(CK.cook?'1':'0')+(CK.cook?'.'+String(CK.cook.f.k).replace(/[^\w-]/g,'').slice(0,16):'');}catch(e){}return Object.keys(o).length?o:null;};}
 const CKR=new Map();
 function ckrDrop(id){const x=CKR.get(id);if(!x)return;scene.remove(x.g);if(x.plat)scene.remove(x.plat);CKR.delete(id);}
-RHOOK.push((r,p,dt)=>{const v=p.ex&&p.ex.ck,st=p.seat!=null&&SEATS[p.seat];if(!v||!ckOn()||!st||st.kind!=='stool'||st.virt){if(CKR.has(p.id))ckrDrop(p.id);return;}
+RHOOK.push((r,p,dt)=>{const v=p.ex&&p.ex.ck,st=p.seat!=null&&SEATS[p.seat],cm=opt('ckPos','ext');if(!v||cm==='off'||cm==='mine'||!ckOn()||!st||st.kind!=='stool'||st.virt){if(CKR.has(p.id))ckrDrop(p.id);return;}
  const pos={e:'ext',b:'back',s:'side'}[String(v)[0]]||'ext',cook=String(v)[1]==='1',fk=String(v).split('.')[1]||'';let x=CKR.get(p.id);const key=p.seat+'|'+pos;
  if(!x||x.key!==key){ckrDrop(p.id);const sp=ckSpot(st,pos);if(!sp)return;const g=ckGrillMesh();g.position.set(sp.x,.39,sp.z);g.rotation.y=sp.ry;scene.add(g);let plat=null;if(sp.plat){plat=ckPlatMesh();plat.position.set(sp.x,0,sp.z);plat.rotation.y=sp.ry;scene.add(plat);}x={g,plat,key,fk:''};CKR.set(p.id,x);}
  const u=x.g.userData;if((cook?fk:'')!==x.fk){if(u.fish){x.g.remove(u.fish);u.fish=null;}x.fk=cook?fk:'';if(x.fk){const fm=ckFishMesh({k:x.fk});if(fm){x.g.add(fm);u.fish=fm;}}}
  const T=performance.now()/1000,heat=cook?1:.55;u.glow.material.opacity=(.18+.12*Math.sin(T*3.1))*heat+.1;u.L.intensity=(.5+.3*Math.sin(T*5.3))*heat;u.smoke.forEach((sp,i)=>{const ph=(T*.35+sp.userData.ph)%1;sp.position.set(Math.sin(i*1.3+T)*.06+ph*.12,1.0+ph*1.1,Math.cos(i*1.7)*.05);sp.scale.setScalar(.2+ph*.5);sp.material.opacity=(cook?.5:.18)*(1-ph);});});
 FHOOK.push(()=>{for(const id of CKR.keys())if(!remotes.has(id))ckrDrop(id);});
 function ckHide(){if(CK.g)CK.g.visible=false;if(CK.plat)CK.plat.visible=false;CK.seat=null;}
-let ckT=0;FHOOK.push(dt=>{const on=ckOn()&&mySeat&&mySeat.kind==='stool'&&!mySeat.virt;if(!on){if(CK.seat||(CK.g&&CK.g.visible))ckHide();ckBtn(false);}else{if(CK.seat!==mySeat||CK.pos!==opt('ckPos','ext'))ckPlace();ckBtn(!anyModal());}
+let ckT=0;FHOOK.push(dt=>{const on=ckOn()&&opt('ckPos','ext')!=='off'&&mySeat&&mySeat.kind==='stool'&&!mySeat.virt;if(!on){if(CK.seat||(CK.g&&CK.g.visible))ckHide();ckBtn(false);}else{if(CK.seat!==mySeat||CK.pos!==ckPosOf())ckPlace();ckBtn(!anyModal());}
  if(CK.g&&CK.g.visible){const u=CK.g.userData,T=performance.now()/1000,c=CK.cook;const heat=c?1:.55;u.glow.material.opacity=(.18+.12*Math.sin(T*3.1))*heat+.1;u.L.intensity=(.5+.3*Math.sin(T*5.3))*heat;u.smoke.forEach((sp,i)=>{const ph=(T*.35+sp.userData.ph)%1;sp.position.set(Math.sin(i*1.3+T)*.06+ph*.12,1.0+ph*1.1,Math.cos(i*1.7)*.05);sp.scale.setScalar(.2+ph*.5);sp.material.opacity=(c?.5:.18)*(1-ph);});
 }
  if(CK.cook){const p=Math.min(1,(performance.now()-CK.cook.t0)/(CK.cook.dur||8000));ckProg(p);if(p>=1)ckDone();}
@@ -5467,7 +5528,7 @@ LAB.push({k:'profSt',n:'👤 프로필 카드 모양',d:'다른 유저 프로필
 function profCard(id,d){const r=remotes.get(id);if(!r)return;const c=r.c,tt=c.tt,K=(typeof KINDS!=='undefined'&&KINDS[r.ki])||{},esc=x=>escRT(String(x==null?'':x));let m=$('profDlg');if(!m){m=document.createElement('div');m.id='profDlg';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});}
  const F=d.best&&FI(d.best[0]),G=d.best?GR(d.best[1]|0):null,V=d.best&&d.best[3]&&FZV[d.best[3]],R=d.rod&&D.RODS.find(x=>x.k===d.rod),P=d.pet&&PETS.find(x=>x.k===d.pet),VH=d.veh&&VEHS.find(x=>x.k===vehBase(d.veh));
  const chip=(img,lab,cls)=>`<div><img class="${cls||''}" src="${img}" alt=""><small>${lab}</small></div>`;
- const eq=[R?chip('img/rods/'+R.k+'.png',esc(R.n.replace(' 낚싯대',''))+(d.rodE?' +'+d.rodE:'')):'',P?chip('img/pets/'+P.k+'.png',esc(P.n)):'',VH?chip('img/veh/'+VH.k+'.png',(VH.k==='car'&&vehCc(d.veh)!=='mint'?CARN[vehCc(d.veh)]+' ':'')+esc(VH.n),VH.k==='car'?'carimg cc-'+vehCc(d.veh):''):'',d.set?chip('img/eq/hat'+(String(d.set).split('|')[1]||'1')+'.png',esc(String(d.set).split('|')[0])+' 세트'):''].filter(Boolean);
+ const eq=[R?chip('img/rods/'+R.k+'.png',esc(R.n.replace(' 낚싯대',''))+(d.rodE?' +'+d.rodE:'')):'',P?chip((typeof petImg==='function'?petImg(P.k):'img/pets/'+P.k+'.png'),esc(P.n)):'',VH?chip('img/veh/'+VH.k+'.png',(VH.k==='car'&&vehCc(d.veh)!=='mint'?CARN[vehCc(d.veh)]+' ':'')+esc(VH.n),VH.k==='car'?'carimg cc-'+vehCc(d.veh):''):'',d.set?chip('img/eq/hat'+(String(d.set).split('|')[1]||'1')+'.png',esc(String(d.set).split('|')[0])+' 세트'):''].filter(Boolean);
  const XSVG='<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg>';
  const pv=opt('profSt','A');m.innerHTML=`<div class="pc pc3 pc${['A','B','C'].includes(pv)?pv:'A'}"><button class="x" data-pcx aria-label="닫기">${XSVG}</button><div class="top"><div class="hd"><div class="av" style="background-image:url(img/chars/${K.th||'b0'}.jpg)"><span class="on"></span></div>
  <div class="nm"><b>${esc(c.name)}</b><div class="tg2"><span class="lv">Lv.${d.lv||c.lv||1}</span>${tt&&tt.n?`<span class="sptl"${TST(tt)}>${esc(tt.n)}</span>`:''}</div><small class="onl">🟢 지금 접속 중</small></div></div></div>
