@@ -518,3 +518,47 @@ body.hp1.lvx3 #lvB .lx .nr small{display:none}
 #ckHud .pips{display:flex;gap:3px;margin:5px 0 3px}#ckHud .pips i{flex:1;height:10px;border-radius:4px;background:#f1e3cf}#ckHud .pips i.on{background:linear-gradient(#ffcf8a,#f0843f)}
 #ckHud .ckfull>small{font-size:10.5px;color:#a08a70}
 @media(max-width:760px){#ckHud{top:96px;left:8px}#ckHud .ckfull{width:180px}#ckBtn{bottom:300px;right:10px;width:52px;height:52px}}
+#log b.admnk{text-shadow:0 0 1px rgba(0,0,0,.6),0 1px 2px rgba(0,0,0,.35);font-weight:900}
+#shop .nbshop{grid-column:1/-1;display:flex;align-items:center;gap:14px;background:linear-gradient(90deg,#1d1f33,#2c2f55);color:#fff;border-radius:14px;padding:10px 14px;margin-bottom:6px}
+#shop .nbsv img{width:180px;display:block}#shop .nbsi{flex:1;min-width:0}#shop .nbsi b{display:block;font-size:14px}#shop .nbsi small{color:#c8c4e8;font-size:12px}
+#shop .nbsb{display:flex;flex-direction:column;align-items:flex-end;gap:5px;font-weight:900;color:#ffd58a}
+@media(max-width:700px){#shop .nbshop{flex-wrap:wrap}#shop .nbsv img{width:140px}}
+/* v100 모바일 합성 (시안 2) */
+#fuse .fzm0{position:relative;display:flex;flex-direction:column}
+#fuse .fmtabs{display:flex;margin:0 12px 8px;background:#efe5d4;border-radius:14px;padding:4px;flex:none}
+#fuse .fmtabs button{flex:1;border:0;background:transparent;font-weight:800;font-size:13px;padding:8px 0;border-radius:10px;color:#8a7560}
+#fuse .fmtabs button.on{background:#fff;color:#3d3027;box-shadow:0 2px 6px rgba(0,0,0,.08)}
+#fuse .fmb{flex:1;overflow:auto;padding:4px 12px 120px;display:block!important}
+#fuse .fmg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#fuse .fmc{position:relative;border-radius:16px;background:#fff;border:2px solid #efe3cf;padding:8px 4px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
+#fuse .fmc .fzi{width:62px;height:38px;object-fit:contain}#fuse .fmc b{font-size:12.5px}#fuse .fmc small{font-size:10.5px;color:#a08a70}#fuse .fmc.on{border-color:#e8784a;background:#fff3e8}#fuse .fmc.no{opacity:.6}
+#fuse .fmc .n{position:absolute;top:-5px;right:-3px;background:#e8784a;color:#fff;font-size:10.5px;font-weight:900;border-radius:9px;padding:0 6px}
+#fuse .fme{text-align:center;color:#8a7560;margin:30px 0}
+#fuse .fmdh{display:flex;justify-content:space-between;margin:4px 2px 8px}#fuse .fmdex{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#fuse .fmdim{position:absolute;inset:0;background:rgba(40,25,10,.35);z-index:5}
+#fuse .fmsheet{position:absolute;left:0;right:0;bottom:0;z-index:6;background:#fffaf2;border-radius:26px 26px 0 0;box-shadow:0 -14px 30px rgba(0,0,0,.22);padding:8px 14px calc(16px + env(safe-area-inset-bottom));animation:fmUp .22s ease-out}
+@keyframes fmUp{from{transform:translateY(40%);opacity:.4}to{transform:none;opacity:1}}
+#fuse .fmsheet .grab{width:44px;height:5px;border-radius:5px;background:#dccdb6;margin:0 auto 8px;cursor:pointer}
+#fuse .fmst{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}#fuse .fmst b{font-size:16px}#fuse .fmst small{color:#a08a70}
+#fuse .fmsl{display:flex;gap:6px;align-items:center;justify-content:center}#fuse .fmsl .sl{width:70px;height:60px;border-radius:14px;background:#f6efe3;display:flex;flex-direction:column;align-items:center;justify-content:center}#fuse .fmsl .sl .fzi{width:54px;height:32px;object-fit:contain}#fuse .fmsl .sl small{font-size:10px;color:#8a7560}
+#fuse .fmsl .arr{font-weight:900;color:#e8784a;font-size:18px}#fuse .fmsl .res{width:74px;height:62px;border-radius:14px;background:linear-gradient(#fff3e2,#ffe2c4);box-shadow:0 0 0 2px #f3c08e;display:flex;flex-direction:column;align-items:center;justify-content:center}#fuse .fmsl .res .fzi{width:54px;height:32px;object-fit:contain}#fuse .fmsl .res b{font-size:11px;color:#b5592a}
+#fuse .fmpr{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}#fuse .fmpr span{font-size:11.5px;font-weight:800;border-radius:9px;padding:3px 8px;background:#f6efe3}
+#fuse .fmct{font-size:11.5px;font-weight:800;border-radius:9px;padding:3px 8px;background:#fff;border:1px solid #e6d8c2}
+#fuse .fmsheet .fzcats{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+#fuse .fmgo{display:flex;gap:10px;align-items:center;margin-top:12px}#fuse .fmgo .fzcost{display:flex;align-items:center;gap:4px;font-weight:900;font-size:15px}#fuse .fmgo .fzcost img{width:20px}
+#fuse .fmgo #fzGo{flex:1;font-size:17px;padding:13px 0;border-radius:16px}
+#fuse .fmb .vrlk{margin-bottom:8px}
+/* v100 하늘 탈것 상점 */
+#shop .flyshop{display:flex;flex-direction:column;gap:12px}
+#shop .flyc{background:#fff;border-radius:16px;padding:10px 12px;border:1px solid #e6eef5}
+#shop .flyh{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}#shop .flyh b{font-size:16px}#shop .flyh small{color:#5a8ab0;font-weight:800}
+#shop .flycs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+#shop .flyo{display:flex;flex-direction:column;align-items:center;gap:3px;background:linear-gradient(#e8f5fc,#f6fbfe);border-radius:14px;padding:6px;border:2px solid transparent;text-align:center}
+#shop .flyo.on{border-color:#3d8fd1}#shop .flyo img{width:100%;aspect-ratio:3/2;object-fit:contain}#shop .flyo b{font-size:12.5px}#shop .flyo small{color:#7a6450;font-weight:800}#shop .flyo button{font-size:12px;padding:4px 10px}
+@media(max-width:700px){#shop .flycs{grid-template-columns:repeat(2,1fr)}}
+#flyUD{position:fixed;right:16px;bottom:200px;z-index:47;display:flex;flex-direction:column;align-items:center;gap:6px}
+#flyUD button{width:62px;height:62px;border-radius:50%;border:0;background:rgba(255,255,255,.94);box-shadow:0 6px 16px rgba(0,0,0,.22);font-size:22px;font-weight:900;color:#3d8fd1;display:flex;flex-direction:column;align-items:center;justify-content:center;touch-action:none;user-select:none;cursor:pointer}
+#flyUD button small{font-size:10px;font-weight:800;color:#5a7a90}#flyUD button:active{transform:scale(.94);background:#e6f3fc}
+#flyUD span{background:rgba(30,40,60,.6);color:#fff;font-weight:900;font-size:12px;border-radius:9px;padding:2px 8px}
+@media(max-width:760px){#flyUD{right:10px;bottom:250px}#flyUD button{width:56px;height:56px}}
+body.flying #prompt,body.flying #fishBtn{display:none!important}#flyUD button small{font-size:9px}
