@@ -14,11 +14,11 @@ export const HELLO_MS = 20000;
 export const MAX_MSG = 900;
 /** 공지·이벤트·밸런스·금칙어처럼 본문이 긴 운영 메시지. 채팅·포즈는 MAX_MSG. */
 export const MAX_OPS = 48000;
-const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses", "game", "gameNow", "titles", "staff"]);
+const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses", "game", "gameNow", "titles", "staff", "vmod"]);
 
 const FISH = new Set(["off", "cast", "bite", "catch"]);
 /** v52: 서버 인증된 관리자 소켓만 보낼 수 있는 운영 메시지 */
-export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet", "titles", "staff", "staffAdd", "repDone"]);
+export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet", "titles", "staff", "staffAdd", "repDone", "vmod"]);
 function cleanId(v, max) {
   return String(v == null ? "" : v).replace(/[^\w.-]/g, "").slice(0, max || 40);
 }
@@ -92,6 +92,28 @@ export function cleanTitle(t) {
   if (!n) return null;
   return { n, bd: HEX(t.bd, "#ffd27a"), bg: HEX(t.bg, "#3b3346"), fg: HEX(t.fg, "#ffffff") };
 }
+/** v108 탈것 편집기: 탈것 모양 데이터 (관리자만 · 탈것 12개 · 하나에 조각 240개까지) */
+const VM_NUM = (x, lim) => { const n = Number(x); return Number.isFinite(n) ? Math.max(-lim, Math.min(lim, Math.round(n * 1000) / 1000)) : 0; };
+const VM_V3 = (a, lim) => (Array.isArray(a) ? [0, 1, 2].map((i) => VM_NUM(a[i], lim)) : undefined);
+const VM_COL = (c) => (typeof c === "string" && (/^#[0-9a-f]{6}$/i.test(c) || /^[abc]$/.test(c)) ? c.toLowerCase() : "#cccccc");
+const VM_SH = new Set(["box", "cyl", "ball", "dome", "ring"]);
+const VM_ID = /^[A-Za-z0-9_]{0,12}$/;
+export function sanitizeVmodOne(d) {
+  if (!d || typeof d !== "object" || Array.isArray(d)) return null;
+  const out = { v: 1, seat: VM_V3(d.seat, 20) || [0, 1.4, 0], pose: d.pose === "sit" ? "sit" : "ride", zoom: Math.max(0.3, Math.min(3, Number(d.zoom) || 1)), pal: {}, groups: {}, parts: [] };
+  if (d.pal && typeof d.pal === "object") for (const [k, v] of Object.entries(d.pal).slice(0, 12)) { if (!/^[a-z0-9]{1,12}$/.test(k) || !v || typeof v !== "object") continue; out.pal[k] = { a: VM_COL(v.a), b: VM_COL(v.b), c: VM_COL(v.c) }; }
+  if (d.groups && typeof d.groups === "object") for (const [k, q] of Object.entries(d.groups).slice(0, 40)) { if (!VM_ID.test(k) || !k || !q || typeof q !== "object") continue; const o = { p: VM_V3(q.p, 20) || [0, 0, 0] }; const r = VM_V3(q.r, 7); if (r) o.r = r; if (q.s != null) o.s = Math.max(0.05, Math.min(10, Number(q.s) || 1)); if (typeof q.par === "string" && VM_ID.test(q.par) && q.par !== k) o.par = q.par; if (q.leg != null) o.leg = VM_NUM(q.leg, 7); if (q.head) o.head = 1; if (q.tail) o.tail = 1; if (typeof q.nm === "string") o.nm = q.nm.slice(0, 16); out.groups[k] = o; }
+  if (Array.isArray(d.parts)) for (const q of d.parts.slice(0, 240)) { if (!q || typeof q !== "object" || !VM_SH.has(q.sh)) continue; const o = { sh: q.sh, s: VM_V3(q.s, 20) || [0.2, 0.2, 0.2], p: VM_V3(q.p, 20) || [0, 0, 0], c: VM_COL(q.c) }; const r = VM_V3(q.r, 7); if (r && r.some((x) => x)) o.r = r; const k = VM_V3(q.k, 10); if (k && k.some((x) => x !== 1)) o.k = k; if (q.e) o.e = 1; if (q.o != null) o.o = Math.max(0.05, Math.min(1, Number(q.o) || 1)); if (typeof q.g === "string" && VM_ID.test(q.g) && (q.g === "" || out.groups[q.g])) o.g = q.g; if (typeof q.only === "string" && /^[a-z0-9]{1,12}$/.test(q.only)) o.only = q.only; out.parts.push(o); }
+  for (const [k, q] of Object.entries(out.groups)) if (q.par && !out.groups[q.par]) delete q.par;
+  return out.parts.length ? out : null;
+}
+export function sanitizeVmod(input) {
+  const out = {};
+  if (!input || typeof input !== "object" || Array.isArray(input)) return out;
+  for (const [k, d] of Object.entries(input).slice(0, 12)) { if (!/^[a-z]{2,12}$/.test(k)) continue; const v = sanitizeVmodOne(d); if (v) out[k] = v; }
+  return out;
+}
+
 export function sanitizeTitles(input) {
   const out = {};
   if (!input || typeof input !== "object" || Array.isArray(input)) return out;
@@ -1302,6 +1324,7 @@ export function parseClient(raw) {
   if (msg.t === "gameNow") return { t: "gameNow", kind: msg.kind === "bal" ? "bal" : msg.kind === "stop" ? "stop" : "cho", all: !!msg.all };
   if (msg.t === "gameGet") return { t: "gameGet" };
   if (msg.t === "titles") return msg.titles && typeof msg.titles === "object" && !Array.isArray(msg.titles) ? { t: "titles", titles: msg.titles } : null;
+  if (msg.t === "vmod") return msg.vmod && typeof msg.vmod === "object" && !Array.isArray(msg.vmod) ? { t: "vmod", vmod: msg.vmod } : null;
   if (msg.t === "auth") return { t: "auth", id: cleanCred(msg.id, 64), pw: cleanCred(msg.pw, 128), out: !!msg.out, ...(cleanCred(msg.tok, 120) ? { tok: cleanCred(msg.tok, 120) } : {}) };
   if (msg.t === "world") {
     if (!msg.world || typeof msg.world !== "object" || Array.isArray(msg.world)) return null;
