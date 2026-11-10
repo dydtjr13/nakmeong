@@ -3,7 +3,7 @@
 const RX=/(?:[\u{1F000}-\u{1FAFF}\u2600-\u27BF\u2B00-\u2BFF\u2300-\u23FF\u25A0-\u25FF\u3297\u3299]\uFE0F?(?:\u200D[\u{1F000}-\u{1FAFF}\u2600-\u27BF]\uFE0F?)*)/gu;
 const code=e=>{let c=[...e].map(x=>x.codePointAt(0));if(!c.includes(0x200D))c=c.filter(x=>x!==0xFE0F);return c.map(x=>x.toString(16)).join('-');};
 const url=e=>(window.NK_EMOJI_BASE||'icons/emoji/')+code(e)+'.svg';
-const TXT=new Set(['★','☆','✦','✧','■','□','▲','▼','◆','●','○','▶','◀','✓','✕','✗','▸','▾','◐','◑']);// 한글 기본 폰트(맑은 고딕 등)에 있는 기호는 텍스트 유지
+const TXT=new Set(['★','☆','✦','✧','■','□','▲','▼','◆','●','○','▶','◀','✓','✕','✗','▸','▾','◐','◑','▴','⌘','◂','▿','▵','◇','▪','▫','◻','◼']);// 한글 기본 폰트(맑은 고딕 등)에 있는 기호는 텍스트 유지
 const SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1,OPTION:1,TITLE:1};
 // v86: SVG가 없으면 PNG, 그것도 없으면 글자 그대로 (깨진 그림 대신)
 function emjErr(){const im=this;if(!im._p){im._p=1;im.src=(window.NK_EMOJI_BASE||'icons/emoji/').replace(/emoji\/$/,'emoji-png/')+code(im.alt)+'.png';}else{im.onerror=null;try{im.replaceWith(document.createTextNode(im.alt));}catch(e){}}}

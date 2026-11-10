@@ -440,9 +440,10 @@
         onMessage(m);
       };
       sock.onerror = () => {};
-      sock.onclose = () => {
+      sock.onclose = (ev) => {
         if (ws !== sock) return;
         ws = null;
+        if (ev && ev.code === 4008) { want = false; RT.mode = "solo"; peers.clear(); try { dispatchEvent(new CustomEvent("nk-rt-admonly")); } catch (e) { /* ignore */ } if (!settled) finish({ ok: false, reason: "admin" }); return; }
         if (!settled) {
           refresh(1200).finally(() => {
             if (token !== gen) { finish({ ok: false, reason: "cancel" }); return; }

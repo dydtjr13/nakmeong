@@ -764,3 +764,7 @@ test("v98 ex.nb 네온 글씨(한글 허용) · ex.pf 펫 낚시", () => {
   const p = _sp({ x: 1, z: 1, ex: { nb: "lx9k2a~21FISH ♥ 카페<b>", pf: "fire.a.carp", dk: "mint.lx9" } }, null);
   assert.equal(p.ex.nb, "lx9k2a~21FISH ♥ 카페b"); assert.equal(p.ex.pf, "fire.a.carp"); assert.equal(p.ex.dk, "mint.lx9");
 });
+test("v101 pouchCfg", () => {
+  const src = readFileSync(new URL("../src/protocol.js", import.meta.url), "utf8");
+  assert.ok(src.includes('"pouchCfg" in input'));
+});

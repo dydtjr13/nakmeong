@@ -584,10 +584,12 @@ export class LakeRoom extends DurableObject {
     const n = this.openSockets().length;
     // v75: 9번은 관리자 부하 테스트 방(목록에 안 보임) — 60명까지
     const testRoom = /\/ws\/9$/.test(url.pathname);
-    if (n >= (testRoom ? 60 : CAP)) {
+    // v101: 8번은 관리자 전용 테스트 서버 (새 캐릭터 등) — 10명까지, 관리자 로그인한 사람만
+    const admRoom = /\/ws\/8$/.test(url.pathname);
+    if (n >= (testRoom ? 60 : admRoom ? 10 : CAP)) {
       return Response.json({ ok: false, error: "full", n, cap: CAP }, { status: 503 });
     }
-    const path = url.pathname.match(/\/ws\/([1-4]|9)$/);
+    const path = url.pathname.match(/\/ws\/([1-4]|8|9)$/);
     const server = path ? +path[1] : 0;
     const pair = new WebSocketPair();
     const [client, serverWs] = Object.values(pair);
@@ -809,6 +811,11 @@ export class LakeRoom extends DurableObject {
     if (next.drop) return;
     if (play.cid) next.att.cid = play.cid;
     if (helloAdmin) next.att.admin = 1;
+    if (next.att.server === 8 && !next.att.admin) {
+      try { ws.send(JSON.stringify({ t: "admonly" })); } catch { /* ignore */ }
+      try { ws.close(4008, "admin only"); } catch { /* ignore */ }
+      return;
+    }
     delete next.att.adm;
     ws.serializeAttachment(next.att);
     if (next.event) {
@@ -1078,7 +1085,7 @@ export default {
         servers.forEach((r) => { delete r.play; });
         return json({ ok: true, servers, play }, 200, origin);
       }
-      const room = path.match(/^\/ws\/([1-4]|9)$/);
+      const room = path.match(/^\/ws\/([1-4]|8|9)$/);
       if (room && request.method === "GET") {
         if (!originAllowed(origin, host)) {
           return json({ ok: false, error: "origin" }, 403, origin);

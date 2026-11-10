@@ -2149,7 +2149,7 @@ function renderFuse(){const z=fzS(),G=fzGroups();if(FZ.sel&&!G.find(x=>fzKey(x)=
   <div class="fzres"><div class="fzprev">${mats.length?fzImg({k:cur.k,st:cur.st+1,vr:FZ.pity||null}):''}<b>${F.n} ★${cur.st+2}</b><small>${mats.length?'약 '+Math.round(avg*1.08)+'cm':'재료가 모자라요'}</small></div><div class="fzprobs">${probs||'<p class="muted small">같은 물고기·같은 별 3마리가 필요해요.</p>'}</div></div>
   <div class="fzgo"><small>재료 3마리와 촉매는 사라져요 · 잠근 물고기는 안 들어가요</small><span class="fzcost"><img src="img/feat/coins-gold.png" alt="">${cost.toLocaleString()}</span><button type="button" class="acc" id="fzGo" ${mats.length&&S.coins>=cost&&!FZ.busy?'':'disabled'}>합성하기</button></div>`:'<p class="muted">왼쪽에서 물고기를 골라요.</p>';
  const dx=cur?(z.dex[cur.k]||{}):{},dexN=FZO.filter(k=>dx[k]).length;
- const right=cur?`<div class="fzdh"><b>${F.n} 변이</b><small>${dexN}/5</small></div><div class="fzdex">${FZO.map(k=>`<div class="fzd ${dx[k]?'':'no'}" style="--vb:${FZV[k].bg};--vc:${FZV[k].c}">${dx[k]?fzImg({k:cur.k,vr:k}):`<img class="fzi sil" src="${(F.img||'img/fish/'+cur.k+'.png')}" alt="">`}<span>${FZV[k].n}${dx[k]?'':' ?'}</span></div>`).join('')}</div>
+ const right=cur?`<div class="fzdh"><b>${F.n} 변이</b><small>${dexN}/5</small></div><div class="fzdex">${FZO.map(k=>`<div class="fzd ${dx[k]?'':'no'}" style="--vb:${FZV[k].bg};--vc:${FZV[k].c}">${dx[k]?fzImg({k:cur.k,vr:k}):`<img class="fzi sil" src="${(F.img||'img/fish/'+cur.k+'.png')}" alt="">`}<span>${FZV[k].n}${dx[k]?'':' ?'}</span></div>`).join('')}</div>${fzSetHTML(cur.k)}
   <div class="fzpity"><b>물고기 정수 ${z.ess}개</b><div class="fzess10 e30">${Array.from({length:30},(_,i)=>`<i class="${i<z.ess?'on':''} ${FZO.some(k=>FZ_ESS[k]===i+1)?'mk':''}"></i>`).join('')}</div><div class="fzessk">${FZO.map(k=>`<span class="${z.ess>=FZ_ESS[k]?'ok':''}" style="--vc:${FZV[k].c}">${FZV[k].n} ${FZ_ESS[k]}</span>`).join('')}</div><small>실패할 때마다 1개 · 모은 만큼 원하는 변이를 확정으로 받아요 (변이 등급이 높을수록 많이 필요해요)</small>${z.ess>=FZ_ESS.black?`<select id="fzPity"><option value="">변이 고르기</option>${FZO.filter(k=>z.ess>=FZ_ESS[k]).map(k=>`<option value="${k}" ${FZ.pity===k?'selected':''}>${FZV[k].n} (정수 ${FZ_ESS[k]}개)</option>`).join('')}</select>`:''}</div>`:'';
  $('fuse').innerHTML=`<div class="card fzc0"><div class="fzh"><img src="img/feat/cauldron.png" alt=""><div><h2>물고기 합성 <span class="fzt">테스트</span></h2><small>같은 물고기·같은 별 3마리를 모아 별을 올려요. 가끔 색이 바뀐 변이가 나와요.</small></div><button type="button" class="fzx0" data-close="fuse" aria-label="닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="fzb"><div class="fzl">${left}</div><div class="fzm">${mid}</div><div class="fzr">${right}</div></div></div>`;
@@ -2157,7 +2157,7 @@ function renderFuse(){const z=fzS(),G=fzGroups();if(FZ.sel&&!G.find(x=>fzKey(x)=
  R.querySelectorAll('[data-fzg]').forEach(b=>b.onclick=()=>{FZ.sel=b.dataset.fzg;renderFuse();});
  R.querySelectorAll('[data-fzc]').forEach(b=>b.onclick=()=>{FZ.cat=FZ.cat===b.dataset.fzc?null:b.dataset.fzc;renderFuse();});
  const ps=$('fzPity');if(ps)ps.onchange=()=>{FZ.pity=ps.value||null;renderFuse();};
- const go=$('fzGo');if(go)go.onclick=()=>fzDo(cur,mats);}
+ const go=$('fzGo');if(go)go.onclick=()=>fzDo(cur,mats);fzSetBind(R);}
 function fzDo(G,mats){if(FZ.busy||!G||mats.length<3)return;const z=fzS(),cost=fzCost(G.st);if(S.coins<cost){toast('골드가 모자라요');return;}FZ.busy=true;
  const pr=fzProbs(G);let r=Math.random()*100,vr=null,fail=false;if(G.vr){vr=fzNext(G.vr);}else if(FZ.pity){vr=FZ.pity;z.ess-=FZ_ESS[FZ.pity]||10;FZ.pity=null;}else{for(const k of FZO){if(r<pr.P[k]){vr=k;break;}r-=pr.P[k];}if(!vr&&r<pr.fail)fail=true;}
  S.coins-=cost;if(!G.vr&&FZ.cat&&(z.cat[FZ.cat]|0)>0){z.cat[FZ.cat]--;}FZ.cat=null;const ids=mats.map(f=>f.id),F=FI(G.k);
@@ -2628,7 +2628,7 @@ addEventListener('nk-rt-seat',e=>{const m=e.detail;if(!m||m.ok!==false||!mySeat)
  window.__lobbyCounts=lobbyCounts;
  const stEl=document.querySelector('#start .stB'),mob=()=>innerWidth<700;
  const stUpd=()=>{if(!V14)return;const K=KINDS[S.char]||KINDS[0];$('stImg').src=K.th?`img/chars/${K.th}.jpg`:'img/chars/b0.jpg';$('stName').textContent=K.n;$('stDesc').textContent=K.d||'';const meId=Math.max(1,Math.min(lakeShown(),+(CFG.ch||V14.CH.me||1)));$('go').textContent=mob()?`${K.n}(으)로 시작`:`시작하기 (호숫가 ${meId})`;};
- const srvDraw=()=>{const shown=lakeShown(),chN=(V14&&V14.CH&&+V14.CH.n)||shown;const meId=Math.max(1,Math.min(shown,+(CFG.ch||(V14&&V14.CH&&V14.CH.me)||1)));if(V14&&V14.CH)V14.CH.me=meId;if(+CFG.ch!==meId){CFG.ch=meId;try{localStorage.setItem('nk_cfg',JSON.stringify(CFG));}catch(e){}} $('stSrv').innerHTML=lobbyCounts().map(s=>{const known=s.players!=null,n=known?s.players:0,r=known?Math.min(1,n/s.cap):0,full=known&&n>=s.cap,tag=full?'가득':!known?(s.source==='offline'?'단독':'…'):r>.8?'혼잡':s.id===1?'추천':'여유',label=known?(n+'/'+s.cap+' · '+tag):tag;return `<button class="sv ${meId===s.id?'on':''}" data-sv="${s.id}" ${full?'disabled':''} title="${full?'정원이 가득 찼어요':s.source==='offline'?'실시간 서버가 안 열리면 혼자 플레이해요':'실접속 · 봇은 세지 않아요'}"><b>${s.name}</b><span class="bar"><i class="${full?'full':r>.8?'hi':''}" style="width:${Math.round((full?1:r)*100)}%"></i></span><small>${label}</small></button>`;}).join('')+`<p class="srvnote">채널 ${chN}개 · 실시간 호숫가 ${shown}곳 · 정원 50명 · 봇은 인원에 넣지 않아요<br>다른 기기·브라우저에서는 위 <b>이어하기</b>에 닉네임 + 비밀번호 또는 저장 코드를 넣으세요.</p>`;
+ const srvDraw=()=>{const shown=lakeShown(),chN=(V14&&V14.CH&&+V14.CH.n)||shown;const admNk=nickBad(NICK())==='reserved';if(+CFG.ch===8&&!admNk)CFG.ch=1;const meId=+CFG.ch===8&&admNk?8:Math.max(1,Math.min(shown,+(CFG.ch||(V14&&V14.CH&&V14.CH.me)||1)));if(V14&&V14.CH)V14.CH.me=meId;if(+CFG.ch!==meId){CFG.ch=meId;try{localStorage.setItem('nk_cfg',JSON.stringify(CFG));}catch(e){}} $('stSrv').innerHTML=lobbyCounts().map(s=>{const known=s.players!=null,n=known?s.players:0,r=known?Math.min(1,n/s.cap):0,full=known&&n>=s.cap,tag=full?'가득':!known?(s.source==='offline'?'단독':'…'):r>.8?'혼잡':s.id===1?'추천':'여유',label=known?(n+'/'+s.cap+' · '+tag):tag;return `<button class="sv ${meId===s.id?'on':''}" data-sv="${s.id}" ${full?'disabled':''} title="${full?'정원이 가득 찼어요':s.source==='offline'?'실시간 서버가 안 열리면 혼자 플레이해요':'실접속 · 봇은 세지 않아요'}"><b>${s.name}</b><span class="bar"><i class="${full?'full':r>.8?'hi':''}" style="width:${Math.round((full?1:r)*100)}%"></i></span><small>${label}</small></button>`;}).join('')+(admNk?`<button class="sv svtest ${meId===8?'on':''}" data-sv="8" title="관리자만 들어갈 수 있는 테스트 서버 · 새 캐릭터"><b>🧪 테스트 서버</b><span class="bar"><i style="width:0%"></i></span><small>관리자 전용 · 10명</small></button>`:'')+`<p class="srvnote">채널 ${chN}개 · 실시간 호숫가 ${shown}곳 · 정원 50명 · 봇은 인원에 넣지 않아요<br>다른 기기·브라우저에서는 위 <b>이어하기</b>에 닉네임 + 비밀번호 또는 저장 코드를 넣으세요.</p>`;
   $('stSrv').querySelectorAll('[data-sv]').forEach(b=>b.onclick=()=>{if(b.disabled)return;const id=+b.dataset.sv;CFG.ch=id;if(V14&&V14.CH)V14.CH.me=id;try{localStorage.setItem('nk_cfg',JSON.stringify(CFG));}catch(e){}srvDraw();stUpd();});};
  addEventListener('nk-rt-servers',()=>{if($('start').classList.contains('show')&&V14)srvDraw();});
  const nickChk=()=>{const v=$('stNick').value.trim();const bad=nickBad(v);const adm=bad==='reserved';$('stNickOk').textContent=adm?'🔒 관리자 닉네임이에요. 시작할 때 관리자 비밀번호를 물어봐요':bad?nickBadText(bad):(v?`"${v}" (으)로 표시돼요`:"비워 두면 '나'로 표시돼요");$('stNickOk').style.color=bad&&!adm?'#c44536':'';};
@@ -2729,7 +2729,7 @@ loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyV
    const RT=window.NK_RT;if(RT&&RT.peers){for(const p of RT.peers()){if(!p)continue;let deck=null;if(p.seat!=null&&SEATS[p.seat]&&SEATS[p.seat].deck){const sd=SEATS[p.seat].deck;deck=sd&&sd.i!=null?sd.i:(typeof sd==='number'?sd:null);}people.push({x:+p.x||0,z:+p.z||0,deck});}}
    const spots=decks.map(d=>({i:d.i,x:d.cx,z:d.cz,r:7}));const pick=window.NK_SYNC&&NK_SYNC.pickQuietDeck?NK_SYNC.pickQuietDeck(spots,people):null;return (pick&&decks.find(d=>d.i===pick.i))||decks[0];}
   $('go').onclick=async()=>{if($('go')._busy)return;$('go')._busy=1;const prev=$('go').textContent;try{
-    const id=Math.max(1,Math.min(4,+(V14&&V14.CH&&V14.CH.me)||+(CFG.ch)||1));let online=false,res=null;
+    const id=(+CFG.ch===8&&nickBad(NICK())==='reserved')?8:Math.max(1,Math.min(4,+(V14&&V14.CH&&V14.CH.me)||+(CFG.ch)||1));let online=false,res=null;
     if(nickBad(NICK())==='reserved'){if(!window.NK_RT||NK_RT.mode==='off'){alertBox('<h3>관리자 닉네임</h3><p>관리자 닉네임은 실시간 서버에 접속할 때만 쓸 수 있어요.</p>');return;}if(NK_RT.hasAdminKeep&&NK_RT.hasAdminKeep())NK_RT.setAdminCred(null);else{const cr=await NK_ADM.askCred(NICK());if(!cr){return;}NK_RT.setAdminCred(cr.id,cr.pw);}}else if(window.NK_RT&&NK_RT.setAdminCred)NK_RT.setAdminCred(null);
     if(window.NK_RT){$('go').textContent='서버 들어가는 중…';res=await NK_RT.connect(id,{nick:NICK(),ki:S.char|0,lv:myLv(),x:d0.entry.x,z:d0.entry.z,y:.4,d:d0.a+Math.PI,fish:'off',anim:'idle',seat:null});
       if(res&&res.reason==='nick'){try{NK_RT.setAdminCred(null);}catch(_){}alertBox('<h3>닉네임</h3><p>'+(res.detail==='admin'?'관리자 아이디 또는 비밀번호가 맞지 않아요':nickBadText(res.detail))+'</p>');const st=document.querySelector('#start .stB');if(st)st.dataset.step='1';return;}
@@ -3962,7 +3962,10 @@ const PET_LVMAX=30,petNeed=l=>25*l*(l+1);// l레벨까지 누적 경험치
 const petLvOf=xp=>{let l=1;while(l<PET_LVMAX&&xp>=petNeed(l))l++;return l;};
 const petXpOf=k=>{const o=(S.petz||{})[k];return o&&+o.xp||0;},petLv=k=>petLvOf(petXpOf(k));
 const petMulL=k=>1+(petLv(k)-1)*.02;
-function petAb(p,a){const v=PET_AB[a][p.g];return v?Math.round(v*petMulL(p.k)*10)/10:0;}
+// v101: 골드 주머니 확률 — 기본 1·1.5·2·2.5·3·4% · 레벨당 +1% (관리자 › 테스트 기능에서 바꿔요)
+const POUCH_DEF={gp:[1,1.5,2,2.5,3,4],gl:1};
+function pouchCfg(){let c=null;try{c=(mvPlay()||{}).pouchCfg;}catch(e){}const o={gp:POUCH_DEF.gp.slice(),gl:POUCH_DEF.gl};if(c&&Array.isArray(c.gp))c.gp.forEach((v,i)=>{if(i<6&&+v>=0)o.gp[i]=+v;});if(c&&c.gl!=null&&+c.gl>=0)o.gl=+c.gl;if(S.pouchEd&&window.NK_ADM&&NK_ADM.ok())Object.assign(o,S.pouchEd);return o;}
+function petAb(p,a){if(a==='gold'){const c=pouchCfg(),v=+c.gp[p.g]||0;return v?Math.round(v*(1+(petLv(p.k)-1)*c.gl/100)*10)/10:0;}const v=PET_AB[a][p.g];return v?Math.round(v*petMulL(p.k)*10)/10:0;}
 const petGold=p=>Math.round(PET_GOLD[p.g]*(1+(petLv(p.k)-1)*.05));
 function petXpAdd(k,n){const o=(S.petz||{})[k];if(!o)return;const l0=petLv(k);o.xp=(+o.xp||0)+n;const l1=petLv(k);if(l1>l0){const p=PETS.find(x=>x.k===k);setTimeout(()=>{miniToast(`🐾 <b>${p?p.n:'펫'}</b> 레벨 업! <b>Lv.${l1}</b> · 능력 ×${(1+(l1-1)*.02).toFixed(2)}`,2600);try{sfx.coin();}catch(e){}},900);}}
 function petLvBar(k){const l=petLv(k),xp=petXpOf(k),a=l>1?petNeed(l-1):0,b=petNeed(l),pc=l>=PET_LVMAX?100:Math.max(0,Math.min(100,(xp-a)/(b-a)*100));return `<div class="petlv"><b>Lv.${l}</b><span class="bar"><i style="width:${pc.toFixed(0)}%"></i></span><small>${l>=PET_LVMAX?'최고 레벨':`${Math.max(0,b-xp)} 남음`}</small></div>`;}
@@ -4069,16 +4072,16 @@ function vehGet(k,how,cc){const v=VEHS.find(x=>x.k===k);if(!v)return false;const
  if(k==='car'){cc=cc||'mint';if(own.car&&(own.car.cs||[own.car.c||'mint']).includes(cc))return false;if(!own.car)own.car={at:Date.now(),how,c:cc,cs:[cc]};else{own.car.cs=own.car.cs||[own.car.c||'mint'];own.car.cs.push(cc);own.car.c=cc;}}
  else{if(own[k])return false;own[k]={at:Date.now(),how};}if(!S.vehOn)S.vehOn=k;save();
  let m=$('petPop');if(!m){m=document.createElement('div');m.id='petPop';m.className='modal';document.body.appendChild(m);}const G=SYS.GRADES[v.g];const cn=k==='car'?CARN[cc]+' ':'';
- m.innerHTML=`<div class="card petpop ${k==='car'?'cc-'+cc:''}" style="--c:${G[1]}"><div class="ppg">${G[0]} 탈것</div><img class="ppi ${k==='car'?'carimg cc-'+cc:''}" src="img/veh/${v.k}.png" alt=""><h3>${cn}${v.n}${cc==='rainbow'?' 🌈':''}</h3><p class="small muted">${how==='box'?'행운 상자에서 나왔어요!':'새 탈것이 생겼어요!'}${cc==='rainbow'?'<br><b>아주아주 드문 무지개 자동차! 가장 빨라요</b>':''}<br>가방 › 🛷 탈것에서 고르고 「타기」로 타요</p><div class="two"><button type="button" data-pp="go" class="acc">바로 타기</button><button type="button" data-pp="x">확인</button></div></div>`;
+ m.innerHTML=`<div class="card petpop ${k==='car'?'cc-'+cc:''}" style="--c:${G[1]}"><div class="ppg">${G[0]} 탈것</div><img class="ppi ${k==='car'?'carimg cc-'+cc:''}" src="${vehImgOf(v.k)}" alt=""><h3>${cn}${v.n}${cc==='rainbow'?' 🌈':''}</h3><p class="small muted">${how==='box'?'행운 상자에서 나왔어요!':'새 탈것이 생겼어요!'}${cc==='rainbow'?'<br><b>아주아주 드문 무지개 자동차! 가장 빨라요</b>':''}<br>가방 › 🛷 탈것에서 고르고 「타기」로 타요</p><div class="two"><button type="button" data-pp="go" class="acc">바로 타기</button><button type="button" data-pp="x">확인</button></div></div>`;
  m.querySelector('[data-pp="go"]').onclick=()=>{S.vehOn=v.k;S.vehRide=1;save();m.classList.remove('show');};m.querySelector('[data-pp="x"]').onclick=()=>m.classList.remove('show');m.classList.add('show');try{sfx.coin();}catch(e){}return true;}
 {const ob=SYS.openBox;SYS.openBox=function(){const r=ob.apply(this,arguments);try{if(vehOn()&&r){const c=vehCfg(),t=r.tier|0,own=vehOwn();
   const pool=VEHS.filter(v=>t>=v.need&&(v.k==='car'?!(own.car&&(own.car.cs||[]).length>=CARS.length):!own[v.k]));
   for(const v of pool){if(Math.random()*100<(+c.p[v.k]||0)){if(v.k==='car'){const cc=rollCar();if(own.car&&(own.car.cs||[own.car.c||'mint']).includes(cc))continue;setTimeout(()=>vehGet('car','box',cc),2300);r.veh='car.'+cc;break;}setTimeout(()=>vehGet(v.k,'box'),2300);r.veh=v.k;break;}}}}catch(e){console.warn(e);}return r;};}
 // 가방 › 🛷 탈것
 function vehTabHTML(){const own=vehOwn(),c=vehCfg();return `<div class="pettab"><div class="pth"><b>🛷 내 탈것 ${Object.keys(own).length}/${VEHS.length}</b><small>탈것마다 이동 속도가 달라요 · 같은 호숫가 유저에게도 보여요 · 자동차는 옆자리에 한 명 더 탈 수 있어요</small></div>
- <div class="ptg">${VEHS.map(v=>{const G=SYS.GRADES[v.g],h=!!own[v.k],on=S.vehOn===v.k,cc=v.k==='car'&&h?carCol():'';return `<div class="ptc ${h?'':'lock'} ${on?'on':''}" style="--c:${G[1]}"><span class="ptr">${G[0]}</span>${on?'<span class="pton">선택됨</span>':''}<img class="pti ${v.k==='car'?'carimg cc-'+(cc||'mint'):''}" src="img/veh/${v.k}.png" alt=""><b>${cc&&cc!=='mint'?CARN[cc]+' ':''}${v.n}</b><div class="ptab"><span>🏃 +${v.k==='car'?vehSpd(vehKey('car')):c.s[v.k]}%</span></div>
+ <div class="ptg">${VEHS.map(v=>{const G=SYS.GRADES[v.g],h=!!own[v.k],on=S.vehOn===v.k,cc=v.k==='car'&&h?carCol():'';return `<div class="ptc ${h?'':'lock'} ${on?'on':''}" style="--c:${G[1]}"><span class="ptr">${G[0]}</span>${on?'<span class="pton">선택됨</span>':''}<img class="pti ${v.k==='car'?'carimg cc-'+(cc||'mint'):''}" src="${vehImgOf(v.k)}" alt=""><b>${cc&&cc!=='mint'?CARN[cc]+' ':''}${v.n}</b><div class="ptab"><span>🏃 +${v.k==='car'?vehSpd(vehKey('car')):c.s[v.k]}%</span></div>
   ${v.k==='car'&&h?`<div class="ccs">${CARS.map(([k,n])=>{const has=(own.car.cs||[own.car.c||'mint']).includes(k);return `<button type="button" class="ccb cc-${k} ${cc===k?'on':''}" ${has?`data-carc="${k}"`:'disabled'} title="${n}${has?'':' (아직 없어요)'}"></button>`;}).join('')}</div>`:''}
-  <small>${h?'보유 중':`${SYS.GRADES[v.need][0]}${v.need<5?' 이상':''} 행운 상자 · 🎲 ${c.p[v.k]}%`}</small>${h?`<button type="button" data-veh="${v.k}" class="${on?'':'acc'}">${on?'✓ 선택됨':'이걸로 타기'}</button>`:''}</div>`;}).join('')}</div>
+  <small>${h?'보유 중':v.fly?'상점 › ✈️ 하늘 탈것':`${SYS.GRADES[v.need][0]}${v.need<5?' 이상':''} 행운 상자 · 🎲 ${c.p[v.k]}%`}</small>${h?`<button type="button" data-veh="${v.k}" class="${on?'':'acc'}">${on?'✓ 선택됨':'이걸로 타기'}</button>`:''}</div>`;}).join('')}</div>
  <p class="small muted">상자를 열 때 그 등급 이상이면 아직 없는 탈것 중에서 위 확률로 나와요. 자동차는 민트·레드·블랙·🌈무지개 중 하나로 나오고, 없는 색이면 또 나올 수 있어요 (무지개는 아주 드물고 가장 빨라요)</p></div>`;}
 {const _rb=_renderBag;_renderBag=function(){_rb.apply(this,arguments);if(!vehOn()||bagMode==='box')return;const card=$('bag').querySelector('.card'),tabs=card&&card.querySelector('.tabs');if(!tabs||tabs.querySelector('[data-vehtab]'))return;
  const b=document.createElement('button');b.dataset.vehtab='1';b.className=bagTab==='veh'?'on':'';b.innerHTML=`<span class="tico">🛷<em class="${Object.keys(vehOwn()).length?'':'z zero'}">${Object.keys(vehOwn()).length}</em></span>탈것`;tabs.appendChild(b);b.onclick=()=>{bagTab='veh';renderBag();};
@@ -4089,7 +4092,7 @@ function vehTabHTML(){const own=vehOwn(),c=vehCfg();return `<div class="pettab">
 function vehAdmHTML(){const c=vehCfg(),e=S.vehEd2||(S.vehEd2=JSON.parse(JSON.stringify(c)));const inp=(grp,k,step)=>`<input type="number" data-ve="${grp}.${k}" value="${e[grp][k]}" step="${step}" min="0">`;
  return `<div class="labrow vehadm" style="display:block"><b>🛷 탈것 설정</b> <span class="tg o">모든 유저</span>
  <table class="vet"><thead><tr><th>탈것</th><th>나오는 상자</th><th>확률 %<small>상자 1개당</small></th><th>속도 +%</th></tr></thead><tbody>
- ${VEHS.map(v=>`<tr><td><img src="img/veh/${v.k}.png" alt="">${v.n}</td><td>${SYS.GRADES[v.need][0]}${v.need<5?' 이상':''}</td><td>${inp('p',v.k,.05)}</td><td>${inp('s',v.k,5)}</td></tr>`).join('')}
+ ${VEHS.map(v=>`<tr><td><img src="${vehImgOf(v.k)}" alt="">${v.n}</td><td>${SYS.GRADES[v.need][0]}${v.need<5?' 이상':''}</td><td>${inp('p',v.k,.05)}</td><td>${inp('s',v.k,5)}</td></tr>`).join('')}
  <tr class="rb"><td><img class="carimg cc-rainbow" src="img/veh/car.png" alt="">🌈 무지개 자동차</td><td>자동차 중</td><td class="muted">아래 비율</td><td>${inp('s','carRb',5)}</td></tr></tbody></table>
  <div class="vecc"><b>🚗 자동차 색 비율</b> ${CARS.map(([k,n])=>`<label><i class="ccb cc-${k}"></i>${n} ${inp('cc',k,1)}</label>`).join('')}<small class="muted">자동차가 나오면 이 비율로 색을 정해요 · 지금 무지개 ${(()=>{let t=0;CARS.forEach(([k])=>t+=+e.cc[k]||0);return t?(e.cc.rainbow/t*100).toFixed(1):0;})()}%</small></div>
  <p><button class="sm" data-vegive>나에게 탈것 모두 주기 (테스트)</button> <button class="sm" data-veclr>내 탈것 모두 지우기</button> <button class="sm" data-verst>기본값으로</button> <button class="sm ok" data-vego>✅ 인게임 적용</button></p></div>`;}
@@ -4107,7 +4110,7 @@ function pasOff(msg){if(!VPAS.id)return;VPAS.id=null;if(me){const p=me.o.positio
  if(!spot&&ok(x0,z0))spot=[x0,z0];if(!spot){let b=null;try{const dk=decks.map(q=>[q,Math.hypot(q.cx-x0,q.cz-z0)]).sort((m,n)=>m[1]-n[1])[0];if(dk)b=[dk[0].cx,dk[0].cz];}catch(e){}spot=b||[x0,z0];}
  p.x=spot[0];p.z=spot[1];p.y=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);}if(msg)miniToast(msg,1600);}
 window.__nkPasNow=()=>!!VPAS.id;
-setInterval(()=>{let b=$('vehBtn');const pas=!!VPAS.id&&vehOn();const show=pas||(vehOn()&&started&&S.vehOn&&vehOwn()[S.vehOn]&&!mySeat&&!TR.riding&&!anyModal());if(!show){if(b)b.style.display='none';return;}
+setInterval(()=>{let b=$('vehBtn');const pas=!!VPAS.id;const show=pas||(vehOn()&&started&&S.vehOn&&vehOwn()[S.vehOn]&&!mySeat&&!TR.riding&&!anyModal());if(!show){if(b)b.style.display='none';return;}
  if(!b){b=document.createElement('button');b.id='vehBtn';b.type='button';document.body.appendChild(b);b.onclick=()=>{if(VPAS.id){pasOff('🚗 옆자리에서 내렸어요');return;}S.vehRide=S.vehRide?0:1;save();};}b.style.display='';const v=VEHS.find(x=>x.k===S.vehOn)||{n:''},t=pas?'🛬 옆자리에서 내리기':S.vehRide?`🛬 ${v.n}에서 내리기`:`🛷 ${v.n} 타기`;if(b._t!==t){b._t=t;b.textContent=t;b.classList.toggle('on',!!S.vehRide||pas);}},300);
 // 3D
 const VW={me:null,mk:'',peers:new Map()};
@@ -4157,6 +4160,9 @@ function pasAsk(id,e){const r=remotes.get(id);if(!r)return;let m=$('vehAsk');if(
  const d=Math.hypot(best[2].g.position.x-me.o.position.x,best[2].g.position.z-me.o.position.z);if(d>7){miniToast('🚗 자동차 가까이 가서 눌러 주세요',1400);return true;}pasAsk(best[1],best[2]);return true;});
 (window.__nkPostSync=window.__nkPostSync||[]).push(()=>{if(!VPAS.id||!me)return;const e=VW.peers.get(VPAS.id);if(!e||vehBase(e.k)!=='car')return;const st=vehSeat(e.g,1);me.o.position.copy(st);me.o.rotation.y=e.g.rotation.y;me.dir=e.g.rotation.y;});
 window.NK89.veh={VEHS,vehGet,VW,VEHB,VPAS,vehCfg,pasAsk,rollCar,SMK,pasOff};
+// v101: 옆자리 손님은 언제든 내릴 수 있게 — 버튼은 맨 위에 · Esc/E/Q 키 · 움직이려고 하면 안내
+addEventListener('keydown',e=>{if(!VPAS.id||e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;if(e.code==='Escape'||e.code==='KeyE'||e.code==='KeyQ'){pasOff('🚗 옆자리에서 내렸어요');e.preventDefault();e.stopImmediatePropagation();}},true);
+{let pasHint=0;FHOOK.push(()=>{if(!VPAS.id){const b0=$('vehBtn');if(b0&&b0.classList.contains('pas'))b0.classList.remove('pas');return;}const mv=(typeof joy!=='undefined'&&(Math.abs(joy.x)>.3||Math.abs(joy.y)>.3))||keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||keys.ArrowUp||keys.ArrowDown;const b=$('vehBtn');if(b)b.classList.add('pas');if(mv&&performance.now()-pasHint>4000){pasHint=performance.now();miniToast('🚗 옆자리에 타고 있어요 · 「옆자리에서 내리기」를 누르거나 Esc',1800);}});}
 // v100 ── ✈️ 하늘 탈것 (탈것 테스트 기능 안): 열기구 · 경비행기 · 시조새 — 상점 「✈️ 하늘 탈것」에서 색별로 사요
 const FLY={balloon:{n:'열기구',sc:1.55,alt:3.2,spd:25,cols:[['sun','선셋',3000000],['sky','하늘',3000000],['mint','민트',3000000],['rainbow','무지개',6000000]]},
  plane:{n:'경비행기',sc:1.6,alt:3.6,spd:70,cols:[['red','빨강',5000000],['blue','파랑',5000000],['yellow','노랑',5000000],['rainbow','무지개',9000000]]},
@@ -4168,6 +4174,7 @@ const isFly=k=>!!FLY[vehBase(k)];
 VEHS.push(...Object.keys(FLY).map(k=>({k,n:FLY[k].n,g:5,need:5,sc:FLY[k].sc,fly:1})));
 Object.keys(FLY).forEach(k=>{VEH_DEF.s[k]=FLY[k].spd;});
 const flyOwn=k=>{const o=vehOwn()[k];if(!o)return null;if(!o.cs)o.cs=[o.c||FLY[k].cols[0][0]];if(!o.c||!o.cs.includes(o.c))o.c=o.cs[0];return o;};
+function vehImgOf(k){if(FLY[k]){const o=flyOwn(k);return 'img/veh/fly-'+k+'-'+(o?o.c:FLY[k].cols[0][0])+'.png';}return 'img/veh/'+k+'.png';}
 function flyKey(k){if(!FLY[k])return null;const o=flyOwn(k);return k+'.'+(o?o.c:FLY[k].cols[0][0]);}
 function flySpd(x){const b=vehBase(x);if(!FLY[b])return null;const c=vehCfg();let v=+(c.s[b]!=null?c.s[b]:FLY[b].spd);if(vehCc(x)==='rainbow')v+=15;return v;}
 // 모델 (둥글게 · 부드러운 명암)
@@ -4246,7 +4253,7 @@ const FLYT={};let flyR=null;
 function flyThumb(key){if(FLYT[key])return FLYT[key];if(!flyR){flyR=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});flyR.setSize(240,160);flyR.outputEncoding=THREE.sRGBEncoding;}
  const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x8899aa,.85));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(3,5,4);sc.add(dl);const g=vehMesh(key);g.scale.setScalar(1);g.rotation.y=.9;sc.add(g);
  const bb=new THREE.Box3().setFromObject(g),ct=bb.getCenter(new THREE.Vector3()),r=bb.getSize(new THREE.Vector3()).length()/2;const c=new THREE.PerspectiveCamera(30,1.5,.1,100);c.position.copy(ct).add(new THREE.Vector3(.4,.45,1).normalize().multiplyScalar(r/Math.sin(15*Math.PI/180)*.62));c.lookAt(ct);flyR.render(sc,c);FLYT[key]=flyR.domElement.toDataURL('image/png');return FLYT[key];}
-function flyThumbs(root){const L=[...root.querySelectorAll('[data-flyimg]')];let i=0;const step=()=>{const im=L[i++];if(!im)return;try{im.src=flyThumb(im.dataset.flyimg);}catch(e){}setTimeout(step,16);};step();}
+function flyThumbs(root){root.querySelectorAll('[data-flyimg]').forEach(im=>{const k=im.dataset.flyimg;im.onerror=()=>{im.onerror=null;try{im.src=flyThumb(k);}catch(e){im.style.visibility='hidden';}};im.src='img/veh/fly-'+k.replace('.','-')+'.png';});}
 window.NK89.fly={FLY,flyOwn,flyThumb,flyNow};
 
 // v93 장착 장비 창 A·B (시안 → 테스트) · 낚싯대 타일 작게
@@ -4455,23 +4462,248 @@ let dkT=0;FHOOK.push(dt=>{dkT+=dt;if(dkT<.5)return;dkT=0;dkTick();});function dk
 window.NK89.dk={DKS,dkS,dkApply,DKW,dkTick};
 // v99 ── PC 위 레벨 창: 시안 1(기본) 칭호 칩 위 · 아이디 · 경험치 숫자 / 시안 3(테스트) 칭호 알약 위 · 아이디 — 둘 다 레벨 막대 없음 (원형 테두리가 진행도)
 window.NK89.seatFrame=seatFrame;
+
+// v101 ── 🧪 새 캐릭터 (관리자 테스트 서버 8번에서만): 지금 캐릭터의 뼈대·움직임은 그대로 두고, 모양만 새 2등신 캐릭터로 바꿔 끼워요
+const NCK=(function(){const T=THREE;
+// 3단 툰 그라데이션
+const gm=(()=>{const d=new Uint8Array([178,178,178,255,222,222,222,255,250,250,250,255]);const t=new T.DataTexture(d,3,1,T.RGBAFormat);t.minFilter=t.magFilter=T.NearestFilter;t.needsUpdate=true;return t;})();
+const MC={};const M=(c,o)=>{const k=c+JSON.stringify(o||{});if(!MC[k])MC[k]=new T.MeshToonMaterial(Object.assign({color:c,gradientMap:gm},o||{}));return MC[k];};
+const OL=c=>new T.MeshBasicMaterial({color:new T.Color(c).multiplyScalar(.38),side:T.BackSide});
+function mesh(geo,c,o,outline){const m=new T.Mesh(geo,M(c,o));m.castShadow=true;m.receiveShadow=false;if(outline!==false){const l=new T.Mesh(geo,OL(c));l.scale.setScalar(1.045);m.add(l);}return m;}
+const sph=(r,c,ws,hs,o,ol)=>mesh(new T.SphereGeometry(r,ws||40,hs||28),c,o,ol);
+const cap=(r,l,c,o,ol)=>mesh(new T.CapsuleGeometry(r,l,10,24),c,o,ol);
+const cyl=(rt,rb,h,c,o,ol,seg)=>mesh(new T.CylinderGeometry(rt,rb,h,seg||32),c,o,ol);
+const tex=(w,h,f)=>{const cv=document.createElement('canvas');cv.width=w;cv.height=h;f(cv.getContext('2d'),w,h);const t=new T.CanvasTexture(cv);t.encoding=T.sRGBEncoding;t.wrapS=t.wrapT=T.RepeatWrapping;return t;};
+const checkT=(a,b)=>tex(128,128,(g,w,h)=>{g.fillStyle=a;g.fillRect(0,0,w,h);g.fillStyle=b;g.globalAlpha=.55;for(let i=0;i<4;i++){g.fillRect(i*32,0,12,h);g.fillRect(0,i*32,w,12);}});
+const stripeT=(a,b)=>tex(64,64,(g,w,h)=>{g.fillStyle=a;g.fillRect(0,0,w,h);g.fillStyle=b;for(let i=0;i<4;i++)g.fillRect(0,i*16,w,7);});
+const strawT=tex(128,64,(g,w,h)=>{g.fillStyle='#e9c77a';g.fillRect(0,0,w,h);for(let i=0;i<220;i++){g.strokeStyle=`rgba(${150+Math.random()*60},${110+Math.random()*40},40,.45)`;g.beginPath();const x=Math.random()*w,y=Math.random()*h;g.moveTo(x,y);g.lineTo(x+8,y+2);g.stroke();}});
+// ───────── 캐릭터 뼈대 (기존 애니메이션과 같은 이름: root/torso/head/arm-left/arm-right/leg-left/leg-right)
+function makeChar(P){const root=new T.Group();root.name='root';const B={};
+ const hips=new T.Group();hips.position.y=.58;root.add(hips);
+ const torso=new T.Group();torso.name='torso';hips.add(torso);B.torso=torso;
+ const head=new T.Group();head.name='head';head.position.y=.74;torso.add(head);B.head=head;
+ ['left','right'].forEach((s,i)=>{const sg=i?-1:1;const arm=new T.Group();arm.name='arm-'+s;arm.position.set(sg*.235,.36,0);arm.rotation.z=sg*.32;torso.add(arm);B['arm'+i]=arm;
+  const leg=new T.Group();leg.name='leg-'+s;leg.position.set(sg*.1,0,0);hips.add(leg);B['leg'+i]=leg;});
+ // 피부
+ const sk=P.skin;
+ const neck=cyl(.06,.07,.12,sk,null,false);neck.position.y=.66;torso.add(neck);
+ const hd=sph(.4,sk);hd.scale.set(1.04,.96,.97);hd.position.y=.0;head.add(hd);
+ [-1,1].forEach(s=>{const e=sph(.075,sk,20,14);e.scale.set(.6,1,.8);e.position.set(s*.405,-.03,0);head.add(e);});
+ // 얼굴
+ face(head,P);
+ // 손 (장갑 슬롯에서 바뀜)
+ [0,1].forEach(i=>{const sg=i?-1:1;const h=sph(.075,sk,20,16);h.position.set(0,-.36,0);h.name='hand';B['arm'+i].add(h);B['hand'+i]=h;
+  const a=cap(.058,.2,sk);a.position.y=-.18;B['arm'+i].add(a);});
+ [0,1].forEach(i=>{const l=cap(.075,.26,sk);l.position.y=-.22;B['leg'+i].add(l);});
+ B.leg0.scale.y=B.leg1.scale.y=.78;hips.position.y=.47;torso.scale.set(1,.86,1);head.scale.set(1.13,1.13/.86,1.13);head.position.y=.76;
+ root.userData={B,P,slots:{}};
+ hair(head,P);
+ wear(root,'top',P.top);wear(root,'bottom',P.bottom);wear(root,'shoe',P.shoe);if(P.glove)wear(root,'glove',P.glove);if(P.hat)wear(root,'hat',P.hat);
+ if(P.extra)P.extra(root);
+ return root;}
+function face(head,P){const g=new T.Group();g.position.z=0;head.add(g);const on=(x,y,o)=>{/* 구면 위 자리 */const v=new T.Vector3(x,y,Math.sqrt(Math.max(0,.4*.4-x*x-y*y))*.97);o.position.copy(v);o.lookAt(v.clone().multiplyScalar(2));g.add(o);return o;};
+ const eyeC=P.eye||'#2b2230';
+ [-1,1].forEach(s=>{const e=new T.Mesh(new T.SphereGeometry(.068,24,16),new T.MeshBasicMaterial({color:eyeC}));e.scale.set(P.eyeW||.8,(P.eyeH||1)*1.12,.35);on(s*.14,(P.eyeY||-.02)-.01,e);const ir=new T.Mesh(new T.SphereGeometry(.04,16,12),new T.MeshBasicMaterial({color:P.iris||'#6a4a8a'}));ir.position.set(0,-.025,.01);ir.scale.set(1,.8,.3);e.add(ir);
+  const hl=new T.Mesh(new T.SphereGeometry(.024,10,8),new T.MeshBasicMaterial({color:'#fff'}));hl.position.set(-.018*s+.01,.022,.02);e.add(hl);hl.scale.set(1/(P.eyeW||.78),1,3);
+  const hl2=new T.Mesh(new T.SphereGeometry(.009,8,6),new T.MeshBasicMaterial({color:'#fff'}));hl2.position.set(.02,-.022,.02);e.add(hl2);hl2.scale.set(1,1,3);
+  if(P.lash){const l=new T.Mesh(new T.CapsuleGeometry(.01,.07,4,8),new T.MeshBasicMaterial({color:'#2b2230'}));on(s*.15,(P.eyeY||-.02)+.06,l);l.rotateZ(Math.PI/2-s*.35);}
+  const br=new T.Mesh(new T.CapsuleGeometry(P.browT||.011,.07,4,8),new T.MeshBasicMaterial({color:P.brow||'#4a3428'}));on(s*.14,(P.eyeY||-.02)+.115,br);br.rotateZ(Math.PI/2+s*(P.browA||.12));
+  const bl=new T.Mesh(new T.CircleGeometry(.055,24),new T.MeshBasicMaterial({color:'#ff8f9c',transparent:true,opacity:P.blush||.55,depthWrite:false}));on(s*.225,-.11,bl);bl.scale.set(1.35,.8,1);});
+ const nose=new T.Mesh(new T.SphereGeometry(.022,12,8),M(new T.Color(P.skin).multiplyScalar(.9).getStyle()));on(0,-.085,nose);
+ [-1,1].forEach(q=>{const mo=new T.Mesh(new T.TorusGeometry(.022,.008,8,16,Math.PI),new T.MeshBasicMaterial({color:'#7a3a3a'}));on(q*.021,-.15,mo);mo.rotateZ(Math.PI);});
+ if(P.mous){const m=new T.Mesh(new T.CapsuleGeometry(.022,.09,6,12),M(P.hairC));on(0,-.118,m);m.rotateZ(Math.PI/2);m.scale.set(1,1,.6);}
+ if(P.glasses){const gl=new T.Group();[-1,1].forEach(s=>{const r=new T.Mesh(new T.TorusGeometry(.075,.01,8,28),new T.MeshStandardMaterial({color:P.glasses,metalness:.5,roughness:.3}));r.position.set(s*.135,-.015,.385);gl.add(r);});const br=new T.Mesh(new T.CylinderGeometry(.007,.007,.12,6),new T.MeshStandardMaterial({color:P.glasses}));br.rotation.z=Math.PI/2;br.position.set(0,0,.395);gl.add(br);head.add(gl);}
+ if(P.wrinkle){[-1,1].forEach(s=>{const w=new T.Mesh(new T.TorusGeometry(.03,.004,6,12,Math.PI*.6),new T.MeshBasicMaterial({color:'#b07a5a'}));on(s*.255,-.02,w);w.rotateZ(s*1.2+Math.PI/2);});}}
+function hair(head,P){const H=new T.Group();H.name='hair';head.add(H);const c=P.hairC;const st=P.hair;
+ const dome=(r,th,y,sc)=>{const m=mesh(new T.SphereGeometry(r,48,24,0,Math.PI*2,0,th),c);m.position.y=y||0;if(sc)m.scale.set(...sc);H.add(m);return m;};
+ const tuft=(x,y,z,r,l,rx,rz,sc)=>{const m=cap(r,l,c);m.position.set(x,y,z);m.rotation.set(rx||0,0,rz||0);if(sc)m.scale.set(...sc);H.add(m);return m;};
+ if(st==='short'){dome(.43,1.45,.01,[1.03,1,1.02]).rotation.x=-.25;
+  for(let i=-2;i<=2;i++){const a=i*.28+.05;tuft(Math.sin(a)*.3,.22-Math.abs(i)*.015,Math.cos(a)*.29,.095,.15,1.35,-i*.12+.45,[1.05,1,.65]);}
+  tuft(.0,.38,.0,.06,.1,-.3,.5);tuft(.1,.4,-.05,.05,.08,-.5,-.6);
+  [-1,1].forEach(s=>tuft(s*.38,0,.05,.05,.12,0,s*.1));}
+ if(st==='bob'){const d=dome(.44,1.55,.02,[1.06,1.02,1.04]);d.rotation.x=-.2;
+  const back=mesh(new T.SphereGeometry(.45,40,24,Math.PI*.85,Math.PI*1.3,.5,1.65),c);back.position.y=-.05;back.scale.set(1.04,1.05,1.0);H.add(back);
+  for(let i=-4;i<=4;i++){const a=i*.17;tuft(Math.sin(a)*.33,.2-Math.abs(i)*.01,Math.cos(a)*.3,.065,.14,1.25,-i*.05,[1,1,.7]);}
+  [-1,1].forEach(s=>{tuft(s*.4,-.12,.08,.085,.32,0,s*.08,[1,1,.9]);});
+  // 옆 포니테일 + 리본
+  const pt=new T.Group();pt.position.set(-.42,.12,-.05);H.add(pt);[[0,0,.13],[-.07,-.13,.12],[-.1,-.27,.1],[-.09,-.39,.075]].forEach(([x,y,r])=>{const s=sph(r,c,24,16);s.position.set(x,y,0);pt.add(s);});
+  const rb=new T.Group();rb.position.set(-.41,.17,0);H.add(rb);[-1,1].forEach(s=>{const w=sph(.06,'#ff6f91',20,14);w.scale.set(1,.6,.5);w.position.set(0,0,s*.06);w.rotation.x=s*.4;rb.add(w);});rb.add(sph(.03,'#ff4f7a',12,8));}
+ if(st==='gray'){dome(.428,1.12,.02,[1.03,1,1.03]).rotation.x=-.75;const back=mesh(new T.SphereGeometry(.432,40,20,Math.PI,Math.PI,.5,1.5),c);H.add(back);
+  [-1,1].forEach(s=>{tuft(s*.37,.02,.02,.07,.16,0,s*.15);});tuft(0,.36,-.08,.06,.12,-.6,.3);}
+ if(st==='perm'){let s=3;const r=()=>(s=(s*16807)%2147483647)/2147483647;for(let i=0;i<70;i++){const th=r()*1.9,ph=r()*Math.PI*2;const z0=Math.cos(ph)*Math.sin(th);if(z0>.45&&th>.75)continue;const rr=.44+r()*.04;const b=sph(.085+r()*.03,c,16,12);b.position.set(Math.sin(ph)*Math.sin(th)*rr,Math.cos(th)*rr-.02,Math.cos(ph)*Math.sin(th)*rr);H.add(b);}
+  dome(.43,1.3,.02).rotation.x=-.3;}
+ return H;}
+// ───────── 장비 슬롯: 모자 · 옷(상의) · 하의 · 신발 · 장갑 — 슬롯마다 따로 붙였다 떼요
+function clear(root,slot){const s=root.userData.slots[slot];if(s)s.forEach(o=>o.parent&&o.parent.remove(o));root.userData.slots[slot]=[];}
+function add(root,slot,parent,o){parent.add(o);root.userData.slots[slot].push(o);return o;}
+function wear(root,slot,W){clear(root,slot);if(!W)return;const {B,P}=root.userData;
+ if(slot==='top'){const c=W.c,mat=W.map?{map:W.map}:null;const body=cap(.205,.16,c,mat);body.scale.set(1.12,1,.86);body.position.y=.33;add(root,slot,B.torso,body);
+  if(W.long){const sk=cyl(.25,.3,.28,c,mat);sk.position.y=.05;add(root,slot,B.torso,sk);}
+  [0,1].forEach(i=>{const sl=cap(.074,W.sleeve||.12,c,mat);sl.position.y=-.06-(W.sleeve||.12)/2+.06;add(root,slot,B['arm'+i],sl);if(W.cuff){const cf=cyl(.08,.08,.04,W.cuff);cf.position.y=-.3;add(root,slot,B['arm'+i],cf);}});
+  if(W.hood){const h=mesh(new T.TorusGeometry(.17,.06,16,32),c);h.rotation.x=Math.PI/2.4;h.position.set(0,.6,-.07);add(root,slot,B.torso,h);}
+  if(W.vest){const sh=mesh(new T.CylinderGeometry(.218,.238,.38,40,1,true,Math.PI*.1,Math.PI*1.8),W.vest,{side:T.DoubleSide});sh.scale.z=.9;sh.position.y=.34;add(root,slot,B.torso,sh);[-1,1].forEach(s=>{[0,1].forEach(j=>{const pk=new T.Mesh(new T.BoxGeometry(.085,.07,.03),M(new T.Color(W.vest).multiplyScalar(.82).getStyle()));pk.position.set(s*.13,.3+j*.11,.205);pk.rotation.y=s*.35;add(root,slot,B.torso,pk);});});}
+  if(W.cardi){const sh=mesh(new T.CylinderGeometry(.215,.235,.42,40,1,true,Math.PI*.12,Math.PI*1.76),W.cardi,{side:T.DoubleSide});sh.scale.z=.88;sh.position.y=.33;add(root,slot,B.torso,sh);const tp=mesh(new T.SphereGeometry(.216,40,16,Math.PI*.12,Math.PI*1.76,0,Math.PI/2),W.cardi,{side:T.DoubleSide});tp.scale.set(1,.55,.88);tp.position.y=.54;add(root,slot,B.torso,tp);
+   [0,1].forEach(i=>{const sl=cap(.08,W.sleeve2||.2,W.cardi);sl.position.y=-.06-(W.sleeve2||.2)/2+.06;add(root,slot,B['arm'+i],sl);});[0,1,2].forEach(i=>{const b=sph(.014,'#fff8ee',10,8,{},false);b.position.set(.06,.46-i*.09,.205);add(root,slot,B.torso,b);});}
+  if(W.btn){[0,1,2].forEach(i=>{const b=sph(.016,W.btn,10,8,{},false);b.position.set(0,.45-i*.1,.2);add(root,slot,B.torso,b);});}
+  if(W.collar){[-1,1].forEach(s=>{const cl=new T.Mesh(new T.ConeGeometry(.06,.1,3),M(W.collar));cl.rotation.set(Math.PI/2,0,s*2.4);cl.position.set(s*.07,.58,.13);add(root,slot,B.torso,cl);});}
+  if(W.pearl){for(let i=0;i<11;i++){const a=(i/10-.5)*2.2;const p=sph(.014,'#fff4ea',8,6,{},false);p.position.set(Math.sin(a)*.12,.62-Math.cos(a)*.06+.02,.08+Math.cos(a)*.08);add(root,slot,B.torso,p);}}
+  if(W.coatHood){const h=sph(.2,c,24,16);h.scale.set(1.2,.8,.7);h.position.set(0,.62,-.2);add(root,slot,B.torso,h);}}
+ if(slot==='bottom'){const c=W.c;const pv=cap(.2,.02,c);pv.scale.set(1.08,.7,.85);pv.position.y=.02;add(root,slot,B.torso,pv);
+  if(W.skirt){const sk=cyl(.2,W.skirt,W.len||.3,c,null,true,40);sk.position.y=-(W.len||.3)/2+.06;add(root,slot,B.torso,sk);}
+  else [0,1].forEach(i=>{const l=cap(.088,W.short?.06:.22,c);l.position.y=W.short?-.07:-.17;add(root,slot,B['leg'+i],l);if(W.cuffC){const cf=cyl(.093,.093,.04,W.cuffC);cf.position.y=-.31;add(root,slot,B['leg'+i],cf);}});
+  if(W.belt){const bt=cyl(.215,.215,.045,W.belt,null,true,40);bt.scale.z=.86;bt.position.y=.1;add(root,slot,B.torso,bt);}}
+ if(slot==='shoe'){[0,1].forEach(i=>{const g=new T.Group();g.position.y=-.43;add(root,slot,B['leg'+i],g);
+  if(W.boot){const b=cyl(.095,.09,W.boot,W.c);b.position.y=W.boot/2-.02;g.add(b);if(W.top){const t=cyl(.1,.1,.04,W.top);t.position.y=W.boot-.02;g.add(t);}}
+  const s=sph(.1,W.c,24,16);s.scale.set(.95,.55,1.45);s.position.set(0,-.02,.05);g.add(s);const so=cyl(.1,.1,.03,W.sole||'#f4efe8');so.scale.set(.95,1,1.45);so.position.set(0,-.06,.05);g.add(so);
+  if(W.lace){const l=sph(.035,W.lace,12,8);l.scale.set(1.4,.5,1);l.position.set(0,.03,.12);g.add(l);}});}
+ if(slot==='glove'){[0,1].forEach(i=>{B['hand'+i].visible=false;const g=sph(.085,W.c,20,16);g.position.y=-.36;add(root,slot,B['arm'+i],g);const cf=cyl(.075,.085,.08,W.cuff||W.c);cf.position.y=-.29;add(root,slot,B['arm'+i],cf);const th=cap(.025,.04,W.c);th.position.set((i?-1:1)*-.06,-.33,.04);th.rotation.z=(i?-1:1)*.6;add(root,slot,B['arm'+i],th);});}
+ if(slot==='hat'){const hd=B.head;const hr=hd.getObjectByName('hair');if(hr)hr.scale.set(W.squash||.96,W.squash||.96,W.squash||.96);
+  if(W.k==='straw'){const br=cyl(.62,.62,.025,'#e9c77a',{map:strawT});br.position.y=.27;br.rotation.x=-.08;add(root,slot,hd,br);const cr=cyl(.3,.34,.2,'#e9c77a',{map:strawT});cr.position.y=.38;cr.rotation.x=-.08;add(root,slot,hd,cr);const bd=cyl(.345,.345,.06,'#e2574c');bd.position.y=.31;bd.rotation.x=-.08;add(root,slot,hd,bd);}
+  if(W.k==='captain'){const cr=cyl(.42,.36,.2,'#fbfbf8');cr.position.y=.36;cr.rotation.x=-.12;add(root,slot,hd,cr);const bd=cyl(.365,.365,.07,'#1f2d4f');bd.position.y=.28;bd.rotation.x=-.12;add(root,slot,hd,bd);const vz=sph(.3,'#1a1a22',24,12);vz.scale.set(1,.12,.9);vz.position.set(0,.24,.27);add(root,slot,hd,vz);const em=sph(.05,'#e8c46a',16,10,{emissive:'#6a4a10'});em.scale.set(1,.8,.4);em.position.set(0,.37,.4);add(root,slot,hd,em);}
+  if(W.k==='bucket'){const cr=cyl(.36,.4,.24,W.c);cr.position.y=.34;cr.rotation.x=-.15;add(root,slot,hd,cr);const br=cyl(.55,.6,.1,W.c);br.position.y=.21;br.rotation.x=-.15;add(root,slot,hd,br);}}}
+// ───────── 4명
+const CH={
+ ym:{n:'민준 · 20대',skin:'#f6d3b6',hair:'short',hairC:'#6b4430',brow:'#4a2e20',top:{c:'#7ccfb8',hood:true,sleeve:.2,cuff:'#5fb79e'},bottom:{c:'#4e6fa8',cuffC:'#6f8fc4'},shoe:{c:'#ffffff',sole:'#e7e1d8',lace:'#e8784a'}},
+ yf:{n:'서연 · 20대',skin:'#fbdcc6',hair:'bob',hairC:'#3e2a2a',brow:'#3e2a2a',lash:true,eyeH:1.1,blush:.6,top:{c:'#fff7ea',sleeve:.06,cardi:'#ffd25e'},bottom:{c:'#3d4f7d',skirt:.27,len:.26},shoe:{c:'#ff8fa3',sole:'#fff'}},
+ om:{n:'영호 · 50대',skin:'#e9bf98',hair:'gray',hairC:'#a7a4a0',brow:'#7a756e',browT:.016,mous:true,browA:-.1,eyeW:.7,eyeH:.75,blush:.25,wrinkle:true,top:{c:'#e9e2d4',map:checkT('#e9e2d4','#7a9cc4'),sleeve:.2,vest:'#a8946a',collar:'#e9e2d4'},bottom:{c:'#6b5a46',belt:'#3b2f25'},shoe:{c:'#7a5236',boot:.12,sole:'#3b2f25'}},
+ of:{n:'정숙 · 50대',skin:'#f3cfb3',hair:'perm',hairC:'#8a6a58',brow:'#6a4a3a',glasses:'#b06a7a',blush:.4,eyeW:.72,eyeH:.85,wrinkle:true,top:{c:'#fdf6ef',sleeve:.2,cardi:'#b9a3dc',pearl:true},bottom:{c:'#8a7aa6',skirt:.33,len:.4},shoe:{c:'#6a4e7a',sole:'#efe6f4'}}};
+
+return {make:makeChar,CH,wear};})();
+const NC_IDS=['ym','yf','om','of'],NC_NAME={ym:'민준 · 20대',yf:'서연 · 20대',om:'영호 · 50대',of:'정숙 · 50대'};
+LAB.push({k:'ncPick',n:'🧪 새 캐릭터 고르기 (테스트 서버)',d:'관리자 전용 🧪 테스트 서버(8번)에서만 보여요. 다른 서버에는 적용되지 않아요',scope:'me',o:[['ym','민준 · 20대 남'],['yf','서연 · 20대 여'],['om','영호 · 50대 남'],['of','정숙 · 50대 여']]});
+const ncOn=()=>{try{const RT=window.NK_RT;return !!(RT&&RT.sid===8&&RT.status&&RT.status()==='on');}catch(e){return false;}};
+const ncHash=s=>{let h=0;for(const ch of String(s||''))h=(h*31+ch.charCodeAt(0))|0;return NC_IDS[Math.abs(h)%4];};
+// 지금 장비(모자·옷·장갑·신발) → 새 캐릭터 옷
+const NC_GC=['#aab4c0','#5fc48a','#4ea3ea','#e8b400','#5f9a4a','#5ab4e6','#30508a','#8a6a3a','#c49a2a','#ff7a8a'];
+function ncWear(){const P={};try{const eq=(S.wear||[]).filter(w=>w.eq).map(w=>D.WEAR.byK[w.k]).filter(Boolean);for(const it of eq){const i=it.set|0,c=NC_GC[i]||it.c||'#888';
+ if(it.slot==='hat')P.hat=i===6?{k:'captain'}:(i===0||i===5||i===9)?{k:'straw'}:{k:'bucket',c};
+ if(it.slot==='cloth')P.top=i===3?{c:'#ffd23a',long:true,coatHood:true,sleeve:.24,btn:'#e8a400'}:i===6?{c:'#1f2d4f',long:true,sleeve:.24,btn:'#e8c46a',collar:'#fbfbf8',cuff:'#e8c46a'}:i===4?{c:'#e9e2d4',sleeve:.2,vest:'#6f7f4a',collar:'#e9e2d4'}:{c,sleeve:.2,collar:i>=7?'#fbfbf8':null};
+ if(it.slot==='shoe')P.shoe=(i===3||i===4)?{c:i===3?'#ffd23a':'#2f3a2a',boot:.22,top:i===3?'#e8a400':'#4a5a3a',sole:'#333'}:{c,sole:'#f4efe8'};
+ if(it.slot==='glove')P.glove={c};}}catch(e){}return P;}
+function ncApply(c,id,wear){if(!c||!c.o||c.rig)return;const o=c.o;if(c._ncParts){c._ncParts.forEach(m=>m.parent&&m.parent.remove(m));c._ncParts=null;}
+ const sk=[];o.traverse(x=>{if(x.isSkinnedMesh)sk.push(x);});if(!sk.length)return;
+ // 원래 자세(바인드 포즈)로 잠깐 되돌려서 뼈 위치를 재요
+ const saved=[];o.traverse(x=>{if(x.isBone)saved.push([x,x.position.clone(),x.quaternion.clone(),x.scale.clone()]);});sk[0].skeleton.pose();o.updateMatrixWorld(true);
+ const oInv=new T3.Matrix4().copy(o.matrixWorld).invert(),box=new T3.Box3();sk.forEach(m=>{m.geometry.computeBoundingBox();const b=m.geometry.boundingBox.clone().applyMatrix4(new T3.Matrix4().multiplyMatrices(oInv,m.matrixWorld));box.union(b);});const H=box.max.y-box.min.y;
+ const P=Object.assign({},NCK.CH[id]||NCK.CH.ym,wear||{});const my=NCK.make(P);my.updateMatrixWorld(true);const mb=new T3.Box3().setFromObject(my),sF=H/Math.max(.1,mb.max.y-mb.min.y),B=my.userData.B;
+ const bone=n=>o.getObjectByName(n);const bL=bone('arm-left'),bR=bone('arm-right');const side=b=>{const v=new T3.Vector3();b.getWorldPosition(v);v.applyMatrix4(oInv);return v.x;};
+ const armP=bL&&bR&&side(bL)>side(bR)?[bL,bR]:[bR,bL];const lL=bone('leg-left'),lR=bone('leg-right'),legP=lL&&lR&&side(lL)>side(lR)?[lL,lR]:[lR,lL];
+ const map=new Map([[B.torso,bone('torso')],[B.head,bone('head')],[B.arm0,armP[0]],[B.arm1,armP[1]],[B.leg0,legP[0]],[B.leg1,legP[1]]]);
+ const owner=x=>{let p=x;while(p){if(map.has(p))return p;p=p.parent;}return B.torso;};const parts=[];const meshes=[];my.traverse(x=>{if(x.isMesh&&!(x.parent&&x.parent.isMesh))meshes.push(x);});
+ const tmp=new T3.Matrix4(),gO=new T3.Vector3(),bO=new T3.Vector3();
+ for(const m of meshes){const G=owner(m),bn=map.get(G)||bone('torso');if(!bn)continue;G.getWorldPosition(gO);bn.getWorldPosition(bO);bO.applyMatrix4(oInv);
+  const D=new T3.Matrix4().makeTranslation((box.min.x+box.max.x)/2,box.min.y-mb.min.y*sF,(box.min.z+box.max.z)/2).multiply(new T3.Matrix4().makeScale(sF,sF,sF)).multiply(m.matrixWorld);
+  const L=new T3.Matrix4().copy(bn.matrixWorld).invert().multiply(o.matrixWorld).multiply(D);m.matrixAutoUpdate=true;L.decompose(m.position,m.quaternion,m.scale);bn.add(m);m.castShadow=true;m.frustumCulled=false;m.traverse(z=>{z.frustumCulled=false;});parts.push(m);}
+ saved.forEach(([x,p,q,s])=>{x.position.copy(p);x.quaternion.copy(q);x.scale.copy(s);});
+ // 원래 모양 숨기기 (낚싯대는 그대로)
+ o.traverse(x=>{if(x.isMesh&&!parts.includes(x)&&!isUnder(x,c.rod)&&!parts.some(p=>isUnder(x,p)))x.visible=false;});c._ncParts=parts;c._nc=id;}
+const T3=THREE;const isUnder=(x,p)=>{let q=x;while(q){if(q===p)return true;q=q.parent;}return false;};
+function ncRestore(c){if(!c||!c._ncParts)return;c._ncParts.forEach(m=>m.parent&&m.parent.remove(m));c._ncParts=null;c._nc=null;c.o.traverse(x=>{if(x.isMesh&&!isUnder(x,c.rod))x.visible=true;});}
+// 나 · 다른 유저
+let ncSig='';setInterval(()=>{try{if(!me)return;const on=ncOn();if(!on){if(me._nc)ncRestore(me);for(const r of remotes.values())if(r.c&&r.c._nc)ncRestore(r.c);ncSig='';return;}
+ const id=String(opt('ncPick','ym')),w=ncWear(),sig=id+JSON.stringify(w);if(sig!==ncSig||!me._ncParts){ncSig=sig;ncApply(me,id,w);}}catch(e){console.warn(e);}},800);
+RHOOK.push((r,p)=>{if(!ncOn()||!r.c)return;const id=(p.ex&&NC_IDS.includes(p.ex.nc))?p.ex.nc:ncHash(p.nick||p.id);if(r.c._nc!==id)try{ncApply(r.c,id);}catch(e){}});
+{const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};try{if(ncOn())o.nc=String(opt('ncPick','ym'));}catch(e){}return Object.keys(o).length?o:null;};}
+addEventListener('nk-rt-admonly',()=>{alertBox('<h3>🧪 테스트 서버</h3><p>관리자만 들어갈 수 있는 서버예요.<br>관리자로 로그인했는지 확인해 주세요.</p>');});
+window.NK89.nc={NCK,ncApply,ncRestore,ncOn};
+
+// v101 ── 🐠 어항 3개 (시안 A · 테스트 기능): 어항마다 넣을 물고기 규칙 · 새로 낚은 물고기는 규칙대로 · 데크에는 가장 큰 어항
+LAB.push({k:'tank3',n:'🐠 어항 3개 · 규칙 정리',d:'가진 어항 중 3개까지 같이 써요. 어항 창 위에 어항 3칸이 생기고, 어항마다 「넣을 물고기」(등급·변이·크기·종류)를 골라 두면 새로 낚은 물고기가 규칙대로 들어가요. 데크에는 가장 큰 어항이 보여요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
+const tk3On=()=>!PREV&&opt('tank3','off')==='on';
+const TK3G=['일반','희귀','영웅','전설','신화'],TK3SZ=[[0,'아무 크기'],[50,'50cm 이상'],[80,'80cm 이상'],['p90','최대 크기 90% 이상']];
+function tk3S(){const z=S.tk3&&typeof S.tk3==='object'?S.tk3:(S.tk3={sl:[],main:{},sw:0,last:(S.nid||1)-1});z.sl=(z.sl||[]).filter(x=>x&&x.k&&D.TANKS.find(t=>t.k===x.k)).slice(0,2);z.sl.forEach(x=>{x.fish=Array.isArray(x.fish)?x.fish:[];x.rule=x.rule||{};});z.main=z.main||{};return z;}
+const tkCap=k=>{const t=D.TANKS.find(x=>x.k===k);return (t?t.cap:20)+lvTankBonus();};
+const tkName=k=>{const t=D.TANKS.find(x=>x.k===k);return t?t.n:k;};
+const tkImg=k=>'img/tanks/'+k+'.png';
+// 보는 어항 바꾸기: 다른 어항을 볼 때는 잠깐 S.tank·S.tankK를 그 어항으로 바꿔 둬요 (팔기·잠금이 그대로 돼요)
+function tk3Swap(i){const z=tk3S();if(z.sw===i)return;if(z.sw){const s=z.sl[z.sw-1];if(s){const a=S.tank,k=S.tankK;S.tank=s.fish;S.tankK=s.k;s.fish=a;s.k=k;}z.sw=0;}
+ if(i){const s=z.sl[i-1];if(s){const a=S.tank,k=S.tankK;S.tank=s.fish;S.tankK=s.k;s.fish=a;s.k=k;z.sw=i;}}}
+// 불러올 때 바뀐 채로 저장돼 있으면 되돌려요
+try{if(S.tk3&&S.tk3.sw){const z=S.tk3,s=z.sl&&z.sl[z.sw-1];if(s){const a=S.tank,k=S.tankK;S.tank=s.fish;S.tankK=s.k;s.fish=a;s.k=k;}z.sw=0;}}catch(e){}
+// 가장 큰 어항이 데크에 보이게
+function tk3Biggest(){const z=tk3S();if(z.sw)return;let bi=-1,bc=tkCap(S.tankK);z.sl.forEach((s,i)=>{if(tkCap(s.k)>bc){bc=tkCap(s.k);bi=i;}});if(bi<0)return;const s=z.sl[bi],a=S.tank,k=S.tankK,r=z.main;S.tank=s.fish;S.tankK=s.k;z.main=s.rule;s.fish=a;s.k=k;s.rule=r;try{updMyTankExt();}catch(e){}save();}
+function tk3Match(f,r){if(!r)return false;const F=FI(f.k);const cats=[];
+ if(r.g&&r.g.length)cats.push(r.g.includes(Math.min(4,f.g|0)));
+ if(r.vr&&r.vr.length)cats.push(!!f.vr&&r.vr.includes(typeof fzVK==='function'?fzVK(f.vr):f.vr));
+ if(r.sz){cats.push(r.sz==='p90'?(F&&f.cm>=F.max*.9):f.cm>=+r.sz);}
+ if(r.ks&&r.ks.length)cats.push(r.ks.includes(f.k));
+ return cats.length?cats.some(Boolean):!!r.rest;}
+function tk3Route(){if(!tk3On())return;const z=tk3S();if(z.sw||!z.sl.length)return;const order=[{r:z.main,main:true},...z.sl.map(s=>({r:s.rule,s}))];
+ const nw=S.tank.filter(f=>f.id>(z.last||0)&&!f.lock);z.last=Math.max((S.nid||1)-1,z.last||0);if(!nw.length)return;
+ for(const f of nw){let tgt=order.find(o=>tk3Match(f,o.r)&&!o.r.rest)||order.find(o=>o.r&&o.r.rest);if(!tgt||tgt.main)continue;const s=tgt.s;if(s.fish.length>=tkCap(s.k)){continue;}S.tank=S.tank.filter(x=>x.id!==f.id);s.fish.push(f);miniToast(`🐠 ${FI(f.k).n} ${f.cm}cm → <b>${tkName(s.k)}</b>에 넣었어요`,1600);}save();}
+{const xc=xpCatch;xpCatch=function(){const r=xc.apply(this,arguments);setTimeout(()=>{try{tk3Route();}catch(e){}},50);return r;};}
+setInterval(()=>{try{if(tk3On())tk3Route();}catch(e){}},4000);
+// 어항 창 위 3칸
+function tk3StripHTML(){const z=tk3S(),cur=z.sw;const card=(i,k,list,rule)=>{const main=i===0;return `<button type="button" class="tk3c ${cur===i?'on':''}" data-tk3v="${i}"><img src="${tkImg(k)}" alt="" onerror="this.style.visibility='hidden'"><span><b>${tkName(k)}${main?'<em>★ 데크</em>':''}</b><small>${list.length} / ${tkCap(k)} · ${tk3RuleTxt(rule)}</small></span><i data-tk3r="${i}" title="넣을 물고기">⚙</i></button>`;};
+ const mainK=cur?z.sl[cur-1].k:S.tankK,mainL=cur?z.sl[cur-1].fish:S.tank;// 바뀐 상태 보정
+ const items=[[0,mainK,mainL,z.main]];z.sl.forEach((s,i)=>{const k=cur===i+1?S.tankK:s.k,L=cur===i+1?S.tank:s.fish;items.push([i+1,k,L,s.rule]);});
+ const free=(S.tanks||[]).filter(k=>![mainK,...z.sl.map((s,i)=>cur===i+1?S.tankK:s.k)].includes(k));
+ return `<div id="tk3"><div class="tk3s">${items.map(a=>card(...a)).join('')}${z.sl.length<2?`<div class="tk3add">${free.length?`<select data-tk3add><option value="">+ 어항 추가</option>${free.map(k=>`<option value="${k}">${tkName(k)} (${tkCap(k)})</option>`).join('')}</select>`:'<small>상점에서 어항을 더 사면 여기 추가할 수 있어요</small>'}</div>`:''}</div></div>`;}
+function tk3RuleTxt(r){if(!r)return '규칙 없음';const a=[];if(r.g&&r.g.length)a.push(r.g.map(i=>TK3G[i]).join('·'));if(r.vr&&r.vr.length)a.push('변이');if(r.sz)a.push(r.sz==='p90'?'최대 90%↑':r.sz+'cm↑');if(r.ks&&r.ks.length)a.push(r.ks.map(k=>FI(k).n).slice(0,2).join('·')+(r.ks.length>2?'…':''));if(r.rest)a.push('나머지 모두');return a.join(' · ')||'규칙 없음';}
+function tk3Strip(){const m=$('tank'),w=m&&m.querySelector('.tankwrap');if(!w)return;let el=$('tk3');if(!tk3On()||tankView.owner!=='me'){if(el)el.remove();return;}if(el)el.remove();w.insertAdjacentHTML('afterbegin',tk3StripHTML());el=$('tk3');
+ el.querySelectorAll('[data-tk3v]').forEach(b=>b.onclick=e=>{if(e.target.closest('[data-tk3r]'))return;tk3Swap(+b.dataset.tk3v);save();try{tankView.build();tankView.refresh();}catch(_){}tk3Strip();});
+ el.querySelectorAll('[data-tk3r]').forEach(b=>b.onclick=e=>{e.stopPropagation();tk3Rule(+b.dataset.tk3r);});
+ const ad=el.querySelector('[data-tk3add]');if(ad)ad.onchange=()=>{const k=ad.value;if(!k)return;const z=tk3S();tk3Swap(0);z.sl.push({k,fish:[],rule:{}});save();tk3Biggest();try{tankView.build();tankView.refresh();}catch(_){}tk3Strip();toast(`🐠 ${tkName(k)}을(를) 추가했어요 · ⚙로 넣을 물고기를 골라요`,2200);};}
+{const _o=tankView.open.bind(tankView);tankView.open=function(owner){_o(owner);setTimeout(tk3Strip,60);};const _c=tankView.close.bind(tankView);tankView.close=function(){try{if(tk3S().sw){tk3Swap(0);save();try{updMyTankExt();}catch(e){}}}catch(e){}_c();const el=$('tk3');if(el)el.remove();};}
+setInterval(()=>{try{const m=$('tank');if(tk3S().sw&&(!m||!m.classList.contains('show'))){tk3Swap(0);save();try{updMyTankExt();}catch(e){}}}catch(e){}},700);
+// 규칙 고르기 창
+function tk3Rule(i){const z=tk3S();const ruleRef=()=>i===0?z.main:z.sl[i-1].rule;let r=JSON.parse(JSON.stringify(ruleRef()||{}));
+ const realK=i===0?(z.sw?z.sl[z.sw-1].k:S.tankK):(z.sw===i?S.tankK:z.sl[i-1].k);
+ let m=$('tk3Dlg');if(!m){m=document.createElement('div');m.id='tk3Dlg';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});}
+ const R=()=>{const ch=(on,txt,cls,dk)=>`<button type="button" class="ch ${cls||''} ${on?'on':''}" ${dk}>${on?'✓ ':''}${txt}</button>`;
+  m.innerHTML=`<div class="card tk3card"><button class="x" data-tx>×</button><h3>🧺 ${tkName(realK)}에 넣을 물고기</h3><p class="small muted">칩을 골라요 · 고른 것 중 하나라도 맞으면 이 어항으로 들어가요 · 겹치면 위쪽(왼쪽) 어항부터</p>
+  <b class="lb">등급</b><div class="rl">${TK3G.map((n,j)=>ch((r.g||[]).includes(j),n,'g',`data-rg="${j}"`)).join('')}</div>
+  <b class="lb">변이 (하나라도 맞으면)</b><div class="rl">${FZO.map(k=>ch((r.vr||[]).includes(k),FZV[k].n,'v',`data-rv="${k}"`)).join('')}</div>
+  <b class="lb">크기</b><div class="rl">${TK3SZ.map(([v,n])=>ch(String(r.sz||0)===String(v),n,'s',`data-rs="${v}"`)).join('')}</div>
+  <b class="lb">종류</b><div class="rl">${D.FISH.map(F=>ch((r.ks||[]).includes(F.k),F.n,'',`data-rk="${F.k}"`)).join('')}</div>
+  <label class="rest"><input type="checkbox" data-rr ${r.rest?'checked':''}> 🧺 나머지 모두 (어디에도 안 맞는 물고기)</label>
+  <div class="go"><button type="button" class="g" data-rc>규칙 지우기</button><button type="button" class="p" data-rsv>✅ 규칙 저장</button><button type="button" class="w" data-rnow>지금 물고기도 다시 정리</button></div></div>`;
+  const tg=(arr,v)=>{arr=arr||[];return arr.includes(v)?arr.filter(x=>x!==v):arr.concat([v]);};
+  m.querySelector('[data-tx]').onclick=()=>m.classList.remove('show');m.querySelectorAll('[data-rg]').forEach(b=>b.onclick=()=>{r.g=tg(r.g,+b.dataset.rg);R();});m.querySelectorAll('[data-rv]').forEach(b=>b.onclick=()=>{r.vr=tg(r.vr,b.dataset.rv);R();});
+  m.querySelectorAll('[data-rs]').forEach(b=>b.onclick=()=>{const v=b.dataset.rs;r.sz=v==='0'?0:v==='p90'?'p90':+v;R();});m.querySelectorAll('[data-rk]').forEach(b=>b.onclick=()=>{r.ks=tg(r.ks,b.dataset.rk);R();});
+  m.querySelector('[data-rr]').onchange=e=>{r.rest=e.target.checked;};m.querySelector('[data-rc]').onclick=()=>{r={};R();};
+  const saveR=()=>{const t=ruleRef();Object.keys(t).forEach(k=>delete t[k]);Object.assign(t,r);save();};
+  m.querySelector('[data-rsv]').onclick=()=>{saveR();m.classList.remove('show');tk3Strip();toast('✅ 규칙을 저장했어요 · 새로 낚은 물고기부터 적용돼요',1800);};
+  m.querySelector('[data-rnow]').onclick=()=>{saveR();tk3Resort();m.classList.remove('show');try{tankView.build();tankView.refresh();}catch(_){}tk3Strip();};};
+ R();m.classList.add('show');}
+function tk3Resort(){const z=tk3S(),sw=z.sw;tk3Swap(0);const all=S.tank.concat(...z.sl.map(s=>s.fish)).filter(Boolean);const order=[{r:z.main,L:[],k:S.tankK},...z.sl.map(s=>({r:s.rule,L:[],k:s.k}))];
+ for(const f of all.sort((a,b)=>(b.g|0)-(a.g|0)||b.cm-a.cm)){let t=order.find(o=>tk3Match(f,o.r)&&!(o.r&&o.r.rest)&&o.L.length<tkCap(o.k))||order.find(o=>o.r&&o.r.rest&&o.L.length<tkCap(o.k))||order.find(o=>o.L.length<tkCap(o.k))||order[0];t.L.push(f);}
+ S.tank=order[0].L;z.sl.forEach((s,i)=>s.fish=order[i+1].L);z.last=(S.nid||1)-1;save();if(sw)tk3Swap(sw);toast('🐠 규칙대로 다시 정리했어요',1600);}
+window.NK89.tk3={tk3S,tk3Swap,tk3Route,tk3Match,tk3Resort,tk3Biggest};
+
+// v101 ── 🎁 변이 5종 완성 보상: 한 물고기의 블랙·핑크·레드·황금·무지개를 모두 합성으로 만들면, 그 물고기가 귀할수록 좋은 상자
+function fzSetRew(k){const F=FI(k),w=F?+F.w||10:10;if(w<=3)return {bx:5,co:100000};if(w<=6)return {bx:4,co:50000};if(w<=8)return {bx:3,co:30000};if(w<=14)return {bx:2,co:15000};return {bx:1,co:8000};}
+const FZBXN=['일반','고급','희귀','영웅','전설','신화'];
+function fzSetHTML(k){if(!k)return '';const z=fzS(),dx=z.dex[k]||{},n=FZO.filter(v=>dx[v]).length,r=fzSetRew(k),got=(S.fzSet||{})[k];const t=(D.BOX&&D.BOX.tiers&&D.BOX.tiers[r.bx])||{c:'#c46cf2'};
+ return `<div class="fzset ${n>=5?'ok':''} ${got?'got':''}"><div><b>🎁 변이 5종 완성 보상</b><small>${n}/5 · <span style="color:${t.c};font-weight:900">${FZBXN[r.bx]} 상자</span> + 🪙 ${r.co.toLocaleString()}</small></div>${got?'<span class="done">받았어요 ✓</span>':n>=5?`<button type="button" class="acc" data-fzset="${k}">보상 받기</button>`:`<span class="lock">${5-n}종 더</span>`}</div>`;}
+function fzSetBind(R){R.querySelectorAll('[data-fzset]').forEach(b=>b.onclick=()=>{const k=b.dataset.fzset,z=fzS(),dx=z.dex[k]||{};if(!FZO.every(v=>dx[v]))return;S.fzSet=S.fzSet||{};if(S.fzSet[k])return;const r=fzSetRew(k);S.fzSet[k]=Date.now();S.boxes.push('lv'+r.bx);S.coins+=r.co;S.newBox=(S.newBox||0)+1;try{updBagBadge();}catch(e){}save();hud();try{V14.catchSfx(4);}catch(e){}
+ alertBox(`<h3>🎁 ${FI(k).n} 변이 5종 완성!</h3><p><b>${FZBXN[r.bx]} 상자</b> 1개와 <b>🪙 ${r.co.toLocaleString()}</b>골드를 받았어요<br><small class="muted">상자는 가방 › 상자에서 열어요</small></p>`);renderFuse();});}
+window.NK89.fzSet={fzSetRew};
+function pouchAdmHTML(){const c=pouchCfg(),G=['일반','고급','희귀','영웅','전설','신화'];return `<div class="labrow wpadm pouchadm" style="display:block"><b>🪙 펫 골드 주머니 확률</b> <span class="tg o">모든 유저</span><br><small class="muted">낚시 성공 때 펫이 골드 주머니를 찾을 확률(%) · 펫 등급별 기본값 · 펫 레벨이 1 오를 때마다 기본값의 +n%</small>
+ <div class="wpg">${G.map((n,i)=>`<label><span>${n}</span><input type="number" min="0" max="100" step="0.5" data-pg="${i}" value="${c.gp[i]}"></label>`).join('')}<label><span>레벨당 +%</span><input type="number" min="0" max="10" step="0.5" data-pgl value="${c.gl}"></label></div>
+ <p><button class="sm" data-pgrst>기본값으로</button> <button class="sm ok" data-pggo>✅ 인게임 적용</button></p></div>`;}
+{const _l=labHTML,_b=bindLab;labHTML=function(){return _l.apply(this,arguments).replace(/<\/div>\s*$/,pouchAdmHTML()+'</div>');};
+ bindLab=function(root,re){_b.apply(this,arguments);const box=root.querySelector('.pouchadm');if(!box)return;const rd=()=>{const c=pouchCfg();box.querySelectorAll('[data-pg]').forEach(i=>c.gp[+i.dataset.pg]=Math.max(0,+i.value||0));c.gl=Math.max(0,+box.querySelector('[data-pgl]').value||0);return c;};
+  box.querySelectorAll('input').forEach(i=>i.onchange=()=>{S.pouchEd=rd();save();});box.querySelector('[data-pgrst]').onclick=()=>{S.pouchEd={gp:POUCH_DEF.gp.slice(),gl:POUCH_DEF.gl};save();re&&re();};
+  box.querySelector('[data-pggo]').onclick=()=>{const c=rd();if(!confirm('골드 주머니 확률을 모든 유저에게 적용할까요?'))return;if(pub({pouchCfg:{gp:c.gp,gl:c.gl}},'골드 주머니 확률을')){S.pouchEd=null;save();setTimeout(()=>re&&re(),600);}};};}
 // v100 ── 낮은 단계 낚싯대도 10개 모으면 한 단계 위 (대나무→카본→은빛→산호→벚꽃→황금)
 try{const U0=D.GEAR.up||{};D.GEAR.up=Object.assign({bamboo:{to:'carbon',n:10,coin:100},carbon:{to:'silver',n:10,coin:500},silver:{to:'coral',n:10,coin:1500},coral:{to:'sakura',n:10,coin:3000},sakura:{to:'gold',n:10,coin:4000}},U0);}catch(e){}
 // v99 ── 🔥 요리: 데크 숯불 그릴 (A) + 효과 칩·포만감 (C) · 테스트 기능
 LAB.push({k:'cook',n:'🔥 요리 · 물고기 구이',d:'데크 의자에 앉으면 옆에 숯불 그릴이 놓이고 「🔥 그릴」 버튼이 생겨요. 어항 물고기를 구워 먹으면 n분 동안 효과(경험치·대어·빠른입질·희귀어·판매가). 등급·크기·변이로 세져요. 많이 먹으면 포만감이 차서 캐릭터가 조금씩 커져요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'ckPos',n:'🔥 그릴 놓는 자리',d:'의자와 안 겹치게 고른 자리 3가지. 덧판: 데크 오른쪽(바깥)에 작은 판을 덧대고 그 위 / 뒤: 의자 바로 뒤 / 안쪽 옆: 의자 옆 데크 안쪽',scope:'me',o:[['ext','데크 옆 덧판 (기본)'],['back','의자 뒤'],['side','의자 안쪽 옆']]});
 const ckOn=()=>!PREV&&opt('cook','off')==='on';
-const CKE={xp:['⭐','경험치'],size:['📏','대어'],speed:['⚡','빠른입질'],luck:['🍀','희귀어'],sell:['🪙','판매가']};
-const CK_TYPE={bass:'size',snakehead:'size',mandarin:'size',catfish:'size',kkeuri:'size',maple_mandarin:'luck',rainbow_ayu:'luck',sakura_trout:'luck',gangjunchi:'luck',chambungeo:'luck',tteokbungeo:'luck',bluegill:'speed',ice_smelt:'speed',pirami:'speed',moraemuji:'speed',kkeokji:'speed',nuchi:'speed',donjagae:'sell',shrimp:'sell',eel:'sell'};
-const CK_G=[5,8,12,18,25],CK_V={black:4,pink:5,red:6,gold:8,rainbow:10};
-const ckS=()=>{const z=S.ck&&typeof S.ck==='object'?S.ck:(S.ck={b:[],n:0,nt:0});z.b=(z.b||[]).filter(x=>x.u>Date.now());if(z.n>0){const now=Date.now(),step=30*60000;if(!z.nt)z.nt=now;while(z.n>0&&now-z.nt>=step){z.n--;z.nt+=step;}if(!z.n)z.nt=0;}return z;};
-function ckEff(f){const F=FI(f.k);if(!F)return null;const t=CK_TYPE[f.k]||'xp',r=Math.max(0,Math.min(1,(f.cm-(F.min||0))/Math.max(1,(F.max||f.cm)-(F.min||0)))),mul=.8+.7*r,base=CK_G[Math.min(4,f.g|0)]||5;
- const out=[{t,v:Math.round(base*mul)}];const vk=f.vr?(typeof fzVK==='function'?fzVK(f.vr):f.vr):null;if(vk&&CK_V[vk])out.push({t:t==='luck'?'xp':'luck',v:CK_V[vk],vr:vk});return {e:out,min:Math.round(10+10*r),mul:Math.round(mul*10)/10};}
+const CKE={xp:['⭐','경험치'],pouch:['💰','골드 주머니'],box:['🎁','상자 확률']};
+// v101: 효과는 3가지 — 민물=⭐경험치 · 육식어=💰골드 주머니 · 귀한 어종=🎁상자
+const CK_TYPE={bass:'pouch',snakehead:'pouch',mandarin:'pouch',catfish:'pouch',kkeuri:'pouch',eel:'pouch',maple_mandarin:'box',rainbow_ayu:'box',sakura_trout:'box',gangjunchi:'box',chambungeo:'box',tteokbungeo:'box',trout:'box'};
+const CK_G={xp:[5,8,12,18,25],pouch:[2,3,4,6,8],box:[1,1.5,2,3,4]},CK_V={black:1,pink:1.25,red:1.5,gold:2,rainbow:2.5};
+const ckS=()=>{const z=S.ck&&typeof S.ck==='object'?S.ck:(S.ck={b:[],n:0,nt:0});z.b=(z.b||[]).filter(x=>x.u>Date.now()&&CKE[x.t]);if(z.n>0){const now=Date.now(),step=30*60000;if(!z.nt)z.nt=now;while(z.n>0&&now-z.nt>=step){z.n--;z.nt+=step;}if(!z.n)z.nt=0;}return z;};
+function ckEff(f){const F=FI(f.k);if(!F)return null;const t=CK_TYPE[f.k]||'xp',r=Math.max(0,Math.min(1,(f.cm-(F.min||0))/Math.max(1,(F.max||f.cm)-(F.min||0)))),mul=.8+.7*r,g=Math.min(4,f.g|0),R1=v=>Math.round(v*10)/10;
+ const out=[{t,v:R1(CK_G[t][g]*mul)}];const vk=f.vr?(typeof fzVK==='function'?fzVK(f.vr):f.vr):null;if(vk&&CK_V[vk]){const t2=t==='xp'?'pouch':'xp';out.push({t:t2,v:R1(CK_G[t2][1]*CK_V[vk]),vr:vk});}return {e:out,min:Math.round(10+10*r),mul:Math.round(mul*10)/10};}
 const ckVal=t=>{let v=0;try{ckS().b.forEach(x=>{if(x.t===t)v=Math.max(v,x.v);});}catch(e){}return v;};
-// 효과 적용
+// 효과 적용: 경험치 % · 낚을 때 골드 주머니 · 낚을 때 상자
 {const _ax=addXP;addXP=function(n,why){const v=ckOn()?ckVal('xp'):0;return _ax.call(this,v?n*(1+v/100):n,why);};}
-{const _gs=SYS.gearStats;SYS.gearStats=function(){const r=_gs.apply(this,arguments);try{if(!ckOn())return r;const o=Object.assign({},r),sp=ckVal('speed'),sz=ckVal('size'),lk=ckVal('luck');if(sp)o.speed=r.speed*(1-sp/100);if(sz)o.size=r.size*(1+sz/100);if(lk)o.luck=r.luck+lk/1000;return o;}catch(e){return r;}};}
-{const _md=SYS.mods;SYS.mods=function(){const r=_md.apply(this,arguments);try{const v=ckOn()?ckVal('sell'):0;if(v&&r&&r.sell!=null)return Object.assign({},r,{sell:r.sell*(1+v/100)});}catch(e){}return r;};}
+{const xc=xpCatch;xpCatch=function(){const r=xc.apply(this,arguments);try{if(ckOn()){const pv=ckVal('pouch'),bv=ckVal('box');if(pv&&Math.random()*100<pv){const g=Math.round(60+myLv()*12);S.coins+=g;save();hud();setTimeout(()=>miniToast(`💰 음식 효과 · 골드 주머니를 찾았어요 🪙 +${g}`,1800),1100);}
+ if(bv&&Math.random()*100<bv){S.boxes.push(Date.now());S.newBox=(S.newBox||0)+1;try{updBagBadge();}catch(e){}save();setTimeout(()=>miniToast('🎁 음식 효과 · 행운 상자를 하나 더 찾았어요!',1800),1400);}}}catch(e){}return r;};}
 // 숯불 그릴 3D
 function ckGrillMesh(){const T=THREE,G=new T.Group();const iron=new T.MeshStandardMaterial({color:'#2c2b31',roughness:.55,metalness:.55}),steel=new T.MeshStandardMaterial({color:'#b9bcc6',roughness:.3,metalness:.85});
  const prof=[];for(let i=0;i<=12;i++){const a=i/12*Math.PI/2;prof.push(new T.Vector2(.05+Math.sin(a)*.42,-Math.cos(a)*.24));}prof.push(new T.Vector2(.49,0));prof.push(new T.Vector2(.5,.03));
@@ -4508,7 +4740,7 @@ function ckHide(){if(CK.g)CK.g.visible=false;if(CK.plat)CK.plat.visible=false;CK
 let ckT=0;FHOOK.push(dt=>{const on=ckOn()&&mySeat&&mySeat.kind==='stool'&&!mySeat.virt;if(!on){if(CK.seat||(CK.g&&CK.g.visible))ckHide();ckBtn(false);}else{if(CK.seat!==mySeat||CK.pos!==opt('ckPos','ext'))ckPlace();ckBtn(!anyModal());}
  if(CK.g&&CK.g.visible){const u=CK.g.userData,T=performance.now()/1000,c=CK.cook;const heat=c?1:.55;u.glow.material.opacity=(.18+.12*Math.sin(T*3.1))*heat+.1;u.L.intensity=(.5+.3*Math.sin(T*5.3))*heat;u.smoke.forEach((sp,i)=>{const ph=(T*.35+sp.userData.ph)%1;sp.position.set(Math.sin(i*1.3+T)*.06+ph*.12,1.0+ph*1.1,Math.cos(i*1.7)*.05);sp.scale.setScalar(.2+ph*.5);sp.material.opacity=(c?.5:.18)*(1-ph);});
 }
- if(CK.cook){const p=Math.min(1,(performance.now()-CK.cook.t0)/5000);ckProg(p);if(p>=1)ckDone();}
+ if(CK.cook){const p=Math.min(1,(performance.now()-CK.cook.t0)/(CK.cook.dur||8000));ckProg(p);if(p>=1)ckDone();}
  ckT+=dt;if(ckT>1){ckT=0;ckHud();}
  // 포만감 → 캐릭터 크기
  try{if(me&&me.o){const ud=me.o.userData;if(ud.ckB==null)ud.ckB=me.o.scale.x;const n=ckOn()?ckS().n:0,want=ud.ckB*(1+.04*n);const k=me.o.scale.x+(want-me.o.scale.x)*Math.min(1,dt*2);me.o.scale.setScalar(k);}}catch(e){}});
@@ -4517,33 +4749,65 @@ RHOOK.push((r,p,dt)=>{try{const o=r.c&&r.c.o;if(!o)return;const ud=o.userData;if
 function ckBtn(show){let b=$('ckBtn');if(!show){if(b)b.style.display='none';return;}if(!b){b=document.createElement('button');b.id='ckBtn';b.type='button';b.innerHTML='🔥<small>그릴</small>';document.body.appendChild(b);b.onclick=e=>{e.stopPropagation();ckOpen();};}b.style.display='';}
 // 그릴 창 (시안 A)
 let CKSEL=null;
+// 🔊 지글지글 소리 (파일 없이 만들어요) · 테스트에서 A(지글지글 기본) / B(숯불 탁탁, 기본)
+LAB.push({k:'ckSnd',n:'🔊 고기 굽는 소리',d:'그릴에서 물고기를 굽는 동안 나는 소리. B(기본): 숯불 탁탁 — 숯이 타닥거리고 낮은 불 소리 / A: 지글지글 — 기름이 고르게 튀는 소리 / 끄기',scope:'me',o:[['B','B · 숯불 탁탁 (기본)'],['A','A · 지글지글'],['off','끄기']]});
+const CKA={src:null,g:null};
+function ckSndStart(){try{const v=opt('ckSnd','B');if(v==='off'||(typeof snd!=='undefined'&&snd.on===false))return;const ac=(typeof snd!=='undefined'&&snd.ctx)||(CKA.ac||(CKA.ac=new (window.AudioContext||window.webkitAudioContext)()));if(ac.state==='suspended')ac.resume();ckSndStop();
+ const sr=ac.sampleRate,n=sr*3,buf=ac.createBuffer(1,n,sr),d=buf.getChannelData(0);let s1=1;const r=()=>(s1=(s1*16807)%2147483647)/2147483647-.5;
+ const A=v==='A';let lp=0,hp=0,env=1,et=0;for(let i=0;i<n;i++){const w=r();lp+=(w-lp)*(A?.55:.35);hp=w-lp;et-=1;if(et<=0){env=.55+Math.random()*.7;et=sr*(.02+Math.random()*.06);}d[i]=(A?hp*.9:hp*.6+lp*.25)*env*.5;}
+ const pops=A?55:120;for(let k=0;k<pops;k++){const i0=(Math.random()*(n-3000))|0,L=(A?150:300)+Math.random()*(A?500:1400),a=(A?.5:1)*(.4+Math.random());for(let j=0;j<L;j++){d[i0+j]+=r()*2*a*Math.exp(-j/(L/5));}}
+ if(!A){let lo=0;for(let i=0;i<n;i++){lo+=(r()-lo)*.02;d[i]+=lo*.6;}}
+ const src=ac.createBufferSource();src.buffer=buf;src.loop=true;const f=ac.createBiquadFilter();f.type='highpass';f.frequency.value=A?1800:700;const g=ac.createGain();g.gain.value=0;g.gain.linearRampToValueAtTime(A?.32:.42,ac.currentTime+.4);src.connect(f).connect(g).connect(ac.destination);src.start();CKA.src=src;CKA.g=g;CKA.ac2=ac;}catch(e){}}
+function ckSndStop(){try{if(CKA.src){const ac=CKA.ac2;CKA.g.gain.linearRampToValueAtTime(0,ac.currentTime+.5);const s0=CKA.src;setTimeout(()=>{try{s0.stop();}catch(e){}},600);CKA.src=null;}}catch(e){}}
+// 가방 음식 (최대 10개)
+const CK_FOODMAX=10;const ckFood=()=>Array.isArray(S.food)?S.food:(S.food=[]);
 function ckList(){return (S.tank||[]).filter(f=>!f.lock&&FI(f.k)).sort((a,b)=>(b.g|0)-(a.g|0)||(b.vr?1:0)-(a.vr?1:0)||b.cm-a.cm);}
-function ckOpen(){let m=$('ckDlg');if(!m){m=document.createElement('div');m.id='ckDlg';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m&&!CK.cook)m.classList.remove('show');});}ckRender();openM('ckDlg');}
-function ckRender(){const m=$('ckDlg');if(!m)return;const L=ckList(),z=ckS();if(!L.find(f=>f.id===CKSEL))CKSEL=L[0]?L[0].id:null;const f=L.find(x=>x.id===CKSEL),E=f&&ckEff(f),G0=f&&GR(f.g),F=f&&FI(f.k);
- const fi=x=>`<img src="${FI(x.k).img||'img/fish/'+x.k+'.png'}" alt="" style="${x.vr&&typeof FZV!=='undefined'&&FZV[fzVK(x.vr)]?'filter:'+FZV[fzVK(x.vr)].fx:''}">`;
- m.innerHTML=`<div class="card ckcard"><div class="ckh"><b>🔥 숯불 그릴</b><small>포만감 ${z.n}/8</small><button class="x" data-ckx aria-label="닫기">×</button></div>
- ${L.length?`<div class="ckfs">${L.slice(0,24).map(x=>{const g=GR(x.g);return `<button type="button" class="ckf ${x.id===CKSEL?'on':''}" data-ckf="${x.id}"><i style="background:${g?g.c:'#999'}">${g?g.n:''}</i>${fi(x)}<em>${x.cm}cm</em></button>`;}).join('')}</div>`:'<p class="muted small">어항에 구울 물고기가 없어요 (잠근 물고기는 안 보여요)</p>'}
- ${f?`<div class="cksel">${fi(f)}<div><b>${F.n} 구이</b> ${f.vr&&typeof FZV!=='undefined'&&FZV[fzVK(f.vr)]?`<span class="ckvb" style="background:${FZV[fzVK(f.vr)].c}">${FZV[fzVK(f.vr)].n}</span>`:''}<small>${G0?G0.n:''} · ${f.cm}cm (크기 ×${E.mul})</small></div></div>
- <div class="ckeff"><div class="t">먹으면 받는 효과 <small>⏱ ${E.min}분</small></div><div class="ckchips">${E.e.map(e=>`<span class="${e.vr?'b':''}">${CKE[e.t][0]} ${CKE[e.t][1]} +${e.v}%${e.vr?' <small>변이</small>':''}</span>`).join('')}</div></div>`:''}
- ${CK.cook?`<div class="ckpt">굽는 중… <span>지글지글 🔥</span></div><div class="ckbar"><i id="ckBarI" style="width:0%"></i></div>`:''}
- <div class="ckgo"><button type="button" class="g" data-ckx>${CK.cook?'닫기':'취소'}</button><button type="button" class="p" data-ckgo ${!f||CK.cook||z.n>=8?'disabled':''}>${z.n>=8?'배불러요!':CK.cook?'굽는 중…':'🔥 굽기 (5초)'}</button></div>
- <small class="ckn">구우면 그 물고기는 어항에서 사라져요 (판매 대신) · 같은 효과는 센 쪽으로 덮어써요</small></div>`;
+function ckOpen(){let m=$('ckDlg');if(!m){m=document.createElement('div');m.id='ckDlg';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});}ckRender();openM('ckDlg');}
+const ckFishImg=(f,cls)=>`<img class="${cls||''}" src="${(FI(f.k)||{}).img||'img/fish/'+f.k+'.png'}" alt="" style="${f.vr&&typeof FZV!=='undefined'&&FZV[fzVK(f.vr)]?'filter:'+FZV[fzVK(f.vr)].fx:''}">`;
+const ckGrilled=(f,big)=>`<span class="ckgf ${big?'big':''}" style="--m:url('${(FI(f.k)||{}).img||'img/fish/'+f.k+'.png'}')">${ckFishImg(f,'g')}<i></i></span>`;
+function ckRender(){const m=$('ckDlg');if(!m)return;const L=ckList(),z=ckS(),food=ckFood();if(!CK.cook&&!L.find(f=>f.id===CKSEL))CKSEL=L[0]?L[0].id:null;const f=CK.cook?CK.cook.f:L.find(x=>x.id===CKSEL),E=f&&ckEff(f),G0=f&&GR(f.g),F=f&&FI(f.k),full=food.length>=CK_FOODMAX;
+ const p=CK.cook?Math.min(1,(performance.now()-CK.cook.t0)/CK.cook.dur):0;
+ m.innerHTML=`<div class="card ckcard2"><div class="ckL"><div class="ckh"><b>🔥 숯불 그릴</b><small>가방 음식 ${food.length}/${CK_FOODMAX}</small></div>
+ ${L.length||CK.cook?`<div class="ckfs">${L.map(x=>{const g=GR(x.g);return `<button type="button" class="ckf ${x.id===CKSEL?'on':''}" data-ckf="${x.id}" ${CK.cook?'disabled':''}><i style="background:${g?g.c:'#999'}">${g?g.n:''}</i>${ckFishImg(x)}<em>${x.cm}cm</em></button>`;}).join('')}</div>`:'<p class="muted small">어항에 구울 물고기가 없어요 (잠근 물고기는 안 보여요)</p>'}
+ ${f?`<div class="ckeff"><div class="t">다 구우면 이런 음식이 돼요 <small>먹을 때 효과 ⏱ ${E.min}분</small></div><div class="ckchips">${E.e.map(e=>`<span class="c-${e.t}">${CKE[e.t][0]} ${CKE[e.t][1]} +${e.v}%${e.vr?' <small>변이</small>':''}</span>`).join('')}</div></div>`:''}
+ <div class="ckgo"><button type="button" class="g" data-ckx>닫기</button><button type="button" class="p" data-ckgo ${!f||CK.cook||full?'disabled':''}>${full?'가방 음식이 가득 찼어요':CK.cook?`🔥 굽는 중… <b id="ckPct">${Math.round(p*100)}%</b>`:'🔥 굽기 (8초)'}</button></div>
+ <small class="ckn">구우면 그 물고기는 어항에서 사라지고, 다 구운 음식은 가방 › 🍢 음식에 들어가요 · 먹고 싶을 때 먹어요</small></div>
+ <div class="ckR ${CK.cook?'on':''}">${grillSvg()}${f?`<div class="ckfish ${CK.cook&&p>.5?'flip':''}" id="ckFishV" style="--d:${p.toFixed(2)}">${ckGrilled(f,true)}</div>`:''}<div class="cksmoke"><i></i><i></i><i></i></div>${CK.cook?`<span class="cksz">🔊 지글지글…</span>`:''}${CK.cook&&p>.45&&p<.6?'<span class="ckflip">↻ 뒤집기!</span>':''}
+  <div class="ckst">${f?`<b>${F.n} ${CK.cook?'굽는 중':'구이'}</b><small>${CK.cook?(p<.5?'앞면 노릇노릇':'뒷면 굽는 중'):(G0?G0.n:'')+' · '+f.cm+'cm'}</small>`:''}<div class="ckbar"><i id="ckBarI" style="width:${(p*100).toFixed(0)}%"></i></div></div></div></div>`;
  m.querySelectorAll('[data-ckx]').forEach(b=>b.onclick=()=>m.classList.remove('show'));m.querySelectorAll('[data-ckf]').forEach(b=>b.onclick=()=>{if(CK.cook)return;CKSEL=+b.dataset.ckf;ckRender();});
  const go=m.querySelector('[data-ckgo]');if(go)go.onclick=()=>ckStart(f);}
-function ckStart(f){if(!f||CK.cook||!CK.g)return;const z=ckS();if(z.n>=8){toast('배불러요! 조금 쉬었다 먹어요',1600);return;}const fm=ckFishMesh(f);if(fm){if(CK.g.userData.fish)CK.g.remove(CK.g.userData.fish);CK.g.add(fm);CK.g.userData.fish=fm;}
- S.tank=S.tank.filter(x=>x.id!==f.id);save();CK.cook={f,t0:performance.now()};try{sfx.coin();}catch(e){}ckRender();}
-function ckProg(p){const i=$('ckBarI');if(i)i.style.width=(p*100).toFixed(0)+'%';}
-function ckDone(){const c=CK.cook;CK.cook=null;if(!c)return;const E=ckEff(c.f),z=ckS(),F=FI(c.f.k),u=Date.now()+E.min*60000;
- E.e.forEach(e=>{const ex=z.b.find(x=>x.t===e.t);if(ex){if(e.v>=ex.v){ex.v=e.v;ex.u=u;ex.s=Date.now();ex.src=F.n;}else ex.u=Math.max(ex.u,u);}else z.b.push({t:e.t,v:e.v,u,s:Date.now(),src:F.n});});
- z.b.sort((a,b)=>b.v-a.v);if(z.b.length>2)z.b.length=2;z.n=Math.min(8,z.n+1);if(!z.nt)z.nt=Date.now();save();
+function grillSvg(){return `<svg class="ckgrill" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><radialGradient id="ckco" cx="50%" cy="55%" r="55%"><stop offset="0" stop-color="#ffd27a"/><stop offset=".35" stop-color="#ff8a3d"/><stop offset=".7" stop-color="#c8401e"/><stop offset="1" stop-color="#3a1a10"/></radialGradient><radialGradient id="ckbg" cx="50%" cy="40%" r="75%"><stop offset="0" stop-color="#ffcf9a"/><stop offset="1" stop-color="#e7915a"/></radialGradient></defs>
+ <rect width="400" height="300" fill="url(#ckbg)"/><ellipse cx="200" cy="200" rx="180" ry="74" fill="#2c2b31"/><ellipse cx="200" cy="186" rx="166" ry="62" fill="url(#ckco)"/>${Array.from({length:22},(_,i)=>{const a=i*2.4,x=200+Math.cos(a)*(30+i*5.5)*1.1,y=188+Math.sin(a)*(14+i*1.9);return `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${(9+i%4*3)}" fill="${i%3?'#3a2018':'#5a2a14'}" opacity=".55"/>`;}).join('')}
+ <g stroke="#c9ccd6" stroke-width="5" stroke-linecap="round" opacity=".95">${Array.from({length:9},(_,i)=>{const y=140+i*11.5,hw=Math.sqrt(Math.max(0,1-Math.pow((y-186)/66,2)))*168;return `<line x1="${(200-hw).toFixed(0)}" y1="${y}" x2="${(200+hw).toFixed(0)}" y2="${y}"/>`;}).join('')}</g><ellipse cx="200" cy="186" rx="168" ry="64" fill="none" stroke="#9a9ca8" stroke-width="6"/></svg>`;}
+function ckStart(f){if(!f||CK.cook||!CK.g)return;if(ckFood().length>=CK_FOODMAX){toast('가방 음식이 가득 찼어요 · 먼저 먹어요',1600);return;}const fm=ckFishMesh(f);if(fm){if(CK.g.userData.fish)CK.g.remove(CK.g.userData.fish);CK.g.add(fm);CK.g.userData.fish=fm;}
+ S.tank=S.tank.filter(x=>x.id!==f.id);save();CK.cook={f,t0:performance.now(),dur:8000};ckSndStart();ckRender();}
+function ckProg(p){const i=$('ckBarI');if(i)i.style.width=(p*100).toFixed(0)+'%';const t=$('ckPct');if(t)t.textContent=Math.round(p*100)+'%';const v=$('ckFishV');if(v){v.style.setProperty('--d',p.toFixed(2));const fl=p>.5;if(v.classList.contains('flip')!==fl){if($('ckDlg')&&$('ckDlg').classList.contains('show'))ckRender();}}}
+function ckDone(){const c=CK.cook;CK.cook=null;ckSndStop();if(!c)return;const f=c.f,F=FI(f.k);ckFood().push({id:S.nid++,k:f.k,g:f.g|0,cm:f.cm,vr:f.vr||null,t:Date.now()});S.newFood=(S.newFood||0)+1;save();
  if(CK.g&&CK.g.userData.fish){CK.g.remove(CK.g.userData.fish);CK.g.userData.fish=null;}
- miniToast(`🍢 <b>${F.n} 구이</b> 냠냠! ${E.e.map(e=>CKE[e.t][0]+' '+CKE[e.t][1]+' +'+e.v+'%').join(' · ')} · ${E.min}분`,2600);try{V14.catchSfx(2);}catch(e){}ckHud();if($('ckDlg')&&$('ckDlg').classList.contains('show'))ckRender();}
-// 효과 칩 + 포만감 (시안 C)
-function ckHud(){let h=$('ckHud');const z=ckOn()?ckS():null;if(!z||(!z.b.length&&!z.n)||!started){if(h)h.style.display='none';return;}if(!h){h=document.createElement('div');h.id='ckHud';document.body.appendChild(h);}h.style.display='';
- const mm=ms=>{const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};const now=Date.now();
- h.innerHTML=`<div class="ckbf">${z.b.map(b=>{const tot=Math.max(1,b.u-(b.s||b.u-20*60000)),left=b.u-now,pc=Math.max(0,Math.min(1,left/tot));return `<div class="ckb"><div class="ic">${CKE[b.t][0]}<svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="19" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="119.4" stroke-dashoffset="${(119.4*(1-pc)).toFixed(1)}" transform="rotate(-90 21 21)" stroke-linecap="round"/></svg></div><div><b>${CKE[b.t][1]} +${b.v}%</b><small>${b.src||''} 구이 · ${mm(left)}</small></div></div>`;}).join('')}</div>
- ${z.n?`<div class="ckfull"><div class="t">🍽 포만감 <small>${z.n}/8${z.n>=6?' · 통통':z.n>=3?' · 든든':''}</small></div><div class="pips">${Array.from({length:8},(_,i)=>`<i class="${i<z.n?'on':''}"></i>`).join('')}</div><small>다음 칸이 꺼지기까지 ${Math.max(1,Math.ceil((30*60000-(now-z.nt))/60000))}분</small></div>`:''}`;}
-window.NK89.cook={CK,ckS,ckEff,ckOpen,ckDone,ckPlace,ckHud};
+ miniToast(`🍢 <b>${F.n} 구이</b> 완성! 가방 › 🍢 음식에 넣었어요`,2400);try{V14.catchSfx(2);}catch(e){}if($('ckDlg')&&$('ckDlg').classList.contains('show'))ckRender();}
+// 가방 › 🍢 음식 탭 + 먹기
+let CKFS=null;
+function ckEat(id){const L=ckFood(),f=L.find(x=>x.id===id);if(!f)return;const z=ckS();if(z.n>=8){toast('배불러요! 조금 쉬었다 먹어요',1600);return;}const E=ckEff(f),u=Date.now()+E.min*60000,F=FI(f.k);
+ E.e.forEach(e=>{const ex=z.b.find(x=>x.t===e.t);if(ex){if(e.v>=ex.v){ex.v=e.v;ex.u=u;ex.s=Date.now();ex.src=F.n;}else ex.u=Math.max(ex.u,u);}else z.b.push({t:e.t,v:e.v,u,s:Date.now(),src:F.n});});
+ z.n=Math.min(8,z.n+1);if(!z.nt)z.nt=Date.now();S.food=L.filter(x=>x.id!==id);CKFS=null;save();miniToast(`😋 <b>${F.n} 구이</b> 냠냠! ${E.e.map(e=>CKE[e.t][0]+' '+CKE[e.t][1]+' +'+e.v+'%').join(' · ')} · ${E.min}분`,2600);try{V14.catchSfx(2);}catch(e){}ckHud();}
+function ckFoodHTML(){const L=ckFood(),z=ckS();const cur=L.find(x=>x.id===CKFS)||null;const pip=n=>Array.from({length:8},(_,i)=>`<i class="${i<z.n?'on':''} ${cur&&i===z.n?'nx':''}"></i>`).join('');
+ let eat='';if(cur){const E=ckEff(cur),F=FI(cur.k);const cmp=E.e.map(e=>{const now=ckVal(e.t);return `${CKE[e.t][0]} ${CKE[e.t][1]} ${now?`<s>+${now}%</s> → `:''}<b>+${Math.max(now,e.v)}%</b>${now?'':' (새로)'}`;}).join(' · ');
+  eat=`<div class="ckeat">${ckGrilled(cur,true)}<div style="flex:1"><div class="t">${F.n} 구이 먹을까요?</div><div class="ckcmp">포만감 ${z.n} → <b>${Math.min(8,z.n+1)}</b> / 8${z.n+1>=3?' · 몸이 조금 커져요':''}</div><div class="ckcmp">${cmp} · ⏱ ${E.min}분</div><div class="ckgo"><button type="button" class="g" data-ckfx>나중에</button><button type="button" class="p" data-ckeat="${cur.id}" ${z.n>=8?'disabled':''}>${z.n>=8?'배불러요!':'냠냠 먹기'}</button></div></div></div>`;}
+ return `<div class="ckbag"><div class="ckfull"><b>🍽 포만감 ${z.n}/8</b><div class="pips">${pip()}</div><small>30분마다 1칸 꺼져요</small></div>
+ <div class="ckfoods">${L.map(f=>{const n=L.filter(x=>x.k===f.k&&x.g===f.g).length,g=GR(f.g);return `<button type="button" class="ckfd ${f.id===CKFS?'on':''}" data-ckfd="${f.id}"><span class="plate">${ckGrilled(f)}</span><b>${FI(f.k).n} 구이</b><small>${g?g.n:''} · ${f.cm}cm</small></button>`;}).join('')}${Array.from({length:Math.max(0,4-L.length)},()=>`<div class="ckfd e"><span class="plate"></span><b>빈 칸</b><small>최대 ${CK_FOODMAX}개</small></div>`).join('')}</div>
+ ${L.length?eat||'<p class="small muted" style="margin:8px 2px 0">음식을 누르면 먹었을 때 바뀌는 포만감과 효과를 보여줘요</p>':'<p class="small muted" style="margin:8px 2px 0">데크 의자에 앉아 「🔥 그릴」로 물고기를 구워요</p>'}</div>`;}
+{const _rb=_renderBag;_renderBag=function(){_rb.apply(this,arguments);if(!ckOn()||bagMode==='box')return;const card=$('bag').querySelector('.card'),tabs=card&&card.querySelector('.tabs');if(!tabs||tabs.querySelector('[data-foodtab]'))return;
+ const n=ckFood().length,b=document.createElement('button');b.dataset.foodtab='1';b.className=bagTab==='food'?'on':'';b.innerHTML=`<span class="tico">🍢<em class="${n?'':'z zero'}">${n}</em></span>음식`;tabs.appendChild(b);b.onclick=()=>{bagTab='food';S.newFood=0;renderBag();};
+ if(bagTab!=='food')return;tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));let el=tabs.nextSibling;while(el){const nx=el.nextSibling;el.remove();el=nx;}tabs.insertAdjacentHTML('afterend',ckFoodHTML());
+ card.querySelectorAll('[data-ckfd]').forEach(x=>x.onclick=()=>{CKFS=+x.dataset.ckfd;renderBag();});const fx=card.querySelector('[data-ckfx]');if(fx)fx.onclick=()=>{CKFS=null;renderBag();};const e=card.querySelector('[data-ckeat]');if(e)e.onclick=()=>{ckEat(+e.dataset.ckeat);renderBag();};};}
+// 음식 효과: 오른쪽 위 시간·날씨 옆 음식 아이콘 하나 · 마우스 올리면(누르면) 효과 카드
+const CK_ICO=`<svg viewBox="0 0 48 48" width="30" height="30" aria-hidden="true"><defs><linearGradient id="ckik" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd08a"/><stop offset="1" stop-color="#d9773a"/></linearGradient></defs><rect x="22.5" y="4" width="3" height="40" rx="1.5" fill="#b07a4a"/><ellipse cx="24" cy="24" rx="16" ry="9" fill="url(#ckik)" transform="rotate(-35 24 24)"/><path d="M33 13 l8-6 -2 9z" fill="#c9652a"/><circle cx="16" cy="31" r="1.8" fill="#3a2010"/><g stroke="#7a3a14" stroke-width="2.2" stroke-linecap="round" opacity=".75"><path d="M19 22l6 7M23 18l6 7M27 15l5 6"/></g><path d="M12 8c2 2-1 4 1 6M18 5c2 2-1 4 1 6" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" opacity=".85"/></svg>`;
+function ckHud(){let h=$('ckHud');const z=ckOn()?ckS():null;if(!z||(!z.b.length&&!z.n)||!started){if(h)h.style.display='none';return;}if(!h){h=document.createElement('div');h.id='ckHud';h.innerHTML=`<button type="button" class="ckico" aria-label="음식 효과"></button><div class="cktip"></div>`;document.body.appendChild(h);h.querySelector('.ckico').onclick=e=>{e.stopPropagation();h.classList.toggle('open');};}h.style.display='';
+ const now=Date.now(),mm=ms=>{const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};const top=z.b.slice().sort((a,b)=>a.u-b.u)[0],pc=top?Math.max(0,Math.min(1,(top.u-now)/Math.max(1,top.u-(top.s||top.u-20*60000)))):0;
+ h.querySelector('.ckico').innerHTML=`${CK_ICO}<svg class="ring" viewBox="0 0 50 50"><circle cx="25" cy="25" r="23" fill="none" stroke="#f08a3c" stroke-width="3" stroke-dasharray="144.5" stroke-dashoffset="${(144.5*(1-pc)).toFixed(1)}" transform="rotate(-90 25 25)" stroke-linecap="round"/></svg>${top?`<em>${mm(top.u-now)}</em>`:''}${z.b.length>1?`<b>${z.b.length}</b>`:''}`;
+ h.querySelector('.cktip').innerHTML=`<b>🍢 음식 효과</b>${z.b.map(b=>`<div class="r"><span>${CKE[b.t][0]} ${CKE[b.t][1]} +${b.v}%</span><small>${b.src||''} 구이 · ${mm(b.u-now)}</small></div>`).join('')||'<div class="r"><small>지금 효과가 없어요</small></div>'}<div class="r"><span>🍽 포만감 ${z.n}/8</span><small>${z.n?'다음 칸 '+Math.max(1,Math.ceil((30*60000-(now-z.nt))/60000))+'분 뒤':''}</small></div>`;}
+addEventListener('click',()=>{const h=$('ckHud');if(h)h.classList.remove('open');});
+window.NK89.cook={CK,ckS,ckEff,ckOpen,ckDone,ckPlace,ckHud,ckEat,ckFood,ckSndStart,ckSndStop};
 
 LAB.push({k:'lvSt',n:'🏷 PC 레벨 창 모양',d:'PC 위쪽 HUD(HP1)의 레벨 칸. 1(기본): 칭호 칩 위 · 아이디 · 오른쪽 경험치 숫자 / 3: 칭호 알약 위 · 아이디만 (숫자는 마우스 올리면) / 예전: Lv 글씨 + 칭호 + 막대',scope:'me',o:[['1','시안 1 (기본)'],['3','시안 3'],['old','예전']]});
 setInterval(()=>{try{const v=PREV?'old':String(opt('lvSt','1')),B=document.body.classList;B.toggle('lvx1',v==='1');B.toggle('lvx3',v==='3');}catch(e){}},700);
@@ -4556,7 +4820,7 @@ const fzMob=()=>matchMedia('(max-width:860px)').matches;
  let body='';
  if(FZ.mt==='ok')body=ok.length?`<div class="fmg">${ok.map(card).join('')}</div>`:'<p class="fme">지금 합성할 수 있는 물고기가 없어요<br><small>같은 물고기·같은 별 3마리를 모아요</small></p>';
  else if(FZ.mt==='wait')body=wait.length?`<div class="fmg">${wait.map(card).join('')}</div>`:'<p class="fme">모으는 중인 물고기가 없어요</p>';
- else{const sel=G.find(x=>fzKey(x)===FZ.sel)||G[0];if(sel){const dx=z.dex[sel.k]||{},FF=FI(sel.k);body=`<div class="fmdh"><b>${FF.n} 변이</b><small>${FZO.filter(k=>dx[k]).length}/5</small></div><div class="fmdex">${FZO.map(k=>`<div class="fzd ${dx[k]?'':'no'}" style="--vb:${FZV[k].bg};--vc:${FZV[k].c}">${dx[k]?fzImg({k:sel.k,vr:k}):`<img class="fzi sil" src="${FF.img||'img/fish/'+sel.k+'.png'}" alt="">`}<span>${FZV[k].n}${dx[k]?'':' ?'}</span></div>`).join('')}</div><p class="fme"><small>물고기 정수 ${z.ess}개 · 실패할 때마다 1개, 모으면 원하는 변이 확정</small></p>`;}else body='<p class="fme">어항에 물고기가 없어요</p>';}
+ else{const sel=G.find(x=>fzKey(x)===FZ.sel)||G[0];if(sel){body=`<div class="fmdpick">${[...new Map(G.map(x=>[x.k,x])).values()].map(x=>`<button type="button" data-fmg="${fzKey(x)}" class="${x.k===sel.k?'on':''}">${fzImg(x.list[0])}<small>${FI(x.k).n}${FZO.every(v=>(z.dex[x.k]||{})[v])?' 🎁':''}</small></button>`).join('')}</div>`;const dx=z.dex[sel.k]||{},FF=FI(sel.k);body=`<div class="fmdh"><b>${FF.n} 변이</b><small>${FZO.filter(k=>dx[k]).length}/5</small></div><div class="fmdex">${FZO.map(k=>`<div class="fzd ${dx[k]?'':'no'}" style="--vb:${FZV[k].bg};--vc:${FZV[k].c}">${dx[k]?fzImg({k:sel.k,vr:k}):`<img class="fzi sil" src="${FF.img||'img/fish/'+sel.k+'.png'}" alt="">`}<span>${FZV[k].n}${dx[k]?'':' ?'}</span></div>`).join('')}</div>${fzSetHTML(sel.k)}<p class="fme"><small>물고기 정수 ${z.ess}개 · 실패할 때마다 1개, 모으면 원하는 변이 확정</small></p>`;}else body='<p class="fme">어항에 물고기가 없어요</p>';}
  const chips=pr?[pr.ok?`<span>★${cur.st+2} 성공 ${Math.round(pr.ok*10)/10}%</span>`:'',...FZO.filter(k=>pr.P[k]>0).map(k=>`<span style="color:${FZV[k].c}">${FZV[k].n} ${Math.round(pr.P[k]*10)/10}%</span>`),pr.fail?`<span style="color:#9d7bd8">실패 ${Math.round(pr.fail*10)/10}%</span>`:''].join(''):'';
  const cats=FZO.map(k=>{const n=z.cat[k]|0;return `<button type="button" class="fzc ${FZ.cat===k?'on':''}" data-fzc="${k}" ${n?'':'disabled'} style="--vc:${FZV[k].c};--vb:${FZV[k].bg}">${FZV[k].n} ${n}</button>`;}).join('');
  const sheet=cur?`<div class="fmdim" data-fmx></div><div class="fmsheet"><div class="grab" data-fmx></div><div class="fmst"><b>${F.n} ★${cur.st+1} × 3 → ★${cur.st+2}</b><small>가장 작은 3마리</small></div>
@@ -4569,7 +4833,7 @@ const fzMob=()=>matchMedia('(max-width:860px)').matches;
  const R=$('fuse');R.querySelector('[data-close]').onclick=()=>closeM('fuse');R.querySelectorAll('[data-fmt]').forEach(b=>b.onclick=()=>{FZ.mt=b.dataset.fmt;FZ.sheet=false;renderFuse();});
  R.querySelectorAll('[data-fmg]').forEach(b=>b.onclick=()=>{FZ.sel=b.dataset.fmg;const g=G.find(x=>fzKey(x)===FZ.sel);if(FZ.mt==='dex'){renderFuse();return;}FZ.sheet=!!(g&&g.list.length>=3);if(!FZ.sheet)toast(`${3-(g?g.list.length:0)}마리 더 모으면 합성할 수 있어요`,1400);renderFuse();});
  R.querySelectorAll('[data-fmx]').forEach(b=>b.onclick=()=>{FZ.sheet=false;renderFuse();});const ct=R.querySelector('[data-fmct]');if(ct)ct.onclick=()=>{FZ.ct=!FZ.ct;renderFuse();};
- R.querySelectorAll('[data-fzc]').forEach(b=>b.onclick=()=>{FZ.cat=FZ.cat===b.dataset.fzc?null:b.dataset.fzc;renderFuse();});const go=$('fzGo');if(go)go.onclick=()=>fzDo(cur,mats);
+ R.querySelectorAll('[data-fzc]').forEach(b=>b.onclick=()=>{FZ.cat=FZ.cat===b.dataset.fzc?null:b.dataset.fzc;renderFuse();});const go=$('fzGo');if(go)go.onclick=()=>fzDo(cur,mats);fzSetBind(R);
  try{const lk=R.querySelector('.fmb');if(lk&&typeof vrLockBtn==='function'&&FZ.mt!=='dex'){lk.insertAdjacentHTML('afterbegin',vrLockBtn());const vb=R.querySelector('[data-vrlk]');if(vb)vb.onclick=()=>{vrLockSet(S.vrLock===false);renderFuse();};}}catch(e){}};}
 // v99 ── 합성: 다시 그릴 때 목록·가운데·오른쪽 스크롤 자리를 그대로 (아래쪽 물고기 누르면 맨 위로 튀던 문제)
 {const _rf9=renderFuse;renderFuse=function(){const m=$('fuse'),sel=['.fzl','.fzm','.fzr','.fzb','.card'],keep={};if(m)sel.forEach(q=>{const e=m.querySelector(q);if(e)keep[q]=[e.scrollTop,e.scrollLeft];});const ws=window.scrollY;
