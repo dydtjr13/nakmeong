@@ -38,6 +38,16 @@ main{flex:1;overflow:auto;padding:0 18px 18px}
 .row .t{font-weight:700;font-size:15px;display:flex;gap:6px;align-items:center;min-width:0}
 .row .t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row .m{font-size:12px;color:var(--sub);margin-top:4px}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.ccard{display:flex;flex-direction:column;gap:4px;text-align:left;border:1px solid var(--line);background:#fff;border-radius:14px;padding:8px;cursor:pointer;min-width:0;font:inherit;color:inherit}
+.ccard:hover{background:#fffaf3;border-color:var(--acc)}
+.ccard img,.ccard .noimg{width:100%;aspect-ratio:1;object-fit:contain;border-radius:10px;background:#eef3f2;display:block}
+.ccard b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ccard small{font-size:11.5px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.csub{display:flex;gap:6px;margin:0 0 10px;flex-wrap:wrap}
+.cats .chip{padding:6px 8px}.cats{flex-wrap:nowrap!important;overflow-x:auto;scrollbar-width:none}@media (min-width:701px){.cats{gap:5px}}
+.cnote{font-size:12px;color:var(--sub);margin:0 0 10px}
+.post .cimg{display:block;width:min(260px,100%);aspect-ratio:1;object-fit:contain;border-radius:14px;background:#eef3f2;margin:10px 0}
 .tag{font-style:normal;flex:none;font-size:11px;font-weight:800;padding:2px 7px;border-radius:7px;background:var(--acc2);color:#c4612a}
 .tag.n{background:#ffe1df;color:#c23b33}
 .cnt{font-style:normal;flex:none;font-size:12px;color:var(--acc);font-weight:800}
@@ -83,7 +93,8 @@ main{flex:1;overflow:auto;padding:0 18px 18px}
 <script>
 (function(){
 'use strict';
-const CATS=[['공지','📢 공지'],['업데이트','🔔 업데이트'],['자유','💬 자유'],['질문','❓ 질문'],['자랑','🐟 자랑'],['공략','📚 공략'],['건의','💡 건의'],['버그제보','🐞 버그제보']];
+const CATS=[['공지','📢 공지'],['업데이트','🔔 업데이트'],['자유','💬 자유'],['질문','❓ 질문'],['자랑','🐟 자랑'],['공략','📚 공략'],['건의','💡 건의'],['버그제보','🐞 버그제보'],['창작','🧱 창작마당']];
+const CRAFT=[['탈것','🐾 탈것'],['캐릭터','🧍 캐릭터'],['펫','🐶 펫']]; // v112: 편집기에서 올린 창작 마당 글 (보기·댓글)
 const STAFF=new Set(['공지','업데이트']); // 운영자만 쓰는 게시판
 const PAGE=30;
 const $=s=>document.querySelector(s);
@@ -116,11 +127,12 @@ async function api(path,opt){
 }
 function setStatus(ok){const s=$('#st');s.className='st '+(ok?'on':'off');s.lastElementChild.textContent=ok?'서버 연결됨':'서버 연결 안 됨';}
 
-let cat='*',view='list',all=[],shown=PAGE,q='',loading=false;
+let cat='*',view='list',all=[],shown=PAGE,q='',loading=false,craft=null,csub='*';
 function paintCats(){
   const cs=[['*','전체']].concat(CATS);
   $('#cats').innerHTML=cs.map(([k,l])=>`<button class="chip ${k===cat?'on':''}" data-c="${esc(k)}">${esc(l)}</button>`).join('');
   $('#cats').querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{cat=b.dataset.c;shown=PAGE;paintCats();showList();});
+  const on=$('#cats .chip.on');if(on&&$('#cats').scrollWidth>$('#cats').clientWidth){const n=$('#cats');n.scrollLeft=Math.max(0,on.offsetLeft-n.clientWidth/2+on.offsetWidth/2);}
 }
 async function load(){
   loading=true;
@@ -129,7 +141,18 @@ async function load(){
   finally{loading=false;}
 }
 function filtered(){const s=q.trim().toLowerCase();return all.filter(p=>(cat==='*'||p.k===cat)&&(!s||(p.title+' '+p.body+' '+p.nick).toLowerCase().includes(s)));}
+function craftHTML(){
+  const s=q.trim().toLowerCase(),L=(craft||[]).filter(p=>(csub==='*'||p.sub===csub)&&(!s||(p.title+' '+p.body+' '+p.nick).toLowerCase().includes(s)));
+  const sub=`<div class="csub">${[['*','전체']].concat(CRAFT).map(([k,l])=>`<button class="chip ${k===csub?'on':''}" data-cs="${esc(k)}">${esc(l)}</button>`).join('')}</div><p class="cnote">편집기에서 만든 탈것·캐릭터·펫을 구경하고 댓글을 남길 수 있어요</p>`;
+  if(!L.length)return sub+`<div class="list"><div class="empty">${q?'검색 결과가 없어요.':'아직 올라온 작품이 없어요.'}</div></div>`;
+  return sub+`<div class="cgrid">${L.slice(0,shown).map(p=>`<button class="ccard" data-id="${esc(p.id)}">${p.img?`<img src="${esc(apiBase()+p.img)}" alt="" loading="lazy">`:'<i class="noimg"></i>'}<b>${esc(p.title)}</b><small>${esc((CRAFT.find(c=>c[0]===p.sub)||['',''])[1])} · ${esc(p.nick)}${p.cc?' · 💬 '+p.cc:''}</small></button>`).join('')}</div>${L.length>shown?'<button class="btn more" id="more">더 보기</button>':''}`;
+}
+async function loadCraft(){
+  try{const js=await Promise.all(CRAFT.map(([k])=>api('/posts?limit=100&cat='+encodeURIComponent('창작·'+k)).then(j=>(j.posts||[]).map(p=>({id:p.id,k:'창작',sub:k,craft:1,title:p.title,body:p.body,nick:p.nick,ts:p.created_at,cc:p.comment_count||0,mine:!!p.mine,ed:!!p.edited,rp:p.reports||0,hid:!!p.hidden,img:p.img||''})))));craft=js.flat().sort((a,b)=>b.ts-a.ts);return true;}
+  catch(e){return false;}
+}
 function listHTML(){
+  if(cat==='창작')return craftHTML();
   const L=filtered();
   if(!L.length)return `<div class="list"><div class="empty">${q?'검색 결과가 없어요.':'아직 글이 없어요.<br>첫 글을 남겨 보세요!'}</div></div>`;
   return `<div class="list">${L.slice(0,shown).map(p=>`<button class="row" data-id="${esc(p.id)}"><div class="t"><em class="tag ${STAFF.has(p.k)?'n':''}">${esc(p.k)}</em><span>${esc(p.title)}</span>${p.img?'<em class="cnt" title="사진">📷</em>':''}${p.cc?`<em class="cnt">[${p.cc}]</em>`:''}${p.hid?'<em class="tag n">숨김</em>':''}${p.rp?`<em class="cnt" style="color:#e0564f">🚩${p.rp}</em>`:''}</div><div class="m">${esc(p.nick)}${p.mine?' · <b style="color:var(--acc)">내 글</b>':''} · ${esc(when(p.ts))}</div></button>`).join('')}</div>${L.length>shown?'<button class="btn more" id="more">더 보기</button>':''}`;
@@ -139,21 +162,23 @@ async function showList(reload){
   const m=$('#main');
   m.innerHTML=`<div class="bar"><input id="q" placeholder="제목·내용·닉네임 검색" value="${esc(q)}"><button class="btn pri" id="write"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>글쓰기</button></div><div id="lst"><div class="msg">불러오는 중…</div></div>`;
   $('#q').oninput=e=>{q=e.target.value;shown=PAGE;$('#lst').innerHTML=listHTML();bindRows();};
-  $('#write').onclick=()=>showWrite();
+  $('#write').onclick=()=>showWrite();if(cat==='창작')$('#write').style.display='none';
+  if(cat==='창작'){if(reload||!craft){const ok=await loadCraft();if(view!=='list')return;if(!ok){$('#lst').innerHTML=`<div class="list"><div class="msg err">게시판 서버에 연결하지 못했어요.<br><button class="btn" id="retry" style="margin-top:10px">다시 시도</button></div></div>`;$('#retry').onclick=()=>showList(true);return;}}$('#lst').innerHTML=listHTML();bindRows();m.scrollTop=0;return;}
   if(reload||!all.length){const ok=await load();if(view!=='list')return;if(!ok){$('#lst').innerHTML=`<div class="list"><div class="msg err">게시판 서버에 연결하지 못했어요.<br><button class="btn" id="retry" style="margin-top:10px">다시 시도</button></div></div>`;$('#retry').onclick=()=>showList(true);return;}}
   $('#lst').innerHTML=listHTML();bindRows();
   m.scrollTop=0;
 }
 function bindRows(){
-  document.querySelectorAll('.row[data-id]').forEach(r=>r.onclick=()=>showPost(r.dataset.id));
+  document.querySelectorAll('.row[data-id],.ccard[data-id]').forEach(r=>r.onclick=()=>showPost(r.dataset.id));
+  document.querySelectorAll('[data-cs]').forEach(b=>b.onclick=()=>{csub=b.dataset.cs;shown=PAGE;$('#lst').innerHTML=listHTML();bindRows();});
   const mo=$('#more');if(mo)mo.onclick=()=>{shown+=PAGE;$('#lst').innerHTML=listHTML();bindRows();};
 }
 async function showPost(id){
   view='post';
-  const p=all.find(x=>x.id===id);if(!p)return showList(true);
+  const p=all.concat(craft||[]).find(x=>x.id===id);if(!p)return showList(true);
   const m=$('#main');
-  const acts=[p.mine?'<button class="btn" id="pedit">✏️ 수정</button>':'',p.mine||isStaff()?'<button class="btn" id="pdel" style="color:#e0564f">🗑 삭제</button>':'',!p.mine?'<button class="btn" id="prep">🚩 신고</button>':'',isStaff()&&p.hid?'<button class="btn" id="punh">숨김 해제</button>':''].join('');
-  m.innerHTML=`<div class="ptop"><button class="back" id="bk">← 목록</button><span class="pacts">${acts}</span></div><article class="post"><em class="tag ${STAFF.has(p.k)?'n':''}">${esc(p.k)}</em><h2>${esc(p.title)}</h2><div class="m">${esc(p.nick)} · ${esc(when(p.ts))}${p.ed?' · 수정됨':''}${isStaff()&&p.rp?` · 🚩 신고 ${p.rp}`:''}</div>${p.img?`<a class="pimg" href="${esc(apiBase()+p.img)}" target="_blank" rel="noopener"><img src="${esc(apiBase()+p.img)}" alt="첨부 사진" loading="lazy"></a>`:''}<div class="body">${esc(p.body)}</div></article><section class="cms"><h3>댓글</h3><div id="cml"><div class="msg">불러오는 중…</div></div><div class="cbox"><input id="cin" maxlength="200" placeholder="${esc(myNick())}(으)로 댓글 남기기"><button class="btn pri" id="cgo">등록</button></div></section>`;
+  const acts=[p.mine&&!p.craft?'<button class="btn" id="pedit">✏️ 수정</button>':'',p.mine||isStaff()?'<button class="btn" id="pdel" style="color:#e0564f">🗑 삭제</button>':'',!p.mine?'<button class="btn" id="prep">🚩 신고</button>':'',isStaff()&&p.hid?'<button class="btn" id="punh">숨김 해제</button>':''].join('');
+  m.innerHTML=`<div class="ptop"><button class="back" id="bk">← 목록</button><span class="pacts">${acts}</span></div><article class="post"><em class="tag ${STAFF.has(p.k)?'n':''}">${esc(p.craft?'창작·'+p.sub:p.k)}</em><h2>${esc(p.title)}</h2><div class="m">${esc(p.nick)} · ${esc(when(p.ts))}${p.ed?' · 수정됨':''}${isStaff()&&p.rp?` · 🚩 신고 ${p.rp}`:''}</div>${p.craft?(p.img?`<img class="cimg" src="${esc(apiBase()+p.img)}" alt="작품 미리보기">`:''):p.img?`<a class="pimg" href="${esc(apiBase()+p.img)}" target="_blank" rel="noopener"><img src="${esc(apiBase()+p.img)}" alt="첨부 사진" loading="lazy"></a>`:''}<div class="body">${esc(p.body)}</div></article><section class="cms"><h3>댓글</h3><div id="cml"><div class="msg">불러오는 중…</div></div><div class="cbox"><input id="cin" maxlength="200" placeholder="${esc(myNick())}(으)로 댓글 남기기"><button class="btn pri" id="cgo">등록</button></div></section>`;
   m.scrollTop=0;
   $('#bk').onclick=()=>showList();
   const paint=async()=>{
@@ -165,7 +190,7 @@ async function showPost(id){
   const pe=$('#pedit');if(pe)pe.onclick=()=>showWrite(p);
   const pr=$('#prep');if(pr)pr.onclick=()=>reportPost(p);
   const pu=$('#punh');if(pu)pu.onclick=async()=>{try{await api('/posts/'+encodeURIComponent(id)+'/unhide',{method:'POST'});p.hid=false;p.rp=0;toast('숨김을 풀었어요');showPost(id);}catch(e){toast(ERRMSG(e));}};
-  const pd=$('#pdel');if(pd)pd.onclick=async()=>{if(!confirm('이 글을 삭제할까요? 댓글도 함께 지워져요'))return;try{await api('/posts/'+encodeURIComponent(id),{method:'DELETE'});all=all.filter(x=>x.id!==id);toast('글을 삭제했어요');showList();}catch(e){toast('삭제하지 못했어요');}};
+  const pd=$('#pdel');if(pd)pd.onclick=async()=>{if(!confirm('이 글을 삭제할까요? 댓글도 함께 지워져요'))return;try{await api('/posts/'+encodeURIComponent(id),{method:'DELETE'});all=all.filter(x=>x.id!==id);if(craft)craft=craft.filter(x=>x.id!==id);toast('글을 삭제했어요');showList();}catch(e){toast('삭제하지 못했어요');}};
   $('#cml').addEventListener('click',async e=>{const b=e.target.closest('[data-cdel]');if(!b)return;if(!confirm('이 댓글을 삭제할까요?'))return;try{await api('/comments/'+encodeURIComponent(b.dataset.cdel),{method:'DELETE'});await paint();}catch(err){toast('삭제하지 못했어요');}});
   const go=async()=>{const inp=$('#cin'),v=inp.value.trim();if(!v)return;if(bad(v))return toast('비속어가 들어 있어 올릴 수 없어요');$('#cgo').disabled=true;
     try{await api('/posts/'+encodeURIComponent(id)+'/comments',{method:'POST',body:JSON.stringify({body:v,nick:myNick()})});inp.value='';await paint();}
@@ -182,8 +207,8 @@ function reportPost(p){
 }
 function showWrite(edit){
   view='write';
-  const staff=isStaff(),def=edit?edit.k:cat!=='*'&&(staff||!STAFF.has(cat))?cat:'자유';
-  const opts=CATS.filter(([k])=>staff||!STAFF.has(k)).map(([k,l])=>`<option value="${esc(k)}" ${k===def?'selected':''}>${esc(l)}</option>`).join('');
+  const staff=isStaff(),def=edit?edit.k:cat!=='*'&&cat!=='창작'&&(staff||!STAFF.has(cat))?cat:'자유';
+  const opts=CATS.filter(([k])=>k!=='창작'&&(staff||!STAFF.has(k))).map(([k,l])=>`<option value="${esc(k)}" ${k===def?'selected':''}>${esc(l)}</option>`).join('');
   const m=$('#main');
   m.innerHTML=`<button class="back" id="bk">← 목록</button><div class="form"><div class="who">${edit?'글 수정':esc(myNick())+'(으)로 글을 써요'}</div><label for="wc">게시판</label><select id="wc">${opts}</select><label for="wt">제목</label><input id="wt" maxlength="60" placeholder="제목을 입력하세요">${edit?'':`<label>사진 <small style="font-weight:400;color:var(--sub)">(1장 · 게임에서 Print Screen으로 찍은 사진은 자동으로 들어와요)</small></label><div class="wimg" id="wimg"></div>`}<label for="wb">내용</label><textarea id="wb" maxlength="2000" placeholder="내용을 입력하세요"></textarea><div class="hint"><span id="wn">0</span>/2000</div><div class="acts"><button class="btn" id="wx">취소</button><button class="btn pri" id="wgo">${edit?'수정 완료':'등록'}</button></div></div>`;
   let img='';const paintImg=()=>{const w=$('#wimg');if(!w)return;w.innerHTML=img?`<div class="wpv"><img src="${img}" alt=""><button class="btn" id="wimx" type="button">✕ 사진 빼기</button></div>`:`<label class="btn" for="wfile">📷 사진 고르기</label><input type="file" id="wfile" accept="image/*" hidden>`;const x=$('#wimx');if(x)x.onclick=()=>{img='';paintImg();};const f=$('#wfile');if(f)f.onchange=async()=>{const fl=f.files&&f.files[0];if(!fl)return;try{img=await shrink(fl);paintImg();}catch(e){toast('사진을 읽지 못했어요');}};};

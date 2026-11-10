@@ -833,3 +833,30 @@ button.sellb:hover{background:#ffe7c2}
 #boxFx .bxall{margin-top:10px;border:1.5px solid #f4c46a;background:transparent;color:#f4c46a;border-radius:12px;padding:7px 14px;font-weight:800;cursor:pointer}
 #boxFx .bxgh{display:flex;align-items:center;gap:8px;color:var(--gc);font-size:14px;margin:10px 2px 0}#boxFx .bxgh small{color:#cdbbe6}#boxFx .bxgh i{flex:1;height:1px;background:rgba(255,255,255,.18)}
 #boxFx .bxrest .rgrid{margin:6px 0}
+/* v112 상자 카드 앞면: 아이템 이미지만 크게 · 마우스 올리면 정보 */
+#boxFx .bxfr{padding:8px}
+#boxFx .bxbig{display:grid;place-items:center;width:100%;height:100%;gap:4px}
+#boxFx .bxbig.n2{grid-template-rows:1fr 1fr}#boxFx .bxbig.n3,#boxFx .bxbig.n4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+#boxFx .bxbi{position:relative;display:flex;align-items:center;justify-content:center;min-width:0;min-height:0;width:100%;height:100%}
+#boxFx .bxbig img{width:84px;height:84px;object-fit:contain;filter:drop-shadow(0 3px 6px rgba(0,0,0,.18))}
+#boxFx .bxbig.n2 img{width:52px;height:52px}#boxFx .bxbig.n3 img,#boxFx .bxbig.n4 img{width:42px;height:42px}
+#boxFx .bxbi .bxst{font-size:58px;line-height:1}#boxFx .bxbig:not(.n1) .bxst{font-size:34px}
+#boxFx .bxbi em{position:absolute;right:2px;bottom:0;font-style:normal;font-size:11px;font-weight:800;color:#fff;background:var(--gc);border-radius:7px;padding:0 5px}
+#boxFx .bxcard.flip[data-tip]{cursor:help}
+/* v112 부적 모두 합성 (C) */
+.synbar .synhd{display:flex;align-items:center;gap:8px;min-width:0}.synbar .synhd .muted{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.synbar .synall{flex:none;border:0;background:#e8a420;color:#fff;border-radius:10px;padding:4px 12px;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 2px 0 #b97c0e}
+.synbar .synall:hover{filter:brightness(1.06)}
+#confirm .syacard{width:min(460px,92vw)!important}
+#confirm .sya{display:flex;flex-direction:column;gap:6px;text-align:left;margin:8px 0}
+#confirm .syarow{display:flex;align-items:center;gap:8px;border:2px solid var(--gc);border-radius:12px;padding:7px 10px;background:#fff;cursor:pointer;white-space:nowrap}
+#confirm .syarow.off{opacity:.45}#confirm .syarow>b{color:var(--gc);width:38px;flex:none}#confirm .syarow span{flex:1;font-size:13px;min-width:0;overflow:hidden;text-overflow:ellipsis}#confirm .syarow small{flex:none;font-size:12px}
+#confirm .syach{display:flex;gap:6px;align-items:center;justify-content:center;font-size:13px}
+#confirm .syasum{font-size:14px;margin:8px 0 4px}#confirm #cfYes:disabled{opacity:.5}
+#boxFx .syares{max-width:min(620px,92vw)}#boxFx .syag{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+#boxFx .syai{display:inline-flex;width:50px;height:50px;align-items:center;justify-content:center;border:2.5px solid var(--gc);border-radius:12px;background:#fffaf3}#boxFx .syai .cimg{width:38px;height:38px}
+/* v112 합성 목록: 줄 높이 10% 늘리고 가운데 정렬 */
+#fuse .fzl .fzg{min-height:70px;align-items:center;padding-top:9px;padding-bottom:9px}#fuse .fzl .fzg>span{align-self:center}
+#fuse .fzl{padding-bottom:14px}
+/* v112 음식 효과 2개 이상: 숫자 뱃지가 세로로 늘어나던 문제 (.ckico b 공통 규칙의 bottom:0 때문) */
+#ckHud .ckico>b{bottom:auto;left:auto;top:-5px;right:-5px;min-width:18px;height:18px;line-height:18px;text-align:center;font-size:11px;font-weight:900;padding:0 5px;box-sizing:border-box;border-radius:9px;box-shadow:0 0 0 2px #fff;z-index:2}
