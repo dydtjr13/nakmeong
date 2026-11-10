@@ -14,11 +14,11 @@ export const HELLO_MS = 20000;
 export const MAX_MSG = 900;
 /** 공지·이벤트·밸런스·금칙어처럼 본문이 긴 운영 메시지. 채팅·포즈는 MAX_MSG. */
 export const MAX_OPS = 48000;
-const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses", "game", "gameNow", "titles", "staff", "vmod"]);
+const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses", "game", "gameNow", "titles", "staff", "vmod", "vbx"]);
 
 const FISH = new Set(["off", "cast", "bite", "catch"]);
 /** v52: 서버 인증된 관리자 소켓만 보낼 수 있는 운영 메시지 */
-export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet", "titles", "staff", "staffAdd", "repDone", "vmod"]);
+export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet", "titles", "staff", "staffAdd", "repDone", "vmod", "vbx"]);
 function cleanId(v, max) {
   return String(v == null ? "" : v).replace(/[^\w.-]/g, "").slice(0, max || 40);
 }
@@ -106,6 +106,22 @@ export function sanitizeVmodOne(d) {
   if (Array.isArray(d.parts)) for (const q of d.parts.slice(0, 240)) { if (!q || typeof q !== "object" || !VM_SH.has(q.sh)) continue; const o = { sh: q.sh, s: VM_V3(q.s, 20) || [0.2, 0.2, 0.2], p: VM_V3(q.p, 20) || [0, 0, 0], c: VM_COL(q.c) }; const r = VM_V3(q.r, 7); if (r && r.some((x) => x)) o.r = r; const k = VM_V3(q.k, 10); if (k && k.some((x) => x !== 1)) o.k = k; if (q.e) o.e = 1; if (q.o != null) o.o = Math.max(0.05, Math.min(1, Number(q.o) || 1)); if (typeof q.g === "string" && VM_ID.test(q.g) && (q.g === "" || out.groups[q.g])) o.g = q.g; if (typeof q.only === "string" && /^[a-z0-9]{1,12}$/.test(q.only)) o.only = q.only; out.parts.push(o); }
   for (const [k, q] of Object.entries(out.groups)) if (q.par && !out.groups[q.par]) delete q.par;
   return out.parts.length ? out : null;
+}
+/** v109 블럭 편집기: 새로 만든 탈것·캐릭터 (관리자만 · 12개 · 하나에 블럭 글 36000자까지) */
+const VB_KEY = /^x[a-z0-9]{1,11}$/;
+const VB_B64 = /^[A-Za-z0-9+/]*={0,2}$/;
+export const VB_MAX = 12;
+export function vbxKey(k) { return typeof k === "string" && VB_KEY.test(k) ? k : null; }
+export function sanitizeVbxOne(d) {
+  if (!d || typeof d !== "object" || Array.isArray(d)) return null;
+  const out = { v: 1, t: d.t === "chr" ? "chr" : "veh", n: String(d.n || "새 탈것").replace(/[<>]/g, "").slice(0, 14), vu: Math.max(0.02, Math.min(0.3, Number(d.vu) || 0.08)), seat: VM_V3(d.seat, 20) || [0, 1.2, 0], zoom: Math.max(0.3, Math.min(3, Number(d.zoom) || 1)), pal: [], groups: {}, vox: {} };
+  if (Array.isArray(d.pal)) out.pal = d.pal.slice(0, 64).map((c) => (typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c) ? c.toLowerCase() : "#cccccc"));
+  if (d.groups && typeof d.groups === "object") for (const [k, q] of Object.entries(d.groups).slice(0, 24)) { if (!VM_ID.test(k) || !k || !q || typeof q !== "object") continue; const o = { p: VM_V3(q.p, 20) || [0, 0, 0] }; const r = VM_V3(q.r, 7); if (r && r.some((x) => x)) o.r = r; if (q.s != null) o.s = Math.max(0.05, Math.min(10, Number(q.s) || 1)); if (typeof q.par === "string" && VM_ID.test(q.par) && q.par !== k) o.par = q.par; if (q.leg != null) o.leg = VM_NUM(q.leg, 7); if (q.arm != null) o.arm = VM_NUM(q.arm, 7); if (q.head) o.head = 1; if (q.tail) o.tail = 1; if (typeof q.nm === "string") o.nm = q.nm.replace(/[<>]/g, "").slice(0, 12); if (typeof q.bone === "string" && /^[a-z-]{2,16}$/.test(q.bone)) o.bone = q.bone; out.groups[k] = o; }
+  for (const q of Object.values(out.groups)) if (q.par && !out.groups[q.par]) delete q.par;
+  let tot = 0;
+  if (d.vox && typeof d.vox === "object") for (const [k, v] of Object.entries(d.vox).slice(0, 25)) { if (typeof v !== "string" || !VM_ID.test(k) || (k && !out.groups[k]) || !VB_B64.test(v) || v.length % 4) continue; tot += v.length; if (tot > 36000) break; if (v) out.vox[k] = v; }
+  if (d.shop && typeof d.shop === "object") { const sp = d.shop; out.shop = { how: sp.how === "box" ? "box" : "shop", pr: Math.max(0, Math.min(1e9, Math.round(Number(sp.pr) || 0))), g: Math.max(0, Math.min(5, Math.round(Number(sp.g) || 0))), p: Math.max(0, Math.min(100, Number(sp.p) || 0)), spd: Math.max(0, Math.min(150, Math.round(Number(sp.spd) || 0))), on: !!sp.on }; }
+  return Object.keys(out.vox).length ? out : null;
 }
 export function sanitizeVmod(input) {
   const out = {};
@@ -1324,6 +1340,7 @@ export function parseClient(raw) {
   if (msg.t === "gameNow") return { t: "gameNow", kind: msg.kind === "bal" ? "bal" : msg.kind === "stop" ? "stop" : "cho", all: !!msg.all };
   if (msg.t === "gameGet") return { t: "gameGet" };
   if (msg.t === "titles") return msg.titles && typeof msg.titles === "object" && !Array.isArray(msg.titles) ? { t: "titles", titles: msg.titles } : null;
+  if (msg.t === "vbx") { const k = vbxKey(msg.k); return k ? { t: "vbx", k, d: msg.d && typeof msg.d === "object" && !Array.isArray(msg.d) ? msg.d : null } : null; }
   if (msg.t === "vmod") return msg.vmod && typeof msg.vmod === "object" && !Array.isArray(msg.vmod) ? { t: "vmod", vmod: msg.vmod } : null;
   if (msg.t === "auth") return { t: "auth", id: cleanCred(msg.id, 64), pw: cleanCred(msg.pw, 128), out: !!msg.out, ...(cleanCred(msg.tok, 120) ? { tok: cleanCred(msg.tok, 120) } : {}) };
   if (msg.t === "world") {
