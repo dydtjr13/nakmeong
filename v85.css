@@ -705,3 +705,22 @@ button.sellb:hover{background:#ffe7c2}
 #ckDlg .ckn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tkunl{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#fff4e2;border:1.5px solid #f0c890;border-radius:12px;padding:6px 10px;margin-bottom:8px}
 .tkunl button{white-space:nowrap;background:#fff;border:1.5px solid #f0c890;color:#a8641a;font-weight:800;border-radius:999px;padding:5px 12px;cursor:pointer}
+/* v105 🤖 로봇 탈것 상점: 작은 색 버튼 한 줄 */
+.robc .robb{display:flex;gap:12px;align-items:center}
+.robc .robb img.robim{width:150px;height:100px;object-fit:contain;flex:none;background:linear-gradient(#eef6fb,#fff);border-radius:12px}
+.robc .robi img.emj,.robc .robi img:not(.robim){width:1.1em!important;height:1.1em!important;background:none!important;display:inline-block;vertical-align:-2px;margin:0!important}
+.robc .robi{display:flex;flex-direction:column;gap:5px;min-width:0}
+.robc .robsw{display:flex;gap:6px;flex-wrap:nowrap}
+.robc .robsw button{width:22px;height:22px;min-width:22px;padding:0;border-radius:50%;border:2px solid #fff;background:linear-gradient(135deg,var(--rc) 55%,var(--rb) 55%);box-shadow:0 0 0 1.5px #d8c8b0;cursor:pointer;position:relative}
+.robc .robsw button.on{box-shadow:0 0 0 2.5px #f08a4b}
+.robc .robsw button.own:after{content:'';position:absolute;right:-3px;bottom:-3px;width:8px;height:8px;border-radius:50%;background:#4a9a5a;border:1.5px solid #fff}
+.robc .robn{font-size:14px;white-space:nowrap}.robc .robo{font-size:11px;color:#4a9a5a}
+.robc small{white-space:nowrap}
+.robc .robgo{display:flex;gap:6px;flex-wrap:nowrap}.robc .robgo button{white-space:nowrap}
+/* v105 AI 이웃 · 과부하 테스트 */
+.ltadm{border:2px solid #b8a4f0;background:#f7f3ff;margin:6px 0 12px}
+.ltadm .ltsec{margin-top:10px;padding-top:8px;border-top:1.5px dashed #ddd2f6}
+.ltadm .ltrow{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-top:6px}
+.ltadm .ltrow label{display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:13px}
+.ltadm .ltrow input[type=number]{width:62px;padding:4px 6px;border-radius:8px;border:1.5px solid #d8cdf2}
+.ltadm #ltStat{margin-left:6px}
