@@ -477,3 +477,44 @@ body.perf #dc.mini{min-width:0}
 @keyframes nbflk{0%,1.8%,5%,6%,12%,13%,100%{opacity:1}1%,5.5%,12.5%{opacity:.25}}
 @keyframes nbbr{50%{opacity:.6}}
 #nbDlg .nbgo .p{background:#f39a5a;color:#fff;border:0;border-radius:12px;padding:8px 14px;font-weight:800}#nbDlg .nbgo .g{border-radius:12px;padding:8px 14px}
+/* v99 PC 레벨 창 (HP1) — 시안 1 / 3 · 막대 없음 */
+#lvB .lx{display:none}
+body.hp1.lvx1 #lvB .xp,body.hp1.lvx3 #lvB .xp{display:none!important}
+body.hp1.lvx1 #lvB .lx,body.hp1.lvx3 #lvB .lx{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:2px;text-align:left;min-width:0}
+body.hp1.lvx1 #lvB,body.hp1.lvx3 #lvB{display:flex;align-items:center;gap:10px;padding-right:14px}
+body.hp1.lvx1 #lvB .lx .tt,body.hp1.lvx3 #lvB .lx .tt{font-size:10.5px;font-weight:900;line-height:17px;padding:0 8px!important;border-radius:7px;white-space:nowrap}
+body.hp1.lvx3 #lvB .lx .tt{border-radius:999px!important;padding:0 10px!important}
+body.hp1.lvx1 #lvB .lx .nr{display:flex;align-items:baseline;gap:12px}
+body.hp1 #lvB .lx .nr b{font-size:15px;font-weight:900;color:#3a3048;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
+body.hp1.lvx1 #lvB .lx .nr small{font-size:11px;font-weight:800;color:#a0948c;white-space:nowrap}
+body.hp1.lvx3 #lvB .lx .nr small{display:none}
+/* v99 요리 */
+#ckBtn{position:fixed;right:14px;bottom:342px;z-index:46;width:58px;height:58px;border-radius:18px;border:0;background:radial-gradient(circle at 50% 70%,#ffd9a8,#fffaf2 70%);box-shadow:0 6px 18px rgba(40,30,20,.28),0 0 12px rgba(255,120,40,.35);font-size:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:#7a3e16}
+#ckBtn small{font-size:10.5px;font-weight:800;margin-top:-2px}
+#ckDlg .ckcard{width:min(400px,94vw);text-align:left;background:#fffbf4;border-radius:22px;padding:16px 18px}
+#ckDlg .ckh{display:flex;align-items:center;gap:8px}#ckDlg .ckh b{font-size:19px}#ckDlg .ckh small{margin-left:auto;color:#a08a70;font-weight:700;font-size:12px}#ckDlg .ckh .x{position:static;margin-left:6px}
+#ckDlg .ckfs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0;max-height:190px;overflow:auto;padding-top:6px}
+#ckDlg .ckf{position:relative;background:linear-gradient(#eef8fb,#dff0f6);border-radius:14px;height:66px;display:flex;align-items:center;justify-content:center;border:2px solid transparent;cursor:pointer;padding:0}
+#ckDlg .ckf img{width:76%;max-height:44px;object-fit:contain;filter:drop-shadow(0 3px 2px rgba(0,0,0,.18))}#ckDlg .ckf.on{border-color:#f39a5a;background:linear-gradient(#fff4e8,#ffe6cf);box-shadow:0 0 0 3px #ffe0c4}
+#ckDlg .ckf i{position:absolute;top:-6px;left:5px;font-style:normal;font-size:9.5px;font-weight:900;color:#fff;border-radius:7px;padding:0 6px;line-height:15px}
+#ckDlg .ckf em{position:absolute;bottom:2px;right:5px;font-style:normal;font-size:10px;font-weight:800;color:#6d8a96}
+#ckDlg .cksel{display:flex;gap:12px;align-items:center;background:#fff;border-radius:14px;padding:10px 12px;border:1px solid #f0dcc0}
+#ckDlg .cksel>img{width:80px;max-height:52px;object-fit:contain;filter:sepia(.55) saturate(1.6) hue-rotate(-12deg) brightness(.95) drop-shadow(0 3px 3px rgba(0,0,0,.2))}
+#ckDlg .cksel b{font-size:15px}#ckDlg .cksel small{display:block;font-size:12px;color:#8a7560;margin-top:2px}
+#ckDlg .ckvb{display:inline-block;font-size:10.5px;font-weight:900;color:#fff;border-radius:999px;padding:1px 8px}
+#ckDlg .ckeff{margin:12px 0 8px}#ckDlg .ckeff .t{font-size:13px;font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between}#ckDlg .ckeff .t small{color:#a08a70}
+#ckDlg .ckchips{display:flex;flex-wrap:wrap;gap:6px}#ckDlg .ckchips span{border-radius:12px;padding:6px 10px;font-size:13px;font-weight:800;background:#fff7e0;border:1px solid #f5dc9c}#ckDlg .ckchips span.b{background:#eaf8ee;border-color:#bfe6c9}#ckDlg .ckchips small{color:#5a8a66;font-weight:700}
+#ckDlg .ckpt{display:flex;justify-content:space-between;font-size:12px;font-weight:800}#ckDlg .ckpt span{color:#e8562a}
+#ckDlg .ckbar{height:12px;border-radius:9px;background:#f1e3cf;overflow:hidden;margin:6px 0 10px}#ckDlg .ckbar i{display:block;height:100%;background:linear-gradient(90deg,#ffcf6a,#ff8a3d,#e8562a);transition:width .2s}
+#ckDlg .ckgo{display:flex;gap:8px;margin-top:8px}#ckDlg .ckgo button{border:0;border-radius:14px;padding:11px 0;font-weight:900;font-size:15px;cursor:pointer}#ckDlg .ckgo .g{flex:.45;background:#f1e9df;color:#7a6450}#ckDlg .ckgo .p{flex:1;background:linear-gradient(#ffad6a,#f0843f);color:#fff;box-shadow:0 4px 0 #c9652a}#ckDlg .ckgo .p:disabled{opacity:.55}
+#ckDlg .ckn{display:block;color:#a08a70;margin-top:8px;font-size:11.5px}
+#ckHud{position:fixed;left:14px;top:132px;z-index:44;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+#ckHud .ckbf{display:flex;gap:8px;flex-wrap:wrap}
+#ckHud .ckb{display:flex;align-items:center;gap:8px;background:rgba(255,251,244,.96);border-radius:16px;padding:5px 12px 5px 5px;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+#ckHud .ckb .ic{width:34px;height:34px;border-radius:12px;background:radial-gradient(circle at 50% 60%,#ffcf8a,#f08a4b);display:flex;align-items:center;justify-content:center;font-size:18px;position:relative}#ckHud .ckb .ic svg{position:absolute;inset:-3px;width:40px;height:40px}
+#ckHud .ckb b{font-size:13px;display:block}#ckHud .ckb small{display:block;font-size:10.5px;color:#8a7560;font-weight:700}
+#ckHud .ckfull{background:rgba(255,251,244,.96);border-radius:14px;padding:6px 10px;box-shadow:0 6px 16px rgba(0,0,0,.15);width:220px}
+#ckHud .ckfull .t{display:flex;justify-content:space-between;font-size:12px;font-weight:800}#ckHud .ckfull .t small{color:#a08a70}
+#ckHud .pips{display:flex;gap:3px;margin:5px 0 3px}#ckHud .pips i{flex:1;height:10px;border-radius:4px;background:#f1e3cf}#ckHud .pips i.on{background:linear-gradient(#ffcf8a,#f0843f)}
+#ckHud .ckfull>small{font-size:10.5px;color:#a08a70}
+@media(max-width:760px){#ckHud{top:96px;left:8px}#ckHud .ckfull{width:180px}#ckBtn{bottom:300px;right:10px;width:52px;height:52px}}

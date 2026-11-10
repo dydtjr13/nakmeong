@@ -123,7 +123,7 @@ export function cleanEx(v) {
   const out = {};
   let n = 0;
   for (const k of Object.keys(v)) {
-    if (n >= 10) break;
+    if (n >= 12) break;
     if (!/^[a-z]{1,4}$/.test(k)) continue;
     const x = v[k];
     if (typeof x === "number" && Number.isFinite(x)) out[k] = Math.round(Math.max(-1e6, Math.min(1e6, x)) * 100) / 100;
@@ -989,6 +989,9 @@ export function sanitizePlay(input, prev, opt) {
   }
   if ("petFish" in input) out.petFish = pickOf(input.petFish, ["off", "on"]);
   if ("neonBB" in input) out.neonBB = pickOf(input.neonBB, ["off", "on"]);
+  if ("lvSt" in input) out.lvSt = pickOf(input.lvSt, ["1", "3", "old"]);
+  if ("cook" in input) out.cook = pickOf(input.cook, ["off", "on"]);
+  if ("ckPos" in input) out.ckPos = pickOf(input.ckPos, ["ext", "back", "side"]);
   if ("profView" in input) out.profView = pickOf(input.profView, ["on", "off"]);
   if ("timeIco" in input) out.timeIco = pickOf(input.timeIco, ["A", "B", "C", "old"]);
   if ("wearShop" in input) out.wearShop = pickOf(input.wearShop, ["off", "on"]);

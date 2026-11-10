@@ -204,7 +204,7 @@ const EPNG=c=>`<img class="emj" src="icons/emoji-png/${c}.png" alt="" draggable=
 function lvHud(n,why){let el=$('lvB');if(!el){const st=$('mStat');if(!st)return;el=document.createElement('button');el.id='lvB';el.className='lvb';el.title='레벨 · 보상 로드 보기';el.onclick=e=>{e.stopPropagation();RDC=null;lvRoad();};st.insertBefore(el,$('coins'));}
  const L=myLv(),a=LV.cum[L],b=L<LV.max?LV.cum[L+1]:a,cur=(S.xp||0)-a,need=b-a,p=L>=LV.max?100:Math.min(100,cur/need*100),_mt=myTitle(L),t=_mt?_mt.n:'',_ts=TST(_mt),th=((typeof KINDS!=='undefined'&&KINDS[S.char])||{}).th||'b0',k=_ts+L+'|'+Math.round(p*10)+'|'+t+'|'+th+'|'+NICK();
  let xt=$('xpTop');if(!xt){xt=document.createElement('div');xt.id='xpTop';xt.innerHTML='<i></i>';document.body.appendChild(xt);}xt.firstChild.style.width=p+'%';
- el._xp={L,cur,need,max:L>=LV.max};xpTipBind(el);if(el._k!==k){el._k=k;el.classList.toggle('max',L>=99);el.innerHTML=`<span class="lvc" style="--p:${p}%"><span>${L}</span></span><span class="avw" style="--p:${p}%"><span class="av" style="background-image:url(img/chars/${th}.jpg)"></span><em>${L}</em></span><span class="xp"><span class="nm">${NICK()}</span><span class="t"><span>Lv.${L}${t?` <span class="ttl"${_ts}>${t}</span>`:''}</span><span class="n">${L>=LV.max?'MAX':cur.toLocaleString()+'/'+need.toLocaleString()}</span></span><span class="b"><i style="width:${p}%"></i></span></span><span class="ttl2"${_ts}>${t||'Lv.'+L}</span>`;}
+ el._xp={L,cur,need,max:L>=LV.max};xpTipBind(el);if(el._k!==k){el._k=k;el.classList.toggle('max',L>=99);el.innerHTML=`<span class="lvc" style="--p:${p}%"><span>${L}</span></span><span class="avw" style="--p:${p}%"><span class="av" style="background-image:url(img/chars/${th}.jpg)"></span><em>${L}</em></span><span class="xp"><span class="nm">${NICK()}</span><span class="t"><span>Lv.${L}${t?` <span class="ttl"${_ts}>${t}</span>`:''}</span><span class="n">${L>=LV.max?'MAX':cur.toLocaleString()+'/'+need.toLocaleString()}</span></span><span class="b"><i style="width:${p}%"></i></span></span><span class="ttl2"${_ts}>${t||'Lv.'+L}</span><span class="lx">${t?`<span class="tt"${_ts}>${t}</span>`:''}<span class="nr"><b>${NICK()}</b><small>${L>=LV.max?'MAX':cur.toLocaleString()+' / '+need.toLocaleString()}</small></span></span>`;}
  if(n>0){let f=$('xpF');if(!f){f=document.createElement('div');f.id='xpF';document.body.appendChild(f);}const r=el.getBoundingClientRect();f.style.left=Math.round(r.left)+'px';f.style.top=Math.round(r.bottom+6)+'px';// v84: 경험치 알림이 떠 있는 동안 또 경험치가 들어오면 다시 깜빡이지 않고 숫자만 더해요
   const now=performance.now(),live=f._t&&now-f._t<2100;f._sum=(live?f._sum||0:0)+n;f._t=now;f.innerHTML=`<b>+${f._sum.toLocaleString()} XP</b>${why?' · '+why:''}`;f.classList.remove('on');if(!live){f.classList.remove('xs');void f.offsetWidth;}f.classList.add('xs');clearTimeout(f._h);f._h=setTimeout(()=>f.classList.remove('xs'),2200);}}
 // v79: 레벨 바에 마우스를 올리면 현재 경험치와 다음 레벨까지 남은 경험치를 말풍선으로 보여줘요 (모바일은 길게 누르기)
@@ -4317,6 +4317,92 @@ let dkT=0;FHOOK.push(dt=>{dkT+=dt;if(dkT<.5)return;dkT=0;dkTick();});function dk
  for(const [di,w] of want)if(DKW.cur.get(di)!==w.k){dkApply(di,w.k);DKW.cur.set(di,w.k);}
  if(c){const w=want.get(c.d);const key=c.d+'|'+(w&&w.who);if(w&&w.who!==NICK()&&DKW.warned!==key){DKW.warned=key;miniToast(`🔒 이 데크는 <b>${escRT(w.who)}</b>님이 먼저 꾸몄어요 · 그 분이 일어나면 꾸밀 수 있어요`,2600);}}else DKW.warned='';}
 window.NK89.dk={DKS,dkS,dkApply,DKW,dkTick};
+// v99 ── PC 위 레벨 창: 시안 1(기본) 칭호 칩 위 · 아이디 · 경험치 숫자 / 시안 3(테스트) 칭호 알약 위 · 아이디 — 둘 다 레벨 막대 없음 (원형 테두리가 진행도)
+window.NK89.seatFrame=seatFrame;
+// v99 ── 🔥 요리: 데크 숯불 그릴 (A) + 효과 칩·포만감 (C) · 테스트 기능
+LAB.push({k:'cook',n:'🔥 요리 · 물고기 구이',d:'데크 의자에 앉으면 옆에 숯불 그릴이 놓이고 「🔥 그릴」 버튼이 생겨요. 어항 물고기를 구워 먹으면 n분 동안 효과(경험치·대어·빠른입질·희귀어·판매가). 등급·크기·변이로 세져요. 많이 먹으면 포만감이 차서 캐릭터가 조금씩 커져요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
+LAB.push({k:'ckPos',n:'🔥 그릴 놓는 자리',d:'의자와 안 겹치게 고른 자리 3가지. 덧판: 데크 오른쪽(바깥)에 작은 판을 덧대고 그 위 / 뒤: 의자 바로 뒤 / 안쪽 옆: 의자 옆 데크 안쪽',scope:'me',o:[['ext','데크 옆 덧판 (기본)'],['back','의자 뒤'],['side','의자 안쪽 옆']]});
+const ckOn=()=>!PREV&&opt('cook','off')==='on';
+const CKE={xp:['⭐','경험치'],size:['📏','대어'],speed:['⚡','빠른입질'],luck:['🍀','희귀어'],sell:['🪙','판매가']};
+const CK_TYPE={bass:'size',snakehead:'size',mandarin:'size',catfish:'size',kkeuri:'size',maple_mandarin:'luck',rainbow_ayu:'luck',sakura_trout:'luck',gangjunchi:'luck',chambungeo:'luck',tteokbungeo:'luck',bluegill:'speed',ice_smelt:'speed',pirami:'speed',moraemuji:'speed',kkeokji:'speed',nuchi:'speed',donjagae:'sell',shrimp:'sell',eel:'sell'};
+const CK_G=[5,8,12,18,25],CK_V={black:4,pink:5,red:6,gold:8,rainbow:10};
+const ckS=()=>{const z=S.ck&&typeof S.ck==='object'?S.ck:(S.ck={b:[],n:0,nt:0});z.b=(z.b||[]).filter(x=>x.u>Date.now());if(z.n>0){const now=Date.now(),step=30*60000;if(!z.nt)z.nt=now;while(z.n>0&&now-z.nt>=step){z.n--;z.nt+=step;}if(!z.n)z.nt=0;}return z;};
+function ckEff(f){const F=FI(f.k);if(!F)return null;const t=CK_TYPE[f.k]||'xp',r=Math.max(0,Math.min(1,(f.cm-(F.min||0))/Math.max(1,(F.max||f.cm)-(F.min||0)))),mul=.8+.7*r,base=CK_G[Math.min(4,f.g|0)]||5;
+ const out=[{t,v:Math.round(base*mul)}];const vk=f.vr?(typeof fzVK==='function'?fzVK(f.vr):f.vr):null;if(vk&&CK_V[vk])out.push({t:t==='luck'?'xp':'luck',v:CK_V[vk],vr:vk});return {e:out,min:Math.round(10+10*r),mul:Math.round(mul*10)/10};}
+const ckVal=t=>{let v=0;try{ckS().b.forEach(x=>{if(x.t===t)v=Math.max(v,x.v);});}catch(e){}return v;};
+// 효과 적용
+{const _ax=addXP;addXP=function(n,why){const v=ckOn()?ckVal('xp'):0;return _ax.call(this,v?n*(1+v/100):n,why);};}
+{const _gs=SYS.gearStats;SYS.gearStats=function(){const r=_gs.apply(this,arguments);try{if(!ckOn())return r;const o=Object.assign({},r),sp=ckVal('speed'),sz=ckVal('size'),lk=ckVal('luck');if(sp)o.speed=r.speed*(1-sp/100);if(sz)o.size=r.size*(1+sz/100);if(lk)o.luck=r.luck+lk/1000;return o;}catch(e){return r;}};}
+{const _md=SYS.mods;SYS.mods=function(){const r=_md.apply(this,arguments);try{const v=ckOn()?ckVal('sell'):0;if(v&&r&&r.sell!=null)return Object.assign({},r,{sell:r.sell*(1+v/100)});}catch(e){}return r;};}
+// 숯불 그릴 3D
+function ckGrillMesh(){const T=THREE,G=new T.Group();const iron=new T.MeshStandardMaterial({color:'#2c2b31',roughness:.55,metalness:.55}),steel=new T.MeshStandardMaterial({color:'#b9bcc6',roughness:.3,metalness:.85});
+ const prof=[];for(let i=0;i<=12;i++){const a=i/12*Math.PI/2;prof.push(new T.Vector2(.05+Math.sin(a)*.42,-Math.cos(a)*.24));}prof.push(new T.Vector2(.49,0));prof.push(new T.Vector2(.5,.03));
+ const bowl=new T.Mesh(new T.LatheGeometry(prof,32),iron);bowl.material.side=T.DoubleSide;bowl.position.y=.78;G.add(bowl);const lip=new T.Mesh(new T.TorusGeometry(.49,.025,8,40),iron);lip.rotation.x=Math.PI/2;lip.position.y=.81;G.add(lip);
+ for(let i=0;i<3;i++){const a=i/3*Math.PI*2+.3,l=new T.Mesh(new T.CylinderGeometry(.022,.028,.78,8),iron);l.position.set(Math.cos(a)*.3,.39,Math.sin(a)*.3);l.rotation.z=Math.cos(a)*.22;l.rotation.x=-Math.sin(a)*.22;G.add(l);const ft=new T.Mesh(new T.SphereGeometry(.04,8,6),iron);ft.position.set(Math.cos(a)*.38,.02,Math.sin(a)*.38);G.add(ft);}
+ const ring=new T.Mesh(new T.TorusGeometry(.27,.014,6,28),iron);ring.rotation.x=Math.PI/2;ring.position.y=.3;G.add(ring);
+ let s=7;const r=()=>(s=(s*16807)%2147483647)/2147483647;const coals=[];
+ for(let i=0;i<36;i++){const hot=r(),c=new T.Color().setHSL(.01+hot*.05,1,.22+hot*.2);const m=new T.Mesh(new T.DodecahedronGeometry(.045+r()*.04,0),new T.MeshStandardMaterial({color:'#1b1714',roughness:.9,emissive:c,emissiveIntensity:.25+hot*.75}));const a=r()*Math.PI*2,d=Math.sqrt(r())*.36;m.position.set(Math.cos(a)*d,.68+r()*.06,Math.sin(a)*d);m.rotation.set(r()*3,r()*3,r()*3);G.add(m);coals.push(m);}
+ const glow=new T.Mesh(new T.CircleGeometry(.4,28),new T.MeshBasicMaterial({color:'#ff5a1a',transparent:true,opacity:.3,blending:T.AdditiveBlending,depthWrite:false,toneMapped:false}));glow.rotation.x=-Math.PI/2;glow.position.y=.735;G.add(glow);
+ const gr=new T.Group();const rim=new T.Mesh(new T.TorusGeometry(.46,.014,6,40),steel);rim.rotation.x=Math.PI/2;gr.add(rim);for(let i=-4;i<=4;i++){const z=i*.1,w=Math.sqrt(Math.max(0,.46*.46-z*z))*2;const bar=new T.Mesh(new T.CylinderGeometry(.008,.008,w,6),steel);bar.rotation.z=Math.PI/2;bar.position.z=z;gr.add(bar);}gr.position.y=.86;G.add(gr);
+ const sc=document.createElement('canvas');sc.width=sc.height=64;const sg=sc.getContext('2d');const rg=sg.createRadialGradient(32,32,2,32,32,31);rg.addColorStop(0,'rgba(255,255,255,.55)');rg.addColorStop(1,'rgba(255,255,255,0)');sg.fillStyle=rg;sg.fillRect(0,0,64,64);const st=new T.CanvasTexture(sc);
+ const smoke=[];for(let i=0;i<7;i++){const sp=new T.Sprite(new T.SpriteMaterial({map:st,transparent:true,depthWrite:false,opacity:0}));sp.userData.ph=i/7;G.add(sp);smoke.push(sp);}
+ const L=new T.PointLight('#ff8a3c',.8,3.5,2);L.position.y=1.0;G.add(L);G.userData={coals,glow,smoke,L,fish:null};G.scale.setScalar(.85);return G;}
+function ckFishMesh(f){const im=FISH_IMG[f.k];if(!im||!im.complete)return null;const cv=document.createElement('canvas');cv.width=256;cv.height=Math.max(32,Math.round(256*im.naturalHeight/im.naturalWidth));const g=cv.getContext('2d');g.drawImage(im,0,0,cv.width,cv.height);
+ g.globalCompositeOperation='source-atop';g.fillStyle='rgba(214,140,62,.62)';g.fillRect(0,0,cv.width,cv.height);g.strokeStyle='rgba(45,22,8,.8)';g.lineWidth=cv.height*.07;g.lineCap='round';for(let i=0;i<4;i++){const x=cv.width*(.28+i*.13);g.beginPath();g.moveTo(x+cv.height*.12,cv.height*.18);g.lineTo(x-cv.height*.12,cv.height*.82);g.stroke();}
+ const tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;const m=new THREE.Mesh(new THREE.PlaneGeometry(.74,.74*cv.height/cv.width),new THREE.MeshStandardMaterial({map:tex,alphaTest:.4,roughness:.5,side:THREE.DoubleSide}));m.rotation.set(-Math.PI/2,0,.5);m.position.y=.885;return m;}
+const CK={g:null,plat:null,seat:null,cook:null};
+function ckPlace(){const st=mySeat,F=st&&seatFrame(st);if(!F){return false;}const o=F.LW(0,0),ex=F.LW(1,0),ez=F.LW(0,1);const sx=(st.x-o[0])*(ex[0]-o[0])+(st.z-o[1])*(ex[1]-o[1]),sz=(st.x-o[0])*(ez[0]-o[0])+(st.z-o[1])*(ez[1]-o[1]),sd=sx<0?-1:1,pos=opt('ckPos','ext');
+ let lx,lz;if(pos==='back'){lx=sx;lz=sz-1.35;}else if(pos==='side'){lx=sx-sd*.95;lz=sz-.55;if(Math.abs(lx)<.2)lx=-sd*.25;}else{lx=sd*(F.hw+.55);lz=sz-.35;}
+ const w=F.LW(lx,lz);if(!CK.g){CK.g=ckGrillMesh();scene.add(CK.g);}CK.g.position.set(w[0],.39,w[1]);CK.g.rotation.y=F.ry;CK.g.visible=true;
+ if(pos==='ext'){if(!CK.plat){const P=new THREE.Group(),wood=new THREE.MeshLambertMaterial({color:'#d7a878',flatShading:true});for(let i=0;i<3;i++){const b=new THREE.Mesh(new THREE.BoxGeometry(1.15,.16,.36),wood);b.position.set(0,.3,(i-1)*.38);P.add(b);}[[-.45,-.45],[.45,-.45],[-.45,.45],[.45,.45]].forEach(([x,z])=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.07,.08,1.6,6),new THREE.MeshLambertMaterial({color:'#b88a62',flatShading:true}));p.position.set(x,-.5,z);P.add(p);});CK.plat=P;scene.add(P);}
+  const wp=F.LW(sd*(F.hw+.55),lz);CK.plat.position.set(wp[0],0,wp[1]);CK.plat.rotation.y=F.ry;CK.plat.visible=true;}else if(CK.plat)CK.plat.visible=false;
+ CK.seat=st;CK.pos=pos;return true;}
+function ckHide(){if(CK.g)CK.g.visible=false;if(CK.plat)CK.plat.visible=false;CK.seat=null;}
+let ckT=0;FHOOK.push(dt=>{const on=ckOn()&&mySeat&&mySeat.kind==='stool'&&!mySeat.virt;if(!on){if(CK.seat||(CK.g&&CK.g.visible))ckHide();ckBtn(false);}else{if(CK.seat!==mySeat||CK.pos!==opt('ckPos','ext'))ckPlace();ckBtn(!anyModal());}
+ if(CK.g&&CK.g.visible){const u=CK.g.userData,T=performance.now()/1000,c=CK.cook;const heat=c?1:.55;u.glow.material.opacity=(.18+.12*Math.sin(T*3.1))*heat+.1;u.L.intensity=(.5+.3*Math.sin(T*5.3))*heat;u.smoke.forEach((sp,i)=>{const ph=(T*.35+sp.userData.ph)%1;sp.position.set(Math.sin(i*1.3+T)*.06+ph*.12,1.0+ph*1.1,Math.cos(i*1.7)*.05);sp.scale.setScalar(.2+ph*.5);sp.material.opacity=(c?.5:.18)*(1-ph);});
+}
+ if(CK.cook){const p=Math.min(1,(performance.now()-CK.cook.t0)/5000);ckProg(p);if(p>=1)ckDone();}
+ ckT+=dt;if(ckT>1){ckT=0;ckHud();}
+ // 포만감 → 캐릭터 크기
+ try{if(me&&me.o){const ud=me.o.userData;if(ud.ckB==null)ud.ckB=me.o.scale.x;const n=ckOn()?ckS().n:0,want=ud.ckB*(1+.04*n);const k=me.o.scale.x+(want-me.o.scale.x)*Math.min(1,dt*2);me.o.scale.setScalar(k);}}catch(e){}});
+RHOOK.push((r,p,dt)=>{try{const o=r.c&&r.c.o;if(!o)return;const ud=o.userData;if(ud.ckB==null)ud.ckB=o.scale.x;const n=ckOn()&&p.ex&&+p.ex.fu||0,want=ud.ckB*(1+.04*Math.max(0,Math.min(8,n)));o.scale.setScalar(o.scale.x+(want-o.scale.x)*Math.min(1,dt*2));}catch(e){}});
+{const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};try{if(ckOn()){const n=ckS().n;if(n)o.fu=n;}}catch(e){}return Object.keys(o).length?o:null;};}
+function ckBtn(show){let b=$('ckBtn');if(!show){if(b)b.style.display='none';return;}if(!b){b=document.createElement('button');b.id='ckBtn';b.type='button';b.innerHTML='🔥<small>그릴</small>';document.body.appendChild(b);b.onclick=e=>{e.stopPropagation();ckOpen();};}b.style.display='';}
+// 그릴 창 (시안 A)
+let CKSEL=null;
+function ckList(){return (S.tank||[]).filter(f=>!f.lock&&FI(f.k)).sort((a,b)=>(b.g|0)-(a.g|0)||(b.vr?1:0)-(a.vr?1:0)||b.cm-a.cm);}
+function ckOpen(){let m=$('ckDlg');if(!m){m=document.createElement('div');m.id='ckDlg';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m&&!CK.cook)m.classList.remove('show');});}ckRender();openM('ckDlg');}
+function ckRender(){const m=$('ckDlg');if(!m)return;const L=ckList(),z=ckS();if(!L.find(f=>f.id===CKSEL))CKSEL=L[0]?L[0].id:null;const f=L.find(x=>x.id===CKSEL),E=f&&ckEff(f),G0=f&&GR(f.g),F=f&&FI(f.k);
+ const fi=x=>`<img src="${FI(x.k).img||'img/fish/'+x.k+'.png'}" alt="" style="${x.vr&&typeof FZV!=='undefined'&&FZV[fzVK(x.vr)]?'filter:'+FZV[fzVK(x.vr)].fx:''}">`;
+ m.innerHTML=`<div class="card ckcard"><div class="ckh"><b>🔥 숯불 그릴</b><small>포만감 ${z.n}/8</small><button class="x" data-ckx aria-label="닫기">×</button></div>
+ ${L.length?`<div class="ckfs">${L.slice(0,24).map(x=>{const g=GR(x.g);return `<button type="button" class="ckf ${x.id===CKSEL?'on':''}" data-ckf="${x.id}"><i style="background:${g?g.c:'#999'}">${g?g.n:''}</i>${fi(x)}<em>${x.cm}cm</em></button>`;}).join('')}</div>`:'<p class="muted small">어항에 구울 물고기가 없어요 (잠근 물고기는 안 보여요)</p>'}
+ ${f?`<div class="cksel">${fi(f)}<div><b>${F.n} 구이</b> ${f.vr&&typeof FZV!=='undefined'&&FZV[fzVK(f.vr)]?`<span class="ckvb" style="background:${FZV[fzVK(f.vr)].c}">${FZV[fzVK(f.vr)].n}</span>`:''}<small>${G0?G0.n:''} · ${f.cm}cm (크기 ×${E.mul})</small></div></div>
+ <div class="ckeff"><div class="t">먹으면 받는 효과 <small>⏱ ${E.min}분</small></div><div class="ckchips">${E.e.map(e=>`<span class="${e.vr?'b':''}">${CKE[e.t][0]} ${CKE[e.t][1]} +${e.v}%${e.vr?' <small>변이</small>':''}</span>`).join('')}</div></div>`:''}
+ ${CK.cook?`<div class="ckpt">굽는 중… <span>지글지글 🔥</span></div><div class="ckbar"><i id="ckBarI" style="width:0%"></i></div>`:''}
+ <div class="ckgo"><button type="button" class="g" data-ckx>${CK.cook?'닫기':'취소'}</button><button type="button" class="p" data-ckgo ${!f||CK.cook||z.n>=8?'disabled':''}>${z.n>=8?'배불러요!':CK.cook?'굽는 중…':'🔥 굽기 (5초)'}</button></div>
+ <small class="ckn">구우면 그 물고기는 어항에서 사라져요 (판매 대신) · 같은 효과는 센 쪽으로 덮어써요</small></div>`;
+ m.querySelectorAll('[data-ckx]').forEach(b=>b.onclick=()=>m.classList.remove('show'));m.querySelectorAll('[data-ckf]').forEach(b=>b.onclick=()=>{if(CK.cook)return;CKSEL=+b.dataset.ckf;ckRender();});
+ const go=m.querySelector('[data-ckgo]');if(go)go.onclick=()=>ckStart(f);}
+function ckStart(f){if(!f||CK.cook||!CK.g)return;const z=ckS();if(z.n>=8){toast('배불러요! 조금 쉬었다 먹어요',1600);return;}const fm=ckFishMesh(f);if(fm){if(CK.g.userData.fish)CK.g.remove(CK.g.userData.fish);CK.g.add(fm);CK.g.userData.fish=fm;}
+ S.tank=S.tank.filter(x=>x.id!==f.id);save();CK.cook={f,t0:performance.now()};try{sfx.coin();}catch(e){}ckRender();}
+function ckProg(p){const i=$('ckBarI');if(i)i.style.width=(p*100).toFixed(0)+'%';}
+function ckDone(){const c=CK.cook;CK.cook=null;if(!c)return;const E=ckEff(c.f),z=ckS(),F=FI(c.f.k),u=Date.now()+E.min*60000;
+ E.e.forEach(e=>{const ex=z.b.find(x=>x.t===e.t);if(ex){if(e.v>=ex.v){ex.v=e.v;ex.u=u;ex.s=Date.now();ex.src=F.n;}else ex.u=Math.max(ex.u,u);}else z.b.push({t:e.t,v:e.v,u,s:Date.now(),src:F.n});});
+ z.b.sort((a,b)=>b.v-a.v);if(z.b.length>2)z.b.length=2;z.n=Math.min(8,z.n+1);if(!z.nt)z.nt=Date.now();save();
+ if(CK.g&&CK.g.userData.fish){CK.g.remove(CK.g.userData.fish);CK.g.userData.fish=null;}
+ miniToast(`🍢 <b>${F.n} 구이</b> 냠냠! ${E.e.map(e=>CKE[e.t][0]+' '+CKE[e.t][1]+' +'+e.v+'%').join(' · ')} · ${E.min}분`,2600);try{V14.catchSfx(2);}catch(e){}ckHud();if($('ckDlg')&&$('ckDlg').classList.contains('show'))ckRender();}
+// 효과 칩 + 포만감 (시안 C)
+function ckHud(){let h=$('ckHud');const z=ckOn()?ckS():null;if(!z||(!z.b.length&&!z.n)||!started){if(h)h.style.display='none';return;}if(!h){h=document.createElement('div');h.id='ckHud';document.body.appendChild(h);}h.style.display='';
+ const mm=ms=>{const s=Math.max(0,Math.round(ms/1000));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');};const now=Date.now();
+ h.innerHTML=`<div class="ckbf">${z.b.map(b=>{const tot=Math.max(1,b.u-(b.s||b.u-20*60000)),left=b.u-now,pc=Math.max(0,Math.min(1,left/tot));return `<div class="ckb"><div class="ic">${CKE[b.t][0]}<svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="19" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="119.4" stroke-dashoffset="${(119.4*(1-pc)).toFixed(1)}" transform="rotate(-90 21 21)" stroke-linecap="round"/></svg></div><div><b>${CKE[b.t][1]} +${b.v}%</b><small>${b.src||''} 구이 · ${mm(left)}</small></div></div>`;}).join('')}</div>
+ ${z.n?`<div class="ckfull"><div class="t">🍽 포만감 <small>${z.n}/8${z.n>=6?' · 통통':z.n>=3?' · 든든':''}</small></div><div class="pips">${Array.from({length:8},(_,i)=>`<i class="${i<z.n?'on':''}"></i>`).join('')}</div><small>다음 칸이 꺼지기까지 ${Math.max(1,Math.ceil((30*60000-(now-z.nt))/60000))}분</small></div>`:''}`;}
+window.NK89.cook={CK,ckS,ckEff,ckOpen,ckDone,ckPlace,ckHud};
+
+LAB.push({k:'lvSt',n:'🏷 PC 레벨 창 모양',d:'PC 위쪽 HUD(HP1)의 레벨 칸. 1(기본): 칭호 칩 위 · 아이디 · 오른쪽 경험치 숫자 / 3: 칭호 알약 위 · 아이디만 (숫자는 마우스 올리면) / 예전: Lv 글씨 + 칭호 + 막대',scope:'me',o:[['1','시안 1 (기본)'],['3','시안 3'],['old','예전']]});
+setInterval(()=>{try{const v=PREV?'old':String(opt('lvSt','1')),B=document.body.classList;B.toggle('lvx1',v==='1');B.toggle('lvx3',v==='3');}catch(e){}},700);
+// v99 ── 합성: 다시 그릴 때 목록·가운데·오른쪽 스크롤 자리를 그대로 (아래쪽 물고기 누르면 맨 위로 튀던 문제)
+{const _rf9=renderFuse;renderFuse=function(){const m=$('fuse'),sel=['.fzl','.fzm','.fzr','.fzb','.card'],keep={};if(m)sel.forEach(q=>{const e=m.querySelector(q);if(e)keep[q]=[e.scrollTop,e.scrollLeft];});const ws=window.scrollY;
+ _rf9.apply(this,arguments);if(m)sel.forEach(q=>{const e=m.querySelector(q);if(e&&keep[q]){e.scrollTop=keep[q][0];e.scrollLeft=keep[q][1];}});if(window.scrollY!==ws)window.scrollTo(0,ws);};}
 // v98 ── 💡 데크 네온 사인 (테스트 기능) — 데크 입구 위 아치 간판, 양면, 먼저 앉은 사람 글씨가 보여요
 LAB.push({k:'neonBB',n:'💡 데크 네온 사인',d:'데크 의자에 앉으면 오른쪽에 「💡 네온」 버튼 → 글씨·색·움직임을 정하면 데크 입구 위에 네온 간판이 켜져요. 같은 호숫가 모두에게 보이고, 먼저 앉은 사람 간판이 보여요 (일어나면 꺼져요)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 const nbOn=()=>!PREV&&opt('neonBB','off')==='on';
