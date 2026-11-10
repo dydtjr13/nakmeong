@@ -123,7 +123,7 @@ export function cleanEx(v) {
   const out = {};
   let n = 0;
   for (const k of Object.keys(v)) {
-    if (n >= 6) break;
+    if (n >= 10) break;
     if (!/^[a-z]{1,4}$/.test(k)) continue;
     const x = v[k];
     if (typeof x === "number" && Number.isFinite(x)) out[k] = Math.round(Math.max(-1e6, Math.min(1e6, x)) * 100) / 100;
@@ -963,6 +963,33 @@ export function sanitizePlay(input, prev, opt) {
   if ("backAsk" in input) out.backAsk = pickOf(input.backAsk, ["off", "A", "B"]);
   if ("petFx" in input) out.petFx = pickOf(input.petFx, ["off", "on"]);
   if ("eqWin" in input) out.eqWin = pickOf(input.eqWin, ["off", "A", "B"]);
+  if ("mission" in input) out.mission = pickOf(input.mission, ["off", "on"]);
+  if ("msCfg" in input) {
+    const v = input.msCfg, T = ["catch", "rare", "legend", "sell", "box", "social", "fuse", "gold"], R = ["co", "xp", "bx", "st", "ess"];
+    const num = (q, lo, hi, d) => { const n = Number(q); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, Math.round(n))) : d; };
+    const row = (x) => x && typeof x === "object" ? { t: T.includes(x.t) ? x.t : "catch", n: num(x.n, 1, 1e6, 10), r: R.includes(x.r) ? x.r : "co", v: num(x.v, 0, 1e7, 0) } : null;
+    const o = {};
+    if (v && typeof v === "object") {
+      if (Array.isArray(v.d)) o.d = v.d.slice(0, 5).map(row).filter(Boolean);
+      if (Array.isArray(v.w)) o.w = v.w.slice(0, 5).map(row).filter(Boolean);
+      if (Array.isArray(v.s)) o.s = v.s.slice(0, 6).map((x) => x && typeof x === "object" ? { d: num(x.d, 1, 31, 7), r: R.includes(x.r) ? x.r : "bx", v: num(x.v, 0, 1e7, 2) } : null).filter(Boolean);
+    }
+    out.msCfg = o;
+  }
+  if ("snowFx" in input) out.snowFx = pickOf(input.snowFx, ["off", "on"]);
+  if ("snowCfg" in input) {
+    const v = input.snowCfg, o = {};
+    if (v && typeof v === "object" && !Array.isArray(v)) for (const k of ["base", "nunbal", "blizzard", "hambak", "soft", "powder", "crystal", "glitter", "glow", "sleet", "sakura"]) {
+      const x = v[k]; if (!x || typeof x !== "object") continue;
+      const num = (q, lo, hi, d) => { const n = Number(q); return Number.isFinite(n) ? Math.max(lo, Math.min(hi, Math.round(n))) : d; };
+      o[k] = { on: x.on ? 1 : 0, w: num(x.w, 0, 20, 1), a: num(x.a, 0, 200, 100) };
+    }
+    out.snowCfg = o;
+  }
+  if ("petFish" in input) out.petFish = pickOf(input.petFish, ["off", "on"]);
+  if ("profView" in input) out.profView = pickOf(input.profView, ["on", "off"]);
+  if ("timeIco" in input) out.timeIco = pickOf(input.timeIco, ["A", "B", "C", "old"]);
+  if ("wearShop" in input) out.wearShop = pickOf(input.wearShop, ["off", "on"]);
   if ("vehCfg" in input) {
     const v = input.vehCfg;
     if (v && typeof v === "object" && !Array.isArray(v)) {
@@ -1234,8 +1261,8 @@ const pkFish = (f) => Array.isArray(f) ? [pkStr(f[0], 24).replace(/[^\w-]/g, "")
 export function cleanPeek(d) {
   if (!d || typeof d !== "object" || Array.isArray(d)) return {};
   const o = {};
-  for (const k of ["lv", "dex", "dexN", "tot", "days", "sold", "cap", "best5"]) if (d[k] != null) o[k] = pkNum(d[k], 0, 1e9);
-  for (const k of ["tt", "pet", "veh", "rod", "map", "tank", "since", "msg"]) if (d[k] != null) o[k] = pkStr(d[k], k === "msg" ? 60 : 24);
+  for (const k of ["lv", "dex", "dexN", "tot", "days", "sold", "cap", "best5", "tankN", "rodE"]) if (d[k] != null) o[k] = pkNum(d[k], 0, 1e9);
+  for (const k of ["tt", "pet", "veh", "rod", "map", "tank", "since", "msg", "set"]) if (d[k] != null) o[k] = pkStr(d[k], k === "msg" ? 60 : 24);
   if (d.best) o.best = pkFish(d.best);
   if (Array.isArray(d.fish)) o.fish = d.fish.slice(0, 120).map(pkFish).filter((f) => f && f[0]);
   if (Array.isArray(d.ach)) o.ach = d.ach.slice(0, 8).map((x) => pkStr(x, 20));

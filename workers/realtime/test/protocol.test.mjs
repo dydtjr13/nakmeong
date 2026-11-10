@@ -750,3 +750,13 @@ test("v93 엿보기(pk/pka) · 장비 창 키", () => {
   assert.equal(_pc(JSON.stringify({ t: "pk" })), null);
   assert.equal(_spl({ eqWin: "B" }, {}).eqWin, "B");
 });
+
+test("v94 눈 설정 · 새 테스트 키 · 엿보기 필드", () => {
+  const pl = _spl({ snowFx: "on", snowCfg: { soft: { on: true, w: 99, a: 350 }, bad: { on: 1 } }, petFish: "on", profView: "off", timeIco: "C", wearShop: "on" }, {});
+  assert.deepEqual(pl.snowCfg, { soft: { on: 1, w: 20, a: 200 } });
+  assert.equal(pl.snowFx, "on"); assert.equal(pl.petFish, "on"); assert.equal(pl.profView, "off"); assert.equal(pl.timeIco, "C"); assert.equal(pl.wearShop, "on");
+  const m = _pc(JSON.stringify({ t: "pka", to: "a", k: "prof", d: { tankN: 12, rodE: 9, set: "선장|60", msg: "안녕<b>" } }));
+  assert.equal(m.d.tankN, 12); assert.equal(m.d.set, "선장|60"); assert.equal(m.d.msg, "안녕b");
+  const p = _sp({ x: 1, z: 1, ex: { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, rd: "fire.5" } }, null);
+  assert.equal(p.ex.rd, "fire.5");
+});
