@@ -289,7 +289,7 @@ img.carimg.cc-rainbow{animation:ccRb 2.4s linear infinite}
 .wshop .wsh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.wshop .wsh b{font-size:14.5px}.wshop .wsh small{color:#8a7d6c;font-size:11.5px}.wshop .wsh .lvtag{margin-left:auto}
 .wshop .wsg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}@media(max-width:700px){.wshop .wsg{grid-template-columns:repeat(2,1fr)}}
 .wshop .wsi{background:#fff;border:1px solid #efe5d4;border-radius:14px;padding:8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}
-.wshop .wsi img{width:46px;height:46px;object-fit:contain}.wshop .wsi b{font-size:12.5px}.wshop .wsi small{font-size:10.5px;color:#8a7d6c}.wshop .wsi .p{font-weight:900;font-size:12.5px}.wshop .wsi .own{color:#3c9f7a;font-weight:800}
+.wshop .wsi img.wimg{width:46px;height:46px;object-fit:contain}.wshop .wsi b{font-size:12.5px}.wshop .wsi small{font-size:10.5px;color:#8a7d6c}.wshop .wsi .p{font-weight:900;font-size:12.5px}.wshop .wsi .own{color:#3c9f7a;font-weight:800}
 .wshop .wsi button{margin-top:4px;width:100%;border-radius:10px;padding:6px 0;font-weight:800}
 /* v94 시간 아이콘 + 카드 */
 body.tico #bTime{padding:0!important;width:40px;height:40px;min-width:40px;border-radius:50%!important;background:transparent!important;box-shadow:none!important;border:0!important;display:inline-flex;align-items:center;justify-content:center}
@@ -365,3 +365,36 @@ body.perf #dc.mini{min-width:0}
 .tico2.tC{backdrop-filter:none!important;background:rgba(30,26,40,.78)!important}
 #admin.modal{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(40,32,50,.5)}
 #profDlg .top .x{font-size:20px;line-height:28px;font-weight:700;color:#5b4a39}#profDlg .eqr img[src*="pets"]{width:38px;height:38px}
+/* v95 변이 자동 잠금 */
+.vrlk{display:flex;align-items:center;gap:8px;background:#f4eefb;border:1px solid #e3d6f4;border-radius:12px;padding:6px 8px 6px 11px;margin:6px 0 8px;font-size:12px;font-weight:800;color:#4a3a66}
+.vrlk span{flex:1;min-width:0}.vrlk small{display:block;font-weight:600;color:#8a7da0;font-size:10.5px}
+.vrlk button{border:0;border-radius:999px;padding:5px 12px;font-weight:900;font-size:12px;background:#ddd2bf;color:#5b4a39;cursor:pointer;flex:none}.vrlk.on button{background:#7b55c9;color:#fff}
+.modal.mwait>*{opacity:0!important}.modal.mfade>*{animation:mIn95 .14s ease-out}@keyframes mIn95{from{opacity:0}to{opacity:1}}
+/* v95 테스트 기능 목록 간소화 */
+.labsum{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 10px}.labsum span{border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:800}.labsum .t{background:#fff3df;color:#8a5a10}.labsum .a{background:#e7f5ee;color:#2f7a5c}
+.labsum .labq{margin-left:auto;min-width:200px;border:1px solid #e6dccb;border-radius:12px;padding:7px 11px;font-size:13px}
+.labsec{margin:6px 0;font-size:13px}.labsec small{font-weight:500;color:#9a8b78;font-size:11px;margin-left:4px}
+.labtry>.labrow small.muted{display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}.labtry>.labrow.dopen small.muted{display:block}
+.labapplied{margin:12px 0;border-radius:16px;background:#f1f8f3;border:1px solid #d4eadb}.labapplied>summary{cursor:pointer;padding:12px 14px;font-weight:900;font-size:14px;color:#2f7a5c;list-style:none}.labapplied>summary small{font-weight:600;color:#6c9a83;font-size:11px;margin-left:6px}
+.labapplied>summary::-webkit-details-marker{display:none}.labapplied>summary::before{content:'▸ '}.labapplied[open]>summary::before{content:'▾ '}.labaplist{padding:0 8px 8px}
+.labbox{margin:8px 0;border-radius:14px;background:#fbf7f0;border:1px solid #efe5d4}.labbox>summary{cursor:pointer;padding:10px 14px;font-weight:800;font-size:13.5px;list-style:none}.labbox>summary::-webkit-details-marker{display:none}.labbox>summary::before{content:'▸ ';color:#8a7660}.labbox[open]>summary::before{content:'▾ '}
+/* v95 펫 레벨 */
+.petlv{display:flex;align-items:center;gap:6px;margin:3px 0 4px;font-size:11px}.petlv b{background:#3b3346;color:#fff;border-radius:999px;padding:1px 7px;font-size:10.5px}
+.petlv .bar{flex:1;height:6px;border-radius:4px;background:#efe5d4;overflow:hidden;min-width:40px}.petlv .bar i{display:block;height:100%;background:linear-gradient(90deg,#ffcf5a,#f2a516)}.petlv small{color:#9a8b78;font-size:10px;white-space:nowrap}
+#petInfo .petlv{max-width:230px;margin:4px auto 0}
+/* v95 프로필 정렬 다시 */
+#profDlg .pc2 .top{height:84px}
+#profDlg .pc2 .top .x{display:flex;align-items:center;justify-content:center;padding:0;width:32px;height:32px;color:#5b4a39;background:rgba(255,255,255,.88);box-shadow:0 2px 6px rgba(0,0,0,.12)}
+#profDlg .pc2 .hd{display:flex;align-items:flex-end;gap:14px;margin-top:-44px;padding:0 18px;position:relative}
+#profDlg .pc2 .av{position:relative;left:auto;top:auto;flex:none;width:88px;height:88px}
+#profDlg .pc2 .av .on{left:auto;right:-4px;top:auto;bottom:-4px}
+#profDlg .pc2 .nm{padding:0 0 4px;min-height:0;flex:1;min-width:0}#profDlg .pc2 .nm b{font-size:19px;line-height:1.2;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#profDlg .pc2 .tg2{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:4px}#profDlg .pc2 .tg2 .lv{margin:0}
+#profDlg .pc2 .bd{padding-top:12px}
+#profDlg .pc2 .eqr{display:grid;grid-template-columns:repeat(4,1fr)}#profDlg .pc2 .eqr .emp{opacity:.45}#profDlg .pc2 .eqr .emp span{display:block;height:34px;line-height:34px;font-weight:900;color:#c8baa4}
+.labtry>.labrow{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:6px 14px;padding:10px 14px!important;margin:6px 0!important}
+.labtry>.labrow .labctl{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;margin:0!important}
+.labtry>.labrow .labctl>small{display:none}.labtry>.labrow .avopts{margin:0!important;gap:4px!important}.labtry>.labrow .avo{padding:5px 10px!important;font-size:12px!important;min-height:0!important}
+.labtry>.labrow [data-labgo]{padding:5px 10px!important;font-size:12px!important}
+@media(max-width:760px){.labtry>.labrow{grid-template-columns:1fr}.labtry>.labrow .labctl{justify-content:flex-start}}
+#profDlg .pc2 .top{height:78px}#profDlg .pc2 .hd{margin-top:-38px}#profDlg .pc2 .nm{padding-bottom:2px}
