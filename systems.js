@@ -64,8 +64,10 @@ SYS.weights=(D,S,rod,bait,night=0)=>{const ch=SYS.charmSum(D,S),N=night>.5,bb=ba
 SYS.migrate=(D,S)=>{S.gear=S.gear||[];if(!S.gear.length){(S.rods||['bamboo']).forEach(k=>{const g=SYS.makeGear(D,k,S.nid++);g.q=1;g.enh=(S.enh||{})[k]||0;S.gear.push(g);if(k===S.rod)S.rodId=g.id;});}
   if(!S.gear.find(g=>g.id===S.rodId))S.rodId=S.gear[0].id;if(!S.stats){S.stats={g:[0,0,0,0,0]};for(const k in (S.dex||{}))S.dex[k].gr.forEach((v,j)=>S.stats.g[j]+=v?1:0);}S.presets=S.presets||[[],[],[]];if(S.preset==null)S.preset=0;S.boxDesign=S.boxDesign||1;(S.charms||[]).forEach(c=>{if(c.lock==null)c.lock=false;});};
 // ── v5: 패시브 (도감 업적 + 어항 조합) ──
-SYS.comboState=(D,tank)=>D.COMBO.list.map(c=>{const best=c.ks.map(k=>{const fs=(tank||[]).filter(f=>f.k===k);return fs.length?Math.max(...fs.map(f=>f.g)):-1;});const on=best.every(g=>g>=0),lv=on?Math.min(4,...best):-1,m=on?D.COMBO.mult[lv]:0;
-  const e={};for(const k in c.e)e[k]=R1(c.e[k]*m);return {c,best,on,lv,e,have:best.filter(g=>g>=0).length};});
+// v107: 변이 물고기는 변이 등급만큼 조합 효과에 추가 점수 (블랙 +4% · 핑크 +8% · 레드 +12% · 황금 +16% · 무지개 +20%, 조합 물고기마다 더해요)
+SYS.VR_BONUS={black:.04,pink:.08,red:.12,gold:.16,rainbow:.2,albino:.04,sakura:.08,ghost:.12};
+SYS.comboState=(D,tank)=>D.COMBO.list.map(c=>{let vb=0;const vrs=[];const best=c.ks.map(k=>{const fs=(tank||[]).filter(f=>f.k===k);if(!fs.length){vrs.push(null);return -1;}const top=fs.slice().sort((a,b)=>b.g-a.g||(SYS.VR_BONUS[b.vr]||0)-(SYS.VR_BONUS[a.vr]||0))[0];vrs.push(top.vr||null);vb+=SYS.VR_BONUS[top.vr]||0;return top.g;});const on=best.every(g=>g>=0),lv=on?Math.min(4,...best):-1,m=on?D.COMBO.mult[lv]*(1+vb):0;
+  const e={};for(const k in c.e)e[k]=R1(c.e[k]*m);return {c,best,on,lv,e,vb,vrs,have:best.filter(g=>g>=0).length};});
 SYS.passives=(D,S)=>{const sum={};for(const k in D.CHARM.opts)sum[k]=0;S.stats=S.stats||{g:[0,0,0,0,0]};
   const ach=(D.ACH||[]).map(a=>{const [c,n]=a.p(S);const done=c>=n;if(done)for(const k in a.e)sum[k]+=a.e[k];return {a,c:Math.min(c,n),n,done};});
   const combo=D.COMBO?SYS.comboState(D,S.cslot?Object.values(S.cslot):S.tank):[];combo.forEach(x=>{if(x.on)for(const k in x.e)sum[k]+=x.e[k];});
