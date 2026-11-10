@@ -134,6 +134,8 @@
     try { cur.close(); } catch (e) { /* ignore */ }
   }
 
+  // v104: 살아 있다는 신호 (서버가 자동으로 pong · 끊긴 줄 모르는 유령 접속을 서버가 정리해요)
+  setInterval(() => { try { if (ws && ws.readyState === 1 && RT.mode === "on") ws.send("ping"); } catch (e) { /* ignore */ } }, 20000);
   function send(obj) {
     if (!ws || ws.readyState !== 1) return;
     try { ws.send(JSON.stringify(obj)); } catch (e) { /* ignore */ }
@@ -411,6 +413,7 @@
             setTimeout(() => { try { dispatchEvent(new CustomEvent("nk-rt-game", { detail: RT.game })); } catch (e) { /* ignore */ } }, 0);
             RT.mode = "on";
             retry = 0;
+            try { sock.send("ping"); } catch (e) { /* ignore */ }
             finish({ ok: true });
             return;
           }

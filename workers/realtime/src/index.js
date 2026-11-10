@@ -919,6 +919,7 @@ export class LakeRoom extends DurableObject {
   }
 
   async alarm() {
+    const STALE_MS = 75000;
     const now = Date.now();
     let pending = false;
     for (const ws of this.ctx.getWebSockets()) {
@@ -938,8 +939,21 @@ export class LakeRoom extends DurableObject {
       const att = this.attachment(ws);
       return !att || !att.ready;
     });
+    // v104: 핑이 75초 넘게 없는 접속(앱 강제 종료·통신 끊김)은 정리해요 → 다른 유저 화면에 캐릭터·그릴·어항이 남지 않게
+    let live = 0;
+    for (const ws of this.openSockets()) {
+      const att = this.attachment(ws);
+      if (!att || !att.ready) continue;
+      let ts = null;
+      try { ts = this.ctx.getWebSocketAutoResponseTimestamp ? this.ctx.getWebSocketAutoResponseTimestamp(ws) : null; } catch { ts = null; }
+      if (ts && now - ts.getTime() > STALE_MS) {
+        try { ws.close(4002, "stale"); } catch { /* ignore */ }
+        if (att.id) this.broadcast({ t: "leave", id: att.id, n: this.openSockets(ws).length }, ws);
+        console.log(JSON.stringify({ event: "stale", server: att.server }));
+      } else live++;
+    }
     await this.gameTick(now);
-    await this.armAlarm(helloWait ? Date.now() + HELLO_MS : 0);
+    await this.armAlarm(helloWait ? Date.now() + HELLO_MS : live ? Date.now() + 30000 : 0);
   }
 
   // ───────── v55: 초성·밸런스 게임 ─────────
