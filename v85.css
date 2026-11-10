@@ -445,3 +445,16 @@ body.perf #dc.mini{min-width:0}
 #shop .grid .tkimgw.big{background:radial-gradient(circle at 50% 45%,#fffaf0,#f6ead2);box-shadow:inset 0 0 0 1.5px #f2c26b}
 #shop .grid .tkimg{width:100%;height:100%;object-fit:contain}
 #shop .grid .tknew{position:absolute;left:8px;top:8px;background:#e8584a;color:#fff;font-size:10.5px;font-weight:900;border-radius:999px;padding:1px 8px;z-index:1}
+#bFuse,#bAdv{position:relative}#bFuse .msn,#bAdv .msn{position:absolute;right:-2px;top:-3px;min-width:16px;height:16px;border-radius:999px;background:#e8584a;color:#fff;font-style:normal;font-size:10px;font-weight:900;line-height:16px;text-align:center;padding:0 4px;z-index:2}
+#profDlg .pc{padding:0!important;margin:0}#profDlg .pc>.top{margin:0!important;border-radius:0;top:auto!important;left:auto!important;right:auto!important;flex-wrap:nowrap;gap:0}#profDlg .pc3 .tg2 .lv{margin:0!important}#profDlg .pcB{align-items:stretch}#profDlg .pcB>.top{min-height:100%}
+/* v97 기차 정보창: 기차 아이콘 누르면 접기 */
+#trBar .tri{cursor:pointer}#trBar.mini .trt,#trBar.mini .trv{display:none!important}#trBar.mini{gap:6px;padding-right:8px}
+/* v97 데크 판 색 */
+#shop .dkskins{grid-column:1/-1;background:#fff8ec;border:1px solid #ecd9b8;border-radius:14px;padding:10px 12px;margin-bottom:6px}
+#shop .dkskins h4{margin:0 0 2px}#shop .dkskins p{margin:0 0 8px}
+#shop .dkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+#shop .dki{display:flex;flex-direction:column;align-items:center;gap:3px;background:#fff;border:2px solid #f0e2c8;border-radius:12px;padding:8px 6px;text-align:center}
+#shop .dki.on{border-color:#f0a24a;box-shadow:0 0 0 2px #ffe2bd}
+#shop .dki b{font-size:12px;line-height:1.25}#shop .dki small{color:#9a7b54}
+#shop .dksv{width:84px;height:46px}
+#shop .dki button{font-size:12px;padding:4px 10px;margin-top:2px}
