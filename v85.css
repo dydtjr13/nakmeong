@@ -724,3 +724,4 @@ button.sellb:hover{background:#ffe7c2}
 .ltadm .ltrow label{display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:13px}
 .ltadm .ltrow input[type=number]{width:62px;padding:4px 6px;border-radius:8px;border:1.5px solid #d8cdf2}
 .ltadm #ltStat{margin-left:6px}
+.cslot.vr{box-shadow:0 0 0 2px #c79cf2 inset}.cslot small{white-space:nowrap}

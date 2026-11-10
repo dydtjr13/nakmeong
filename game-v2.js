@@ -1188,7 +1188,9 @@ function openFishRank(k,data){wkRoll();const f0=FI(k),f=S.dex[k]?f0:Object.assig
  if(!data){const q=++frSeq;RKAPI.get(k,prev?'all':frScope,prev).then(j=>{if(q===frSeq&&ov.classList.contains('show'))openFishRank(k,j);}).catch(()=>{if(q===frSeq&&ov.classList.contains('show'))openFishRank(k,{err:1});});}}
 // ───────── v12: 어항 조합 보관함 (조합에 쓰인 물고기는 어항과 분리 보관) ─────────
 const comboKs=()=>[...new Set(D.COMBO.list.flatMap(c=>c.ks))];
-const better=(a,b)=>!b||a.g>b.g||(a.g===b.g&&a.cm>b.cm);
+// v107: 조합 점수 = 등급 배율 × (1 + 변이 추가 점수) → 변이 물고기도 더 좋으면 교체할 수 있어요
+const cslotScore=f=>(D.COMBO.mult[Math.min(4,f.g|0)]||1)*(1+((SYS.VR_BONUS||{})[f.vr]||0));
+const better=(a,b)=>{if(!b)return true;const x=cslotScore(a),y=cslotScore(b);return x>y+1e-9||(Math.abs(x-y)<1e-9&&a.cm>b.cm);};
 function cslotInit(){if(S.cslot)return;S.cslot={};comboKs().forEach(k=>{const c=S.tank.filter(f=>f.k===k).sort((a,b)=>b.g-a.g||b.cm-a.cm)[0];if(c){S.cslot[k]=c;S.tank=S.tank.filter(x=>x!==c);c.sale=false;}});}
 function cslotUp(f){return comboKs().includes(f.k)&&S.cslot[f.k]&&better(f,S.cslot[f.k]);}
 function cslotSwap(id){const f=S.tank.find(x=>x.id==id);if(!f||!comboKs().includes(f.k))return;const old=S.cslot[f.k];S.tank=S.tank.filter(x=>x!==f);f.sale=false;S.cslot[f.k]=f;if(old)S.tank.push(old);save();toast(`🧩 조합 보관함 교체: ${FI(f.k).n} ${f.cm}cm (${GR(f.g).n})${old?`<br><small>기존 ${old.cm}cm는 어항으로 돌아갔어요</small>`:''}`,2000);}
@@ -1338,8 +1340,9 @@ const tankView={r:null,open(owner){this.owner=owner;if(owner&&owner!=='me')try{x
   let bar='';const one=!this.multiA&&sel.size===1?S.tank.find(x=>sel.has(x.id)):null;
   if(this.multiA){const fs=S.tank.filter(x=>sel.has(x.id)&&!x.lock),tot=fs.reduce((a,f)=>a+sellP(f),0);bar=`<div class="tkA-bar"><b>${sel.size}마리 선택</b>${this.armA&&fs.length?`<button data-ba="sellgo" class="acc">정말 ${fs.length}마리 팔기 🪙${tot.toLocaleString()}</button><button data-ba="cancel">취소</button>`:`<button data-ba="sellsel" ${fs.length?'':'disabled'}>선택한 ${fs.length}마리 팔기 🪙${tot.toLocaleString()}</button><button data-ba="locksel" ${sel.size?'':'disabled'}>🔒 잠금</button><button data-ba="unlocksel" ${S.tank.some(f=>sel.has(f.id)&&f.lock)?'':'disabled'}>🔓 잠금 해제</button><button data-ba="all">전체 선택</button><button data-ba="done" class="acc">완료</button>`}</div>`;}
   else if(one){const f=one;bar=`<div class="tkA-bar"><b>${FI(f.k).n} ${f.cm}cm</b><button class="lockb ${f.lock?'on':''}" data-lock="${f.id}">${f.lock?'🔒 잠금됨':'🔓 잠금'}</button><span class="small">판매가</span><input type="number" min="1" value="${f.price}" data-price="${f.id}" ${f.lock?'disabled':''}><label><input type="checkbox" data-sale="${f.id}" ${f.sale?'checked':''} ${f.lock?'disabled':''}> 판매중</label><button data-sell="${f.id}" ${f.lock?'disabled':''}>상점에 팔기 🪙${sellP(f)}</button>${bragOffNow()?'':`<button class="brb ${brag&&brag.id===f.id?'on':''}" data-brag="${f.id}">${brag&&brag.id===f.id?'📣 자랑 그만':'📣 자랑하기'}</button>`}${cslotUp(f)?`<button class="ctag2" data-cswap="${f.id}">🧩🔄 조합 교체</button>`:''}</div>`;}
-  const slotA=k=>{const sf=S.cslot[k],F=FI(k)||{n:k,img:''},up=S.tank.filter(f=>f.k===k&&better(f,sf)).sort((a,b)=>b.g-a.g||b.cm-a.cm)[0];return `<div class="cslot ${sf?'h':''}" style="--gc:${sf?GR(sf.g).c:'#ddd'}"><img src="${F.img}" class="${sf?'':'sil'}" alt=""><b>${F.n}</b><small>${sf?`${GR(sf.g).n} · ${sf.cm}cm`:'비어 있음'}</small>${up?`<button class="cswap" data-cswap="${up.id}" title="${GR(up.g).n} ${up.cm}cm로 교체">🔄 ${GR(up.g).n}</button>`:''}</div>`;};
-  const combos=`<div class="tkA-cg">${st.map(x=>{const miss=x.c.ks.filter((k,i)=>x.best[i]<0).map(k=>(FI(k)||{n:k}).n);return `<div class="tkA-cc ${x.on?'on':''}" style="--gc:${x.on?GR(x.lv).c:'#e4ddd2'}"><div class="tkA-ct"><b>${x.c.n}</b><span class="prog">${x.c.ks.map((k,i)=>`<i class="${x.best[i]>=0?'f':''}"></i>`).join('')}</span></div><div class="cks2">${x.c.ks.map(slotA).join('')}</div>${x.on?`<div class="fxl">✅ ${effTxt(x.e)} 적용 중 <small>${GR(x.lv).n} 등급 ×${D.COMBO.mult[x.lv]}</small></div>`:`<div class="need">🎣 ${miss.join(', ')} 낚으면 ${effTxt(x.c.e)}</div>`}</div>`;}).join('')}</div><p class="small muted">조합 칸은 어항 칸을 차지하지 않아요. 더 좋은 물고기가 있으면 🔄 로 바꿔요.</p>`;
+  const vrN=f=>{const v=f&&f.vr&&FZV[fzVK(f.vr)];return v?v.n:'';},vrP=f=>Math.round(((SYS.VR_BONUS||{})[f&&f.vr]||0)*100);
+  const slotA=k=>{const sf=S.cslot[k],F=FI(k)||{n:k,img:''},up=S.tank.filter(f=>f.k===k&&better(f,sf)).sort((a,b)=>cslotScore(b)-cslotScore(a)||b.cm-a.cm)[0];return `<div class="cslot ${sf?'h':''} ${sf&&sf.vr?'vr':''}" style="--gc:${sf?GR(sf.g).c:'#ddd'}"><img src="${F.img}" class="${sf?'':'sil'}" alt="" ${sf&&sf.vr&&FZV[fzVK(sf.vr)]?`style="filter:${FZV[fzVK(sf.vr)].fx}"`:''}><b>${F.n}</b><small>${sf?`${GR(sf.g).n}${sf.vr?` · ${vrN(sf)} +${vrP(sf)}%`:''} · ${sf.cm}cm`:'비어 있음'}</small>${up?`<button class="cswap" data-cswap="${up.id}" title="${GR(up.g).n}${up.vr?' '+vrN(up)+' 변이':''} ${up.cm}cm로 교체">🔄 ${up.vr?vrN(up):GR(up.g).n}</button>`:''}</div>`;};
+  const combos=`<div class="tkA-cg">${st.map(x=>{const miss=x.c.ks.filter((k,i)=>x.best[i]<0).map(k=>(FI(k)||{n:k}).n);return `<div class="tkA-cc ${x.on?'on':''}" style="--gc:${x.on?GR(x.lv).c:'#e4ddd2'}"><div class="tkA-ct"><b>${x.c.n}</b><span class="prog">${x.c.ks.map((k,i)=>`<i class="${x.best[i]>=0?'f':''}"></i>`).join('')}</span></div><div class="cks2">${x.c.ks.map(slotA).join('')}</div>${x.on?`<div class="fxl">✅ ${effTxt(x.e)} 적용 중 <small>${GR(x.lv).n} 등급 ×${D.COMBO.mult[x.lv]}${x.vb?` · 🌈 변이 +${Math.round(x.vb*100)}%`:''}</small></div>`:`<div class="need">🎣 ${miss.join(', ')} 낚으면 ${effTxt(x.c.e)}</div>`}</div>`;}).join('')}</div><p class="small muted">조합 칸은 어항 칸을 차지하지 않아요. 더 좋은 물고기가 있으면 🔄 로 바꿔요. 변이 물고기는 블랙 +4% · 핑크 +8% · 레드 +12% · 황금 +16% · 무지개 +20% 추가 효과</p>`;
   return `<h2>🐠 내 어항 <span class="tkA-cnt">${L.length}/${cap()}칸</span></h2><div class="tkA-fx"><b>✨ 지금 받는 효과</b>${fx}<span class="tkA-on">조합 ${onN}/${st.length} 완성</span></div>
    <div class="tkA-tabs"><button data-ta="fish" class="${T==='fish'?'on':''}">🐟 물고기<i>${L.length}</i></button><button data-ta="combo" class="${T==='combo'?'on':''}">🧩 조합<i>${onN}/${st.length}</i></button><button data-ta="sale" class="${T==='sale'?'on':''}">🏷 판매중<i>${saleN}</i></button></div>`+
    (T==='combo'?combos:`${T==='fish'?`<div class="tkA-filt">${Object.entries(FL).map(([k,[n,fn]])=>`<button data-tf="${k}" class="${filt===k?'on':''}">${n} <i>${L.filter(fn).length}</i></button>`).join('')}${filt==='lock'&&!this.multiA&&L.some(f=>f.lock)?`<button data-ba="unlockall" class="unlk">🔓 모두 풀기</button>`:''}${L.length>1?`<select data-tsorta>${TSORT.map(([k,n])=>`<option value="${k}" ${(S.tankSort||'new')===k?'selected':''}>${n}</option>`).join('')}</select>`:''}<button data-ba="${this.multiA?'done':'multi'}" class="tkA-multi ${this.multiA?'on':''}">□ 여러 마리 선택</button></div>`:''}${bar}
@@ -2165,6 +2168,8 @@ function fzPick(G){return G.list.slice().sort((a,b)=>a.v-b.v).slice(0,3);}
 function fzCost(st){return 300*(st+1);}
 const FZ_ESS={black:5,pink:8,red:12,gold:18,rainbow:30};
 function fzProbs(G){const z=fzS(),P={};if(FZ.pity&&(z.ess|0)<(FZ_ESS[FZ.pity]||10))FZ.pity=null;if(G&&G.vr){FZO.forEach(k=>P[k]=k===fzNext(G.vr)?100:0);return {P,fail:0,ok:0,fix:1};}let vs=0;FZO.forEach(k=>{let p=FZV[k].p;if(FZ.cat===k)p*=2;P[k]=p;vs+=p;});if(FZ.pity){FZO.forEach(k=>P[k]=k===FZ.pity?100:0);return {P,fail:0,ok:0};}return {P,fail:FZ_FAIL,ok:Math.max(0,100-vs-FZ_FAIL)};}
+// v107: 합성 뒤 그 물고기가 3마리 미만이면 목록 맨 위 합성 가능한 물고기를 자동으로 골라요
+function fzAutoSel(){const G=fzGroups(),c=G.find(x=>fzKey(x)===FZ.sel);if(c&&c.list.length>=3)return;const e=G.find(x=>x.list.length>=3);FZ.sel=e?fzKey(e):null;if(!e)FZ.sheet=false;}
 function fzAllN(cur){if(!cur)return 0;const c=fzCost(cur.st);return Math.max(0,Math.min(Math.floor(cur.list.length/3),c?Math.floor(S.coins/c):99));}
 function fzGoB(cur,mats,cost){const n=fzAllN(cur),ok=mats.length&&S.coins>=cost&&!FZ.busy,left=cur?cur.list.length-n*3:0;
  return `<div class="fzgoB"><div class="need">필요 골드<b><img src="img/feat/coins-gold.png" alt="">${cost.toLocaleString()}</b></div><button type="button" class="one" id="fzGo" ${ok?'':'disabled'}>합성하기 <small>1번</small></button><button type="button" class="all" id="fzAll" ${ok&&n>=2?'':'disabled'}>⚡ 한 번에 합성 <small>×${n} · 🪙${(n*cost).toLocaleString()}</small></button></div>
@@ -2191,11 +2196,11 @@ function renderFuse(){const z=fzS(),G=fzGroups();if(FZ.sel&&!G.find(x=>fzKey(x)=
  R.querySelectorAll('[data-fzc]').forEach(b=>b.onclick=()=>{FZ.cat=FZ.cat===b.dataset.fzc?null:b.dataset.fzc;renderFuse();});
  const ps=$('fzPity');if(ps)ps.onchange=()=>{FZ.pity=ps.value||null;renderFuse();};
  const go=$('fzGo');if(go)go.onclick=()=>fzDo(cur,mats);const ga=$('fzAll');if(ga)ga.onclick=()=>fzAll(cur);if(window.NK_fzSetBind)NK_fzSetBind(R);}
-function fzDo(G,mats){if(FZ.busy||!G||mats.length<3)return;const cost=fzCost(G.st);if(S.coins<cost){toast('골드가 모자라요');return;}FZ.busy=true;const res=fzCore(G,mats);try{XBAL.ev(15,'합성');}catch(e){}save();hud();FZ.busy=false;fzReveal(res,G);renderFuse();}
+function fzDo(G,mats){if(FZ.busy||!G||mats.length<3)return;const cost=fzCost(G.st);if(S.coins<cost){toast('골드가 모자라요');return;}FZ.busy=true;const res=fzCore(G,mats);try{XBAL.ev(15,'합성');}catch(e){}save();hud();FZ.busy=false;fzReveal(res,G);fzAutoSel();renderFuse();}
 // v104 ⚡ 한 번에 합성: 같은 물고기·같은 별이 3마리 이상 남아 있는 동안 연달아 (촉매·확정은 첫 번째에만)
 function fzAll(G){if(FZ.busy||!G)return;const key=fzKey(G),out=[];let spent=0;FZ.busy=true;
  for(let i=0;i<200;i++){const g=fzGroups().find(x=>fzKey(x)===key);if(!g||g.list.length<3)break;const mats=fzPick(g),cost=fzCost(g.st);if(mats.length<3||S.coins<cost)break;spent+=cost;out.push(fzCore(g,mats));}
- FZ.busy=false;if(!out.length){toast('합성할 물고기나 골드가 모자라요',1600);return;}try{XBAL.ev(15*out.length,'합성');}catch(e){}save();hud();fzRevealAll(out,G,spent);renderFuse();}
+ FZ.busy=false;if(!out.length){toast('합성할 물고기나 골드가 모자라요',1600);return;}try{XBAL.ev(15*out.length,'합성');}catch(e){}save();hud();fzRevealAll(out,G,spent);fzAutoSel();renderFuse();}
 function fzRevealAll(out,G,spent){let m=$('fzr');if(!m){m=document.createElement('div');m.id='fzr';m.className='modal';document.body.appendChild(m);}
  const okN=out.filter(r=>!r.fail&&!r.f.vr).length,fails=out.filter(r=>r.fail),vars=out.filter(r=>!r.fail&&r.f.vr),F=FI(G.k),st=G.st+2,best=out.filter(r=>!r.fail&&!r.f.vr).map(r=>r.f).sort((a,b)=>b.cm-a.cm)[0];
  const tile=(cls,img,b,sm)=>`<div class="fzat ${cls}">${img}<b>${b}</b><small>${sm}</small></div>`;
@@ -4208,7 +4213,7 @@ function pasAsk(id,e){const r=remotes.get(id);if(!r)return;let m=$('vehAsk');if(
 (window.__nkPick=window.__nkPick||[]).push(ray=>{if(!vehOn()||VPAS.id||!me)return false;let best=null;for(const [id,e] of VW.peers){if(vehBase(e.k)!=='car')continue;const h=ray.intersectObject(e.g,true)[0];if(h&&(!best||h.distance<best[0]))best=[h.distance,id,e];}if(!best)return false;
  const d=Math.hypot(best[2].g.position.x-me.o.position.x,best[2].g.position.z-me.o.position.z);if(d>7){miniToast('🚗 자동차 가까이 가서 눌러 주세요',1400);return true;}pasAsk(best[1],best[2]);return true;});
 (window.__nkPostSync=window.__nkPostSync||[]).push(()=>{if(!VPAS.id||!me)return;const e=VW.peers.get(VPAS.id);if(!e||vehBase(e.k)!=='car')return;const st=vehSeat(e.g,1);me.o.position.copy(st);me.o.rotation.y=e.g.rotation.y;me.dir=e.g.rotation.y;});
-window.NK89.veh={VEHS,vehGet,VW,VEHB,VPAS,vehCfg,pasAsk,rollCar,SMK,pasOff};
+window.NK89.veh={VEHS,vehGet,VW,VEHB,VPAS,vehCfg,pasAsk,rollCar,SMK,pasOff,vehMesh:k=>vehMesh(k)};
 // v101: 옆자리 손님은 언제든 내릴 수 있게 — 버튼은 맨 위에 · Esc/E/Q 키 · 움직이려고 하면 안내
 addEventListener('keydown',e=>{if(!VPAS.id||e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;if(e.code==='Escape'||e.code==='KeyE'||e.code==='KeyQ'){pasOff('🚗 옆자리에서 내렸어요');e.preventDefault();e.stopImmediatePropagation();}},true);
 {let pasHint=0;FHOOK.push(()=>{if(!VPAS.id){const b0=$('vehBtn');if(b0&&b0.classList.contains('pas'))b0.classList.remove('pas');return;}const mv=(typeof joy!=='undefined'&&(Math.abs(joy.x)>.3||Math.abs(joy.y)>.3))||keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||keys.ArrowUp||keys.ArrowDown;const b=$('vehBtn');if(b)b.classList.add('pas');if(mv&&performance.now()-pasHint>4000){pasHint=performance.now();miniToast('🚗 옆자리에 타고 있어요 · 「옆자리에서 내리기」를 누르거나 Esc',1800);}});}
@@ -4216,6 +4221,10 @@ addEventListener('keydown',e=>{if(!VPAS.id||e.target&&/INPUT|TEXTAREA/.test(e.ta
 const FLY={balloon:{n:'열기구',sc:1.55,alt:3.2,spd:25,cols:[['sun','선셋',3000000],['sky','하늘',3000000],['mint','민트',3000000],['rainbow','무지개',6000000]]},
  plane:{n:'경비행기',sc:1.6,alt:3.6,spd:70,cols:[['red','빨강',5000000],['blue','파랑',5000000],['yellow','노랑',5000000],['rainbow','무지개',9000000]]},
  archae:{n:'시조새',sc:1.5,alt:3.4,spd:60,cols:[['teal','청록',5000000],['crimson','진홍',5000000],['gold','황금',5000000],['rainbow','무지개',9000000]]},
+ elephant:{n:'코끼리',sc:1.55,alt:0,spd:30,ground:1,ani:1,ico:'🐘',cols:[['grey','회색',4000000],['pink','분홍',4000000]]},
+ giraffe:{n:'기린',sc:1.45,alt:0,spd:40,ground:1,ani:1,ico:'🦒',cols:[['sun','노랑',4000000],['snow','하양',4000000]]},
+ capy:{n:'카피바라',sc:1.6,alt:0,spd:25,ground:1,ani:1,ico:'🦫',cols:[['cocoa','갈색',3000000],['honey','꿀색',3000000]]},
+ pig:{n:'돼지',sc:1.6,alt:0,spd:30,ground:1,ani:1,ico:'🐷',cols:[['pink','분홍',2500000],['spot','점박이',2500000]]},
  robot:{n:'로봇',sc:2.1,alt:0,spd:35,ground:1,cols:[['blue','파랑',5000000],['red','빨강',5000000],['mint','민트',5000000],['pink','핑크',5000000],['gold','황금',8000000],['black','블랙',8000000]]}};// v105 🤖 로봇: 캐릭터가 머리 조종석에 타요 (땅으로만 걸어요)
 const FLYC={balloon:{sun:['#ff7a5a','#ffd25e','#ff9a5a','#ffe9a8'],sky:['#6fa8e8','#ffffff','#9fd0f5','#ffffff'],mint:['#7ccfb8','#fff6e6','#a8e2d2','#fff6e6'],rainbow:['#ff7a8a','#ffd25e','#7ccfb8','#6fa8e8','#b98be0','#ff9a5a']},
  plane:{red:['#e85a4a','#fbf6ee','#ffcf4a'],blue:['#3d7fd1','#fbf6ee','#ffcf4a'],yellow:['#f5c63c','#5a6a8a','#e85a4a'],rainbow:['#ff6b6b','#fbf6ee','#ffd25e']},
@@ -4275,10 +4284,44 @@ function flyRobot(cc){const T=THREE,col=ROBC[cc]||ROBC.blue,g=new T.Group(),A=ro
  const dome=new T.Mesh(new T.SphereGeometry(.4,20,10,0,Math.PI*2,0,Math.PI/2),ROBM.dome||(ROBM.dome=new T.MeshLambertMaterial({color:'#dff4ff',transparent:true,opacity:.22,depthWrite:false})));dome.position.y=.18;ck.add(dome);
  const rim=new T.Mesh(new T.TorusGeometry(.4,.035,6,24),Y);rim.rotation.x=Math.PI/2;rim.position.y=.19;ck.add(rim);[-1,1].forEach(q=>{P(.06,.22,.06,C,q*.36,.3,-.05,ck);P(.08,.08,.08,robMat('#ffe26a'),q*.36,.44,-.05,ck);});
  g.userData.seat=[0,1.56,0];g.userData.legs=legs;g.userData.pose='sit';return g;}
-const FLYB={plane:flyPlane,archae:flyArchae,balloon:flyBalloon,robot:flyRobot};
-let ROBSEL=null;
-function robShopHTML(k,F,o){const own=c=>o&&o.cs.includes(c);if(!ROBSEL||!F.cols.find(x=>x[0]===ROBSEL))ROBSEL=(o&&o.c)||F.cols[0][0];const it=F.cols.find(x=>x[0]===ROBSEL),[c,n,pr]=it,on=own(c)&&o.c===c&&S.vehOn===k;
- return `<div class="flyc robc"><div class="flyh"><b>🤖 ${F.n}</b><small>속도 +${F.spd}% · 머리 조종석에 타요 · 땅으로만 다녀요</small></div><div class="robb"><img class="robim" data-flyimg="${k}.${c}" alt=""><div class="robi"><div class="robsw">${F.cols.map(([cc,nn])=>`<button type="button" class="${cc===c?'on':''} ${own(cc)?'own':''}" data-robsw="${cc}" title="${nn}" style="--rc:${ROBC[cc].a};--rb:${ROBC[cc].b}"></button>`).join('')}</div>
+// v107 🐘🦒🦫🐷 동물 탈것: 각진 블록 동물 · 등에 안장 (직접 만든 모양)
+const ANIM_C={elephant:{grey:{a:'#9aa6b8',b:'#7b879a',c:'#c8d0dc'},pink:{a:'#e8a8bc',b:'#c98aa0',c:'#f6d2dc'}},giraffe:{sun:{a:'#f2c14a',b:'#a8642c',c:'#fff1c8'},snow:{a:'#f4efe6',b:'#9a8f86',c:'#ffffff'}},capy:{cocoa:{a:'#a87a52',b:'#7e5a3c',c:'#caa27a'},honey:{a:'#d8a45a',b:'#a8783c',c:'#f0c888'}},pig:{pink:{a:'#f5a6b4',b:'#e0808f',c:'#ffd0d8'},spot:{a:'#f6d8c8',b:'#4a3a3c',c:'#ffe8dc'}}};
+function flyAnimal(kind){return function(cc){const T=THREE,P=ANIM_C[kind],col=P[cc]||Object.values(P)[0],g=new T.Group(),legs=[],DK='#2b2430';
+ const B=(par,w,h,d,c,x,y,z,r)=>{const b=new T.Mesh(new T.BoxGeometry(w,h,d),robMat(c));b.position.set(x,y,z);if(r)b.rotation.set(r[0]||0,r[1]||0,r[2]||0);b.castShadow=true;par.add(b);return b;};
+ const LEG=(w,h,c,foot,x,hy,z,ph)=>{const p=new T.Group();p.position.set(x,hy,z);B(p,w,h,w,c,0,-h/2,0);if(foot)B(p,w*1.08,.08,w*1.12,foot,0,-h+.04,0);g.add(p);legs.push({p,ph});return p;};
+ const SADDLE=(y,z,w,d,c1,c2)=>{B(g,w,.1,d,c1,0,y,z);B(g,w+.04,.05,d*.25,c2,0,y+.07,z-d*.42);B(g,.06,.22,.06,c2,w/2+.02,y-.14,z);B(g,.06,.22,.06,c2,-w/2-.02,y-.14,z);};
+ const EYES=(hd,x,y,z,s)=>[-1,1].forEach(q=>{B(hd,.09*s,.11*s,.03,DK,q*x,y,z);B(hd,.035*s,.035*s,.032,'#ffffff',q*x-.02*s,y+.03*s,z+.003);});
+ const heads=[];let seat=[0,1.4,0],tail=null;
+ if(kind==='elephant'){B(g,1.2,1.0,1.55,col.a,0,1.25,0);B(g,1.1,.18,1.4,col.b,0,.78,0);
+  const hd=new T.Group();hd.position.set(0,1.45,.85);g.add(hd);heads.push(hd);B(hd,.9,.82,.62,col.a,0,0,.12);EYES(hd,.24,.08,.44,1.2);
+  [-1,1].forEach(q=>{const e=B(hd,.12,.78,.7,col.b,q*.55,-.02,-.02,[0,q*.35,0]);B(hd,.04,.6,.52,col.c,q*.58,-.02,.0,[0,q*.35,0]);});
+  B(hd,.28,.3,.26,col.a,0,-.3,.5);B(hd,.24,.3,.22,col.a,0,-.56,.56);B(hd,.2,.26,.2,col.a,0,-.8,.62,[.35,0,0]);B(hd,.22,.08,.22,col.b,0,-.95,.7);
+  [-1,1].forEach(q=>B(hd,.08,.08,.3,'#fff8ea',q*.22,-.32,.46,[.5,0,0]));
+  [[-.36,.5],[.36,.5],[-.36,-.5],[.36,-.5]].forEach(([x,z])=>LEG(.36,.8,col.a,col.c,x,.82,z,(x<0)===(z>0)?0:Math.PI));
+  tail=new T.Group();tail.position.set(0,1.45,-.8);B(tail,.06,.06,.4,col.b,0,-.15,-.12,[.9,0,0]);g.add(tail);
+  SADDLE(1.79,-.05,.9,.9,'#d64a3c','#f2c14a');B(g,1.24,.06,.06,'#f2c14a',0,1.52,.4);seat=[0,1.86,-.08];}
+ if(kind==='giraffe'){B(g,.78,.7,1.3,col.a,0,1.55,0);const sp=[[.4,1.62,.28],[.4,1.45,-.3],[-.4,1.6,-.1],[-.4,1.42,.38],[0,1.92,-.35],[.4,1.75,-.05],[-.4,1.75,.22]];sp.forEach(([x,y,z])=>B(g,x?.02:.24,.2,.24,col.b,x,y,z));
+  const nk=new T.Group();nk.position.set(0,1.75,.55);g.add(nk);B(nk,.34,1.5,.34,col.a,0,.7,0);[[.18,.45],[-.18,.9],[.18,1.2],[-.18,.3]].forEach(([x,y])=>B(nk,.02,.16,.18,col.b,x,y,0));B(nk,.06,1.4,.14,col.b,0,.7,-.19);
+  const hd=new T.Group();hd.position.set(0,1.5,.12);nk.add(hd);heads.push(nk);B(hd,.4,.36,.62,col.a,0,0,.12);B(hd,.32,.24,.24,col.c,0,-.06,.45);[-1,1].forEach(q=>{B(hd,.06,.24,.06,col.b,q*.12,.3,-.04);B(hd,.1,.1,.1,col.b,q*.12,.44,-.04);B(hd,.2,.08,.12,col.a,q*.28,.12,-.06,[0,0,q*.4]);});EYES(hd,.17,.08,.3,.9);
+  nk.rotation.x=.18;
+  [[-.26,.48],[.26,.48],[-.26,-.48],[.26,-.48]].forEach(([x,z])=>LEG(.18,1.2,col.a,DK,x,1.22,z,(x<0)===(z>0)?0:Math.PI));
+  tail=new T.Group();tail.position.set(0,1.75,-.66);B(tail,.05,.05,.5,col.a,0,-.2,-.1,[1.1,0,0]);B(tail,.1,.1,.12,col.b,0,-.42,-.22);g.add(tail);
+  SADDLE(1.94,-.12,.7,.62,'#3a7ad8','#ffffff');seat=[0,2.0,-.15];}
+ if(kind==='capy'){B(g,1.0,.8,1.5,col.a,0,.85,0);B(g,.94,.2,1.36,col.b,0,.5,0);
+  const hd=new T.Group();hd.position.set(0,1.0,.82);g.add(hd);heads.push(hd);B(hd,.76,.66,.6,col.a,0,0,.1);B(hd,.7,.4,.3,col.c,0,-.12,.48);[-1,1].forEach(q=>{B(hd,.07,.05,.03,DK,q*.1,-.02,.64);B(hd,.16,.12,.1,col.b,q*.26,.38,-.08);});EYES(hd,.22,.16,.41,.9);
+  B(hd,.22,.2,.22,'#ff9a2a',0,.46,.02);B(hd,.08,.05,.12,'#4aa84a',.06,.58,.02);
+  [[-.32,.45],[.32,.45],[-.32,-.45],[.32,-.45]].forEach(([x,z])=>LEG(.24,.42,col.b,DK,x,.46,z,(x<0)===(z>0)?0:Math.PI));
+  SADDLE(1.3,-.1,.8,.8,'#4aa86a','#fff0c8');seat=[0,1.36,-.12];}
+ if(kind==='pig'){B(g,.96,.78,1.3,col.a,0,.9,0);if(cc==='spot'){[[.49,1.0,.2],[-.49,.85,-.25],[.2,1.3,-.35],[-.49,1.05,.3]].forEach(([x,y,z])=>B(g,Math.abs(x)>.4?.02:.36,Math.abs(x)>.4?.3:.02,.34,col.b,x,y,z));}
+  const hd=new T.Group();hd.position.set(0,1.05,.72);g.add(hd);heads.push(hd);B(hd,.72,.62,.5,col.a,0,0,.06);B(hd,.36,.26,.12,col.c,0,-.08,.36);[-1,1].forEach(q=>{B(hd,.06,.08,.02,col.b,q*.08,-.08,.43);B(hd,.24,.2,.06,col.b,q*.26,.34,.02,[.5,0,q*.3]);});EYES(hd,.18,.1,.32,1);
+  [[-.3,.4],[.3,.4],[-.3,-.4],[.3,-.4]].forEach(([x,z])=>LEG(.22,.52,col.a,col.b,x,.56,z,(x<0)===(z>0)?0:Math.PI));
+  tail=new T.Group();tail.position.set(0,1.05,-.66);const tc=new T.Mesh(new T.TorusGeometry(.07,.025,6,10,Math.PI*1.6),robMat(col.b));tail.add(tc);g.add(tail);
+  SADDLE(1.33,-.06,.74,.7,'#7a4ad8','#ffd84a');seat=[0,1.4,-.08];}
+ g.userData.seat=seat;g.userData.legs=legs;g.userData.heads=heads;if(tail)g.userData.tail=tail;g.userData.pose='ride';return g;};}
+const FLYB={plane:flyPlane,archae:flyArchae,balloon:flyBalloon,robot:flyRobot,elephant:flyAnimal('elephant'),giraffe:flyAnimal('giraffe'),capy:flyAnimal('capy'),pig:flyAnimal('pig')};
+let ROBSEL={};
+function robShopHTML(k,F,o){const own=c=>o&&o.cs.includes(c);if(!ROBSEL[k]||!F.cols.find(x=>x[0]===ROBSEL[k]))ROBSEL[k]=(o&&o.c)||F.cols[0][0];const it=F.cols.find(x=>x[0]===ROBSEL[k]),[c,n,pr]=it,on=own(c)&&o.c===c&&S.vehOn===k;
+ return `<div class="flyc robc"><div class="flyh"><b>${F.ico||'🤖'} ${F.n}</b><small>속도 +${F.spd}% · ${F.ani?'등에 타요':'머리 조종석에 타요'} · 땅으로만 다녀요</small></div><div class="robb"><img class="robim" data-flyimg="${k}.${c}" alt=""><div class="robi"><div class="robsw">${F.cols.map(([cc,nn])=>`<button type="button" class="${cc===c?'on':''} ${own(cc)?'own':''}" data-robsw="${k}.${cc}" title="${nn}" style="--rc:${(F.ani?ANIM_C[k][cc]:ROBC[cc]).a};--rb:${(F.ani?ANIM_C[k][cc]:ROBC[cc]).b}"></button>`).join('')}</div>
  <b class="robn">${n}${own(c)?' <span class="robo">보유</span>':''}</b><small>🪙 ${pr.toLocaleString()}</small><div class="robgo">${own(c)?`<button type="button" class="${on?'':'acc'}" data-flyon="${k}.${c}" ${on?'disabled':''}>${on?'타는 중':'이걸로'}</button>${on?'':`<button type="button" class="sellb" data-flysell="${k}.${c}">💰 🪙 ${sellPr(pr).toLocaleString()}</button>`}`:`<button type="button" class="acc" data-flybuy="${k}.${c}" ${S.coins<pr?'disabled':''}>구매</button>`}</div></div></div></div>`;}
 {const _vm=vehMesh;vehMesh=function(x){const k=vehBase(x);if(FLYB[k]){const g=FLYB[k](vehCc(x));g.scale.setScalar(FLY[k].sc);g.userData.sc=FLY[k].sc;g.userData.amp=0;g.userData.t=0;g.userData.k=k;return g;}return _vm.apply(this,arguments);};}
 // 나는 동안: 물 위로도 다니고 (호수 밖 92m까지), 높이 떠 있어요
@@ -4311,8 +4354,8 @@ let flyWas=false;FHOOK.push(()=>{const f=!!(VW.mk&&isFly(VW.mk)&&S.vehRide);if(f
  const tb=document.createElement('button');tb.dataset.tab='fly';tb.className=shopTab==='fly'?'on':'';tb.textContent='✈️ 하늘 탈것';const sell=tabs.querySelector('[data-tab="sell"]');tabs.insertBefore(tb,sell||null);tb.onclick=()=>{shopTab='fly';renderShop();};
  if(shopTab!=='fly')return;tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===tb));const grid=tabs.nextElementSibling;if(!grid)return;grid.className='flyshop';
  grid.innerHTML=`<p class="small muted" style="grid-column:1/-1">물 위로도 날아다녀요 · 가방 › 탈것에서 고르고 「🚗 타기」 · 하늘에서는 낚시 못 해요 · 색마다 따로 사요 (무지개는 더 빨라요)</p>`+Object.entries(FLY).map(([k,F])=>{const o=flyOwn(k);if(F.ground)return robShopHTML(k,F,o);return `<div class="flyc"><div class="flyh"><b>${{plane:'✈️',archae:'🦖',balloon:'🎈'}[k]} ${F.n}</b><small>속도 +${F.spd}%</small></div><div class="flycs">${F.cols.map(([c,n,pr])=>{const own=o&&o.cs.includes(c),on=own&&o.c===c&&S.vehOn===k;return `<div class="flyo ${on?'on':''}"><img data-flyimg="${k}.${c}" alt=""><b>${n}</b><small>🪙 ${pr.toLocaleString()}</small>${own?`<button type="button" class="${on?'':'acc'}" data-flyon="${k}.${c}" ${on?'disabled':''}>${on?'타는 중':'이걸로'}</button>${on?'':`<button type="button" class="sellb" data-flysell="${k}.${c}">💰 🪙 ${sellPr(pr).toLocaleString()}</button>`}`:`<button type="button" class="acc" data-flybuy="${k}.${c}" ${S.coins<pr?'disabled':''}>구매</button>`}</div>`;}).join('')}</div></div>`;}).join('');
- grid.querySelectorAll('[data-flybuy]').forEach(b=>b.onclick=()=>{const [k,c]=b.dataset.flybuy.split('.'),F=FLY[k],it=F.cols.find(x=>x[0]===c);if(!it||S.coins<it[2])return;if(!confirm(`${F.n} (${it[1]})을 ${it[2].toLocaleString()}골드에 살까요?`))return;S.coins-=it[2];const own=vehOwn();if(!own[k])own[k]={at:Date.now(),how:'shop',c,cs:[c]};else{flyOwn(k);if(!own[k].cs.includes(c))own[k].cs.push(c);own[k].c=c;}S.vehOn=k;save();hud();try{sfx.coin();}catch(e){}toast(`${F.n} (${it[1]}) 구매! 「🚗 타기」를 누르면 날아올라요`,2400);renderShop();});
- grid.querySelectorAll('[data-robsw]').forEach(b=>b.onclick=()=>{ROBSEL=b.dataset.robsw;renderShop();});
+ grid.querySelectorAll('[data-flybuy]').forEach(b=>b.onclick=()=>{const [k,c]=b.dataset.flybuy.split('.'),F=FLY[k],it=F.cols.find(x=>x[0]===c);if(!it||S.coins<it[2])return;if(!confirm(`${F.n} (${it[1]})을 ${it[2].toLocaleString()}골드에 살까요?`))return;S.coins-=it[2];const own=vehOwn();if(!own[k])own[k]={at:Date.now(),how:'shop',c,cs:[c]};else{flyOwn(k);if(!own[k].cs.includes(c))own[k].cs.push(c);own[k].c=c;}S.vehOn=k;save();hud();try{sfx.coin();}catch(e){}toast(`${F.n} (${it[1]}) 구매! 「🚗 타기」를 누르면 ${F.ground?'타요':'날아올라요'}`,2400);renderShop();});
+ grid.querySelectorAll('[data-robsw]').forEach(b=>b.onclick=()=>{const [k,c]=b.dataset.robsw.split('.');ROBSEL[k]=c;renderShop();});
  grid.querySelectorAll('[data-flysell]').forEach(b=>b.onclick=()=>{const [k,c]=b.dataset.flysell.split('.'),F=FLY[k],it=F.cols.find(x=>x[0]===c);if(!it)return;sellAsk(`${F.n} (${it[1]})`,sellPr(it[2]),()=>{const o=flyOwn(k);if(!o||!o.cs.includes(c)||(o.c===c&&S.vehOn===k))return false;o.cs=o.cs.filter(x=>x!==c);if(!o.cs.length){delete vehOwn()[k];if(S.vehOn===k){S.vehOn=null;S.vehRide=0;}}else if(o.c===c)o.c=o.cs[0];});});
  grid.querySelectorAll('[data-flyon]').forEach(b=>b.onclick=()=>{const [k,c]=b.dataset.flyon.split('.');const o=flyOwn(k);if(!o)return;o.c=c;S.vehOn=k;S.vehRide=1;save();renderShop();});
  flyThumbs(grid);};}
@@ -5071,6 +5114,7 @@ function nbDraw(cv,txt,ci,glow){const g=cv.getContext('2d'),W=cv.width,H=cv.heig
  for(const [b,a,lw] of [[H*.28,.55,H*.05],[H*.12,.8,H*.035],[0,1,H*.016]]){g.save();g.shadowColor=col;g.shadowBlur=b*k;g.globalAlpha=a*(.35+.65*k);g.strokeStyle=lw<H*.02?'#fff':col;g.lineWidth=lw;rr(H*.08,H*.1,W-H*.16,H*.8,H*.18);g.stroke();g.restore();}
  for(const [b,a,lw,fill] of [[H*.32,.7,H*.05,col],[H*.16,.9,H*.03,col],[H*.05,1,H*.012,'#fff']]){g.save();g.shadowColor=col;g.shadowBlur=b*k;g.globalAlpha=a*(.3+.7*k);g.lineWidth=lw;g.strokeStyle=fill;g.strokeText(t,W/2,H*.53);if(fill==='#fff'){g.fillStyle='#fff8fc';g.fillText(t,W/2,H*.53);}g.restore();}}
 // 3D 간판
+window.NK89.nbMesh=(a,b,c)=>nbMesh(a,b,c);
 function nbMesh(di,txt,ci){const d=decks[di];if(!d)return null;const HW=DW?Math.max(DW.w/2,1.2):1.5,grp=new THREE.Group();
  const metal=new THREE.MeshStandardMaterial({color:'#3a3a46',roughness:.45,metalness:.6}),board=new THREE.MeshStandardMaterial({color:'#15172a',roughness:.35,metalness:.2});
  const pH=3.15,px=HW-.12;[-1,1].forEach(s=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.06,.07,pH,10),metal);p.position.set(s*px,pH/2+.3,0);grp.add(p);const f=new THREE.Mesh(new THREE.CylinderGeometry(.14,.16,.08,12),metal);f.position.set(s*px,.42,0);grp.add(f);});
@@ -5081,7 +5125,9 @@ function nbMesh(di,txt,ci){const d=decks[di];if(!d)return null;const HW=DW?Math.
  const cv=document.createElement('canvas');cv.width=1024;cv.height=Math.round(1024*bh/bw);nbDraw(cv,txt,ci,1);const tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=4;
  const mat=new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,toneMapped:false,side:THREE.FrontSide});
  const front=new THREE.Mesh(new THREE.PlaneGeometry(bw,bh),mat);front.position.set(0,2.95,.04);front.renderOrder=6;grp.add(front);const back=front.clone();back.rotation.y=Math.PI;back.position.z=-.04;grp.add(back);
- const halo=new THREE.Mesh(new THREE.PlaneGeometry(bw*1.25,bh*1.9),new THREE.MeshBasicMaterial({color:NBC[ci][0],transparent:true,opacity:.0,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));halo.position.set(0,2.95,.05);grp.add(halo);
+ /* v107: 네모난 판 빛이 간판 밖으로 새어 보이던 것 → 가장자리가 부드럽게 사라지는 빛 그림 + 앞면에서만 */
+ if(!window.__nbHaloT){const hc=document.createElement('canvas');hc.width=256;hc.height=128;const hx=hc.getContext('2d');const gr=hx.createRadialGradient(128,64,8,128,64,128);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.45,'rgba(255,255,255,.45)');gr.addColorStop(1,'rgba(255,255,255,0)');hx.fillStyle=gr;hx.save();hx.scale(1,.5);hx.fillRect(0,0,256,256);hx.restore();window.__nbHaloT=new THREE.CanvasTexture(hc);}
+ const halo=new THREE.Mesh(new THREE.PlaneGeometry(bw*1.25,bh*1.9),new THREE.MeshBasicMaterial({color:NBC[ci][0],map:window.__nbHaloT,transparent:true,opacity:.0,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false,side:THREE.FrontSide}));halo.position.set(0,2.95,.05);grp.add(halo);
  const L={intensity:0};/* v103: 간판마다 점 조명을 두면 셰이더가 다시 만들어져 끊겨요 → 빛나는 판으로만 */
  // 데크 입구(호숫가 쪽 끝) 위 · 데크 방향을 바라보게
  const o=4.35;grp.position.set(d.cx+d.ca*o,0,d.cz+d.sa*o);grp.rotation.y=Math.atan2(d.ca,d.sa);
