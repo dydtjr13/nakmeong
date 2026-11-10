@@ -351,6 +351,7 @@
     else if (m.t === "gameRes") dispatchEvent(new CustomEvent("nk-rt-gameres", { detail: m }));
     else if (m.t === "gamecfg") { RT.gameCfg = m.cfg || null; dispatchEvent(new CustomEvent("nk-rt-gamecfg", { detail: RT.gameCfg })); }
     else if (m.t === "like" && m.to === RT.id) dispatchEvent(new CustomEvent("nk-rt-like", { detail: m }));
+    else if (m.t === "pk" || m.t === "pka") dispatchEvent(new CustomEvent("nk-rt-" + m.t, { detail: m }));
     else if (m.t === "seat") dispatchEvent(new CustomEvent("nk-rt-seat", { detail: m }));
   }
 
@@ -575,6 +576,9 @@
   RT.isAdmin = function () { return !!RT.admin; };
   RT.chat = function (text) { if (RT.mode === "on") send({ t: "chat", text: String(text || "").slice(0, 80) }); };
   RT.like = function (to) { if (RT.mode === "on" && to) send({ t: "like", to: String(to) }); };
+  // v93: 프로필·어항 엿보기
+  RT.peek = function (to, k) { if (RT.mode === "on" && to) send({ t: "pk", to: String(to), k: k || "prof" }); };
+  RT.peekAns = function (to, k, d) { if (RT.mode === "on" && to) send({ t: "pka", to: String(to), k, d }); };
   RT.emote = function (text) { if (RT.mode === "on") send({ t: "emote", text: String(text || "").slice(0, 8) }); };
   function opsSend(obj) {
     if (RT.mode !== "on") return false;
