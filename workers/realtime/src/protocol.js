@@ -127,6 +127,7 @@ export function cleanEx(v) {
     if (!/^[a-z]{1,4}$/.test(k)) continue;
     const x = v[k];
     if (typeof x === "number" && Number.isFinite(x)) out[k] = Math.round(Math.max(-1e6, Math.min(1e6, x)) * 100) / 100;
+    else if (typeof x === "string" && k === "nb") { const t = x.replace(/[\u0000-\u001f<>&"'`\\]/g, "").slice(0, 32); if (!t) continue; out[k] = t; }
     else if (typeof x === "string") { const t = x.replace(/[^\w.-]/g, "").slice(0, 24); if (!t) continue; out[k] = t; }
     else continue;
     n++;
@@ -987,6 +988,7 @@ export function sanitizePlay(input, prev, opt) {
     out.snowCfg = o;
   }
   if ("petFish" in input) out.petFish = pickOf(input.petFish, ["off", "on"]);
+  if ("neonBB" in input) out.neonBB = pickOf(input.neonBB, ["off", "on"]);
   if ("profView" in input) out.profView = pickOf(input.profView, ["on", "off"]);
   if ("timeIco" in input) out.timeIco = pickOf(input.timeIco, ["A", "B", "C", "old"]);
   if ("wearShop" in input) out.wearShop = pickOf(input.wearShop, ["off", "on"]);

@@ -458,3 +458,22 @@ body.perf #dc.mini{min-width:0}
 #shop .dki b{font-size:12px;line-height:1.25}#shop .dki small{color:#9a7b54}
 #shop .dksv{width:84px;height:46px}
 #shop .dki button{font-size:12px;padding:4px 10px;margin-top:2px}
+/* v98 네온 사인 */
+#nbBtn{position:fixed;right:14px;bottom:276px;z-index:46;width:58px;height:58px;border-radius:18px;border:0;background:#1d1f33;box-shadow:0 6px 18px rgba(40,30,20,.28),0 0 14px rgba(255,79,163,.45);font-size:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;color:#ffd6ea}
+#nbBtn small{font-size:10.5px;font-weight:800;margin-top:-2px}#nbBtn.off{box-shadow:0 6px 18px rgba(40,30,20,.28);opacity:.75}
+#nbDlg .nbcard{width:min(420px,94vw);position:relative;text-align:left}
+#nbDlg .nbcard>.x{position:absolute;right:12px;top:12px}
+#nbDlg h3{margin:0 0 4px}
+#nbDlg .nbpv{background:radial-gradient(120% 140% at 50% 0%,#2c2f55,#12131f);border-radius:16px;padding:10px;margin:10px 0 12px;box-shadow:inset 0 0 0 2px #3a3a46}
+#nbDlg .nbpv canvas{width:100%;height:auto;display:block}#nbDlg .nbpv.off canvas{opacity:.18;filter:grayscale(1)}
+#nbDlg .nbrow{display:flex;align-items:center;gap:10px;margin:8px 0}#nbDlg .nbrow>b{width:52px;flex:none;font-size:13px}
+#nbDlg .nbrow input{flex:1;min-width:0;border:1px solid #e6d2b2;border-radius:10px;padding:8px 10px;font-size:15px}
+#nbDlg .nbrow small{color:#a08a70}
+#nbDlg .nbcs{display:flex;gap:8px}#nbDlg .nbcs button{width:30px;height:30px;border-radius:50%;border:3px solid #fff;background:var(--c);box-shadow:0 0 0 1px #e6d2b2,0 0 10px var(--c);cursor:pointer;padding:0}
+#nbDlg .nbcs button.on{box-shadow:0 0 0 3px #f39a5a,0 0 12px var(--c)}
+#nbDlg .nbms{display:flex;gap:6px;flex-wrap:wrap}#nbDlg .nbms button{border:1px solid #ecd9b8;background:#fff;border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer}
+#nbDlg .nbms button.on{background:#f39a5a;border-color:#f39a5a;color:#fff}
+#nbDlg .nbgo{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+@keyframes nbflk{0%,1.8%,5%,6%,12%,13%,100%{opacity:1}1%,5.5%,12.5%{opacity:.25}}
+@keyframes nbbr{50%{opacity:.6}}
+#nbDlg .nbgo .p{background:#f39a5a;color:#fff;border:0;border-radius:12px;padding:8px 14px;font-weight:800}#nbDlg .nbgo .g{border-radius:12px;padding:8px 14px}
