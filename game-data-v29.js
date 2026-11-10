@@ -33,3 +33,9 @@
   {id:'eelden',n:'장어 굴',ks:['eel','donjagae','moraemuji'],e:{treasure:4}},
   {id:'pond',n:'연못 정원',ks:['carp','crucian','bluegill'],e:{merchant:1.2}}]
  .forEach(c=>{if(c.ks.every(has)&&!D.COMBO.list.some(x=>x.id===c.id))D.COMBO.list.push(c);});})(window.NK_DATA);
+// v96: 대형 어항 4종 (3D 모델은 tank-ext.js 디자인 7~10)
+(function(D){if(!D||!D.TANKS||D.TANKS.some(t=>t.k==='grand'))return;D.TANKS.push(
+ {k:'grand',n:'그랜드 원형 수족관',price:80000,cap:200,design:7,desc:'황동 왕관 링 · 가운데 돌기둥'},
+ {k:'arch',n:'아치 돔 수족관',price:150000,cap:300,design:8,desc:'반원 아치 유리 · 황동 테두리'},
+ {k:'pano',n:'파노라마 대형 수조',price:260000,cap:400,design:9,desc:'월넛 캐비닛 · LED 조명'},
+ {k:'reef',n:'산호초 벽면 아쿠아리움',price:400000,cap:500,design:10,desc:'알록달록 산호 가득'});})(window.NK_DATA);
