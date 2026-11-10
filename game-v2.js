@@ -1791,7 +1791,7 @@ addEventListener('nk-rt-play',()=>{labApply('bragOff');try{applyHud();}catch(e){
 const labPub=x=>{try{const RT=window.NK_RT;const P=RT&&RT.status&&RT.status()==='on'?RT.play:PLAYC;return !!(P&&P[x.k]!=null&&P[x.k]!=='');}catch(e){return false;}};
 function labStat(x){if(x.scope==='all')return '<span class="lst pub">🌐 모든 유저 바로 적용</span>';const nm=v=>(x.o.find(o=>String(o[0])===String(v))||[])[1]||v,def=String(x.o[0][0]),live=labLive(x),mine=S[x.k]!=null&&S[x.k]!==''?String(S[x.k]):null;let h='';
  if(live!==def||labPub(x))h+=`<span class="lst pub">🌐 유저 공개 중 · ${nm(live)}</span>`;if(mine!=null&&mine!==live)h+=`<span class="lst me">👁 나만 보기 중 · ${nm(mine)}</span>`;if(!h)h='<span class="lst def">기본값 · 아직 아무도 안 바뀜</span>';return h;}
-const labRowHTML=x=>`<div class="labrow" data-lk="${x.k}"><div><b>${x.n}</b> ${labStat(x)}<br><small class="muted">${x.d}</small></div><div class="labctl"><select data-lab="${x.k}">${x.o.map(([v,t])=>`<option value="${v}" ${labGet(x)===String(v)?'selected':''}>${t}</option>`).join('')}</select>${x.scope==='me'?`<button class="sm ok" data-labgo="${x.k}" title="고른 값을 접속한 모든 유저에게 적용해요">✅ 인게임 적용</button><small class="muted">모든 유저: ${(x.o.find(o=>String(o[0])===labLive(x))||x.o[0])[1]}</small>`:''}</div></div>`;
+const labRowHTML=x=>`<div class="labrow" data-lk="${x.k}"><div><b>${x.n}</b> ${labStat(x)}<br><small class="muted">${x.d}</small></div><div class="labctl"><select data-lab="${x.k}">${x.o.map(([v,t])=>`<option value="${v}" ${labGet(x)===String(v)?'selected':''}>${t}</option>`).join('')}</select>${x.scope==='me'?`<button class="sm ok" data-labgo="${x.k}" title="고른 값을 접속한 모든 유저에게 적용해요">✅ 인게임 적용</button><small class="muted">모든 유저: ${(x.o.find(o=>String(o[0])===labLive(x))||x.o[0])[1]}</small>`:`<button class="sm ok" data-laball="${x.k}" title="고른 값을 모든 유저에게 적용해요">✅ 인게임 적용</button><small class="muted">지금 모든 유저: ${(x.o.find(o=>String(o[0])===labGet(x))||x.o[0])[1]}</small>`}</div></div>`;
 // v86: 새로 넣은 테스트 기능이 맨 위 · 모든 유저에게 인게임 적용된 항목은 제목만 남기고 접어 둬요 (눌러서 펼치기)
 function labFoldHTML(x){const h=labRowHTML(x),lv=labLive(x);if(x.scope!=='me'||lv===String(x.o[0][0]))return h;const nm=(x.o.find(o=>String(o[0])===lv)||[])[1]||lv;return `<details class="labfold"><summary><b>${x.n}</b><span class="tg o">✅ 적용 중 · ${nm}</span></summary>${h}</details>`;}
 // v95: 인게임 적용한 기능은 「✅ 모든 유저에게 적용 중」 한 묶음으로 접고, 시험 중인 것만 위에 짧게 보여줘요 · 찾기 칸
@@ -1833,7 +1833,7 @@ function bindXB(root,re){const box=root.querySelector('.xbset');if(!box)return;c
  box.querySelector('[data-xbgo]').onclick=()=>{if(!(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on'))return toast('서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2000);if(!confirm('경험치·아이템 밸런스를 모든 유저에게 적용할까요?'))return;const p=JSON.parse(JSON.stringify(c));V14.publishPlay({xpBal:p});XBAL.save(p);setTimeout(()=>{XBAL.apply();re&&re();},600);toast('✅ 밸런스를 모든 유저에게 적용했어요',2000);};
  box.querySelector('[data-xbdef]').onclick=()=>{XBAL.edit=XBAL.norm(null);re&&re();toast('기본값으로 채웠어요. 인게임 적용을 눌러야 반영돼요',1800);};
  box.querySelector('[data-xblive]').onclick=()=>{XBAL.edit=XBAL.cfg();re&&re();};}
-function bindLab(root,re){root.querySelectorAll('[data-labgo]').forEach(b=>b.onclick=()=>{const x=LAB.find(y=>y.k===b.dataset.labgo),sel=root.querySelector(`[data-lab="${x.k}"]`),v=sel?sel.value:labGet(x),nm=(x.o.find(o=>String(o[0])===String(v))||[])[1];if(!(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on'))return toast('서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2000);if(!confirm(`「${x.n}」을(를) '${nm}'(으)로 모든 유저에게 적용할까요?`))return;V14.publishPlay({[x.k]:v});const _keep=S[x.k];S[x.k]=null;save();try{const row=root.querySelector(`.labrow[data-lk="${x.k}"]`);if(row){row.classList.add('goneup');}}catch(_){}setTimeout(()=>{try{const P=NK_RT.play||{};if(String(P[x.k])!==String(v)){S[x.k]=_keep!=null?_keep:v;save();toast(`⚠ ${x.n}: 서버에 저장되지 않았어요. 내 화면은 그대로 두었어요. 잠시 뒤 다시 눌러 주세요`,2600);setTimeout(()=>re&&re(),300);}}catch(e){}},4000);if(x.k==='mapSt')setTimeout(()=>{try{MAPV.apply(uiOpt('mapSt','old'));}catch(e){}},400);toast(`✅ ${x.n}: 모든 유저에게 '${nm}' 적용`,2000);setTimeout(()=>{try{if(labPub(x)&&String(labLive(x))===String(v))return;}catch(_){}re&&re();},3000);});root.querySelectorAll('[data-lab]').forEach(el=>el.onchange=()=>{const x=LAB.find(y=>y.k===el.dataset.lab);if(x){labSet(x,el.value);toast(`${x.n}: ${el.selectedOptions[0].textContent}`,1400);if(x.k==='deck4'&&String(uiOpt('deck4','off'))!==D4NOW)d4Reload();if(x.k==='deckTank'&&String(uiOpt('deckTank','off'))!==DTKBOOT0)d4Reload();}});
+function bindLab(root,re){root.querySelectorAll('[data-labgo]').forEach(b=>b.onclick=()=>{const x=LAB.find(y=>y.k===b.dataset.labgo),sel=root.querySelector(`[data-lab="${x.k}"]`),v=sel?sel.value:labGet(x),nm=(x.o.find(o=>String(o[0])===String(v))||[])[1];if(!(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on'))return toast('서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2000);if(!confirm(`「${x.n}」을(를) '${nm}'(으)로 모든 유저에게 적용할까요?`))return;V14.publishPlay({[x.k]:v});const _keep=S[x.k];S[x.k]=null;save();try{const row=root.querySelector(`.labrow[data-lk="${x.k}"]`);if(row){row.classList.add('goneup');}}catch(_){}setTimeout(()=>{try{const P=NK_RT.play||{};if(String(P[x.k])!==String(v)){S[x.k]=_keep!=null?_keep:v;save();toast(`⚠ ${x.n}: 서버에 저장되지 않았어요. 내 화면은 그대로 두었어요. 잠시 뒤 다시 눌러 주세요`,2600);setTimeout(()=>re&&re(),300);}}catch(e){}},4000);if(x.k==='mapSt')setTimeout(()=>{try{MAPV.apply(uiOpt('mapSt','old'));}catch(e){}},400);toast(`✅ ${x.n}: 모든 유저에게 '${nm}' 적용`,2000);setTimeout(()=>{try{if(labPub(x)&&String(labLive(x))===String(v))return;}catch(_){}re&&re();},3000);});root.querySelectorAll('[data-laball]').forEach(b=>b.onclick=()=>{const x=LAB.find(y=>y.k===b.dataset.laball),sel=root.querySelector(`[data-lab="${x.k}"]`),v=sel?sel.value:labGet(x),nm=(x.o.find(o=>String(o[0])===String(v))||[])[1]||v;if(!confirm(`「${x.n}」을(를) '${nm}'(으)로 모든 유저에게 적용할까요?`))return;labSet(x,v);toast(`✅ ${x.n}: 모든 유저에게 '${nm}' 적용`,2000);setTimeout(()=>re&&re(),600);});root.querySelectorAll('[data-lab]').forEach(el=>el.onchange=()=>{const x=LAB.find(y=>y.k===el.dataset.lab);if(x&&x.scope==='all'){toast('「✅ 인게임 적용」을 눌러야 모든 유저에게 바뀌어요',1800);return;}if(x){labSet(x,el.value);toast(`${x.n}: ${el.selectedOptions[0].textContent}`,1400);if(x.k==='deck4'&&String(uiOpt('deck4','off'))!==D4NOW)d4Reload();if(x.k==='deckTank'&&String(uiOpt('deckTank','off'))!==DTKBOOT0)d4Reload();}});
  // v95: 찾기 · 설명 펼치기 · 세부 설정 상자 접기
  {const q=root.querySelector('.labq');if(q)q.oninput=()=>{const v=q.value.trim();root.querySelectorAll('.labtry>.labrow,.labaplist>.labfold').forEach(r=>{r.style.display=!v||r.textContent.includes(v)?'':'none';});const ap=root.querySelector('.labapplied');if(ap&&v)ap.open=true;};
   root.querySelectorAll('.labtry>.labrow').forEach(r=>{const b=r.querySelector('b');if(b){b.style.cursor='pointer';b.onclick=()=>r.classList.toggle('dopen');}});
@@ -2699,7 +2699,7 @@ function frameBody(now){if(S.fpsCap&&now-last<1000/S.fpsCap-1.5){nextF();return;
     nearSeat=mySeat?null:SEATS.filter(seatFree).map(st=>[st,Math.hypot(pp.x-st.x,pp.z-st.z)]).filter(a=>a[1]<1.6).sort((a,b)=>a[1]-b[1]).map(a=>a[0])[0]||null;sitUI();
     me.play(mySeat?'sit':(window.__nkVehSit&&__nkVehSit())||(fishing.state!=='off'?'holding-right':moving?'walk':sitting?'sit':'idle'));me.rod.visible=fishing.state!=='off'||nearSpot!=null;turn(me,dt);
     nearSpot=DW?(mySeat&&mySeat.kind==='stool'&&mySeat.deck?mySeat.deck:null):decks.find(d=>canFishAt(d)&&Math.hypot(pp.x-d.tip.x,pp.z-d.tip.z)<2.4)||null;
-    $('fishBtn').style.display=nearSpot||fishing.state!=='off'?'block':'none';V14.fishBtn(fishing.state);$('fishBtn').classList.toggle('far',!(nearSpot||fishing.state!=='off'));
+    if(window.__nkPasNow&&__nkPasNow()){nearSpot=null;if(fishing.state!=='off')try{endFish();}catch(e){}}$('fishBtn').style.display=nearSpot||fishing.state!=='off'?'block':'none';V14.fishBtn(fishing.state);$('fishBtn').classList.toggle('far',!(nearSpot||fishing.state!=='off'));
     const nearShop=Math.hypot(pp.x-SHOP.x,pp.z-SHOP.z)<7,nd=decks.find(d=>Math.hypot(pp.x-d.tank.x,pp.z-d.tank.z)<2.6);
     $('prompt').style.display=(nearShop||nd)&&fishing.state==='off'&&!(mySeat&&mySeat.kind==='train')?'block':'none';$('prompt').textContent=nearShop?'E · 상점 열기':nd?(nd.i===0?'F/E · 내 어항 보기':nd.owner?`E · ${nd.owner}님 어항 구경·구매`:'빈 데크 · 낚시 가능'):'';
     // 낚시 진행
@@ -4058,7 +4058,11 @@ function vehAdmHTML(){const c=vehCfg(),e=S.vehEd2||(S.vehEd2=JSON.parse(JSON.str
 // 타기 버튼 (옆자리 손님이면 내리기)
 const VPAS={id:null,at:0};
 const vehCan=()=>vehOn()&&started&&me&&S.vehOn&&vehOwn()[S.vehOn]&&!mySeat&&!TR.riding&&fishing.state==='off'&&!VPAS.id;
-function pasOff(msg){if(!VPAS.id)return;VPAS.id=null;if(me){const p=me.o.position,d=me.o.rotation.y;p.x+=Math.cos(d)*1.4;p.z-=Math.sin(d)*1.4;p.y=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);}if(msg)miniToast(msg,1600);}
+function pasOff(msg){if(!VPAS.id)return;VPAS.id=null;if(me){const p=me.o.position,d=me.o.rotation.y,x0=p.x,z0=p.z;/* v98: 물에 빠지지 않게 걸을 수 있는 자리를 찾아 내려요 */let spot=null;const ok=(x,z)=>{try{return walk(x,z);}catch(e){return true;}};
+ for(const r of [1.4,2,2.8,3.6,4.6,6])for(let k=0;k<16&&!spot;k++){const a=d+(k%2?-1:1)*Math.ceil(k/2)*Math.PI/8,x=x0+Math.cos(a)*r,z=z0-Math.sin(a)*r;if(ok(x,z))spot=[x,z];}
+ if(!spot&&ok(x0,z0))spot=[x0,z0];if(!spot){let b=null;try{const dk=decks.map(q=>[q,Math.hypot(q.cx-x0,q.cz-z0)]).sort((m,n)=>m[1]-n[1])[0];if(dk)b=[dk[0].cx,dk[0].cz];}catch(e){}spot=b||[x0,z0];}
+ p.x=spot[0];p.z=spot[1];p.y=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);}if(msg)miniToast(msg,1600);}
+window.__nkPasNow=()=>!!VPAS.id;
 setInterval(()=>{let b=$('vehBtn');const pas=!!VPAS.id&&vehOn();const show=pas||(vehOn()&&started&&S.vehOn&&vehOwn()[S.vehOn]&&!mySeat&&!TR.riding&&!anyModal());if(!show){if(b)b.style.display='none';return;}
  if(!b){b=document.createElement('button');b.id='vehBtn';b.type='button';document.body.appendChild(b);b.onclick=()=>{if(VPAS.id){pasOff('🚗 옆자리에서 내렸어요');return;}S.vehRide=S.vehRide?0:1;save();};}b.style.display='';const v=VEHS.find(x=>x.k===S.vehOn)||{n:''},t=pas?'🛬 옆자리에서 내리기':S.vehRide?`🛬 ${v.n}에서 내리기`:`🛷 ${v.n} 타기`;if(b._t!==t){b._t=t;b.textContent=t;b.classList.toggle('on',!!S.vehRide||pas);}},300);
 // 3D
@@ -4108,7 +4112,7 @@ function pasAsk(id,e){const r=remotes.get(id);if(!r)return;let m=$('vehAsk');if(
 (window.__nkPick=window.__nkPick||[]).push(ray=>{if(!vehOn()||VPAS.id||!me)return false;let best=null;for(const [id,e] of VW.peers){if(vehBase(e.k)!=='car')continue;const h=ray.intersectObject(e.g,true)[0];if(h&&(!best||h.distance<best[0]))best=[h.distance,id,e];}if(!best)return false;
  const d=Math.hypot(best[2].g.position.x-me.o.position.x,best[2].g.position.z-me.o.position.z);if(d>7){miniToast('🚗 자동차 가까이 가서 눌러 주세요',1400);return true;}pasAsk(best[1],best[2]);return true;});
 (window.__nkPostSync=window.__nkPostSync||[]).push(()=>{if(!VPAS.id||!me)return;const e=VW.peers.get(VPAS.id);if(!e||vehBase(e.k)!=='car')return;const st=vehSeat(e.g,1);me.o.position.copy(st);me.o.rotation.y=e.g.rotation.y;me.dir=e.g.rotation.y;});
-window.NK89.veh={VEHS,vehGet,VW,VEHB,VPAS,vehCfg,pasAsk,rollCar,SMK};
+window.NK89.veh={VEHS,vehGet,VW,VEHB,VPAS,vehCfg,pasAsk,rollCar,SMK,pasOff};
 // v93 장착 장비 창 A·B (시안 → 테스트) · 낚싯대 타일 작게
 LAB.push({k:'eqWin',n:'🎒 장착 장비 창 (시안 A·B)',d:'가방 낚싯대·장비 화면 왼쪽 위 장착 장비 창을 새 디자인으로 바꿔요. A: 네이비·샴페인 골드 — 캐릭터 가운데·양옆 장비·아래 낚싯대 카드 / B: 아이보리·월넛 — 낚싯대 큰 칸 + 장비 2×2. 오른쪽 낚싯대 타일도 조금 작아져요. 칸을 누르면 그 장비 목록으로 가요',scope:'me',o:[['off','끄기 (기본)'],['A','A · 네이비 + 샴페인 골드'],['B','B · 아이보리 + 월넛']]});
 LAB.push({k:'wearShop',n:'👕 상점 장비 판매',d:'상점에 「👕 장비」 탭이 생겨서 1~40레벨 장비(밀짚 소풍~호숫가 탐험가 세트)를 골드로 살 수 있어요. 한 부위 가격: Lv.1 300 · Lv.10 2,000 · Lv.20 6,000 · Lv.30 12,000 · Lv.40 20,000. 50레벨부터는 행운 상자 전용 그대로',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
@@ -4184,7 +4188,7 @@ function pfDrop(){if(PF.rod&&PF.rod.parent)PF.rod.parent.remove(PF.rod);if(PF.bo
 const _pv=new THREE.Vector3();
 function pfTip(){let far=null,best=-1;PF.rodM.updateMatrixWorld(true);PF.rodM.traverse(o=>{if(o.isMesh){const v=new THREE.Vector3();o.getWorldPosition(v);const d=v.y;if(d>best){best=d;far=v;}}});return far||new THREE.Vector3();}
 function pfCatch(){const k=PETW.mk,p=PETS.find(x=>x.k===k);let f;try{const g=petRodG(k)||SYS.gearOf(S);f=rollFish(SYS.gearStats(D,g),bait());}catch(e){f=rollFish();}const F=FI(f.k),G0=GR(f.g);if(!F)return;
- f.t=Date.now();f.pet=k;S.caught=(S.caught|0)+1;const dx=S.dex[f.k]||(S.dex[f.k]={n:0,max:0,gr:[0,0,0,0,0]});const isNew=!dx.n;dx.n++;dx.gr[f.g]=1;dx.max=Math.max(dx.max,f.cm);
+ f.t=Date.now();f.pet=k;S.caught=(S.caught|0)+1;PF.cn=((PF.cn|0)+1)%1296;PF.fk=f.k;const dx=S.dex[f.k]||(S.dex[f.k]={n:0,max:0,gr:[0,0,0,0,0]});const isNew=!dx.n;dx.n++;dx.gr[f.g]=1;dx.max=Math.max(dx.max,f.cm);
  let where;if(S.tank.length<cap()){S.tank.push(f);where='어항에 넣었어요';}else{const pr=sellP(f);S.coins+=pr;S.earned=(S.earned||0)+pr;where=`어항이 가득 차서 ${pr}골드에 팔았어요`;}
  addXP(Math.max(1,Math.round((LV.xpG[f.g]||10)*.5)),`${p?p.n:'펫'}이(가) 낚은 ${F.n}`);petXpAdd(k,2);save();hud();
  miniToast(`🐾 <b>${p?p.n:'펫'}</b>이(가) <b>${F.n} ${f.cm}cm</b> <span style="color:${G0.c}">${G0.n}</span>를 낚았어요 · ${where}`,2600);say('시스템',`🐾 ${p?p.n:'펫'}이(가) ${F.n} ${f.cm}cm (${G0.n})를 낚았어요`);
@@ -4203,6 +4207,27 @@ FHOOK.push(dt=>{if(me&&fishing.state&&fishing.state!=='off'){PF.own=performance.
 // 펫 따라오기가 낚시 자리 잡기를 덮어쓰지 않게
 {const _pf=petFollow;petFollow=function(g,c,dt,sit){if(c===me&&g===PETW.me&&PF.rod)return;return _pf.apply(this,arguments);};}
 window.NK89.petFish={PF,pfCatch,petEq,petRodK};
+// v98 ── 다른 유저의 펫 낚시도 보여요 (ex.pf = 낚싯대.잡은수.물고기)
+{const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};try{if(PF.rod&&PETW.mk)o.pf=String(petRodK(PETW.mk)||'bamboo').replace(/[^\w-]/g,'').slice(0,10)+'.'+(PF.cn|0).toString(36)+'.'+String(PF.fk||'').replace(/[^\w-]/g,'').slice(0,10);}catch(e){}return Object.keys(o).length?o:null;};}
+const PFR=new Map();
+function pfrDrop(id){const x=PFR.get(id);if(!x)return;if(x.rod&&x.rod.parent)x.rod.parent.remove(x.rod);[x.bob,x.line,x.pop].forEach(o=>o&&scene.remove(o));PFR.delete(id);}
+RHOOK.push((r,p,dt)=>{const v=p.ex&&p.ex.pf,e=PETW.peers.get(p.id);if(!v||!e||!petFishOn()){if(PFR.has(p.id))pfrDrop(p.id);return;}
+ const [rk,cn,fk]=String(v).split('.');let x=PFR.get(p.id);
+ if(!x||x.rk!==rk+'|'+e.k||x.g!==e.g){pfrDrop(p.id);const g=e.g;g.rotation.set(0,g.rotation.y,0);const box=pfBuild(g);const holder=new THREE.Group();let rod;try{rod=NK_ROD3D(rk,0);}catch(_){rod=NK_ROD3D('bamboo',0);}rod.scale.setScalar(.36);rod.rotation.x=.95;holder.add(rod);holder.position.set(box.w*.18,box.h*.32,box.front*.62);g.add(holder);
+  const bob=new THREE.Group();bob.add(new THREE.Mesh(new THREE.SphereGeometry(.06,10,8),new THREE.MeshLambertMaterial({color:'#ff5a4a'})),new THREE.Mesh(new THREE.SphereGeometry(.06,10,8,0,Math.PI*2,Math.PI/2,Math.PI/2),new THREE.MeshLambertMaterial({color:'#ffffff'})));scene.add(bob);
+  const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]),new THREE.LineBasicMaterial({color:'#ffffff',transparent:true,opacity:.75}));scene.add(line);
+  x={rk:rk+'|'+e.k,g,rod:holder,rodM:rod,bob,line,t:Math.random()*9,lift:0,cn,pop:null,popT:0};PFR.set(p.id,x);}
+ const g=x.g,c=r.c,d=+c.dir||0,fx=Math.sin(d),fz=Math.cos(d),rx=Math.cos(d),rz=-Math.sin(d),mp=c.o.position;
+ const tx=mp.x+rx*.8+fx*.5,tz=mp.z+rz*.8+fz*.5;g.position.x+=(tx-g.position.x)*Math.min(1,dt*4);g.position.z+=(tz-g.position.z)*Math.min(1,dt*4);g.position.y=inDeck(g.position.x,g.position.z)?.39:Math.max(H(g.position.x,g.position.z),.1);g.rotation.y+=((d-g.rotation.y+Math.PI*3)%(Math.PI*2)-Math.PI)*Math.min(1,dt*5);
+ if(cn!==x.cn){x.cn=cn;x.lift=1;const im=FISH_IMG[fk];if(im&&im.complete){if(x.pop)scene.remove(x.pop);const t=new THREE.Texture(im);t.needsUpdate=true;t.encoding=THREE.sRGBEncoding;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false}));const ar=im.naturalHeight/im.naturalWidth;sp.scale.set(.75,.75*ar,1);sp.renderOrder=12;scene.add(sp);x.pop=sp;x.popT=0;}}
+ x.t+=dt;x.lift=Math.max(0,x.lift-dt*1.2);x.rod.rotation.x=-x.lift*.7+Math.sin(x.t*1.3)*.03;
+ const bx=g.position.x+fx*2.1+rx*.15,bz=g.position.z+fz*2.1+rz*.15,by=.06+Math.sin(x.t*2.1)*.025;x.bob.position.set(bx,by,bz);x.bob.visible=x.lift<.3;
+ let tip=new THREE.Vector3(),best=-1;x.rodM.updateMatrixWorld(true);x.rodM.traverse(o=>{if(o.isMesh){const w=new THREE.Vector3();o.getWorldPosition(w);if(w.y>best){best=w.y;tip=w;}}});
+ const a=x.line.geometry.attributes.position;a.setXYZ(0,tip.x,tip.y,tip.z);if(x.bob.visible)a.setXYZ(1,bx,by+.05,bz);else a.setXYZ(1,tip.x,tip.y-.4,tip.z);a.needsUpdate=true;
+ if(x.pop){x.popT+=dt;const k=Math.min(1,x.popT*2.5);x.pop.position.set(g.position.x,g.position.y+.9+k*.5,g.position.z);x.pop.material.opacity=x.popT>1.4?Math.max(0,1-(x.popT-1.4)*3):1;if(x.popT>1.8){scene.remove(x.pop);x.pop=null;}}});
+FHOOK.push(()=>{for(const id of PFR.keys())if(!remotes.has(id)||!PETW.peers.has(id))pfrDrop(id);});
+{const _pf2=petFollow;petFollow=function(g,c,dt,sit){for(const x of PFR.values())if(x.g===g)return;return _pf2.apply(this,arguments);};}
+
 // v94 ── 미션: 출석 달력 + 오늘의 미션 + 이번 주 (시안 C)
 LAB.push({k:'mission',n:'🗓 미션 (출석 달력)',d:'메뉴에 「미션」이 생겨요. 오늘의 미션 3개를 다 받으면 달력에 도장 1개 · 7·14·21·28번째 도장마다 큰 보상 · 이번 주 미션 2개. 매일 오전 9시에 새로 고쳐져요. 아래 표에서 미션·횟수·보상을 바꾸고 ✅ 인게임 적용',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 const msOn=()=>opt('mission','off')==='on';
@@ -4292,6 +4317,71 @@ let dkT=0;FHOOK.push(dt=>{dkT+=dt;if(dkT<.5)return;dkT=0;dkTick();});function dk
  for(const [di,w] of want)if(DKW.cur.get(di)!==w.k){dkApply(di,w.k);DKW.cur.set(di,w.k);}
  if(c){const w=want.get(c.d);const key=c.d+'|'+(w&&w.who);if(w&&w.who!==NICK()&&DKW.warned!==key){DKW.warned=key;miniToast(`🔒 이 데크는 <b>${escRT(w.who)}</b>님이 먼저 꾸몄어요 · 그 분이 일어나면 꾸밀 수 있어요`,2600);}}else DKW.warned='';}
 window.NK89.dk={DKS,dkS,dkApply,DKW,dkTick};
+// v98 ── 💡 데크 네온 사인 (테스트 기능) — 데크 입구 위 아치 간판, 양면, 먼저 앉은 사람 글씨가 보여요
+LAB.push({k:'neonBB',n:'💡 데크 네온 사인',d:'데크 의자에 앉으면 오른쪽에 「💡 네온」 버튼 → 글씨·색·움직임을 정하면 데크 입구 위에 네온 간판이 켜져요. 같은 호숫가 모두에게 보이고, 먼저 앉은 사람 간판이 보여요 (일어나면 꺼져요)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
+const nbOn=()=>!PREV&&opt('neonBB','off')==='on';
+const NBC=[['#ff4fa3','핑크'],['#ffb347','주황'],['#5fd3ff','하늘'],['#8af07a','연두'],['#ffffff','하양']],NBM=[['고정'],['깜빡'],['숨쉬기']];
+const nbS=()=>{const z=S.nb&&typeof S.nb==='object'?S.nb:(S.nb={on:1,txt:'FISH ♥ CAFE',c:0,m:0});return z;};
+const nbClean=t=>{let v=String(t||'').replace(/[\u0000-\u001f<>&"'`\\~]/g,'').replace(/https?:\/\/\S*|www\.\S*|\S+\.(com|net|kr|io|gg|me|ly)\S*/gi,'').trim().slice(0,14);try{if(window.NK_PROF&&NK_PROF.mask)v=NK_PROF.mask(v);}catch(e){}return v;};
+// 네온 글씨 그리기 (3D 텍스처 · 미리보기 공용)
+function nbDraw(cv,txt,ci,glow){const g=cv.getContext('2d'),W=cv.width,H=cv.height,col=(NBC[ci]||NBC[0])[0];g.clearRect(0,0,W,H);const t=String(txt||'').trim()||' ';
+ let fs=H*.5;g.font=`900 ${fs}px "Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif`;const mw=W*.86;let tw=g.measureText(t).width;if(tw>mw){fs*=mw/tw;g.font=`900 ${fs}px "Pretendard","Apple SD Gothic Neo","Noto Sans KR",sans-serif`;}
+ g.textAlign='center';g.textBaseline='middle';const k=glow==null?1:glow;
+ // 테두리 네온관
+ const rr=(x,y,w,h,r)=>{g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath();};
+ g.lineJoin='round';g.lineCap='round';
+ for(const [b,a,lw] of [[H*.28,.55,H*.05],[H*.12,.8,H*.035],[0,1,H*.016]]){g.save();g.shadowColor=col;g.shadowBlur=b*k;g.globalAlpha=a*(.35+.65*k);g.strokeStyle=lw<H*.02?'#fff':col;g.lineWidth=lw;rr(H*.08,H*.1,W-H*.16,H*.8,H*.18);g.stroke();g.restore();}
+ for(const [b,a,lw,fill] of [[H*.32,.7,H*.05,col],[H*.16,.9,H*.03,col],[H*.05,1,H*.012,'#fff']]){g.save();g.shadowColor=col;g.shadowBlur=b*k;g.globalAlpha=a*(.3+.7*k);g.lineWidth=lw;g.strokeStyle=fill;g.strokeText(t,W/2,H*.53);if(fill==='#fff'){g.fillStyle='#fff8fc';g.fillText(t,W/2,H*.53);}g.restore();}}
+// 3D 간판
+function nbMesh(di,txt,ci){const d=decks[di];if(!d)return null;const HW=DW?Math.max(DW.w/2,1.2):1.5,grp=new THREE.Group();
+ const metal=new THREE.MeshStandardMaterial({color:'#3a3a46',roughness:.45,metalness:.6}),board=new THREE.MeshStandardMaterial({color:'#15172a',roughness:.35,metalness:.2});
+ const pH=3.15,px=HW-.12;[-1,1].forEach(s=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.06,.07,pH,10),metal);p.position.set(s*px,pH/2+.3,0);grp.add(p);const f=new THREE.Mesh(new THREE.CylinderGeometry(.14,.16,.08,12),metal);f.position.set(s*px,.42,0);grp.add(f);});
+ const bw=HW*2-.1,bh=.78;const bd=new THREE.Mesh(new THREE.BoxGeometry(bw,bh,.07),board);bd.position.set(0,2.95,0);grp.add(bd);
+ const rim=new THREE.Mesh(new THREE.BoxGeometry(bw+.06,.05,.1),metal);rim.position.set(0,2.95+bh/2+.02,0);grp.add(rim);const rim2=rim.clone();rim2.position.y=2.95-bh/2-.02;grp.add(rim2);
+ // 매다는 쇠줄
+ [-1,1].forEach(s=>{const c=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.32,6),metal);c.position.set(s*bw*.32,2.95+bh/2+.18,0);grp.add(c);});
+ const cv=document.createElement('canvas');cv.width=1024;cv.height=Math.round(1024*bh/bw);nbDraw(cv,txt,ci,1);const tex=new THREE.CanvasTexture(cv);tex.encoding=THREE.sRGBEncoding;tex.anisotropy=4;
+ const mat=new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,toneMapped:false,side:THREE.FrontSide});
+ const front=new THREE.Mesh(new THREE.PlaneGeometry(bw,bh),mat);front.position.set(0,2.95,.04);front.renderOrder=6;grp.add(front);const back=front.clone();back.rotation.y=Math.PI;back.position.z=-.04;grp.add(back);
+ const halo=new THREE.Mesh(new THREE.PlaneGeometry(bw*1.25,bh*1.9),new THREE.MeshBasicMaterial({color:NBC[ci][0],transparent:true,opacity:.0,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));halo.position.set(0,2.95,.05);grp.add(halo);
+ const L=new THREE.PointLight(NBC[ci][0],0,7,2);L.position.set(0,2.5,.6);grp.add(L);
+ // 데크 입구(호숫가 쪽 끝) 위 · 데크 방향을 바라보게
+ const o=4.35;grp.position.set(d.cx+d.ca*o,0,d.cz+d.sa*o);grp.rotation.y=Math.atan2(d.ca,d.sa);
+ grp.userData={cv,tex,mat,halo,L,front,back,txt,ci};return grp;}
+const NBW={cur:new Map(),warned:'',t:0};
+function myNb(){const z=nbS();if(!nbOn()||!z.on||!mySeat)return null;const di=seatDeck(mySeat);if(di==null)return null;const txt=nbClean(z.txt);if(!txt)return null;if(!S.nbClaim||S.nbClaim.d!==di){S.nbClaim={d:di,t:Math.floor(Date.now()/1000)};}return {d:di,t:S.nbClaim.t,txt,c:z.c|0,m:z.m|0};}
+{const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};try{const c=myNb();if(c)o.nb=c.t.toString(36)+'~'+(c.c%5)+(c.m%3)+c.txt;}catch(e){}return Object.keys(o).length?o:null;};}
+function nbTick(dt){const want=new Map();const put=(di,w)=>{if(di==null)return;const o=want.get(di);if(!o||w.t<o.t||(w.t===o.t&&w.who<o.who))want.set(di,w);};
+ const c=myNb();if(c)put(c.d,Object.assign({who:NICK()},c));
+ if(nbOn())try{const RT=window.NK_RT;if(RT&&RT.status()==='on')(RT.peers()||[]).forEach(p=>{const v=p&&p.ex&&p.ex.nb;if(!v||p.seat==null||!remotes.has(p.id))return;const m=String(v).match(/^([0-9a-z]{1,8})~([0-4])([0-2])(.{1,14})$/);if(!m)return;put(seatDeck(SEATS[p.seat]),{t:parseInt(m[1],36)||0,c:+m[2],m:+m[3],txt:nbClean(m[4]),who:String(p.nick||'')});});}catch(e){}
+ for(const [di,e] of NBW.cur){const w=want.get(di);if(!w||w.txt!==e.w.txt||w.c!==e.w.c){scene.remove(e.g);try{e.g.userData.tex.dispose();}catch(_){}NBW.cur.delete(di);}else e.w=w;}
+ for(const [di,w] of want)if(!NBW.cur.has(di)&&w.txt){const g=nbMesh(di,w.txt,w.c);if(g){scene.add(g);NBW.cur.set(di,{g,w,ph:Math.random()*9});}}
+ if(c){const w=want.get(c.d),key=c.d+'|'+(w&&w.who);if(w&&w.who!==NICK()&&NBW.warned!==key){NBW.warned=key;miniToast(`🔒 이 데크 네온은 <b>${escRT(w.who)}</b>님이 먼저 켰어요 · 그 분이 일어나면 바뀌어요`,2600);}}else NBW.warned='';}
+let nbT=0;FHOOK.push(dt=>{nbT+=dt;if(nbT>.5){nbT=0;try{nbTick();}catch(e){}nbBtn(nbOn()&&mySeat&&seatDeck(mySeat)!=null&&!anyModal());}
+ if(!NBW.cur.size)return;let night=0;try{night=+wU.night.value||0;}catch(e){}const T=performance.now()/1000;
+ for(const e of NBW.cur.values()){const u=e.g.userData,m=e.w.m;let k=1;if(m===1){const q=(T+e.ph)%4.2;k=q<.08||(q>.2&&q<.26)||(q>.5&&q<.55)?.15:1;}else if(m===2)k=.55+.45*(.5+.5*Math.sin((T+e.ph)*2.2));
+  u.mat.opacity=.35+.65*k;u.halo.material.opacity=(.06+night*.16)*k;u.L.intensity=(.25+night*1.4)*k;}});
+// 설정 창
+function nbBtn(show){let b=$('nbBtn');if(!show){if(b)b.style.display='none';return;}if(!b){b=document.createElement('button');b.id='nbBtn';b.type='button';b.innerHTML='💡<small>네온</small>';document.body.appendChild(b);b.onclick=e=>{e.stopPropagation();nbOpen();};}b.style.display='';b.classList.toggle('off',!nbS().on);}
+function nbOpen(){let m=$('nbDlg');if(!m){m=document.createElement('div');m.id='nbDlg';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});}
+ const z=nbS(),ed=Object.assign({},z);const draw=()=>{const cv=m.querySelector('canvas');if(cv)nbDraw(cv,nbClean(ed.txt)||'글씨를 써 주세요',ed.c,1);};
+ const R=()=>{m.innerHTML=`<div class="card nbcard"><button class="x" data-nbx aria-label="닫기">×</button><h3>💡 데크 네온 사인</h3><p class="small muted">데크 입구 위 간판이에요 · 같은 호숫가 모두에게 보여요 · 먼저 앉은 사람 간판이 보이고, 일어나면 꺼져요</p>
+  <div class="nbpv ${ed.on?'':'off'}"><canvas width="720" height="180"></canvas></div>
+  <label class="nbrow"><b>글씨</b><input type="text" maxlength="14" data-nbt value="${escRT(ed.txt||'')}" placeholder="최대 14자"><small data-nbn>${String(ed.txt||'').length}/14</small></label>
+  <div class="nbrow"><b>색</b><div class="nbcs">${NBC.map(([c,n],i)=>`<button type="button" data-nbc="${i}" class="${ed.c===i?'on':''}" style="--c:${c}" title="${n}"></button>`).join('')}</div></div>
+  <div class="nbrow"><b>움직임</b><div class="nbms">${NBM.map(([n],i)=>`<button type="button" data-nbm="${i}" class="${ed.m===i?'on':''}">${['💡','✨','🌙'][i]} ${n}</button>`).join('')}</div></div>
+  <div class="nbrow"><b>간판</b><div class="nbms"><button type="button" data-nbo="1" class="${ed.on?'on':''}">켜기</button><button type="button" data-nbo="0" class="${ed.on?'':'on'}">끄기</button></div></div>
+  <small class="muted">욕설·링크는 자동으로 가려요</small>
+  <div class="nbgo"><button type="button" class="g" data-nbx>취소</button><button type="button" class="p" data-nbs>✅ 저장하고 켜기</button></div></div>`;
+  draw();const ti=m.querySelector('[data-nbt]');ti.oninput=()=>{ed.txt=ti.value;m.querySelector('[data-nbn]').textContent=ti.value.length+'/14';draw();};
+  m.querySelectorAll('[data-nbc]').forEach(b=>b.onclick=()=>{ed.c=+b.dataset.nbc;R();});m.querySelectorAll('[data-nbm]').forEach(b=>b.onclick=()=>{ed.m=+b.dataset.nbm;R();});m.querySelectorAll('[data-nbo]').forEach(b=>b.onclick=()=>{ed.on=+b.dataset.nbo;R();});
+  m.querySelectorAll('[data-nbx]').forEach(b=>b.onclick=()=>m.classList.remove('show'));
+  m.querySelector('[data-nbs]').onclick=()=>{const t=nbClean(ed.txt);if(ed.on&&!t){toast('글씨를 한 글자 이상 써 주세요',1600);return;}try{if(window.NK_PROF&&NK_PROF.has&&NK_PROF.has(ed.txt)){toast('쓸 수 없는 말이 들어 있어요',1800);return;}}catch(e){}S.nb={on:ed.on?1:0,txt:t,c:ed.c|0,m:ed.m|0};save();m.classList.remove('show');try{nbTick();}catch(e){}miniToast(ed.on?'💡 네온 간판을 켰어요':'네온 간판을 껐어요',1600);};
+  // 미리보기 깜빡임
+  const pv=m.querySelector('.nbpv canvas');pv.style.animation=ed.m===1?'nbflk 4.2s infinite':ed.m===2?'nbbr 2.8s ease-in-out infinite':'';};
+ R();openM('nbDlg');}
+window.NK89.neon={NBW,nbS,nbMesh,nbTick,nbOpen,nbDraw,nbOn,PFR};
+
 
 // v96 ── 가방 효과 합계: B(칩 2줄, 0% 숨김)가 기본 · A(위 3줄 고정+스크롤) · C(접기) · 예전 표는 테스트에서
 LAB.push({k:'sumSt',n:'📊 가방 효과 합계 모양',d:'가방 낚싯대·장비 화면 왼쪽 「효과 합계」. B(기본): 작은 칩 2줄 · 0%는 숨겨서 칸 밖으로 안 넘쳐요 / A: 낚싯대 기본 3줄은 고정, 나머지는 칸 안에서 스크롤 / C: 한 줄 요약으로 접어 두고 누르면 펼쳐요 / 예전 표',scope:'me',o:[['B','B · 칩 2줄 (기본)'],['A','A · 위 3줄 고정 + 스크롤'],['C','C · 접기'],['old','예전 표']]});
@@ -4436,7 +4526,7 @@ const bkMode=()=>PREV?'off':opt('backAsk','off');
 function bkArm(){if(BK.armed||BK.leaving)return;try{history.pushState({nkBack:1},'');BK.armed=true;}catch(e){}}
 setInterval(()=>{if(started&&bkMode()!=='off'&&bkMob()){if(BK.c0==null)BK.c0=S.coins;bkArm();}},1000);
 function bkClose(){const m=$('bkAsk');if(m)m.classList.remove('show');}
-function bkLeave(){BK.leaving=true;bkClose();try{save();}catch(e){}history.back();setTimeout(()=>{/* 이전 페이지가 없으면 그대로 남아요 */BK.leaving=false;toast('브라우저 창을 닫으면 게임이 끝나요 · 진행은 저장됐어요',2600);},700);}
+function bkLeave(){BK.leaving=true;bkClose();try{save();}catch(e){}try{window.close();}catch(e){}try{history.back();}catch(e){}/* v98: 이전 페이지가 없으면 작별 화면으로 바로 나가요 */setTimeout(()=>{try{location.replace('bye.html');}catch(e){}},450);}
 function bkShow(){const md=bkMode();let m=$('bkAsk');if(!m){m=document.createElement('div');m.id='bkAsk';document.body.appendChild(m);}
  const lv=myLv(),earn=Math.max(0,(S.coins|0)-(BK.c0|0)),mins=Math.max(1,Math.round((Date.now()-BK.t0)/60000));
  m.className='bk'+md;m.innerHTML=md==='A'?`<div class="bkdim" data-bk="stay"></div><div class="bksheet"><div class="grab"></div><h3>🎣 낚시를 그만할까요?</h3><p>진행은 자동으로 저장돼요.${opt('resumePos','off')==='on'?'<br>10분 안에 다시 들어오면 지금 자리에서 시작해요.':''}</p><button type="button" class="p" data-bk="stay">계속 낚시하기</button><button type="button" class="g" data-bk="go">게임 나가기</button></div>`

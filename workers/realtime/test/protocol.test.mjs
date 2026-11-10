@@ -760,3 +760,7 @@ test("v94 눈 설정 · 새 테스트 키 · 엿보기 필드", () => {
   const p = _sp({ x: 1, z: 1, ex: { a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, rd: "fire.5" } }, null);
   assert.equal(p.ex.rd, "fire.5");
 });
+test("v98 ex.nb 네온 글씨(한글 허용) · ex.pf 펫 낚시", () => {
+  const p = _sp({ x: 1, z: 1, ex: { nb: "lx9k2a~21FISH ♥ 카페<b>", pf: "fire.a.carp", dk: "mint.lx9" } }, null);
+  assert.equal(p.ex.nb, "lx9k2a~21FISH ♥ 카페b"); assert.equal(p.ex.pf, "fire.a.carp"); assert.equal(p.ex.dk, "mint.lx9");
+});
