@@ -624,3 +624,7 @@ body.flying #prompt,body.flying #fishBtn{display:none!important}#flyUD button sm
 #tk3{right:auto;max-width:56%}#tk3 .tk3c i img.emj{width:14px;height:14px}#tk3 .tk3add select{max-width:130px}
 @media(max-width:760px){#tk3{max-width:none;right:50px}}
 #stSrv .svtest{border:2px dashed #b98be0!important;background:#f6f0ff!important}#stSrv .svtest.on{border-style:solid!important}
+/* v101b 모바일 합성: 시트·어둡게를 화면 기준으로 */
+#fuse .fzm0{height:100%;max-height:100dvh}
+#fuse .fmdim{position:fixed;z-index:80}
+#fuse .fmsheet{position:fixed;z-index:81;max-height:78dvh;overflow:auto;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
