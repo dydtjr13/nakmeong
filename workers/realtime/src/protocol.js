@@ -990,6 +990,9 @@ export function sanitizePlay(input, prev, opt) {
   if ("profView" in input) out.profView = pickOf(input.profView, ["on", "off"]);
   if ("timeIco" in input) out.timeIco = pickOf(input.timeIco, ["A", "B", "C", "old"]);
   if ("wearShop" in input) out.wearShop = pickOf(input.wearShop, ["off", "on"]);
+  if ("sumSt" in input) out.sumSt = pickOf(input.sumSt, ["B", "A", "C", "old"]);
+  if ("profSt" in input) out.profSt = pickOf(input.profSt, ["A", "B", "C"]);
+  if ("wearCfg" in input) { const v = input.wearCfg, o = {}; if (v && typeof v === "object") for (const k of ["1", "10", "20", "30", "40"]) { const n = Number(v[k]); if (Number.isFinite(n) && n >= 0) o[k] = Math.min(1e7, Math.round(n)); } out.wearCfg = o; }
   if ("vehCfg" in input) {
     const v = input.vehCfg;
     if (v && typeof v === "object" && !Array.isArray(v)) {

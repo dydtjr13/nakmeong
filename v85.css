@@ -398,3 +398,50 @@ body.perf #dc.mini{min-width:0}
 .labtry>.labrow [data-labgo]{padding:5px 10px!important;font-size:12px!important}
 @media(max-width:760px){.labtry>.labrow{grid-template-columns:1fr}.labtry>.labrow .labctl{justify-content:flex-start}}
 #profDlg .pc2 .top{height:78px}#profDlg .pc2 .hd{margin-top:-38px}#profDlg .pc2 .nm{padding-bottom:2px}
+/* v96 가방 효과 합계 B(기본)·A·C */
+.sum28.sumBw,.sum28.sumA,.sum28.sumC{overflow:hidden;max-width:100%}
+.sumB{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.sumB .sc{background:#f8f4ec;border-radius:10px;padding:6px 8px;min-width:0}.sumB .sc.b{background:#fff3e6}.sumB .sc.w{background:#eef7f1}.sumB .sc.z{opacity:.4}
+.sumB .sc .t{display:flex;justify-content:space-between;gap:4px;font-size:11.5px;font-weight:800}.sumB .sc .t span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.sumB .sc .t b{color:#3b3346;flex:none}.sumB .sc.b .t b{color:#e2601c}
+.sumB .sc .m{height:4px;border-radius:3px;background:#ece2d2;margin-top:4px;overflow:hidden}.sumB .sc .m i{display:block;height:100%;background:#7b55c9}.sumB .sc.b .m i{background:#f2a516}.sumB .sc.w .m i{background:#3c9f7a}
+.sumB .sc small{display:block;font-size:9.5px;color:#a89a86;margin-top:2px}.sumnote{display:block;color:#a89a86;font-size:11px;margin-top:6px}
+.sumA .sa-fix{display:grid;grid-template-columns:1fr auto;gap:2px 10px;background:#fff6ec;border-radius:10px;padding:6px 10px;font-size:12px;margin-top:6px}.sumA .sa-fix b{color:#e2601c}
+.sumA .sa-sc{max-height:210px;overflow:auto;margin-top:6px;padding-right:4px;overscroll-behavior:contain}.sumA .sa-sc>div{display:grid;grid-template-columns:1fr auto 48px;gap:8px;font-size:12px;padding:4px 8px;border-bottom:1px solid #f2eadc}.sumA .sa-sc>div.z{opacity:.4}.sumA .sa-sc small{color:#b0a392;text-align:right}
+.sumC .dh{cursor:pointer;display:flex;align-items:center;gap:6px}.sumC .dh .tg{margin-left:auto;font-size:11.5px;color:#8a7d6c;font-weight:700}
+.sumchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}.sumchips span{font-size:11.5px;font-weight:900;background:#f6efe3;border-radius:999px;padding:3px 9px}.sumchips small{font-weight:600;color:#8a7d6c;margin-left:3px;font-size:10px}.sumchips .more{background:none;color:#8a7d6c}
+.wpadm .wpg{display:flex;flex-wrap:wrap;gap:8px 14px;margin:8px 0}.wpadm .wpg label{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800}.wpadm .wpg input{width:90px}
+/* v96 테스트 기능 상태 표시 · 적용하면 바로 접기 */
+.lst{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:2px 9px;margin:0 3px 0 0;vertical-align:1px}
+.lst.pub{background:#e3f4ea;color:#2f7a5c;border:1px solid #bfe3cd}.lst.me{background:#fff1dd;color:#a0620c;border:1px solid #f3d6a6}.lst.def{background:#f2eee8;color:#9a8b78}
+.labrow.goneup{animation:labUp .45s ease forwards;overflow:hidden;pointer-events:none}@keyframes labUp{0%{opacity:1;max-height:300px}40%{opacity:.4;background:#e3f4ea}100%{opacity:0;max-height:0;padding-top:0;padding-bottom:0;margin:0}}
+.labfold>summary .tg.o{background:#e3f4ea;color:#2f7a5c}
+/* v96 프로필 A·B·C — 사진·닉네임·레벨·칭호를 색 띠 안에 (경계에 안 걸리게) */
+#profDlg .pc3{position:relative}
+#profDlg .pc3>.x{position:absolute;right:12px;top:12px;z-index:3;width:32px;height:32px;border-radius:50%;border:0;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;color:#5b4a39;background:rgba(255,255,255,.88);box-shadow:0 2px 6px rgba(0,0,0,.12)}
+#profDlg .pc3 .top{height:auto;padding:18px 54px 16px 18px}
+#profDlg .pc3 .hd{display:flex;align-items:center;gap:14px}
+#profDlg .pc3 .av{position:relative;left:auto;top:auto;flex:none;width:80px;height:80px;border-radius:24px;border:3px solid rgba(255,255,255,.95)}
+#profDlg .pc3 .av .on{position:absolute;left:auto;top:auto;right:-4px;bottom:-4px;width:18px;height:18px;border-radius:50%;background:#3fbf6a;border:3px solid #fff}
+#profDlg .pc3 .nm{padding:0;min-height:0;min-width:0;flex:1}#profDlg .pc3 .nm b{font-size:20px;color:#fff;text-shadow:0 1px 3px rgba(80,30,40,.35);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#profDlg .pc3 .tg2{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-top:5px}#profDlg .pc3 .tg2 .lv{margin:0;background:#fff;color:#c2547a}
+#profDlg .pc3 .onl{display:none}#profDlg .pc3 .bd{padding:14px 18px 18px}
+/* B 가로형 */
+#profDlg .pcB{width:min(580px,96vw);display:grid;grid-template-columns:200px 1fr}
+#profDlg .pcB .top{padding:26px 14px 18px;background:linear-gradient(180deg,#ffcf8a,#ff9a8a 55%,#b98be0)}
+#profDlg .pcB .hd{flex-direction:column;text-align:center;gap:10px}#profDlg .pcB .av{width:118px;height:118px;border-radius:34px}
+#profDlg .pcB .nm{width:100%}#profDlg .pcB .tg2{justify-content:center}#profDlg .pcB .onl{display:block;margin-top:10px;font-size:11.5px;color:#fff;background:rgba(255,255,255,.25);border-radius:10px;padding:5px 8px}
+#profDlg .pcB .bd{padding:18px 18px 16px}#profDlg .pcB .msg{margin-right:34px}
+@media(max-width:600px){#profDlg .pcB{display:block}#profDlg .pcB .top{padding:18px 54px 16px 18px}#profDlg .pcB .hd{flex-direction:row;text-align:left}#profDlg .pcB .av{width:80px;height:80px}#profDlg .pcB .onl{display:none}#profDlg .pcB .tg2{justify-content:flex-start}}
+/* C 어두운 카드 */
+#profDlg .pcC{background:linear-gradient(170deg,#241f2c,#18151f);color:#f1e9e4;border:1px solid rgba(224,169,142,.35)}
+#profDlg .pcC .top{background:none;padding-top:22px}#profDlg .pcC .av{border-radius:50%;border:0;box-shadow:0 0 0 3px #e0a98e,0 0 20px rgba(224,169,142,.4)}
+#profDlg .pcC .nm b{text-shadow:none}#profDlg .pcC .tg2 .lv{background:#e0a98e;color:#241f2c}#profDlg .pcC .onl{display:block;color:#a99fb0;font-size:11px;margin-top:4px}
+#profDlg .pcC>.x{background:rgba(255,255,255,.12);color:#f1e9e4}
+#profDlg .pcC .msg{background:rgba(255,255,255,.06);color:#d8cdd6}#profDlg .pcC .st4 div{background:rgba(255,255,255,.06)}#profDlg .pcC .st4 small{color:#a99fb0}
+#profDlg .pcC .best{background:rgba(255,255,255,.06)}#profDlg .pcC .best small{color:#a99fb0}#profDlg .pcC .eqr div{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.1)}#profDlg .pcC .eqr small{color:#b8aec0}
+#profDlg .pcC .acts .p{background:#e0a98e;color:#241f2c}#profDlg .pcC .acts button:not(.p):not(.r){background:rgba(255,255,255,.1);color:#f1e9e4}#profDlg .pcC .acts .r{background:rgba(255,90,120,.12)}
+/* v96 상점 어항 그림 (A) */
+#shop .grid .tkimgw{position:relative;background:radial-gradient(circle at 50% 45%,#f6fcff,#e6f1ef);border-radius:14px;margin:-2px -2px 8px;height:150px;display:flex;align-items:center;justify-content:center}
+#shop .grid .tkimgw.big{background:radial-gradient(circle at 50% 45%,#fffaf0,#f6ead2);box-shadow:inset 0 0 0 1.5px #f2c26b}
+#shop .grid .tkimg{width:100%;height:100%;object-fit:contain}
+#shop .grid .tknew{position:absolute;left:8px;top:8px;background:#e8584a;color:#fff;font-size:10.5px;font-weight:900;border-radius:999px;padding:1px 8px;z-index:1}
