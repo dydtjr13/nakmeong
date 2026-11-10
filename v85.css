@@ -628,3 +628,26 @@ body.flying #prompt,body.flying #fishBtn{display:none!important}#flyUD button sm
 #fuse .fzm0{height:100%;max-height:100dvh}
 #fuse .fmdim{position:fixed;z-index:80}
 #fuse .fmsheet{position:fixed;z-index:81;max-height:78dvh;overflow:auto;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+#dcRep{position:fixed;left:8px;bottom:6px;z-index:9998;font-size:11px;font-weight:800;border:0;border-radius:8px;padding:3px 8px;background:rgba(20,20,30,.75);color:#fff;cursor:pointer}
+#dcRepBox{position:fixed;left:8px;bottom:34px;z-index:9999;width:300px;background:rgba(20,22,32,.92);color:#fff;border-radius:12px;padding:10px 12px;font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+#dcRepBox b{display:block;font-size:13px}#dcRepBox small{display:block;color:#aab;margin-bottom:6px}#dcRepBox div{display:grid;grid-template-columns:1fr 80px 34px;gap:6px;align-items:center;padding:2px 0}#dcRepBox i{display:block;height:6px;border-radius:4px;background:#ff9a5a}#dcRepBox em{font-style:normal;text-align:right;font-weight:800}
+#ckHud .cktip .r.full{display:flex;align-items:center;justify-content:space-between;gap:8px}#ckHud .cktip .fi{display:flex;align-items:center;gap:5px;font-weight:800}
+#ckHud .cktip .pp{display:flex;gap:2px}#ckHud .cktip .pp i{width:9px;height:9px;border-radius:3px;background:#f1e3cf}#ckHud .cktip .pp i.on{background:linear-gradient(#ffcf8a,#f0843f)}
+#ckHud .cktip .ckt{font-style:normal}#ckHud .ckico .ckimg{width:38px;height:38px;object-fit:contain}
+/* v103 변이 마스터 칭호 · 반복 보상 */
+.mtb{display:inline-block;border:2px solid;border-radius:999px;padding:3px 12px;font-weight:900;font-size:14px;box-shadow:0 3px 8px rgba(0,0,0,.15)}
+.fzset .fzcnt{display:block;font-style:normal;font-size:11px;color:#0f6e66;font-weight:800}
+.fzttl{text-align:center;margin:10px 0 2px}
+.fzrod{display:flex;flex-direction:column;align-items:center;gap:4px;background:linear-gradient(#e6fbf7,#fff);border:2px solid #2fb8a6;border-radius:16px;padding:10px;margin-top:8px}.fzrod img{width:96px;height:96px}.fzrod small{color:#5a6a6a;text-align:center}
+/* v103 어항 설정: 종류 바꾸기 · 데크 고르기 · 적용하기 */
+.tk3card .tk3opt{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0 4px;padding:10px;background:#f6f1e8;border-radius:14px}
+.tk3card .tk3opt select{width:100%;padding:7px 8px;border-radius:10px;border:1.5px solid #d8c8b0;font-weight:700;background:#fff}
+.tk3card .tk3opt small{display:block;color:#9a8670;font-size:11px;margin-top:3px}
+.tk3card .tk3dk{display:block;width:100%;padding:8px;border-radius:10px;border:1.5px dashed #e0a43a;background:#fff8e6;color:#9a6200;font-weight:800;cursor:pointer;margin-top:2px}
+.tk3card .tk3dk.on{border-style:solid;background:#ffe9a8;text-align:center}
+.tk3card .tk3hint{margin:6px 0 0;text-align:right}
+@media(max-width:600px){.tk3card .tk3opt{grid-template-columns:1fr}}
+.fzset b,.fzset small,.fzset .fzcnt{white-space:nowrap}
+.fzset>div{min-width:0}
+.fzset.ok{flex-direction:column;align-items:stretch;gap:7px}
+.fzset.ok button{width:100%;white-space:nowrap;padding:8px 0}
