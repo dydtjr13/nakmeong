@@ -995,6 +995,7 @@ export function sanitizePlay(input, prev, opt) {
   if ("ckSnd" in input) out.ckSnd = pickOf(input.ckSnd, ["B", "A", "off"]);
   if ("tank3" in input) out.tank3 = pickOf(input.tank3, ["off", "on"]);
   if ("mythChar" in input) out.mythChar = pickOf(input.mythChar, ["off", "on"]);
+  if ("tankHide" in input) out.tankHide = pickOf(input.tankHide, ["off", "peer", "all"]);
   if ("profView" in input) out.profView = pickOf(input.profView, ["on", "off"]);
   if ("timeIco" in input) out.timeIco = pickOf(input.timeIco, ["A", "B", "C", "old"]);
   if ("wearShop" in input) out.wearShop = pickOf(input.wearShop, ["off", "on"]);
