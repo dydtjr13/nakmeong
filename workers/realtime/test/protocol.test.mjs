@@ -740,3 +740,13 @@ test("v92 탈것 설정 · 펫 빛 · 자랑 변이", () => {
   const p = _sp({ x: 1, z: 1, ex: { vh: "car.rainbow", ps: "0123456789abcdef0123456789" } }, null);
   assert.equal(p.ex.vh, "car.rainbow"); assert.equal(p.ex.ps.length, 24);
 });
+
+test("v93 엿보기(pk/pka) · 장비 창 키", () => {
+  assert.deepEqual(_pc(JSON.stringify({ t: "pk", to: "abc", k: "tank" })), { t: "pk", to: "abc", k: "tank" });
+  const big = { t: "pka", to: "abc", k: "tank", d: { lv: 12, tt: "<b>칭호</b>", fish: Array.from({ length: 150 }, () => ["carp", 3, 41.25, "gold", 9]) } };
+  const m = _pc(JSON.stringify(big));
+  assert.equal(m.d.fish.length, 120); assert.deepEqual(m.d.fish[0], ["carp", 3, 41.3, "gold", 4, 0]);
+  assert.equal(m.d.tt, "b칭호/b");
+  assert.equal(_pc(JSON.stringify({ t: "pk" })), null);
+  assert.equal(_spl({ eqWin: "B" }, {}).eqWin, "B");
+});

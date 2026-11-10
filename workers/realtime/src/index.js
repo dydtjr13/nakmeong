@@ -630,6 +630,22 @@ export class LakeRoom extends DurableObject {
       }
       return;
     }
+    // v93: 프로필·어항 엿보기 — 요청(pk)·답(pka)을 상대 한 명에게만 전달
+    if (msg.t === "pk" || msg.t === "pka") {
+      if (!prev.ready) return;
+      const now = Date.now();
+      if (now - (prev.lastPk || 0) < (msg.t === "pk" ? 800 : 150)) return;
+      prev.lastPk = now;
+      try { ws.serializeAttachment(prev); } catch { /* ignore */ }
+      for (const other of this.ctx.getWebSockets()) {
+        if (other === ws) continue;
+        const att = this.attachment(other);
+        if (!att || att.id !== msg.to || !att.ready) continue;
+        try { other.send(JSON.stringify(msg.t === "pk" ? { t: "pk", from: prev.id, nick: prev.nick, k: msg.k } : { t: "pka", from: prev.id, nick: prev.nick, k: msg.k, d: msg.d })); } catch { /* ignore */ }
+        break;
+      }
+      return;
+    }
     if (msg.t === "auth" && msg.out) {
       const att = this.attachment(ws) || prev;
       att.admin = 0;

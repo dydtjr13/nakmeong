@@ -962,6 +962,7 @@ export function sanitizePlay(input, prev, opt) {
   if ("xpPos" in input) out.xpPos = pickOf(input.xpPos, ["A2", "A4"]);
   if ("backAsk" in input) out.backAsk = pickOf(input.backAsk, ["off", "A", "B"]);
   if ("petFx" in input) out.petFx = pickOf(input.petFx, ["off", "on"]);
+  if ("eqWin" in input) out.eqWin = pickOf(input.eqWin, ["off", "A", "B"]);
   if ("vehCfg" in input) {
     const v = input.vehCfg;
     if (v && typeof v === "object" && !Array.isArray(v)) {
@@ -1226,6 +1227,20 @@ export function mergeLosses(prev, incoming, now) {
   return out.slice(0, 80);
 }
 
+const PK_VR = ["", "black", "pink", "red", "gold", "rainbow"];
+const pkStr = (v, n) => String(v == null ? "" : v).replace(/[<>]/g, "").slice(0, n);
+const pkNum = (v, lo, hi) => { const x = Number(v); return Number.isFinite(x) ? Math.max(lo, Math.min(hi, Math.round(x * 10) / 10)) : 0; };
+const pkFish = (f) => Array.isArray(f) ? [pkStr(f[0], 24).replace(/[^\w-]/g, ""), pkNum(f[1], 0, 5), pkNum(f[2], 0, 999), PK_VR.includes(f[3]) ? f[3] : "", pkNum(f[4], 0, 4), Math.round(pkNum(f[5], 0, 1e9))] : null;
+export function cleanPeek(d) {
+  if (!d || typeof d !== "object" || Array.isArray(d)) return {};
+  const o = {};
+  for (const k of ["lv", "dex", "dexN", "tot", "days", "sold", "cap", "best5"]) if (d[k] != null) o[k] = pkNum(d[k], 0, 1e9);
+  for (const k of ["tt", "pet", "veh", "rod", "map", "tank", "since", "msg"]) if (d[k] != null) o[k] = pkStr(d[k], k === "msg" ? 60 : 24);
+  if (d.best) o.best = pkFish(d.best);
+  if (Array.isArray(d.fish)) o.fish = d.fish.slice(0, 120).map(pkFish).filter((f) => f && f[0]);
+  if (Array.isArray(d.ach)) o.ach = d.ach.slice(0, 8).map((x) => pkStr(x, 20));
+  return o;
+}
 export function parseClient(raw) {
   if (typeof raw !== "string" || raw.length === 0 || raw.length > MAX_OPS) return null;
   let msg;
@@ -1235,8 +1250,11 @@ export function parseClient(raw) {
     return null;
   }
   if (!msg || typeof msg !== "object" || typeof msg.t !== "string") return null;
-  if (raw.length > MAX_MSG && !OPS.has(msg.t)) return null;
+  if (raw.length > MAX_MSG && !OPS.has(msg.t) && !(msg.t === "pka" && raw.length <= 8000)) return null;
   if (msg.t === "ping") return { t: "ping" };
+  // v93: 프로필·어항 엿보기
+  if (msg.t === "pk") { const to = cleanId(msg.to, 40); return to ? { t: "pk", to, k: msg.k === "tank" ? "tank" : "prof" } : null; }
+  if (msg.t === "pka") { const to = cleanId(msg.to, 40); return to ? { t: "pka", to, k: msg.k === "tank" ? "tank" : "prof", d: cleanPeek(msg.d) } : null; }
   // v55: 초성·밸런스 게임
   if (msg.t === "ans") return { t: "ans", id: cleanId(msg.id, 24), a: String(msg.a == null ? "" : msg.a).slice(0, 30) };
   if (msg.t === "pick") return { t: "pick", id: cleanId(msg.id, 24), s: msg.s === "l" || msg.s === "r" ? msg.s : "" };
