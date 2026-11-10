@@ -92,6 +92,8 @@ async function ensureSchema(db) {
     'CREATE INDEX IF NOT EXISTS idx_ranks_srv ON ranks(wk, srv)',
     // v80: 게시글 사진 1장 (게임 스크린샷 · 자랑 게시판)
     'ALTER TABLE posts ADD COLUMN img TEXT',
+    // v111: 창작 마당 — 블럭으로 만든 탈것·캐릭터·펫 데이터
+    'ALTER TABLE posts ADD COLUMN blk TEXT',
     'CREATE TABLE IF NOT EXISTS imgs (id TEXT PRIMARY KEY, post_id TEXT, owner TEXT, mime TEXT NOT NULL, data TEXT NOT NULL, size INTEGER NOT NULL, created_at INTEGER NOT NULL)',
     'CREATE INDEX IF NOT EXISTS idx_imgs_owner ON imgs(owner, created_at)',
     'CREATE TABLE IF NOT EXISTS accounts (nk TEXT PRIMARY KEY, nick TEXT NOT NULL, salt TEXT NOT NULL, ph TEXT NOT NULL, code TEXT NOT NULL, fails INTEGER NOT NULL DEFAULT 0, lock_until INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)',
@@ -126,18 +128,24 @@ async function pinHash(pin, salt) {
 const pinOk = (p) => /^\d{4,6}$/.test(String(p || ''));
 const REPORT_HIDE = 3; // 서로 다른 3명이 신고하면 관리자가 볼 때까지 숨김
 
-function shapePost(p, me, admin) {
-  return { id: p.id, cat: p.cat, title: p.title, body: p.body, nick: p.nick, created_at: p.created_at, updated_at: p.updated_at,
+const CRAFT = (c) => /^창작/.test(String(c || ''));
+const CRAFT_CATS = new Set(['창작·탈것', '창작·캐릭터', '창작·펫']);
+const BLK_MAX = 60000;
+function shapePost(p, me, admin, full) {
+  return { id: p.id, cat: p.cat, ...(p.blk ? { blk: full ? p.blk : 1 } : {}), title: p.title, body: p.body, nick: p.nick, created_at: p.created_at, updated_at: p.updated_at,
     comment_count: p.comment_count || 0, img: p.img ? '/img/' + p.img : '', mine: !!(me && p.owner && p.owner === me), edited: p.updated_at > p.created_at + 1000,
     ...(admin ? { reports: p.reports || 0, hidden: !!p.hidden } : {}) };
 }
 async function listPosts(db, url, me, admin) {
   const limit = Math.min(100, Math.max(1, +(url.searchParams.get('limit') || 50)));
   const offset = Math.max(0, +(url.searchParams.get('offset') || 0));
-  const rows = await db.prepare(
-    `SELECT p.*, (SELECT COUNT(*) FROM comments c WHERE c.post_id=p.id) AS comment_count
-     FROM posts p ${admin ? '' : 'WHERE COALESCE(p.hidden,0)=0'} ORDER BY p.created_at DESC LIMIT ? OFFSET ?`
-  ).bind(limit, offset).all();
+  // v111: 창작 마당 글은 ?cat=창작·탈것 처럼 따로 불러요 (일반 게시판 목록에는 안 나와요)
+  const cat = String(url.searchParams.get('cat') || '');
+  const where = [admin ? '1=1' : 'COALESCE(p.hidden,0)=0', CRAFT(cat) ? 'p.cat=?' : "p.cat NOT LIKE '창작%'"];
+  const sel = `SELECT p.id,p.cat,p.title,p.body,p.nick,p.created_at,p.updated_at,p.owner,p.img,p.reports,p.hidden,(CASE WHEN p.blk IS NULL THEN NULL ELSE 1 END) AS blk, (SELECT COUNT(*) FROM comments c WHERE c.post_id=p.id) AS comment_count
+     FROM posts p WHERE ${where.join(' AND ')} ORDER BY p.created_at DESC LIMIT ? OFFSET ?`;
+  const st = db.prepare(sel);
+  const rows = await (CRAFT(cat) ? st.bind(cat, limit, offset) : st.bind(limit, offset)).all();
   return (rows.results || []).map((p) => shapePost(p, me, admin));
 }
 function profane(...parts) { return parts.some((t) => hasProfanity(t)); }
@@ -335,7 +343,7 @@ export default {
         const post = await db.prepare('SELECT * FROM posts WHERE id=?').bind(pid).first();
         if (!post || (post.hidden && !admin)) return bad('not found', 404, origin);
         const cms = await db.prepare('SELECT * FROM comments WHERE post_id=? ORDER BY created_at ASC').bind(pid).all();
-        return json({ ok: true, post: shapePost(post, me, admin), comments: (cms.results || []).map((c) => ({ id: c.id, post_id: c.post_id, nick: c.nick, body: c.body, created_at: c.created_at, mine: !!(me && c.owner && c.owner === me) })) }, 200, origin);
+        return json({ ok: true, post: shapePost(post, me, admin, true), comments: (cms.results || []).map((c) => ({ id: c.id, post_id: c.post_id, nick: c.nick, body: c.body, created_at: c.created_at, mine: !!(me && c.owner && c.owner === me) })) }, 200, origin);
       }
 
       if (request.method === 'POST' && path === '/posts') {
@@ -346,6 +354,17 @@ export default {
         if (!admin && (STAFF_CATS.has(catKey(cat)) || reservedNick(nick))) return bad('admin only', 403, origin);
         if (!admin && profane(title, text, nick)) return bad('profanity', 400, origin);
         const pid = id('p'), ts = Date.now();
+        // v111: 창작 마당 — 블럭 데이터 (JSON 글자, 60000자까지)
+        let blk = null;
+        if (CRAFT(cat)) {
+          if (!CRAFT_CATS.has(cat)) return bad('bad cat', 400, origin);
+          blk = typeof body.blk === 'string' ? body.blk : JSON.stringify(body.blk || null);
+          let o = null; try { o = JSON.parse(blk); } catch { /* bad */ }
+          if (!o || typeof o !== 'object' || Array.isArray(o) || !o.vox || typeof o.vox !== 'object' || blk.length > BLK_MAX) return bad('bad blk', 400, origin);
+          if (!me) return bad('owner required', 400, origin);
+          const today = await db.prepare("SELECT COUNT(*) AS n FROM posts WHERE owner=? AND cat LIKE '창작%' AND created_at>?").bind(me, ts - 864e5).first();
+          if (!admin && today && today.n >= 10) return bad('craft limit', 429, origin);
+        }
         // v80: 사진 1장 (data:image/jpeg|webp|png;base64 · 최대 약 450KB)
         let imgId = null;
         if (body.img) {
@@ -357,8 +376,8 @@ export default {
           imgId = id('i');
           await db.prepare('INSERT INTO imgs (id,post_id,owner,mime,data,size,created_at) VALUES (?,?,?,?,?,?,?)').bind(imgId, pid, me, m[1], m[2], Math.round(m[2].length * 3 / 4), ts).run();
         }
-        await db.prepare('INSERT INTO posts (id,cat,title,body,nick,created_at,updated_at,owner,img) VALUES (?,?,?,?,?,?,?,?,?)').bind(pid, cat, title, text, nick, ts, ts, me || null, imgId).run();
-        return json({ ok: true, post: { id: pid, cat, title, body: text, nick, created_at: ts, updated_at: ts, mine: !!me, img: imgId ? '/img/' + imgId : '' } }, 201, origin);
+        await db.prepare('INSERT INTO posts (id,cat,title,body,nick,created_at,updated_at,owner,img,blk) VALUES (?,?,?,?,?,?,?,?,?,?)').bind(pid, cat, title, text, nick, ts, ts, me || null, imgId, blk).run();
+        return json({ ok: true, post: { id: pid, cat, ...(blk ? { blk: 1 } : {}), title, body: text, nick, created_at: ts, updated_at: ts, mine: !!me, img: imgId ? '/img/' + imgId : '' } }, 201, origin);
       }
       if (request.method === 'PUT' && postOne) {
         const pid = decodeURIComponent(postOne[1]);
