@@ -8,7 +8,9 @@
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const toast = (a, b) => { try { VB().toast(a, b); } catch (e) { /* ignore */ } };
   const DRAFT = 'nk_vb_drafts';
-  const MAXB = 6000;
+  const MAXB = 5000;
+  // v111: 모든 블럭은 반 칸(0.5) 단위 [x,y,z,가로,세로,깊이,색] · 한 칸 = 2
+  const HV = () => (E.d.vu || 0.1) / 2;
   const SW = ['#f4f1ea', '#d9d2c5', '#9aa3ad', '#5c6470', '#2c2a30', '#f2b8c6', '#e8708a', '#c8323a', '#f08a4b', '#f5c63c', '#fff0b0', '#c9a37a', '#8a5a3a', '#5a3a24', '#a8d86e', '#4f9a52', '#2f6b4a', '#9fe0d8', '#3f8f8a', '#8fc8f0', '#3d7fd1', '#2a3f7a', '#b98be0', '#6e4aa8'];
   const ROLE = { '': '역할 없음', leg: '다리 (걸을 때 앞뒤로)', arm: '팔 (걸을 때 앞뒤로)', head: '머리 (끄덕끄덕)', tail: '꼬리 (좌우로 흔들)' };
   const BONE = { torso: '몸통', head: '머리', 'arm-left': '왼팔', 'arm-right': '오른팔', 'leg-left': '왼다리', 'leg-right': '오른다리' };
@@ -23,7 +25,7 @@
 
   // ── 상태
   const E = {
-    k: null, d: null, V: {}, mode: 'build', tool: 'add', brush: 1, sm: 2, size: 1, er: 1, col: 0, mir: true, gid: '', sel: '', walk: false, tint: false, ppl: true,
+    k: null, d: null, V: {}, mode: 'build', tool: 'add', brush: 1, sm: 2, bs: [2, 2, 2], es: [2, 2, 2], rsel: null, rt: 0, size: 1, er: 1, col: 0, mir: true, gid: '', sel: '', walk: false, tint: false, ppl: true,
     undo: [], redo: [], R: null, sc: null, cam: null, root: null, ghost: null, raf: 0, yaw: 0.9, pit: 0.45, dist: 6, tgt: null, t: 0, occ: null, dirtyT: 0,
   };
   const ck = (x, y, z) => x + ',' + y + ',' + z;
@@ -39,7 +41,7 @@
     const vox = d.vox || {};
     for (const g of ['', ...Object.keys(E.d.groups)]) {
       const m = new Map();
-      for (const b of V.vbDec(vox[g] || '')) m.set(ck(b[0], b[1], b[2]), b);
+      for (const b of V.vbDec(vox[g] || '', d.vf)) m.set(ck(b[0], b[1], b[2]), b);
       E.V[g] = m;
     }
     E.occ = null;
@@ -48,7 +50,7 @@
   }
   function data() {
     const V = VB(), d = JSON.parse(JSON.stringify(E.d));
-    d.vox = {};
+    d.vox = {}; d.vf = 2;
     for (const g in E.V) if (E.V[g].size) d.vox[g] = V.vbEnc([...E.V[g].values()]);
     return d;
   }
@@ -69,7 +71,7 @@
   function occ() {
     if (E.occ) return E.occ;
     const o = new Map();
-    for (const g in E.V) for (const [key, b] of E.V[g]) { const s = b[3]; for (let i = 0; i < s; i++) for (let j = 0; j < s; j++) for (let k = 0; k < s; k++) o.set(ck(b[0] + i, b[1] + j, b[2] + k), [g, key]); }
+    for (const g in E.V) for (const [key, b] of E.V[g]) { for (let i = 0; i < b[3]; i++) for (let j = 0; j < b[4]; j++) for (let k = 0; k < b[5]; k++) o.set(ck(b[0] + i, b[1] + j, b[2] + k), [g, key]); }
     return (E.occ = o);
   }
   function colIdx(hex) {
@@ -82,14 +84,14 @@
     pal.forEach((h, j) => { const q = new THREE.Color(h), dd = (q.r - c.r) ** 2 + (q.g - c.g) ** 2 + (q.b - c.b) ** 2; if (dd < bd) { bd = dd; bi = j; } });
     return bi;
   }
-  const inR = (v) => v >= -64 && v <= 63;
-  function canPut(x, y, z, s) { const o = occ(); for (let i = 0; i < s; i++) for (let j = 0; j < s; j++) for (let k = 0; k < s; k++) { if (!inR(x + i) || !inR(y + j) || !inR(z + k) || y + j < 0) return false; if (o.has(ck(x + i, y + j, z + k))) return false; } return true; }
-  function put(x, y, z, s, c, gid) {
+  const inR = (v) => v >= -128 && v <= 127;
+  function canPut(x, y, z, S) { const o = occ(); for (let i = 0; i < S[0]; i++) for (let j = 0; j < S[1]; j++) for (let k = 0; k < S[2]; k++) { if (!inR(x + i) || !inR(y + j) || !inR(z + k) || y + j < 0) return false; if (o.has(ck(x + i, y + j, z + k))) return false; } return true; }
+  function put(x, y, z, S, c, gid) {
     if (count() >= MAXB) return false;
-    if (!canPut(x, y, z, s)) return false;
+    if (!canPut(x, y, z, S)) return false;
     const G = gid != null && E.V[gid] ? gid : E.gid; if (!E.V[G]) E.V[G] = new Map();
-    const b = [x, y, z, s, c]; E.V[G].set(ck(x, y, z), b);
-    const o = occ(); for (let i = 0; i < s; i++) for (let j = 0; j < s; j++) for (let k = 0; k < s; k++) o.set(ck(x + i, y + j, z + k), [G, ck(x, y, z)]);
+    const b = [x, y, z, S[0], S[1], S[2], c]; E.V[G].set(ck(x, y, z), b);
+    const o = occ(); for (let i = 0; i < S[0]; i++) for (let j = 0; j < S[1]; j++) for (let k = 0; k < S[2]; k++) o.set(ck(x + i, y + j, z + k), [G, ck(x, y, z)]);
     return true;
   }
   function delCell(x, y, z) { const h = occ().get(ck(x, y, z)); if (!h) return false; E.V[h[0]].delete(h[1]); E.occ = null; return true; }
@@ -97,7 +99,7 @@
   const mx = (x, s) => -x - s; // 좌우 대칭 칸 (x=0 경계 기준)
 
   // ── 기본 모양
-  function boxFill(m, x0, y0, z0, w, h, l, c) { for (let x = x0; x < x0 + w; x++) for (let y = y0; y < y0 + h; y++) for (let z = z0; z < z0 + l; z++) m.set(ck(x, y, z), [x, y, z, 1, c]); }
+  function boxFill(m, x0, y0, z0, w, h, l, c) { for (let x = x0; x < x0 + w; x++) for (let y = y0; y < y0 + h; y++) for (let z = z0; z < z0 + l; z++) m.set(ck(x, y, z), [x * 2, y * 2, z * 2, 2, 2, 2, c]); }
   function tpl(kind, t) {
     const V = VB();
     const d = { v: 1, t, n: t === 'chr' ? '새 캐릭터' : t === 'pet' ? '새 펫' : '새 탈것', vu: t === 'chr' ? 0.07 : t === 'pet' ? 0.035 : 0.1, seat: [0, 1.25, 0], zoom: 1, pal: t === 'chr' ? ['#f2d2b6', '#3d7fd1', '#2a3f7a', '#5a3a24', '#2c2a30', '#f4f1ea'] : ['#c9a37a', '#8a5a3a', '#2c2a30', '#f4f1ea', '#e8708a', '#5a3a24'], groups: {}, vox: {} };
@@ -126,7 +128,7 @@
     } else {
       boxFill(M[''], -3, 0, -3, 6, 1, 6, 0);
     }
-    for (const id in M) if (M[id].size) d.vox[id] = V.vbEnc([...M[id].values()]);
+    d.vf = 2; for (const id in M) if (M[id].size) d.vox[id] = V.vbEnc([...greedy(blocksToCells(M[id])).values()]);
     if (!d.vox['']) d.vox[''] = '';
     return d;
   }
@@ -168,7 +170,7 @@
     m.querySelector('.vbTop').innerHTML = `<b class="vbT">🧱 만들기</b>
       <span class="vbNm" title="${esc(d.n)}">${TI[d.t] || '🐾'} ${esc(d.n)}</span>
       <button type="button" data-vbsave>💾 저장</button><button type="button" data-vbload>📂 불러오기</button>
-      <button type="button" data-vbnewm>＋ 새로 만들기</button>
+      <button type="button" data-vbnewm>＋ 새로 만들기</button><button type="button" data-vbbrd>🏪 창작 마당</button>
       <span class="vbSeg"><button type="button" data-vbm="build" class="${E.mode === 'build' ? 'on' : ''}">🧱 건축</button><button type="button" data-vbm="part" class="${E.mode === 'part' ? 'on' : ''}">🏷 구역 나누기</button><button type="button" data-vbm="detail" class="${E.mode === 'detail' ? 'on' : ''}">🎛 상세 조정</button></span>
       <button type="button" data-vbu ${E.undo.length ? '' : 'disabled'} aria-label="되돌리기" title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-vbr ${E.redo.length ? '' : 'disabled'} aria-label="다시하기" title="다시하기 (Ctrl+Y)">↷</button>
       <button type="button" data-vbphoto>📷 사진으로 모양</button>
@@ -176,7 +178,7 @@
       <button type="button" class="acc" data-vbreg>✅ 게임에 등록</button>
       <button type="button" data-vbx aria-label="닫기">✕</button>`;
     const q = (s) => m.querySelector(s);
-    q('[data-vbsave]').onclick = saveDlg; q('[data-vbload]').onclick = loadDlg; q('[data-vbnewm]').onclick = () => newDlg();
+    q('[data-vbsave]').onclick = saveDlg; q('[data-vbload]').onclick = loadDlg; q('[data-vbnewm]').onclick = () => newDlg(); q('[data-vbbrd]').onclick = () => brdOpen();
     m.querySelectorAll('[data-vbm]').forEach((b) => (b.onclick = () => { E.mode = b.dataset.vbm; if (E.mode === 'detail' && !E.sel) E.sel = E.gid; changed(true); }));
     q('[data-vbu]').onclick = undo; q('[data-vbr]').onclick = redo;
     q('[data-vbphoto]').onclick = photoDlg;
@@ -195,9 +197,8 @@
       const pal = E.d.pal;
       L.innerHTML = `<h5>도구</h5><div class="vbTools">
         <button type="button" data-vbt="add" class="${E.tool === 'add' ? 'on' : ''}">🧱 쌓기</button><button type="button" data-vbt="del" class="${E.tool === 'del' ? 'on' : ''}">🧽 지우기</button>
-        <button type="button" data-vbt="pick" class="${E.tool === 'pick' ? 'on' : ''}">💧 색 집기</button><button type="button" data-vbsm2>✨ 다듬기</button></div>
-        <h5>블럭 크기 <small>1~4칸</small></h5><div class="vbNum">${[1, 2, 3, 4].map((s) => `<button type="button" data-vbs="${s}" class="${E.size === s ? 'on' : ''}">${s}</button>`).join('')}</div>
-        <h5>지우개 크기</h5><div class="vbNum">${[1, 2, 3, 5].map((s) => `<button type="button" data-vbe="${s}" class="${E.er === s ? 'on' : ''}">${s}</button>`).join('')}</div>
+        <button type="button" data-vbt="pick" class="${E.tool === 'pick' ? 'on' : ''}">💧 색 집기</button><button type="button" data-vbt="round" class="${E.tool === 'round' ? 'on' : ''}">🔵 둥글게</button></div>
+        ${sizeUI('블럭 크기', 'bs')}${sizeUI('지우개 크기', 'es')}
         <label class="vbChk"><input type="checkbox" data-vbmir ${E.mir ? 'checked' : ''}> ⇋ 좌우 대칭으로 쌓기</label>
         <label class="vbChk"><input type="checkbox" data-vbtint ${E.tint ? 'checked' : ''}> 🏷 구역 색으로 보기</label>
         <label class="vbChk"><input type="checkbox" data-vbppl ${E.ppl ? 'checked' : ''}> 🧍 사람 크기 같이 보기</label>
@@ -205,10 +206,9 @@
         <div class="vbPal more">${SW.filter((c) => !pal.includes(c)).map((c) => `<button type="button" data-vbsw="${c}" style="background:${c}" aria-label="색 추가"></button>`).join('')}</div>
         <label class="vbCus">직접 고르기 <input type="color" value="${pal[E.col] || '#cccccc'}" data-vbcus></label>`;
       L.querySelectorAll('[data-vbt]').forEach((b) => (b.onclick = () => { E.tool = b.dataset.vbt; left(); }));
-      L.querySelectorAll('[data-vbs]').forEach((b) => (b.onclick = () => { E.size = +b.dataset.vbs; left(); }));
-      L.querySelectorAll('[data-vbe]').forEach((b) => (b.onclick = () => { E.er = +b.dataset.vbe; left(); }));
+      L.querySelectorAll('[data-vbq]').forEach((b) => (b.onclick = () => { const [k, v] = b.dataset.vbq.split(':'); E[k] = [+v, +v, +v]; if (k === 'bs' && E.tool !== 'add') E.tool = 'add'; if (k === 'es') E.tool = 'del'; left(); }));
+      L.querySelectorAll('[data-vbz]').forEach((el) => (el.onchange = () => { const [k, i] = el.dataset.vbz.split(':'); const v = Math.max(0.5, Math.min(8, Math.round((+el.value || 1) * 2) / 2)); el.value = v; E[k][+i] = v * 2; left(); }));
       L.querySelector('[data-vbmir]').onchange = (e) => { E.mir = e.target.checked; };
-      L.querySelector('[data-vbsm2]').onclick = smoothDlg;
       L.querySelector('[data-vbtint]').onchange = (e) => { E.tint = e.target.checked; scene(); };
       L.querySelector('[data-vbppl]').onchange = (e) => { E.ppl = e.target.checked; scene(); };
       L.querySelectorAll('[data-vbc]').forEach((b) => (b.onclick = () => { E.col = +b.dataset.vbc; if (E.tool !== 'add') E.tool = 'add'; left(); }));
@@ -245,6 +245,9 @@
       bindNums(L);
     }
   }
+  // 블럭·지우개 크기: 0.5 · 1 · 2 · 3 · 4 칸 바로 고르기 + 가로·세로·깊이 숫자로
+  const sizeUI = (lab, k) => { const S = E[k], cube = S[0] === S[1] && S[1] === S[2] ? S[0] / 2 : 0; return `<h5>${lab} <small>칸 · 0.5 단위</small></h5><div class="vbNum vbNum5">${[0.5, 1, 2, 3, 4].map((v) => `<button type="button" data-vbq="${k}:${v * 2}" class="${cube === v ? 'on' : ''}">${v}</button>`).join('')}</div>
+      <div class="vbXYZ">${['가로', '세로', '깊이'].map((n, i) => `<label><span>${n}</span><input type="number" min="0.5" max="8" step="0.5" value="${S[i] / 2}" data-vbz="${k}:${[0, 1, 2][i]}"></label>`).join('')}</div>`; };
   const row = (lab, key, i, v, min, max, step) => `<label class="vbRow"><span>${lab}</span><input type="range" min="${min}" max="${max}" step="${step}" value="${v}" data-vn="${key}" data-vi="${i}"><input type="number" min="${min}" max="${max}" step="${step}" value="${+(+v).toFixed(3)}" data-vn="${key}" data-vi="${i}"></label>`;
   function bindNums(P) {
     P.querySelectorAll('[data-vn]').forEach((el) => {
@@ -267,13 +270,10 @@
       const n = count();
       R.innerHTML = `<h5>구역 <small>${E.mode === 'build' ? '눌러서 구역 나누기로' : '지금 칠하는 구역'}</small></h5><div class="vbGs">${ids.map((id) => { const c = (E.V[id] || new Map()).size; return `<button type="button" data-vbg="${id}" class="${E.mode === 'part' && cur === id ? 'on' : ''}"><i style="background:${grpCol(id)}"></i>${esc(grpName(id))}<small>${c}</small></button>`; }).join('')}</div>
         <p class="vbNote">${E.mode === 'build' ? '새 블럭은 붙인 블럭과 같은 구역에 들어가요. 다 만든 뒤 「🏷 구역 나누기」에서 머리·다리·꼬리를 칠해서 나눠요' : '「🤖 자동으로 나누기」로 먼저 나눈 뒤, 틀린 곳만 칠해서 고치면 빨라요'}</p>
-        <hr><h5>✨ 다듬기</h5><p class="vbNote">대충 만든 모양의 튀어나온 블럭·구멍·모서리를 정리하고 얼룩진 색을 맞춰요</p>
-        <div class="vbNum">${[[1, '약하게'], [2, '보통'], [3, '세게']].map(([v, t]) => `<button type="button" data-vbsm="${v}" class="${E.sm === v ? 'on' : ''}">${t}</button>`).join('')}</div>
-        <button type="button" class="vbWide acc" data-vbsmgo>✨ 다듬기</button>
+        <hr>${roundUI()}
         <p class="vbNote">블럭 ${n.toLocaleString()} / ${MAXB.toLocaleString()}</p>`;
       R.querySelectorAll('[data-vbg]').forEach((b) => (b.onclick = () => { E.gid = b.dataset.vbg; E.mode = 'part'; changed(true); }));
-      R.querySelectorAll('[data-vbsm]').forEach((b) => (b.onclick = () => { E.sm = +b.dataset.vbsm; side(); }));
-      R.querySelector('[data-vbsmgo]').onclick = () => doSmooth(E.sm);
+      roundBind(R);
       info(); topBtns(); return;
     }
     let h = `<h5>구역 <small>눌러서 고치기</small></h5><div class="vbGs">${ids.map((id) => { const q = d.groups[id] || {}, n = (E.V[id] || new Map()).size; const tag = q.leg != null ? '다리' : q.arm != null ? '팔' : q.head ? '머리' : q.tail ? '꼬리' : ''; return `<button type="button" data-vbg="${id}" class="${cur === id ? 'on' : ''}"><i style="background:${grpCol(id)}"></i>${esc(grpName(id))}${tag ? `<em>${tag}</em>` : ''}<small>${n}</small></button>`; }).join('')}</div>
@@ -315,19 +315,19 @@
     info(); topBtns();
   }
   function topBtns() { const m = $('vbEd'); if (!m) return; const u = m.querySelector('[data-vbu]'), r = m.querySelector('[data-vbr]'); if (u) u.disabled = !E.undo.length; if (r) r.disabled = !E.redo.length; }
-  function info() { const el = $('vbEd') && $('vbEd').querySelector('.vbInfo'); if (!el) return; const n = count(), vu = E.d.vu || 0.1; let b = bounds(); const sz = b ? [(b[3] - b[0] + 1) * vu * (E.d.zoom || 1), (b[4] - b[1] + 1) * vu * (E.d.zoom || 1), (b[5] - b[2] + 1) * vu * (E.d.zoom || 1)] : [0, 0, 0]; el.innerHTML = `블럭 <b>${n.toLocaleString()}</b> / ${MAXB.toLocaleString()} · 크기 ${sz.map((v) => v.toFixed(1)).join(' × ')}m`; el.classList.toggle('warn', n > MAXB * 0.9); }
-  function bounds(id) { let b = null; const gs = id == null ? Object.keys(E.V) : [id]; for (const g of gs) for (const v of E.V[g].values()) { const s = v[3]; if (!b) b = [v[0], v[1], v[2], v[0] + s - 1, v[1] + s - 1, v[2] + s - 1]; else { b[0] = Math.min(b[0], v[0]); b[1] = Math.min(b[1], v[1]); b[2] = Math.min(b[2], v[2]); b[3] = Math.max(b[3], v[0] + s - 1); b[4] = Math.max(b[4], v[1] + s - 1); b[5] = Math.max(b[5], v[2] + s - 1); } } return b; }
+  function info() { const el = $('vbEd') && $('vbEd').querySelector('.vbInfo'); if (!el) return; const n = count(), vu = HV(); let b = bounds(); const sz = b ? [(b[3] - b[0] + 1) * vu * (E.d.zoom || 1), (b[4] - b[1] + 1) * vu * (E.d.zoom || 1), (b[5] - b[2] + 1) * vu * (E.d.zoom || 1)] : [0, 0, 0]; el.innerHTML = `블럭 <b>${n.toLocaleString()}</b> / ${MAXB.toLocaleString()} · 크기 ${sz.map((v) => v.toFixed(1)).join(' × ')}m`; el.classList.toggle('warn', n > MAXB * 0.9); }
+  function bounds(id) { let b = null; const gs = id == null ? Object.keys(E.V) : [id]; for (const g of gs) if (E.V[g]) for (const v of E.V[g].values()) { const e = [v[0] + v[3] - 1, v[1] + v[4] - 1, v[2] + v[5] - 1]; if (!b) b = [v[0], v[1], v[2], e[0], e[1], e[2]]; else { b[0] = Math.min(b[0], v[0]); b[1] = Math.min(b[1], v[1]); b[2] = Math.min(b[2], v[2]); b[3] = Math.max(b[3], e[0]); b[4] = Math.max(b[4], e[1]); b[5] = Math.max(b[5], e[2]); } } return b; }
   function autoPivot(id) {
-    const q = E.d.groups[id], b = bounds(id), vu = E.d.vu || 0.1; if (!q || !b) return;
+    const q = E.d.groups[id], b = bounds(id), vu = HV(); if (!q || !b) return;
     const cx = ((b[0] + b[3] + 1) / 2) * vu, cz = ((b[2] + b[5] + 1) / 2) * vu;
     if (q.leg != null || q.arm != null) q.p = [+cx.toFixed(3), +((b[4] + 1) * vu).toFixed(3), +cz.toFixed(3)];
     else if (q.head) q.p = [+cx.toFixed(3), +(b[1] * vu).toFixed(3), +(b[2] * vu).toFixed(3)];
     else if (q.tail) q.p = [+cx.toFixed(3), +(((b[1] + b[4] + 1) / 2) * vu).toFixed(3), +((b[5] + 1) * vu).toFixed(3)];
     else q.p = [+cx.toFixed(3), +(((b[1] + b[4] + 1) / 2) * vu).toFixed(3), +cz.toFixed(3)];
   }
-  function autoSeat() { const b = bounds(''), vu = E.d.vu || 0.1; if (!b) return; E.d.seat = [+(((b[0] + b[3] + 1) / 2) * vu).toFixed(3), +((b[4] + 1) * vu).toFixed(3), +(((b[2] + b[5] + 1) / 2) * vu).toFixed(3)]; }
+  function autoSeat() { const b = bounds(''), vu = HV(); if (!b) return; E.d.seat = [+(((b[0] + b[3] + 1) / 2) * vu).toFixed(3), +((b[4] + 1) * vu).toFixed(3), +(((b[2] + b[5] + 1) / 2) * vu).toFixed(3)]; }
   function moveGroup(id, ax, s) {
-    const m = E.V[id], vu = E.d.vu || 0.1, a = { x: 0, y: 1, z: 2 }[ax], nm = new Map();
+    const m = E.V[id], vu = HV(), a = { x: 0, y: 1, z: 2 }[ax], nm = new Map(); s *= 2;
     for (const b of m.values()) { const nb = b.slice(); nb[a] += s; if (!inR(nb[a]) || (a === 1 && nb[1] < 0)) return toast('더 옮길 수 없어요', 1200); nm.set(ck(nb[0], nb[1], nb[2]), nb); }
     E.V[id] = nm; const q = E.d.groups[id]; if (q) q.p[a] = +(q.p[a] + s * vu).toFixed(3);
   }
@@ -385,7 +385,7 @@
     const vox = {}; for (const g in E.V) vox[g] = [...E.V[g].values()];
     E.root = V.vbBuild(dd, { vox, raw, edit: 1, tint: E.mode === 'part' || (raw && E.tint) ? (id) => grpCol(id) : null });
     add(E.root);
-    if (E.ppl) { const p = person(); p.position.set((bounds() ? (bounds()[3] + 1) * vu * (raw ? 1 : d.zoom || 1) : 0) + 0.9, 0, 0); add(p); p.traverse((x) => { x.userData.keep = 1; }); }
+    if (E.ppl) { const p = person(); p.position.set((bounds() ? (bounds()[3] + 1) * HV() * (raw ? 1 : d.zoom || 1) : 0) + 0.9, 0, 0); add(p); p.traverse((x) => { x.userData.keep = 1; }); }
     if (!raw) {
       if (d.t !== 'chr') { const st = new T.Mesh(new T.BoxGeometry(0.34, 0.06, 0.34), new T.MeshBasicMaterial({ color: '#ff5a8a', transparent: true, opacity: 0.7 })); st.position.fromArray(E.root.userData.seat); add(st); }
       const G = E.root.userData.G;
@@ -403,7 +403,7 @@
     info();
   }
   function fit() {
-    const b = bounds(), vu = E.d.vu || 0.1, z = E.mode !== 'detail' ? 1 : E.d.zoom || 1;
+    const b = bounds(), vu = HV(), z = E.mode !== 'detail' ? 1 : E.d.zoom || 1;
     if (!b || !E.tgt) { if (E.tgt) E.tgt.set(0, 0.8, 0); E.dist = 6; return; }
     const c = [((b[0] + b[3] + 1) / 2) * vu * z, ((b[1] + b[4] + 1) / 2) * vu * z, ((b[2] + b[5] + 1) / 2) * vu * z], r = Math.max((b[3] - b[0] + 1), (b[4] - b[1] + 1), (b[5] - b[2] + 1)) * vu * z;
     E.tgt.set(c[0], c[1], c[2]); E.dist = Math.max(2, r * 2.4);
@@ -413,7 +413,7 @@
   function ray(e) { const cv = $('vbCv'), r = cv.getBoundingClientRect(), v = new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), rc = new THREE.Raycaster(); rc.setFromCamera(v, E.cam); return rc; }
   // 맞은 칸 (in: 블럭 안 · out: 쌓을 칸 · ax/sg: 맞은 면)
   function hit(e) {
-    const rc = ray(e), vu = E.d.vu || 0.1, meshes = []; E.root.traverse((o) => { if (o.isMesh) meshes.push(o); });
+    const rc = ray(e), vu = HV(), meshes = []; E.root.traverse((o) => { if (o.isMesh && !o.userData.rsel) meshes.push(o); });
     const h = rc.intersectObjects(meshes, false)[0];
     if (h && h.face) {
       const n = h.face.normal.clone(), p = h.point, ax = Math.abs(n.x) > 0.5 ? 0 : Math.abs(n.y) > 0.5 ? 1 : 2, sg = Math.sign(n.getComponent(ax));
@@ -425,17 +425,17 @@
     return null;
   }
   // 쌓을 블럭 시작 칸 (크기 s: 맞은 면 반대쪽으로 붙이고 옆으로는 가운데)
-  function origin(h, s) { const o = h.out.slice(); for (let a = 0; a < 3; a++) { if (a === h.ax) { if (h.sg < 0) o[a] -= s - 1; } else o[a] -= Math.floor((s - 1) / 2); } return o; }
+  function origin(h, S) { const o = h.out.slice(); for (let a = 0; a < 3; a++) { if (a === h.ax) { if (h.sg < 0) o[a] -= S[a] - 1; } else o[a] -= Math.floor((S[a] - 1) / 2); } return o; }
   // 끌기: 시작 면에 붙은 판 위의 칸
   function planeCell(e, st) {
-    const rc = ray(e), vu = E.d.vu || 0.1, ax = st.ax, layer = st.layer, nrm = new THREE.Vector3(); nrm.setComponent(ax, 1);
+    const rc = ray(e), vu = HV(), ax = st.ax, layer = st.layer, nrm = new THREE.Vector3(); nrm.setComponent(ax, 1);
     const pl = new THREE.Plane(nrm, -(layer + 0.5) * vu), q = new THREE.Vector3(); if (!rc.ray.intersectPlane(pl, q)) return null;
     const c = [Math.floor(q.x / vu), Math.floor(q.y / vu), Math.floor(q.z / vu)]; c[ax] = layer; return c;
   }
-  function rectCells(a, b, ax, step) { const out = [], u = (ax + 1) % 3, v = (ax + 2) % 3, u0 = Math.min(a[u], b[u]), u1 = Math.max(a[u], b[u]), v0 = Math.min(a[v], b[v]), v1 = Math.max(a[v], b[v]); for (let i = u0; i <= u1; i += step) for (let j = v0; j <= v1; j += step) { const c = a.slice(); c[u] = i; c[v] = j; out.push(c); } return out; }
+  function rectCells(a, b, ax, step) { const out = [], u = (ax + 1) % 3, v = (ax + 2) % 3, su = Array.isArray(step) ? step[u] : step, sv = Array.isArray(step) ? step[v] : step, u0 = Math.min(a[u], b[u]), u1 = Math.max(a[u], b[u]), v0 = Math.min(a[v], b[v]), v1 = Math.max(a[v], b[v]); for (let i = u0; i <= u1; i += su) for (let j = v0; j <= v1; j += sv) { const c = a.slice(); c[u] = i; c[v] = j; out.push(c); } return out; }
   function showGhost(min, max, col) {
-    const g = E.ghost; if (!g) return; const vu = E.d.vu || 0.1;
-    g.visible = true; g.scale.set((max[0] - min[0] + 1) * vu, (max[1] - min[1] + 1) * vu, (max[2] - min[2] + 1) * vu); g.position.set(((min[0] + max[0] + 1) / 2) * vu, ((min[1] + max[1] + 1) / 2) * vu, ((min[2] + max[2] + 1) / 2) * vu);
+    const g = E.ghost; if (!g) return; const vu = HV();
+    g.material.opacity = 0.35; g.visible = true; g.scale.set((max[0] - min[0] + 1) * vu, (max[1] - min[1] + 1) * vu, (max[2] - min[2] + 1) * vu); g.position.set(((min[0] + max[0] + 1) / 2) * vu, ((min[1] + max[1] + 1) / 2) * vu, ((min[2] + max[2] + 1) / 2) * vu);
     g.material.color.set(col);
   }
   function input(cv) {
@@ -443,7 +443,7 @@
     cv.onpointerdown = (e) => {
       cv.setPointerCapture(e.pointerId);
       dn = { b: e.button, x: e.clientX, y: e.clientY, mv: 0, lx: e.clientX, ly: e.clientY, h: null };
-      if (E.mode === 'build' && e.button === 0) { const h = hit(e); if (h) { dn.h = h; const tool = E.tool; const c = tool === 'add' ? origin(h, E.size) : h.in || h.out; dn.st = { ax: h.ax, sg: h.sg, layer: c[h.ax], c0: c, g: (h.in && (occ().get(ck(...h.in)) || [''])[0]) || '' }; } }
+      if (E.mode === 'build' && e.button === 0) { const h = hit(e); if (h) { dn.h = h; const tool = E.tool; const c = tool === 'add' ? origin(h, E.bs) : h.in || h.out; dn.st = { ax: h.ax, sg: h.sg, layer: c[h.ax], c0: c, g: (h.in && (occ().get(ck(...h.in)) || [''])[0]) || '' }; } }
       if (E.mode === 'part' && e.button === 0) { const h = hit(e); if (h && h.in) { dn.h = h; dn.st = { ax: h.ax, sg: h.sg, layer: h.in[h.ax], c0: h.in }; } }
     };
     cv.onpointermove = (e) => {
@@ -455,9 +455,10 @@
       if (E.mode === 'part' && dn.b === 0 && dn.st && dn.mv > 6) { const c = planeCell(e, dn.st); if (!c) return; dn.c1 = c; const a = dn.st.c0, mn = [0, 1, 2].map((i) => Math.min(a[i], c[i])), mxv = [0, 1, 2].map((i) => Math.max(a[i], c[i])); showGhost(mn, mxv, grpCol(E.gid)); return; }
       if (E.mode === 'build' && dn.b === 0 && dn.st && dn.mv > 6) {
         const c = planeCell(e, dn.st); if (!c) return; dn.c1 = c;
-        const s = E.tool === 'add' ? E.size : 1, a = dn.st.c0, mn = [0, 1, 2].map((i) => Math.min(a[i], c[i])), mxv = [0, 1, 2].map((i) => Math.max(a[i], c[i]) + (E.tool === 'add' ? s - 1 : 0));
+        const a = dn.st.c0, mn = [0, 1, 2].map((i) => Math.min(a[i], c[i])), mxv = [0, 1, 2].map((i) => Math.max(a[i], c[i]) + (E.tool === 'add' ? E.bs[i] - 1 : 0));
+        if (E.tool === 'round') { mn[dn.st.ax] = -128; mxv[dn.st.ax] = 127; const b = bounds(); if (b) { mn[dn.st.ax] = b[dn.st.ax]; mxv[dn.st.ax] = b[dn.st.ax + 3]; } }
         if (E.tool === 'grp') { mn[dn.st.ax] = -64; mxv[dn.st.ax] = 63; const b = bounds(); if (b) { mn[dn.st.ax] = b[dn.st.ax]; mxv[dn.st.ax] = b[dn.st.ax + 3]; } }
-        showGhost(mn, mxv, E.tool === 'del' ? '#e8505a' : E.tool === 'grp' ? grpCol(E.gid) : E.d.pal[E.col]);
+        showGhost(mn, mxv, E.tool === 'del' ? '#e8505a' : E.tool === 'round' ? '#3d7fd1' : E.d.pal[E.col]);
       }
     };
     cv.onpointerup = (e) => {
@@ -474,35 +475,38 @@
   }
   function hover(e) {
     if (!E.root) return; const h = hit(e); if (!h) { E.ghost.visible = false; return; }
-    if (E.mode === 'part') { if (!h.in) { E.ghost.visible = false; return; } const r = E.brush, o = h.in.map((v, i) => (i === h.ax ? v : v - Math.floor((r - 1) / 2))), m2 = o.map((v, i) => (i === h.ax ? v : v + r - 1)); showGhost(o, m2, grpCol(E.gid)); return; }
-    if (E.tool === 'add') { const o = origin(h, E.size), s = E.size; showGhost(o, [o[0] + s - 1, o[1] + s - 1, o[2] + s - 1], E.d.pal[E.col] || '#3d7fd1'); }
-    else if (E.tool === 'del' && h.in) { const r = E.er, o = h.in.map((v) => v - Math.floor((r - 1) / 2)); showGhost(o, [o[0] + r - 1, o[1] + r - 1, o[2] + r - 1], '#e8505a'); }
+    if (E.mode === 'part') { if (!h.in) { E.ghost.visible = false; return; } const r = E.brush * 2, o = h.in.map((v, i) => (i === h.ax ? v : v - Math.floor((r - 1) / 2))), m2 = o.map((v, i) => (i === h.ax ? v : v + r - 1)); showGhost(o, m2, grpCol(E.gid)); return; }
+    if (E.tool === 'add') { const S = E.bs, o = origin(h, S); showGhost(o, [o[0] + S[0] - 1, o[1] + S[1] - 1, o[2] + S[2] - 1], E.d.pal[E.col] || '#3d7fd1'); }
+    else if (E.tool === 'del' && h.in) { const r = E.es, o = h.in.map((v, i) => v - Math.floor((r[i] - 1) / 2)); showGhost(o, [o[0] + r[0] - 1, o[1] + r[1] - 1, o[2] + r[2] - 1], '#e8505a'); }
     else if (h.in) showGhost(h.in, h.in, E.tool === 'grp' ? grpCol(E.gid) : '#ffffff');
     else E.ghost.visible = false;
   }
   function click(h) {
     if (E.tool === 'add') {
-      const o = origin(h, E.size), s = E.size; push();
+      const S = E.bs, o = origin(h, S); push();
       const hg = h.in && occ().get(ck(...h.in)), g = hg ? hg[0] : '', g2 = MIRP[g] && E.V[MIRP[g]] ? MIRP[g] : g;
-      let ok = put(o[0], o[1], o[2], s, E.col, g);
-      if (E.mir) { const x2 = mx(o[0], s); if (x2 !== o[0]) ok = put(x2, o[1], o[2], s, E.col, g2) || ok; }
+      let ok = put(o[0], o[1], o[2], S, E.col, g);
+      if (E.mir) { const x2 = mx(o[0], S[0]); if (x2 !== o[0]) ok = put(x2, o[1], o[2], S, E.col, g2) || ok; }
       if (!ok) { E.undo.pop(); if (count() >= MAXB) toast(`블럭은 ${MAXB.toLocaleString()}개까지예요`, 1600); return; }
       changed();
     } else if (E.tool === 'del') { if (h.in) erase(h.in); }
-    else if (E.tool === 'pick') { if (!h.in) return; const o = occ().get(ck(...h.in)); if (!o) return; E.col = E.V[o[0]].get(o[1])[4]; E.tool = 'add'; left(); toast('💧 색을 집었어요', 900); }
+    else if (E.tool === 'round') { if (h.in) roundPick(h.in); }
+    else if (E.tool === 'pick') { if (!h.in) return; const o = occ().get(ck(...h.in)); if (!o) return; E.col = E.V[o[0]].get(o[1])[6]; E.tool = 'add'; left(); toast('💧 색을 집었어요', 900); }
     else if (E.tool === 'grp') { if (!h.in) return; push(); let ok = grpCell(...h.in); if (E.mir) { const c = h.in.slice(); c[0] = -c[0] - 1; ok = grpCell(...c) || ok; } if (!ok) { E.undo.pop(); return; } changed(true); }
   }
   function erase(c) {
-    const r = E.er, o = c.map((v) => v - Math.floor((r - 1) / 2)); push(); let ok = false;
-    for (let i = 0; i < r; i++) for (let j = 0; j < r; j++) for (let k = 0; k < r; k++) { ok = delCell(o[0] + i, o[1] + j, o[2] + k) || ok; if (E.mir) ok = delCell(-(o[0] + i) - 1, o[1] + j, o[2] + k) || ok; }
+    const r = E.es, o = c.map((v, i) => v - Math.floor((r[i] - 1) / 2)); push(); let ok = false;
+    for (let i = 0; i < r[0]; i++) for (let j = 0; j < r[1]; j++) for (let k = 0; k < r[2]; k++) { ok = delCell(o[0] + i, o[1] + j, o[2] + k) || ok; if (E.mir) ok = delCell(-(o[0] + i) - 1, o[1] + j, o[2] + k) || ok; }
     if (!ok) { E.undo.pop(); return; } changed(true);
   }
   function area(st, c1) {
     push(); let n = 0; const ax = st.ax;
     if (E.tool === 'add') {
-      const s = E.size, g = st.g || ''; for (const c of rectCells(st.c0, c1, ax, s)) { if (put(c[0], c[1], c[2], s, E.col, g)) n++; if (E.mir) { const x2 = mx(c[0], s); if (x2 !== c[0] && put(x2, c[1], c[2], s, E.col, MIRP[g] && E.V[MIRP[g]] ? MIRP[g] : g)) n++; } }
+      const S = E.bs, g = st.g || ''; for (const c of rectCells(st.c0, c1, ax, S)) { if (put(c[0], c[1], c[2], S, E.col, g)) n++; if (E.mir) { const x2 = mx(c[0], S[0]); if (x2 !== c[0] && put(x2, c[1], c[2], S, E.col, MIRP[g] && E.V[MIRP[g]] ? MIRP[g] : g)) n++; } }
     } else if (E.tool === 'del') {
-      const r = E.er; for (const c of rectCells(st.c0, c1, ax, 1)) for (let k = 0; k < r; k++) { const q = c.slice(); q[ax] -= k * (st.sg || 1); if (delCell(...q)) n++; if (E.mir && delCell(-q[0] - 1, q[1], q[2])) n++; }
+      const r = E.es[ax]; for (const c of rectCells(st.c0, c1, ax, 1)) for (let k = 0; k < r; k++) { const q = c.slice(); q[ax] -= k * (st.sg || 1); if (delCell(...q)) n++; if (E.mir && delCell(-q[0] - 1, q[1], q[2])) n++; }
+    } else if (E.tool === 'round') {
+      if (E.ghost) E.ghost.visible = false; E.undo.pop(); roundBox(st, c1); return;
     } else if (E.tool === 'grp') {
       const b = bounds(); if (b) for (const c of rectCells(st.c0, c1, ax, 1)) for (let t = b[ax]; t <= b[ax + 3]; t++) { const q = c.slice(); q[ax] = t; if (grpCell(...q)) n++; if (E.mir && grpCell(-q[0] - 1, q[1], q[2])) n++; }
     }
@@ -550,7 +554,7 @@
     return n;
   }
   function paintAt(c, ax, sg) {
-    const gid = E.gid; ensurePart(gid); const r = E.brush, u = (ax + 1) % 3, v = (ax + 2) % 3, off = Math.floor((r - 1) / 2); let n = 0; const touched = new Set([gid]);
+    const gid = E.gid; ensurePart(gid); const r = E.brush * 2, u = (ax + 1) % 3, v = (ax + 2) % 3, off = Math.floor((r - 1) / 2); let n = 0; const touched = new Set([gid]);
     for (let i = 0; i < r; i++) for (let j = 0; j < r; j++) {
       const q = c.slice(); q[u] += i - off; q[v] += j - off; n += paintRun(q, ax, sg, gid);
       if (E.mir) { const g2 = MIRP[gid] || gid; ensurePart(g2); touched.add(g2); const m2 = q.slice(); m2[0] = -m2[0] - 1; n += paintRun(m2, ax, ax === 0 ? -sg : sg, g2); }
@@ -566,8 +570,23 @@
     if (!n) { E.undo.pop(); return; } changed(true);
   }
   // 낱칸으로 풀기 / 다시 묶기
-  function unpack() { const out = new Map(); for (const g in E.V) for (const b of E.V[g].values()) { const s = b[3]; for (let i = 0; i < s; i++) for (let j = 0; j < s; j++) for (let k = 0; k < s; k++) out.set(ck(b[0] + i, b[1] + j, b[2] + k), { x: b[0] + i, y: b[1] + j, z: b[2] + k, g, c: b[4] }); } return out; }
-  function repack(cells) { const by = {}; for (const id of ['', ...Object.keys(E.d.groups)]) by[id] = new Map(); for (const q of cells.values()) { if (!by[q.g]) by[q.g] = new Map(); by[q.g].set(ck(q.x, q.y, q.z), [q.x, q.y, q.z, 1, q.c]); } E.V = {}; for (const g in by) E.V[g] = pack(by[g]); E.occ = null; }
+  function unpack(only) { const out = new Map(); for (const g in E.V) { if (only && !only.has(g)) continue; for (const b of E.V[g].values()) for (let i = 0; i < b[3]; i++) for (let j = 0; j < b[4]; j++) for (let k = 0; k < b[5]; k++) out.set(ck(b[0] + i, b[1] + j, b[2] + k), { x: b[0] + i, y: b[1] + j, z: b[2] + k, g, c: b[6] }); } return out; }
+  // 낱칸(반 칸) → 큰 상자 블럭으로 묶기 (같은 구역·같은 색끼리 · 가로→세로→깊이 순서로 넓혀요)
+  function greedy(cells) {
+    const out = new Map(), used = new Set(), get = (x, y, z) => cells.get(ck(x, y, z));
+    const L = [...cells.values()].sort((a, b) => a.z - b.z || a.y - b.y || a.x - b.x);
+    for (const q of L) {
+      const k0 = ck(q.x, q.y, q.z); if (used.has(k0)) continue; const same = (x, y, z) => { const r = get(x, y, z); return r && !used.has(ck(x, y, z)) && r.c === q.c && r.g === q.g; };
+      let sx = 1; while (sx < 16 && same(q.x + sx, q.y, q.z)) sx++;
+      let sy = 1; while (sy < 16) { let ok = true; for (let i = 0; i < sx && ok; i++) if (!same(q.x + i, q.y + sy, q.z)) ok = false; if (!ok) break; sy++; }
+      let sz = 1; while (sz < 16) { let ok = true; for (let i = 0; i < sx && ok; i++) for (let j = 0; j < sy && ok; j++) if (!same(q.x + i, q.y + j, q.z + sz)) ok = false; if (!ok) break; sz++; }
+      for (let i = 0; i < sx; i++) for (let j = 0; j < sy; j++) for (let l = 0; l < sz; l++) used.add(ck(q.x + i, q.y + j, q.z + l));
+      out.set(k0, [q.x, q.y, q.z, sx, sy, sz, q.c]);
+    }
+    return out;
+  }
+  function blocksToCells(m, g) { const out = new Map(); for (const b of m.values()) for (let i = 0; i < b[3]; i++) for (let j = 0; j < b[4]; j++) for (let k = 0; k < b[5]; k++) out.set(ck(b[0] + i, b[1] + j, b[2] + k), { x: b[0] + i, y: b[1] + j, z: b[2] + k, g: g || '', c: b[6] }); return out; }
+  function repack(cells, only) { const by = {}; for (const id of ['', ...Object.keys(E.d.groups)]) if (!only || only.has(id)) by[id] = new Map(); for (const q of cells.values()) { if (!by[q.g]) by[q.g] = new Map(); by[q.g].set(ck(q.x, q.y, q.z), q); } if (!only) E.V = {}; for (const g in by) E.V[g] = greedy(by[g]); E.occ = null; }
   function autoSplit() {
     const C = unpack(); if (!C.size) return 0; const b = bounds(); const has = (x, y, z) => C.has(ck(x, y, z)); const set = (q, g) => { q.g = g; };
     for (const q of C.values()) q.g = '';
@@ -605,6 +624,48 @@
     return [...ids].filter((id) => E.V[id] && E.V[id].size).length;
   }
 
+  // ── 🔵 둥글게 (v111): 블럭 영역을 고른 뒤 막대를 밀수록 점점 공(타원) 모양에 가까워져요
+  function roundUI() {
+    if (!E.rsel) return `<h5>🔵 둥글게 만들기</h5><p class="vbNote">「🔵 둥글게」 도구로 블럭을 누르면 이어진 덩어리(같은 구역)가, 꾹 눌러 끌면 그 영역이 골라져요. 그다음 막대를 밀면 점점 둥글어져요</p>${E.tool === 'round' ? '' : '<button type="button" class="vbWide" data-vbrt>🔵 둥글게 도구 쓰기</button>'}`;
+    return `<h5>🔵 둥글게 만들기 <small>고른 블럭 ${E.rsel.n.toLocaleString()}칸</small></h5>
+      <label class="vbRow vbRnd"><span>둥글기</span><input type="range" min="0" max="100" step="1" value="${E.rt}" data-vbrr><b data-vbrv>${E.rt}%</b></label>
+      <div class="vbGb"><button type="button" class="acc" data-vbrok>적용</button><button type="button" data-vbrno>취소</button></div>`;
+  }
+  function roundBind(R) {
+    const b = R.querySelector('[data-vbrt]'); if (b) b.onclick = () => { E.tool = 'round'; left(); side(); };
+    const r = R.querySelector('[data-vbrr]'); if (r) { let raf = 0; r.oninput = () => { E.rt = +r.value; const v = R.querySelector('[data-vbrv]'); if (v) v.textContent = E.rt + '%'; cancelAnimationFrame(raf); raf = requestAnimationFrame(() => roundApply(E.rt / 100)); }; }
+    const ok = R.querySelector('[data-vbrok]'); if (ok) ok.onclick = () => { E.rsel = null; E.rt = 0; changed(true); toast('🔵 둥글게 했어요 · 마음에 안 들면 ↶', 1600); };
+    const no = R.querySelector('[data-vbrno]'); if (no) no.onclick = () => { if (E.rsel) { load(JSON.parse(E.rsel.snap)); E.undo.pop(); } E.rsel = null; E.rt = 0; changed(true); };
+  }
+  function roundStart(keys) {
+    if (!keys.size) return; if (E.rsel) { load(JSON.parse(E.rsel.snap)); E.undo.pop(); }
+    const C = unpack(), sel = new Map(); for (const k of keys) { const q = C.get(k); if (q) sel.set(k, q); }
+    const xs = [...sel.values()]; const b = [Math.min(...xs.map((q) => q.x)), Math.min(...xs.map((q) => q.y)), Math.min(...xs.map((q) => q.z)), Math.max(...xs.map((q) => q.x)), Math.max(...xs.map((q) => q.y)), Math.max(...xs.map((q) => q.z))];
+    push(); E.rsel = { snap: E.undo[E.undo.length - 1], keys: [...sel.keys()], groups: [...new Set(xs.map((q) => q.g))], b, n: sel.size }; E.rt = 0;
+    side(); scene(); showSel();
+  }
+  function showSel() { if (!E.rsel || !E.ghost) return; const b = E.rsel.b; showGhost([b[0], b[1], b[2]], [b[3], b[4], b[5]], '#3d7fd1'); E.ghost.material.opacity = 0.12; }
+  function roundPick(c) {
+    const C = unpack(), k0 = ck(...c), q0 = C.get(k0); if (!q0) return; const seen = new Set([k0]), st = [q0];
+    while (st.length) { const q = st.pop(); for (const [dx, dy, dz] of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) { const k = ck(q.x + dx, q.y + dy, q.z + dz), r = C.get(k); if (r && r.g === q0.g && !seen.has(k)) { seen.add(k); st.push(r); } } }
+    roundStart(seen);
+  }
+  function roundBox(st, c1) {
+    const C = unpack(), a = st.c0, ax = st.ax, bb = bounds(); if (!bb) return; const mn = [0, 1, 2].map((i) => Math.min(a[i], c1[i])), mxv = [0, 1, 2].map((i) => Math.max(a[i], c1[i])); mn[ax] = bb[ax]; mxv[ax] = bb[ax + 3];
+    const keys = new Set(); for (const [k, q] of C) if (q.x >= mn[0] && q.x <= mxv[0] && q.y >= mn[1] && q.y <= mxv[1] && q.z >= mn[2] && q.z <= mxv[2]) keys.add(k);
+    roundStart(keys);
+  }
+  function roundApply(t) {
+    const R0 = E.rsel; if (!R0) return; load(JSON.parse(R0.snap)); E.rsel = R0;
+    if (t > 0) {
+      const only = new Set(R0.groups), C = unpack(only), b = R0.b, ctr = [(b[0] + b[3] + 1) / 2, (b[1] + b[4] + 1) / 2, (b[2] + b[5] + 1) / 2], rad = [(b[3] - b[0] + 1) / 2, (b[4] - b[1] + 1) / 2, (b[5] - b[2] + 1) / 2];
+      const n = 2 + Math.pow(1 - t, 2) * 30; // 30 ≈ 상자 · 2 = 공(타원)
+      for (const k of R0.keys) { const q = C.get(k); if (!q) continue; let sum = 0; for (let i = 0; i < 3; i++) sum += Math.pow(Math.abs(([q.x, q.y, q.z][i] + 0.5 - ctr[i]) / Math.max(0.5, rad[i])), n); if (sum > 1) C.delete(k); }
+      repack(C, only);
+    }
+    E.occ = null; scene(); showSel(); info();
+  }
+
   // ── ✨ 다듬기 (v110): 튀어나온 블럭 빼기 · 작은 구멍 메우기 · 모서리 둥글게 · 얼룩진 색 맞추기
   function smoothDlg() { E.mode = 'build'; side(); doSmooth(E.sm); }
   function doSmooth(level) {
@@ -627,6 +688,73 @@
     changed(true); toast(`✨ 다듬었어요 (블럭 ${before.toLocaleString()} → ${count().toLocaleString()}) · 마음에 안 들면 ↶`, 2200);
   }
 
+  // ── 🏪 창작 마당 (v111): 만든 탈것·캐릭터·펫을 올리고, 다른 사람 것을 내 편집기로 가져와요
+  const BCAT = { veh: '창작·탈것', chr: '창작·캐릭터', pet: '창작·펫' }, BNM = { veh: '🐾 탈것', chr: '🧍 캐릭터', pet: '🐶 펫' };
+  const B = { tab: 'veh', list: [], cur: null };
+  const api = (path, o) => { const V = VB(); o = o || {}; o.headers = Object.assign({ 'Content-Type': 'application/json', 'X-Owner': V.cid() }, o.headers || {}); return fetch(V.api() + path, o).then((r) => r.json().catch(() => ({ ok: false }))); };
+  const when = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 1 ? '방금' : m < 60 ? m + '분 전' : m < 1440 ? Math.round(m / 60) + '시간 전' : new Date(t).toLocaleDateString(); };
+  function thumbOf(d) {
+    try {
+      const T = THREE; if (!B.R) { B.R = new T.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true }); B.R.setSize(240, 240); B.R.outputEncoding = T.sRGBEncoding; } const R = B.R;
+      const sc = new T.Scene(); sc.background = new T.Color('#eef3f2'); sc.add(new T.HemisphereLight(0xffffff, 0x8899aa, 0.85)); const dl = new T.DirectionalLight(0xffffff, 0.7); dl.position.set(3, 5, 4); sc.add(dl);
+      const g = VB().vbBuild(d); g.rotation.y = 0.7; sc.add(g); const bb = new T.Box3().setFromObject(g), ct = bb.getCenter(new T.Vector3()), r = bb.getSize(new T.Vector3()).length() / 2;
+      const c = new T.PerspectiveCamera(30, 1, 0.01, 100); c.position.copy(ct).add(new T.Vector3(0.35, 0.4, 1).normalize().multiplyScalar((r / Math.sin((15 * Math.PI) / 180)) * 0.85)); c.lookAt(ct); R.render(sc, c);
+      return R.domElement.toDataURL('image/png');
+    } catch (e) { return ''; }
+  }
+  function brdOpen() {
+    const m = $('vbEd'); let P = m.querySelector('.vbBrd'); if (!P) { P = document.createElement('div'); P.className = 'vbBrd'; m.querySelector('.vbWin').appendChild(P); }
+    P.style.display = ''; B.tab = E.d.t || 'veh'; B.cur = null; brdList();
+  }
+  function brdShell(inner) {
+    const P = $('vbEd').querySelector('.vbBrd');
+    P.innerHTML = `<div class="vbBh"><b>🏪 창작 마당</b><span class="vbSeg">${Object.keys(BCAT).map((k) => `<button type="button" data-bt="${k}" class="${B.tab === k ? 'on' : ''}">${BNM[k]}</button>`).join('')}</span><span class="vbSp"></span><button type="button" class="acc" data-bup>＋ 지금 작업 올리기</button><button type="button" data-bx aria-label="닫기">✕</button></div><div class="vbBb">${inner}</div>`;
+    P.querySelectorAll('[data-bt]').forEach((b) => (b.onclick = () => { B.tab = b.dataset.bt; B.cur = null; brdList(); }));
+    P.querySelector('[data-bx]').onclick = () => { P.style.display = 'none'; };
+    P.querySelector('[data-bup]').onclick = brdUp;
+    return P;
+  }
+  function brdList() {
+    brdShell('<p class="vbNote">불러오는 중…</p>');
+    api('/posts?limit=60&cat=' + encodeURIComponent(BCAT[B.tab])).then((j) => {
+      if (B.cur) return; B.list = (j && j.posts) || []; const base = VB().api();
+      const P = brdShell(B.list.length ? `<div class="vbBg">${B.list.map((p) => `<button type="button" class="vbBc" data-bo="${p.id}">${p.img ? `<img class="vbth" src="${base}${p.img}" alt="">` : '<i class="vbth noimg"></i>'}<b>${esc(p.title)}</b><small>${esc(p.nick)} · ${when(p.created_at)} · 💬 ${p.comment_count || 0}</small></button>`).join('')}</div>` : `<div class="vbBe"><b>아직 올라온 ${BNM[B.tab]}이(가) 없어요</b><p class="vbNote">「＋ 지금 작업 올리기」로 첫 작품을 올려 보세요</p></div>`);
+      P.querySelectorAll('[data-bo]').forEach((b) => (b.onclick = () => brdView(b.dataset.bo)));
+    }).catch(() => brdShell('<p class="vbNote">게시판 서버에 연결하지 못했어요</p>'));
+  }
+  function brdView(id) {
+    B.cur = id; brdShell('<p class="vbNote">불러오는 중…</p>');
+    api('/posts/' + encodeURIComponent(id)).then((j) => {
+      if (!j || !j.ok) { brdShell('<p class="vbNote">글을 찾지 못했어요</p>'); return; }
+      const p = j.post, base = VB().api(); let d = null; try { d = JSON.parse(p.blk); } catch (e) { /* ignore */ }
+      const nb = d ? Object.values(d.vox || {}).reduce((a, v) => a + Math.round(v.length * 0.75 / (d.vf === 2 ? 6 : 4)), 0) : 0;
+      const P = brdShell(`<div class="vbBv"><div class="vbBl"><button type="button" data-bback>‹ 목록</button>${p.img ? `<img class="vbth" src="${base}${p.img}" alt="">` : ''}<div class="vbGb"><button type="button" class="acc" data-bget ${d ? '' : 'disabled'}>📥 내 편집기로 가져오기</button>${p.mine ? '<button type="button" data-bdel>지우기</button>' : ''}</div></div>
+        <div class="vbBr"><h4>${esc(p.title)}</h4><small class="vbNote">${esc(p.nick)} · ${when(p.created_at)} · 블럭 ${nb.toLocaleString()}</small><p class="vbBt">${esc(p.body)}</p>
+        <h5>💬 댓글 ${j.comments.length}</h5><div class="vbBcm">${j.comments.map((c) => `<div><b>${esc(c.nick)}</b> ${esc(c.body)} <small>${when(c.created_at)}</small></div>`).join('') || '<p class="vbNote">첫 댓글을 남겨 보세요</p>'}</div>
+        <div class="vbBw"><input type="text" maxlength="200" placeholder="댓글 쓰기" data-bcm><button type="button" data-bcs>남기기</button></div></div></div>`);
+      P.querySelector('[data-bback]').onclick = () => { B.cur = null; brdList(); };
+      const g = P.querySelector('[data-bget]'); if (g) g.onclick = () => { if (!d) return; saveDraft(); E.k = 'x' + Date.now().toString(36).slice(-6) + 'b'; d.n = String(p.title).slice(0, 14); delete d.shop; load(d); E.undo = []; E.redo = []; E.mode = 'build'; saveDraft(); P.style.display = 'none'; changed(true); fit(); toast(`📥 「${d.n}」을(를) 내 편집기로 가져왔어요 · 고쳐서 써도 돼요`, 2200); };
+      const del = P.querySelector('[data-bdel]'); if (del) del.onclick = () => { if (!confirm('이 글을 지울까요?')) return; api('/posts/' + encodeURIComponent(id), { method: 'DELETE' }).then(() => { B.cur = null; brdList(); }); };
+      const cs = P.querySelector('[data-bcs]'), ci = P.querySelector('[data-bcm]');
+      cs.onclick = () => { const t = ci.value.trim(); if (!t) return; cs.disabled = true; api('/posts/' + encodeURIComponent(id) + '/comments', { method: 'POST', body: JSON.stringify({ body: t, nick: VB().nick() }) }).then((r) => { if (r && r.ok) brdView(id); else { cs.disabled = false; toast(r && r.error === 'profanity' ? '쓸 수 없는 말이 있어요' : '댓글을 남기지 못했어요', 1600); } }); };
+    });
+  }
+  function brdUp() {
+    const V = VB(), d = data(); if (!Object.keys(d.vox).length) { toast('블럭을 먼저 쌓아 주세요', 1400); return; }
+    const img = thumbOf(d);
+    V.confirmBox(`<h3>🏪 창작 마당에 올리기 <small class="muted">${BNM[d.t] || BNM.veh}</small></h3>${img ? `<img src="${img}" alt="" style="width:140px;height:140px;border-radius:12px;background:#eef3f2">` : ''}
+      <label class="vbF" style="text-align:left">제목<input type="text" id="vbBn" maxlength="40" value="${esc(d.n)}"></label>
+      <label class="vbF" style="text-align:left">설명<textarea id="vbBd" maxlength="500" rows="3" placeholder="어떻게 만들었는지, 어디에 쓰면 좋은지">${esc(d.n)} 만들었어요</textarea></label>
+      <p class="small muted">누구나 보고 자기 편집기로 가져갈 수 있어요 · 하루 10개까지</p>`, () => {
+      const title = ($('vbBn').value || d.n).trim(), body = ($('vbBd').value || title).trim(), dd = Object.assign({}, d); delete dd.shop; delete dd.at;
+      api('/posts', { method: 'POST', body: JSON.stringify({ cat: BCAT[d.t] || BCAT.veh, title, body, nick: V.nick(), img: img || undefined, blk: JSON.stringify(dd) }) }).then((r) => {
+        if (r && r.ok) { toast('🏪 창작 마당에 올렸어요', 1600); B.tab = d.t || 'veh'; B.cur = null; brdList(); }
+        else toast(r && r.error === 'craft limit' ? '오늘은 더 올릴 수 없어요 (하루 10개)' : r && r.error === 'profanity' ? '쓸 수 없는 말이 있어요' : r && r.error === 'bad blk' ? '블럭이 너무 많아서 올릴 수 없어요' : '올리지 못했어요', 2000);
+      });
+    });
+    const yes = $('cfYes'); if (yes) yes.textContent = '올리기';
+  }
+
   // ── 저장 · 불러오기 (v110)
   function saveDlg() {
     const V = VB();
@@ -643,7 +771,7 @@
     for (const k in V.VBX.local) all[k] = { d: all[k] ? all[k].d : V.VBX.local[k], where: (all[k] ? '내 컴퓨터 · ' : '') + '내 화면에서만' };
     for (const k in V.VBX.map) all[k] = { d: all[k] ? all[k].d : V.VBX.map[k], where: (all[k] ? all[k].where + ' · ' : '') + '게임에 있음' };
     const TI = { veh: '🐾 탈것', chr: '🧍 캐릭터', pet: '🐶 펫' }, ks = Object.keys(all).sort((a, b) => ((all[b].d.at || 0) - (all[a].d.at || 0)));
-    V.confirmBox(`<h3>📂 불러오기</h3><div class="vbLd">${ks.map((k) => { const x = all[k], nb = Object.values(x.d.vox || {}).reduce((a, v) => a + Math.round(v.length * 0.75 / 4), 0); return `<div class="vbLr ${k === E.k ? 'on' : ''}"><button type="button" class="vbLo" data-ldo="${k}"><b>${esc(x.d.n || k)}</b><small>${TI[x.d.t] || TI.veh} · 블럭 ${nb.toLocaleString()} · ${x.where}${x.d.at ? ' · ' + new Date(x.d.at).toLocaleDateString() : ''}</small></button>${dr[k] ? `<button type="button" class="vbLx" data-ldx="${k}" aria-label="지우기">지우기</button>` : ''}</div>`; }).join('') || '<p class="small muted">저장된 것이 없어요</p>'}</div>
+    V.confirmBox(`<h3>📂 불러오기</h3><div class="vbLd">${ks.map((k) => { const x = all[k], nb = Object.values(x.d.vox || {}).reduce((a, v) => a + Math.round(v.length * 0.75 / (x.d.vf === 2 ? 6 : 4)), 0); return `<div class="vbLr ${k === E.k ? 'on' : ''}"><button type="button" class="vbLo" data-ldo="${k}"><b>${esc(x.d.n || k)}</b><small>${TI[x.d.t] || TI.veh} · 블럭 ${nb.toLocaleString()} · ${x.where}${x.d.at ? ' · ' + new Date(x.d.at).toLocaleDateString() : ''}</small></button>${dr[k] ? `<button type="button" class="vbLx" data-ldx="${k}" aria-label="지우기">지우기</button>` : ''}</div>`; }).join('') || '<p class="small muted">저장된 것이 없어요</p>'}</div>
       <p><button type="button" class="sm" data-ldfile>⬆ 파일에서 불러오기</button><input type="file" accept=".json,application/json" data-ldin hidden></p>`, () => {});
     const m = $('confirm'), yes = $('cfYes'); if (yes) yes.style.display = 'none';
     const done = () => { if (yes) yes.style.display = ''; m.classList.remove('show'); };
@@ -766,7 +894,7 @@
       });
     });
     // 안쪽은 2칸짜리 큰 블럭으로 묶어서 블럭 수를 줄여요
-    for (const g in V) V[g] = pack(V[g]);
+    for (const g in V) { const cells = new Map(); for (const b of V[g].values()) for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) for (let k = 0; k < 2; k++) { const x = b[0] * 2 + i, y = b[1] * 2 + j, z = b[2] * 2 + k; cells.set(ck(x, y, z), { x, y, z, g, c: b[4] }); } V[g] = greedy(cells); }
     const r = { vu, pal, groups, V };
     // 회전 중심 자동
     const keep = E.V, kd = E.d; E.V = V; E.d = Object.assign({}, E.d, { vu, groups }); for (const id in groups) autoPivot(id); E.V = keep; E.d = kd;
@@ -821,7 +949,7 @@
     const V = VB(), dd = data();
     if (!dd.vox[''] && !Object.keys(dd.vox).length) { toast('블럭을 먼저 쌓아 주세요', 1600); return; }
     const len = Object.values(dd.vox).reduce((a, v) => a + v.length, 0);
-    if (len > 36000) { toast('블럭이 너무 많아요 · 조금 줄여 주세요', 2200); return; }
+    if (len > 40000) { toast('블럭이 너무 많아요 · 조금 줄여 주세요 (✨ 다듬기나 큰 블럭으로 바꾸면 줄어요)', 2400); return; }
     if (local) { dd.at = Date.now(); V.VBX.local[E.k] = dd; V.vbSaveLocal(); V.vbReg(); saveDraft(); toast(dd.t === 'pet' ? '👁 내 화면에서만 상점 › 🐾 펫에 보여요 (새로고침해도 남아요)' : '👁 내 화면에서만 상점 › 🚗 탈것에 보여요 (새로고침해도 남아요)', 2600); ui(); return; }
     const RT = window.NK_RT; if (!RT || RT.status() !== 'on' || !RT.setVbx) { toast('서버에 연결된 상태에서만 모든 유저에게 등록할 수 있어요', 2200); return; }
     if (RT.setVbx(E.k, dd)) { delete V.VBX.local[E.k]; V.vbSaveLocal(); saveDraft(); toast(`✅ 「${dd.n}」을(를) ${dd.t === 'chr' ? '서버에 저장했어요' : '게임에 등록했어요'}`, 2200); setTimeout(ui, 800); }
@@ -837,7 +965,7 @@
     if ((e.ctrlKey || e.metaKey) && k === 'y') { e.preventDefault(); e.stopImmediatePropagation(); redo(); return; }
     if (e.key === 'Escape') { e.stopImmediatePropagation(); close(); return; }
     if (E.mode !== 'build') return;
-    if (k.length === 1 && '1234'.includes(k)) { E.size = +k; left(); }
+    if (k.length === 1 && '1234'.includes(k)) { E.bs = [+k * 2, +k * 2, +k * 2]; left(); }
     else if (k === 'b') { E.tool = 'add'; left(); } else if (k === 'e') { E.tool = 'del'; left(); } else if (k === 'i') { E.tool = 'pick'; left(); } else if (k === 'g') { E.mode = 'part'; changed(true); }
     else if (k === 'm') { E.mir = !E.mir; left(); }
     e.stopImmediatePropagation();
@@ -887,6 +1015,21 @@
 #confirm .vbLr{display:flex;gap:6px;align-items:stretch}#confirm .vbLr.on .vbLo{border-color:#1f6f6a}
 #confirm .vbLo{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;text-align:left;border:1.5px solid #e2d3bb;background:#fff;border-radius:10px;padding:7px 10px;cursor:pointer}#confirm .vbLo small{color:#7a6650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #confirm .vbLx{border:1.5px solid #e2d3bb;background:#fff;border-radius:10px;padding:0 10px;cursor:pointer;color:#b8323a;white-space:nowrap}
+#vbEd .vbWin{position:relative}#vbEd .vbBrd{position:absolute;inset:0;background:#f6efe3;z-index:5;display:flex;flex-direction:column}
+#vbEd .vbBh{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fffaf0;border-bottom:1.5px solid #e9dcc6}#vbEd .vbBh b{font-size:16px}
+#vbEd .vbBb{flex:1;min-height:0;overflow:auto;padding:14px}
+#vbEd .vbBg{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+#vbEd .vbBc{display:flex;flex-direction:column;gap:4px;text-align:left;padding:8px;border-radius:14px}#vbEd .vbBc .vbth{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;background:#eef3f2;display:block}
+#vbEd .vbBc b{font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#vbEd .vbBc small{color:#7a6650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vbEd .vbBe{text-align:center;padding:40px 0}
+#vbEd .vbBv{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px}#vbEd .vbBl{display:flex;flex-direction:column;gap:10px}#vbEd .vbBl .vbth{width:100%;border-radius:14px;background:#eef3f2}#vbEd .vbBl>button:first-child{align-self:flex-start}
+#vbEd .vbBr h4{margin:0 0 4px;font-size:20px}#vbEd .vbBt{white-space:pre-wrap;background:#fffaf0;border-radius:12px;padding:10px 12px;margin:10px 0}
+#vbEd .vbBcm{display:flex;flex-direction:column;gap:6px;margin:6px 0}#vbEd .vbBcm div{background:#fff;border-radius:10px;padding:7px 10px}#vbEd .vbBcm small{color:#8a7660}
+#vbEd .vbBw{display:flex;gap:6px}#vbEd .vbBw input{flex:1}
+#vbEd .vbNum5{grid-template-columns:repeat(5,1fr)}#vbEd .vbNum5 button{padding:6px 2px}
+#vbEd .vbXYZ{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:5px}#vbEd .vbXYZ label{display:flex;flex-direction:column;gap:2px;font-size:11.5px;color:#5a4a3a}#vbEd .vbXYZ input{width:100%;box-sizing:border-box;padding:4px}
+#vbEd .vbRnd{grid-template-columns:52px minmax(0,1fr) 44px}#vbEd .vbRnd b{font-size:12px;text-align:right;color:#1f6f6a}
+#confirm textarea{width:100%;box-sizing:border-box;font:inherit;border:1.5px solid #e2d3bb;border-radius:8px;padding:6px}
 #confirm .vbPick{display:flex;flex-direction:column;gap:8px;text-align:left;margin:10px 0}
 #confirm .vbPv{display:block;margin:8px auto;background:#f6efe3;border-radius:8px;max-width:100%}
 #confirm .vbPf{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;text-align:left;font-size:13px}#confirm .vbPf label{display:flex;flex-direction:column;gap:3px}

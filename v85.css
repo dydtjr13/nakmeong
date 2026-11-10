@@ -811,3 +811,25 @@ button.sellb:hover{background:#ffe7c2}
 @media(max-width:900px){.msc .mscg{grid-template-columns:1fr}.msc .msprev{grid-template-columns:1fr}}
 .msc .msar.on{background:#fff7f0!important;color:#3a2f25!important}
 .msc .msf select,.msc .msf input{width:100%!important;box-sizing:border-box}
+/* v110 합성 표시 */
+#fuse .fzban{display:flex;align-items:center;gap:8px;width:100%;border:0;background:#e8505a;color:#fff;border-radius:14px;padding:9px 12px;margin:0 0 8px;font:inherit;font-size:12.5px;text-align:left;cursor:pointer;box-shadow:0 3px 0 #c43a44}
+#fuse .fzban .fzbi{font-size:18px}#fuse .fzban .fzbt{flex:1;min-width:0;line-height:1.3}#fuse .fzban .fzbt b{font-size:13.5px;display:block}#fuse .fzban .fzbt small{opacity:.92;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#fuse .fzban .fzbg{white-space:nowrap}
+#fuse .fzdots{display:flex;gap:3px;margin-top:3px}#fuse .fzdots i{width:8px;height:8px;border-radius:50%;background:#e6dccb;display:block}
+#fuse .fzdots i.v-rainbow.on{background:linear-gradient(90deg,#ff6b6b,#ffd25e,#6bd38a,#6bb8ff,#b98be0)}
+#fuse .fzdots.full i{box-shadow:0 0 0 1.5px #fff,0 0 6px #f2b632}
+/* v110 상자 여러 개 B: 높은 등급부터 · 전설 이상 카드 뒤집기 */
+#boxFx .bxhid{margin:6px 0 10px}#boxFx .bxhp{color:#f4c46a;font-size:13px;margin:2px 0 10px}
+#boxFx .bxcards{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+#boxFx .bxcard{width:118px;height:150px;padding:0;border:0;background:none;perspective:700px;cursor:pointer}
+#boxFx .bxin{position:relative;display:block;width:100%;height:100%;transition:transform .65s cubic-bezier(.3,1.4,.5,1);transform-style:preserve-3d}
+#boxFx .bxcard.flip .bxin{transform:rotateY(180deg)}
+#boxFx .bxcard:not(.flip):hover .bxin{transform:translateY(-4px) rotateY(8deg)}
+#boxFx .bxf{position:absolute;inset:0;border-radius:14px;border:3px solid var(--gc);backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px;box-sizing:border-box;overflow:hidden}
+#boxFx .bxb{background:repeating-linear-gradient(45deg,#3a2458 0 10px,#43296a 10px 20px);color:#fff;box-shadow:0 0 18px var(--gc);animation:bxGlow 1.6s ease-in-out infinite}
+#boxFx .bxb b{font-size:14px}#boxFx .bxb small{font-size:11px;opacity:.85}
+#boxFx .bxfr{background:#fffaf3;transform:rotateY(180deg);box-shadow:0 0 22px var(--gc);font-size:11.5px;color:#4a4058;text-align:left;justify-content:center}
+#boxFx .bxfr .ritem{width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@keyframes bxGlow{50%{box-shadow:0 0 30px var(--gc)}}
+#boxFx .bxall{margin-top:10px;border:1.5px solid #f4c46a;background:transparent;color:#f4c46a;border-radius:12px;padding:7px 14px;font-weight:800;cursor:pointer}
+#boxFx .bxgh{display:flex;align-items:center;gap:8px;color:var(--gc);font-size:14px;margin:10px 2px 0}#boxFx .bxgh small{color:#cdbbe6}#boxFx .bxgh i{flex:1;height:1px;background:rgba(255,255,255,.18)}
+#boxFx .bxrest .rgrid{margin:6px 0}

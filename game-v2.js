@@ -1642,7 +1642,7 @@ function sumHTML(){const ch=SYS.charmSum(D,S),P=SYS.passives(D,S).sum,g=SYS.gear
 function renderBag(){return keepScroll('bag',_renderBag);}
 function _renderBag(){const _c=$('bag').querySelector('.card'),_st=_c?_c.scrollTop:0,_tb=_c&&_c.dataset.tab;const ch=SYS.charmSum(D,S),MO=SYS.mods(D,S,rod(),bait()),lv=SYS.enhLv(S),eqg=SYS.gearOf(S);let body='';
  if(bagTab==='box')body=`<div class="boxrow"><div class="bigbox">${BOXIMG(Math.min(5,Math.floor(Date.now()/2500)%6))}</div><div><b>보유 행운 상자 ${S.boxes.length}개</b><br><span class="small muted">낚시 성공 시 ${(MO.box*100).toFixed(2)}% 확률로 획득 (기본 0.5%${ch.treasure?` · 보물탐지 +${ch.treasure}%`:''})</span><br>
-  <span class="obx"><button class="acc" id="openBox" ${S.boxes.length?'':'disabled'}>1개 열기</button><button class="acc" id="openBox10" ${S.boxes.length>=2?'':'disabled'}>${Math.min(10,S.boxes.length)>1?Math.min(10,S.boxes.length):10}개 열기</button></span></div></div>
+  <span class="obx"><button class="acc" id="openBox" ${S.boxes.length?'':'disabled'}>1개 열기</button><button class="acc" id="openBox10" ${S.boxes.length>=2?'':'disabled'}>${Math.min(10,S.boxes.length)>1?Math.min(10,S.boxes.length):10}개 열기</button>${S.boxes.length>10?`<button class="acc" id="openBox100">${Math.min(100,S.boxes.length)}개 열기</button>`:''}</span></div></div>
   <h4>상자 등급 확률 ${ch.master?`<small>(감정의달인 +${ch.master}% 적용)</small>`:''}</h4><div class="tierbar">${(()=>{const ws=D.BOX.tiers.map((t,i)=>t.w*(i>=2?1+ch.master/100:1)),sm=ws.reduce((a,b)=>a+b);return D.BOX.tiers.map((t,i)=>`<span style="--gc:${t.c}">${t.n}<b>${(ws[i]/sm*100).toFixed(ws[i]/sm<.01?2:1)}%</b></span>`).join('');})()}</div>
   <p class="small muted">보상: 부적 55% · 낚싯대 10% · 미끼 묶음 15% · 강화석+골드 20% (모두 상자 등급 연동) · 보물감정 ${ch.appraise}% 확률로 보상 1회 추가</p>`;
 // v18: 교체 대상 자동 선택 = 교체 후 합산 효과가 가장 큰(=잃는 게 가장 적은) 슬롯, 같으면 낮은 등급
@@ -1706,7 +1706,7 @@ if(bagTab==='charm'){const eqC=S.equip.map(id=>S.charms.find(c=>c.id===id)).filt
  const tip=$('rodTip');
  q('.rodtile[data-rodtip]').forEach(b=>{b.onmouseenter=e=>{tip.textContent=b.dataset.rodtip;tip.classList.add('show');const r=b.getBoundingClientRect();tip.style.left=Math.min(innerWidth-220,r.right+8)+'px';tip.style.top=Math.max(8,r.top)+'px';};b.onmouseleave=()=>tip.classList.remove('show');});
  const openN=n=>{const res=[];for(let i=0;i<n&&S.boxes.length;i++){const bx=S.boxes.shift();S.boxOpened=(S.boxOpened||0)+1;try{res.push(SYS.openBox(D,S,Math.random,bx<0?"streak":typeof bx==="string"?bx:null));}catch(e){console.error('openBox',e);toast('상자 개봉 중 오류 · 다시 시도해 주세요');}}rr();try{boxFx(res);}catch(e){console.error('boxFx',e);closeBoxFx();toast('상자 연출 오류 · 보상은 가방에 반영됐어요');}if(res.length)addXP(5*res.length,"상자 열기");const best=res.length?Math.max(...res.map(r=>r.tier)):-1;if(best>=4)setTimeout(()=>boxAlert(NICK(),best,true),n>1?1000:1400);};
- const ob=$('openBox');if(ob)ob.onclick=()=>openN(1);const ob10=$('openBox10');if(ob10)ob10.onclick=()=>openN(10);
+ const ob=$('openBox');if(ob)ob.onclick=()=>openN(1);const ob10=$('openBox10');if(ob10)ob10.onclick=()=>openN(10);const ob100=$('openBox100');if(ob100)ob100.onclick=()=>openN(100);
  
  q('[data-eq]').forEach(b=>b.onclick=()=>{if(S.equip.length<D.CHARM.slots)S.equip.push(+b.dataset.eq);S.presets[S.preset]=S.equip.slice();rr();});
  q('[data-uneq]').forEach(b=>b.onclick=()=>{S.equip=S.equip.filter(x=>x!=b.dataset.uneq);S.presets[S.preset]=S.equip.slice();rr();});
@@ -1735,7 +1735,13 @@ function boxFx(list){if(!list||!list.length)return;list.forEach(r=>r.out.forEach
  let body='';
  try{
   body=list.length===1?`<h3 style="color:${t.c}">${t.n} 행운 상자</h3>`+list[0].out.map(o=>rewardHTML(o,t)).join('')+`<div class="bxxp">⭐ 경험치 <b>+${5}</b> XP</div>`:
-   `<h3 style="color:${t.c}">행운 상자 ${list.length}개 개봉 · 최고 ${t.n}</h3><div class="rgrid">${list.map(r=>{const tt=TIER(r.tier);return `<div class="rcell" style="--gc:${tt.c}"><span class="gbadge" style="--gc:${tt.c}">${tt.n}</span>${r.out.map(o=>`<div class="ritem" data-tip="${String(tipR(o)).replace(/"/g,'&quot;')}${o.bonus?'\n✨ 보물감정 보너스':''}" ${o.type==='charm'?NWK('c',o.c):o.type==='rod'?NWK('g',o.g):''}>${cellR(o)}${o.bonus?' ✨':''}</div>`).join('')}</div>`;}).join('')}</div>
+   `${(()=>{// v110 상자 B: 높은 등급부터 · 전설 이상은 카드로 가려 두고 눌러서 뒤집기
+    const items=r=>r.out.map(o=>`<div class="ritem" data-tip="${String(tipR(o)).replace(/"/g,'&quot;')}${o.bonus?'\n✨ 보물감정 보너스':''}" ${o.type==='charm'?NWK('c',o.c):o.type==='rod'?NWK('g',o.g):''}>${cellR(o)}${o.bonus?' ✨':''}</div>`).join('');
+    const srt=list.slice().sort((a,b)=>b.tier-a.tier),hid=srt.filter(r=>r.tier>=4),rest=srt.filter(r=>r.tier<4);
+    const cards=hid.map((r,i)=>{const tt=TIER(r.tier);return `<button type="button" class="bxcard" data-bxc="${i}" style="--gc:${tt.c}"><span class="bxin"><span class="bxf bxb"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3l2.4 5 5.6.8-4 3.9 1 5.5L12 15.6 7 18.2l1-5.5-4-3.9 5.6-.8z"/></svg><b>${tt.n}</b><small>눌러서 열기</small></span><span class="bxf bxfr"><span class="gbadge" style="--gc:${tt.c}">${tt.n}</span>${items(r)}</span></span></button>`;}).join('');
+    const groups=[];rest.forEach(r=>{let g=groups.find(x=>x.t===r.tier);if(!g)groups.push(g={t:r.tier,L:[]});g.L.push(r);});
+    return `<h3 style="color:${t.c}">행운 상자 ${list.length}개 개봉 · 최고 ${t.n}</h3>${hid.length?`<div class="bxhid"><p class="bxhp">전설 이상이 <b data-bxleft>${hid.length}</b>개 숨어 있어요 · 카드를 눌러 열어요</p><div class="bxcards">${cards}</div>${hid.length>1?'<button type="button" class="bxall">한 번에 열기</button>':''}</div>`:''}
+    <div class="bxrest">${groups.map(g=>{const tt=TIER(g.t);return `<div class="bxgh" style="--gc:${tt.c}"><b>${tt.n}</b><small>${g.L.length}개</small><i></i></div><div class="rgrid">${g.L.map(r=>`<div class="rcell" style="--gc:${tt.c}"><span class="gbadge" style="--gc:${tt.c}">${tt.n}</span>${items(r)}</div>`).join('')}</div>`;}).join('')}</div>`;})()}
    <div class="small">${(()=>{const a={charm:0,rod:0,bait:0,wear:0,st:0,co:0};list.forEach(r=>r.out.forEach(o=>{if(o.type==='stone'){a.st+=o.st||0;a.co+=o.co||0;}else if(a[o.type]!=null)a[o.type]++;}));return `합계: 🧿 부적 ${a.charm} · 🎣 낚싯대 ${a.rod} · 🪱 미끼 ${a.bait} · 👕 장비 ${a.wear} · 💎 ${a.st} · 🪙 ${a.co.toLocaleString()}`;})()}</div><div class="bxxp">⭐ 경험치 <b>+${5*list.length}</b> XP</div>`;
  }catch(e){console.error('boxFx body',e);body=`<h3 style="color:${t.c}">${t.n} 행운 상자</h3><p class="small">보상을 표시하는 중 문제가 났어요. 확인을 눌러 닫아 주세요.</p>`;}
  fx.innerHTML=`<div class="rays"></div><div class="fxbox">${BOXIMG(best,'fximg')}${list.length>1?'<small>×'+list.length+'</small>':''}</div><div class="fxres">${body}<button class="acc" id="fxOk">확인</button></div>`;
@@ -1744,6 +1750,8 @@ function boxFx(list){if(!list||!list.length)return;list.forEach(r=>r.out.forEach
  _boxFxT2=setTimeout(doOpen,2200); // 안전: 모션 멈춰도 결과 표시
  const ok=()=>closeBoxFx();
  const btn=$('fxOk');if(btn)btn.onclick=e=>{e.stopPropagation();ok();};
+ const flip=c=>{if(c.classList.contains('flip'))return;c.classList.add('flip');try{sfx.coin();}catch(_){}const L=fx.querySelector('[data-bxleft]');if(L)L.textContent=fx.querySelectorAll('.bxcard:not(.flip)').length;};
+ fx.querySelectorAll('.bxcard').forEach(c=>c.onclick=e=>{e.stopPropagation();flip(c);});const ba=fx.querySelector('.bxall');if(ba)ba.onclick=e=>{e.stopPropagation();fx.querySelectorAll('.bxcard').forEach((c,i)=>setTimeout(()=>flip(c),i*140));};
  // v34: open 전이라도 배경 클릭으로 탈출(빈 오버레이 잠김 방지)
  // v94: 열리는 도중 누르면 닫지 말고 바로 결과를 보여줘요. 결과가 뜬 뒤 0.8초 지나서부터 바깥을 누르면 닫혀요
  fx.onclick=e=>{if(e.target!==fx&&!e.target.classList.contains('fxbox')&&!e.target.closest('.fxbox'))return;if(!fx.classList.contains('open')){clearTimeout(_boxFxT);clearTimeout(_boxFxT2);try{doOpen();}catch(_){}fx._openAt=performance.now();return;}if(performance.now()-(fx._openAt||0)>800)ok();};
@@ -4910,6 +4918,16 @@ function fzSetBind(R){R.querySelectorAll('[data-fzset]').forEach(b=>b.onclick=()
  const all=D.FISH.every(f=>(S.fzSetN||{})[f.k]);if(all&&!S.fzRod){S.fzRod=Date.now();try{S.gear.push(SYS.makeGear(D,'master',S.nid++));if(!S.rods.includes('master'))S.rods.push('master');}catch(e){}extra+=`<div class="fzrod"><img src="img/rods/master.png" alt=""><b>✦ 마스터 낚싯대</b><small>${D.FISH.length}종 모두 변이 5종 완성! 레벨 제한 없는 특별 낚싯대를 받았어요</small></div>`;}
  try{updBagBadge();}catch(e){}save();hud();try{V14.catchSfx(4);}catch(e){}
  alertBox(`<h3>🎁 ${FI(k).n} 변이 5종 완성!</h3><p><b>${FZBXN[r.bx]} 상자</b> 1개와 <b>🪙 ${r.co.toLocaleString()}</b>골드를 받았어요<br><small class="muted">변이 목록이 처음부터 다시 시작돼요 · 다시 모으면 또 받을 수 있어요</small></p>${extra}`);renderFuse();});}
+// v110 합성 표시: 목록 위 「받을 보상」 알림 줄 + 물고기마다 변이 5칸 점
+{const _rf=renderFuse;renderFuse=function(){_rf.apply(this,arguments);try{const m=$('fuse');if(!m)return;const L=m.querySelector('.fzl');if(!L||L.querySelector('.fzban'))return;const sp=fzSP();
+ const ready=Object.keys(sp).filter(k=>FZO.every(v=>(sp[k]||{})[v])&&FI(k));
+ L.querySelectorAll('.fzg').forEach(b=>{const k=b.dataset.fzg.split('|')[0],dx=sp[k]||{},n=FZO.filter(v=>dx[v]).length,em=b.querySelector('em');if(!em)return;const d=document.createElement('span');d.className='fzdots'+(n>=5?' full':'');d.title=`변이 ${n}/5`;d.innerHTML=FZO.map(v=>`<i class="${dx[v]?'on':''} v-${v}" style="${dx[v]&&v!=='rainbow'?'background:'+FZV[v].c:''}"></i>`).join('');em.after(d);});
+ if(!ready.length)return;const ban=document.createElement('button');ban.type='button';ban.className='fzban';
+ ban.innerHTML=`<span class="fzbi">🎁</span><span class="fzbt"><b>받을 보상 ${ready.length}개</b><small>${ready.slice(0,2).map(k=>FI(k).n).join('·')}${ready.length>2?' 외':''} 변이 5종을 다 모았어요</small></span><b class="fzbg">보러 가기 ›</b>`;
+ const first=L.querySelector('.fzg');if(first)L.insertBefore(ban,first);else L.appendChild(ban);
+ ban.onclick=()=>{const k=ready[0],row=L.querySelector(`[data-fzg^="${k}|"]`);if(row){FZ.sel=row.dataset.fzg;renderFuse();setTimeout(()=>{const r=$('fuse').querySelector('.fzset.ok');if(r)r.scrollIntoView({block:'center',behavior:'smooth'});},50);return;}
+  const tmp=document.createElement('div');tmp.innerHTML=`<button data-fzset="${k}"></button>`;fzSetBind(tmp);tmp.firstChild.click();};
+}catch(e){console.warn('fzban',e);}};}
 window.NK89.fzSet={fzSetRew};window.NK_fzSetHTML=fzSetHTML;window.NK_fzSetBind=fzSetBind;
 function pouchAdmHTML(){const c=pouchCfg(),G=['일반','고급','희귀','영웅','전설','신화'];return `<div class="labrow wpadm pouchadm" style="display:block"><b>🪙 펫 골드 주머니 확률</b> <span class="tg o">모든 유저</span><br><small class="muted">낚시 성공 때 펫이 골드 주머니를 찾을 확률(%) · 펫 등급별 기본값 · 펫 레벨이 1 오를 때마다 기본값의 +n%</small>
  <div class="wpg">${G.map((n,i)=>`<label><span>${n}</span><input type="number" min="0" max="100" step="0.5" data-pg="${i}" value="${c.gp[i]}"></label>`).join('')}<label><span>레벨당 +%</span><input type="number" min="0" max="10" step="0.5" data-pgl value="${c.gl}"></label></div>
@@ -5048,16 +5066,20 @@ window.NK89.VM={VMOD,vmExport,vmBuild,vmRefresh,FLYB_RAW};
 // 블럭 1개 = 4바이트: x·y·z (7비트씩, -64~63) · 크기 1~4 (2비트) · 색 번호 0~63 (6비트)
 const VBX={map:{},local:{}};
 const vbGet=k=>VBX.local[k]||VBX.map[k]||null;
-function vbDec(b64){const out=[];if(!b64)return out;let s;try{s=atob(b64);}catch(e){return out;}for(let i=0;i+3<s.length;i+=4){const n=((s.charCodeAt(i)<<24)>>>0)+(s.charCodeAt(i+1)<<16)+(s.charCodeAt(i+2)<<8)+s.charCodeAt(i+3);out.push([((n>>>22)&127)-64,((n>>>15)&127)-64,((n>>>8)&127)-64,((n>>>6)&3)+1,n&63]);}return out;}
-function vbEnc(L){let s='';for(const [x,y,z,sz,c] of L){const n=((((x+64)&127)<<22)|(((y+64)&127)<<15)|(((z+64)&127)<<8)|((((sz|0)-1)&3)<<6)|((c|0)&63))>>>0;s+=String.fromCharCode(n>>>24,(n>>>16)&255,(n>>>8)&255,n&255);}return btoa(s);}
+// v111: 블럭 글 2판(vf:2) — 반 칸(0.5) 단위 · 가로·세로·깊이 따로 (6바이트: x·y·z 8비트씩 · 크기 4비트씩(1~16 반 칸) · 색 8비트)
+// 모든 블럭은 반 칸 단위 [x,y,z,가로,세로,깊이,색]로 다뤄요 (1판 블럭은 두 배로 바꿔서)
+function vbDec(b64,vf){const out=[];if(!b64)return out;let s;try{s=atob(b64);}catch(e){return out;}
+ if(vf===2){for(let i=0;i+5<s.length;i+=6){const c=k=>s.charCodeAt(i+k);out.push([c(0)-128,c(1)-128,c(2)-128,(c(3)>>4)+1,(c(3)&15)+1,(c(4)>>4)+1,c(5)&63]);}return out;}
+ for(let i=0;i+3<s.length;i+=4){const n=((s.charCodeAt(i)<<24)>>>0)+(s.charCodeAt(i+1)<<16)+(s.charCodeAt(i+2)<<8)+s.charCodeAt(i+3),sz=(((n>>>6)&3)+1)*2;out.push([(((n>>>22)&127)-64)*2,(((n>>>15)&127)-64)*2,(((n>>>8)&127)-64)*2,sz,sz,sz,n&63]);}return out;}
+function vbEnc(L){let s='';for(const b of L){const [x,y,z,sx,sy,sz,c]=b;s+=String.fromCharCode((x+128)&255,(y+128)&255,(z+128)&255,((Math.max(1,Math.min(16,sx))-1)<<4)|(Math.max(1,Math.min(16,sy))-1),(Math.max(1,Math.min(16,sz))-1)<<4,(c|0)&63);}return btoa(s);}
 const VBF=[[1,0,0],[-1,0,0],[0,1,0],[0,-1,0],[0,0,1],[0,0,-1]];
-// 블럭 목록 → 면 하나로 합친 모양 (보이지 않는 안쪽 면은 빼요) · off = 묶음 회전 중심 (블럭 칸 단위가 아닌 m)
-function vbGeo(L,pal,vu,off,tint){const occ=new Set();for(const [x,y,z,s] of L)for(let i=0;i<s;i++)for(let j=0;j<s;j++)for(let k=0;k<s;k++)occ.add((x+i)+','+(y+j)+','+(z+k));
+// 블럭 목록(반 칸 단위) → 면 하나로 합친 모양 (가려진 면은 빼요) · vu = 한 칸 크기(m) · off = 묶음 회전 중심(m)
+function vbGeo(L,pal,vu,off,tint){const h=vu/2,occ=new Set();for(const b of L)for(let i=0;i<b[3];i++)for(let j=0;j<b[4];j++)for(let k=0;k<b[5];k++)occ.add((b[0]+i)+','+(b[1]+j)+','+(b[2]+k));
  const P=[],N=[],C=[],I=[];const col=new THREE.Color(),o=off||[0,0,0];
- for(const [x,y,z,s,c] of L){col.set(tint||pal[c]||'#cccccc');for(let f=0;f<6;f++){const n=VBF[f],ax=n[0]?0:n[1]?1:2,sg=n[ax];
-   let hid=true;for(let a=0;a<s&&hid;a++)for(let b=0;b<s&&hid;b++){const q=[x,y,z];q[ax]+=sg>0?s:-1;q[(ax+1)%3]+=a;q[(ax+2)%3]+=b;if(!occ.has(q.join(',')))hid=false;}if(hid)continue;
-   const base=P.length/3,u=(ax+1)%3,v=(ax+2)%3,sh=f===3?.78:f===2?1.04:1;
-   for(const [a,b] of [[0,0],[1,0],[1,1],[0,1]]){const q=[x,y,z];q[ax]+=sg>0?s:0;q[u]+=a*s;q[v]+=b*s;P.push(q[0]*vu-o[0],q[1]*vu-o[1],q[2]*vu-o[2]);N.push(n[0],n[1],n[2]);C.push(Math.min(1,col.r*sh),Math.min(1,col.g*sh),Math.min(1,col.b*sh));}
+ for(const b of L){const S=[b[3],b[4],b[5]];col.set(tint||pal[b[6]]||'#cccccc');for(let f=0;f<6;f++){const n=VBF[f],ax=n[0]?0:n[1]?1:2,sg=n[ax],u=(ax+1)%3,v=(ax+2)%3;
+   let hid=true;for(let a=0;a<S[u]&&hid;a++)for(let c=0;c<S[v]&&hid;c++){const q=[b[0],b[1],b[2]];q[ax]+=sg>0?S[ax]:-1;q[u]+=a;q[v]+=c;if(!occ.has(q.join(',')))hid=false;}if(hid)continue;
+   const base=P.length/3,sh=f===3?.78:f===2?1.04:1;
+   for(const [a,c] of [[0,0],[1,0],[1,1],[0,1]]){const q=[b[0],b[1],b[2]];q[ax]+=sg>0?S[ax]:0;q[u]+=a*S[u];q[v]+=c*S[v];P.push(q[0]*h-o[0],q[1]*h-o[1],q[2]*h-o[2]);N.push(n[0],n[1],n[2]);C.push(Math.min(1,col.r*sh),Math.min(1,col.g*sh),Math.min(1,col.b*sh));}
    if(sg>0)I.push(base,base+1,base+2,base,base+2,base+3);else I.push(base,base+2,base+1,base,base+3,base+2);}}
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));g.setAttribute('color',new THREE.Float32BufferAttribute(C,3));g.setIndex(I);g.computeBoundingSphere();return g;}
 let VBMAT=null;const vbMat=()=>VBMAT||(VBMAT=new THREE.MeshLambertMaterial({vertexColors:true}));
@@ -5065,7 +5087,7 @@ let VBMAT=null;const vbMat=()=>VBMAT||(VBMAT=new THREE.MeshLambertMaterial({vert
 function vbBuild(d,opt){const T=THREE,root=new T.Group(),g=new T.Group();root.add(g);const vu=d.vu||.1,G={'':g},A={'':[0,0,0]},legs=[],heads=[],arms=[];let tail=null;opt=opt||{};
  const mk=(id,dep)=>{if(G[id])return G[id];const q=(d.groups||{})[id];if(!q||dep>12)return g;const par=q.par&&d.groups[q.par]?q.par:'';const pg=mk(par,dep+1);const P=q.p||[0,0,0],PP=A[par]||[0,0,0],n=new T.Group();n.position.set(P[0]-PP[0],P[1]-PP[1],P[2]-PP[2]);if(q.r&&!opt.raw)n.rotation.set(q.r[0],q.r[1],q.r[2]);if(q.s&&!opt.raw)n.scale.setScalar(q.s);pg.add(n);G[id]=n;A[id]=P;n.userData.vbg=id;if(q.leg!=null)legs.push({p:n,ph:q.leg});if(q.arm!=null)arms.push({p:n,ph:q.arm});if(q.head)heads.push(n);if(q.tail)tail=n;return n;};
  Object.keys(d.groups||{}).forEach(id=>mk(id,0));
- const vox=opt.vox||d.vox||{};for(const id in vox){const L=typeof vox[id]==='string'?vbDec(vox[id]):vox[id];if(!L.length)continue;const m=new T.Mesh(vbGeo(L,d.pal||[],vu,A[id]||[0,0,0],opt.tint&&opt.tint(id)),vbMat());m.castShadow=true;m.receiveShadow=!!opt.edit;m.userData.vbg=id;(G[id]||g).add(m);}
+ const vox=opt.vox||d.vox||{};for(const id in vox){const L=typeof vox[id]==='string'?vbDec(vox[id],d.vf):vox[id];if(!L.length)continue;const m=new T.Mesh(vbGeo(L,d.pal||[],vu,A[id]||[0,0,0],opt.tint&&opt.tint(id)),vbMat());m.castShadow=true;m.receiveShadow=!!opt.edit;m.userData.vbg=id;(G[id]||g).add(m);}
  const z=d.zoom||1;g.scale.setScalar(z);const seat=(d.seat||[0,1.2,0]).map(v=>v*z);
  root.userData={seat,legs,heads,arms,pose:'ride',vm:1,vbx:1};Object.defineProperty(root.userData,'G',{value:G,enumerable:false});if(tail)root.userData.tail=tail;return root;}
 // 게임에 등록: 상점 「🚗 탈것」·가방·행운 상자에서 나와요
@@ -5098,7 +5120,7 @@ function vbCharOn(c,k){if(!c||!c.o||c._vc===k)return;if(c._vcG){c._vcG.forEach(g
  const bone=n=>{const i=sk.bones.findIndex(b=>b.name===n);if(i<0)return null;return {b:sk.bones[i],w:mw.clone().multiply(new T.Matrix4().copy(sk.boneInverses[i]).invert())};};
  const pos=new T.Vector3(),q=new T.Quaternion(),sc=new T.Vector3();o.matrixWorld.decompose(pos,q,sc);const sf=(c.h||1.9)/2*(d.zoom||1),X=new T.Matrix4().compose(pos,q,new T.Vector3(sf,sf,sf));
  const vu=d.vu||.07,out=[];
- for(const id in d.vox||{}){const L=vbDec(d.vox[id]);if(!L.length)continue;const gq=(d.groups||{})[id]||{},P=gq.p||[0,0,0],B=bone(gq.bone||'torso')||bone('torso');if(!B)continue;
+ for(const id in d.vox||{}){const L=vbDec(d.vox[id],d.vf);if(!L.length)continue;const gq=(d.groups||{})[id]||{},P=gq.p||[0,0,0],B=bone(gq.bone||'torso')||bone('torso');if(!B)continue;
   const m=new T.Mesh(vbGeo(L,d.pal||[],vu,P),vbMat());m.castShadow=true;const box=new T.Group();box.add(m);
   const rest=X.clone().multiply(new T.Matrix4().makeTranslation(P[0],P[1],P[2]));const loc=new T.Matrix4().copy(B.w).invert().multiply(rest);loc.decompose(box.position,box.quaternion,box.scale);B.b.add(box);out.push(box);}
  c._vcG=out;c._vcH=sks.filter(m=>m.visible);c._vcH.forEach(m=>m.visible=false);}
@@ -5111,7 +5133,7 @@ try{const L=JSON.parse(localStorage.getItem('nk_vb_local')||'{}');if(L&&typeof L
 const vbSaveLocal=()=>{try{localStorage.setItem('nk_vb_local',JSON.stringify(VBX.local));}catch(e){}};
 try{if(window.NK_RT&&NK_RT.vbx){VBX.map=Object.assign({},NK_RT.vbx);vbReg();}}catch(e){}
 try{vbReg();}catch(e){}
-window.NK89.VB={VBX,vbSaveLocal,vbGet,vbDec,vbEnc,vbGeo,vbBuild,vbReg,vbMat,FLY,toast:(a,b)=>toast(a,b),confirmBox:(a,b)=>confirmBox(a,b),isAdm:()=>{try{return NK_ADM.ok();}catch(e){return false;}},flyThumb:k=>flyThumb(k),grades:()=>SYS.GRADES,wear:k=>{S.vchr=k||null;save();},worn:()=>S.vchr||''};
+window.NK89.VB={VBX,vbSaveLocal,vbGet,vbDec,vbEnc,vbGeo,vbBuild,vbReg,vbMat,FLY,toast:(a,b)=>toast(a,b),confirmBox:(a,b)=>confirmBox(a,b),isAdm:()=>{try{return NK_ADM.ok();}catch(e){return false;}},flyThumb:k=>flyThumb(k),grades:()=>SYS.GRADES,wear:k=>{S.vchr=k||null;save();},worn:()=>S.vchr||'',api:()=>SV.api(),cid:()=>SV.cid(),nick:()=>NICK()};
 
 // ── 편집기 화면 ──
 const VE={k:null,cc:null,d:null,sel:null,undo:[],redo:[],R:null,sc:null,cam:null,root:null,yaw:.7,pit:.35,dist:7,walk:false,t:0,raf:0,box:null};
