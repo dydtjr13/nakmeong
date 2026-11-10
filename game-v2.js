@@ -4318,7 +4318,7 @@ function flyAnimal(kind){return function(cc){const T=THREE,P=ANIM_C[kind],col=P[
   tail=new T.Group();tail.position.set(0,1.05,-.66);const tc=new T.Mesh(new T.TorusGeometry(.07,.025,6,10,Math.PI*1.6),robMat(col.b));tail.add(tc);g.add(tail);
   SADDLE(1.33,-.06,.74,.7,'#7a4ad8','#ffd84a');seat=[0,1.4,-.08];}
  g.userData.seat=seat;g.userData.legs=legs;g.userData.heads=heads;if(tail)g.userData.tail=tail;g.userData.pose='ride';return g;};}
-const FLYB={plane:flyPlane,archae:flyArchae,balloon:flyBalloon,robot:flyRobot,elephant:flyAnimal('elephant'),giraffe:flyAnimal('giraffe'),capy:flyAnimal('capy'),pig:flyAnimal('pig')};
+const FLYB={plane:flyPlane,archae:flyArchae,balloon:flyBalloon,robot:flyRobot,elephant:flyAnimal('elephant'),giraffe:flyAnimal('giraffe'),capy:flyAnimal('capy'),pig:flyAnimal('pig')};const FLYB_RAW=Object.assign({},FLYB);
 let ROBSEL={};
 function robShopHTML(k,F,o){const own=c=>o&&o.cs.includes(c);if(!ROBSEL[k]||!F.cols.find(x=>x[0]===ROBSEL[k]))ROBSEL[k]=(o&&o.c)||F.cols[0][0];const it=F.cols.find(x=>x[0]===ROBSEL[k]),[c,n,pr]=it,on=own(c)&&o.c===c&&S.vehOn===k;
  return `<div class="flyc robc"><div class="flyh"><b>${F.ico||'🤖'} ${F.n}</b><small>속도 +${F.spd}% · ${F.ani?'등에 타요':'머리 조종석에 타요'} · 땅으로만 다녀요</small></div><div class="robb"><img class="robim" data-flyimg="${k}.${c}" alt=""><div class="robi"><div class="robsw">${F.cols.map(([cc,nn])=>`<button type="button" class="${cc===c?'on':''} ${own(cc)?'own':''}" data-robsw="${k}.${cc}" title="${nn}" style="--rc:${(F.ani?ANIM_C[k][cc]:ROBC[cc]).a};--rb:${(F.ani?ANIM_C[k][cc]:ROBC[cc]).b}"></button>`).join('')}</div>
@@ -4365,7 +4365,7 @@ window.NK89.flyThumb=k=>flyThumb(k);
 function flyThumb(key){if(FLYT[key])return FLYT[key];if(!flyR){flyR=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});flyR.setSize(240,160);flyR.outputEncoding=THREE.sRGBEncoding;}
  const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x8899aa,.85));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(3,5,4);sc.add(dl);const g=vehMesh(key);g.scale.setScalar(1);g.rotation.y=.9;sc.add(g);
  const bb=new THREE.Box3().setFromObject(g),ct=bb.getCenter(new THREE.Vector3()),r=bb.getSize(new THREE.Vector3()).length()/2;const c=new THREE.PerspectiveCamera(30,1.5,.1,100);c.position.copy(ct).add(new THREE.Vector3(.4,.45,1).normalize().multiplyScalar(r/Math.sin(15*Math.PI/180)*((FLY[vehBase(key)]||{}).ground?.78:.62)));c.lookAt(ct);flyR.render(sc,c);FLYT[key]=flyR.domElement.toDataURL('image/png');return FLYT[key];}
-function flyThumbs(root){root.querySelectorAll('[data-flyimg]').forEach(im=>{const k=im.dataset.flyimg;im.onerror=()=>{im.onerror=null;try{im.src=flyThumb(k);}catch(e){im.style.visibility='hidden';}};im.src='img/veh/fly-'+k.replace('.','-')+'.png';});}
+function flyThumbs(root){root.querySelectorAll('[data-flyimg]').forEach(im=>{const k=im.dataset.flyimg;if(window.NK89&&NK89.VM&&(NK89.VM.VMOD.map[vehBase(k)]||NK89.VM.VMOD.local[vehBase(k)])){try{im.src=flyThumb(k);return;}catch(e){}}im.onerror=()=>{im.onerror=null;try{im.src=flyThumb(k);}catch(e){im.style.visibility='hidden';}};im.src='img/veh/fly-'+k.replace('.','-')+'.png';});}
 window.NK89.fly={FLY,flyOwn,flyThumb,flyNow};
 
 // v93 장착 장비 창 A·B (시안 → 테스트) · 낚싯대 타일 작게
@@ -4964,6 +4964,161 @@ window.NK_MYTH=function(o,kind){try{const hm=o.getObjectByName('head-mesh'),bm=o
 {const _t=trCar;trCar=function(){const g=_t.apply(this,arguments);return slimGroup(g);};}
 {const _v=vehMesh;vehMesh=function(){const g=_v.apply(this,arguments);return slimGroup(g);};}
 for(const k in FLYB){const f=FLYB[k];FLYB[k]=function(){return slimGroup(f.apply(this,arguments));};}
+// ───────── v108 🛠 탈것 편집기 ─────────
+// 탈것 모양을 데이터(조각 목록)로 바꿔서 관리자가 화면에서 고치고 모든 유저에게 적용해요.
+// 데이터가 있으면 그 데이터로 만들고, 없으면 원래 코드로 만들어요.
+const VMOD={map:{},local:{},ver:0};
+const VM_KEYS=()=>Object.keys(FLY).filter(k=>FLY[k].ground);
+function vmPal(k){if(FLY[k]&&FLY[k].ani&&ANIM_C[k])return JSON.parse(JSON.stringify(ANIM_C[k]));if(k==='robot')return JSON.parse(JSON.stringify(ROBC));return {};}
+const vmGet=k=>VMOD.local[k]||VMOD.map[k]||null;
+const VMG={},VMM={};
+function vmGeo(p){const s=p.s,key=p.sh+s.join(',');if(VMG[key])return VMG[key];const T=THREE;let g;
+ if(p.sh==='box')g=new T.BoxGeometry(Math.max(.005,s[0]),Math.max(.005,s[1]),Math.max(.005,s[2]));
+ else if(p.sh==='cyl')g=new T.CylinderGeometry(Math.max(0,s[0]),Math.max(0,s[2]),Math.max(.005,s[1]),12);
+ else if(p.sh==='ball')g=new T.SphereGeometry(Math.max(.005,s[0]),12,8);
+ else if(p.sh==='dome')g=new T.SphereGeometry(Math.max(.005,s[0]),20,10,0,Math.PI*2,0,Math.PI/2);
+ else g=new T.TorusGeometry(Math.max(.005,s[0]),Math.max(.002,s[1]),6,14,Math.max(.1,s[2]||Math.PI*2));
+ return VMG[key]=g;}
+function vmMat(col,e,o){const key=col+(e?'e':'')+(o!=null?'o'+o:'');if(VMM[key])return VMM[key];const T=THREE;let m;if(e)m=new T.MeshBasicMaterial({color:col});else m=new T.MeshLambertMaterial({color:col,flatShading:true});if(o!=null&&o<1){m.transparent=true;m.opacity=o;m.depthWrite=false;}return VMM[key]=m;}
+function vmBuild(d,cc,opt){const T=THREE,root=new T.Group(),g=new T.Group();root.add(g);const pals=d.pal||{},pal=pals[cc]||pals[Object.keys(pals)[0]]||{};const G={'':g},legs=[],heads=[];let tail=null;
+ const mk=(id,depth)=>{if(G[id])return G[id];const q=d.groups[id];if(!q||depth>12)return g;const o=new T.Group();o.position.fromArray(q.p||[0,0,0]);if(q.r)o.rotation.set(q.r[0],q.r[1],q.r[2]);if(q.s)o.scale.setScalar(q.s);mk(q.par||'',(depth|0)+1).add(o);G[id]=o;o.userData.vmg=id;if(q.leg!=null)legs.push({p:o,ph:q.leg});if(q.head)heads.push(o);if(q.tail)tail=o;return o;};
+ Object.keys(d.groups||{}).forEach(id=>mk(id,0));
+ (d.parts||[]).forEach((p,i)=>{if(p.only&&p.only!==cc)return;const col=p.c&&p.c[0]==='#'?p.c:(pal[p.c]||'#cccccc');const m=new T.Mesh(vmGeo(p),opt&&opt.edit?vmMat(col,p.e,p.o).clone():vmMat(col,p.e,p.o));m.position.fromArray(p.p);if(p.r)m.rotation.set(p.r[0],p.r[1],p.r[2]);if(p.k)m.scale.fromArray(p.k);m.castShadow=true;m.userData.pi=i;(G[p.g||'']||g).add(m);});
+ const z=d.zoom||1;g.scale.setScalar(z);const seat=(d.seat||[0,1.4,0]).map(v=>v*z);
+ root.userData={seat,legs,heads,pose:d.pose||'ride',vm:1};Object.defineProperty(root.userData,'G',{value:G,enumerable:false});if(tail)root.userData.tail=tail;return root;}
+// 지금 코드로 만든 탈것 → 데이터
+function vmExport(k){const raw=FLYB_RAW[k];if(!raw)return null;const pal=vmPal(k),ccs=Object.keys(pal).length?Object.keys(pal):FLY[k].cols.map(c=>c[0]);const r3=v=>[+v.x.toFixed(3),+v.y.toFixed(3),+v.z.toFixed(3)];
+ const one=cc=>{const g=raw(cc),P=pal[cc]||{},rev={};for(const s in P)rev[new THREE.Color(P[s]).getHexString()]=s;const ud=g.userData,legs=new Map((ud.legs||[]).map(l=>[l.p,l.ph])),heads=new Set(ud.heads||[]);const gid=new Map([[g,'']]),groups={};let n=0,ln=0;
+  const gname=o=>{if(gid.has(o))return gid.get(o);if(!o.parent)return '';const pn=gname(o.parent);const id='g'+(n++);gid.set(o,id);const q={p:r3(o.position)};if(o.rotation.x||o.rotation.y||o.rotation.z)q.r=r3(o.rotation);if(o.scale.x!==1)q.s=+o.scale.x.toFixed(3);if(pn)q.par=pn;if(legs.has(o)){q.leg=+legs.get(o).toFixed(3);q.nm='다리'+(++ln);}if(heads.has(o)){q.head=1;q.nm=q.nm||'머리';}if(ud.tail===o){q.tail=1;q.nm='꼬리';}groups[id]=q;return id;};
+  const parts=[];g.traverse(o=>{if(!o.isMesh)return;const gp=o.parent===g?'':gname(o.parent),geo=o.geometry,pr=geo.parameters||{};let sh,s;
+   if(geo.type==='BoxGeometry'){sh='box';s=[pr.width,pr.height,pr.depth];}else if(geo.type==='CylinderGeometry'){sh='cyl';s=[pr.radiusTop,pr.height,pr.radiusBottom];}else if(geo.type==='SphereGeometry'){sh=pr.thetaLength<3?'dome':'ball';s=[pr.radius,0,0];}else if(geo.type==='TorusGeometry'){sh='ring';s=[pr.radius,pr.tube,pr.arc];}else return;
+   const m=o.material,hex=m.color.getHexString(),q={sh,s:s.map(v=>+(+v).toFixed(3)),p:r3(o.position),c:rev[hex]||'#'+hex};if(o.rotation.x||o.rotation.y||o.rotation.z)q.r=r3(o.rotation);if(o.scale.x!==1||o.scale.y!==1||o.scale.z!==1)q.k=r3(o.scale);if(m.type==='MeshBasicMaterial')q.e=1;if(m.transparent)q.o=+m.opacity.toFixed(2);if(gp)q.g=gp;parts.push(q);});
+  return {seat:(ud.seat||[0,1.4,0]).slice(),pose:ud.pose||'ride',groups,parts};};
+ const base=one(ccs[0]),key=q=>q.sh+'|'+q.s+'|'+q.p+'|'+(q.r||'')+'|'+(q.g||'');const have=new Set(base.parts.map(key));
+ ccs.slice(1).forEach(cc=>{one(cc).parts.forEach(q=>{if(!have.has(key(q))){q.only=cc;base.parts.push(q);}});});
+ return {v:1,seat:base.seat,pose:base.pose,zoom:1,pal,groups:base.groups,parts:base.parts};}
+function vmRefresh(k){for(const key in FLYT)if(!k||vehBase(key)===k)delete FLYT[key];try{if(VW.me&&(!k||vehBase(VW.mk)===k))VW.mk='';for(const [id,e] of VW.peers)if(!k||vehBase(e.k)===k){scene.remove(e.g);VW.peers.delete(id);}}catch(e){}VMOD.ver++;}
+for(const k in FLYB){const f=FLYB[k];FLYB[k]=function(cc){const d=vmGet(k);if(d){try{return slimGroup(vmBuild(d,cc));}catch(e){console.warn('vmod',e);}}return f.apply(this,arguments);};}
+addEventListener('nk-rt-vmod',e=>{VMOD.map=e.detail||{};vmRefresh();try{if($('shop')&&$('shop').classList.contains('show'))renderShop();}catch(_){}});
+try{if(window.NK_RT&&NK_RT.vmod)VMOD.map=NK_RT.vmod;}catch(e){}
+window.NK89.VM={VMOD,vmExport,vmBuild,vmRefresh,FLYB_RAW};
+
+// ── 편집기 화면 ──
+const VE={k:null,cc:null,d:null,sel:null,undo:[],redo:[],R:null,sc:null,cam:null,root:null,yaw:.7,pit:.35,dist:7,walk:false,t:0,raf:0,box:null};
+function veOpen(k){VE.k=k||VE.k||VM_KEYS()[0];veLoad(VE.k);let m=$('vmEd');if(!m){m=document.createElement('div');m.id='vmEd';document.body.appendChild(m);}m.classList.add('show');veUI();veGL();}
+function veLoad(k){VE.k=k;const d=vmGet(k)||vmExport(k);VE.d=JSON.parse(JSON.stringify(d));VE.cc=Object.keys(VE.d.pal||{})[0]||(FLY[k].cols[0][0]);VE.sel=null;VE.undo=[];VE.redo=[];}
+function veClose(){const m=$('vmEd');if(m)m.classList.remove('show');cancelAnimationFrame(VE.raf);VE.raf=0;}
+function vePush(){VE.undo.push(JSON.stringify(VE.d));if(VE.undo.length>80)VE.undo.shift();VE.redo=[];}
+function veDirty(full){veScene();if(full)veUI();else vePanel();}
+const VSH={box:'상자',cyl:'원기둥',ball:'공',dome:'반구',ring:'고리'};
+function veGrpName(id){if(!id)return '몸통';const q=VE.d.groups[id];return (q&&q.nm)||('묶음 '+id.replace('g',''));}
+function veUI(){const m=$('vmEd'),d=VE.d,F=FLY[VE.k];
+ const groups=['',...Object.keys(d.groups)];
+ const list=groups.map(gid=>{const ps=d.parts.map((p,i)=>[p,i]).filter(([p])=>(p.g||'')===gid&&(!p.only||p.only===VE.cc));return `<div class="veg"><button type="button" class="vegh ${VE.sel&&VE.sel.g===gid&&VE.sel.i==null?'on':''}" data-veg="${gid}">${veGrpName(gid)} <small>${ps.length}</small></button>${ps.map(([p,i])=>`<button type="button" class="vep ${VE.sel&&VE.sel.i===i?'on':''}" data-vep="${i}"><i style="background:${veCol(p)}"></i>${VSH[p.sh]} ${i+1}${p.only?' <small>'+p.only+'만</small>':''}</button>`).join('')}</div>`;}).join('');
+ if(!m.querySelector('#veCv'))m.innerHTML=`<div class="veWin"><div class="veTop"></div><div class="veBody"><div class="veList"></div><div class="veView"><canvas id="veCv"></canvas><div class="veHint">끌어서 돌리기 · 휠로 확대 · 조각을 눌러 고르기</div></div><div class="vePanel" id="vePanel"></div></div></div>`;
+ m.querySelector('.veTop').innerHTML=`<b>🛠 탈것 편집기</b>
+  <select data-vek>${VM_KEYS().map(k=>`<option value="${k}" ${k===VE.k?'selected':''}>${FLY[k].n}${VMOD.map[k]?' · 수정됨':''}</option>`).join('')}</select>
+  <select data-vecc>${Object.keys(d.pal||{}).map(c=>`<option value="${c}" ${c===VE.cc?'selected':''}>${(F.cols.find(x=>x[0]===c)||[0,c])[1]}</option>`).join('')}</select>
+  <span class="vesp"></span>
+  <button type="button" data-veundo ${VE.undo.length?'':'disabled'} title="되돌리기 (Ctrl+Z)">↶</button><button type="button" data-veredo ${VE.redo.length?'':'disabled'} title="다시하기">↷</button>
+  <button type="button" data-vewalk class="${VE.walk?'on':''}">🚶 걷기 보기</button>
+  <button type="button" data-vephoto>📷 사진으로 색</button><input type="file" accept="image/*" data-vefile hidden>
+  <button type="button" data-veio>📋 내보내기·불러오기</button>
+  <button type="button" data-vereset>↺ 원래 모양</button>
+  <button type="button" data-vemine class="${VMOD.local[VE.k]?'on':''}">👁 내 화면 미리보기</button>
+  <button type="button" class="acc" data-vepub>✅ 모든 유저에게 적용</button>
+  <button type="button" data-veclose aria-label="닫기">✕</button>`;
+ m.querySelector('.veList').innerHTML=`${list}<button type="button" class="veadd" data-veadd>＋ 상자 조각 추가</button>`;
+ const q=s=>m.querySelector(s);
+ q('[data-vek]').onchange=e=>{veLoad(e.target.value);veDirty(true);};
+ q('[data-vecc]').onchange=e=>{VE.cc=e.target.value;veDirty(true);};
+ q('[data-veundo]').onclick=()=>{if(!VE.undo.length)return;VE.redo.push(JSON.stringify(VE.d));VE.d=JSON.parse(VE.undo.pop());veDirty(true);};
+ q('[data-veredo]').onclick=()=>{if(!VE.redo.length)return;VE.undo.push(JSON.stringify(VE.d));VE.d=JSON.parse(VE.redo.pop());veDirty(true);};
+ q('[data-vewalk]').onclick=()=>{VE.walk=!VE.walk;veUI();};
+ q('[data-vephoto]').onclick=()=>q('[data-vefile]').click();q('[data-vefile]').onchange=e=>{const f=e.target.files[0];if(f)vePhoto(f);};
+ q('[data-veio]').onclick=veIO;
+ q('[data-vereset]').onclick=()=>{confirmBox(`<h3>↺ 원래 모양</h3><p>${F.n}을(를) 처음 코드 모양으로 되돌릴까요?<br><small class="muted">모든 유저에게 적용한 것도 지우려면 되돌린 뒤 「✅ 모든 유저에게 적용」을 누르세요</small></p>`,()=>{vePush();VE.d=vmExport(VE.k);VE.sel=null;veDirty(true);});};
+ q('[data-vemine]').onclick=()=>{if(VMOD.local[VE.k])delete VMOD.local[VE.k];else VMOD.local[VE.k]=JSON.parse(JSON.stringify(VE.d));vmRefresh(VE.k);veUI();toast(VMOD.local[VE.k]?'👁 내 화면에서만 이 모양으로 보여요':'👁 미리보기를 껐어요',1600);};
+ q('[data-vepub]').onclick=vePub;q('[data-veclose]').onclick=veClose;
+ m.querySelectorAll('[data-veg]').forEach(b=>b.onclick=()=>{VE.sel={g:b.dataset.veg,i:null};veUI();veScene();});
+ m.querySelectorAll('[data-vep]').forEach(b=>b.onclick=()=>{const i=+b.dataset.vep;VE.sel={g:VE.d.parts[i].g||'',i};veUI();veScene();});
+ q('[data-veadd]').onclick=()=>{vePush();const g=VE.sel?VE.sel.g:'';VE.d.parts.push({sh:'box',s:[.3,.3,.3],p:[0,g?0:1.6,0],c:'a',...(g?{g}:{})});VE.sel={g,i:VE.d.parts.length-1};veDirty(true);};
+ vePanel();veGL();veScene();}
+function veCol(p){const pal=(VE.d.pal||{})[VE.cc]||{};return p.c&&p.c[0]==='#'?p.c:(pal[p.c]||'#cccccc');}
+// 숫자 줄: 슬라이더 + 칸
+const veRow=(lab,key,i,v,min,max,step)=>`<label class="ver"><span>${lab}</span><input type="range" min="${min}" max="${max}" step="${step}" value="${v}" data-vn="${key}" data-vi="${i}"><input type="number" min="${min}" max="${max}" step="${step}" value="${+(+v).toFixed(3)}" data-vn="${key}" data-vi="${i}"></label>`;
+function vePanel(){const P=$('vePanel');if(!P)return;const d=VE.d,pal=(d.pal||{})[VE.cc]||{};let h='';
+ if(VE.sel&&VE.sel.i!=null&&d.parts[VE.sel.i]){const i=VE.sel.i,p=d.parts[i],r=p.r||[0,0,0],sl=p.sh==='box'?['가로','높이','깊이']:p.sh==='cyl'?['위 반지름','높이','아래 반지름']:p.sh==='ring'?['반지름','굵기','둘레(호)']:['반지름'];
+  h+=`<h4>${VSH[p.sh]} ${i+1} <small>${veGrpName(p.g||'')}</small></h4>
+  <div class="vesh">${Object.keys(VSH).map(s=>`<button type="button" class="${p.sh===s?'on':''}" data-vesh="${s}">${VSH[s]}</button>`).join('')}</div>
+  <h5>크기</h5>${sl.map((n,j)=>veRow(n,'s',j,p.s[j],0,p.sh==='ring'&&j===2?6.3:3,.01)).join('')}
+  <h5>위치</h5>${['좌우','위아래','앞뒤'].map((n,j)=>veRow(n,'p',j,p.p[j],-3,4,.01)).join('')}
+  <h5>회전 (도)</h5>${['앞뒤로','좌우로','옆으로'].map((n,j)=>veRow(n,'r',j,Math.round(r[j]*180/Math.PI),-180,180,1)).join('')}
+  <h5>색</h5><div class="vecol">${['a','b','c'].map(s=>`<button type="button" class="${p.c===s?'on':''}" data-vec="${s}" style="background:${pal[s]||'#ccc'}" title="색 ${s.toUpperCase()} (색 바꾸면 같이 바뀌어요)">${s.toUpperCase()}</button>`).join('')}<label class="vecus ${p.c&&p.c[0]==='#'?'on':''}">직접<input type="color" value="${veCol(p)}" data-vecus></label><label class="sw"><input type="checkbox" data-vee ${p.e?'checked':''}> 빛나게</label></div>
+  <div class="vebtn"><button type="button" data-vedup>⧉ 복제</button><button type="button" data-vemir>⇋ 좌우 반대로 복제</button><button type="button" class="del" data-vedel>지우기</button></div>
+  <label class="ver"><span>묶음</span><select data-vegr>${['',...Object.keys(d.groups)].map(g=>`<option value="${g}" ${(p.g||'')===g?'selected':''}>${veGrpName(g)}</option>`).join('')}</select></label>`;}
+ else if(VE.sel&&VE.sel.g){const q=d.groups[VE.sel.g],r=q.r||[0,0,0];h+=`<h4>${veGrpName(VE.sel.g)} <small>묶음 전체</small></h4><p class="small muted">${q.leg!=null?'걸을 때 이 점을 중심으로 흔들려요':q.head?'달릴 때 끄덕여요':q.tail?'달릴 때 흔들려요':'안의 조각이 같이 움직여요'}</p>
+  <h5>위치</h5>${['좌우','위아래','앞뒤'].map((n,j)=>veRow(n,'gp',j,q.p[j],-3,4,.01)).join('')}
+  <h5>회전 (도)</h5>${['앞뒤로','좌우로','옆으로'].map((n,j)=>veRow(n,'gr',j,Math.round(r[j]*180/Math.PI),-180,180,1)).join('')}
+  ${veRow('크기','gs',0,q.s||1,.2,3,.01)}`;}
+ else h+=`<h4>${FLY[VE.k].n} 전체</h4><p class="small muted">왼쪽 목록이나 그림에서 조각을 누르면 고칠 수 있어요</p>`;
+ h+=`<hr><h5>색 (${(FLY[VE.k].cols.find(x=>x[0]===VE.cc)||[0,VE.cc])[1]})</h5><div class="vepal">${['a','b','c'].map(s=>`<label><span>${s.toUpperCase()}</span><input type="color" value="${pal[s]||'#cccccc'}" data-vepal="${s}"></label>`).join('')}</div>
+  <h5>타는 자리 · 전체 크기</h5>${['좌우','높이','앞뒤'].map((n,j)=>veRow(n,'seat',j,d.seat[j],-2,4,.01)).join('')}${veRow('전체 크기','zoom',0,d.zoom||1,.4,2,.01)}`;
+ P.innerHTML=h;
+ const num=(el)=>{const k=el.dataset.vn,j=+el.dataset.vi;let v=+el.value;if(!Number.isFinite(v))return;const S0=VE.sel,p=S0&&S0.i!=null?d.parts[S0.i]:null,q=S0&&S0.g?d.groups[S0.g]:null;
+  if(k==='s')p.s[j]=v;else if(k==='p')p.p[j]=v;else if(k==='r'){p.r=p.r||[0,0,0];p.r[j]=v*Math.PI/180;}else if(k==='gp')q.p[j]=v;else if(k==='gr'){q.r=q.r||[0,0,0];q.r[j]=v*Math.PI/180;}else if(k==='gs')q.s=v;else if(k==='seat')d.seat[j]=v;else if(k==='zoom')d.zoom=v;
+  P.querySelectorAll(`[data-vn="${k}"][data-vi="${j}"]`).forEach(x=>{if(x!==el)x.value=k==='r'||k==='gr'?Math.round(v):+v.toFixed(3);});veScene();};
+ P.querySelectorAll('[data-vn]').forEach(el=>{el.onpointerdown=el.onfocus=()=>{if(!el._p){vePush();el._p=1;}};el.onchange=()=>{el._p=0;veUndoBtns();};el.oninput=()=>num(el);});
+ P.querySelectorAll('[data-vesh]').forEach(b=>b.onclick=()=>{vePush();const p=d.parts[VE.sel.i];p.sh=b.dataset.vesh;if(p.sh==='ring')p.s=[.2,.04,6.28];else if(p.sh==='ball'||p.sh==='dome')p.s=[Math.max(.05,p.s[0]/2),0,0];veDirty(true);});
+ P.querySelectorAll('[data-vec]').forEach(b=>b.onclick=()=>{vePush();d.parts[VE.sel.i].c=b.dataset.vec;veDirty(true);});
+ const cu=P.querySelector('[data-vecus]');if(cu){cu.onfocus=cu.onclick=()=>vePush();cu.oninput=()=>{d.parts[VE.sel.i].c=cu.value;veScene();};cu.onchange=()=>veUI();}
+ const ee=P.querySelector('[data-vee]');if(ee)ee.onchange=()=>{vePush();const p=d.parts[VE.sel.i];if(ee.checked)p.e=1;else delete p.e;veDirty();};
+ const dup=P.querySelector('[data-vedup]');if(dup)dup.onclick=()=>{vePush();const p=JSON.parse(JSON.stringify(d.parts[VE.sel.i]));p.p[0]+=.15;d.parts.push(p);VE.sel={g:p.g||'',i:d.parts.length-1};veDirty(true);};
+ const mir=P.querySelector('[data-vemir]');if(mir)mir.onclick=()=>{vePush();const p=JSON.parse(JSON.stringify(d.parts[VE.sel.i]));p.p[0]=-p.p[0];if(p.r){p.r[1]=-p.r[1];p.r[2]=-p.r[2];}d.parts.push(p);VE.sel={g:p.g||'',i:d.parts.length-1};veDirty(true);};
+ const del=P.querySelector('[data-vedel]');if(del)del.onclick=()=>{vePush();d.parts.splice(VE.sel.i,1);VE.sel=null;veDirty(true);};
+ const gr=P.querySelector('[data-vegr]');if(gr)gr.onchange=()=>{vePush();const p=d.parts[VE.sel.i];const old=VE.R?veWorld(VE.sel.i):null;if(gr.value)p.g=gr.value;else delete p.g;if(old)veSetWorld(p,old);VE.sel.g=gr.value;veDirty(true);};
+ P.querySelectorAll('[data-vepal]').forEach(el=>{el.onfocus=el.onclick=()=>vePush();el.oninput=()=>{(d.pal[VE.cc]=d.pal[VE.cc]||{})[el.dataset.vepal]=el.value;veScene();};el.onchange=()=>veUI();});}
+function veUndoBtns(){const m=$('vmEd');if(!m)return;const u=m.querySelector('[data-veundo]'),r=m.querySelector('[data-veredo]');if(u)u.disabled=!VE.undo.length;if(r)r.disabled=!VE.redo.length;}
+// 묶음을 옮길 때 조각이 제자리에 남도록 (세계 위치 유지)
+function veWorld(i){let found=null;VE.root.traverse(o=>{if(o.isMesh&&o.userData.pi===i)found=o;});if(!found)return null;found.updateMatrixWorld(true);return found.matrixWorld.clone();}
+function veSetWorld(p,mw){try{const b=vmBuild(VE.d,VE.cc);const par=p.g?b.userData.G[p.g]:b.children[0];b.updateMatrixWorld(true);const rootInv=new THREE.Matrix4().copy(VE.root.matrixWorld).invert();const local=new THREE.Matrix4().copy(par.matrixWorld).invert().multiply(rootInv.multiply(mw));const pos=new THREE.Vector3(),q=new THREE.Quaternion(),sc=new THREE.Vector3();local.decompose(pos,q,sc);const e=new THREE.Euler().setFromQuaternion(q);p.p=[+pos.x.toFixed(3),+pos.y.toFixed(3),+pos.z.toFixed(3)];p.r=[+e.x.toFixed(3),+e.y.toFixed(3),+e.z.toFixed(3)];}catch(e){}}
+function veGL(){const cv=$('veCv');if(!cv)return;const T=THREE;if(!VE.R||VE.R.domElement!==cv){try{if(VE.R)VE.R.dispose();}catch(e){}VE.R=new T.WebGLRenderer({canvas:cv,antialias:true});VE.R.outputEncoding=T.sRGBEncoding;VE.sc=new T.Scene();VE.sc.background=new T.Color('#e9f1f4');VE.sc.add(new T.HemisphereLight(0xffffff,0x8a8070,.75));const dl=new T.DirectionalLight(0xffffff,.8);dl.position.set(3,6,4);VE.sc.add(dl);
+  const fl=new T.Mesh(new T.CircleGeometry(4,40),new T.MeshLambertMaterial({color:'#d8cbb4'}));fl.rotation.x=-Math.PI/2;VE.sc.add(fl);const gr=new T.GridHelper(8,16,0xb8a88a,0xcfc2a8);gr.position.y=.002;VE.sc.add(gr);
+  VE.cam=new T.PerspectiveCamera(35,1,.05,100);let drag=null,moved=0;
+  cv.onpointerdown=e=>{drag={x:e.clientX,y:e.clientY};moved=0;cv.setPointerCapture(e.pointerId);};
+  cv.onpointermove=e=>{if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;moved+=Math.abs(dx)+Math.abs(dy);VE.yaw-=dx*.01;VE.pit=Math.max(-.2,Math.min(1.4,VE.pit+dy*.01));drag={x:e.clientX,y:e.clientY};};
+  cv.onpointerup=e=>{drag=null;if(moved<5)vePick(e);};
+  cv.onwheel=e=>{e.preventDefault();VE.dist=Math.max(2.5,Math.min(16,VE.dist*(e.deltaY>0?1.1:.9)));};
+  const loop=()=>{VE.raf=requestAnimationFrame(loop);const m=$('vmEd');if(!m||!m.classList.contains('show'))return;const w=cv.clientWidth,h=cv.clientHeight;if(cv.width!==Math.round(w*devicePixelRatio)||cv.height!==Math.round(h*devicePixelRatio)){VE.R.setPixelRatio(devicePixelRatio);VE.R.setSize(w,h,false);VE.cam.aspect=w/Math.max(1,h);VE.cam.updateProjectionMatrix();}
+   const tgt=new T.Vector3(0,1.1*(VE.d.zoom||1),0);VE.cam.position.set(tgt.x+Math.sin(VE.yaw)*Math.cos(VE.pit)*VE.dist,tgt.y+Math.sin(VE.pit)*VE.dist,tgt.z+Math.cos(VE.yaw)*Math.cos(VE.pit)*VE.dist);VE.cam.lookAt(tgt);
+   VE.t+=.016;if(VE.root){const u=VE.root.userData;(u.legs||[]).forEach(l=>{l.p.rotation.x=VE.walk?Math.sin(VE.t*8+l.ph)*.5:0;});if(u.tail)u.tail.rotation.y=VE.walk?Math.sin(VE.t*6)*.4:0;(u.heads||[]).forEach(hd=>{hd.userData.r0=hd.userData.r0??hd.rotation.x;hd.rotation.x=hd.userData.r0+(VE.walk?Math.sin(VE.t*8)*.06:0);});if(VE.box)VE.box.update();}
+   VE.R.render(VE.sc,VE.cam);};
+  cancelAnimationFrame(VE.raf);loop();}}
+function veScene(){if(!VE.sc)return;if(VE.root)VE.sc.remove(VE.root);if(VE.box){VE.sc.remove(VE.box);VE.box=null;}VE.root=vmBuild(VE.d,VE.cc,{edit:1});VE.sc.add(VE.root);
+ const seat=new THREE.Mesh(new THREE.BoxGeometry(.3,.06,.3),new THREE.MeshBasicMaterial({color:'#ff5a8a',transparent:true,opacity:.6}));seat.position.fromArray(VE.root.userData.seat);VE.root.add(seat);
+ let tgt=null;if(VE.sel){if(VE.sel.i!=null)VE.root.traverse(o=>{if(o.isMesh&&o.userData.pi===VE.sel.i)tgt=o;});else if(VE.sel.g)tgt=VE.root.userData.G[VE.sel.g];}
+ if(tgt){VE.box=new THREE.BoxHelper(tgt,0xff5a1f);VE.sc.add(VE.box);}}
+function vePick(e){const cv=$('veCv'),r=cv.getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),rc=new THREE.Raycaster();rc.setFromCamera(v,VE.cam);const hit=rc.intersectObject(VE.root,true).find(h=>h.object.userData.pi!=null);if(!hit){VE.sel=null;veUI();return;}const i=hit.object.userData.pi;VE.sel={g:VE.d.parts[i].g||'',i};veUI();
+ setTimeout(()=>{const b=document.querySelector(`#vmEd [data-vep="${i}"]`);if(b)b.scrollIntoView({block:'nearest'});},0);}
+// 사진으로 색: 사진에서 많이 쓰인 색 3개를 뽑아 A(가장 많이)·B(어두운)·C(밝은)에 넣어요
+function vePhoto(file){const im=new Image();im.onload=()=>{const cv=document.createElement('canvas');cv.width=cv.height=72;const x=cv.getContext('2d');x.drawImage(im,0,0,72,72);const a=x.getImageData(0,0,72,72).data,px=[];
+  for(let i=0;i<a.length;i+=4){if(a[i+3]<128)continue;const r=a[i],g=a[i+1],b=a[i+2],mx=Math.max(r,g,b),mn=Math.min(r,g,b);if(mx>235&&mn>225)continue;px.push([r,g,b]);}
+  if(px.length<20){toast('사진에서 색을 찾지 못했어요',1600);return;}
+  let C=[px[0],px[Math.floor(px.length/2)],px[px.length-1]].map(c=>c.slice());let asg=[];for(let it=0;it<10;it++){const sum=C.map(()=>[0,0,0,0]);asg=px.map(p=>{let bi=0,bd=1e9;C.forEach((c,j)=>{const d=(p[0]-c[0])**2+(p[1]-c[1])**2+(p[2]-c[2])**2;if(d<bd){bd=d;bi=j;}});const s=sum[bi];s[0]+=p[0];s[1]+=p[1];s[2]+=p[2];s[3]++;return bi;});C=sum.map((s,j)=>s[3]?[s[0]/s[3],s[1]/s[3],s[2]/s[3]]:C[j]);}
+  const cnt=C.map((_,j)=>asg.filter(v=>v===j).length),ord=C.map((c,j)=>({c,n:cnt[j],l:c[0]*.3+c[1]*.59+c[2]*.11})).sort((p,q)=>q.n-p.n);const A=ord[0],rest=ord.slice(1).sort((p,q)=>p.l-q.l);const hx=c=>'#'+c.map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');
+  vePush();VE.d.pal[VE.cc]={a:hx(A.c),b:hx(rest[0].c),c:hx(rest[1].c)};veDirty(true);toast('📷 사진 색을 넣었어요 · 마음에 안 들면 ↶ 되돌리기',2000);};im.src=URL.createObjectURL(file);}
+function veIO(){const txt=JSON.stringify(VE.d);confirmBox(`<h3>📋 내보내기 · 불러오기</h3><p class="small muted">아래 글을 복사해 두면 나중에 다시 붙여 넣어 불러올 수 있어요</p><textarea id="veTxt" style="width:100%;height:180px;font-size:11px">${txt.replace(/</g,'&lt;')}</textarea>`,()=>{try{const v=JSON.parse($('veTxt').value);if(!v||!Array.isArray(v.parts))throw 0;vePush();VE.d=v;VE.d.pal=VE.d.pal||vmPal(VE.k);VE.sel=null;veDirty(true);toast('📋 불러왔어요',1400);}catch(e){toast('형식이 맞지 않아요',1600);}});try{navigator.clipboard.writeText(txt);}catch(e){}}
+function vePub(){const RT=window.NK_RT;if(!RT||RT.status()!=='on'||!RT.setVmod){toast('서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2200);return;}const F=FLY[VE.k];
+ const isOrig=JSON.stringify(VE.d)===JSON.stringify(vmExport(VE.k));
+ if(!confirm(isOrig?`${F.n}을(를) 원래 모양으로 모든 유저에게 되돌릴까요?`:`지금 ${F.n} 모양을 모든 유저에게 적용할까요?`))return;
+ const next=Object.assign({},VMOD.map);if(isOrig)delete next[VE.k];else next[VE.k]=JSON.parse(JSON.stringify(VE.d));
+ if(JSON.stringify(next).length>44000){toast('조각이 너무 많아요 · 조금 줄여 주세요',2200);return;}
+ if(RT.setVmod(next)){delete VMOD.local[VE.k];toast(`✅ ${F.n} 모양을 모든 유저에게 적용했어요`,2000);}}
+addEventListener('keydown',e=>{const m=$('vmEd');if(!m||!m.classList.contains('show'))return;if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'&&!/INPUT|TEXTAREA/.test((e.target||{}).tagName||'')){e.preventDefault();const b=m.querySelector(e.shiftKey?'[data-veredo]':'[data-veundo]');if(b&&!b.disabled)b.click();}if(e.key==='Escape')veClose();},true);
+window.NK89.VE={VE,veOpen,veClose};
+// 관리자 › 🧪 테스트 기능 맨 위에 「🛠 탈것 편집기」
+{const _l=labHTML,_b=bindLab;labHTML=function(){const h=_l.apply(this,arguments),box=`<div class="labrow wpadm veadm" style="display:block"><b>🛠 탈것 편집기</b> <span class="tg">관리자</span><p class="small muted" style="margin:4px 0 8px">코끼리·기린·카피바라·돼지·로봇 모양과 색을 화면에서 고치고 모든 유저에게 적용해요 · 사진을 넣으면 그 사진 색으로 칠해요</p><button class="sm ok" data-veopen>🛠 편집기 열기</button> <small class="muted">수정된 탈것: ${Object.keys(VMOD.map).map(k=>FLY[k]?FLY[k].n:k).join(', ')||'없음'}</small></div>`,i=h.indexOf('<div class="labsum">');return i>=0?h.slice(0,i)+box+h.slice(i):h.replace(/<\/div>\s*$/,box+'</div>');};
+ bindLab=function(root){try{_b.apply(this,arguments);}catch(e){console.warn(e);}const b=root.querySelector('[data-veopen]');if(b)b.onclick=()=>veOpen();};}
 {const _t=trLoco;trLoco=function(){return slimGroup(_t.apply(this,arguments));};}
 const CKMAT={};
 function ckSlim(G){G.updateMatrixWorld(true);const metal=[],coal=[],rm=[];G.traverse(o=>{if(o.isLight){rm.push(o);return;}if(!o.isMesh||o.material.blending===THREE.AdditiveBlending)return;const mt=o.material;if(mt.emissive&&mt.emissive.getHex()!==0){coal.push([o.geometry,o.matrixWorld.clone(),mt.emissive.clone().lerp(new THREE.Color('#ffb070'),.15).multiplyScalar(.6+mt.emissiveIntensity*.5)]);rm.push(o);}else{metal.push([o.geometry,o.matrixWorld.clone(),mt.color.clone()]);rm.push(o);}});

@@ -32,6 +32,7 @@ import {
   sanitizeLoss,
   sanitizeNotice,
   sanitizePlay,
+  sanitizeVmod,
   sanitizeProf,
   sanitizeRecover,
   sanitizeSancMap,
@@ -216,6 +217,7 @@ export class LakeRoom extends DurableObject {
       stage: await this.opsGet("stage", null),
       play: await this.opsGet("play", null),
       titles: await this.opsGet("titles", {}),
+      vmod: await this.opsGet("vmod", {}),
       staff: sanitizeStaff(await this.opsGet("staff", {})),
       cues,
       recovers,
@@ -251,6 +253,12 @@ export class LakeRoom extends DurableObject {
     }
     if (msg.t === "gameNow") {
       await this.gameStart(msg.kind);
+      return;
+    }
+    if (msg.t === "vmod") {
+      const v = sanitizeVmod(msg.vmod);
+      await this.opsPut("vmod", v);
+      this.broadcast({ t: "vmod", vmod: v });
       return;
     }
     if (msg.t === "titles") {
@@ -391,6 +399,12 @@ export class LakeRoom extends DurableObject {
   async acceptOps(fromId, msg) {
     const now = Date.now();
     const all = [1, 2, 3, 4];
+    if (msg.t === "vmod") {
+      const v = sanitizeVmod(msg.vmod);
+      if (JSON.stringify(v).length > 44000) return;
+      await this.fan(fromId, all, { t: "vmod", vmod: v });
+      return;
+    }
     if (msg.t === "titles") {
       await this.fan(fromId, all, { t: "titles", titles: sanitizeTitles(msg.titles) });
       return;
@@ -730,7 +744,7 @@ export class LakeRoom extends DurableObject {
       try { ws.send(JSON.stringify({ t: "gamecfg", cfg })); } catch { /* ignore */ }
       return;
     }
-    if (msg.t === "game" || msg.t === "gameNow" || msg.t === "titles") {
+    if (msg.t === "game" || msg.t === "gameNow" || msg.t === "titles" || msg.t === "vmod") {
       if (!prev.ready) return;
       await this.acceptOps(prev.server, msg);
       return;

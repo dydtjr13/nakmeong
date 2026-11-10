@@ -171,6 +171,7 @@
     if (m.sanc) takeSanc(m.sanc);
     if (m.prof) takeProf(m.prof);
     takeTitles(m.titles);
+    if (m.vmod) takeVmod(m.vmod);
     if (m.stage) takeStage(m.stage);
     takePlay(m.play && typeof m.play === "object" ? m.play : {});
     if (m.cues) takeCues(m.cues);
@@ -276,6 +277,10 @@
     RT.titles = t && typeof t === "object" ? t : {};
     try { dispatchEvent(new CustomEvent("nk-rt-titles", { detail: RT.titles })); } catch (e) { /* ignore */ }
   }
+  function takeVmod(v) {
+    RT.vmod = v && typeof v === "object" ? v : {};
+    try { dispatchEvent(new CustomEvent("nk-rt-vmod", { detail: RT.vmod })); } catch (e) { /* ignore */ }
+  }
   function takePlay(p) {
     if (!p || typeof p !== "object") return;
     if (p.rev && RT.playRev && p.rev < RT.playRev) return;
@@ -349,6 +354,7 @@
     else if (m.t === "chat" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-chat", { detail: m }));
     else if (m.t === "emote" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-emote", { detail: m }));
     else if (m.t === "titles") takeTitles(m.titles);
+    else if (m.t === "vmod") takeVmod(m.vmod);
     else if (m.t === "game") { RT.game = m.game || null; dispatchEvent(new CustomEvent("nk-rt-game", { detail: RT.game })); }
     else if (m.t === "gameRes") dispatchEvent(new CustomEvent("nk-rt-gameres", { detail: m }));
     else if (m.t === "gamecfg") { RT.gameCfg = m.cfg || null; dispatchEvent(new CustomEvent("nk-rt-gamecfg", { detail: RT.gameCfg })); }
@@ -596,6 +602,7 @@
   };
   // v55: 초성·밸런스 게임
   RT.setTitles = function (titles) { return opsSend({ t: "titles", titles: titles || {} }); };
+  RT.setVmod = function (vmod) { return opsSend({ t: "vmod", vmod: vmod || {} }); };
   RT.gameAns = function (id, a) { if (RT.mode === "on") send({ t: "ans", id: String(id || ""), a: String(a || "").slice(0, 30) }); };
   RT.gamePick = function (id, s) { if (RT.mode === "on") send({ t: "pick", id: String(id || ""), s }); };
   RT.gameSet = function (cfg) { return opsSend({ t: "game", game: cfg || {} }); };

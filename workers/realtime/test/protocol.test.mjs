@@ -768,3 +768,15 @@ test("v101 pouchCfg", () => {
   const src = readFileSync(new URL("../src/protocol.js", import.meta.url), "utf8");
   assert.ok(src.includes('"pouchCfg" in input'));
 });
+
+import { sanitizeVmod } from "../src/protocol.js";
+test("v108 탈것 편집기 데이터 정리", () => {
+  const v = sanitizeVmod({ pig: { seat: [0, 1.4, 0], pal: { pink: { a: "#ff0000", b: "x", c: "#00ff00" } }, groups: { g0: { p: [0, 1, 0], leg: 3.14 }, g1: { p: [0, 0, 0], par: "nope" } }, parts: [{ sh: "box", s: [1, 1, 1], p: [0, 999, 0], c: "a", g: "g0" }, { sh: "evil", s: [1, 1, 1] }, { sh: "ring", s: [0.1, 0.02, 3], p: [0, 0, 0], c: "#ABCDEF", g: "zz" }] }, "BAD!": {} });
+  assert.deepEqual(Object.keys(v), ["pig"]);
+  assert.equal(v.pig.parts.length, 2);
+  assert.equal(v.pig.parts[0].p[1], 20);
+  assert.equal(v.pig.pal.pink.b, "#cccccc");
+  assert.equal(v.pig.parts[1].c, "#abcdef");
+  assert.equal(v.pig.parts[1].g, undefined);
+  assert.equal(v.pig.groups.g1.par, undefined);
+});
