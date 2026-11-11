@@ -1007,3 +1007,16 @@ body.skyOn #wxCv,body.skyOn #wxCard{display:none!important}
 .robc.hyc .flyh{flex-wrap:wrap;row-gap:2px}
 .robc.hyc .flyh b{white-space:nowrap}
 .robc.hyc .flyh small{white-space:nowrap}
+/* v127: 관리자 탈것 설정 상자 칸·아이템 가격 칸 줄바꿈 정리 */
+.vehadm .vesum span{flex-direction:column;justify-content:center;gap:2px;padding:6px 4px;text-align:center}
+.vehadm .vesum i{font-style:normal;display:flex;flex-direction:column;align-items:center;line-height:1.25}
+.vehadm .vesum b,.vehadm .vesum small{white-space:nowrap}.vehadm .vesum small{font-size:11px;color:#7a6a58}
+.prset .xbg{display:flex;flex-wrap:wrap;gap:8px 14px}
+.prset .xbg label{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.tpre .sptl{white-space:nowrap}
+@media (max-width:520px){.tpre{grid-template-columns:repeat(3,1fr)}}
+#admin th{white-space:nowrap}
+/* v127: 모바일 비행 중 「내리기」·「위로/아래로」·「미사일」 겹침 정리, 터치 기기는 키 안내 숨김 */
+#flyUD em,#mslBtn em{font-style:normal}
+@media (hover:none),(max-width:760px){#flyUD em,#mslBtn em{display:none}}
+@media (max-width:760px){body.flying #flyUD{bottom:290px;right:10px}body.flying #mslBtn{right:80px;bottom:300px;width:64px;height:64px}}
