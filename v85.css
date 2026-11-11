@@ -860,3 +860,34 @@ button.sellb:hover{background:#ffe7c2}
 #fuse .fzl{padding-bottom:14px}
 /* v112 음식 효과 2개 이상: 숫자 뱃지가 세로로 늘어나던 문제 (.ckico b 공통 규칙의 bottom:0 때문) */
 #ckHud .ckico>b{bottom:auto;left:auto;top:-5px;right:-5px;min-width:18px;height:18px;line-height:18px;text-align:center;font-size:11px;font-weight:900;padding:0 5px;box-sizing:border-box;border-radius:9px;box-shadow:0 0 0 2px #fff;z-index:2}
+/* v113 어항 여러 마리 옮기기 */
+#confirm .tk3mv{display:flex;flex-direction:column;gap:8px;margin:10px 0 4px}
+#confirm .tk3mv button{display:grid;grid-template-columns:44px 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;text-align:left;border:2px solid #e3d6c4;background:#fffaf3;border-radius:12px;padding:6px 10px;cursor:pointer}
+#confirm .tk3mv button:hover:not(:disabled){border-color:#f2a06b}#confirm .tk3mv button:disabled{opacity:.45;cursor:default}
+#confirm .tk3mv img{grid-row:1/3;width:44px;height:36px;object-fit:contain}#confirm .tk3mv b{font-size:14px;white-space:nowrap}#confirm .tk3mv small{font-size:12px;color:#8a7660;white-space:nowrap}
+#profDlg .acts .pcbio{flex:1;min-width:0;border:1.5px solid #e3d6c4;border-radius:10px;padding:8px 10px;font:inherit;font-size:14px}
+/* v113 행운부적 A: 착용칸 위에 프리셋 줄 · 착용칸은 그만큼 아래로 */
+.bslots.pre{align-content:start;row-gap:10px;padding-top:12px}
+.bslots.pre .bpre{grid-column:1/-1;display:flex;align-items:center;gap:6px;min-width:0;white-space:nowrap}
+.bslots.pre .bpre>b{font-size:13px;color:#6b5844;margin-right:2px}
+.bslots.pre .bpre [data-pre]{border:2px solid #e3d6c4;background:#fff;color:#6b5844;border-radius:10px;padding:3px 11px;font-weight:800;font-size:13px;cursor:pointer;line-height:1.3}
+.bslots.pre .bpre [data-pre] small{font-weight:600;opacity:.8;font-size:11px}
+.bslots.pre .bpre [data-pre].on{border-color:#5fc48a;background:#5fc48a;color:#fff}
+.bslots.pre .bpre .sp{flex:1}
+.bslots.pre .bpre #preSave{border:1.5px solid #e3d6c4;background:#fff;border-radius:10px;padding:3px 10px;font-size:12px;cursor:pointer}
+.bslots.pre .bslot{aspect-ratio:auto;height:92px}
+@media(max-width:700px){.bslots.pre .bslot{aspect-ratio:1;height:auto}.bslots.pre .bpre [data-pre]{padding:3px 8px}}
+#tk3 .tk3mvb{flex:none;align-self:stretch;border:1.5px dashed #c9b79c;background:#fffaf3;border-radius:12px;padding:4px 10px;font-size:12px;font-weight:800;color:#6b5844;cursor:pointer;line-height:1.3;white-space:nowrap}
+#tk3 .tk3mvb:hover{border-color:#f2a06b}
+#tk3Pick .tk3pc{width:min(720px,94vw);max-height:86vh;display:flex;flex-direction:column;gap:8px}
+#tk3Pick .tk3pf{display:flex;gap:6px;align-items:center;flex-wrap:nowrap;overflow-x:auto}#tk3Pick .tk3pf button{border:1.5px solid #e3d6c4;background:#fff;border-radius:999px;padding:4px 11px;font-size:13px;white-space:nowrap;cursor:pointer}#tk3Pick .tk3pf button.on{background:#3a2f25;color:#fff;border-color:#3a2f25}#tk3Pick .tk3pf i{font-style:normal;opacity:.7;font-size:11px}
+#tk3Pick .sp{flex:1}
+#tk3Pick .tk3pg{flex:1;min-height:0;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;padding:2px}
+#tk3Pick .tk3pi{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;border:2.5px solid var(--gc);background:#fffaf3;border-radius:12px;padding:6px 4px;cursor:pointer;min-width:0}
+#tk3Pick .tk3pi.on{background:#e8f7ee;box-shadow:0 0 0 3px #5fc48a}
+#tk3Pick .tk3pi img{width:64px;height:40px;object-fit:contain}#tk3Pick .tk3pi b{font-size:13px;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}#tk3Pick .tk3pi small{font-size:11px;color:#8a7660;white-space:nowrap}
+#tk3Pick .tk3pi .ck{position:absolute;left:5px;top:5px;width:18px;height:18px;border-radius:6px;border:2px solid #cdbda6;background:#fff;font-size:12px;line-height:14px;color:#2e9a5a;font-weight:900}#tk3Pick .tk3pi.on .ck{border-color:#5fc48a}
+#tk3Pick .tk3pi em{position:absolute;right:4px;top:4px;font-style:normal;font-size:10px;font-weight:800;color:#fff;background:var(--vc);border-radius:6px;padding:0 5px}
+#tk3Pick .tk3pb{display:flex;align-items:center;gap:8px;white-space:nowrap}
+#tk3Pick .tk3pc{position:relative;text-align:left}#tk3Pick .x{position:absolute;right:12px;top:10px;width:auto}
+#profDlg .acts.me{display:flex;gap:8px}#profDlg .acts.me>button{flex:1;white-space:nowrap;min-width:0}
