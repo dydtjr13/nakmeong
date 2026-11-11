@@ -807,3 +807,14 @@ test("v110 탈것 설정 B · 미션 보상 여러 개", () => {
   assert.deepEqual(pl.msCfg.d[0].rw, { co: 100, st: 3, bn: 2, bg: 4 }); assert.deepEqual(pl.msCfg.d[1].rw, { bn: 1, bg: 3 });
   assert.deepEqual(pl.msCfg.m[0], { t: "fuse", n: 30, rw: { ess: 5 } }); assert.deepEqual(pl.msCfg.s[0].rw, { bn: 1, bg: 5 });
 });
+
+test("v119 taxi fare peek key", () => {
+  const a = parseClient(JSON.stringify({ t: "pk", to: "abc12345", k: "tx500" }));
+  assert.equal(a.k, "tx500");
+  const b = parseClient(JSON.stringify({ t: "pk", to: "abc12345", k: "tx<script>" }));
+  assert.equal(b.k, "prof");
+  const c = parseClient(JSON.stringify({ t: "pka", to: "abc12345", k: "tx500", d: { ok: 1, why: "fare", x: "y" } }));
+  assert.deepEqual(c.d, { ok: 1, why: "fare" });
+  const d = parseClient(JSON.stringify({ t: "pk", to: "abc12345", k: "tank" }));
+  assert.equal(d.k, "tank");
+});
