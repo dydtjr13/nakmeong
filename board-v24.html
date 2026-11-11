@@ -141,9 +141,10 @@ async function load(){
   finally{loading=false;}
 }
 function filtered(){const s=q.trim().toLowerCase();return all.filter(p=>(cat==='*'||p.k===cat)&&(!s||(p.title+' '+p.body+' '+p.nick).toLowerCase().includes(s)));}
+function canEd(){try{return !!(P&&P.NK_VBED&&((P.NK_VBUSER&&P.NK_VBUSER())||isStaff()));}catch(e){return false;}}
 function craftHTML(){
   const s=q.trim().toLowerCase(),L=(craft||[]).filter(p=>(csub==='*'||p.sub===csub)&&(!s||(p.title+' '+p.body+' '+p.nick).toLowerCase().includes(s)));
-  const sub=`<div class="csub">${[['*','전체']].concat(CRAFT).map(([k,l])=>`<button class="chip ${k===csub?'on':''}" data-cs="${esc(k)}">${esc(l)}</button>`).join('')}</div><p class="cnote">편집기에서 만든 탈것·캐릭터·펫을 구경하고 댓글을 남길 수 있어요</p>`;
+  const sub=`<div class="csub">${[['*','전체']].concat(CRAFT).map(([k,l])=>`<button class="chip ${k===csub?'on':''}" data-cs="${esc(k)}">${esc(l)}</button>`).join('')}</div><p class="cnote">편집기에서 만든 탈것·캐릭터·펫을 구경하고 댓글을 남길 수 있어요${canEd()?' · <button class="chip" id="openEd">🧱 나도 만들기</button>':''}</p>`;
   if(!L.length)return sub+`<div class="list"><div class="empty">${q?'검색 결과가 없어요.':'아직 올라온 작품이 없어요.'}</div></div>`;
   return sub+`<div class="cgrid">${L.slice(0,shown).map(p=>`<button class="ccard" data-id="${esc(p.id)}">${p.img?`<img src="${esc(apiBase()+p.img)}" alt="" loading="lazy">`:'<i class="noimg"></i>'}<b>${esc(p.title)}</b><small>${esc((CRAFT.find(c=>c[0]===p.sub)||['',''])[1])} · ${esc(p.nick)}${p.cc?' · 💬 '+p.cc:''}</small></button>`).join('')}</div>${L.length>shown?'<button class="btn more" id="more">더 보기</button>':''}`;
 }
@@ -170,6 +171,7 @@ async function showList(reload){
 }
 function bindRows(){
   document.querySelectorAll('.row[data-id],.ccard[data-id]').forEach(r=>r.onclick=()=>showPost(r.dataset.id));
+  const oe=document.getElementById('openEd');if(oe)oe.onclick=()=>{try{P.NK_BOARD&&P.NK_BOARD.close&&P.NK_BOARD.close();}catch(e){}try{P.NK_VBED.open();}catch(e){}};
   document.querySelectorAll('[data-cs]').forEach(b=>b.onclick=()=>{csub=b.dataset.cs;shown=PAGE;$('#lst').innerHTML=listHTML();bindRows();});
   const mo=$('#more');if(mo)mo.onclick=()=>{shown+=PAGE;$('#lst').innerHTML=listHTML();bindRows();};
 }

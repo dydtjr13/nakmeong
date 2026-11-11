@@ -129,7 +129,9 @@ const pinOk = (p) => /^\d{4,6}$/.test(String(p || ''));
 const REPORT_HIDE = 3; // 서로 다른 3명이 신고하면 관리자가 볼 때까지 숨김
 
 const CRAFT = (c) => /^창작/.test(String(c || ''));
-const CRAFT_CATS = new Set(['창작·탈것', '창작·캐릭터', '창작·펫']);
+const CRAFT_CATS = new Set(['창작·탈것', '창작·캐릭터', '창작·펫', '창작·보관']);
+// v113: 창작·보관 = 유저가 관리자에게 보낸 작품 (관리자와 보낸 사람만 봐요)
+const SUBCAT = '창작·보관';
 const BLK_MAX = 60000;
 function shapePost(p, me, admin, full) {
   return { id: p.id, cat: p.cat, ...(p.blk ? { blk: full ? p.blk : 1 } : {}), title: p.title, body: p.body, nick: p.nick, created_at: p.created_at, updated_at: p.updated_at,
@@ -142,10 +144,12 @@ async function listPosts(db, url, me, admin) {
   // v111: 창작 마당 글은 ?cat=창작·탈것 처럼 따로 불러요 (일반 게시판 목록에는 안 나와요)
   const cat = String(url.searchParams.get('cat') || '');
   const where = [admin ? '1=1' : 'COALESCE(p.hidden,0)=0', CRAFT(cat) ? 'p.cat=?' : "p.cat NOT LIKE '창작%'"];
+  const binds = CRAFT(cat) ? [cat] : [];
+  if (cat === SUBCAT && !admin) { if (!me) return []; where.push('p.owner=?'); binds.push(me); }
   const sel = `SELECT p.id,p.cat,p.title,p.body,p.nick,p.created_at,p.updated_at,p.owner,p.img,p.reports,p.hidden,(CASE WHEN p.blk IS NULL THEN NULL ELSE 1 END) AS blk, (SELECT COUNT(*) FROM comments c WHERE c.post_id=p.id) AS comment_count
      FROM posts p WHERE ${where.join(' AND ')} ORDER BY p.created_at DESC LIMIT ? OFFSET ?`;
   const st = db.prepare(sel);
-  const rows = await (CRAFT(cat) ? st.bind(cat, limit, offset) : st.bind(limit, offset)).all();
+  const rows = await st.bind(...binds, limit, offset).all();
   return (rows.results || []).map((p) => shapePost(p, me, admin));
 }
 function profane(...parts) { return parts.some((t) => hasProfanity(t)); }
@@ -342,6 +346,7 @@ export default {
         const pid = decodeURIComponent(postOne[1]);
         const post = await db.prepare('SELECT * FROM posts WHERE id=?').bind(pid).first();
         if (!post || (post.hidden && !admin)) return bad('not found', 404, origin);
+        if (post.cat === SUBCAT && !admin && !(me && post.owner === me)) return bad('not found', 404, origin);
         const cms = await db.prepare('SELECT * FROM comments WHERE post_id=? ORDER BY created_at ASC').bind(pid).all();
         return json({ ok: true, post: shapePost(post, me, admin, true), comments: (cms.results || []).map((c) => ({ id: c.id, post_id: c.post_id, nick: c.nick, body: c.body, created_at: c.created_at, mine: !!(me && c.owner && c.owner === me) })) }, 200, origin);
       }
