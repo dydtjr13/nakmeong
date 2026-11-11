@@ -1030,3 +1030,6 @@ body.skyOn #wxCv,body.skyOn #wxCard{display:none!important}
 @keyframes hbPulse{from{box-shadow:0 0 0 0 rgba(255,140,80,.7),0 6px 18px rgba(255,90,140,.45)}to{box-shadow:0 0 0 10px rgba(255,140,80,0),0 6px 18px rgba(255,90,140,.45)}}
 @media (hover:none),(max-width:760px){#hbBtn em{display:none}}
 @media (max-width:760px){#hbBtn{right:12px;bottom:290px;width:64px;height:64px}#hbBtn::before{-webkit-mask:radial-gradient(circle,transparent 30px,#000 31px);mask:radial-gradient(circle,transparent 30px,#000 31px)}}
+/* v129: 비어 있는 날씨 카드가 빈 알약으로 보이던 것 · 가로 배치(D) 상단 바가 채팅 버튼과 겹치던 것 */
+#wxCard:empty,body.mx #hud #wxCard:empty,body.tx #hud #wxCard:empty{display:none!important}
+body.mx-D #hud #chatBtn{top:64px!important;right:max(14px,env(safe-area-inset-right))!important}
