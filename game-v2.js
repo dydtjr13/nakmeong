@@ -2762,9 +2762,11 @@ addEventListener('nk-rt-seat',e=>{const m=e.detail;if(!m||m.ok!==false||!mySeat)
   $('stSrv').querySelectorAll('[data-sv]').forEach(b=>b.onclick=()=>{if(b.disabled)return;const id=+b.dataset.sv;CFG.ch=id;if(V14&&V14.CH)V14.CH.me=id;try{localStorage.setItem('nk_cfg',JSON.stringify(CFG));}catch(e){}srvDraw();stUpd();});};
  addEventListener('nk-rt-servers',()=>{if($('start').classList.contains('show')&&V14)srvDraw();});
  const nickChk=()=>{const v=$('stNick').value.trim();const bad=nickBad(v);const adm=bad==='reserved';$('stNickOk').textContent=adm?'🔒 관리자 닉네임이에요. 시작할 때 관리자 비밀번호를 물어봐요':bad?nickBadText(bad):(v?`"${v}" (으)로 표시돼요`:"비워 두면 '나'로 표시돼요");$('stNickOk').style.color=bad&&!adm?'#c44536':'';};
- $('stNick').value=S.nick||'';$('stNick').oninput=()=>{S.nick=$('stNick').value.trim().slice(0,10);save();nickChk();};nickChk();
+ {const _ni=$('stNick'),_t=(_ni.value||'').trim();if(_ni.dataset.typed==='1'&&_t){S.nick=_t.slice(0,10);try{save();}catch(e){}}}$('stNick').value=S.nick||'';$('stNick').oninput=()=>{S.nick=$('stNick').value.trim().slice(0,10);save();nickChk();};nickChk();
  const step=n=>{const _nb=nickBad(($('stNick').value||'').trim());if(n>1&&_nb&&_nb!=='reserved'){nickChk();return;}stEl.dataset.step=n;stEl.querySelectorAll('.stSteps span').forEach(x=>x.className=+x.dataset.s<n?'done':+x.dataset.s===n?'on':'');};
  stEl.querySelectorAll('.stNext').forEach(b=>b.onclick=()=>step(+b.dataset.to));
+ // v132: 게임을 받는 동안 시작 화면에서 미리 넘어간 단계 — 닉네임이 맞지 않으면 1단계로 되돌려요
+ {const cur=+stEl.dataset.step||1;if(cur>1){const nb=nickBad(($('stNick').value||'').trim());if(nb&&nb!=='reserved'){stEl.dataset.step=1;stEl.querySelectorAll('.stSteps span').forEach(x=>x.className=+x.dataset.s===1?'on':'');nickChk();}}}
  stEl.querySelectorAll('.stSteps span').forEach(x=>{x.setAttribute('role','button');x.tabIndex=0;x.onclick=()=>step(+x.dataset.s);});
   // v56: 시작 화면에서 저장 코드 불러오기 → 닉네임·레벨·캐릭터 반영
  window.NK_STREFRESH=()=>{try{$('stNick').value=S.nick||'';nickChk();tab=grp(S.char||0);drawCP();stUpd();}catch(e){}};

@@ -102,9 +102,18 @@
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), timeoutMs || 2500);
     try {
-      const res = await fetch(base + "/servers", { cache: "no-store", signal: ctrl.signal });
-      if (!res.ok) throw new Error("http " + res.status);
-      const body = await res.json();
+      // v132: 첫 요청은 시작 스크립트(boot)가 미리 보낸 결과를 그대로 써요
+      let body = null;
+      const pre = window.NK_PRE_SRV;
+      if (pre && !refresh.usedPre && pre.base === base && Date.now() - pre.at < 15000) {
+        refresh.usedPre = true;
+        try { body = await Promise.race([pre.p, new Promise((_, rej) => setTimeout(() => rej(new Error("pre timeout")), timeoutMs || 2500))]); } catch (e) { body = null; }
+      }
+      if (!body) {
+        const res = await fetch(base + "/servers", { cache: "no-store", signal: ctrl.signal });
+        if (!res.ok) throw new Error("http " + res.status);
+        body = await res.json();
+      }
       if (!body || !body.ok || !Array.isArray(body.servers)) throw new Error("shape");
       RT.servers = body.servers;
       RT.phase = "ok";

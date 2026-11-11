@@ -56,3 +56,33 @@
     go: function (to, extra) { var o = extra || {}; o.to = to; try { LS.setItem('nk_slot_go', JSON.stringify(o)); } catch (e) { return false; } location.reload(); return true; },
   };
 })();
+
+// v132: 서버 설정(관리자가 고른 맵 등)을 게임 파일보다 먼저 받아요 — 처음 들어온 기기에서 기본 맵이 먼저 보였다가 바뀌지 않게
+//  · 받은 설정은 nk_play_cache 에 저장 → 게임이 시작하자마자 그 맵으로 바로 만들어요
+//  · 크리스마스·보리밭 맵이면 그 맵 파일도 미리 받아 둬요
+//  · realtime.js 의 첫 서버 목록 요청이 이 결과를 그대로 써서 요청이 한 번 줄어요
+(function () {
+  try {
+    var qs = new URLSearchParams(location.search);
+    if (qs.has('uiprev')) return;
+    var q = qs.get('rt'), b = 'https://fishcozy-realtime.mi1ku.workers.dev';
+    if (q === 'off' || q === '0') return;
+    if (q && /^https?:\/\//i.test(q)) b = q.replace(/\/+$/, '');
+    else { var s = null; try { s = localStorage.getItem('nk_rt_base'); } catch (e) {} if (s === 'off') return; if (s && /^https?:\/\//i.test(s)) b = s.replace(/\/+$/, ''); }
+    var ctl = window.AbortController ? new AbortController() : null;
+    var tm = setTimeout(function () { try { ctl && ctl.abort(); } catch (e) {} }, 4000);
+    var PK = { X: 'mapx-xmas', XM: 'mapx-xmas', GB: 'mapx-barley' };
+    var p = fetch(b + '/servers', { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+      .then(function (r) { clearTimeout(tm); if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+      .then(function (j) {
+        if (j && j.play && typeof j.play === 'object') {
+          try { localStorage.setItem('nk_play_cache', JSON.stringify(j.play)); } catch (e) {}
+          var pk = PK[j.play.mapSt];
+          if (pk) { var l = document.createElement('link'); l.rel = 'preload'; l.as = 'script'; l.href = 'assets/' + pk + '.js?v59'; document.head.appendChild(l); }
+        }
+        return j;
+      });
+    p.catch(function () {});
+    window.NK_PRE_SRV = { at: Date.now(), p: p, base: b };
+  } catch (e) {}
+})();
