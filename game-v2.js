@@ -4141,6 +4141,7 @@ LAB.push({k:'jet',n:'🛫 전투기',d:'상점 › 🚗 탈것에 하늘을 나�
 LAB.push({k:'taxi',n:'🚗 하늘 택시',d:'상점 › 🚗 탈것에 「하늘 택시」가 생겨요 (탈것 기능이 켜져 있어야 해요). 택시를 타면 화면에 「🚗 지상 / ✈️ 비행」과 「💰 요금」이 나와요. 지상은 땅에서 운전, 비행은 날개가 펴지며 하늘을 날아요. 다른 유저가 택시를 눌러 요금을 내면 옆자리에 타요 (요금은 운전한 사람이 받아요)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'boat',n:'⛵ 돛단배',d:'상점 › 🚗 탈것에 「돛단배」가 생겨요 (탈것 기능이 켜져 있어야 해요). 호숫가·데크 끝처럼 물가에서만 탈 수 있고, 호수 위로만 다녀요. 내리면 가까운 땅이나 데크로 올라가요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'star5',n:'⭐ 5성 물고기 (시안 A)',d:'합성으로 5성(★★★★★)이 된 물고기가 특별해져요: 금빛 후광·별·빛줄기 카드, 같은 호숫가에 「OO님이 5성을 완성했어요!」 알림, 「⭐ 별 조각 교환소」(5성 물고기 → 별 조각 → 칭호 「별을 낚은 자」·신화 행운 상자(1주 1개)·한정 펫 별 고래). 합성 창 위 「⭐ 교환소」 버튼으로 열어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
+LAB.push({k:'skyIsland',n:'🌙 하늘섬 (별도 채널)',d:'나는 탈것을 타고 높이 36m 넘게 올라가면(Lv.50 이상) 「하늘섬으로 갈까요?」가 떠요. 하늘섬은 따로 된 채널이라 지상 사람은 안 보이고, 늘 밤인 별빛 정원에서 별자리 물고기 12종이 낚여요. 화면 위 「🏞 지상으로」로 원래 호숫가로 돌아와요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 // 탈것 모델 (박스 로우폴리 · 펫과 같은 톤) — 앞쪽 = +z, 바닥 y=0, 타는 자리 seat:[x,y,z]
 const VEHB=(()=>{const T=THREE,M={},mat=(c,e)=>M[c+(e?'e':'')]||(M[c+(e?'e':'')]=e?new T.MeshBasicMaterial({color:c}):new T.MeshLambertMaterial({color:c,flatShading:true}));
  const B=(g,w,h,d,c,x,y,z,r,e)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),mat(c,e));o.position.set(x,y,z);if(r)o.rotation.set(r[0]||0,r[1]||0,r[2]||0);g.add(o);return o;};
@@ -4634,6 +4635,79 @@ function s5Banner(who,k,g,id,mine){const F=FI(k);if(!F)return;let el=$('s5ban');
    if(!F._s5h){const h=new THREE.Sprite(new THREE.SpriteMaterial({map:gT(),transparent:true,depthWrite:false,opacity:.42}));h.scale.setScalar(1.1);h.renderOrder=-1;F.o.add(h);F._s5h=h;}if(F._s5h){const q=1.0+Math.sin(t*3+F.f.id)*.08;F._s5h.scale.set(q*1.6/(F.o.scale.x||1),q*1.0/(F.o.scale.y||1),1);}}
   for(const o of P){if(!o.visible)continue;o.userData.t+=dt;const k=o.userData.t/1.1;if(k>=1){o.visible=false;continue;}o.scale.setScalar(o.userData.s*(1-k*.6));o.material.opacity=.9*(1-k);o.position.y+=dt*.04;}}catch(e){}};}
 window.NK89.s5={s5Shop,s5Trade,s5Banner,s5Z,s5Shout};
+// v120 ── ☾ 하늘섬 (별도 채널 7번) · 별자리 물고기 12종 (테스트 기능)
+const skyOn=()=>!PREV&&opt('skyIsland','off')==='on';
+const SKYF=[['aries','양자리 은어','ice_smelt',3],['taurus','황소자리 메기','catfish',4],['gemini','쌍둥이자리 참붕어','chambungeo',5],['cancer','게자리 블루길','bluegill',6],['leo','사자자리 쏘가리','mandarin',7],['virgo','처녀자리 벚꽃송어','sakura_trout',8],['libra','천칭자리 떡붕어','tteokbungeo',9],['scorpio','전갈자리 가물치','snakehead',10],['sagittarius','궁수자리 강준치','gangjunchi',11],['capricorn','염소자리 꺽지','kkeokji',12],['aquarius','물병자리 은어','rainbow_ayu',1],['pisces','물고기자리 잉어','carp',2]];
+const SKYCOL={aries:'#7a8ae8',taurus:'#8a62c8',gemini:'#5ab8e0',cancer:'#d07ac0',leo:'#e8a040',virgo:'#e08ad0',libra:'#6ac8b8',scorpio:'#c84a7a',sagittarius:'#5a8ae8',capricorn:'#8a9ac8',aquarius:'#4aa8e8',pisces:'#9a7ae8'};
+{const has=(()=>{try{return skyOn()||JSON.stringify(S).includes('"k":"sky_');}catch(e){return false;}})();
+ if(has)for(const [k,n,b,mo] of SKYF){const B=D.FISH.find(f=>f.k===b);if(!B||D.FISH.some(f=>f.k==='sky_'+k))continue;D.FISH.push(Object.assign({},B,{k:'sky_'+k,n,w:0,base:Math.round((B.base||10)*3),col:SKYCOL[k],img:'img/fish/sky_'+k+'.png',sky:1,mo,rare:undefined,night:undefined,nightOnly:undefined,wx:undefined,season:undefined}));}}
+const SKY={on:false,from:1,busy:false,g:null,hid:[],hx:undefined,asked:0};
+// 낚시: 하늘섬에서는 45% 확률로 별자리 물고기 (이번 달 별자리는 2배)
+let SKYPICK=false;{const _w=SYS.weights;SYS.weights=function(D_,S_){const r=_w.apply(this,arguments);if(!SKYPICK)return r;const mo=new Date(Date.now()+9*3600e3).getUTCMonth()+1;return D_.FISH.map(f=>f.sky?(f.mo===mo?2:1):0);};}
+{const _rf=rollFish;rollFish=function(){if(SKY.on&&Math.random()<.45&&D.FISH.some(f=>f.sky)){SKYPICK=true;try{return _rf.apply(this,arguments);}finally{SKYPICK=false;}}return _rf.apply(this,arguments);};}
+// 늘 밤
+{const _wf=worldFrac;worldFrac=function(){return SKY.on?.76:_wf.apply(this,arguments);};}
+// 걷기: 섬 위 (호수 둘레 ~ +7m) · 땅 높이는 평평하게
+{const _w=walk;walk=function(x,z){if(SKY.on&&!flyNow()&&!boatNow()){const r=Math.hypot(x,z);if(r>LR+7)return false;if(r<LR+.5&&!inDeck(x,z))return false;for(const d of decks){if(Math.hypot(x-d.tank.x,z-d.tank.z)<.55)return false;}return true;}return _w.apply(this,arguments);};}
+function skyMat(c,o){return new THREE.MeshLambertMaterial(Object.assign({color:c,flatShading:true},o||{}));}
+let SKYGT=null;const skyGT=()=>{if(SKYGT)return SKYGT;const cv=document.createElement('canvas');cv.width=cv.height=64;const x=cv.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,255,255,.4)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);SKYGT=new THREE.CanvasTexture(cv);return SKYGT;};
+const skyGlow=(g,x,y,z,c,s,nf)=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:skyGT(),color:c,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,fog:!nf}));sp.position.set(x,y,z);sp.scale.set(s,s,1);g.add(sp);return sp;};
+function skyBuild(){const T=THREE,g=new T.Group();g.name='skyIsland';let sd=11;const rnd=()=>{sd=(sd*16807)%2147483647;return (sd-1)/2147483646;};const R0=LR+8;
+ // 섬 윗면 (호숫가 둘레) + 옆면 + 아래 바위
+ const top=new T.Mesh(new T.RingGeometry(LR-.6,R0,96,1),skyMat('#2c5f58',{side:T.DoubleSide}));top.rotation.x=-Math.PI/2;top.position.y=.06;top.receiveShadow=true;g.add(top);
+ const side=new T.Mesh(new T.CylinderGeometry(R0,R0-.3,1.2,96,1,true),skyMat('#565277'));side.position.y=-.55;g.add(side);
+ const bed=new T.Mesh(new T.CircleGeometry(LR,64),skyMat('#123a6a'));bed.rotation.x=-Math.PI/2;bed.position.y=-2.4;g.add(bed);
+ const cg=new T.ConeGeometry(R0,34,16,6,false);cg.rotateX(Math.PI);const pp=cg.attributes.position;for(let i=0;i<pp.count;i++){const y=pp.getY(i);if(y<16.9){const k=1+(rnd()-.5)*.3;pp.setX(i,pp.getX(i)*k);pp.setZ(i,pp.getZ(i)*k);pp.setY(i,y+(rnd()-.5)*1.4);}}cg.computeVertexNormals();
+ const rock=new T.Mesh(cg,skyMat('#4a4668'));rock.position.y=-18.2;g.add(rock);
+ for(let i=0;i<26;i++){const a=rnd()*6.28,yy=-2-rnd()*20,rr=R0*(1-(-yy-1)/34)*.98;const c=new T.Mesh(new T.OctahedronGeometry(.5+rnd()*.8,0),skyMat(i%3?'#9ae8ff':'#c8a0ff',{emissive:i%3?'#3a9ae8':'#8a5ad0',emissiveIntensity:.8}));c.scale.y=1.9;c.position.set(Math.cos(a)*rr,yy,Math.sin(a)*rr);c.rotation.z=rnd();g.add(c);}
+ // 섬 위: 크리스털 · 빛나는 나무 · 등불 (데크 사이 호숫가 둘레)
+ const gap=a=>!decks.some(d=>{const da=Math.atan2(d.cz,d.cx);let x=Math.abs(da-a)%(Math.PI*2);x=Math.min(x,Math.PI*2-x);return x<.05;});
+ for(let i=0;i<60;i++){const a=i/60*Math.PI*2+.04;if(!gap(a)||Math.abs(a-(Math.PI*.5+.12))<.12)continue;const r=LR+5+rnd()*2.2,x=Math.cos(a)*r,z=Math.sin(a)*r;
+  if(i%3===0){const c=i%8?'#9ae8ff':'#c8a0ff';for(let k=0;k<3;k++){const m=new T.Mesh(new T.OctahedronGeometry(.42+k*.18,0),skyMat(c,{emissive:c,emissiveIntensity:.55}));m.scale.y=2;m.position.set(x+(k-1)*.45,.8+k*.15,z+(k%2)*.35);m.rotation.z=(k-1)*.25;g.add(m);}skyGlow(g,x,1.4,z,c,3);}
+  else{const t=new T.Mesh(new T.CylinderGeometry(.12,.18,1,6),skyMat('#5a4060'));t.position.set(x,.55,z);g.add(t);for(let k=0;k<3;k++){const c=new T.Mesh(new T.ConeGeometry(.95-k*.24,1.15,7),skyMat('#2f6e66'));c.position.set(x,1.25+k*.58,z);g.add(c);}for(let k=0;k<3;k++){const a2=rnd()*6.28;skyGlow(g,x+Math.cos(a2)*.5,1.3+rnd()*1.2,z+Math.sin(a2)*.5,'#ffe48a',.7);}}}
+ // 떠다니는 등불
+ for(let i=0;i<14;i++){const a=rnd()*6.28,r=LR*(.3+rnd()*1.1),y=6+rnd()*10;const L=new T.Mesh(new T.CylinderGeometry(.32,.26,.55,10),skyMat(['#ffb36a','#ffd27a','#ff9a8a'][i%3],{emissive:['#ff8a3a','#ffb84a','#ff6a5a'][i%3],emissiveIntensity:.8}));L.position.set(Math.cos(a)*r,y,Math.sin(a)*r);g.add(L);skyGlow(g,L.position.x,y,L.position.z,'#ffc87a',2.6);L.userData.bob=rnd()*6;(SKY.lan=SKY.lan||[]).push(L);}
+ // 호수 위 별빛
+ for(let i=0;i<60;i++){const a=rnd()*6.28,r=Math.sqrt(rnd())*(LR-2);skyGlow(g,Math.cos(a)*r,.1,Math.sin(a)*r,i%3?'#bff4ff':'#fff1a8',.5+rnd()*.7);}
+ // 달빛 문 (들어오고 나가는 곳)
+ {const a=Math.PI*.5+.12,x=Math.cos(a)*(LR+6.2),z=Math.sin(a)*(LR+6.2),gate=new T.Group();gate.position.set(x,0,z);gate.rotation.y=Math.atan2(-x,-z);g.add(gate);const ring=new T.Mesh(new T.TorusGeometry(1.7,.24,10,40,Math.PI*1.25),skyMat('#e8e0ff'));ring.rotation.z=-Math.PI*.125;ring.position.y=1.9;gate.add(ring);[-1,1].forEach(sd=>{const p=new T.Mesh(new T.CylinderGeometry(.18,.22,2.1,8),skyMat('#cfc6ef'));p.position.set(sd*1.65,1.05,0);gate.add(p);});const por=new T.Mesh(new T.CircleGeometry(1.45,32),new T.MeshBasicMaterial({color:'#8ab8ff',transparent:true,opacity:.35,side:T.DoubleSide,blending:T.AdditiveBlending,depthWrite:false}));por.position.y=1.9;gate.add(por);skyGlow(gate,0,1.9,0,'#9fc0ff',5);SKY.gate=gate;}
+ // 아래 구름 바다 · 별 · 달 · 오로라 (안개 안 먹게)
+ {const geo=new T.SphereGeometry(1,14,9),m=skyMat('#241c52');m.flatShading=false;const N=180,im=new T.InstancedMesh(geo,m,N),o=new T.Object3D();for(let i=0;i<N;i++){const a=rnd()*6.28,r=R0+6+Math.sqrt(rnd())*200,s=8+rnd()*12;o.position.set(Math.cos(a)*r,-32+rnd()*4,Math.sin(a)*r);o.scale.set(s,s*.32,s);o.updateMatrix();im.setMatrixAt(i,o.matrix);}g.add(im);for(let i=0;i<40;i++){const a=rnd()*6.28,r=R0+20+rnd()*140;skyGlow(g,Math.cos(a)*r,-28,Math.sin(a)*r,'#6a5ad0',18+rnd()*14);}}
+ {const n=1800,pa=new Float32Array(n*3);for(let i=0;i<n;i++){const th=rnd()*6.28,ph=.05+rnd()*1.4,R=260;pa[i*3]=Math.cos(th)*Math.cos(ph)*R;pa[i*3+1]=Math.sin(ph)*R*.7;pa[i*3+2]=Math.sin(th)*Math.cos(ph)*R;}const bg=new T.BufferGeometry();bg.setAttribute('position',new T.BufferAttribute(pa,3));const st=new T.Points(bg,new T.PointsMaterial({color:'#ffffff',size:1.6,sizeAttenuation:false,fog:false,transparent:true,opacity:.9}));st.renderOrder=-2;g.add(st);}
+ {const moon=new T.Mesh(new T.SphereGeometry(10,24,16),new T.MeshBasicMaterial({color:'#fff6d8',fog:false}));moon.position.set(-90,110,-200);g.add(moon);skyGlow(g,-90,110,-200,'#fff0c0',90,1);}
+ [['#5affc8',0,.14],['#7a8aff',12,.12],['#c87aff',-16,.1]].forEach(([c,o,op],k)=>{const ge=new T.PlaneGeometry(260,40,60,1);const p=ge.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i);p.setZ(i,Math.sin(x*.04+k)*22);}const m=new T.Mesh(ge,new T.MeshBasicMaterial({color:c,transparent:true,opacity:op,side:T.DoubleSide,blending:T.AdditiveBlending,depthWrite:false,fog:false}));m.position.set(o,80+k*6,-200);g.add(m);});
+ return g;}
+function skyApply(on){const ms=MAPV.st&&MAPV.st();
+ if(on){if(SKY.g)return;SKY.hid=[];const hide=o=>{if(o&&o.visible){o.visible=false;SKY.hid.push(o);}};hide(TERR0);BASEDECO.forEach(hide);if(ms&&ms.g)hide(ms.g);const keep=new Set();try{chars.forEach(c=>{if(c){keep.add(c.o);keep.add(c.tag);if(c.simp)keep.add(c.simp);}});if(VW.me)keep.add(VW.me);VW.peers.forEach(e=>keep.add(e.g));if(PETW.me)keep.add(PETW.me);(PETW.peers||new Map()).forEach(e=>{if(e&&e.g)keep.add(e.g);else if(e&&e.isObject3D)keep.add(e);});}catch(e){}
+  scene.children.forEach(o=>{if(keep.has(o)||o.isLight||o.isCamera)return;if(o.userData&&(o.userData.merged||o.userData.prop)){hide(o);return;}const r=Math.hypot(o.position.x,o.position.z);if(r>LR+3.6&&r<400&&!o.isSprite)hide(o);});document.body.classList.add('skyOn');
+  SKY.hx=HX;HX=(x,z)=>Math.hypot(x,z)<LR-.5?H0(x,z):.08;SKY.g=skyBuild();scene.add(SKY.g);SKY.fog=[scene.fog.near,scene.fog.far];scene.fog.near=60;scene.fog.far=230;}
+ else{if(!SKY.g)return;scene.remove(SKY.g);SKY.g.traverse(o=>{if(o.geometry)o.geometry.dispose();});SKY.g=null;SKY.lan=[];SKY.hid.forEach(o=>o.visible=true);SKY.hid=[];document.body.classList.remove('skyOn');HX=SKY.hx===undefined?HX:SKY.hx;SKY.hx=undefined;if(SKY.fog){scene.fog.near=SKY.fog[0];scene.fog.far=SKY.fog[1];}}
+ try{chars.forEach(c=>{if(!c||!c.o)return;const o=c.o.position;if(!inDeck(o.x,o.z)&&o.y<3)o.y=Math.max(H(o.x,o.z),.1);});}catch(e){}}
+FHOOK.push(dt=>{if(!SKY.g||!SKY.lan)return;const t=performance.now()/1000;SKY.lan.forEach(L=>{L.position.y+=Math.sin(t*.8+L.userData.bob)*.004;L.rotation.y+=dt*.2;});});
+// 들어가기 · 나오기 (구름 연출)
+function skyFx(on,txt){let el=$('skyFx');if(!el){el=document.createElement('div');el.id='skyFx';el.innerHTML='<div class="sfc"></div><b></b>';document.body.appendChild(el);}el.querySelector('b').textContent=txt||'';el.classList.toggle('on',!!on);}
+function skyProfile(x,z){return {nick:NICK(),ki:S.char|0,lv:myLv(),x,z,y:.4,d:0,fish:'off',anim:'idle',seat:null};}
+async function skySwitch(toSky){if(SKY.busy)return;const RT=window.NK_RT;if(!RT||RT.status()!=='on'){miniToast('실시간 서버에 연결돼 있을 때만 갈 수 있어요',1800);return;}SKY.busy=true;
+ try{if(mySeat)standUp();}catch(e){}try{if(fishing.state!=='off')endFish();}catch(e){}
+ const from=+(RT.serverId&&RT.serverId())||1,target=toSky?7:(SKY.from||1);skyFx(true,toSky?'🌙 하늘섬으로 날아가요…':'🏞 지상으로 내려가요…');
+ await new Promise(r=>setTimeout(r,900));const d=decks[(Math.random()*decks.length)|0]||{entry:{x:0,z:LR+3},a:0};let res=null;
+ try{res=await RT.connect(target,skyProfile(d.entry.x,d.entry.z));}catch(e){res=null;}
+ if(!res||!res.ok){skyFx(false);SKY.busy=false;miniToast(res&&res.reason==='full'?'하늘섬이 가득 찼어요. 잠시 뒤에 다시 와요':'하늘섬에 들어가지 못했어요',2000);if(toSky)try{await RT.connect(from,skyProfile(me.o.position.x,me.o.position.z));}catch(_){}return;}
+ if(toSky)SKY.from=from>=1&&from<=4?from:1;SKY.on=toSky;skyApply(toSky);try{CFG.ch=toSky?SKY.from:target;if(window.V14&&V14.CH)V14.CH.me=CFG.ch;}catch(e){}
+ S.vehRide=0;try{FLYA.tgt=null;}catch(e){}VPAS.id=null;me.o.position.set(d.entry.x,.4,d.entry.z);me.o.position.y=Math.max(H(d.entry.x,d.entry.z),.1);me.dir=(d.a||0)+Math.PI;save();
+ setTimeout(()=>{skyFx(false);SKY.busy=false;miniToast(toSky?'🌙 하늘섬에 왔어요 · 별자리 물고기가 낚여요':'🏞 원래 호숫가로 돌아왔어요',2200);},700);}
+// 높이 올라가면 묻기
+function skyAsk(){let m=$('skyAsk');if(!m){m=document.createElement('div');m.id='skyAsk';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});}
+ const lv=myLv(),ok=lv>=50;m.innerHTML=`<div class="card skyask"><div class="moon">🌙</div><h3>하늘섬으로 갈까요?</h3><p>별빛 하늘 정원 · 별자리 물고기 12종</p><div class="req"><div class="rq"><span>✈️</span><div><b>나는 탈것을 타고 있어요</b></div><i class="ok">✓</i></div><div class="rq ${ok?'':'no'}"><span>⭐</span><div><b>Lv.50 이상</b><small>지금 Lv.${lv}</small></div><i class="ok">${ok?'✓':'✕'}</i></div></div><div class="btns"><button type="button" data-n>나중에</button><button type="button" class="acc" data-y ${ok?'':'disabled'}>🌙 하늘섬으로</button></div></div>`;
+ m.querySelector('[data-n]').onclick=()=>m.classList.remove('show');m.querySelector('[data-y]').onclick=()=>{m.classList.remove('show');skySwitch(true);};m.classList.add('show');}
+setInterval(()=>{try{if(!skyOn()||SKY.on||SKY.busy||!started)return;const alt=VW.me&&VW.me.userData&&VW.me.userData.alt||0;if(!flyNow()||alt<36){if(alt<30)SKY.asked=0;return;}if(SKY.asked||anyModal())return;SKY.asked=1;skyAsk();}catch(e){}},500);
+// 하늘섬 안: 위에 「🌍 지상으로」 · 달빛 문 가까이 가도 물어봐요
+setInterval(()=>{let b=$('skyBack');if(!SKY.on){if(b)b.style.display='none';return;}if(!b){b=document.createElement('button');b.id='skyBack';b.type='button';b.innerHTML='<span class="lb">🌙 하늘섬</span><b>🏞 지상으로</b>';b.onclick=()=>confirmBox('<h3>🏞 지상으로 갈까요?</h3><p>원래 호숫가로 돌아가요</p>',()=>skySwitch(false));document.body.appendChild(b);}b.style.display='';
+ try{if(SKY.gate&&me&&!SKY.busy&&!anyModal()){const gp=SKY.gate.position,d=Math.hypot(me.o.position.x-gp.x,me.o.position.z-gp.z);if(d<1.8&&!SKY.gn){SKY.gn=1;confirmBox('<h3>🌙 달빛 문</h3><p>원래 호숫가로 돌아갈까요?</p>',()=>skySwitch(false));}else if(d>3)SKY.gn=0;}}catch(e){}},400);
+// 연결이 끊겼다 다시 붙거나 다른 서버로 가면 하늘섬 풍경 끄기
+setInterval(()=>{try{const RT=window.NK_RT;if(SKY.on&&!SKY.busy&&RT&&RT.serverId&&+RT.serverId()!==7){SKY.on=false;skyApply(false);}}catch(e){}},1500);
+{const _rp=rtPill;rtPill=function(){_rp.apply(this,arguments);try{const el=$('rtPill');if(el&&SKY.on&&/호숫가 7/.test(el.textContent))el.textContent=el.textContent.replace('호숫가 7','🌙 하늘섬');}catch(e){}};}
+window.NK89.sky={SKY,skySwitch,skyApply,skyAsk,skyBuild};
 window.NK89.msl={MSL,mslFire,jetFlying,jetOn,st:()=>({mk:VW.mk,alt:VW.me&&VW.me.userData.alt,jet:VW.me&&VW.me.userData.jet,fly:flyNow(),jf:jetFlying(),tgt:FLYA.tgt})};
 {const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};try{if(MSL.out&&performance.now()-MSL.outT<4000)o.ms=MSL.out;}catch(e){}return Object.keys(o).length?o:null;};}
 

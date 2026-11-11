@@ -627,7 +627,7 @@ export class LakeRoom extends DurableObject {
     if (n >= (testRoom ? 60 : admRoom ? 10 : CAP)) {
       return Response.json({ ok: false, error: "full", n, cap: CAP }, { status: 503 });
     }
-    const path = url.pathname.match(/\/ws\/([1-4]|8|9)$/);
+    const path = url.pathname.match(/\/ws\/([1-4]|7|8|9)$/);
     const server = path ? +path[1] : 0;
     const pair = new WebSocketPair();
     const [client, serverWs] = Object.values(pair);
@@ -1137,7 +1137,7 @@ export default {
         servers.forEach((r) => { delete r.play; });
         return json({ ok: true, servers, play }, 200, origin);
       }
-      const room = path.match(/^\/ws\/([1-4]|8|9)$/);
+      const room = path.match(/^\/ws\/([1-4]|7|8|9)$/);
       if (room && request.method === "GET") {
         if (!originAllowed(origin, host)) {
           return json({ ok: false, error: "origin" }, 403, origin);
