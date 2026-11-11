@@ -1413,7 +1413,9 @@ function bindBoxAdm(root,re){const box=root.querySelector('.bxadm');if(!box)retu
  box.querySelector('[data-bxdef]').onclick=()=>{BOXSHOP.ed=Object.assign({},BOXSHOP0);re&&re();};
  box.querySelector('[data-bxgo]').onclick=()=>{if(!(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on'))return toast('서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2000);if(!confirm('행운 상자 가격을 모든 유저에게 적용할까요?'))return;V14.publishPlay({boxShop:{on:c.on?1:0,base:c.base,lv:c.lv,day:c.day}});toast('✅ 행운 상자 가격을 적용했어요',1800);setTimeout(()=>re&&re(),600);};}
 let shopTab='rod';
-function renderShop(){return keepScroll('shop',_renderShop);}
+// v131: 📊 밸런스표는 유저에게 숨겨요 (관리자 모드에서만 보여요)
+function balTabOk(){try{return !!NK_ADM.ok();}catch(e){return false;}}
+function renderShop(){if(shopTab==='bal'&&!balTabOk())shopTab='rod';return keepScroll('shop',_renderShop);}
 // v81: 상점 낚싯대·미끼에 착용(사용) 레벨을 늘 표시 — 쓸 수 있으면 초록, 아직이면 🔒
 const lvTag=(L,ok,w)=>`<span class="lvtag ${ok?'ok':'no'}">${ok?'✔':'🔒'} Lv.${Math.max(1,+L||1)} ${w}</span> `;
 // v94: 1~40레벨 장비는 상점에서 팔아요 (50레벨부터는 행운 상자 전용)
@@ -1439,7 +1441,7 @@ function _renderShop(){const it=(x,owned,eq,price,onb,extra='')=>`<div class="it
   if(shopTab==='bal')body=balanceTable();
   if(shopTab==='box')body=boxShopHTML();
   $('shop').innerHTML=`<div class="card" style="width:min(900px,94vw)"><button class="close" data-close="shop">×</button><h2>🛒 호숫가 작은 상점 <span class="pill small">🪙 ${S.coins.toLocaleString()}</span></h2>
-   <div class="tabs">${[['rod','🎣 낚싯대'],['bait','🪱 미끼']].concat(wearShopOn()?[['wear','👕 장비']]:[]).concat([['box','🎁 행운 상자'],['tank','🐠 어항'],['sell','💰 판매'],['bal','📊 밸런스표']]).map(([k,n])=>`<button class="${shopTab===k?'on':''}" data-tab="${k}">${n}</button>`).join('')}</div><div class="${shopTab==='bal'||shopTab==='sell'||shopTab==='box'||shopTab==='wear'?'':'grid'}">${body}</div></div>`;
+   <div class="tabs">${[['rod','🎣 낚싯대'],['bait','🪱 미끼']].concat(wearShopOn()?[['wear','👕 장비']]:[]).concat([['box','🎁 행운 상자'],['tank','🐠 어항'],['sell','💰 판매']].concat(balTabOk()?[['bal','📊 밸런스표']]:[])).map(([k,n])=>`<button class="${shopTab===k?'on':''}" data-tab="${k}">${n}</button>`).join('')}</div><div class="${shopTab==='bal'||shopTab==='sell'||shopTab==='box'||shopTab==='wear'?'':'grid'}">${body}</div></div>`;
   const q=s=>$('shop').querySelectorAll(s);q('[data-close]').forEach(b=>b.onclick=()=>closeM('shop'));q('[data-tab]').forEach(b=>b.onclick=()=>{shopTab=b.dataset.tab;renderShop();});
   const buy=p=>{if(S.coins<p)return false;S.coins-=p;sfx.coin();return true;},done=()=>{save();hud();renderShop();};
   bindBoxShop($('shop'));
