@@ -1367,6 +1367,7 @@ export function parseClient(raw) {
     if (!msg.world || typeof msg.world !== "object" || Array.isArray(msg.world)) return null;
     return { t: "world", world: msg.world };
   }
+  if (msg.t === "s5") { const k = String(msg.k == null ? "" : msg.k).replace(/[^\w-]/g, "").slice(0, 20); return k ? { t: "s5", k, g: Math.max(0, Math.min(9, msg.g | 0)) } : null; }
   if (msg.t === "notice") return { t: "notice", notice: msg.notice == null ? null : msg.notice };
   if (msg.t === "event") return { t: "event", event: msg.event == null ? null : msg.event };
   if (msg.t === "balance") return { t: "balance", balance: msg.balance == null ? null : msg.balance };

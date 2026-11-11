@@ -4148,7 +4148,7 @@ LAB.push({k:'taxi',n:'🚗 하늘 택시',d:'상점 › 🚗 탈것에 「하늘
 LAB.push({k:'boat',n:'⛵ 돛단배',d:'상점 › 🚗 탈것에 「돛단배」가 생겨요 (탈것 기능이 켜져 있어야 해요). 호숫가·데크 끝처럼 물가에서만 탈 수 있고, 호수 위로만 다녀요. 내리면 가까운 땅이나 데크로 올라가요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'star5',n:'⭐ 5성 물고기 (시안 A)',d:'합성으로 5성(★★★★★)이 된 물고기가 특별해져요: 금빛 후광·별·빛줄기 카드, 같은 호숫가에 「OO님이 5성을 완성했어요!」 알림, 「⭐ 별 조각 교환소」(5성 물고기 → 별 조각 → 칭호 「별을 낚은 자」·신화 행운 상자(1주 1개)·한정 펫 별 고래). 합성 창 위 「⭐ 교환소」 버튼으로 열어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'skyIsland',n:'🌙 하늘섬 (별도 채널)',d:'나는 탈것을 타고 높이 36m 넘게 올라가면(Lv.50 이상) 「하늘섬으로 갈까요?」가 떠요. 하늘섬은 따로 된 채널이라 지상 사람은 안 보이고, 늘 밤인 별빛 정원에서 별자리 물고기 12종이 낚여요. 화면 위 「🏞 지상으로」로 원래 호숫가로 돌아와요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
-LAB.push({k:'petRide',n:'🐾 탈것에 펫 태우기',d:'펫을 데리고 탈것에 타면 펫도 같이 타요: 자동차 옆자리 · 비행기 날개 · 동물 등 뒤 · 로봇 어깨 · 택시·전투기는 지붕 위. 자리가 없으면(옆자리에 손님 등) 머리 위에 올라타요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
+LAB.push({k:'petRide',n:'🐾 탈것에 펫 태우기',d:'펫을 데리고 탈것에 타면 펫도 같이 타요: 자동차 옆자리 · 비행기 날개 · 동물 등 뒤 · 로봇 어깨 · 택시·전투기는 지붕 위. 자리가 없으면(옆자리에 손님 등) 머리 위에 올라타요',scope:'me',o:[['on','켜기 (기본 · 모든 유저)'],['off','끄기']]});
 LAB.push({k:'jump',n:'🦘 점프',d:'걷거나 뛰는 중에 Space를 누르면 폴짝 뛰어요 (멈춰 있을 때 Space는 그대로 낚시). 다른 유저 화면에도 보여요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'camFx',n:'👀 1인칭 · 자동 둘러보기',d:'Ctrl+1(설정에서 V · Alt+1로 바꿀 수 있어요)로 1인칭 ↔ 3인칭. 자동 낚시 중이거나 40초 동안 아무것도 안 하면 카메라가 천천히 맵을 둘러봐요 · 아무 키나 누르면 돌아와요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 // 탈것 모델 (박스 로우폴리 · 펫과 같은 톤) — 앞쪽 = +z, 바닥 y=0, 타는 자리 seat:[x,y,z]
@@ -4532,6 +4532,7 @@ function hyLoft(F,N,M,pw){const pos=[],idx=[];for(let i=0;i<=N;i++){const f=F(i/
 const hySm=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
 let HY_TX=null,HY_ST=null;
 function hyGlowTex(){if(HY_TX)return HY_TX;const cv=document.createElement('canvas');cv.width=cv.height=128;const x=cv.getContext('2d'),gr=x.createRadialGradient(64,64,4,64,64,64);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.45,'rgba(255,255,255,.45)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,128,128);HY_TX=new THREE.CanvasTexture(cv);return HY_TX;}
+let HY_FL=null;function hyFlameTex(){if(HY_FL)return HY_FL;const cv=document.createElement('canvas');cv.width=64;cv.height=128;const x=cv.getContext('2d'),gr=x.createLinearGradient(0,128,0,0);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.35,'rgba(255,255,255,.75)');gr.addColorStop(.75,'rgba(255,255,255,.22)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,64,128);x.globalCompositeOperation='destination-out';for(let i=0;i<26;i++){x.fillStyle=`rgba(0,0,0,${.15+Math.random()*.3})`;x.fillRect(Math.random()*64,Math.random()*90,2+Math.random()*5,10+Math.random()*30);}HY_FL=new THREE.CanvasTexture(cv);HY_FL.wrapS=THREE.RepeatWrapping;return HY_FL;}
 function hyStarTex(){if(HY_ST)return HY_ST;const cv=document.createElement('canvas');cv.width=cv.height=64;const x=cv.getContext('2d');const gr=x.createRadialGradient(32,32,0,32,32,14);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);x.fillStyle='#fff';x.beginPath();x.moveTo(32,2);x.lineTo(35,29);x.lineTo(62,32);x.lineTo(35,35);x.lineTo(32,62);x.lineTo(29,35);x.lineTo(2,32);x.lineTo(29,29);x.closePath();x.fill();HY_ST=new THREE.CanvasTexture(cv);return HY_ST;}
 function flyHyper(cc){const P=HYPC[cc]||HYPC.holo,g=new THREE.Group(),L=1.78;
  const paint=hyMat('p'+cc,P.p,{base:'#ffffff',mix:P.dk?.22:.32,ir:P.dk?.75:.85}),glass=hyMat('g'+cc,['#1a1640','#2e3486','#1b5f92'],{base:'#ffffff',mix:.55,ir:.45,gl:1.3}),dark=hyB('#1c1b26',{metalness:.5,roughness:.35});
@@ -4573,7 +4574,12 @@ function flyHyper(cc){const P=HYPC[cc]||HYPC.holo,g=new THREE.Group(),L=1.78;
   g.add(w);wh.push(w);const cl=new THREE.Mesh(new THREE.BoxGeometry(.06,.14,.12),hyB('#e0303a'));cl.position.set(x-sd*.02,WR+.1,z-.12);g.add(cl);});
  // 언더글로우 (바닥에 은은한 네온 빛)
  const ug=new THREE.Mesh(new THREE.PlaneGeometry(2.3,4.4),new THREE.MeshBasicMaterial({map:hyGlowTex(),color:P.n,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));ug.rotation.x=-Math.PI/2;ug.position.y=.04;ug.renderOrder=2;
- g.userData.seat=[-.3,.55,-.3];g.userData.seat2=[.3,.55,-.3];g.userData.wheels=wh;g.userData.pose='drive';g.userData.hideRider=1;g.userData.hyper={ug,n:P.n,g:P.g,keep:[paint,glass]};
+ // v128: 듀얼 머플러 + 부스터 불꽃 (불꽃은 탈 때 붙여요 — 썸네일·합치기에서 빠지게)
+ const fl=new THREE.Group();fl.visible=false;[-1,1].forEach(sd=>{const ex=new THREE.Mesh(new THREE.CylinderGeometry(.068,.078,.16,14),hyB('#4a4a56',{metalness:.85,roughness:.28}));ex.rotation.x=Math.PI/2;ex.position.set(sd*.2,.3,-L-.03);g.add(ex);
+  const ri=new THREE.Mesh(new THREE.CircleGeometry(.052,14),hyN(P.n));ri.position.set(sd*.2,.3,-L-.112);ri.rotation.y=Math.PI;g.add(ri);
+  const pv=new THREE.Group();pv.position.set(sd*.2,.3,-L-.11);fl.add(pv);const mk=(r,h,c,o,ad)=>{const ge=new THREE.ConeGeometry(r,h,16,1,true);ge.translate(0,h/2,0);ge.rotateX(-Math.PI/2);const m=new THREE.Mesh(ge,new THREE.MeshBasicMaterial({map:hyFlameTex(),color:c,transparent:true,opacity:o,blending:ad?THREE.AdditiveBlending:THREE.NormalBlending,depthWrite:false,side:THREE.DoubleSide}));pv.add(m);return m;};
+  const o1=mk(.125,1.05,P.n,.8),o2=mk(.095,.72,'#ff6a2b',.95),o3=mk(.06,.42,'#ffd23f',1),o4=mk(.034,.24,'#ffffff',1,1);const gw=new THREE.Sprite(new THREE.SpriteMaterial({map:hyGlowTex(),color:P.n,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));gw.scale.set(.5,.5,1);pv.add(gw);pv.userData={o:[o1,o2,o3,o4],gw};});
+ g.userData.seat=[-.3,.55,-.3];g.userData.seat2=[.3,.55,-.3];g.userData.wheels=wh;g.userData.pose='drive';g.userData.hideRider=1;g.userData.hyper={ug,fl,n:P.n,g:P.g,keep:[paint,glass]};
  return g;}
 FLYB.hyper=flyHyper;
 // 반짝이 꼬리 · 언더글로우 숨쉬기 · 펄 색 흐름
@@ -4581,6 +4587,38 @@ const HYSP=[];FHOOK.push(dt=>{HYU.t.value+=dt;const list=[VW.me,...[...VW.peers.
   if((U.amp||0)>.25&&cam.position.distanceTo(g.position)<40){H.st=(H.st||0)-dt;if(H.st<=0){H.st=.045;let sp=HYSP.find(s=>s.l<=0);if(!sp&&HYSP.length<36){const m=new THREE.SpriteMaterial({map:hyStarTex(),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});sp={s:new THREE.Sprite(m),l:0};HYSP.push(sp);}
    if(sp){const v=new THREE.Vector3((Math.random()-.5)*1.3,.25+Math.random()*.5,-1.9);g.localToWorld(v);if(sp.s.parent!==g.parent)g.parent.add(sp.s);sp.s.position.copy(v);sp.l=sp.l0=.6+Math.random()*.4;sp.s.material.color.set(Math.random()<.5?H.n:H.g);sp.s.visible=true;}}}}
  for(const sp of HYSP){if(sp.l<=0)continue;sp.l-=dt;if(sp.l<=0){sp.s.visible=false;continue;}const k=sp.l/sp.l0;sp.s.material.opacity=k;const sc=.28*(.4+k*.8)*(1+Math.sin(sp.l*20)*.15);sp.s.scale.set(sc,sc,1);sp.s.position.y+=dt*.35;}});
+// v128: 🔥 하이퍼카 부스터 — 화면 버튼 · PC G 키 · 2.4초 동안 빨라지고(×1.7) 화면이 넓어지며 바람 줄 + 머플러 불꽃 · 다시 쓰기까지 4초
+const HB={on:0,t:0,cd:0,amt:0,f0:0,hint:0,DUR:2.4,CD:4};
+const hyDriving=()=>!!(VW.me&&VW.me.userData.hyper&&S.vehRide&&!VPAS.id&&!(typeof flyNow==='function'&&flyNow()));
+function hyBoost(){if(!hyDriving()||HB.on||HB.cd>0)return false;HB.on=1;HB.t=HB.DUR;HB.t0=performance.now();try{sfx.cast&&sfx.cast();}catch(e){}if(navigator.vibrate)try{navigator.vibrate(30);}catch(e){}return true;}
+{const mm=mvMul;mvMul=function(){return mm.apply(this,arguments)*(HB.amt>0&&hyDriving()?1+.7*HB.amt:1);};}
+{const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=(_px&&_px())||{};if(HB.on)o.hb=1;return Object.keys(o).length?o:null;};}
+RHOOK.push((r,p)=>{const e=VW.peers.get(p.id);if(e&&e.g&&e.g.userData.hyper&&p.ex&&p.ex.hb)e.g.userData._hbT=performance.now();});
+// 바람 줄(스피드 라인) — 화면 가운데에서 바깥으로
+let HBC=null;function hbLines(a){if(a<.02){if(HBC)HBC.style.opacity=0;return;}if(!HBC){HBC=document.createElement('canvas');HBC.id='hbLines';document.body.appendChild(HBC);}const c=HBC,W=innerWidth,H=innerHeight,d=Math.min(2,devicePixelRatio||1);if(c.width!==Math.round(W*d)){c.width=Math.round(W*d);c.height=Math.round(H*d);}
+ const x=c.getContext('2d');x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,W,H);c.style.opacity=Math.min(1,a*1.15);const cx=W/2,cy=H*.46,R=Math.hypot(W,H)*.5;
+ const vg=x.createRadialGradient(cx,cy,R*.45,cx,cy,R*1.05);vg.addColorStop(0,'rgba(255,120,200,0)');vg.addColorStop(1,'rgba(120,70,255,.28)');x.fillStyle=vg;x.fillRect(0,0,W,H);
+ for(let i=0;i<64;i++){const an=Math.random()*Math.PI*2,r0=R*(.38+Math.random()*.32),len=R*(.12+Math.random()*.32),w=.6+Math.random()*2.2;const ca=Math.cos(an),sa=Math.sin(an);x.strokeStyle=`rgba(255,255,255,${(.18+Math.random()*.5)*a})`;x.lineWidth=w;x.beginPath();x.moveTo(cx+ca*r0,cy+sa*r0);x.lineTo(cx+ca*(r0+len),cy+sa*(r0+len));x.stroke();}}
+FHOOK.push(dt=>{dt=Math.min(dt,.1);const drv=hyDriving(),nw=performance.now();
+ if(HB.on){HB.t=HB.DUR-(nw-HB.t0)/1000;if(HB.t<=0||!drv){HB.on=0;HB.c0=nw;HB.cd=HB.CD;}}else if(HB.cd>0)HB.cd=Math.max(0,HB.CD-(nw-HB.c0)/1000);
+ HB.amt+=((HB.on&&drv?1:0)-HB.amt)*Math.min(1,dt*(HB.on?6:3));if(HB.amt<.002)HB.amt=0;
+ // 화면 넓어짐 (FOV) + 살짝 흔들림
+ if(HB.amt>0){if(!HB.f0)HB.f0=cam.fov;cam.fov=HB.f0+16*HB.amt;cam.updateProjectionMatrix();if(HB.on){cam.position.x+=(Math.random()-.5)*.05*HB.amt;cam.position.y+=(Math.random()-.5)*.04*HB.amt;}}else if(HB.f0){cam.fov=HB.f0;cam.updateProjectionMatrix();HB.f0=0;}
+ hbLines(HB.amt);
+ // 불꽃: 나 · 다른 유저
+ const now=performance.now();for(const g of [VW.me,...[...VW.peers.values()].map(e=>e.g)]){if(!g||!g.userData.hyper||!g.parent)continue;const H=g.userData.hyper,U=g.userData;if(!H.fl)continue;if(!H.fl.parent)g.add(H.fl);
+  const tgt=g===VW.me?HB.amt:(U._hbT&&now-U._hbT<700?1:0);if(g!==VW.me)U._hba=(U._hba||0)+(tgt-(U._hba||0))*Math.min(1,dt*5);const a=g===VW.me?tgt:U._hba;
+  H.fl.visible=a>.03;if(!H.fl.visible)continue;const T=HYU.t.value;H.fl.children.forEach((pv,i)=>{const f=1+Math.sin(T*47+i*2.1)*.12+Math.sin(T*73+i)*.08+(Math.random()-.5)*.14;pv.scale.set(.75+a*.35,.75+a*.35,a*f*(1.15+.25*Math.sin(T*31+i)));
+   pv.userData.o.forEach((m,j)=>{m.material.opacity=Math.min(1,a*1.2)*[.8,.95,1,1][j];if(m.material.map)m.material.map.offset.y=-T*3.2;});pv.userData.gw.material.opacity=a*.9;pv.userData.gw.scale.setScalar(.38+a*.3*f);});
+  // 불티: 뒤로 튀는 불꽃 입자 (반짝이 풀 같이 써요)
+  if(a>.4&&cam.position.distanceTo(g.position)<40){U._hbs=(U._hbs||0)-dt;if(U._hbs<=0){U._hbs=.03;let sp=HYSP.find(s=>s.l<=0);if(!sp&&HYSP.length<48){const m=new THREE.SpriteMaterial({map:hyStarTex(),transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});sp={s:new THREE.Sprite(m),l:0};HYSP.push(sp);}
+   if(sp){const v=new THREE.Vector3((Math.random()<.5?-.2:.2)+(Math.random()-.5)*.1,.3+(Math.random()-.5)*.1,-2.2-Math.random()*.5);g.localToWorld(v);if(sp.s.parent!==g.parent)g.parent.add(sp.s);sp.s.position.copy(v);sp.l=sp.l0=.25+Math.random()*.3;sp.s.material.color.set(Math.random()<.6?'#ffb347':H.n);sp.s.visible=true;}}}}
+ // 버튼
+ let b=$('hbBtn');const show=drv&&!anyModal();if(!show){if(b)b.style.display='none';}else{if(!b){b=document.createElement('button');b.id='hbBtn';b.type='button';b.innerHTML='<span>🔥</span><small>부스터<em> · G</em></small>';b.addEventListener('pointerdown',ev=>{ev.preventDefault();ev.stopPropagation();hyBoost();},true);document.body.appendChild(b);}
+  b.style.display='';const k=HB.on?HB.t/HB.DUR:HB.cd>0?1-HB.cd/HB.CD:1;b.style.setProperty('--k',k.toFixed(3));b.classList.toggle('on',!!HB.on);b.classList.toggle('cd',!HB.on&&HB.cd>0);
+  if(!HB.hint){HB.hint=1;try{miniToast(innerWidth<700?'🔥 「부스터」 버튼으로 순간 가속!':'🔥 G 키 · 「부스터」 버튼으로 순간 가속!',2200);}catch(e){}}}});
+addEventListener('keydown',e=>{if(e.code!=='KeyG'||e.repeat||!hyDriving()||e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;e.preventDefault();hyBoost();},true);
+window.NK89.hyBoost={HB,hyBoost,hyDriving};
 window.NK89.hyper={flyHyper,HYPC,HYU,HYSP};
 {const _r=robShopHTML;robShopHTML=function(k,F,o){const h=_r.apply(this,arguments);if(k!=='hyper')return h;return h.replace('class="flyc robc"','class="flyc robc hyc"').replace(`<b>${F.ico} ${F.n}</b>`,`<b>${F.ico} ${F.n} <span class="rgb tx">초월</span></b>`);};}
 // v119 ── 🚗 하늘 택시 (지상/비행) · ⛵ 돛단배 (테스트 기능)
@@ -4709,11 +4747,14 @@ window.NK_s5Shop=s5Shop;
 setInterval(()=>{try{if(!s5On())return;const fz=$('fuse');if(!fz||!fz.classList.contains('show'))return;const h=fz.querySelector('.fzh');if(!h)return;let b=h.querySelector('.s5open');const t=`<img class="s5g" src="img/feat/shard.png" alt=""> 교환소 <b>${s5Z().sh}</b>`;if(!b){b=document.createElement('button');b.type='button';b.className='s5open';b.onclick=()=>s5Shop();const x=h.querySelector('.fzx0,[data-close]');h.insertBefore(b,x||null);}if(b._t!==t){b._t=t;b.innerHTML=t;}}catch(e){}},400);
 // 같은 호숫가 알림: 「OO님이 X 5성을 완성했어요!」 (pose ex s5 = 순번_물고기)
 const S5B={out:null,at:0,seen:new Map()};
-function s5Shout(f){S5B.out=((Date.now()/1000|0)%100000)+'_'+String(f.k).replace(/[^\w-]/g,'').slice(0,14)+'_'+(f.g|0);S5B.at=performance.now();s5Banner(NICK(),f.k,f.g|0,null,true);}
+function s5Shout(f){S5B.out=((Date.now()/1000|0)%100000)+'_'+String(f.k).replace(/[^\w-]/g,'').slice(0,14)+'_'+(f.g|0);S5B.at=performance.now();s5Banner(NICK(),f.k,f.g|0,null,true);try{if(window.NK_RT&&NK_RT.s5)NK_RT.s5(String(f.k).replace(/[^\w-]/g,'').slice(0,14),f.g|0);}catch(e){}}
+// v128: 서버 전체(호숫가 1~4 · 하늘섬) 5성 알림 — 같은 알림은 한 번만 (같은 호숫가는 포즈로도 와요)
+const S5R=new Map();function s5Dup(who,k,g){const key=who+'|'+k+'|'+g,now=Date.now();for(const [kk,t] of S5R)if(now-t>30000)S5R.delete(kk);if(S5R.has(key))return true;S5R.set(key,now);return false;}
+addEventListener('nk-rt-s5',e=>{try{const m=e.detail||{};if(!s5On()||!m.k||!FI(m.k))return;const RT=window.NK_RT;if(RT&&RT.id&&m.id&&String(m.id)===String(RT.id))return;const who=m.nick||'낚시꾼';if(s5Dup(who,m.k,m.g|0))return;const here=RT&&RT.serverId&&+RT.serverId()===+m.srv;s5Banner(who,m.k,m.g|0,here?m.id:null,false,here?null:m.srv);}catch(err){}});
 {const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};try{if(S5B.out&&performance.now()-S5B.at<12000)o.sf=S5B.out;}catch(e){}return Object.keys(o).length?o:null;};}
-RHOOK.push((r,p)=>{if(!p.ex||typeof p.ex.sf!=='string')return;const v=p.ex.sf;if(S5B.seen.get(p.id)===v)return;const first=!S5B.seen.has(p.id);S5B.seen.set(p.id,v);if(first&&(performance.now()<20000))return;if(!s5On())return;const [,k,g]=v.split('_');if(!FI(k))return;s5Banner((r&&r.c&&r.c.name)||'낚시꾼',k,+g|0,p.id,false);});
-function s5Banner(who,k,g,id,mine){const F=FI(k);if(!F)return;let el=$('s5ban');if(!el){el=document.createElement('div');el.id='s5ban';document.body.appendChild(el);}clearTimeout(el._t);
- el.innerHTML=`<div class="s5bi"><img src="${F.img}" alt=""><span class="s5bs">★★★★★</span></div><div class="s5bt"><small>${mine?'축하해요!':'⭐ 5성 완성'}</small><b>${escRT(who)}님이 <em>${sxH(F.n)}</em> 5성을 완성했어요!</b></div>${!mine&&id?'<button type="button">구경 가기</button>':''}`;
+RHOOK.push((r,p)=>{if(!p.ex||typeof p.ex.sf!=='string')return;const v=p.ex.sf;if(S5B.seen.get(p.id)===v)return;const first=!S5B.seen.has(p.id);S5B.seen.set(p.id,v);if(first&&(performance.now()<20000))return;if(!s5On())return;const [,k,g]=v.split('_');if(!FI(k))return;const who=(r&&r.c&&r.c.name)||'낚시꾼';if(s5Dup(who,k,+g|0))return;s5Banner(who,k,+g|0,p.id,false);});
+function s5Banner(who,k,g,id,mine,srv){const F=FI(k);if(!F)return;let el=$('s5ban');if(!el){el=document.createElement('div');el.id='s5ban';document.body.appendChild(el);}clearTimeout(el._t);
+ el.innerHTML=`<div class="s5bi"><img src="${F.img}" alt=""><span class="s5bs">★★★★★</span></div><div class="s5bt"><small>${mine?'축하해요!':'⭐ 5성 완성'+(srv?' · '+(+srv===7?'하늘섬':'호숫가 '+srv):'')}</small><b>${escRT(who)}님이 <em>${sxH(F.n)}</em> 5성을 완성했어요!</b></div>${!mine&&id?'<button type="button">구경 가기</button>':''}`;
  const b=el.querySelector('button');if(b)b.onclick=()=>{el.classList.remove('on');try{peekTank(id);}catch(e){}};el.classList.remove('on');void el.offsetWidth;el.classList.add('on');el._t=setTimeout(()=>el.classList.remove('on'),5200);}
 // 5성은 어항(3D) 속에서 반짝이는 빛 꼬리를 남겨요
 {let gtx=null;const gT=()=>{if(gtx)return gtx;const cv=document.createElement('canvas');cv.width=cv.height=64;const x=cv.getContext('2d'),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,248,210,1)');g.addColorStop(.35,'rgba(255,207,90,.6)');g.addColorStop(1,'rgba(255,176,46,0)');x.fillStyle=g;x.fillRect(0,0,64,64);gtx=new THREE.CanvasTexture(cv);return gtx;};
@@ -4843,9 +4884,9 @@ PHOOK.push(dt=>{if(!me)return;const on=camFxOn();
  if(on&&FPV.on){const p=me.o.position,h=(me.h||1.9)*.86,fx=-Math.sin(yaw),fz=-Math.cos(yaw);const eyeY=p.y+h;camOverride=[p.x+fx*.18,eyeY,p.z+fz*.18,p.x+fx*10,eyeY+(.38-pitch)*9,p.z+fz*10];FPV.set=true;return;}
  if(FPV.set){camOverride=null;FPV.set=false;}});
 // v122 ── 🐾 탈것에 펫 태우기 (시안 A 머리 위 · B 옆자리 · 로봇은 어깨)
-const petRideV=()=>{if(PREV)return '';const v=opt('petRide','off');return v==='on'||v==='A'||v==='B'?'B':'';};
-const PRSLOT={plane:[.95,.12,.2],jet:[.9,.06,-.4],archae:[0,.62,-.5],balloon:[.42,.36,.05],elephant:[0,.32,-.78],giraffe:[0,.1,-.55],capy:[0,.1,-.5],pig:[0,.1,-.48],dog:[0,.1,-.55],rudolph:[0,.1,-.48],sled:[0,0,-.55],santa:[.4,0,-.45],boat:[0,0,.45]};
-const PRROOF={taxi:[0,1.56,-.5],taxif:[0,1.56,-.5],jet:[0,.6,-.32]};
+const petRideV=()=>{if(PREV)return '';const v=opt('petRide','on');return v==='off'?'':'B';};// v128: 모든 유저에게 켜짐 (관리자에서 끌 수 있어요)
+const PRSLOT={plane:[.95,.12,.2],jet:[.9,.06,-.4],archae:[0,.62,-.5],balloon:[.42,.36,.05],elephant:[0,.32,-.5],giraffe:[0,.1,-.55],capy:[0,.1,-.5],pig:[0,.1,-.48],dog:[0,.1,-.55],rudolph:[0,.1,-.48],sled:[0,0,-.55],santa:[-.42,.9,-.45],boat:[0,0,.45]};
+const PRROOF={taxi:[0,1.56,-.5],taxif:[0,1.56,-.5],jet:[0,.6,-.32],hyper:[0,.72,-1.15]};
 const _prv=new THREE.Vector3(),_prq=new THREE.Quaternion();
 function charVeh(c){if(c===me){if(VPAS.id){const e=VW.peers.get(VPAS.id);return e?{g:e.g,pas:1}:null;}return VW.me&&S.vehRide?{g:VW.me,k:vehBase(VW.mk)}:null;}
  for(const [id,r] of remotes){if(r.c!==c)continue;const e=VW.peers.get(id);if(e)return {g:e.g,k:vehBase(e.k),id};for(const [id2,e2] of VW.peers){const rr=remotes.get(id2);if(rr&&rr.c&&rr.c!==c&&e2.g&&e2.g.userData.seat2&&c.o.position.distanceTo(vehSeat(e2.g,1))<.6)return {g:e2.g,pas:1};}return null;}return null;}
@@ -4858,8 +4899,16 @@ function petSeat(c,V,v){const g=V.g,k=V.k||'',U=g.userData||{},seatW=a=>{_prv.se
  return head();}
 {const _pf=petFollow;petFollow=function(g,c,dt,sit){const v=petRideV();const V=v&&c?charVeh(c):null;
  if(!V||!V.g){if(g.userData.prd){g.userData.prd=0;g.scale.setScalar(g.userData.ps0||1);g.visible=true;}return _pf.apply(this,arguments);}
- if(!g.userData.prd){g.userData.prd=1;g.userData.ps0=g.scale.x||1;}const [p,sc]=petSeat(c,V,v);g.visible=sc>.001;g.position.copy(p);g.userData.t=(g.userData.t||0)+dt*2.4;g.position.y+=Math.abs(Math.sin(g.userData.t))*.03;g.scale.setScalar((g.userData.ps0||1)*sc);
- V.g.getWorldQuaternion(_prq);g.quaternion.copy(_prq);};}
+ if(!g.userData.prd){g.userData.prd=1;g.userData.ps0=g.scale.x||1;}const [p,sc]=petSeat(c,V,v);g.visible=sc>.001;g.position.copy(p);g.scale.setScalar((g.userData.ps0||1)*sc);
+ V.g.getWorldQuaternion(_prq);g.quaternion.copy(_prq);
+ // v128: 발이 실제 바닥(탈것 등·좌석·지붕·머리)에 닿게 — 아래로 광선을 쏴서 높이를 맞춰요 (0.4초마다 다시 재요)
+ const U=g.userData,now=performance.now(),key=V.g.uuid+'|'+sc+'|'+(c._rh?1:0);if(U._snK!==key||now-(U._snT||0)>400){U._snK=key;U._snT=now;U._snD=petSnap(g,V.g,c);}g.position.y+=U._snD||0;
+ U.t=(U.t||0)+dt*2.4;g.position.y+=Math.abs(Math.sin(U.t))*.012;};}
+const _snB=new THREE.Box3(),_snB2=new THREE.Box3(),_snRC=new THREE.Raycaster(),_snO=new THREE.Vector3(),_snDn=new THREE.Vector3(0,-1,0);
+function petSnap(g,vg,c){try{g.updateMatrixWorld(true);_snB.makeEmpty();g.traverse(o=>{if((o.isMesh||o.isSkinnedMesh)&&o.visible&&o.geometry){if(!o.geometry.boundingBox)o.geometry.computeBoundingBox();_snB2.copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld);_snB.union(_snB2);}});if(_snB.isEmpty())return 0;
+ const h=_snB.max.y-_snB.min.y,cx=(_snB.min.x+_snB.max.x)/2,cz=(_snB.min.z+_snB.max.z)/2,T=[vg];if(c&&c.o&&!c._rh)T.push(c.o);_snRC.camera=cam;_snRC.far=6;
+ const ok=i=>{const o=i.object,m=Array.isArray(o.material)?o.material[0]:o.material;return (o.isMesh||o.isSkinnedMesh)&&o.visible&&!(m&&m.transparent&&m.opacity<.35)&&!(m&&m.blending===THREE.AdditiveBlending);};
+ for(const up of [h*.6,1.6]){_snO.set(cx,_snB.min.y+up,cz);_snRC.set(_snO,_snDn);const hit=_snRC.intersectObjects(T,true).find(ok);if(hit){const d=hit.point.y-_snB.min.y+.004;if(d>-1.8&&d<2.2)return d;}}}catch(e){}return 0;}
 window.NK89.petRide={petSeat,charVeh,petRideV};window.NK89.cam={TOUR,FPV,JP};
 window.NK89.msl={MSL,mslFire,jetFlying,jetOn,st:()=>({mk:VW.mk,alt:VW.me&&VW.me.userData.alt,jet:VW.me&&VW.me.userData.jet,fly:flyNow(),jf:jetFlying(),tgt:FLYA.tgt})};
 {const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};try{if(MSL.out&&performance.now()-MSL.outT<4000)o.ms=MSL.out;}catch(e){}return Object.keys(o).length?o:null;};}

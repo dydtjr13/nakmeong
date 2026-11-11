@@ -219,6 +219,10 @@
       try { dispatchEvent(new CustomEvent("nk-rt-reports", { detail: m })); } catch (e) { /* ignore */ }
       return true;
     }
+    if (m.t === "s5") {
+      try { dispatchEvent(new CustomEvent("nk-rt-s5", { detail: m })); } catch (e) { /* ignore */ }
+      return true;
+    }
     if (m.t === "spam" || m.t === "reportRes" || m.t === "staffAddRes") {
       try { dispatchEvent(new CustomEvent("nk-rt-" + m.t.toLowerCase(), { detail: m })); } catch (e) { /* ignore */ }
       return true;
@@ -595,6 +599,7 @@
   // v93: 프로필·어항 엿보기
   RT.peek = function (to, k) { if (RT.mode === "on" && to) send({ t: "pk", to: String(to), k: k || "prof" }); };
   RT.peekAns = function (to, k, d) { if (RT.mode === "on" && to) send({ t: "pka", to: String(to), k, d }); };
+  RT.s5 = function (k, g) { if (RT.mode === "on") send({ t: "s5", k: String(k || ""), g: g | 0 }); };
   RT.emote = function (text) { if (RT.mode === "on") send({ t: "emote", text: String(text || "").slice(0, 8) }); };
   function opsSend(obj) {
     if (RT.mode !== "on") return false;
