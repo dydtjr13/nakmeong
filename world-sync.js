@@ -127,7 +127,7 @@
         const dx = x - b[0], dz = z - b[1];
         if (dx * dx + dz * dz > 1e-8) head = Math.atan2(dx, dz);
       }
-      out.push({ i, x, z, yaw: head, head, ph: i + age / 1000, s: DUCK_SIZES[h % DUCK_SIZES.length], v: kinds[h2 % kinds.length], st: "swim", age });
+      out.push({ i, x, z, yaw: head, head, ph: i + age / 1000, s: DUCK_SIZES[h % DUCK_SIZES.length], v: o.ord === "seq" ? kinds[i % kinds.length] : kinds[h2 % kinds.length], st: "swim", age });
     }
     return out;
   }
@@ -167,6 +167,6 @@
     return { i: i | 0, ki: BOT_KINDS[h % BOT_KINDS.length], x: Math.cos(ang) * rad, z: Math.sin(ang) * rad, yaw: ang + Math.PI };
   }
   // v49: 실시간 접속 중 서버에 오리 설정이 없을 때 모든 유저가 쓰는 같은 기본값
-  const DUCK_DEF = { duckOn: 1, duckEvery: 300, duckMax: 9, duckSize: 0.8, duckSpeed: 1.5, duckKinds: DUCK_KINDS.join(",") };
+  const DUCK_DEF = { duckOn: 1, duckEvery: 300, duckMax: 9, duckSize: 0.8, duckSpeed: 1.5, duckKinds: DUCK_KINDS.join(","), duckOrd: "rand" };
   window.NK_SYNC = { mix32, weather, ducks, duckSpeed, bot, pickQuietDeck, DUCK_DEF };
 })();
