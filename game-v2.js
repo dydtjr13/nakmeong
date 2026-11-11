@@ -4730,8 +4730,20 @@ window.NK89.sky={SKY,skySwitch,skyApply,skyAsk,skyBuild};
 // v122 ── 🦘 점프 (이동 중 Space)
 const jumpOn=()=>!PREV&&opt('jump','off')==='on';const JP={h:0,v:0,out:0};
 const movingKeys=()=>!!(keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||keys.ArrowUp||keys.ArrowDown||keys.ArrowLeft||keys.ArrowRight||(typeof joy!=='undefined'&&(Math.abs(joy.x)>.3||Math.abs(joy.y)>.3)));
-addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat||!jumpOn()||!started||!me||anyModal())return;if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;if(flyNow()||mySeat||VPAS.id||(VW.me&&S.vehRide)||fishing.state!=='off'||TR.riding)return;if(!movingKeys())return;
- e.preventDefault();e.stopImmediatePropagation();if(JP.h>.02)return;JP.v=6.4;JP.h=.001;try{tone(330,520,.12,'triangle',.04);}catch(_){}},true);
+const canJump=()=>jumpOn()&&started&&me&&!anyModal()&&!(flyNow()||mySeat||VPAS.id||(VW.me&&S.vehRide)||fishing.state!=='off'||TR.riding);
+function jumpNow(){if(JP.h>.02)return;JP.v=6.4;JP.h=.001;try{tone(330,520,.12,'triangle',.04);}catch(_){}}
+addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat)return;if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;if(!canJump()||!movingKeys())return;e.preventDefault();e.stopImmediatePropagation();jumpNow();},true);
+// 모바일: 낚시 버튼 하나로 — 움직이는 중 「점프」 · 의자 근처 「앉기」 · 앉아 있으면 「일어나기」 · 데크 낚시 자리면 그대로 낚시
+const touchUI=()=>('ontouchstart' in window||navigator.maxTouchPoints>0)&&innerWidth<1000;
+const joyMoving=()=>typeof joy!=='undefined'&&(Math.abs(joy.x)>.25||Math.abs(joy.y)>.25);
+let FBM='',fbmT=0;
+PHOOK.push(dt=>{const b=$('fishBtn');if(!b)return;let m='';
+ if(jumpOn()&&touchUI()&&started&&fishing.state==='off'&&!anyModal()){if((joyMoving()&&canJump())||JP.h>.02)m='jump';else if(nearSpot)m='';else if(nearSeat&&!mySeat&&nearSeat.kind!=='train')m='sit';else if(mySeat&&mySeat.kind!=='train')m='stand';}
+ if(m==='jump')fbmT=.6;else{fbmT=Math.max(0,fbmT-dt);if(fbmT>0&&!m)m='jump';}
+ if(m!==FBM){FBM=m;b.dataset.m=m;b._k=null;b._fbh='';if(m){const T={jump:['점프','탭해서 폴짝'],sit:['앉기','의자에 앉아요'],stand:['일어나기','탭해서 일어나요']}[m],v=S.fishBtnS||'F';b._fbh=v==='F'?`<b>${T[0]}</b><small>${T[1]}</small><span class="gg"><i style="width:0%"></i></span>`:`<span>${T[0]}</span>`;}}
+ if(m&&b._fbh&&b._fbm!==b.innerHTML){b.innerHTML=b._fbh;b._fbm=b.innerHTML;}
+ if(m){b.style.display='block';b.classList.remove('far');const sb=$('sitBtn');if(sb)sb.style.display='none';}});
+$('fishBtn').addEventListener('click',e=>{const m=$('fishBtn').dataset.m;if(!m)return;e.preventDefault();e.stopImmediatePropagation();if(m==='jump'){if(canJump())jumpNow();}else if(m==='sit'||m==='stand'){try{$('bSit').onclick();}catch(_){}}},true);
 PHOOK.push(dt=>{if(!me||JP.h<=0)return;JP.v-=21*dt;JP.h=Math.max(0,JP.h+JP.v*dt);me.o.position.y+=JP.h;if(JP.h<=0){JP.v=0;try{tone(180,120,.08,'sine',.03);}catch(_){}}});
 {const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};if(JP.h>.02)o.jp=Math.round(JP.h*10);return Object.keys(o).length?o:null;};}
 RHOOK.push((r,p)=>{if(!r||!r.c||!p.ex||!p.ex.jp)return;r.c.o.position.y+=Math.max(0,Math.min(20,+p.ex.jp))/10;});
