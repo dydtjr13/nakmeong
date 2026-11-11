@@ -1849,6 +1849,7 @@ const LAB=[
  {k:'uiMove',n:'✋ 꾹 눌러 옮기기',d:'상태바·채팅·날씨·목표 카드·하단 메뉴·낚시 버튼·조이스틱 등을 0.5초 꾹 누르면 이동 모드 → 끌어서 옮기고 크기 조절. 배치는 기기마다 저장돼요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
  {k:'setUi',n:'⚙ 설정 화면',d:'A 한 장으로: 소리·화면·낚시·계정을 카드로 한 화면에 · B 탭 3개: 소리·화면 / 낚시 / 계정 · C 빠른 설정 패널: 큰 켜기·끄기 타일 + 소리 막대. 닉네임·저장·차단은 기존 화면으로 연결돼요',scope:'me',o:[['old','기존 (기본)'],['A','A 한 장으로'],['B','B 탭 3개'],['C','C 빠른 설정 패널']]},
  {k:'mobUi',n:'📱 모바일 화면 배치',d:'휴대폰에서만 적용돼요. A 슬림 상단 + 하단 탭바 · B 엄지 원형 메뉴 · C 알림 레일 + 아래 시트 · D 가로 화면 (세로일 때는 A). 목표 카드는 한 줄로 접히고 누르면 펼쳐져요',scope:'me',o:[['old','기존 (기본)'],['A','A 슬림 상단 + 하단 탭바'],['B','B 엄지 원형 메뉴'],['C','C 알림 레일 + 아래 시트'],['D','D 가로 화면']]},
+ {k:'fitUi',n:'📐 화면 맞춤 (로블록스 방식)',d:'기기 화면 크기에 맞춰 게임 화면 전체를 비례로 키우거나 줄여요. 폰 세로는 그대로(아주 좁은 폰은 살짝 줄임) · 폰을 가로로 돌리면 가로 전용 배치 · 태블릿·폴드 펼친 화면은 폰 배치를 크게 보여 줘요. 터치 기기에서만 적용돼요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
  {k:'bragOff',n:'📣 물고기 자랑하기',d:'어항 물고기 카드의 📣 자랑하기 · 머리 위로 들기 · 다른 유저 클릭 시 상세 카드 · 👍 멋져요. 끄면 모든 유저에게서 사라져요',scope:'all',o:[['0','켜기 (기본)'],['1','끄기']]}];window.__LAB=LAB;
 window.NK_LAB=LAB;
 const labLive=x=>{try{const RT=window.NK_RT;const p=RT&&RT.status&&RT.status()==='on'?RT.play:null;return p&&p[x.k]!=null&&p[x.k]!==''?String(p[x.k]):String(x.o[0][0]);}catch(e){return String(x.o[0][0]);}};
@@ -1964,7 +1965,7 @@ function lookHTML(){return `<div class="lookset">
 <small class="muted">진행 ${window.NK_TUT?Math.min(NK_TUT.P().i+1,NK_TUT.STEPS.length)+'/'+NK_TUT.STEPS.length:'-'} · 할아버지를 누르면 접기/펴기</small></p>
 <h4>🧪 디버그</h4><p><button id="dbMyL">내 전설 컷인</button> <button id="dbMyM">내 신화 컷인</button> <button id="dbMyX">내 초월 컷인</button> <button id="dbBotL">봇 전설 리본</button> <button id="dbBotM">봇 신화 리본</button><br><button id="dbBox">행운 상자 +1</button> <button id="dbStone">강화석 +10</button> <button id="dbCoin">골드 +5000</button></p>
 </div>`;}
-function applyStyleSide(k,v){S[k]=v;if(k==='mapSt'){try{MAPV.apply(uiOpt('mapSt','old'));}catch(e){console.warn(e);}}if(k==='tankUi'&&tankView.on)try{tankView.selA&&tankView.selA.clear();tankView.refresh();}catch(e){}if(k==='mapTheme'&&V14)V14.applyMap(v);if(k==='mobLay'){applyMob();applyMx();}if(k==='mobUi'||k==='topUi')applyMx();if(k==='uiMove'&&v!=='on'&&UMV.on)umvLeave(false);if(k==='fuseOn'||k==='advOn')featBtns();if(k==='setUi'&&$('set').classList.contains('show')){SETX.leg=false;renderSet();}if(/^hud/.test(k))applyHud();save();if((k==='wxOv'||k==='seasonOv'||k==='seasonSpd'||k==='mapTheme')&&V14&&V14.pushWorld)V14.pushWorld();}
+function applyStyleSide(k,v){S[k]=v;if(k==='mapSt'){try{MAPV.apply(uiOpt('mapSt','old'));}catch(e){console.warn(e);}}if(k==='tankUi'&&tankView.on)try{tankView.selA&&tankView.selA.clear();tankView.refresh();}catch(e){}if(k==='mapTheme'&&V14)V14.applyMap(v);if(k==='mobLay'){applyMob();applyMx();}if(k==='mobUi'||k==='topUi')applyMx();if(k==='fitUi')fitApply(true);if(k==='uiMove'&&v!=='on'&&UMV.on)umvLeave(false);if(k==='fuseOn'||k==='advOn')featBtns();if(k==='setUi'&&$('set').classList.contains('show')){SETX.leg=false;renderSet();}if(/^hud/.test(k))applyHud();save();if((k==='wxOv'||k==='seasonOv'||k==='seasonSpd'||k==='mapTheme')&&V14&&V14.pushWorld)V14.pushWorld();}
 function showPv(k,v){const pre={reelFx:'reel',fishBtnS:'fb',goalFx:'goal'}[k];if(!pre||v==='off'||v==='old')return;let pop=$('pvPop');if(!pop){pop=document.createElement('div');pop.id='pvPop';document.body.appendChild(pop);}pop.innerHTML='<img src="img/preview/'+pre+'-'+v+'.jpg" alt=""><small>미리보기</small>';pop.style.display='block';pop.style.left='24px';pop.style.top='72px';clearTimeout(pop._t);pop._t=setTimeout(()=>{pop.style.display='none';},2800);}
 function previewStyle(k,v){applyStyleSide(k,v);
  if(k==='goalFx'){if(v==='off')toast('🎯 <b>수집 목표 미리보기</b><br>기존 토스트로 알려요',2200);else V14.goalFx('호수의 수집가','','🪙 5,000 · 🎁 상자 2','goal');showPv(k,v);}
@@ -2167,7 +2168,24 @@ function tdShow(){const o=TDQ.q.shift();let w=$('tdDlg');if(!o){TDQ.on=false;if(
  const ok=w.querySelector('.tdok');ok.focus({preventScroll:true});ok.onclick=e=>{e.stopPropagation();const c=w.querySelector('.tdc');if(c)c.classList.add('out');setTimeout(tdShow,160);};}
 window.NK_TUTDONE={on:()=>tdMode()!=='old',push:tdPush,demo:(n=3)=>{const T=window.NK_TUT&&NK_TUT.STEPS||[];T.slice(0,n).forEach((st,i)=>tdPush({t:st.t,ic:st.ic,cat:st.cat,rw:st.rw,no:i+1}));}};
 // v64: 📱 모바일 화면 배치 시안 (관리자 › 🧪 테스트 기능 › 모바일 화면) — A 슬림 상단+하단 탭바 · B 엄지 원형 메뉴 · C 알림 레일+아래 시트 · D 가로 화면
-function mxMode(){const v=String(uiOpt('mobUi','old'));if(v==='old')return '';if(String(uiOpt('topUi','old'))!=='old'&&innerWidth<700&&innerHeight>innerWidth)return '';const B=document.body,touch=innerWidth<700||matchMedia('(pointer:coarse)').matches;if(!touch)return '';
+// v129: 📐 화면 맞춤 (로블록스 방식 · 🧪 테스트 기능 fitUi) — 기준 화면을 정해 두고 기기 크기에 맞춰 게임 화면 전체를 비례로 키우거나 줄여요
+//  폰 세로: 기준 폭 360 (그보다 좁으면 살짝 줄여요) · 폰 가로: 가로 전용 배치(D) · 태블릿·폴드 펼침 세로: 기준 폭 560으로 키워 폰 배치를 크게 · 태블릿 가로: 그대로
+const FIT={s:1,mode:'',w:0,key:''};
+function fitOn(){try{return !window.NK_PREV&&String(uiOpt('fitUi','off'))==='on'&&matchMedia('(pointer:coarse)').matches;}catch(e){return false;}}
+function fitApply(force){const mt=document.querySelector('meta[name=viewport]');if(!mt)return;const tail='user-scalable=no,viewport-fit=cover';
+ let w=0,mode='',sc=1;if(fitOn()){const sw=Math.min(screen.width,screen.height),lw=Math.max(screen.width,screen.height),land=matchMedia('(orientation: landscape)').matches,W=land?lw:sw;
+  if(sw<600){if(land)mode='land';else if(W<360){sc=W/360;mode='small';}else mode='phone';}
+  else if(!land){sc=Math.min(1.6,W/560);mode='tab';}else mode='tabL';
+  if(Math.abs(sc-1)>.02)w=Math.round(W/sc);else sc=1;}
+ const key=mode+'|'+w;if(!force&&key===FIT.key)return;FIT.key=key;FIT.s=sc;FIT.mode=mode;FIT.w=w;
+ const ks=Math.round(sc*1000)/1000;mt.setAttribute('content',w?`width=${w},initial-scale=${ks},minimum-scale=${ks},maximum-scale=${ks},${tail}`:`width=device-width,initial-scale=1,maximum-scale=1,${tail}`);document.documentElement.classList.toggle('fit',!!mode);document.documentElement.dataset.fit=mode;
+ setTimeout(()=>{try{R.setPixelRatio(Math.min(3,GFX.pr*sc));R.setSize(innerWidth,innerHeight);}catch(e){}try{dispatchEvent(new Event('resize'));}catch(e){}try{applyMx();}catch(e){}},120);}
+addEventListener('orientationchange',()=>setTimeout(()=>fitApply(),250));
+{let _ft=0;addEventListener('resize',()=>{clearTimeout(_ft);_ft=setTimeout(()=>{if(fitOn()||FIT.mode)fitApply();},300);});}
+try{fitApply(true);}catch(e){}
+// 전체 화면(크롬)은 화면 배율을 1로 되돌려서, 비례 맞춤 중에는 자동 전체 화면을 쓰지 않아요 (태블릿·아주 작은 폰)
+try{if(window.NK_FULL){const _fa=NK_FULL.auto;NK_FULL.auto=S0=>{if(FIT.w)return;return _fa(S0);};}}catch(e){}
+function mxMode(){if(FIT.mode==='land'&&innerWidth>innerHeight&&innerHeight<560)return 'D';const v=String(uiOpt('mobUi','old'));if(v==='old')return '';if(String(uiOpt('topUi','old'))!=='old'&&innerWidth<700&&innerHeight>innerWidth)return '';const B=document.body,touch=innerWidth<700||matchMedia('(pointer:coarse)').matches;if(!touch)return '';
  const land=innerWidth>innerHeight&&innerHeight<560;if(land)return v==='D'?'D':'';if(innerWidth>=700||!B.classList.contains('m3'))return '';return v==='D'?'A':v;}
 function applyMx(){const m=mxMode(),B=document.body;['A','B','C','D'].forEach(k=>B.classList.toggle('mx-'+k,m===k));B.classList.toggle('mx',!!m);
  const mm=$('mMain');if(mm&&!$('bMxMore')){const b=document.createElement('button');b.id='bMxMore';b.type='button';b.title='더보기';b.innerHTML='<b class="mi"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg></b><small class="ml">더보기</small>';b.onclick=e=>{e.stopPropagation();B.classList.toggle('menu-open');};mm.appendChild(b);}
