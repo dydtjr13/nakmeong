@@ -39,8 +39,20 @@ const all = [...html.matchAll(scriptRe)];
 // 맨 앞(head)의 3개(boot·full·emoji)는 화면이 그려지기 전에 필요해서 그대로 두고, 그 뒤 body 끝의 스크립트를 묶어요
 const head = new Set(["boot-v85.js", "full-v23.js", "emoji.js"]);
 const body = all.filter((m) => !head.has(m[1]));
+// v132: 잘 안 바뀌는 3D 엔진·3D 모델은 vendor 묶음으로 따로 — 게임만 고쳐 배포하면 유저는 app 묶음만 다시 받아요
+//  (vendor 파일들은 맨 앞에서 차례로 실행되는 것들이라 순서가 그대로예요)
+const VENDOR = ["lib/three.min.js", "lib/GLTFLoader.js", "lib/SkeletonUtils.js", "assets/assets-data.js"];
+const vend = body.filter((m) => VENDOR.includes(m[1]));
+if (vend.map((m) => m[1]).join() !== body.slice(0, vend.length).map((m) => m[1]).join()) throw new Error("vendor 파일은 스크립트 맨 앞에 차례로 있어야 해요");
+let vjs = "";
+for (const m of vend) {
+  const src = await readFile(path.join(ROOT, m[1]), "utf8");
+  vjs += `\n/* ===== ${m[1]} ===== */\n` + src.replace(/\/\/# sourceMappingURL=.*$/gm, "") + "\n;\n";
+}
+const vh = createHash("sha256").update(vjs).digest("hex").slice(0, 12);
+await writeFile(path.join(OUT, `vendor-${vh}.js`), vjs);
 let js = "";
-for (const m of body) {
+for (const m of body.slice(vend.length)) {
   const src = await readFile(path.join(ROOT, m[1]), "utf8");
   js += `\n/* ===== ${m[1]} ===== */\n` + src.replace(/\/\/# sourceMappingURL=.*$/gm, "") + "\n;\n";
 }
@@ -54,7 +66,7 @@ await writeFile(path.join(OUT, `app-${jh}.js`), js);
 let first = true;
 html = html.replace(scriptRe, (all, src) => {
   if (head.has(src)) return all;
-  if (first) { first = false; return `<script src="app-${jh}.js"></script>`; }
+  if (first) { first = false; return `<script src="vendor-${vh}.js"></script><script src="app-${jh}.js"></script>`; }
   return "";
 });
 const linkRe = /<link rel="stylesheet" href="([^"?]+)(?:\?[^"]*)?">/g;
@@ -74,6 +86,8 @@ await writeFile(htmlPath, `<!doctype html><html lang="ko"><head><meta charset="u
 await writeFile(path.join(OUT, "_headers"), [
   "/app-*",
   "  Cache-Control: public, max-age=31536000, immutable",
+  "/vendor-*",
+  "  Cache-Control: public, max-age=31536000, immutable",
   "/*.html",
   "  Cache-Control: public, max-age=0, must-revalidate",
   "/",
@@ -84,5 +98,5 @@ await writeFile(path.join(OUT, "_headers"), [
   "  Cache-Control: public, max-age=0, must-revalidate",
   "",
 ].join("\n"));
-console.log(`사이트 ${files}개 파일 · 스크립트 ${body.length}개 → app-${jh}.js (${(js.length / 1024 / 1024).toFixed(2)}MB) · CSS ${links.length}개 → app-${ch}.css`);
+console.log(`사이트 ${files}개 파일 · 스크립트 ${body.length}개 → vendor-${vh}.js (${(vjs.length / 1024 / 1024).toFixed(2)}MB) + app-${jh}.js (${(js.length / 1024 / 1024).toFixed(2)}MB) · CSS ${links.length}개 → app-${ch}.css`);
 if (skipped.length) console.log("25MB 넘어서 뺀 파일:", skipped.join(", "));
