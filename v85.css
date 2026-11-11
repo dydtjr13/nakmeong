@@ -981,3 +981,15 @@ img.s5g{width:20px;height:20px;vertical-align:-4px;filter:drop-shadow(0 0 4px #9
 .s5card{position:relative}.s5card>.x{position:absolute;right:12px;top:12px;left:auto;background:#2a2046;color:#fff;border:1px solid #4a3a6e;border-radius:10px;width:32px;height:32px}.s5hd{padding-right:44px}
 @media(max-width:600px){.s5gr{display:none}.s5hd h3{font-size:16px}.s5it b{font-size:13px}.s5it small{white-space:nowrap}.s5it button{padding:7px 10px}.s5it .ic{width:46px;height:46px}.s5it .ic img{max-width:36px;max-height:36px}}
 #taxiBar.col{flex-direction:row;align-items:center}
+/* v120 ☾ 하늘섬 */
+#skyFx{position:fixed;inset:0;z-index:7000;pointer-events:none;opacity:0;transition:opacity .6s;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 60%,#f4f0ffcc,#b9b0f0ee 40%,#3a2f7aff 100%)}
+#skyFx.on{opacity:1;pointer-events:auto}#skyFx b{position:relative;z-index:2;color:#fff;font-size:20px;font-weight:900;text-shadow:0 2px 12px #2a2160;white-space:nowrap}
+#skyFx .sfc{position:absolute;inset:-20%;background:radial-gradient(closest-side,#fff8 30%,transparent) 0 0/220px 120px,radial-gradient(closest-side,#fff6 30%,transparent) 110px 60px/260px 140px;animation:sfx 1.6s linear infinite}@keyframes sfx{to{transform:translateY(-120px)}}
+.skyask{width:min(400px,92vw);background:linear-gradient(180deg,#2a2150,#1b1438)!important;color:#efeaff;border:1.5px solid #ffc24a88;text-align:center}.skyask .moon{font-size:40px;color:#fff1c8}.skyask h3{margin:4px 0;color:#fff;white-space:nowrap}.skyask p{margin:0 0 12px;font-size:13px;color:#b9b0dc;white-space:nowrap}
+.skyask .req{display:flex;flex-direction:column;gap:8px;text-align:left}.skyask .rq{display:flex;align-items:center;gap:10px;background:#120e2c;border:1px solid #3d3470;border-radius:14px;padding:10px 12px}.skyask .rq b{font-size:14px;white-space:nowrap}.skyask .rq small{display:block;font-size:12px;color:#b9b0dc}
+.skyask .ok{margin-left:auto;font-style:normal;font-weight:900;color:#7ce0a8}.skyask .rq.no .ok{color:#ff8a8a}.skyask .btns{display:flex;gap:8px;margin-top:14px}.skyask .btns button{flex:1;border:0;border-radius:14px;padding:11px;font-weight:800;white-space:nowrap}.skyask .btns [data-n]{background:#2a2046;color:#c9bde0}.skyask .btns .acc{background:linear-gradient(180deg,#ffc24a,#e8961e);color:#2a1a00}.skyask .btns .acc:disabled{opacity:.45}
+#skyBack{position:fixed;left:50%;top:calc(88px + env(safe-area-inset-top));transform:translateX(-50%);z-index:55;border:1.5px solid #ffc24a88;border-radius:16px;background:#1b1438e8;color:#ffe08a;font-weight:800;font-size:13px;padding:6px 6px 6px 14px;display:flex;align-items:center;gap:10px;white-space:nowrap;cursor:pointer;box-shadow:0 6px 18px #0005}
+#skyBack b{background:#2a2046;color:#fff;border-radius:12px;padding:6px 12px}
+@media(max-width:600px){#skyBack{top:calc(56px + env(safe-area-inset-top));left:auto;right:8px;transform:none;font-size:12px}}
+body.skyOn #wxCv,body.skyOn #wxCard{display:none!important}
+@media(max-width:600px){#skyBack{padding:4px;gap:0}#skyBack .lb{display:none}#skyBack b{padding:6px 10px}}
