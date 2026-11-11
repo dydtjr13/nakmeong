@@ -937,6 +937,13 @@ function sanitizeUiPos(v) {
   return Object.keys(out).length ? out : null;
 }
 
+function peekKey(k) {
+  if (k === "tank") return "tank";
+  const t = String(k == null ? "" : k);
+  if (/^tx\d{1,7}$/.test(t)) return t;
+  return "prof";
+}
+
 export function sanitizePlay(input, prev, opt) {
   if (input == null) return null;
   if (typeof input !== "object" || Array.isArray(input)) return prev || null;
@@ -1343,8 +1350,9 @@ export function parseClient(raw) {
   if (raw.length > MAX_MSG && !OPS.has(msg.t) && !(msg.t === "pka" && raw.length <= 8000)) return null;
   if (msg.t === "ping") return { t: "ping" };
   // v93: 프로필·어항 엿보기
-  if (msg.t === "pk") { const to = cleanId(msg.to, 40); return to ? { t: "pk", to, k: msg.k === "tank" ? "tank" : "prof" } : null; }
-  if (msg.t === "pka") { const to = cleanId(msg.to, 40); return to ? { t: "pka", to, k: msg.k === "tank" ? "tank" : "prof", d: cleanPeek(msg.d) } : null; }
+  // v119: 🚕 택시 요금 요청(tx + 금액) · 답은 {ok, why}만
+  if (msg.t === "pk") { const to = cleanId(msg.to, 40); return to ? { t: "pk", to, k: peekKey(msg.k) } : null; }
+  if (msg.t === "pka") { const to = cleanId(msg.to, 40); if (!to) return null; const k = peekKey(msg.k); if (k.startsWith("tx")) { const d = msg.d && typeof msg.d === "object" ? msg.d : {}; return { t: "pka", to, k, d: { ok: d.ok ? 1 : 0, ...(d.why === "fare" ? { why: "fare" } : {}) } }; } return { t: "pka", to, k, d: cleanPeek(msg.d) }; }
   // v55: 초성·밸런스 게임
   if (msg.t === "ans") return { t: "ans", id: cleanId(msg.id, 24), a: String(msg.a == null ? "" : msg.a).slice(0, 30) };
   if (msg.t === "pick") return { t: "pick", id: cleanId(msg.id, 24), s: msg.s === "l" || msg.s === "r" ? msg.s : "" };
