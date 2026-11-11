@@ -910,9 +910,14 @@ body.hp1.lvx1 #lvB .lx .tt,body.hp1.lvx3 #lvB .lx .tt{font-size:11.5px!important
 #profDlg .nm .sptl{font-size:12.5px!important;padding:1px 9px!important}
 #lvRoad .ttl,#lvUp .ttl{font-size:12px!important;padding:2px 9px!important}
 /* v114 모바일 위쪽 상태바: 메뉴 버튼 밑으로 숨지 않게 (선물 칸이 줄어들어요) */
-@media(max-width:699px){body.m3 #mStat{max-width:calc(100vw - 56px)}body.m3 #mStat #streak{min-width:40px!important;flex:0 1 auto!important;overflow:hidden}body.m3 #mStat #coins{flex-shrink:0}body.m3 #mStat #lvB{flex:0 1 auto!important;min-width:0!important;overflow:hidden}body.m3 #lvB .lx,body.m3 #lvB .lx .nr{min-width:0;overflow:hidden}body.m3 #lvB .lx .nr small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}}
+@media(max-width:699px){body.m3 #mStat{max-width:calc(100vw - 56px)}body.m3 #mStat #streak{flex:none!important}body.m3 #mStat #coins{flex:none}body.m3 #mStat #lvB{flex:none!important}}
 @media(max-width:430px){body.m3 #lvB .lx .nr small{display:none}body.m3 #mStat #streak{flex:0 0 auto!important}}
 /* v115 자동 업데이트 알림 */
 #updPill{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:3000;display:flex;align-items:center;gap:10px;background:#3b3346ee;color:#fff;border-radius:999px;padding:7px 8px 7px 16px;font-size:13px;font-weight:700;white-space:nowrap;box-shadow:0 6px 18px #0004;transition:.25s}
 #updPill.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}#updPill button{border:0;background:#f2a06b;color:#fff;border-radius:999px;padding:6px 12px;font-weight:800;font-size:12.5px;cursor:pointer}
 @media(max-width:600px){#updPill{font-size:11.5px;max-width:94vw}#updPill span{overflow:hidden;text-overflow:ellipsis}}
+
+/* v116 모바일 상태바: 칭호가 잘리지 않게 — 자리가 모자라면 선물 칸 숫자 → 골드 글자 순서로 줄여요 */
+body.m3.hudT1 #mStat #streak b,body.m3.hudT1 #mStat #streak .sk-bar,body.m3.hudT1 #mStat #streak .sk-d{display:none!important}body.m3.hudT1 #mStat #streak{padding-left:8px!important;padding-right:8px!important}
+body.m3.hudT2 #mStat #coins{font-size:13px!important;padding-left:8px!important;padding-right:10px!important}
+body.m3 #lvB .lx .tt{max-width:none!important;overflow:visible!important;white-space:nowrap}
