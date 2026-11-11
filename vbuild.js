@@ -197,7 +197,7 @@
       const pal = E.d.pal;
       L.innerHTML = `<h5>도구</h5><div class="vbTools">
         <button type="button" data-vbt="add" class="${E.tool === 'add' ? 'on' : ''}">🧱 쌓기</button><button type="button" data-vbt="del" class="${E.tool === 'del' ? 'on' : ''}">🧽 지우기</button>
-        <button type="button" data-vbt="pick" class="${E.tool === 'pick' ? 'on' : ''}">💧 색 집기</button><button type="button" data-vbt="round" class="${E.tool === 'round' ? 'on' : ''}">🔵 둥글게</button></div>
+        <button type="button" data-vbt="pick" class="${E.tool === 'pick' ? 'on' : ''}">💧 색 집기</button><button type="button" data-vbt="round" class="${E.tool === 'round' ? 'on' : ''}">🔵 둥글게</button><button type="button" data-vbt="sel" class="vbSelT ${E.tool === 'sel' ? 'on' : ''}" title="눌러서 덩어리 고르기 · 끌어서 영역 고르기 · Shift로 더하기">🖱 고르기</button></div>
         ${sizeUI('블럭 크기', 'bs')}${sizeUI('지우개 크기', 'es')}
         <label class="vbChk"><input type="checkbox" data-vbmir ${E.mir ? 'checked' : ''}> ⇋ 좌우 대칭으로 쌓기</label>
         <label class="vbChk"><input type="checkbox" data-vbtint ${E.tint ? 'checked' : ''}> 🏷 구역 색으로 보기</label>
@@ -270,10 +270,10 @@
       const n = count();
       R.innerHTML = `<h5>구역 <small>${E.mode === 'build' ? '눌러서 구역 나누기로' : '지금 칠하는 구역'}</small></h5><div class="vbGs">${ids.map((id) => { const c = (E.V[id] || new Map()).size; return `<button type="button" data-vbg="${id}" class="${E.mode === 'part' && cur === id ? 'on' : ''}"><i style="background:${grpCol(id)}"></i>${esc(grpName(id))}<small>${c}</small></button>`; }).join('')}</div>
         <p class="vbNote">${E.mode === 'build' ? '새 블럭은 붙인 블럭과 같은 구역에 들어가요. 다 만든 뒤 「🏷 구역 나누기」에서 머리·다리·꼬리를 칠해서 나눠요' : '「🤖 자동으로 나누기」로 먼저 나눈 뒤, 틀린 곳만 칠해서 고치면 빨라요'}</p>
-        <hr>${roundUI()}
+        <hr>${selUI()}${E.ssel ? '<hr>' : ''}${roundUI()}
         <p class="vbNote">블럭 ${n.toLocaleString()} / ${MAXB.toLocaleString()}</p>`;
       R.querySelectorAll('[data-vbg]').forEach((b) => (b.onclick = () => { E.gid = b.dataset.vbg; E.mode = 'part'; changed(true); }));
-      roundBind(R);
+      roundBind(R); selBind(R);
       info(); topBtns(); return;
     }
     let h = `<h5>구역 <small>눌러서 고치기</small></h5><div class="vbGs">${ids.map((id) => { const q = d.groups[id] || {}, n = (E.V[id] || new Map()).size; const tag = q.leg != null ? '다리' : q.arm != null ? '팔' : q.head ? '머리' : q.tail ? '꼬리' : ''; return `<button type="button" data-vbg="${id}" class="${cur === id ? 'on' : ''}"><i style="background:${grpCol(id)}"></i>${esc(grpName(id))}${tag ? `<em>${tag}</em>` : ''}<small>${n}</small></button>`; }).join('')}</div>
@@ -397,6 +397,7 @@
       // 지금 묶음을 살짝 표시
       const b = bounds(E.gid); if (b) { const h = new T.Box3(new T.Vector3(b[0] * vu, b[1] * vu, b[2] * vu), new T.Vector3((b[3] + 1) * vu, (b[4] + 1) * vu, (b[5] + 1) * vu)); add(new T.Box3Helper(h, 0x3d7fd1)); }
     }
+    if (raw && E.ssel) { const vu = HV(), b = E.ssel.b; add(new T.Box3Helper(new T.Box3(new T.Vector3(b[0] * vu, b[1] * vu, b[2] * vu), new T.Vector3((b[3] + 1) * vu, (b[4] + 1) * vu, (b[5] + 1) * vu)), 0x2f6fd6)); }
     E.ghost = add(new T.Mesh(new T.BoxGeometry(1, 1, 1), new T.MeshBasicMaterial({ color: '#3d7fd1', transparent: true, opacity: 0.35, depthWrite: false })));
     E.ghost.visible = false;
     const ge = new T.LineSegments(new T.EdgesGeometry(new T.BoxGeometry(1, 1, 1)), new T.LineBasicMaterial({ color: '#1f4f8a' })); E.ghost.add(ge);
@@ -439,6 +440,7 @@
     g.material.color.set(col);
   }
   function input(cv) {
+    cv.addEventListener('pointerdown', (e) => { E._shift = !!e.shiftKey; }, true);
     let dn = null;
     cv.onpointerdown = (e) => {
       cv.setPointerCapture(e.pointerId);
@@ -456,9 +458,9 @@
       if (E.mode === 'build' && dn.b === 0 && dn.st && dn.mv > 6) {
         const c = planeCell(e, dn.st); if (!c) return; dn.c1 = c;
         const a = dn.st.c0, mn = [0, 1, 2].map((i) => Math.min(a[i], c[i])), mxv = [0, 1, 2].map((i) => Math.max(a[i], c[i]) + (E.tool === 'add' ? E.bs[i] - 1 : 0));
-        if (E.tool === 'round') { mn[dn.st.ax] = -128; mxv[dn.st.ax] = 127; const b = bounds(); if (b) { mn[dn.st.ax] = b[dn.st.ax]; mxv[dn.st.ax] = b[dn.st.ax + 3]; } }
+        if (E.tool === 'round' || E.tool === 'sel') { mn[dn.st.ax] = -128; mxv[dn.st.ax] = 127; const b = bounds(); if (b) { mn[dn.st.ax] = b[dn.st.ax]; mxv[dn.st.ax] = b[dn.st.ax + 3]; } }
         if (E.tool === 'grp') { mn[dn.st.ax] = -64; mxv[dn.st.ax] = 63; const b = bounds(); if (b) { mn[dn.st.ax] = b[dn.st.ax]; mxv[dn.st.ax] = b[dn.st.ax + 3]; } }
-        showGhost(mn, mxv, E.tool === 'del' ? '#e8505a' : E.tool === 'round' ? '#3d7fd1' : E.d.pal[E.col]);
+        showGhost(mn, mxv, E.tool === 'del' ? '#e8505a' : E.tool === 'round' || E.tool === 'sel' ? '#3d7fd1' : E.d.pal[E.col]);
       }
     };
     cv.onpointerup = (e) => {
@@ -491,6 +493,7 @@
       changed();
     } else if (E.tool === 'del') { if (h.in) erase(h.in); }
     else if (E.tool === 'round') { if (h.in) roundPick(h.in); }
+    else if (E.tool === 'sel') { if (h.in) selSet(chunkKeys(h.in), E._shift); else selClear(); }
     else if (E.tool === 'pick') { if (!h.in) return; const o = occ().get(ck(...h.in)); if (!o) return; E.col = E.V[o[0]].get(o[1])[6]; E.tool = 'add'; left(); toast('💧 색을 집었어요', 900); }
     else if (E.tool === 'grp') { if (!h.in) return; push(); let ok = grpCell(...h.in); if (E.mir) { const c = h.in.slice(); c[0] = -c[0] - 1; ok = grpCell(...c) || ok; } if (!ok) { E.undo.pop(); return; } changed(true); }
   }
@@ -519,6 +522,8 @@
       const r = E.es[ax], L = []; for (const c of rectCells(st.c0, c1, ax, 1)) for (let k = 0; k < r; k++) { const q = c.slice(); q[ax] -= k * (st.sg || 1); L.push(q); if (E.mir) L.push([-q[0] - 1, q[1], q[2]]); } if (eraseCells(L)) n++;
     } else if (E.tool === 'round') {
       if (E.ghost) E.ghost.visible = false; E.undo.pop(); roundBox(st, c1); return;
+    } else if (E.tool === 'sel') {
+      if (E.ghost) E.ghost.visible = false; E.undo.pop(); selSet(boxKeys(st, c1), E._shift); return;
     } else if (E.tool === 'grp') {
       const b = bounds(); if (b) for (const c of rectCells(st.c0, c1, ax, 1)) for (let t = b[ax]; t <= b[ax + 3]; t++) { const q = c.slice(); q[ax] = t; if (grpCell(...q)) n++; if (E.mir && grpCell(-q[0] - 1, q[1], q[2])) n++; }
     }
@@ -645,14 +650,31 @@
       <div class="vbGb"><button type="button" class="acc" data-vbrok>적용</button><button type="button" data-vbrno>취소</button></div>${fineUI()}`;
   }
   // v113: 블럭이 커서 덜 둥근 경우 — 전체를 반 크기 블럭으로 쪼개서 (모양·크기는 그대로) 더 매끈하게 깎아요
-  function fineUI() { const b = bounds(), ok = b && b[0] >= -64 && b[1] >= -64 && b[2] >= -64 && b[3] <= 63 && b[4] <= 63 && b[5] <= 63; const n = b ? Math.min(b[3] - b[0], b[4] - b[1], b[5] - b[2]) + 1 : 0; return `<p class="vbNote">${E.rsel && Math.min(E.rsel.b[3] - E.rsel.b[0], E.rsel.b[4] - E.rsel.b[1], E.rsel.b[5] - E.rsel.b[2]) + 1 < 10 ? '고른 덩어리가 작아서 계단처럼 보여요 · ' : ''}더 매끈하게 하려면 블럭을 반으로 쪼개요 (모양·크기는 그대로)</p><button type="button" class="vbWide" data-vbfine ${ok ? '' : 'disabled'}>🔍 블럭 반으로 쪼개기 · ${+(HV() * 100).toFixed(1)}→${+(HV() * 50).toFixed(1)}cm</button>${ok ? '' : '<p class="vbNote">작품이 너무 커서 더 쪼갤 수 없어요</p>'}`; void n; }
-  function refine() {
+  function fineUI() { const b = bounds(), ok = b && b[0] >= -64 && b[1] >= -64 && b[2] >= -64 && b[3] <= 63 && b[4] <= 63 && b[5] <= 63; const n = b ? Math.min(b[3] - b[0], b[4] - b[1], b[5] - b[2]) + 1 : 0; return `<p class="vbNote">${E.rsel && Math.min(E.rsel.b[3] - E.rsel.b[0], E.rsel.b[4] - E.rsel.b[1], E.rsel.b[5] - E.rsel.b[2]) + 1 < 10 ? '고른 덩어리가 작아서 계단처럼 보여요 · ' : ''}더 매끈하게 하려면 블럭을 반으로 쪼개요 (모양·크기는 그대로)</p><button type="button" class="vbWide" data-vbfine ${ok ? '' : 'disabled'}>🔍 ${E.rsel ? '고른 곳만' : '전체'} 반으로 쪼개기 · ${+(HV() * 100).toFixed(1)}→${+(HV() * 50).toFixed(1)}cm</button>${ok ? '' : '<p class="vbNote">작품이 너무 커서 더 쪼갤 수 없어요</p>'}`; void n; }
+  // only: 고른 칸만 작은 블럭으로 (나머지는 원래 블럭 모양 그대로 두 배 좌표로 옮겨서 보이는 건 똑같아요)
+  function refine(only) {
     const b = bounds(); if (!b || !(b[0] >= -64 && b[1] >= -64 && b[2] >= -64 && b[3] <= 63 && b[4] <= 63 && b[5] <= 63)) { toast('작품이 너무 커서 더 쪼갤 수 없어요', 1800); return false; }
     const R0 = E.rsel; if (R0) { load(JSON.parse(R0.snap)); E.undo.pop(); E.rsel = null; }
-    push(); const C = unpack(), D2 = new Map();
-    for (const q of C.values()) for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) for (let k = 0; k < 2; k++) { const x = q.x * 2 + i, y = q.y * 2 + j, z = q.z * 2 + k; D2.set(ck(x, y, z), { x, y, z, g: q.g, c: q.c }); }
-    const keepV = E.V; repack(D2); if (count() > MAXB) { E.V = keepV; E.occ = null; E.undo.pop(); toast(`쪼개면 블럭이 ${MAXB.toLocaleString()}개를 넘어요`, 1800); return false; }
-    E.d.vu = +((E.d.vu || 0.1) / 2).toFixed(5);
+    push(); const keepV = E.V;
+    if (only && only.size) {
+      const C = unpack(), D2 = new Map(), NV = {};
+      for (const g in E.V) { NV[g] = new Map(); for (const bk of E.V[g].values()) { let hit = false; for (let i = 0; i < bk[3] && !hit; i++) for (let j = 0; j < bk[4] && !hit; j++) for (let k = 0; k < bk[5] && !hit; k++) if (only.has(ck(bk[0] + i, bk[1] + j, bk[2] + k))) hit = true;
+        if (!hit) { const sz = [bk[3] * 2, bk[4] * 2, bk[5] * 2], o = [bk[0] * 2, bk[1] * 2, bk[2] * 2]; for (let x = 0; x < sz[0]; x += 16) for (let y = 0; y < sz[1]; y += 16) for (let z = 0; z < sz[2]; z += 16) NV[g].set(ck(o[0] + x, o[1] + y, o[2] + z), [o[0] + x, o[1] + y, o[2] + z, Math.min(16, sz[0] - x), Math.min(16, sz[1] - y), Math.min(16, sz[2] - z), bk[6]]); continue; }
+        for (let i = 0; i < bk[3]; i++) for (let j = 0; j < bk[4]; j++) for (let k = 0; k < bk[5]; k++) { const X = bk[0] + i, Y = bk[1] + j, Z = bk[2] + k, sel = only.has(ck(X, Y, Z));
+          if (sel) { for (let a = 0; a < 2; a++) for (let bb = 0; bb < 2; bb++) for (let cc = 0; cc < 2; cc++) { const x = X * 2 + a, y = Y * 2 + bb, z = Z * 2 + cc; D2.set(ck(x, y, z), { x, y, z, g, c: bk[6] }); } }
+          else NV[g].set(ck(X * 2, Y * 2, Z * 2), [X * 2, Y * 2, Z * 2, 2, 2, 2, bk[6]]); } } }
+      const by = {}; for (const q of D2.values()) (by[q.g] || (by[q.g] = new Map())).set(ck(q.x, q.y, q.z), q);
+      for (const g in by) { for (const nb of greedy(by[g]).values()) NV[g].set(ck(nb[0], nb[1], nb[2]), nb); }
+      E.V = NV; E.occ = null; void C;
+    } else {
+      const C = unpack(), D2 = new Map();
+      for (const q of C.values()) for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) for (let k = 0; k < 2; k++) { const x = q.x * 2 + i, y = q.y * 2 + j, z = q.z * 2 + k; D2.set(ck(x, y, z), { x, y, z, g: q.g, c: q.c }); }
+      repack(D2);
+    }
+    if (count() > MAXB) { E.V = keepV; E.occ = null; E.undo.pop(); toast(`쪼개면 블럭이 ${MAXB.toLocaleString()}개를 넘어요`, 1800); return false; }
+    E.d.vu = +((E.d.vu || 0.1) / 2).toFixed(5); E.bs = E.bs.map((v) => Math.min(16, v * 2)); E.es = E.es.map((v) => Math.min(16, v * 2));
+    if (E.d.seat) { /* 자리 좌표는 미터라 그대로 */ }
+    if (only && only.size) { const K = new Set(); for (const k of only) { const [x, y, z] = k.split(',').map(Number); for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) for (let l = 0; l < 2; l++) K.add(ck(x * 2 + i, y * 2 + j, z * 2 + l)); } E.ssel = null; changed(true); selSet(K); toast('🔍 고른 곳만 반으로 쪼갰어요 · 나머지 모양은 그대로예요', 2000); return true; }
     if (R0) { const keys = new Set(); for (const k of R0.keys) { const [x, y, z] = k.split(',').map(Number); for (let i = 0; i < 2; i++) for (let j = 0; j < 2; j++) for (let l = 0; l < 2; l++) keys.add(ck(x * 2 + i, y * 2 + j, z * 2 + l)); } E.rsel = null; changed(true); roundStart(keys); }
     else changed(true);
     toast('🔍 블럭을 반으로 쪼갰어요 · 이제 더 매끈하게 깎여요', 1800); return true;
@@ -663,7 +685,7 @@
     const ok = R.querySelector('[data-vbrok]'); if (ok) ok.onclick = () => { E.rsel = null; E.rt = 0; changed(true); toast('🔵 둥글게 했어요 · 마음에 안 들면 ↶', 1600); };
     const no = R.querySelector('[data-vbrno]'); if (no) no.onclick = () => { if (E.rsel) { load(JSON.parse(E.rsel.snap)); E.undo.pop(); } E.rsel = null; E.rt = 0; changed(true); };
     const sp = R.querySelector('[data-vbrsp]'); if (sp) sp.onchange = () => { E.rsph = sp.checked; roundApply(E.rt / 100); };
-    const fi = R.querySelector('[data-vbfine]'); if (fi) fi.onclick = () => { const t = E.rt; if (refine() && E.rsel && t) { E.rt = t; roundApply(t / 100); side(); } };
+    const fi = R.querySelector('[data-vbfine]'); if (fi) fi.onclick = () => { const t = E.rt, keys = E.rsel ? new Set(E.rsel.keys) : null; if (!refine(keys)) return; if (keys && E.ssel) { const K = E.ssel.keys; E.ssel = null; roundStart(K); if (t) { E.rt = t; roundApply(t / 100); } side(); } };
   }
   function roundStart(keys) {
     if (!keys.size) return; if (E.rsel) { load(JSON.parse(E.rsel.snap)); E.undo.pop(); }
@@ -673,6 +695,29 @@
     side(); scene(); showSel();
   }
   function showSel() { if (!E.rsel || !E.ghost) return; const b = E.rsel.b; showGhost([b[0], b[1], b[2]], [b[3], b[4], b[5]], '#3d7fd1'); E.ghost.material.opacity = 0.12; }
+  // v114: 🖱 고르기 — 덩어리(누르기)·영역(끌기)을 골라 두고, 고른 곳만 쪼개기·둥글게·칠하기·지우기
+  function chunkKeys(c) { const C = unpack(), k0 = ck(...c), q0 = C.get(k0); if (!q0) return new Set(); const seen = new Set([k0]), st = [q0];
+    while (st.length) { const q = st.pop(); for (const [dx, dy, dz] of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) { const k = ck(q.x + dx, q.y + dy, q.z + dz), r = C.get(k); if (r && r.g === q0.g && !seen.has(k)) { seen.add(k); st.push(r); } } } return seen; }
+  function boxKeys(st, c1) { const C = unpack(), a = st.c0, ax = st.ax, bb = bounds(); if (!bb) return new Set(); const mn = [0, 1, 2].map((i) => Math.min(a[i], c1[i])), mxv = [0, 1, 2].map((i) => Math.max(a[i], c1[i])); mn[ax] = bb[ax]; mxv[ax] = bb[ax + 3];
+    const keys = new Set(); for (const [k, q] of C) if (q.x >= mn[0] && q.x <= mxv[0] && q.y >= mn[1] && q.y <= mxv[1] && q.z >= mn[2] && q.z <= mxv[2]) keys.add(k); return keys; }
+  function selSet(keys, add) { const K = new Set(add && E.ssel ? [...E.ssel.keys, ...keys] : [...keys]); if (!K.size) { selClear(); return; } const xs = [...K].map((k) => k.split(',').map(Number));
+    E.ssel = { keys: K, n: K.size, b: [0, 1, 2].map((i) => Math.min(...xs.map((q) => q[i]))).concat([0, 1, 2].map((i) => Math.max(...xs.map((q) => q[i])))) }; scene(); side(); }
+  function selClear() { if (!E.ssel) return; E.ssel = null; scene(); side(); }
+  function selUI() {
+    if (!E.ssel) return E.tool === 'sel' ? '<h5>🖱 고르기</h5><p class="vbNote">블럭을 누르면 이어진 덩어리가, 꾹 눌러 끌면 그 영역이 골라져요 · Shift를 누른 채 고르면 더해져요</p>' : '';
+    return `<h5>🖱 고른 블럭 <small>${E.ssel.n.toLocaleString()}칸</small></h5><div class="vbSelA">
+      <button type="button" data-vss="fine">🔍 고른 곳만 반으로 쪼개기</button><button type="button" data-vss="round">🔵 고른 곳 둥글게</button>
+      <button type="button" data-vss="paint">🎨 지금 색으로 칠하기</button><button type="button" data-vss="del">🗑 고른 곳 지우기</button><button type="button" data-vss="clr">✕ 고르기 풀기</button></div>`;
+  }
+  function selBind(R) {
+    R.querySelectorAll('[data-vss]').forEach((b) => (b.onclick = () => { const a = b.dataset.vss, S0 = E.ssel; if (!S0) return;
+      if (a === 'clr') { selClear(); return; }
+      if (a === 'round') { const K = S0.keys; E.ssel = null; E.tool = 'round'; left(); roundStart(K); return; }
+      if (a === 'fine') { refine(S0.keys); return; }
+      push(); const C = unpack();
+      if (a === 'del') { for (const k of S0.keys) C.delete(k); repack(C); E.ssel = null; changed(true); toast('🗑 고른 곳을 지웠어요', 1200); return; }
+      if (a === 'paint') { for (const k of S0.keys) { const q = C.get(k); if (q) q.c = E.col; } repack(C); changed(true); toast('🎨 칠했어요', 1000); return; }
+    })); }
   function roundPick(c) {
     const C = unpack(), k0 = ck(...c), q0 = C.get(k0); if (!q0) return; const seen = new Set([k0]), st = [q0];
     while (st.length) { const q = st.pop(); for (const [dx, dy, dz] of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) { const k = ck(q.x + dx, q.y + dy, q.z + dz), r = C.get(k); if (r && r.g === q0.g && !seen.has(k)) { seen.add(k); st.push(r); } } }
@@ -1063,7 +1108,7 @@
 #vbEd .vbBody{flex:1;min-height:0;display:grid;grid-template-columns:220px minmax(0,1fr) 260px}
 #vbEd .vbL,#vbEd .vbR{overflow:auto;padding:8px 10px;background:#fbf6ec}#vbEd .vbR{border-left:1.5px solid #e9dcc6}#vbEd .vbL{border-right:1.5px solid #e9dcc6}
 #vbEd h5{margin:10px 0 6px;font-size:13px;display:flex;align-items:center;gap:6px}#vbEd h5 small{color:#7a6650;font-weight:400;font-size:11.5px}
-#vbEd .vbTools{display:grid;grid-template-columns:1fr 1fr;gap:5px}#vbEd .vbTools button,#vbEd .vbNum button{padding:6px 4px}
+#vbEd .vbTools{display:grid;grid-template-columns:1fr 1fr;gap:5px}#vbEd .vbTools .vbSelT{grid-column:1/-1}#vbEd .vbSelA{display:grid;grid-template-columns:1fr;gap:5px;margin:6px 0}#vbEd .vbSelA button{text-align:left;padding:7px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#vbEd .vbTools button,#vbEd .vbNum button{padding:6px 4px}
 #vbEd .vbTools button.on,#vbEd .vbNum button.on,#vbEd .vbGs button.on{background:#1f6f6a;border-color:#1f6f6a;color:#fff}
 #vbEd .vbNum{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
 #vbEd .vbChk{display:flex;align-items:center;gap:6px;margin:6px 0;cursor:pointer}
@@ -1116,5 +1161,5 @@
     document.head.appendChild(s);
   }
 
-  window.NK_VBED = { open, close, E, tpl, fromPhoto, data, load, _t: { put, erase, refine, count, roundStart, roundApply, unpack, sendDlg, brdOpen } };
+  window.NK_VBED = { open, close, E, tpl, fromPhoto, data, load, _t: { put, erase, refine, count, roundStart, roundApply, unpack, sendDlg, brdOpen, selSet, chunkKeys } };
 })();
