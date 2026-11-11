@@ -895,9 +895,9 @@ body.hp1.lvx1 .lvb .ttl2,body.hp1.lvx3 .lvb .ttl2{display:none!important}
 /* v114 어항 옮기기 창 다듬기 · 어항 이름 · 모바일 어항 칸 */
 #tk3Pick .tk3pf{scrollbar-width:none;padding-bottom:2px}#tk3Pick .tk3pf::-webkit-scrollbar{display:none}#tk3Pick .tk3pf button{flex:none}
 #tk3Pick .tk3pi .ck{display:block;font-size:0}#tk3Pick .tk3pi.on .ck{background:#5fc48a}#tk3Pick .tk3pi.on .ck::after{content:'';position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
-#tk3Pick .tk3pb{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center}#tk3Pick .tk3pb>button{white-space:nowrap;border-radius:12px;padding:7px 12px;font-size:13px}
+#tk3Pick .tk3pb{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center}#tk3Pick .tk3pb>button{white-space:nowrap;border-radius:12px;padding:7px 12px;font-size:13px}
 #tk3Pick .tk3pb>button:not(.acc){border:1.5px solid #e3d6c4;background:#fff}
-@media(max-width:600px){#tk3Pick .tk3pc{padding:14px}#tk3Pick .tk3pg{grid-template-columns:repeat(3,minmax(0,1fr))}#tk3Pick .tk3pb{grid-template-columns:1fr 1fr 1fr}#tk3Pick .tk3pb>b{grid-column:1/-1}#tk3Pick .tk3pb>button{padding:8px 6px;font-size:12.5px}#tk3Pick h3{font-size:16px;padding-right:40px}}
+@media(max-width:600px){#tk3Pick .tk3pc{padding:14px}#tk3Pick .tk3pg{grid-template-columns:repeat(3,minmax(0,1fr))}#tk3Pick .tk3pb{grid-template-columns:1fr 1fr}#tk3Pick .tk3pb>b{grid-column:1/-1}#tk3Pick .tk3pb>button{padding:8px 6px;font-size:12.5px}#tk3Pick h3{font-size:16px;padding-right:40px}}
 #confirm .tk3mv b small{font-weight:600;color:#8a7660;font-size:12px;margin-left:4px}#confirm .tk3mv small.rl{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 #confirm .tk3mv button{grid-template-columns:44px minmax(0,1fr)}
 #tk3Dlg .tk3nm{display:flex;align-items:center;gap:8px;margin:6px 0 8px}#tk3Dlg .tk3nm b{white-space:nowrap;font-size:13px}#tk3Dlg .tk3nm input{flex:1;min-width:0;border:1.5px solid #d8c8b0;border-radius:10px;padding:6px 10px;font:inherit;font-size:14px}
@@ -921,3 +921,5 @@ body.hp1.lvx1 #lvB .lx .tt,body.hp1.lvx3 #lvB .lx .tt{font-size:11.5px!important
 body.m3.hudT1 #mStat #streak b,body.m3.hudT1 #mStat #streak .sk-bar,body.m3.hudT1 #mStat #streak .sk-d{display:none!important}body.m3.hudT1 #mStat #streak{padding-left:8px!important;padding-right:8px!important}
 body.m3.hudT2 #mStat #coins{font-size:13px!important;padding-left:8px!important;padding-right:10px!important}
 body.m3 #lvB .lx .tt{max-width:none!important;overflow:visible!important;white-space:nowrap}
+/* v117 옮기기 창 분류 칩: 스크롤 칸에 아래 그림자가 잘리던 문제 */
+#tk3Pick .tk3pf{padding:4px 3px 8px;margin:0 -3px}#tk3Pick .tk3pf button{box-shadow:0 2px 0 #e3d6c4}
