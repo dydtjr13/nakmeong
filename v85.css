@@ -864,7 +864,7 @@ button.sellb:hover{background:#ffe7c2}
 #confirm .tk3mv{display:flex;flex-direction:column;gap:8px;margin:10px 0 4px}
 #confirm .tk3mv button{display:grid;grid-template-columns:44px 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;text-align:left;border:2px solid #e3d6c4;background:#fffaf3;border-radius:12px;padding:6px 10px;cursor:pointer}
 #confirm .tk3mv button:hover:not(:disabled){border-color:#f2a06b}#confirm .tk3mv button:disabled{opacity:.45;cursor:default}
-#confirm .tk3mv img{grid-row:1/3;width:44px;height:36px;object-fit:contain}#confirm .tk3mv b{font-size:14px;white-space:nowrap}#confirm .tk3mv small{font-size:12px;color:#8a7660;white-space:nowrap}
+#confirm .tk3mv img:not(.emj){grid-row:1/3;width:44px;height:36px;object-fit:contain}#confirm .tk3mv b{font-size:14px;white-space:nowrap}#confirm .tk3mv small{font-size:12px;color:#8a7660;white-space:nowrap}
 #profDlg .acts .pcbio{flex:1;min-width:0;border:1.5px solid #e3d6c4;border-radius:10px;padding:8px 10px;font:inherit;font-size:14px}
 /* v113 행운부적 A: 착용칸 위에 프리셋 줄 · 착용칸은 그만큼 아래로 */
 .bslots.pre{align-content:start;row-gap:10px;padding-top:12px}
@@ -891,3 +891,24 @@ button.sellb:hover{background:#ffe7c2}
 #tk3Pick .tk3pb{display:flex;align-items:center;gap:8px;white-space:nowrap}
 #tk3Pick .tk3pc{position:relative;text-align:left}#tk3Pick .x{position:absolute;right:12px;top:10px;width:auto}
 #profDlg .acts.me{display:flex;gap:8px}#profDlg .acts.me>button{flex:1;white-space:nowrap;min-width:0}
+body.hp1.lvx1 .lvb .ttl2,body.hp1.lvx3 .lvb .ttl2{display:none!important}
+/* v114 어항 옮기기 창 다듬기 · 어항 이름 · 모바일 어항 칸 */
+#tk3Pick .tk3pf{scrollbar-width:none;padding-bottom:2px}#tk3Pick .tk3pf::-webkit-scrollbar{display:none}#tk3Pick .tk3pf button{flex:none}
+#tk3Pick .tk3pi .ck{display:block;font-size:0}#tk3Pick .tk3pi.on .ck{background:#5fc48a}#tk3Pick .tk3pi.on .ck::after{content:'';position:absolute;left:4px;top:1px;width:5px;height:9px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:rotate(45deg)}
+#tk3Pick .tk3pb{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center}#tk3Pick .tk3pb>button{white-space:nowrap;border-radius:12px;padding:7px 12px;font-size:13px}
+#tk3Pick .tk3pb>button:not(.acc){border:1.5px solid #e3d6c4;background:#fff}
+@media(max-width:600px){#tk3Pick .tk3pc{padding:14px}#tk3Pick .tk3pg{grid-template-columns:repeat(3,minmax(0,1fr))}#tk3Pick .tk3pb{grid-template-columns:1fr 1fr 1fr}#tk3Pick .tk3pb>b{grid-column:1/-1}#tk3Pick .tk3pb>button{padding:8px 6px;font-size:12.5px}#tk3Pick h3{font-size:16px;padding-right:40px}}
+#confirm .tk3mv b small{font-weight:600;color:#8a7660;font-size:12px;margin-left:4px}#confirm .tk3mv small.rl{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+#confirm .tk3mv button{grid-template-columns:44px minmax(0,1fr)}
+#tk3Dlg .tk3nm{display:flex;align-items:center;gap:8px;margin:6px 0 8px}#tk3Dlg .tk3nm b{white-space:nowrap;font-size:13px}#tk3Dlg .tk3nm input{flex:1;min-width:0;border:1.5px solid #d8c8b0;border-radius:10px;padding:6px 10px;font:inherit;font-size:14px}
+#tk3 .tk3c b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#tk3 .tk3c>span{min-width:0}
+@media(max-width:760px){#tk3 .tk3s{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}#tk3 .tk3s::-webkit-scrollbar{display:none}#tk3 .tk3c{flex:none;width:132px}#tk3 .tk3c b{font-size:12px}#tk3 .tk3c em{display:block;width:max-content;margin:1px 0 0}#tk3 .tk3mvb{font-size:11px;padding:4px 8px}}
+#tk3Pick img.emj,#confirm .tk3mv img.emj{width:14px!important;height:14px!important;grid-row:auto!important;vertical-align:-2px;display:inline-block}
+/* v114 칭호 크기 통일 (낚시의 신과 같은 크기) */
+.lvb .ttl,.lvb .ttl2{font-size:11.5px!important;line-height:1.4!important;padding:1px 9px!important;border-radius:8px!important;white-space:nowrap}
+body.hp1.lvx1 #lvB .lx .tt,body.hp1.lvx3 #lvB .lx .tt{font-size:11.5px!important;line-height:18px!important}
+#profDlg .nm .sptl{font-size:12.5px!important;padding:1px 9px!important}
+#lvRoad .ttl,#lvUp .ttl{font-size:12px!important;padding:2px 9px!important}
+/* v114 모바일 위쪽 상태바: 메뉴 버튼 밑으로 숨지 않게 (선물 칸이 줄어들어요) */
+@media(max-width:699px){body.m3 #mStat{max-width:calc(100vw - 56px)}body.m3 #mStat #streak{min-width:40px!important;flex:0 1 auto!important;overflow:hidden}body.m3 #mStat #coins{flex-shrink:0}body.m3 #mStat #lvB{flex:0 1 auto!important;min-width:0!important;overflow:hidden}body.m3 #lvB .lx,body.m3 #lvB .lx .nr{min-width:0;overflow:hidden}body.m3 #lvB .lx .nr small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}}
+@media(max-width:430px){body.m3 #lvB .lx .nr small{display:none}body.m3 #mStat #streak{flex:0 0 auto!important}}
