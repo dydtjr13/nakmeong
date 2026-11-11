@@ -3,7 +3,7 @@
 (function(){const U=()=>window.NK_UI25,G=()=>window.NKV2;let T,scene,IM=[],VG={},ducks=[],fx=[],last=0,nextT=0,rMax=8,ok=false;const MAX=32;
  // v49: 실시간 접속 중에는 서버 play 값(없으면 NK_SYNC.DUCK_DEF)만 쓴다 → 모든 유저가 같은 오리
  const UG=k=>{const RT=window.NK_RT,DD=window.NK_SYNC&&NK_SYNC.DUCK_DEF;if(RT&&RT.status&&RT.status()==='on'&&k!=='duckSnd'){const P=RT.play||{};if(k in P)return P[k];return DD?DD[k]:undefined;}const v=U().get(k);return v!=null?v:(DD?DD[k]:undefined);};
- const conf=()=>({on:UG('duckOn')!==0,every:+(UG('duckEvery')||45),max:Math.min(MAX,Math.max(0,+(UG('duckMax')??8))),size:(()=>{const v=UG('duckSize');return v==null||String(v)==='rand'?'rand':(+v||1);})(),speed:+(UG('duckSpeed')??1),snd:U().get('duckSnd')!==0,kinds:(()=>{const allow=new Set((window.NK_DUCKV&&NK_DUCKV.LIST||[]).map(x=>x[0]));const raw=String(UG('duckKinds')??'base,pirate,straw,astro,frog,uni,penguin,snowman,dino').split(',').filter(k=>allow.has(k));return raw.length?raw:['base','pirate','straw','astro','frog','uni','penguin','snowman','dino'];})()});
+ const conf=()=>({ord:UG('duckOrd')==='seq'?'seq':'rand',on:UG('duckOn')!==0,every:+(UG('duckEvery')||45),max:Math.min(MAX,Math.max(0,+(UG('duckMax')??8))),size:(()=>{const v=UG('duckSize');return v==null||String(v)==='rand'?'rand':(+v||1);})(),speed:+(UG('duckSpeed')??1),snd:U().get('duckSnd')!==0,kinds:(()=>{const allow=new Set((window.NK_DUCKV&&NK_DUCKV.LIST||[]).map(x=>x[0]));const raw=String(UG('duckKinds')??'base,pirate,straw,astro,frog,uni,penguin,snowman,dino').split(',').filter(k=>allow.has(k));return raw.length?raw:['base','pirate','straw','astro','frog','uni','penguin','snowman','dino'];})()});
  function geo(){const M=window.NK_DUCK_MESH,b=atob(M.pos),p=new Float32Array(M.n*3),dv=new DataView(new ArrayBuffer(b.length));for(let i=0;i<b.length;i++)dv.setUint8(i,b.charCodeAt(i));for(let i=0;i<M.n*3;i++)p[i]=dv.getInt16(i*2,true)/32767;
   const out={};for(const k in M.g){const s=atob(M.g[k]),d=new DataView(new ArrayBuffer(s.length));for(let i=0;i<s.length;i++)d.setUint8(i,s.charCodeAt(i));const idx=new Uint16Array(s.length/2);for(let i=0;i<idx.length;i++)idx[i]=d.getUint16(i*2,true);
    const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(p,3));g.setIndex(new T.BufferAttribute(idx,1));g.computeVertexNormals();out[k]=g;}return out;}
@@ -15,7 +15,7 @@
  let cycleQ=[],cycleI=0,everSpawned=0,duckWas=null,duckArm=0;
  function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
  function refillCycle(){const K=conf().kinds.filter(k=>VG[k]);const rest=K.filter(k=>k!=='base');shuffle(rest);cycleQ=rest.length?rest.slice():(K.length?K.slice():['base']);cycleI=0;}
- function nextKind(){const K=conf().kinds.filter(k=>VG[k]);if(!K.length)return 'base';
+ let seqI=0;function nextKind(){const K=conf().kinds.filter(k=>VG[k]);if(!K.length)return 'base';if(conf().ord==='seq'){const k=K[seqI%K.length];seqI++;return k;}
   if(everSpawned===0&&VG.base&&K.includes('base')){everSpawned=1;refillCycle();return 'base';}
   everSpawned++;if(!cycleQ.length||cycleI>=cycleQ.length)refillCycle();
   // 호수에 같은 종류가 너무 많으면 다음으로
@@ -119,7 +119,7 @@
     let since=0,now=Date.now();
     if(duckArm>0){const armServer=duckArm-skew;if(serverSince>=armServer-5000){since=serverSince;now=Date.now()-skew;}else since=duckArm;}
     else if(serverSince>0){since=serverSince;now=Date.now()-skew;}
-    const lay=SY.ducks(now,RT.world,{rMax:rMax,every:everyMs,max:c.max,speed:+c.speed||0,size:c.size,kinds:c.kinds,on:1,since:since||0});ducks.length=0;lay.forEach(s=>{const face=s.head!=null?s.head:(+c.speed>0?-s.yaw:s.yaw);const age=+s.age||0,drop=1500,falling=!!since&&age<drop;const ph=s.ph!=null?+s.ph:s.i;ducks.push({key:'s'+s.i,x:s.x,z:s.z,y:falling?14*(1-age/drop):WY-.04+Math.sin(ph*2.1)*.035,vy:0,st:falling?'fall':'swim',yaw:face,tY:face,sp:.3,s:s.s,ph,spin:0,v:s.v,born:0,fade:1,sync:1});});}}
+    const lay=SY.ducks(now,RT.world,{rMax:rMax,every:everyMs,max:c.max,speed:+c.speed||0,size:c.size,kinds:c.kinds,ord:c.ord,on:1,since:since||0});ducks.length=0;lay.forEach(s=>{const face=s.head!=null?s.head:(+c.speed>0?-s.yaw:s.yaw);const age=+s.age||0,drop=1500,falling=!!since&&age<drop;const ph=s.ph!=null?+s.ph:s.i;ducks.push({key:'s'+s.i,x:s.x,z:s.z,y:falling?14*(1-age/drop):WY-.04+Math.sin(ph*2.1)*.035,vy:0,st:falling?'fall':'swim',yaw:face,tY:face,sp:.3,s:s.s,ph,spin:0,v:s.v,born:0,fade:1,sync:1});});}}
   else if(!c.on){ducks.length=0;everSpawned=0;cycleQ=[];cycleI=0;}
   else if(started&&t>nextT){
    if(ducks.filter(d=>d.st!=='fade').length>=c.max){ // 최대 → 가장 오래된 것 페이드 후 새 등장

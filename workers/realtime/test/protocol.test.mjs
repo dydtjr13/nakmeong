@@ -313,7 +313,7 @@ test("play, cue, recover and loss stay bounded to the target nick", () => {
   assert.equal(play.duckKinds, "base,pirate");
   assert.equal(play.duckEvery, undefined);
   const next = sanitizePlay({ duckEvery: 20, move: 9 }, play, { bump: true, now });
-  assert.equal(next.duckEvery, 15);
+  assert.equal(next.duckEvery, 20);
   assert.equal(next.move, 1);
   assert.equal(next.duckOn, 0);
   assert.equal(next.rev, play.rev + 1);

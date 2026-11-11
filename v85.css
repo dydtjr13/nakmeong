@@ -913,9 +913,10 @@ body.hp1.lvx1 #lvB .lx .tt,body.hp1.lvx3 #lvB .lx .tt{font-size:11.5px!important
 @media(max-width:699px){body.m3 #mStat{max-width:calc(100vw - 56px)}body.m3 #mStat #streak{flex:none!important}body.m3 #mStat #coins{flex:none}body.m3 #mStat #lvB{flex:none!important}}
 @media(max-width:430px){body.m3 #lvB .lx .nr small{display:none}body.m3 #mStat #streak{flex:0 0 auto!important}}
 /* v115 자동 업데이트 알림 */
-#updPill{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,20px);opacity:0;pointer-events:none;z-index:3000;display:flex;align-items:center;gap:10px;background:#3b3346ee;color:#fff;border-radius:999px;padding:7px 8px 7px 16px;font-size:13px;font-weight:700;white-space:nowrap;box-shadow:0 6px 18px #0004;transition:.25s}
-#updPill.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}#updPill button{border:0;background:#f2a06b;color:#fff;border-radius:999px;padding:6px 12px;font-weight:800;font-size:12.5px;cursor:pointer}
-@media(max-width:600px){#updPill{font-size:11.5px;max-width:94vw}#updPill span{overflow:hidden;text-overflow:ellipsis}}
+#updPill,#tabStale{position:fixed;left:50%;top:calc(88px + env(safe-area-inset-top));transform:translate(-50%,-20px);opacity:0;pointer-events:none;z-index:6000;display:flex;align-items:center;gap:12px;background:#3b3346f2;color:#fff;border-radius:16px;padding:8px 8px 8px 16px;font-size:13.5px;font-weight:700;white-space:nowrap;box-shadow:0 8px 24px #0005;transition:.25s;border:1.5px solid #f2a06b}
+#updPill.on,#tabStale{opacity:1;transform:translate(-50%,0);pointer-events:auto}#updPill button,#tabStale button{border:0;background:#f2a06b;color:#fff;border-radius:12px;padding:7px 16px;font-weight:800;font-size:13px;cursor:pointer;flex:none}
+#tabStale{background:#5a2e2ef2;border-color:#ff8a7a;z-index:6001}#tabStale button{background:#ff7a6a}
+@media(max-width:600px){#updPill,#tabStale{font-size:11.5px;gap:8px;padding:6px 6px 6px 10px;top:calc(56px + env(safe-area-inset-top));left:74px;right:8px;max-width:none;justify-content:space-between;transform:translateY(-16px)}#updPill.on,#tabStale{transform:none}#updPill span,#tabStale span{overflow:hidden;text-overflow:ellipsis}#updPill button,#tabStale button{padding:6px 12px;font-size:12px}}
 
 /* v116 모바일 상태바: 칭호가 잘리지 않게 — 자리가 모자라면 선물 칸 숫자 → 골드 글자 순서로 줄여요 */
 body.m3.hudT1 #mStat #streak b,body.m3.hudT1 #mStat #streak .sk-bar,body.m3.hudT1 #mStat #streak .sk-d{display:none!important}body.m3.hudT1 #mStat #streak{padding-left:8px!important;padding-right:8px!important}
@@ -923,3 +924,10 @@ body.m3.hudT2 #mStat #coins{font-size:13px!important;padding-left:8px!important;
 body.m3 #lvB .lx .tt{max-width:none!important;overflow:visible!important;white-space:nowrap}
 /* v117 옮기기 창 분류 칩: 스크롤 칸에 아래 그림자가 잘리던 문제 */
 #tk3Pick .tk3pf{padding:4px 3px 8px;margin:0 -3px}#tk3Pick .tk3pf button{box-shadow:0 2px 0 #e3d6c4}
+/* v118 오리 등장 순서 */
+.dkord{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin:2px 0 10px}.dkord>b{font-size:13px;white-space:nowrap}
+.dkseg{display:inline-flex;background:#efe7da;border-radius:12px;padding:3px;gap:3px}.dkseg button{border:0;background:none;border-radius:9px;padding:5px 12px;font-weight:700;font-size:12.5px;white-space:nowrap;cursor:pointer;color:#6a5a48}.dkseg button.on{background:#fff;color:#3b3346;box-shadow:0 1px 4px #0002}
+.dkseq{display:flex;flex-wrap:wrap;gap:6px;width:100%}.dkchip{display:inline-flex;align-items:center;gap:4px;background:#fff;border:1.5px solid #e6dccb;border-radius:999px;padding:3px 4px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.dkchip i{font-style:normal;background:#f2a06b;color:#fff;border-radius:999px;min-width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:11px}
+.dkchip button{border:0;background:#f4eee4;border-radius:999px;width:22px;height:22px;font-size:10px;cursor:pointer;color:#6a5a48}.dkchip button:disabled{opacity:.3;cursor:default}
+.dkev{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}

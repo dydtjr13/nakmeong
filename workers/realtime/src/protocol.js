@@ -956,7 +956,10 @@ export function sanitizePlay(input, prev, opt) {
     else if (had && !prevOn) out.duckSince = now;
   }
   if ("duckSnd" in input) out.duckSnd = flag01(input.duckSnd);
-  if ("duckEvery" in input) out.duckEvery = snapList(input.duckEvery, DUCK_EVERY, snapList(base.duckEvery, DUCK_EVERY, 45));
+  // v118: 생성 간격은 관리자가 숫자(초)로 직접 써요 (5초 ~ 24시간)
+  if ("duckEvery" in input) { const n = Number(input.duckEvery); out.duckEvery = Number.isFinite(n) && n > 0 ? Math.max(5, Math.min(86400, Math.round(n))) : (Number.isFinite(+base.duckEvery) && +base.duckEvery > 0 ? Math.max(5, Math.min(86400, Math.round(+base.duckEvery))) : 45); }
+  // v118: 오리 등장 순서 — rand(랜덤) · seq(고른 순서대로)
+  if ("duckOrd" in input) out.duckOrd = input.duckOrd === "seq" ? "seq" : "rand";
   if ("duckMax" in input) out.duckMax = Math.max(0, Math.min(32, Math.round(finite(input.duckMax, base.duckMax != null ? base.duckMax : 8))));
   // v48: "rand"(랜덤)를 숫자 1로 바꾸지 않고 그대로 전달
   if ("duckSize" in input) out.duckSize = String(input.duckSize) === "rand" ? "rand" : snapList(input.duckSize, DUCK_SIZE, base.duckSize === "rand" ? 1 : snapList(base.duckSize, DUCK_SIZE, 1));
