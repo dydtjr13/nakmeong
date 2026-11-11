@@ -254,6 +254,11 @@ export class LakeRoom extends DurableObject {
   async ingest(msg) {
     if (!msg || typeof msg !== "object") return;
     const now = Date.now();
+    // v128: ⭐ 5성 완성 알림 띠 — 모든 호숫가·하늘섬에 그대로 전달 (저장하지 않음)
+    if (msg.t === "s5") {
+      this.broadcast({ t: "s5", nick: String(msg.nick || "").slice(0, 24), id: String(msg.id || "").slice(0, 40), srv: msg.srv | 0, k: String(msg.k || "").slice(0, 20), g: msg.g | 0 });
+      return;
+    }
     if (msg.t === "gamecfg" && msg.cfg) {
       await this.opsPut("game", msg.cfg);
       this.toAdmins({ t: "gamecfg", cfg: msg.cfg });
@@ -446,7 +451,8 @@ export class LakeRoom extends DurableObject {
       const n = sanitizeNotice(msg.notice, now);
       if (!n && msg.notice != null && !(msg.notice && (msg.notice.off || msg.notice.del))) return;
       const ch = n ? n.ch : ((msg.notice && msg.notice.ch) || "all");
-      await this.fan(fromId, [1, 2, 3, 4], { t: "notice", notice: n || { off: true, ch } });
+      // v128: 하늘섬(7번)까지 서버 전체에 공지
+      await this.fan(fromId, [1, 2, 3, 4, 7], { t: "notice", notice: n || { off: true, ch } });
       return;
     }
     if (msg.t === "event") {
@@ -668,6 +674,16 @@ export class LakeRoom extends DurableObject {
       } catch {
         /* already closing */
       }
+      return;
+    }
+    // v128: ⭐ 5성 완성 알림 — 서버 전체(1~4 · 7)로 · 한 사람당 8초에 한 번
+    if (msg.t === "s5") {
+      if (!prev.ready) return;
+      const now = Date.now();
+      if (now - (prev.lastS5 || 0) < 8000) return;
+      prev.lastS5 = now;
+      try { ws.serializeAttachment(prev); } catch { /* ignore */ }
+      await this.fan(prev.server, [1, 2, 3, 4, 7], { t: "s5", nick: prev.nick, id: prev.id, srv: prev.server, k: msg.k, g: msg.g });
       return;
     }
     // v93: 프로필·어항 엿보기 — 요청(pk)·답(pka)을 상대 한 명에게만 전달

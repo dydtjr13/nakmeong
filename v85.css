@@ -1020,3 +1020,13 @@ body.skyOn #wxCv,body.skyOn #wxCard{display:none!important}
 #flyUD em,#mslBtn em{font-style:normal}
 @media (hover:none),(max-width:760px){#flyUD em,#mslBtn em{display:none}}
 @media (max-width:760px){body.flying #flyUD{bottom:290px;right:10px}body.flying #mslBtn{right:80px;bottom:300px;width:64px;height:64px}}
+/* v128: 하이퍼카 부스터 버튼 · 바람 줄 */
+#hbLines{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:4;transition:opacity .25s;mix-blend-mode:screen}
+#hbBtn{--k:1;position:fixed;right:14px;bottom:205px;z-index:48;width:70px;height:70px;border-radius:50%;border:0;color:#fff;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;display:flex;flex-direction:column;align-items:center;justify-content:center;
+ background:radial-gradient(circle at 50% 38%,#ffb35c,#ff5a8a 62%,#8a4dff);box-shadow:0 6px 18px rgba(255,90,140,.45),inset 0 -3px 0 #0002}
+#hbBtn::before{content:'';position:absolute;inset:-4px;border-radius:50%;background:conic-gradient(#fff calc(var(--k)*360deg),rgba(255,255,255,.18) 0);-webkit-mask:radial-gradient(circle,transparent 33px,#000 34px);mask:radial-gradient(circle,transparent 33px,#000 34px)}
+#hbBtn span{font-size:26px;line-height:1}#hbBtn small{font-size:9.5px;font-weight:900;white-space:nowrap;margin-top:2px}#hbBtn em{font-style:normal}
+#hbBtn.on{animation:hbPulse .35s ease-in-out infinite alternate}#hbBtn.cd{filter:grayscale(.7) brightness(.85)}#hbBtn:active{transform:scale(.92)}
+@keyframes hbPulse{from{box-shadow:0 0 0 0 rgba(255,140,80,.7),0 6px 18px rgba(255,90,140,.45)}to{box-shadow:0 0 0 10px rgba(255,140,80,0),0 6px 18px rgba(255,90,140,.45)}}
+@media (hover:none),(max-width:760px){#hbBtn em{display:none}}
+@media (max-width:760px){#hbBtn{right:12px;bottom:290px;width:64px;height:64px}#hbBtn::before{-webkit-mask:radial-gradient(circle,transparent 30px,#000 31px);mask:radial-gradient(circle,transparent 30px,#000 31px)}}
