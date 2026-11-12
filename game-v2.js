@@ -4172,7 +4172,7 @@ LAB.push({k:'star5',n:'⭐ 5성 물고기 (시안 A)',d:'합성으로 5성(★�
 LAB.push({k:'skyIsland',n:'🌙 하늘섬 (별도 채널)',d:'나는 탈것을 타고 높이 36m 넘게 올라가면(Lv.50 이상) 「하늘섬으로 갈까요?」가 떠요. 하늘섬은 따로 된 채널이라 지상 사람은 안 보이고, 늘 밤인 별빛 정원에서 별자리 물고기 12종이 낚여요. 화면 위 「🏞 지상으로」로 원래 호숫가로 돌아와요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'petRide',n:'🐾 탈것에 펫 태우기',d:'펫을 데리고 탈것에 타면 펫도 같이 타요: 자동차 옆자리 · 비행기 날개 · 동물 등 뒤 · 로봇 어깨 · 택시·전투기는 지붕 위. 자리가 없으면(옆자리에 손님 등) 머리 위에 올라타요',scope:'me',o:[['on','켜기 (기본 · 모든 유저)'],['off','끄기']]});
 LAB.push({k:'jump',n:'🦘 점프',d:'걷거나 뛰는 중에 Space를 누르면 폴짝 뛰어요 (멈춰 있을 때 Space는 그대로 낚시). 다른 유저 화면에도 보여요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
-LAB.push({k:'camFx',n:'👀 1인칭 · 자동 둘러보기',d:'Ctrl+1(설정에서 V · Alt+1로 바꿀 수 있어요)로 1인칭 ↔ 3인칭. 자동 낚시 중이거나 40초 동안 아무것도 안 하면 카메라가 천천히 맵을 둘러봐요 · 아무 키나 누르면 돌아와요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
+LAB.push({k:'camFx',n:'👀 1인칭 · 자동 둘러보기',d:'Ctrl+1(설정에서 V · Alt+1로 바꿀 수 있어요)로 1인칭 ↔ 3인칭. 1분 동안 아무것도 안 하면(자동 낚시 중 포함) 카메라가 천천히 맵을 둘러봐요 · 아무 키나 누르면 돌아와요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 // 탈것 모델 (박스 로우폴리 · 펫과 같은 톤) — 앞쪽 = +z, 바닥 y=0, 타는 자리 seat:[x,y,z]
 const VEHB=(()=>{const T=THREE,M={},mat=(c,e)=>M[c+(e?'e':'')]||(M[c+(e?'e':'')]=e?new T.MeshBasicMaterial({color:c}):new T.MeshLambertMaterial({color:c,flatShading:true}));
  const B=(g,w,h,d,c,x,y,z,r,e)=>{const o=new T.Mesh(new T.BoxGeometry(w,h,d),mat(c,e));o.position.set(x,y,z);if(r)o.rotation.set(r[0]||0,r[1]||0,r[2]||0);g.add(o);return o;};
@@ -4790,8 +4790,9 @@ window.NK89.s5={s5Shop,s5Trade,s5Banner,s5Z,s5Shout};
 const skyOn=()=>!PREV&&opt('skyIsland','off')==='on';
 const SKYF=[['aries','양자리 은어','ice_smelt',3],['taurus','황소자리 메기','catfish',4],['gemini','쌍둥이자리 참붕어','chambungeo',5],['cancer','게자리 블루길','bluegill',6],['leo','사자자리 쏘가리','mandarin',7],['virgo','처녀자리 벚꽃송어','sakura_trout',8],['libra','천칭자리 떡붕어','tteokbungeo',9],['scorpio','전갈자리 가물치','snakehead',10],['sagittarius','궁수자리 강준치','gangjunchi',11],['capricorn','염소자리 꺽지','kkeokji',12],['aquarius','물병자리 은어','rainbow_ayu',1],['pisces','물고기자리 잉어','carp',2]];
 const SKYCOL={aries:'#7a8ae8',taurus:'#8a62c8',gemini:'#5ab8e0',cancer:'#d07ac0',leo:'#e8a040',virgo:'#e08ad0',libra:'#6ac8b8',scorpio:'#c84a7a',sagittarius:'#5a8ae8',capricorn:'#8a9ac8',aquarius:'#4aa8e8',pisces:'#9a7ae8'};
-{const has=(()=>{try{return skyOn()||JSON.stringify(S).includes('"k":"sky_');}catch(e){return false;}})();
- if(has)for(const [k,n,b,mo] of SKYF){const B=D.FISH.find(f=>f.k===b);if(!B||D.FISH.some(f=>f.k==='sky_'+k))continue;D.FISH.push(Object.assign({},B,{k:'sky_'+k,n,w:0,base:Math.round((B.base||10)*3),col:SKYCOL[k],img:'img/fish/sky_'+k+'.png',sky:1,mo,rare:undefined,night:undefined,nightOnly:undefined,wx:undefined,season:undefined}));}}
+// v133: 서버에서 하늘섬을 나중에 켜도(접속 뒤 인게임 적용) 별자리 물고기가 들어가게 — 처음 한 번 + 켜질 때
+function skyFishAdd(){for(const [k,n,b,mo] of SKYF){const B=D.FISH.find(f=>f.k===b);if(!B||D.FISH.some(f=>f.k==='sky_'+k))continue;D.FISH.push(Object.assign({},B,{k:'sky_'+k,n,w:0,base:Math.round((B.base||10)*3),col:SKYCOL[k],img:'img/fish/sky_'+k+'.png',sky:1,mo,rare:undefined,night:undefined,nightOnly:undefined,wx:undefined,season:undefined}));}}
+{const has=(()=>{try{return skyOn()||JSON.stringify(S).includes('"k":"sky_');}catch(e){return false;}})();if(has)skyFishAdd();addEventListener('nk-rt-play',()=>{try{if(skyOn())skyFishAdd();}catch(e){}});}
 const SKY={on:false,from:1,busy:false,g:null,hid:[],hx:undefined,asked:0};
 // 낚시: 하늘섬에서는 45% 확률로 별자리 물고기 (이번 달 별자리는 2배)
 let SKYPICK=false;{const _w=SYS.weights;SYS.weights=function(D_,S_){const r=_w.apply(this,arguments);if(!SKYPICK)return r;const mo=new Date(Date.now()+9*3600e3).getUTCMonth()+1;return D_.FISH.map(f=>f.sky?(f.mo===mo?2:1):0);};}
@@ -4849,7 +4850,7 @@ FHOOK.push(dt=>{if(!SKY.g)return;const t=performance.now()/1000;(SKY.lan||[]).fo
 setInterval(()=>{try{if(SKY.on&&SKY.g&&!SKY.busy)skyHide();}catch(e){}},1000);
 // 들어가기 · 나오기: 구름 연출 → 하늘섬 맵으로 다시 불러와요 (채널 7)
 function skyFx(on,txt){let el=$('skyFx');if(!el){el=document.createElement('div');el.id='skyFx';el.innerHTML='<div class="sfc"></div><b></b>';document.body.appendChild(el);}el.querySelector('b').textContent=txt||'';el.classList.toggle('on',!!on);}
-function skySwitch(toSky){if(SKY.busy)return;SKY.busy=true;try{if(mySeat)standUp();}catch(e){}try{if(fishing.state!=='off')endFish();}catch(e){}
+function skySwitch(toSky){if(SKY.busy)return;SKY.busy=true;if(toSky)try{skyFishAdd();}catch(e){}try{if(mySeat)standUp();}catch(e){}try{if(fishing.state!=='off')endFish();}catch(e){}
  const RT=window.NK_RT,cur=+(RT&&RT.serverId&&RT.serverId())||+CFG.ch||1;
  try{if(toSky){sessionStorage.setItem('nk_sky','1');sessionStorage.setItem('nk_skyFrom',String(cur>=1&&cur<=4?cur:1));}else{sessionStorage.removeItem('nk_sky');const f=+sessionStorage.getItem('nk_skyFrom')||1;CFG.ch=f;try{localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},JSON.parse(localStorage.getItem('nk_cfg')||'{}'),{ch:f})));}catch(_){}}}catch(e){}try{sessionStorage.setItem('nk_autogo',String(Date.now()));}catch(e){}
  S.vehRide=0;try{save();}catch(e){}skyFx(true,toSky?'🌙 하늘섬으로 날아가요…':'🏞 지상으로 내려가요…');setTimeout(()=>location.reload(),1300);}
@@ -4892,11 +4893,11 @@ const camFxOn=()=>!PREV&&opt('camFx','off')==='on';const FPV={on:false,set:false
 const fpKeyHit=e=>{const k=S.fpKey||'ctrl1';if(k==='v')return e.code==='KeyV'&&!e.ctrlKey&&!e.altKey&&!e.metaKey;if(k==='alt1')return e.altKey&&e.code==='Digit1';return (e.ctrlKey||e.metaKey)&&e.code==='Digit1';};
 addEventListener('keydown',e=>{if(!camFxOn()||!started||e.repeat)return;if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;if(!fpKeyHit(e))return;e.preventDefault();e.stopImmediatePropagation();FPV.on=!FPV.on;miniToast(FPV.on?'👀 1인칭 시점':'🎥 3인칭 시점',1200);},true);
 const tourIdle=()=>{TOUR.last=performance.now();if(TOUR.on){TOUR.on=false;TOUR.blend=0;const el=$('tourPill');if(el)el.classList.remove('on');}};
-['keydown','pointerdown','wheel','touchstart'].forEach(t=>addEventListener(t,tourIdle,{capture:true,passive:true}));
+['keydown','pointerdown','pointermove','wheel','touchstart'].forEach(t=>addEventListener(t,tourIdle,{capture:true,passive:true}));
 const _cv1=new THREE.Vector3(),_cv2=new THREE.Vector3();
 PHOOK.push(dt=>{if(!me)return;const on=camFxOn();
- // 자동 둘러보기: 자동 낚시 중 8초 · 그 밖에는 40초 동안 입력 없으면
- const idle=(performance.now()-TOUR.last)/1000,want=on&&S.tourOff!==true&&!anyModal()&&(S.autoFish?idle>8:idle>40)&&!flyNow();
+ // v133: 자동 둘러보기 — 자동 낚시 중이어도 1분 동안 입력(키·마우스·터치)이 없을 때만
+ const idle=(performance.now()-TOUR.last)/1000,want=on&&S.tourOff!==true&&!anyModal()&&idle>60&&!flyNow();
  if(want&&!TOUR.on){TOUR.on=true;TOUR.blend=0;TOUR.a=Math.atan2(cam.position.x,cam.position.z);let el=$('tourPill');if(!el){el=document.createElement('div');el.id='tourPill';el.textContent='🎥 둘러보는 중 · 아무 키나 누르면 돌아와요';document.body.appendChild(el);}el.classList.add('on');}
  if(TOUR.on&&!want)tourIdle();
  if(TOUR.on){TOUR.t+=dt;TOUR.a+=dt*.06;TOUR.blend=Math.min(1,TOUR.blend+dt*.35);const R=LR+16+Math.sin(TOUR.t*.11)*6,y=10+Math.sin(TOUR.t*.07)*5,ph=(Math.sin(TOUR.t*.05)+1)/2;
