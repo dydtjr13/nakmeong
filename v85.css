@@ -1042,7 +1042,7 @@ body.perf #dc{touch-action:none;-webkit-user-select:none;user-select:none;z-inde
 /* v136: 파라솔 높이 */
 #dcEd .dcbar{flex-wrap:nowrap;white-space:nowrap}#dcEd .dcbar button{padding:4px 8px;font-size:12px}#dcEd .dch5{font-size:11px;font-weight:700;min-width:46px}
 /* v136: 유저 관리 창 (시안 A) */
-#uWin{z-index:60}
+#uWin,#uWin.modal.show{z-index:110}
 #uWin .uw-win{background:#fffaf2;color:#3b3340;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:16px;display:flex;flex-direction:column;gap:11px;width:min(560px,94vw);max-height:90vh;overflow:auto}
 #uWin .uw-hd{display:flex;align-items:center;gap:8px}#uWin .uw-hd b{font-size:17px;white-space:nowrap}
 #uWin .uw-hd .x{margin-left:auto;width:30px;height:30px;border-radius:50%;background:#f1e6d8;border:0;font-size:13px;cursor:pointer;padding:0}
