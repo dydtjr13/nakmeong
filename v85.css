@@ -1205,3 +1205,16 @@ body.perf #dc{touch-action:none;-webkit-user-select:none;user-select:none;z-inde
 .cc.J{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:12px!important;background:rgba(255,253,248,.92)!important;border-left:4px solid var(--g)}
 .cc.J img.fi{width:42px;height:30px}.cc.J .nm{font-weight:900;font-size:13.5px}.cc.J .nm b{color:#c06a00}.cc.J .s{font-size:11.5px;color:#7a7080;display:flex;gap:5px;align-items:center}
 .uprow .upbtns{grid-template-columns:repeat(auto-fill,minmax(172px,1fr))}.uprow .upc>button:first-child span{white-space:nowrap;font-size:11.5px}
+/* v143: 순위 이름표에서 색 칭호 글자가 안 보이던 문제 (금색 배경이 칭호 색을 덮어써서 흰 글자가 묻힘) */
+.rk10 .t.cs,.rk10.k1 .t.cs,.rk10.k2 .t.cs,.rk10.k3 .t.cs{background:var(--tb)!important;color:var(--tf)!important;box-shadow:0 0 0 2px var(--td) inset,0 2px 6px rgba(0,0,0,.18)!important;white-space:nowrap}
+/* v143: 접속자 표시 A — 마우스를 올리면 총 접속자수 */
+#rtPill.rpv{pointer-events:auto;cursor:default}
+#rtPill.rpv:hover::after{content:attr(data-tip);position:absolute;right:0;bottom:calc(100% + 6px);background:#2a2140f0;color:#fff;font-size:12px;font-weight:800;padding:5px 10px;border-radius:9px;white-space:nowrap;box-shadow:0 4px 12px #0004}
+/* v143: 낚시 카드 E·F·G·J 폰 위치 */
+@media (max-width:699px){
+ body #toast:has(.cc.E){top:auto!important;bottom:calc(250px + env(safe-area-inset-bottom))!important;left:50%!important;right:auto!important;transform:translate(-50%,0)!important}
+ body #toast:has(.cc.F){top:calc(64px + env(safe-area-inset-top))!important;bottom:auto!important;left:50%!important;transform:translate(-50%,0)!important}
+ body #toast:has(.cc.G){top:calc(110px + env(safe-area-inset-top))!important;bottom:auto!important;left:auto!important;right:max(8px,env(safe-area-inset-right))!important;transform:none!important}
+ body #toast:has(.cc.J){top:auto!important;bottom:calc(250px + env(safe-area-inset-bottom))!important;left:max(8px,env(safe-area-inset-left))!important;right:auto!important;transform:none!important}
+ .cc.G{width:190px}.cc.G .gi{width:46px;height:46px}.cc.G img.fi{width:42px;height:34px}
+}
