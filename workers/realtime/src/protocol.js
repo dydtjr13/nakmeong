@@ -1036,6 +1036,10 @@ export function sanitizePlay(input, prev, opt) {
     }
     out.snowCfg = o;
   }
+  // v133: 테스트 기능 중 서버 목록에 빠져 있던 것 — 「인게임 적용」이 버려지고 내 화면(나만 보기)으로 돌아가던 문제
+  for (const k of ["jet", "hyper", "taxi", "boat", "star5", "skyIsland", "jump", "camFx", "fitUi", "vbUser"]) if (k in input) out[k] = pickOf(input[k], ["off", "on"]);
+  if ("petRide" in input) out.petRide = pickOf(input.petRide, ["on", "off"]);
+  if ("ncPick" in input) out.ncPick = pickOf(input.ncPick, ["ym", "yf", "om", "of"]);
   if ("petFish" in input) out.petFish = pickOf(input.petFish, ["off", "on"]);
   if ("neonBB" in input) out.neonBB = pickOf(input.neonBB, ["off", "on"]);
   if ("lvSt" in input) out.lvSt = pickOf(input.lvSt, ["1", "3", "old"]);

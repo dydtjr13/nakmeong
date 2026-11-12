@@ -12,6 +12,8 @@ const ROOT = path.resolve(new URL("..", import.meta.url).pathname);
 const OUT = path.join(ROOT, "_site");
 const SKIP = new Set([".git", ".github", "workers", "tools", "site", "_site", "node_modules"]);
 const MAX = 25 * 1024 * 1024;
+// v133: 테스트 기능 키가 서버 목록에 빠졌는지 경고만 (배포는 막지 않아요)
+try { execFileSync(process.execPath, [path.join(ROOT, "tools", "check-lab-keys.mjs")], { stdio: "inherit" }); } catch { /* 경고용 */ }
 
 await rm(OUT, { recursive: true, force: true });
 await mkdir(OUT, { recursive: true });
