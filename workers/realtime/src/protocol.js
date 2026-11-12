@@ -7,7 +7,7 @@ export const SERVERS = [
   { id: 4, name: "호숫가 4" },
 ];
 
-export const CAP = 50;
+export const CAP = 100; // v141: 호숫가·달 한 곳에 100명까지
 export const POSE_MS = 90;
 export const CHAT_MS = 700;
 export const HELLO_MS = 20000;

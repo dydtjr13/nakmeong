@@ -259,6 +259,21 @@ export class LakeRoom extends DurableObject {
       this.broadcast({ t: "s5", nick: String(msg.nick || "").slice(0, 24), id: String(msg.id || "").slice(0, 40), srv: msg.srv | 0, k: String(msg.k || "").slice(0, 20), g: msg.g | 0 });
       return;
     }
+    if (msg.t === "xchat" && msg.ev && typeof msg.ev === "object") {
+      const ev = msg.ev, from = msg.from | 0;
+      const text = String(ev.text || "").slice(0, 200), nick = String(ev.nick || "").slice(0, 24);
+      if (!text || !nick || !LakeRoom.isPub(from)) return;
+      this.broadcast({ t: "chat", id: `x${from}:${String(ev.id || "").slice(0, 40)}`, nick, text, adm: ev.adm ? 1 : 0, via: from });
+      return;
+    }
+    if (msg.t === "cnt") {
+      const srv = msg.srv | 0;
+      if (!LakeRoom.isPub(srv)) return;
+      this.cnt = this.cnt || {};
+      this.cnt[srv] = Math.max(0, Math.min(1000, msg.n | 0));
+      this.broadcast({ t: "cnt", by: this.cnt });
+      return;
+    }
     if (msg.t === "gamecfg" && msg.cfg) {
       await this.opsPut("game", msg.cfg);
       this.toAdmins({ t: "gamecfg", cfg: msg.cfg });
@@ -588,6 +603,46 @@ export class LakeRoom extends DurableObject {
     return out;
   }
 
+  /** v141: 🌙 달(7) ↔ 호숫가(1~4) — 채팅을 서로 보여 주고, 실접속 인원을 함께 세요 */
+  static isPub(srv) { return srv === 7 || SERVERS.some((s) => s.id === srv); }
+  postTo(ids, payload) {
+    const body = JSON.stringify(payload);
+    this.ctx.waitUntil(Promise.all(ids.map(async (id) => {
+      try { await this.env.LAKE.getByName(`lake-${id}`).fetch("https://lake.internal/ops", { method: "POST", body }); } catch { /* ignore */ }
+    })));
+  }
+  chatLink(srv, ev) {
+    if (!LakeRoom.isPub(srv) || !ev || ev.t !== "chat") return;
+    const to = srv === 7 ? SERVERS.map((s) => s.id) : [7];
+    this.postTo(to, { t: "xchat", from: srv, ev: { id: ev.id, nick: ev.nick, text: ev.text, adm: ev.adm ? 1 : 0 } });
+  }
+  cntPush(srv, except) {
+    if (!LakeRoom.isPub(srv)) return;
+    const n = this.readyCount(except);
+    this.cnt = this.cnt || {};
+    this.cnt[srv] = n;
+    this.broadcast({ t: "cnt", by: this.cnt });
+    this.postTo([...SERVERS.map((s) => s.id), 7].filter((id) => id !== srv), { t: "cnt", srv, n });
+  }
+  /** 이 방 인원을 처음 알게 될 때(방이 막 깨어났을 때) 다른 곳 인원을 한 번 물어 와요 */
+  cntFill(srv) {
+    if (!LakeRoom.isPub(srv)) return;
+    this.cnt = this.cnt || {};
+    const miss = [...SERVERS.map((s) => s.id), 7].filter((id) => id !== srv && !(id in this.cnt));
+    if (!miss.length) return;
+    this.ctx.waitUntil((async () => {
+      for (const id of miss) {
+        try { const o = await this.env.LAKE.getByName(`lake-${id}`).occupancy(); this.cnt[id] = o && Number.isFinite(o.n) ? o.n : 0; } catch { /* ignore */ }
+      }
+      this.broadcast({ t: "cnt", by: this.cnt });
+    })());
+  }
+  readyCount(except) {
+    let n = 0;
+    for (const ws of this.openSockets(except)) { const a = this.attachment(ws); if (a && a.ready) n++; }
+    return n;
+  }
+
   broadcast(obj, except) {
     const raw = JSON.stringify(obj);
     for (const ws of this.ctx.getWebSockets()) {
@@ -903,6 +958,7 @@ export class LakeRoom extends DurableObject {
       }
       if (next.event.t === "chat" && next.att.admin) next.event.adm = 1; // v100: 관리자 채팅 닉네임 빨강
       this.broadcast(next.event, ws);
+      this.chatLink(next.att.server, next.event);
       return;
     }
     const n = this.openSockets().length;
@@ -944,6 +1000,7 @@ export class LakeRoom extends DurableObject {
         server: next.att.server,
         n,
         cap: CAP,
+        by: Object.assign({}, this.cnt || {}, { [next.att.server]: n }),
         peers: this.readyOthers(ws).map(publicPeer),
         world,
         now: nowHello,
@@ -957,6 +1014,8 @@ export class LakeRoom extends DurableObject {
       }));
       if (next.att.admin) await this.sendReports(ws);
       this.broadcast({ t: "join", n, peer: next.pub }, ws);
+      this.cntPush(next.att.server);
+      this.cntFill(next.att.server);
       console.log(JSON.stringify({ event: "join", server: next.att.server, n }));
       return;
     }
@@ -981,6 +1040,7 @@ export class LakeRoom extends DurableObject {
     const n = this.openSockets(ws).length;
     this.broadcast({ t: "leave", id: att.id, n }, ws);
     console.log(JSON.stringify({ event: "leave", server: att.server, n }));
+    this.cntPush(att.server, ws);
   }
 
   async webSocketError(ws, error) {
@@ -1024,6 +1084,7 @@ export class LakeRoom extends DurableObject {
         try { ws.close(4002, "stale"); } catch { /* ignore */ }
         if (att.id) this.broadcast({ t: "leave", id: att.id, n: this.openSockets(ws).length }, ws);
         console.log(JSON.stringify({ event: "stale", server: att.server }));
+        this.cntPush(att.server, ws);
       } else live++;
     }
     await this.gameTick(now);

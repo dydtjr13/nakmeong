@@ -5,7 +5,7 @@
    연결이 실패하면 게임은 그대로 솔로(봇만)로 플레이됩니다. */
 (function () {
   const DEFAULT_BASE = "https://fishcozy-realtime.mi1ku.workers.dev";
-  const CAP = 50;
+  const CAP = 100;
   const qs = new URLSearchParams(location.search);
 
   function resolveBase() {
@@ -67,6 +67,10 @@
     status() { return this.mode; },
     serverId() { return this.sid; },
     count() { return this.mode === "on" ? this.n : 0; },
+    // v141: 호숫가 1~4 · 달(7) 실접속 인원 (서버가 서로 알려 줘요)
+    by: {},
+    total() { if (this.mode !== "on") return 0; let t = 0; for (const k in this.by) t += this.by[k] | 0; return Math.max(t, this.n | 0); },
+    moonN() { return this.mode === "on" ? (this.by[7] | 0) : 0; },
     peers() { return [...peers.values()]; },
   };
 
@@ -162,6 +166,7 @@
     RT.id = m.id || "";
     RT.n = m.n | 0;
     if (m.server) RT.sid = m.server;
+    RT.by = m.by && typeof m.by === "object" ? Object.assign({}, m.by) : {};
     peers.clear();
     (m.peers || []).forEach((p) => { if (p && p.id && p.id !== RT.id) peers.set(p.id, p); });
     if (m.nick) RT.serverNick = String(m.nick);
@@ -369,6 +374,7 @@
       else if (m.need) dispatchEvent(new CustomEvent("nk-rt-auth-need", { detail: m }));
       dispatchEvent(new CustomEvent("nk-rt-auth", { detail: { ok: !!m.ok } }));
     }
+    else if (m.t === "cnt" && m.by && typeof m.by === "object") { RT.by = Object.assign({}, m.by); if (RT.sid) RT.by[RT.sid] = Math.max(RT.by[RT.sid] | 0, 0); }
     else if (m.t === "chat" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-chat", { detail: m }));
     else if (m.t === "emote" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-emote", { detail: m }));
     else if (m.t === "titles") takeTitles(m.titles);
