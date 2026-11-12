@@ -1,4 +1,5 @@
 [
   {"k": "xmas1", "n": "Christmas with you", "src": "sounds/bgm/xmas1.mp3"},
-  {"k": "bgm1", "n": "BGM 1", "src": "sounds/bgm/bgm1.mp3"}
+  {"k": "bgm1", "n": "BGM 1", "src": "sounds/bgm/bgm1.mp3"},
+  {"k": "candy1", "n": "Clouds of candy", "src": "sounds/bgm/candy1.mp3"}
 ]

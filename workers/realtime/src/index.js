@@ -421,7 +421,8 @@ export class LakeRoom extends DurableObject {
 
   async acceptOps(fromId, msg) {
     const now = Date.now();
-    const all = [1, 2, 3, 4];
+    // v133b: 하늘섬(7)도 관리자 설정을 같이 받아요 — 빠져 있어서 하늘섬에 다녀오면 예전 설정(어항 위치 등)이 덮어썼어요
+    const all = [1, 2, 3, 4, 7];
     if (msg.t === "vbx") {
       const d = msg.d ? sanitizeVbxOne(msg.d) : null;
       if (msg.d && !d) return;
@@ -915,6 +916,14 @@ export class LakeRoom extends DurableObject {
       }
       const world = await this.worldGet();
       const ops = await this.welcomeOps();
+      // v133b: 하늘섬은 예전에 관리자 설정을 못 받았어요 — 호숫가 1의 설정이 더 새것이면 그걸로 맞추고 저장
+      if (next.att.server === 7) {
+        try {
+          const occ = await this.env.LAKE.getByName("lake-1").occupancy();
+          const p1 = occ && occ.play;
+          if (p1 && (!ops.play || (+p1.rev || 0) > (+ops.play.rev || 0))) { ops.play = p1; await this.opsPut("play", p1); }
+        } catch { /* ignore */ }
+      }
       const meNick = next.att.nick;
       const nowHello = Date.now();
       const mineUntil = grantUntilFor(ops.grants || {}, meNick, []);

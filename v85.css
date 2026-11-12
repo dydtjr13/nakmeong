@@ -1033,3 +1033,5 @@ body.skyOn #wxCv,body.skyOn #wxCard{display:none!important}
 /* v129: 비어 있는 날씨 카드가 빈 알약으로 보이던 것 · 가로 배치(D) 상단 바가 채팅 버튼과 겹치던 것 */
 #wxCard:empty,body.mx #hud #wxCard:empty,body.tx #hud #wxCard:empty{display:none!important}
 body.mx-D #hud #chatBtn{top:64px!important;right:max(14px,env(safe-area-inset-right))!important}
+/* v134: 성능 정보(드로우콜) 창 — 터치로 끌 때 화면 스크롤·확대가 끼어들지 않게, 다른 상단 버튼보다 위에 */
+body.perf #dc{touch-action:none;-webkit-user-select:none;user-select:none;z-index:900}
