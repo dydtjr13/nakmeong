@@ -1218,3 +1218,15 @@ body.perf #dc{touch-action:none;-webkit-user-select:none;user-select:none;z-inde
  body #toast:has(.cc.J){top:auto!important;bottom:calc(250px + env(safe-area-inset-bottom))!important;left:max(8px,env(safe-area-inset-left))!important;right:auto!important;transform:none!important}
  .cc.G{width:190px}.cc.G .gi{width:46px;height:46px}.cc.G img.fi{width:42px;height:34px}
 }
+/* v144: 🧩 장비 합성 */
+.wfbox{margin-top:12px;padding:10px 12px;border-radius:14px;background:#f4f0ff;border:1px solid #ded4f6}
+.wfh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:6px}.wfh b{white-space:nowrap}.wfh small{color:#7a7090;font-size:11.5px}
+.wfr{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;background:#fff;border-radius:10px;padding:6px 10px;margin-top:6px}
+.wfr .wfl{font-weight:900;color:#5a4a9a;white-space:nowrap}.wfr .wfc{font-size:12.5px;white-space:nowrap}.wfr button{white-space:nowrap;font-size:12px;padding:4px 10px}
+/* v144: 🍙 배고픔 표시 */
+#hgHud.hg{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;cursor:default}
+#hgHud .hgi{font-size:13px}#hgHud b{font-size:12px;min-width:18px;text-align:right}
+#hgHud .hgb{display:inline-block;width:46px;height:7px;border-radius:5px;background:rgba(0,0,0,.12);overflow:hidden}
+#hgHud .hgb i{display:block;height:100%;border-radius:5px;background:#5cc26a;transition:width .6s}
+#hgHud.mid .hgb i{background:#f2a33a}#hgHud.low .hgb i{background:#e8504a}#hgHud.low b{color:#d23a34}
+@media (max-width:699px){#hgHud .hgb{display:none}#hgHud{gap:3px}}
