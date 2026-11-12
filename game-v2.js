@@ -11,7 +11,7 @@ D.RODS.forEach(r=>{if(r.desc)r.desc=r.desc.replace(/\s*\(옵션 \d+슬롯\)/,"")
 const CFG=Object.assign({lay:'a',bots:9},JSON.parse(localStorage.getItem('nk_cfg')||'{}'));const LAYS={a:['ring',32],b:['alt',26],c:['bay',29],o:['ring',24]};
 // v121: 🌙 하늘섬 채널은 따로 된 작은 섬 맵으로 불러와요 (탭에 「하늘섬」 표시가 있을 때만 · 원래 설정은 그대로 저장)
 const SKYBOOT=(()=>{try{return sessionStorage.getItem('nk_sky')==='1';}catch(e){return false;}})();
-if(SKYBOOT){const real={lay:CFG.lay,decks:CFG.decks,bots:CFG.bots,deckW:CFG.deckW};LAYS.sky=['ring',13];Object.assign(CFG,{lay:'sky',decks:6,bots:0,deckW:''});
+if(SKYBOOT){const real={lay:CFG.lay,decks:CFG.decks,bots:CFG.bots,deckW:CFG.deckW};LAYS.sky=['ring',13];const _mt=(()=>{try{return sessionStorage.getItem('nk_moonT');}catch(e){return '';}})();Object.assign(CFG,_mt?{lay:'a',decks:10,bots:0,deckW:''}:{lay:'sky',decks:6,bots:0,deckW:''});
  try{const _si=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='nk_cfg'){try{const o=JSON.parse(v);Object.assign(o,real);for(const x in real)if(real[x]===undefined)delete o[x];v=JSON.stringify(o);}catch(e){}}return _si.call(this,k,v);};}catch(e){}}
 const BOOT={lay:'a',deckW:'',decks:25,bots:9,chN:4};
 // v79: 🧪 4인용 데크를 켜면 관리자 맵의 '데크 폭' 설정(넓은 데크)보다 먼저 적용해요 — 넓은 데크가 켜져 있으면 4인용이 꺼져 보이던 문제
@@ -2857,7 +2857,7 @@ function perfHud(dt){perfT+=dt;perfMin=Math.min(perfMin,1/Math.max(dt,1e-3));if(
  perfT=0;perfMin=999;}
 function frameBody(now){if(S.fpsCap&&now-last<1000/S.fpsCap-1.5){nextF();return;}const dt=Math.min((now-last)/1000,.05);last=now;T+=dt;time.t=worldFrac();const p=palette();setMB('bTime','🌗',p.name);
   if(snd.forceT>0){snd.forceT-=dt;if(snd.forceT<=0)snd.force=null;}NIGHT=p.night;updAmb(p);updRain(dt);try{bgmTick(dt);}catch(e){}
-  scene.background=p.sky;scene.fog.color.copy(p.sky);sun.color.copy(p.sun);sun.intensity=p.si;hemi.intensity=p.hemi;hemi.groundColor.copy(p.gnd);wU.deep.value.copy(p.deep);wU.shal.value.copy(p.shal);wU.sky.value.copy(p.sky);wU.night.value=p.night;wU.t.value=T;wU.mode.value=+(S.waterQ||5);dayGrade(p);if(window.NKGRADE)window.NKGRADE(p);if(MAPV.cur!=='old')try{MAPV.frame(p,dt);}catch(e){}for(const f of FHOOK)try{f(dt,p);}catch(e){}
+  if(window.__nkMoonBG){scene.background=window.__nkMoonBG;scene.fog.color.copy(window.__nkMoonBG);}else{scene.background=p.sky;scene.fog.color.copy(p.sky);}sun.color.copy(p.sun);sun.intensity=p.si;hemi.intensity=p.hemi;hemi.groundColor.copy(p.gnd);wU.deep.value.copy(p.deep);wU.shal.value.copy(p.shal);wU.sky.value.copy(p.sky);wU.night.value=p.night;wU.t.value=T;wU.mode.value=+(S.waterQ||5);dayGrade(p);if(window.NKGRADE)window.NKGRADE(p);if(MAPV.cur!=='old')try{MAPV.frame(p,dt);}catch(e){}for(const f of FHOOK)try{f(dt,p);}catch(e){}
   fireL.intensity=p.fire*(.82+Math.sin(T*13)*.07+Math.sin(T*7.1)*.06+Math.sin(T*23.7)*.04+(Math.random()-.5)*.05);fireMesh.userData.tick(T,dt,p.night);lanL.intensity=p.lan*NGX.lanMul();if(lanGlow)lanGlow.material.color.copy(lerpC('#d8d2c4',NGX.on()?'#ffe9a8':'#ffd27a',Math.min(1,p.night+p.lan*.3)));try{NGX.tick(p,T);}catch(e){}
   if(worldFish){worldFish.d.forEach((f,i)=>{f.a+=f.s*dt;M4.compose(V.set(Math.cos(f.a)*f.r,-.85,Math.sin(f.a)*f.r),Q.setFromAxisAngle(UP,-f.a+(f.s>0?-Math.PI/2:Math.PI/2)),SC.setScalar(f.sz));worldFish.m.setMatrixAt(i,M4);});worldFish.m.instanceMatrix.needsUpdate=true;}
   if(started&&me){// 이동
@@ -4096,7 +4096,7 @@ function wmCands(){const dyn=wmDyn(),out=[];scene.updateMatrixWorld(true);
  const walk=(o,inDyn)=>{if(!o.visible)return;if(dyn.has(o))return;if(o.isSkinnedMesh||o.isInstancedMesh||o.isSprite||o.isPoints||o.isLine||o.isLight)return;
   if(o.isMesh){const mt=o.material,g=o.geometry,A=g&&g.attributes;if(mt&&!Array.isArray(mt)&&!mt.transparent&&!mt.isShaderMaterial&&!mt.isRawShaderMaterial&&A&&A.position&&A.normal&&!(mt.map&&!A.uv)&&!(g.morphAttributes&&Object.keys(g.morphAttributes).length)&&!o.userData.tankPick&&!o.userData.merged&&!o.children.length&&(!g.index||g.index.count<60000))out.push(o);}
   for(const c of o.children)walk(c);};
- for(const c of scene.children){let sk=false;c.traverse(x=>{if(x.isSkinnedMesh)sk=true;});if(!sk)walk(c);}return out;}
+ for(const c of scene.children){if(c.userData&&c.userData.noMerge)continue;let sk=false;c.traverse(x=>{if(x.isSkinnedMesh)sk=true;});if(!sk)walk(c);}return out;}
 function wmMerge(snap){const groups=new Map(),nm=new THREE.Matrix3(),v=new THREE.Vector3();
  for(const o of wmCands()){const s0=snap.get(o);if(!s0||!o.matrixWorld.equals(s0))continue;const A=o.geometry.attributes,key=o.material.uuid+'|'+(A.uv&&o.material.map?'u':'')+(A.color&&o.material.vertexColors?'c':'')+'|'+(o.castShadow?1:0)+(o.receiveShadow?1:0)+'|'+o.renderOrder;let gr=groups.get(key);if(!gr)groups.set(key,gr={mt:o.material,list:[]});gr.list.push(o);}
  let saved=0;for(const {mt,list} of groups.values()){if(list.length<2)continue;const hasU=!!(mt.map&&list[0].geometry.attributes.uv),hasC=!!(mt.vertexColors&&list[0].geometry.attributes.color);let N=0;list.forEach(o=>{const g=o.geometry;N+=g.index?g.index.count:g.attributes.position.count;});if(N>600000)continue;
@@ -4957,7 +4957,7 @@ function skyHide(){const ms=MAPV.st&&MAPV.st();const hide=o=>{if(o&&o.visible){o
  scene.children.forEach(o=>{if(o===SKY.g||keep.has(o)||o.isLight||o.isCamera)return;if(o.userData&&(o.userData.merged||o.userData.prop)){hide(o);return;}const r=Math.hypot(o.position.x,o.position.z);if(r>LR+3.6&&r<400&&!o.isSprite)hide(o);});
  if(HX!==SKY.hxf){if(SKY.hx===undefined)SKY.hx=HX;SKY.hxf=(x,z)=>Math.hypot(x,z)<LR-.5?H0(x,z):.08;HX=SKY.hxf;}}
 function skyApply(on){
- if(on){if(SKY.g)return;SKY.hid=[];SKY.g=skyBuild();scene.add(SKY.g);skyHide();document.body.classList.add('skyOn');SKY.fog=[scene.fog.near,scene.fog.far];scene.fog.near=55;scene.fog.far=220;}
+ if(on){if(SKY.g)return;SKY.hid=[];SKY.g=MOONT?moonBuild():skyBuild();scene.add(SKY.g);skyHide();document.body.classList.add('skyOn');SKY.fog=[scene.fog.near,scene.fog.far];scene.fog.near=MOONT?160:55;scene.fog.far=MOONT?900:220;}
  else{if(!SKY.g)return;scene.remove(SKY.g);SKY.g.traverse(o=>{if(o.geometry)o.geometry.dispose();});SKY.g=null;SKY.lan=[];SKY.jump=[];SKY.hid.forEach(o=>o.visible=true);SKY.hid=[];if(SKY.hxf&&HX===SKY.hxf)HX=SKY.hx===undefined?null:SKY.hx;SKY.hx=undefined;SKY.hxf=null;document.body.classList.remove('skyOn');if(SKY.fog){scene.fog.near=SKY.fog[0];scene.fog.far=SKY.fog[1];}}
  try{chars.forEach(c=>{if(!c||!c.o)return;const o=c.o.position;if(!inDeck(o.x,o.z)&&o.y<3)o.y=Math.max(H(o.x,o.z),.1);});}catch(e){}}
 FHOOK.push(dt=>{if(!SKY.g)return;const t=performance.now()/1000;(SKY.lan||[]).forEach(L=>{L.position.y+=Math.sin(t*.8+L.userData.bob)*.004;L.rotation.y+=dt*.2;});(SKY.jump||[]).forEach(sp=>{const U=sp.userData,k=((t*.45+U.ph)%3)/3;if(k<.4){const q=k/.4;sp.visible=true;sp.position.set(U.x+(q-.5)*2.4,.3+Math.sin(q*Math.PI)*2.4,U.z);sp.material.rotation=(.5-q)*1.2;}else sp.visible=false;});});
@@ -4982,6 +4982,131 @@ setInterval(()=>{try{if(!skyOn()||SKY.on||SKY.busy||!started)return;const alt=VW
 setInterval(()=>{let b=$('skyBack');if(!SKY.on){if(b)b.style.display='none';return;}if(!b){b=document.createElement('button');b.id='skyBack';b.type='button';b.innerHTML='<span class="lb">🌙 하늘섬</span><b>🏞 지상으로</b>';b.onclick=()=>confirmBox('<h3>🏞 지상으로 갈까요?</h3><p>원래 호숫가로 돌아가요</p>',()=>skySwitch(false));document.body.appendChild(b);}b.style.display='';
  try{if(SKY.gate&&me&&!SKY.busy&&!anyModal()){const gp=SKY.gate.position,d=Math.hypot(me.o.position.x-gp.x,me.o.position.z-gp.z);if(d<1.8&&!SKY.gn){SKY.gn=1;confirmBox('<h3>🌙 달빛 문</h3><p>원래 호숫가로 돌아갈까요?</p>',()=>skySwitch(false));}else if(d>3)SKY.gn=0;}}catch(e){}},400);
 {const _rp=rtPill;rtPill=function(){_rp.apply(this,arguments);try{const el=$('rtPill');if(el&&SKY.on&&/호숫가 7/.test(el.textContent))el.textContent=el.textContent.replace('호숫가 7','🌙 하늘섬');}catch(e){}};}
+// v139 🧪 달 낚시터 시안 (sessionStorage nk_moonT = '1'|'2'|'3') — 하늘섬 대신 둥근 달 · 2인 데크 · 지구 · 별자리
+const MOONBG=new THREE.Color('#05060f');
+const MOONT=(()=>{try{return SKYBOOT?(sessionStorage.getItem('nk_moonT')||''):'';}catch(e){return '';}})();
+const MOONX=(()=>{try{return (sessionStorage.getItem('nk_moonX')||'').split(',').filter(Boolean);}catch(e){return [];}})();
+function moonNoise(){let sd=7;const rnd=()=>((sd=(sd*16807)%2147483647)/2147483647);const HP=new Uint8Array(512);{const p=[...Array(256).keys()];for(let i=255;i>0;i--){const j=Math.floor(rnd()*(i+1));[p[i],p[j]]=[p[j],p[i]];}for(let i=0;i<512;i++)HP[i]=p[i&255];}
+ const fade=t=>t*t*(3-2*t),h=(x,y,z)=>HP[HP[HP[x&255]+(y&255)]+(z&255)]/255;
+ const vn=(x,y,z)=>{const X=Math.floor(x),Y=Math.floor(y),Z=Math.floor(z),fx=fade(x-X),fy=fade(y-Y),fz=fade(z-Z),L=(a,b,t)=>a+(b-a)*t;return L(L(L(h(X,Y,Z),h(X+1,Y,Z),fx),L(h(X,Y+1,Z),h(X+1,Y+1,Z),fx),fy),L(L(h(X,Y,Z+1),h(X+1,Y,Z+1),fx),L(h(X,Y+1,Z+1),h(X+1,Y+1,Z+1),fx),fy),fz);};
+ const fbm=(x,y,z,o=5)=>{let a=0,f=1,w=.5,t=0;for(let i=0;i<o;i++){a+=vn(x*f,y*f,z*f)*w;t+=w;f*=2.03;w*=.5;}return a/t;};return {rnd,fbm};}
+function moonBuild(){const T=THREE,g=new T.Group();g.name='moon';g.userData.noMerge=1;const {rnd,fbm}=moonNoise(),V=MOONT;const blue=V==='2',warm=V==='3';
+ const P=LR+11,RM=78,cy=Math.sqrt(RM*RM-P*P);
+ // 달 표면 그림 (참고 사진: 밝은 고지 · 얼룩진 바다 · 빛줄기 크레이터)
+ const tex=(Wd,Hd,fn)=>{const c=document.createElement('canvas');c.width=Wd;c.height=Hd;const x=c.getContext('2d'),im=x.createImageData(Wd,Hd),d=im.data;for(let j=0;j<Hd;j++){const la=(.5-j/Hd)*Math.PI,cl=Math.cos(la),sl=Math.sin(la);for(let i=0;i<Wd;i++){const lo=i/Wd*Math.PI*2,o=fn(Math.cos(lo)*cl,sl,Math.sin(lo)*cl),k=(j*Wd+i)*4;d[k]=o[0];d[k+1]=o[1];d[k+2]=o[2];d[k+3]=255;}}x.putImageData(im,0,0);return c;};
+ const mt=tex(1024,512,(x,y,z)=>{const m=fbm(x*1.6+3,y*1.6,z*1.6+7,5),e=fbm(x*9,y*9,z*9,3),f=fbm(x*28,y*28,z*28,2);const sea=Math.max(0,Math.min(1,(m-.5)*7+(e-.5)*1.6));let v=.8+(f-.5)*.2+(e-.5)*.12;v*=1-sea*.4;return blue?[v*190,v*215,v*250]:[v*232,v*230,v*236];});
+ {const x=mt.getContext('2d');const cr=(cx,cy2,r)=>{const g2=x.createRadialGradient(cx+r*.18,cy2+r*.18,r*.05,cx,cy2,r);g2.addColorStop(0,'rgba(70,70,82,.3)');g2.addColorStop(.72,'rgba(90,90,100,.15)');g2.addColorStop(.9,'rgba(255,255,255,.2)');g2.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g2;x.beginPath();x.arc(cx,cy2,r,0,7);x.fill();};
+  for(let i=0;i<300;i++)cr(rnd()*1024,40+rnd()*440,1+Math.pow(rnd(),3)*22);for(let k=0;k<4;k++){const cx=rnd()*1024,cy2=150+rnd()*250;for(let i=0;i<40;i++){const a=rnd()*7,l=40+rnd()*120;x.strokeStyle='rgba(255,255,255,.1)';x.lineWidth=1+rnd()*2;x.beginPath();x.moveTo(cx,cy2);x.lineTo(cx+Math.cos(a)*l,cy2+Math.sin(a)*l*.6);x.stroke();}}}
+ const mtx=new T.CanvasTexture(mt);mtx.encoding=T.sRGBEncoding;
+ // 달 몸통: 큰 구의 윗부분을 평평하게 깎아 그 위가 낚시터 (멀리 보면 둥근 지평선)
+ const sg=new T.SphereGeometry(RM,160,110);sg.rotateZ(Math.PI/2);sg.rotateY(.6);{const p=sg.attributes.position;for(let i=0;i<p.count;i++){let x=p.getX(i),y=p.getY(i)-cy,z=p.getZ(i);const r=Math.hypot(x,z);
+   if(y>0){y=0;}if(r<LR-.4&&y>=-.01)y=-2.6;else if(r<LR+.8&&y>=-.01)y=-2.6*Math.max(0,Math.min(1,(LR+.8-r)/1.2));
+   if(y<-.5&&y>-30){const n=fbm(x*.08,y*.08,z*.08,3);y+=(n-.5)*3;}
+   p.setXYZ(i,x,y+.04,z);}sg.computeVertexNormals();}
+ const body=new T.Mesh(sg,new T.MeshStandardMaterial({map:mtx,bumpMap:mtx,bumpScale:.6,roughness:1,metalness:0,color:blue?'#a8bff0':'#e0dedb'}));body.receiveShadow=true;g.add(body);
+ // 평평한 낚시터 바닥: 고운 달 흙 그림 (작은 크레이터 · 발자국 · 돌)
+ {const c=document.createElement('canvas');c.width=c.height=2048;const x=c.getContext('2d');x.scale(2,2);x.fillStyle=blue?'#8e9cba':'#a9a6a2';x.fillRect(0,0,1024,1024);for(let i=0;i<60;i++){const cx=rnd()*1024,cy2=rnd()*1024,r=60+rnd()*160,g2=x.createRadialGradient(cx,cy2,0,cx,cy2,r);g2.addColorStop(0,rnd()<.5?'rgba(255,255,255,.07)':'rgba(30,30,40,.08)');g2.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=g2;x.fillRect(cx-r,cy2-r,r*2,r*2);}
+  for(let i=0;i<14000;i++){const v=rnd();x.fillStyle=v<.5?`rgba(255,255,255,${rnd()*.08})`:`rgba(40,40,50,${rnd()*.08})`;x.fillRect(rnd()*1024,rnd()*1024,1+rnd()*3,1+rnd()*3);}
+  for(let i=0;i<90;i++){const cx=rnd()*1024,cy2=rnd()*1024,r=2+Math.pow(rnd(),2.5)*22;const g2=x.createRadialGradient(cx+r*.2,cy2+r*.2,r*.1,cx,cy2,r);g2.addColorStop(0,'rgba(60,60,70,.32)');g2.addColorStop(.75,'rgba(80,80,90,.14)');g2.addColorStop(.9,'rgba(255,255,255,.22)');g2.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g2;x.beginPath();x.arc(cx,cy2,r,0,7);x.fill();}
+  const gt=new T.CanvasTexture(c);gt.encoding=T.sRGBEncoding;gt.wrapS=gt.wrapT=T.RepeatWrapping;gt.anisotropy=8;
+  const ring=new T.Mesh(new T.RingGeometry(LR+.75,P-.3,128,4),new T.MeshStandardMaterial({map:gt,bumpMap:gt,bumpScale:.25,roughness:1,color:'#ffffff'}));ring.rotation.x=-Math.PI/2;ring.position.y=.06;ring.receiveShadow=true;
+  // 링 uv를 xz 평면 기준으로
+  {const p=ring.geometry.attributes.position,uv=ring.geometry.attributes.uv;for(let i=0;i<p.count;i++)uv.setXY(i,(p.getX(i)+P)/(2*P),(p.getY(i)+P)/(2*P));}g.add(ring);
+  // 호숫가 테두리: 매끈한 하얀 돌 띠
+  const rim=new T.Mesh(new T.TorusGeometry(LR+.25,.32,8,128),new T.MeshStandardMaterial({color:blue?'#cfe0ff':'#dcd8d2',roughness:.8}));rim.rotation.x=Math.PI/2;rim.position.y=.05;g.add(rim);}
+ // 돌 · 작은 크레이터 언덕 (데크와 길은 피해서)
+ const okA=a=>!decks.some(d=>{const da=Math.atan2(d.cz,d.cx);let q=Math.abs(da-a)%(Math.PI*2);q=Math.min(q,Math.PI*2-q);return q<.2;});
+ const rockM=new T.MeshStandardMaterial({color:blue?'#8ea4c8':'#9c9892',roughness:1,flatShading:true});
+ for(let i=0;i<70;i++){const a=rnd()*Math.PI*2,r=LR+2+rnd()*(P-LR-1);if(r<LR+8.5&&!okA(a))continue;const s=.15+Math.pow(rnd(),2.2)*(r>LR+8?1.4:.6);const m=new T.Mesh(new T.DodecahedronGeometry(s,0),rockM);m.position.set(Math.cos(a)*r,s*.35,Math.sin(a)*r);m.rotation.set(rnd()*3,rnd()*3,rnd()*3);m.scale.y=.7;m.castShadow=true;g.add(m);}
+ // 호수: 별이 비치는 물 (게임의 호수 물 위에 별 반짝임)
+ for(let i=0;i<60;i++){const a=rnd()*6.28,r=Math.sqrt(rnd())*(LR-1.5);skyGlow(g,Math.cos(a)*r,.07,Math.sin(a)*r,i%4?(blue?'#bff4ff':'#dfeaff'):'#fff1a8',.25+rnd()*.45);}
+ const lakeGlow=new T.Mesh(new T.CircleGeometry(LR-.2,64),new T.MeshBasicMaterial({color:blue?'#3ab8ff':'#2a5fd0',transparent:true,opacity:blue?.22:.14,blending:T.AdditiveBlending,depthWrite:false}));lakeGlow.rotation.x=-Math.PI/2;lakeGlow.position.y=.03;g.add(lakeGlow);
+ // 빛: 해(옆에서) + 지구빛(푸른)
+ const sun=new T.DirectionalLight(warm?'#ffe8c8':'#fff6ea',blue?.55:.8);sun.position.set(-90,45,30);g.add(sun);g.add(sun.target);
+ const es=new T.DirectionalLight('#7fb0ff',blue?.9:.45);es.position.set(120,60,-260);g.add(es);g.add(new T.HemisphereLight(blue?'#5a7ac8':'#6a7898','#1a1a24',blue?.55:.4));
+ // 따뜻한 등불 (시안 3): 데크 사이 물가 길을 따라
+ if(warm){const ds=decks.slice().sort((a,b)=>Math.atan2(a.cz,a.cx)-Math.atan2(b.cz,b.cx));for(let i=0;i<ds.length;i++){const a1=Math.atan2(ds[i].cz,ds[i].cx),a2=Math.atan2(ds[(i+1)%ds.length].cz,ds[(i+1)%ds.length].cx)+(i===ds.length-1?Math.PI*2:0),m=(a1+a2)/2,r=LR+3.2,x=Math.cos(m)*r,z=Math.sin(m)*r;
+   const pole=new T.Mesh(new T.CylinderGeometry(.05,.07,1.6,6),new T.MeshStandardMaterial({color:'#3a3440'}));pole.position.set(x,.8,z);g.add(pole);const lt=new T.Mesh(new T.CylinderGeometry(.18,.14,.32,8),new T.MeshStandardMaterial({color:'#ffc870',emissive:'#ff9a3a',emissiveIntensity:1}));lt.position.set(x,1.72,z);g.add(lt);skyGlow(g,x,1.72,z,'#ffc87a',2.2);const pl=new T.PointLight('#ffb060',1.1,9,2);pl.position.set(x,1.9,z);g.add(pl);}}
+ const skyG=new T.Group();g.add(skyG);SKY.skyG=skyG;
+ // 지구: 늘 화면을 향하는 둥근 그림 (어디서 봐도 동그랗게)
+ {const ES=512,c=document.createElement('canvas');c.width=c.height=ES;const x=c.getContext('2d'),im=x.createImageData(ES,ES),d=im.data,rr=ES*.4,c0=ES/2,L=new T.Vector3(-.75,.35,.56).normalize(),rot=1.9;
+  for(let j=0;j<ES;j++)for(let i=0;i<ES;i++){const dx=(i-c0)/rr,dy=(c0-j)/rr,q=dx*dx+dy*dy,k=(j*ES+i)*4;if(q>1){const dd=Math.sqrt(q);if(dd<1.22){const a=Math.pow(1-(dd-1)/.22,2.2),lit=Math.max(.15,(dx*L.x+dy*L.y)/dd*.6+.55);d[k]=90*lit;d[k+1]=170*lit;d[k+2]=255*lit;d[k+3]=a*200;}continue;}
+   const nz=Math.sqrt(1-q),px=dx*Math.cos(rot)+nz*Math.sin(rot),pz=-dx*Math.sin(rot)+nz*Math.cos(rot),py=dy;const h=fbm(px*1.7+11,py*1.7+3,pz*1.7,5),dt=fbm(px*7,py*7,pz*7,3),cl=fbm(px*3.2+40,py*5+2,pz*3.2,4),lat=Math.abs(py);let r,gg,b;
+   if(h>.54){const e=(h-.54)/.2,dry=fbm(px*2.4+5,py*2.4,pz*2.4+9,3);if(dry>.55&&lat<.5){r=196+dt*30;gg=168+dt*20;b=112;}else{r=70+e*60+dt*25;gg=130+e*30+dt*25;b=58+dt*10;}}else{const dep=Math.min(1,(.54-h)*4);r=22+(1-dep)*30;gg=82+(1-dep)*70;b=170+(1-dep)*50;}
+   if(lat>.86){const s2=Math.min(1,(lat-.86)/.05);r+=(245-r)*s2;gg+=(250-gg)*s2;b+=(255-b)*s2;}const cc=Math.max(0,Math.min(1,(cl-.55)*4.5));r+=(250-r)*cc*.9;gg+=(252-gg)*cc*.9;b+=(255-b)*cc*.9;
+   const lam=Math.max(0,dx*L.x+dy*L.y+nz*L.z),lit=.12+.98*Math.pow(lam,.85),rim=Math.pow(1-nz,3);d[k]=Math.min(255,r*lit+rim*80);d[k+1]=Math.min(255,gg*lit+rim*140);d[k+2]=Math.min(255,b*lit+rim*230);d[k+3]=255;}
+  x.putImageData(im,0,0);const et=new T.CanvasTexture(c);et.encoding=T.sRGBEncoding;const sp=new T.Sprite(new T.SpriteMaterial({map:et,transparent:true,depthWrite:false,fog:false}));sp.scale.set(80,80,1);sp.position.set(170,80,-420).setLength(300);skyG.add(sp);SKY.earth=sp;}
+ // 별 · 은하수 · 별자리 12개 (이름 없이)
+ {const n=3500,pa=new Float32Array(n*3);for(let i=0;i<n;i++){const a=rnd()*Math.PI*2,y=rnd()*1.6-.45,rr=Math.sqrt(Math.max(0,1-y*y)),D=350;pa.set([Math.cos(a)*rr*D,y*D,Math.sin(a)*rr*D],i*3);}const gg=new T.BufferGeometry();gg.setAttribute('position',new T.BufferAttribute(pa,3));skyG.add(new T.Points(gg,new T.PointsMaterial({color:'#ffffff',size:1.4,sizeAttenuation:false,fog:false})));}
+ const ZOD=[[[0,0],[1.2,.4],[2.1,.5],[2.5,1.2]],[[0,0],[1,.6],[1.6,.2],[2.2,.9],[1.7,-.6],[2.6,-1],[3.2,1.5]],[[0,2],[.4,1],[.6,0],[.9,-1],[1.2,2.2],[1.5,1.1],[1.8,.1],[2.1,-.9]],[[0,0],[.3,.9],[-.6,1.6],[1.1,1.7],[.4,2.4]],[[0,0],[1,.3],[2,0],[2.8,.6],[2.6,1.4],[2,1.8],[1.4,1.5],[-.8,.8]],[[0,0],[.9,.5],[1.8,.3],[2.6,.9],[1.4,1.4],[.5,1.8],[3.2,.1]],[[0,0],[1,.8],[2,0],[1,-1],[.2,-1.8],[1.9,-1.7]],[[0,2],[.3,1.4],[.5,.8],[.9,.2],[1.5,-.3],[2.2,-.5],[2.8,-.2],[3.1,.4],[2.8,.9],[-.4,2.6],[.5,2.6]],[[0,0],[1,0],[1.4,.9],[.6,1.1],[0,.8],[1.9,.2],[1.9,1.6],[2.5,.9]],[[0,1],[.8,.2],[1.8,-.3],[2.8,.1],[3.4,.9],[2.2,.8],[1.2,1.1]],[[0,1.5],[.8,1.2],[1.4,1.6],[2,1],[1.6,.3],[2.4,-.2],[3,.4],[3.6,-.1]],[[0,0],[.9,.3],[1.8,.5],[2.7,.9],[3.4,1.6],[3,2.3],[2.6,1.9],[1.8,-.2],[1,-.8],[.4,-1.4],[.9,-2]]];
+ const LN=[[[0,1],[1,2],[2,3]],[[0,1],[1,2],[2,4],[4,5],[2,3],[3,6]],[[0,1],[1,2],[2,3],[4,5],[5,6],[6,7],[0,4]],[[0,1],[1,2],[1,3],[1,4]],[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,1],[0,7]],[[0,1],[1,2],[2,3],[1,4],[4,5],[2,6]],[[0,1],[1,2],[2,3],[3,0],[3,4],[2,5]],[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[0,9],[0,10]],[[0,1],[1,2],[2,3],[3,4],[4,0],[1,5],[2,6],[5,7],[6,7]],[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,0]],[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7]],[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,4],[0,7],[7,8],[8,9],[9,10]]];
+ const segs=[],pts=[];ZOD.forEach((st,i)=>{const az=i/12*Math.PI*2+.4,el=.32+((i*5)%3)*.13,D=320,sc=12.5;const c=new T.Vector3(Math.sin(az)*Math.cos(el),Math.sin(el),-Math.cos(az)*Math.cos(el)).multiplyScalar(D),rt=new T.Vector3().crossVectors(c,new T.Vector3(0,1,0)).normalize(),u2=new T.Vector3().crossVectors(rt,c).normalize();const cx=st.reduce((a,p)=>a+p[0],0)/st.length,cyy=st.reduce((a,p)=>a+p[1],0)/st.length;const P2=st.map(([x,y])=>c.clone().addScaledVector(rt,(x-cx)*sc).addScaledVector(u2,(y-cyy)*sc));LN[i].forEach(([a,b])=>segs.push(P2[a],P2[b]));pts.push(...P2);});
+ skyG.add(new T.LineSegments(new T.BufferGeometry().setFromPoints(segs),new T.LineBasicMaterial({color:blue?'#9fd0ff':'#a8b8ff',transparent:true,opacity:.55,fog:false})));
+ skyG.add(new T.Points(new T.BufferGeometry().setFromPoints(pts),new T.PointsMaterial({color:'#ffffff',size:4.5,sizeAttenuation:false,fog:false})));
+ // 소품 시안 (nk_moonX: lander,rover,rabbit,scope)
+ moonProps(g,rnd);
+ SKY.moon=true;window.__nkMoonBG=MOONBG;return g;}
+FHOOK.push(()=>{if(SKY.skyG&&SKY.g)SKY.skyG.position.copy(cam.position);});
+// 달: 지상 소품(벤치 등)이 남지 않게 한 번 더 숨겨요
+function moonHide(){if(!SKY.moon)return;const keep=new Set([SKY.g]);try{chars.forEach(c=>{if(c){keep.add(c.o);keep.add(c.tag);}});if(VW.me)keep.add(VW.me);if(PETW.me)keep.add(PETW.me);}catch(e){}const bb=new THREE.Box3(),v=new THREE.Vector3();
+ scene.children.forEach(o=>{if(keep.has(o)||o.isLight||o.isCamera||!o.visible)return;try{bb.setFromObject(o);if(bb.isEmpty())return;bb.getCenter(v);const sz=bb.getSize(new THREE.Vector3());if(sz.x>2*LR+12)return;if(Math.hypot(v.x,v.z)>LR+3.6){o.visible=false;SKY.hid.push(o);}}catch(e){}});}
+setInterval(()=>{try{moonHide();}catch(e){}},1500);
+// 🧪 달 우주 헬멧 시안 (sessionStorage nk_helm = A 유리 헬멧 | B 헬멧+산소통 | C 헬멧+하얀 우주복)
+const HELM=(()=>{try{return sessionStorage.getItem('nk_helm')||'';}catch(e){return '';}})();
+function helmFor(o,head,style,pet){const T=THREE;if(!o||o.userData.helm)return;o.userData.helm=1;o.updateMatrixWorld(true);const bb=new T.Box3();
+ let tgt=head,R;if(head){const hm=o.getObjectByName('head-mesh');bb.setFromObject(hm||head);if(bb.isEmpty()||bb.getSize(new T.Vector3()).length()<.01){bb.setFromCenterAndSize(head.getWorldPosition(new T.Vector3()).add(new T.Vector3(0,.3,0)),new T.Vector3(.7,.7,.7));}const sz=bb.getSize(new T.Vector3());R=Math.max(sz.x,sz.y,sz.z)*.5;}else{bb.setFromObject(o);const sz=bb.getSize(new T.Vector3());R=Math.max(sz.y*.36,Math.max(sz.x,sz.z)*.3);tgt=o;}
+ const ws=new T.Vector3();tgt.getWorldScale(ws);const k=1/ws.x;const G=new T.Group();
+ const glass=new T.Mesh(new T.SphereGeometry(R*k,32,24),new T.MeshStandardMaterial({color:'#dff4ff',transparent:true,opacity:.26,roughness:.05,metalness:.2,depthWrite:false,side:T.DoubleSide}));glass.renderOrder=20;G.add(glass);
+ const hl=new T.Mesh(new T.SphereGeometry(R*k*1.002,24,16,-.9,.9,.4,.7),new T.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:.45,depthWrite:false,side:T.DoubleSide}));hl.renderOrder=21;G.add(hl);
+ const ring=new T.Mesh(new T.TorusGeometry(R*k*.72,R*k*.12,10,28),new T.MeshStandardMaterial({color:'#f4f4f6',roughness:.45,metalness:.2}));ring.rotation.x=Math.PI/2;ring.position.y=-R*k*.68;G.add(ring);
+ if(!pet){const ant=new T.Mesh(new T.CylinderGeometry(R*k*.03,R*k*.03,R*k*.5,6),new T.MeshStandardMaterial({color:'#c8ccd8'}));ant.position.set(R*k*.45,R*k*.95,0);ant.rotation.z=-.4;G.add(ant);const bl=new T.Mesh(new T.SphereGeometry(R*k*.08,10,8),new T.MeshBasicMaterial({color:'#ff6a5a'}));bl.position.set(R*k*.56,R*k*1.18,0);G.add(bl);G.userData.blink=bl;}
+ if(head){const c=new T.Vector3();bb.getCenter(c);head.worldToLocal(c);G.position.copy(c);head.add(G);}else{const c=new T.Vector3();bb.getCenter(c);c.y=bb.max.y-R*.8;o.worldToLocal(c);const lb=new T.Box3();o.traverse(m=>{if(m.isMesh&&m.geometry){m.geometry.computeBoundingBox();}});const fz=(()=>{let z=-1e9;o.traverse(m=>{if(m.isMesh&&m.geometry&&m.geometry.boundingBox){const b2=m.geometry.boundingBox.clone().applyMatrix4(m.matrixWorld);const p2=new T.Vector3(0,0,b2.max.z);z=Math.max(z,b2.max.z);}});return z;})();c.z+=R*k*.35;G.position.copy(c);o.add(G);}
+ if(!pet&&(style==='B'||style==='C')){const body=o.getObjectByName('torso')||o.getObjectByName('body')||o;const pk=new T.Group();const wm=new T.MeshStandardMaterial({color:'#f2f2f4',roughness:.5});const b1=new T.Mesh(new T.BoxGeometry(.5,.55,.22),wm);pk.add(b1);[-.13,.13].forEach(x=>{const t=new T.Mesh(new T.CylinderGeometry(.09,.09,.6,12),new T.MeshStandardMaterial({color:'#9fd6ff',roughness:.3,metalness:.3}));t.position.set(x,.02,-.15);pk.add(t);});const lt=new T.Mesh(new T.SphereGeometry(.04,8,6),new T.MeshBasicMaterial({color:'#5aff9a'}));lt.position.set(.16,.2,.12);pk.add(lt);
+  const tb=o.getObjectByName('torso')||o,ob=new T.Box3().setFromObject(o.getObjectByName('body-mesh')||o),os=ob.getSize(new T.Vector3());const dir=(o.rotation&&o.rotation.y)||0,wp=ob.getCenter(new T.Vector3());const tgtW=new T.Vector3(wp.x-Math.sin(dir)*os.z*.42,ob.min.y+os.y*.5,wp.z-Math.cos(dir)*os.z*.42);tb.add(pk);const ws2=new T.Vector3();tb.getWorldScale(ws2);pk.scale.setScalar(os.y/2.2/ws2.x);tb.worldToLocal(tgtW);pk.position.copy(tgtW);const q=new T.Quaternion();tb.getWorldQuaternion(q);pk.quaternion.copy(q.invert()).multiply(new T.Quaternion().setFromEuler(new T.Euler(0,dir,0)));}
+ if(!pet&&style==='C'){o.traverse(m=>{if(m.isMesh&&m.material&&!m.userData.helmSkip&&m.parent!==G&&!G.children.includes(m)&&m.name!=='head'&&m.name!=='head-mesh'&&!(m.parent&&m.parent.name==='head')){const mm=(Array.isArray(m.material)?m.material:[m.material]).map(x=>{const y=x.clone();if(y.color)y.color.lerp(new T.Color('#f4f4f6'),.82);if(y.map)y.map=null;return y;});m.material=Array.isArray(m.material)?mm:mm[0];}});}
+}
+if(HELM)FHOOK.push(()=>{if(!SKY.moon||!me)return;helmFor(me.o,me.o.getObjectByName('head'),HELM,false);try{if(PETW.me)helmFor(PETW.me,null,HELM,true);}catch(e){}});
+function moonProps(g,rnd){const T=THREE,X=new Set(MOONX);const M=(c,o)=>new T.MeshStandardMaterial(Object.assign({color:c,roughness:.6,metalness:.1,flatShading:false},o||{}));
+ const put=(o,a,r,face)=>{o.position.set(Math.cos(a)*r,0,Math.sin(a)*r);o.rotation.y=face!=null?face:Math.atan2(-Math.cos(a),-Math.sin(a));o.traverse(m=>{if(m.isMesh){m.castShadow=true;}});g.add(o);SKY.props=SKY.props||{};return o;};
+ // 귀여운 달 착륙선: 금박 몸통 · 다리 4개 · 둥근 창 · 안테나 · 사다리
+ if(X.has('lander')){const L=new T.Group();const gold=M('#e8b84a',{metalness:.65,roughness:.32}),white=M('#f2f2f4',{roughness:.5}),dark=M('#4a4c58',{metalness:.4,roughness:.4});
+  const base=new T.Mesh(new T.CylinderGeometry(1.25,1.35,1.1,8),gold);base.position.y=1.55;L.add(base);
+  const cab=new T.Mesh(new T.CylinderGeometry(.95,1.15,1.2,8),white);cab.position.y=2.7;L.add(cab);const top=new T.Mesh(new T.SphereGeometry(.95,16,10,0,Math.PI*2,0,Math.PI/2),white);top.position.y=3.3;L.add(top);
+  const win=new T.Mesh(new T.CircleGeometry(.32,20),M('#7fd0ff',{emissive:'#3a9ae8',emissiveIntensity:.7,metalness:.2,roughness:.1}));win.position.set(0,2.8,1.08);win.rotation.x=-.18;L.add(win);const wr=new T.Mesh(new T.TorusGeometry(.33,.05,8,20),dark);wr.position.copy(win.position);wr.rotation.x=-.18;L.add(wr);
+  for(let i=0;i<4;i++){const a=i*Math.PI/2+Math.PI/4,lg=new T.Mesh(new T.CylinderGeometry(.07,.07,1.9,6),dark);lg.position.set(Math.cos(a)*1.45,.9,Math.sin(a)*1.45);lg.rotation.z=Math.cos(a)*.45;lg.rotation.x=-Math.sin(a)*.45;L.add(lg);const pad=new T.Mesh(new T.CylinderGeometry(.34,.4,.1,12),gold);pad.position.set(Math.cos(a)*1.85,.06,Math.sin(a)*1.85);L.add(pad);}
+  const ant=new T.Mesh(new T.CylinderGeometry(.03,.03,1.2,5),dark);ant.position.set(.3,4.4,0);L.add(ant);const dish=new T.Mesh(new T.SphereGeometry(.35,14,8,0,Math.PI*2,0,Math.PI/2.6),white);dish.position.set(.3,4.95,0);dish.rotation.x=Math.PI;L.add(dish);const tip=new T.Mesh(new T.SphereGeometry(.09,8,6),new T.MeshBasicMaterial({color:'#ff5a4a'}));tip.position.set(.3,5.05,0);L.add(tip);
+  for(let k=0;k<4;k++){const st=new T.Mesh(new T.BoxGeometry(.5,.05,.08),dark);st.position.set(0,.45+k*.3,1.42);L.add(st);}[-1,1].forEach(s=>{const rl=new T.Mesh(new T.BoxGeometry(.05,1.3,.05),dark);rl.position.set(s*.27,.9,1.42);L.add(rl);});
+  const fl=new T.Mesh(new T.PlaneGeometry(.9,.55),M('#7ad3ff',{side:T.DoubleSide,emissive:'#2a7ac8',emissiveIntensity:.4}));fl.position.set(-1.6,2.9,.4);L.add(fl);const fp=new T.Mesh(new T.CylinderGeometry(.03,.03,2.2,5),dark);fp.position.set(-2.05,2.2,.4);L.add(fp);
+  L.scale.setScalar(1.15);put(L,2.15,LR+12);}
+ // 달 탐사 로버: 바퀴 6개 · 태양전지판 · 카메라 눈
+ if(X.has('rover')){const R=new T.Group();const white=M('#eef0f4'),dark=M('#3c3e48',{roughness:.5}),gold=M('#e6b84a',{metalness:.6,roughness:.35});
+  const body=new T.Mesh(new T.BoxGeometry(2.2,.55,1.3),white);body.position.y=.95;R.add(body);const foil=new T.Mesh(new T.BoxGeometry(2.24,.18,1.34),gold);foil.position.y=.7;R.add(foil);
+  for(const x of [-.8,0,.8])for(const z of [-.78,.78]){const w=new T.Mesh(new T.CylinderGeometry(.34,.34,.24,16),dark);w.rotation.x=Math.PI/2;w.position.set(x,.36,z);R.add(w);const hb=new T.Mesh(new T.CylinderGeometry(.13,.13,.26,10),white);hb.rotation.x=Math.PI/2;hb.position.copy(w.position);R.add(hb);}
+  const pan=new T.Mesh(new T.BoxGeometry(2.6,.06,1.6),M('#2a4a9a',{metalness:.5,roughness:.25,emissive:'#102050',emissiveIntensity:.3}));pan.position.set(-.1,1.36,0);R.add(pan);for(let k=-2;k<=2;k++){const ln=new T.Mesh(new T.BoxGeometry(.03,.07,1.6),M('#c8d0e8'));ln.position.set(k*.5-.1,1.37,0);R.add(ln);}
+  const mast=new T.Mesh(new T.CylinderGeometry(.06,.06,1,6),white);mast.position.set(.85,1.85,0);R.add(mast);const head=new T.Mesh(new T.BoxGeometry(.5,.32,.36),white);head.position.set(.95,2.4,0);R.add(head);[-.09,.09].forEach(z=>{const e=new T.Mesh(new T.CylinderGeometry(.08,.08,.06,14),M('#1a1c24'));e.rotation.z=Math.PI/2;e.position.set(1.21,2.42,z);R.add(e);const gl=new T.Mesh(new T.CircleGeometry(.05,12),new T.MeshBasicMaterial({color:'#7fe0ff'}));gl.rotation.y=Math.PI/2;gl.position.set(1.25,2.42,z);R.add(gl);});
+  R.scale.setScalar(1.05);put(R,-.55,LR+10.5,1.2);for(let k=0;k<14;k++){const tr=new T.Mesh(new T.BoxGeometry(.24,.02,.12),M('#8a8682'));const a=-.55-k*.035,r=LR+10.5-k*.05;tr.position.set(Math.cos(a)*r,.07,Math.sin(a)*r);g.add(tr);}}
+ // 옥토끼 방아 (한국 달 이야기) — 하얀 돌 조각상
+ if(X.has('rabbit')){const B=new T.Group();const st=M('#f4f2f0',{roughness:.85}),pink=M('#ffc8d4',{roughness:.8}),wood=M('#a8784a',{roughness:.8});
+  const bd=new T.Mesh(new T.SphereGeometry(.85,24,18),st);bd.scale.set(1,1.15,.95);bd.position.y=1.05;B.add(bd);const hd=new T.Mesh(new T.SphereGeometry(.62,24,18),st);hd.position.set(0,2.2,.1);B.add(hd);
+  [-1,1].forEach(s=>{const ear=new T.Mesh(new T.CapsuleGeometry(.16,.85,6,12),st);ear.position.set(s*.25,3.05,0);ear.rotation.z=-s*.18;B.add(ear);const inn=new T.Mesh(new T.CapsuleGeometry(.08,.6,4,8),pink);inn.position.set(s*.25,3.05,.1);inn.rotation.z=-s*.18;B.add(inn);
+   const eye=new T.Mesh(new T.SphereGeometry(.07,10,8),M('#2a2230'));eye.position.set(s*.22,2.28,.66);B.add(eye);const ck=new T.Mesh(new T.CircleGeometry(.1,12),new T.MeshBasicMaterial({color:'#ffb0c0',transparent:true,opacity:.7}));ck.position.set(s*.35,2.08,.64);ck.rotation.y=s*.4;B.add(ck);
+   const arm=new T.Mesh(new T.CapsuleGeometry(.13,.5,4,8),st);arm.position.set(s*.55,1.65,.55);arm.rotation.x=-1.1;B.add(arm);});
+  const nose=new T.Mesh(new T.SphereGeometry(.06,8,6),pink);nose.position.set(0,2.15,.72);B.add(nose);const tail=new T.Mesh(new T.SphereGeometry(.25,12,10),st);tail.position.set(0,.7,-.85);B.add(tail);
+  const mort=new T.Mesh(new T.CylinderGeometry(.55,.4,.8,20),wood);mort.position.set(0,.4,1.35);B.add(mort);const hole=new T.Mesh(new T.CylinderGeometry(.42,.42,.02,20),M('#fff6f0'));hole.position.set(0,.81,1.35);B.add(hole);
+  const pestle=new T.Mesh(new T.CylinderGeometry(.08,.08,1.6,8),wood);pestle.position.set(0,1.55,1.15);pestle.rotation.x=.35;B.add(pestle);const ph=new T.Mesh(new T.CylinderGeometry(.2,.2,.45,12),wood);ph.position.set(0,1.0,1.33);ph.rotation.x=.35;B.add(ph);
+  for(let k=0;k<5;k++){const rc=new T.Mesh(new T.SphereGeometry(.13,10,8),M(['#fff6fa','#ffd6e2','#d8f0c8'][k%3]));rc.position.set((k-2)*.18,.86,1.35+(k%2)*.12);B.add(rc);}
+  const ped=new T.Mesh(new T.CylinderGeometry(1.7,1.9,.3,24),M('#cfccc8',{roughness:1}));ped.position.y=.15;B.add(ped);B.children.forEach(c=>{if(c!==ped)c.position.y+=.3;});
+  B.scale.setScalar(1.1);put(B,.95,LR+9.5);SKY.rabbit=B;}
+ // 별 망원경 관측대: 삼각대 + 황동 망원경 (데크 옆 길가)
+ if(X.has('scope')){const S2=new T.Group();const brass=M('#d8a84a',{metalness:.75,roughness:.3}),dark=M('#3a3440',{roughness:.5}),white=M('#f0eee8');
+  for(let i=0;i<3;i++){const a=i*Math.PI*2/3,lg=new T.Mesh(new T.CylinderGeometry(.04,.05,1.7,6),dark);lg.position.set(Math.cos(a)*.38,.78,Math.sin(a)*.38);lg.rotation.z=Math.cos(a)*.42;lg.rotation.x=-Math.sin(a)*.42;S2.add(lg);}
+  const hub=new T.Mesh(new T.SphereGeometry(.12,10,8),dark);hub.position.y=1.6;S2.add(hub);const tube=new T.Mesh(new T.CylinderGeometry(.16,.2,1.6,16),white);tube.position.set(0,1.95,.15);tube.rotation.x=-.95;S2.add(tube);
+  [[-.62,.2],[.7,.2]].forEach(([dz,r])=>{const rg=new T.Mesh(new T.TorusGeometry(r,.03,6,18),brass);rg.position.set(0,1.95+dz*Math.cos(.95)*-1,.15+dz*Math.sin(.95));rg.rotation.x=Math.PI/2-.95;S2.add(rg);});
+  const ep=new T.Mesh(new T.CylinderGeometry(.06,.06,.25,8),brass);ep.position.set(0,1.55,-.35);ep.rotation.x=-.95;S2.add(ep);const fs=new T.Mesh(new T.CylinderGeometry(.04,.04,.5,6),brass);fs.position.set(.18,2.1,.1);fs.rotation.x=-.95;S2.add(fs);
+  const sign=new T.Mesh(new T.CylinderGeometry(.3,.3,.06,16),M('#2a3060'));sign.position.set(.55,.9,.2);sign.rotation.x=Math.PI/2-.5;S2.add(sign);const sp2=new T.Mesh(new T.CylinderGeometry(.03,.03,.9,5),dark);sp2.position.set(.55,.45,.2);S2.add(sp2);
+  const ds=decks.slice().sort((a,b)=>Math.atan2(a.cz,a.cx)-Math.atan2(b.cz,b.cx));const a1=Math.atan2(ds[0].cz,ds[0].cx),a2=Math.atan2(ds[1].cz,ds[1].cx);S2.scale.setScalar(1.15);put(S2,(a1+a2)/2,LR+5.5,null);SKY.scope=S2;}
+}
+
 window.__nkSkyFish=()=>skyFishAdd();window.NK89.sky={SKY,skySwitch,skyApply,skyAsk,skyBuild};
 // v122 ── 🦘 점프 (이동 중 Space)
 const jumpOn=()=>!PREV&&opt('jump','off')==='on';const JP={h:0,v:0,out:0};
