@@ -771,7 +771,7 @@ export function sanitizeGift(input, now) {
   const x = Math.round(nonNeg(input.x, 1e8));
   if (!(c || s || b || x)) return null;
   const servers = Array.isArray(input.servers)
-    ? [...new Set(input.servers.map((n) => Math.round(Number(n))).filter((n) => n >= 1 && n <= 4))]
+    ? [...new Set(input.servers.map((n) => Math.round(Number(n))).filter((n) => (n >= 1 && n <= 4) || n === 7))]
     : null;
   return {
     id,
