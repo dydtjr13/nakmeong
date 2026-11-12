@@ -1141,3 +1141,67 @@ body.perf #dc{touch-action:none;-webkit-user-select:none;user-select:none;z-inde
 #zodTour.ztC .ztM{width:80px;height:60px}#zodTour.ztC .ztE{font-size:34px}
 #zodTour.ztC .ztB{min-width:0}#zodTour.ztC b{font-size:19px}
 @media (max-width:600px){#zodTour{top:calc(150px + env(safe-area-inset-top));transform:translate(14px,0)}#zodTour.on{transform:none}#zodTour b{font-size:18px}#zodTour p{font-size:12px}}
+/* v142: 단계 올리기 · ⚡ 한번에 */
+.uprow .upc{display:flex;flex-direction:column;gap:4px;min-width:0}.uprow .upc>button:first-child{flex:1}
+.uprow button.upall{justify-content:center;padding:4px 6px;font-size:11.5px;font-weight:800;white-space:nowrap;background:#ffe7b8;border-color:#f0c070;color:#8a4a00}
+.uprow button.upall:disabled{background:#f4efe6;color:#b8ab98;border-color:#e8dcc8}
+.upg .upp .upbs{display:flex;flex-direction:column;gap:4px}.upg .upp .upbs button{white-space:nowrap}
+/* v142 시안: ⚡ 한 번에 합성 결과 — 긴 이름 */
+.fzat .fzfit{display:block;max-width:100%;overflow:hidden;white-space:nowrap}
+.fzat em{font-style:normal}
+.fzagA .fzA{gap:3px}.fzA .fzfit{font-size:14px}.fzA .fzfit em{display:block;font-size:11px;font-weight:900;color:var(--vc)}
+.fzA .fzch{display:inline-block;font-size:12px;font-weight:900;padding:1px 9px;border-radius:999px;background:#fff1d6;color:#a26200;white-space:nowrap}
+.fzat.v .fzch{background:var(--vc);color:#fff}.fzat.fail .fzch{background:#e4dcf8;color:#6a4cc0}
+.fzall .fzagB{display:flex;flex-direction:column;gap:8px;width:100%}
+.fzB{flex-direction:row!important;text-align:left!important;padding:8px 12px!important;gap:10px!important;width:100%;box-sizing:border-box}
+.fzB .fzi{flex:none;width:64px!important;height:40px!important}.fzB .fzab{width:64px;justify-content:center;height:40px}
+.fzB .fzbm{flex:1;min-width:0;display:flex;flex-direction:column}.fzB .fzfit{font-size:15px}.fzB .fzst{color:#e0a020;font-size:13px}
+.fzB small{overflow:hidden;text-overflow:ellipsis}.fzB small em{color:var(--vc);font-weight:900}
+.fzB .fzbn{flex:none;font-size:20px;font-weight:900;color:#4a3a2c;white-space:nowrap}.fzat.v .fzbn{color:var(--vc)}.fzat.fail .fzbn{color:#7a5cd0}
+.fzall .fzagC{grid-template-columns:repeat(auto-fit,112px)}
+.fzC{padding:8px 6px!important}.fzC .fzci{position:relative;width:96px;height:58px;display:grid;place-items:center;border-radius:12px;background:rgba(0,0,0,.04)}
+.fzC .fzci .fzi{width:84px;height:50px}.fzC .fzcn{position:absolute;right:-4px;top:-6px;background:#ff7a3a;color:#fff;font-size:11.5px;font-weight:900;border-radius:999px;padding:0 7px;line-height:19px;white-space:nowrap}
+.fzC .fzcs{position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);background:#3a2a10;color:#ffd26a;font-size:10.5px;font-weight:900;border-radius:999px;padding:0 7px;line-height:17px;white-space:nowrap}
+.fzC .fzfit{margin-top:8px;font-size:13px;width:100px}.fzC .fzfit em{display:block;font-size:10.5px;color:var(--vc);font-weight:900}
+.fzC small{max-width:100px;overflow:hidden;text-overflow:ellipsis;font-size:10.5px}
+/* v142 시안: 접속자 표시 (달 · 호수) */
+#rtPill.rpv{display:flex;align-items:center;gap:5px;white-space:nowrap;padding:4px 10px}
+#rtPill.rpv img{width:15px;height:15px;display:block}#rtPill.rpv b{font-weight:900}
+#rtPill .rpL{font-size:11px;opacity:.85;margin-right:2px}
+#rtPill.rpvB .rpC{display:flex;align-items:center;gap:3px;padding:1px 7px 1px 3px;border-radius:999px;background:rgba(255,255,255,.16)}
+#rtPill.rpvB .rpC.on{background:#fff;color:#1d5a3a}
+#rtPill.rpvC{background:#1c2140e6}#rtPill.rpvC .rpI{display:flex;align-items:center;gap:4px;opacity:.75}#rtPill.rpvC .rpI.on{opacity:1}
+#rtPill .rpMoon{width:13px;height:13px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#cfd2dc 55%,#9aa0b4);box-shadow:inset -3px -2px 0 rgba(0,0,0,.12)}
+#rtPill .rpLake{width:16px;height:10px;border-radius:50%;background:linear-gradient(180deg,#8fd8ff,#3a8ee0);box-shadow:inset 0 2px 0 rgba(255,255,255,.5)}
+/* v142 시안: 낚시 성공 카드 — 화면을 덜 가리는 E~J */
+.cc .tg{font-size:10px;font-weight:900;border-radius:6px;padding:1px 6px;color:#fff;background:#ff5a5a;white-space:nowrap}.cc .tg.rec{background:#2a9df4}
+.ccw .cc.E,.ccw .cc.F,.ccw .cc.I,.ccw .cc.J{white-space:nowrap}
+/* E 하단 슬림 바 */
+#toast:has(.cc.E){top:auto;bottom:calc(196px + env(safe-area-inset-bottom));transform:translate(-50%,0)}
+.cc.E{display:flex;align-items:center;gap:9px;padding:6px 12px 6px 8px;border-radius:999px!important;background:rgba(255,253,248,.94)!important;box-shadow:0 6px 18px #0003!important;border:2px solid var(--g)}
+.cc.E img.fi{width:46px;height:32px}.cc.E .nm{font-weight:900;font-size:14px}.cc.E .s{font-size:12px;color:#6a6070}.cc.E .tg{margin-left:2px}
+.cc.E .cc-chip,.cc.F .cc-chip,.cc.G .cc-chip,.cc.I .cc-chip,.cc.J .cc-chip{font-size:10px;padding:1px 6px}
+/* F 위쪽 한 줄 알약 */
+#toast:has(.cc.F){top:calc(78px + env(safe-area-inset-top));transform:translate(-50%,0)}
+.cc.F{display:flex;align-items:center;gap:7px;padding:4px 14px 4px 6px;border-radius:999px!important;background:rgba(28,30,48,.82)!important;color:#fff;box-shadow:0 4px 14px #0004!important}
+.cc.F img.fi{width:40px;height:28px}.cc.F .nm{font-size:14px}.cc.F .cm{font-weight:900;color:#ffe08a;font-size:13px}.cc.F .v{font-size:12px;opacity:.85}
+/* G 오른쪽 알림 카드 */
+#toast:has(.cc.G){top:calc(120px + env(safe-area-inset-top));left:auto;right:max(12px,env(safe-area-inset-right));transform:none}
+.cc.G{display:flex;align-items:center;gap:10px;width:214px;padding:8px 10px;border-left:5px solid var(--g);border-radius:14px!important}
+.cc.G .gi{flex:none;width:56px;height:56px;border-radius:12px;background:radial-gradient(circle,#fff,#f1efe8);display:grid;place-items:center}.cc.G img.fi{width:50px;height:40px}
+.cc.G .m{min-width:0}.cc.G .nm{font-weight:900;font-size:14.5px;white-space:nowrap}.cc.G .s{display:flex;gap:5px;align-items:center;font-size:12.5px;white-space:nowrap}.cc.G .v{font-size:12px;color:#8a7560}
+.cc.G .tg{position:absolute;top:6px;right:8px}
+/* H 반투명 미니 메달 */
+.cc.H{width:150px;padding:10px 10px 8px;text-align:center;background:rgba(255,253,248,.72)!important;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.cc.H .md{width:60px;height:60px;margin:0 auto 4px;border-radius:50%;border:3px solid var(--g);background:radial-gradient(circle at 50% 40%,#fff,#f1efe8);display:flex;align-items:center;justify-content:center}.cc.H .md img.fi{width:50px;height:50px}
+.cc.H .rib{position:absolute;top:8px;right:-26px;transform:rotate(35deg);background:#ff5a5a;color:#fff;font-weight:900;font-size:9px;padding:2px 28px}
+.cc.H .nm{font-weight:900;font-size:13.5px;white-space:nowrap}.cc.H .ln{display:flex;justify-content:center;gap:8px;font-size:12px;white-space:nowrap}.cc.H .cm{font-weight:800}
+/* I 메달 + 글자 (상자 없음) */
+.cc.I{display:flex;align-items:center;gap:10px;background:none!important;box-shadow:none!important;color:#fff;text-shadow:0 2px 6px #000a,0 0 2px #000}
+.cc.I .md{flex:none;width:58px;height:58px;border-radius:50%;border:3px solid var(--g);background:radial-gradient(circle at 50% 40%,#fff,#e8e4da);display:grid;place-items:center;box-shadow:0 4px 12px #0005}.cc.I .md img.fi{width:48px;height:48px}
+.cc.I .nm{font-weight:900;font-size:16px}.cc.I .ln{font-size:13px}.cc.I .cc-chip,.cc.I .tg{text-shadow:none}
+/* J 채팅 위 로그형 */
+#toast:has(.cc.J){top:auto;left:max(12px,env(safe-area-inset-left));bottom:calc(250px + env(safe-area-inset-bottom));transform:none}
+.cc.J{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;border-radius:12px!important;background:rgba(255,253,248,.92)!important;border-left:4px solid var(--g)}
+.cc.J img.fi{width:42px;height:30px}.cc.J .nm{font-weight:900;font-size:13.5px}.cc.J .nm b{color:#c06a00}.cc.J .s{font-size:11.5px;color:#7a7080;display:flex;gap:5px;align-items:center}
+.uprow .upbtns{grid-template-columns:repeat(auto-fill,minmax(172px,1fr))}.uprow .upc>button:first-child span{white-space:nowrap;font-size:11.5px}
