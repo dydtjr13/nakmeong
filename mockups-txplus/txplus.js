@@ -270,377 +270,8 @@
     return g;
   }
 
-  function wheelMesh(theme, rad) {
-    const g = new T.Group();
-    const spin = new T.Group(); g.add(spin);
-    const tire = new T.Mesh(new T.CylinderGeometry(rad, rad, rad * 0.72, 24), theme.rubber);
-    tire.rotation.z = Math.PI / 2; spin.add(tire);
-    const rim = new T.Mesh(new T.CylinderGeometry(rad * 0.72, rad * 0.72, rad * 0.78, 24), theme.silver);
-    rim.rotation.z = Math.PI / 2; spin.add(rim);
-    const n = theme.spokes || 6;
-    for (let k = 0; k < n; k++) {
-      const s = box(rad * 0.12, rad * 1.28, rad * 0.16, theme.spoke);
-      s.rotation.x = k / n * TAU; spin.add(s);
-    }
-    const ring = new T.Mesh(new T.TorusGeometry(rad * 0.78, rad * 0.045, 8, 28), theme.glow);
-    ring.rotation.y = Math.PI / 2; spin.add(ring);
-    const hub = new T.Mesh(new T.CylinderGeometry(rad * 0.16, rad * 0.16, rad * 0.86, 12), theme.silver);
-    hub.rotation.z = Math.PI / 2; spin.add(hub);
-    g.userData.spin = spin;
-    return g;
-  }
-
-  function headMesh(theme) {
-    const g = new T.Group();
-    const helm = theme.round ? sph(0.2, theme.accent, 20, 16) : box(0.38, 0.32, 0.34, theme.accent);
-    if (theme.round) helm.scale.set(1.05, 0.95, 1.08);
-    g.add(helm);
-    const face = theme.round ? sph(0.12, theme.silver, 16, 12) : box(0.24, 0.16, 0.06, theme.silver);
-    face.position.set(0, -0.02, theme.round ? 0.14 : 0.16);
-    if (theme.round) face.scale.set(1.1, 0.85, 0.55);
-    g.add(face);
-    [-1, 1].forEach(s => {
-      const horn = box(0.05, 0.16, 0.08, theme.dark);
-      horn.position.set(s * 0.1, 0.22, -0.02); horn.rotation.z = s * -0.35;
-      g.add(horn);
-      const ear = box(theme.round ? 0.1 : 0.07, 0.12, 0.16, theme.silver);
-      ear.position.set(s * 0.22, 0.02, 0);
-      g.add(ear);
-    });
-    if (theme.face) {
-      [-1, 1].forEach(s => {
-        const e = sph(0.035, std('#2b2430', 0.1, 0.4), 10, 8);
-        e.position.set(s * 0.07, 0.02, 0.2); g.add(e);
-        const hi = sph(0.012, glowMat('#ffffff', 2), 8, 6);
-        hi.position.set(s * 0.08, 0.03, 0.23); g.add(hi);
-      });
-      const smile = new T.Mesh(new T.TorusGeometry(0.05, 0.012, 6, 10, Math.PI), theme.dark);
-      smile.position.set(0, -0.05, 0.19); smile.rotation.z = Math.PI; g.add(smile);
-      [-1, 1].forEach(s => {
-        const bl = sph(0.04, glowMat(theme.glow, 0.8), 10, 8);
-        bl.position.set(s * 0.14, -0.04, 0.12); g.add(bl);
-      });
-    }
-    return g;
-  }
-
-  function chestMesh(theme) {
-    const g = new T.Group();
-    const plate = theme.round ? sph(0.26, theme.accent, 18, 14) : box(0.56, 0.46, 0.1, theme.accent);
-    if (theme.round) plate.scale.set(1.15, 0.95, 0.42);
-  g.add(plate);
-  const core = new T.Mesh(new T.OctahedronGeometry(0.07), theme.glow);
-    core.position.set(0, -0.02, 0.09); g.add(core);
-    g.userData.core = core;
-    return g;
-  }
-
-  function wingMesh(theme) {
-    const g = new T.Group();
-    if (theme.fin) {
-      const fin = new T.Mesh(new T.ConeGeometry(0.28, 0.85, 4), theme.accent);
-      fin.rotation.y = Math.PI / 4; g.add(fin);
-      const edge = new T.Mesh(new T.ConeGeometry(0.12, 0.7, 4), theme.glow);
-      edge.rotation.y = Math.PI / 4; edge.position.y = 0.05; g.add(edge);
-      return g;
-    }
-    const plate = box(1.25, 0.055, 0.32, theme.accent);
-    g.add(plate);
-    const lip = box(1.28, 0.03, 0.035, theme.glow);
-    lip.position.set(0, 0.03, -0.15); g.add(lip);
-  const ink = std('#2a2d36', 0.45, 0.4);
-  [-1, 1].forEach(s => {
-    const ep = box(0.05, 0.18, 0.34, ink);
-    ep.position.set(s * 0.62, -0.05, 0); g.add(ep);
-  });
-    return g;
-  }
-
-  function limb(theme, w, h, d, mat) {
-    if (theme.round) {
-      const m = new T.Mesh(new T.CapsuleGeometry(Math.max(0.05, w * 0.5), Math.max(0.02, h - w), 5, 12), mat);
-      m.scale.z = d / Math.max(0.08, w);
-      return m;
-    }
-    return box(w, h, d, mat);
-  }
-
-  /* 바깥쪽(+x) 기준 포즈. s=-1 왼쪽, s=+1 오른쪽 */
-  function sidedPoses(s) {
-    return {
-      shoulder: {
-        bot: mp(s, 0.48, 1.72, 0),
-        mid: mp(s, 0.4, 1.02, 0.32, 0.9, 0, 0.35),
-        car: mp(s, 0.15, 0.4, 0.2, 0, 0, 0, 0.04, 0.04, 0.04)
-      },
-      arm: {
-        bot: mp(s, 0.72, 1.28, 0.04, 0.12, 0, 0.08),
-        mid: mp(s, 0.34, 0.88, 0.4, 1.2, 0.2, 0.9),
-        car: mp(s, 0.1, 0.4, 0, 0, 0, 0, 0.04, 0.04, 0.04)
-      },
-      fore: {
-        bot: mp(s, 0.76, 0.88, 0.06),
-        mid: mp(s, 0.26, 0.66, 0.52, 1.35, 0, 0.35),
-        car: mp(s, 0.1, 0.35, -0.2, 0, 0, 0, 0.04, 0.04, 0.04)
-      },
-      hand: {
-        bot: mp(s, 0.76, 0.62, 0.08),
-        mid: mp(s, 0.18, 0.5, 0.38, 0.5, 0, 0),
-        car: mp(s, 0, 0.3, 0, 0, 0, 0, 0.02, 0.02, 0.02)
-      },
-      thigh: {
-        bot: mp(s, 0.18, 0.98, 0.02),
-        mid: mp(s, 0.2, 0.6, 0.26, 1.1, 0, 0),
-        car: mp(s, 0.1, 0.35, -0.3, 0, 0, 0, 0.04, 0.04, 0.04)
-      },
-      shin: {
-        bot: mp(s, 0.2, 0.52, 0.04),
-        mid: mp(s, 0.22, 0.34, 0.4, -0.85, 0, 0),
-        car: mp(s, 0.15, 0.3, -0.6, 0, 0, 0, 0.04, 0.04, 0.04)
-      },
-      foot: {
-        bot: mp(s, 0.2, 0.11, 0.12),
-        mid: mp(s, 0.24, 0.1, 0.46, 0.35, 0, 0),
-        car: mp(s, 0.2, 0.16, 0.4, 0, 0, 0, 0.04, 0.04, 0.04)
-      },
-      wheelF: {
-        bot: mp(s, 0.78, 1.66, 0.02, 0, 0, 0, 0.62, 0.62, 0.62),
-        mid: mp(s, 0.82, 0.72, 0.62, 0, 0, 0, 0.82, 0.82, 0.82),
-        car: mp(s, 0.88, 0.32, 1.02)
-      },
-      wheelR: {
-        bot: mp(s, 0.42, 0.42, 0.04, 0, 0, 0, 0.58, 0.58, 0.58),
-        mid: mp(s, 0.7, 0.4, -0.25, 0, 0, 0, 0.78, 0.78, 0.78),
-        car: mp(s, 0.88, 0.32, -1.02)
-      }
-    };
-  }
-
-  function centerPoses(theme) {
-    const wingBot = theme.fin ? pose(0, 1.95, -0.12, 0, 0, 0, 0.85, 1, 0.85) : pose(0, 1.58, -0.34, -0.55, 0, 0, 0.62, 0.9, 0.75);
-    const wingMid = theme.fin ? pose(0, 1.15, -0.2, 0.8, 0, 0, 0.9, 0.8, 0.9) : pose(0, 1.05, -0.45, -0.2, 0, 0, 0.9, 0.8, 0.8);
-    const wingCar = theme.fin ? pose(0, 0.78, -1.52, 1.15, 0, 0, 1.15, 0.85, 1.2) : pose(0, 0.92, -1.42, 0.22, 0, 0, 1.25, 1, 1);
-    return {
-      pelvis: {
-        bot: pose(0, 1.08, 0),
-        mid: pose(0, 0.68, 0.18, 0.75, 0, 0),
-        car: pose(0, 0.35, 0, 0, 0, 0, 0.04, 0.04, 0.04)
-      },
-      torso: {
-        bot: pose(0, 1.5, 0),
-        mid: pose(0, 1.0, 0.3, 0.9, 0, 0, 0.95, 0.9, 0.95),
-        car: pose(0, 0.45, 0, 0, 0, 0, 0.04, 0.04, 0.04)
-      },
-      chest: {
-        bot: pose(0, 1.52, 0.24),
-        mid: pose(0, 0.98, 0.5, 1.0, 0, 0, 0.9, 0.85, 0.9),
-        car: pose(0, 0.5, 0.4, 0, 0, 0, 0.04, 0.04, 0.04)
-      },
-      chev: {
-        bot: pose(0, 1.54, 0.32),
-        mid: pose(0, 1.0, 0.58, 1.05, 0, 0, 0.8, 0.8, 0.8),
-        car: pose(0, 0.5, 0.6, 0, 0, 0, 0.04, 0.04, 0.04)
-      },
-      head: {
-        bot: pose(0, 2.08, 0.02),
-        mid: pose(0, 1.25, 0.5, 0.75, 0, 0, 0.75, 0.75, 0.75),
-        car: pose(0, 0.6, 0.1, 0, 0, 0, 0.02, 0.02, 0.02)
-      },
-      visor: {
-        bot: pose(0, 2.09, 0.2),
-        mid: pose(0, 1.26, 0.64, 0.55, 0, 0, 0.8, 0.6, 0.8),
-        car: pose(0, 0.6, 0.2, 0, 0, 0, 0.02, 0.02, 0.02)
-      },
-      wing: { bot: wingBot, mid: wingMid, car: wingCar }
-    };
-  }
-
-  function buildShell(theme) {
-    const root = new T.Group();
-    const L = 1.72, WR = 0.32, WZ = [1.05, -1.05];
-    const pw = theme.pw || 3.4;
-    const paint = theme.bodyMat.clone();
-    const glass = new T.MeshStandardMaterial({ color: theme.glassC, metalness: 0.15, roughness: 0.05, transparent: true, opacity: 0.55 });
-    const accent = theme.armorMat.clone();
-    const dark = std('#23262e', 0.4, 0.46);
-    const body = new T.Mesh(hyLoft(s => {
-      const z = -L + s * 2 * L;
-      const e = s < 0.045 ? Math.max(0.62, Math.sqrt(1 - Math.pow(1 - s / 0.045, 2))) : s > 0.96 ? Math.sqrt(Math.max(0, 1 - Math.pow((s - 0.96) / 0.04, 2))) : 1;
-      let w = 0.78 + 0.1 * Math.max(...WZ.map(q => Math.exp(-Math.pow((z - q) / 0.38, 2)))) - 0.2 * hySm(1.05, L, z);
-      let yt = 0.42 + 0.22 * hySm(L, 0.2, z);
-      let yb = 0.2;
-      WZ.forEach(q => { const d = Math.abs(z - q); if (d < WR + 0.08) yb = Math.max(yb, 0.28 + Math.sqrt(Math.max(0, Math.pow(WR + 0.08, 2) - d * d)) * 0.85); });
-      const ym = Math.min(yt - 0.04, Math.max(yb + 0.04, 0.38));
-      return { z, w: w * Math.max(0.22, e), yt: ym + (yt - ym) * Math.max(0.4, e), yb: ym - (ym - yb) * Math.max(0.4, e), ym };
-    }, 64, 36, pw), paint);
-    root.add(body);
-    const can = new T.Mesh(hyLoft(s => {
-      const z = -1.15 + s * 1.7, u = s, e = Math.sin(Math.min(1, u) * Math.PI);
-      const yt = 0.62 + (theme.round ? 0.42 : 0.3) * Math.pow(Math.sin(Math.pow(u, theme.round ? 1.1 : 1.45) * Math.PI), 0.8);
-      return { z, w: (theme.round ? 0.62 : 0.52) * Math.pow(e, 0.45) + 0.02, yt, yb: 0.55, ym: 0.6 };
-    }, 36, 28, theme.round ? 2.2 : 2.8), glass);
-    root.add(can);
-    const skirt = box(1.55, 0.08, 2.5, dark); skirt.position.set(0, 0.22, -0.05); root.add(skirt);
-    const stripe = box(0.42, 0.055, 1.7, accent); stripe.position.set(0, 0.64, 0.28); stripe.rotation.x = -0.5; root.add(stripe);
-    const nose = box(0.16, 0.04, 0.22, theme.silver); nose.position.set(0, 0.46, 1.42); nose.rotation.x = -0.7; root.add(nose);
-    [-1, 1].forEach(sd => {
-      const blade = box(0.12, 0.05, 0.7, accent); blade.position.set(sd * 0.62, 0.4, -0.15); blade.rotation.z = sd * -0.15; root.add(blade);
-    });
-    const split = box(1.15, 0.04, 0.28, dark); split.position.set(0, 0.16, 1.62); root.add(split);
-    [-1, 1].forEach(sd => {
-      const canard = box(0.22, 0.025, 0.12, paint); canard.position.set(sd * 0.62, 0.28, 1.35); canard.rotation.y = sd * -0.4; root.add(canard);
-      const lamp = box(theme.round ? 0.16 : 0.32, theme.round ? 0.1 : 0.03, 0.04, theme.lamp);
-      if (theme.round) lamp.position.set(sd * 0.36, 0.4, 1.5);
-      else { lamp.position.set(sd * 0.34, 0.4, 1.55); lamp.rotation.set(-0.35, sd * 0.5, sd * -0.12); }
-      root.add(lamp);
-      const vent = box(0.06, 0.16, 0.42, dark); vent.position.set(sd * 0.8, 0.4, -0.2); vent.rotation.z = sd * -0.2; root.add(vent);
-      const mir = box(0.18, 0.04, 0.1, paint); mir.position.set(sd * 0.62, 0.7, 0.42); mir.rotation.z = sd * 0.3; root.add(mir);
-    });
-    const tail = box(1.2, 0.045, 0.04, theme.glow2); tail.position.set(0, 0.4, -1.66); root.add(tail);
-    for (let i = -2; i <= 2; i++) {
-      const f = box(0.025, 0.1, 0.18, dark); f.position.set(i * 0.22, 0.18, -1.62); root.add(f);
-    }
-    const silverEx = theme.silver.clone();
-    [-1, 1].forEach(sd => {
-      const ex = new T.Mesh(new T.CylinderGeometry(0.055, 0.06, 0.12, 12), silverEx);
-      ex.rotation.x = Math.PI / 2; ex.position.set(sd * 0.24, 0.28, -1.7); root.add(ex);
-    });
-    root.traverse(o => {
-      if (!o.isMesh || !o.material) return;
-      const keep = o.material.opacity > 0.05 && o.material.opacity < 0.95 ? o.material.opacity : 1;
-      o.material = o.material.clone();
-      o.material.transparent = true;
-      o.material.userData.baseOp = keep;
-      o.material.opacity = 0;
-      o.material.depthWrite = false;
-    });
-    return root;
-  }
-
   function buildConcept(theme) {
-    const root = new T.Group();
-    const metal = theme.metal, rough = theme.rough;
-    theme.armorMat = sheenMat(theme.armorC, { metal, rough, rim: theme.glowC, gl: theme.gl, cau: theme.cau && theme.id === 'lake' });
-    theme.bodyMat = sheenMat(theme.bodyC, { metal: Math.min(0.82, metal + 0.12), rough: Math.max(0.18, rough - 0.06), rim: theme.glowC, gl: theme.gl + 0.15, cau: !!theme.cau });
-    theme.accent = theme.armorMat;
-    theme.dark = std(theme.darkC, Math.min(0.7, metal), rough + 0.08);
-    theme.silver = std(theme.silverC, Math.min(0.92, metal + 0.3), Math.max(0.16, rough - 0.12));
-    theme.rubber = std('#1a1b22', 0.15, 0.86);
-    theme.spoke = std(theme.spokeC || theme.silverC, 0.75, 0.25);
-    theme.glow = glowMat(theme.glowC, 1.7);
-    theme.glow2 = glowMat(theme.glow2C, 1.5);
-    theme.lamp = glowMat('#f7fbff', 2.1);
-    theme.glass = theme.glassPal;
-
-    const parts = {};
-    function add(id, mesh, poses) {
-      const g = new T.Group(); g.add(mesh); root.add(g);
-      g.userData.poses = poses;
-      if (mesh.userData && mesh.userData.spin) g.userData.spin = mesh.userData.spin;
-      parts[id] = g; return g;
-    }
-    add('pelvis', box(0.52, 0.3, 0.38, theme.dark), null);
-    const belt = box(0.56, 0.08, 0.4, theme.silver); belt.position.y = 0.12;
-    parts.pelvis.add(belt);
-    add('torso', limb(theme, 0.7, 0.56, 0.4, theme.accent), null);
-    const seam = box(0.5, 0.025, 0.02, theme.dark); seam.position.set(0, 0.05, 0.21); parts.torso.add(seam);
-    add('chest', chestMesh(theme), null);
-    const chev = new T.Group();
-    const cL = box(0.34, 0.075, 0.045, theme.silver); cL.rotation.z = 0.7; cL.position.x = -0.1; chev.add(cL);
-    const cR = box(0.34, 0.075, 0.045, theme.silver); cR.rotation.z = -0.7; cR.position.x = 0.1; chev.add(cR);
-    add('chev', chev, null);
-    add('head', headMesh(theme), null);
-    const vis = theme.round ? sph(0.07, theme.glow, 12, 10) : box(0.26, 0.07, 0.04, theme.glow);
-    if (theme.round) vis.scale.set(1.6, 0.45, 0.4);
-    add('visor', vis, null);
-    [-1, 1].forEach(s => {
-      const sh = new T.Group();
-      sh.add(limb(theme, 0.36, 0.28, 0.34, theme.accent));
-      const cap = sph(0.1, theme.dark, 12, 10); cap.position.set(s * 0.12, 0, 0); sh.add(cap);
-      add(s < 0 ? 'shoulderL' : 'shoulderR', sh, null);
-      add(s < 0 ? 'armL' : 'armR', limb(theme, 0.2, 0.46, 0.2, theme.accent), null);
-      const fr = new T.Group();
-      fr.add(limb(theme, 0.18, 0.4, 0.18, theme.silver));
-      const piston = cyl(0.025, 0.025, 0.26, theme.glow, 8); piston.position.set(s * 0.1, 0, 0.08); fr.add(piston);
-      add(s < 0 ? 'foreL' : 'foreR', fr, null);
-      const hand = new T.Group();
-      hand.add(box(0.16, 0.16, 0.16, theme.dark));
-      [-1, 0, 1].forEach(f => { const fg = box(0.035, 0.1, 0.04, theme.dark); fg.position.set(f * 0.045, -0.12, 0.04); hand.add(fg); });
-      add(s < 0 ? 'handL' : 'handR', hand, null);
-      const th = new T.Group();
-      th.add(limb(theme, 0.24, 0.52, 0.26, theme.accent));
-      const plate = box(0.08, 0.28, 0.08, theme.silver); plate.position.set(s * -0.08, 0, 0.1); th.add(plate);
-      add(s < 0 ? 'thighL' : 'thighR', th, null);
-      const shin = new T.Group();
-      shin.add(limb(theme, 0.2, 0.5, 0.22, theme.accent));
-      const guard = box(0.16, 0.16, 0.06, theme.silver); guard.position.set(0, 0.05, 0.12); shin.add(guard);
-      add(s < 0 ? 'shinL' : 'shinR', shin, null);
-      const foot = new T.Group();
-      const sole = box(0.26, 0.08, 0.42, theme.silver); sole.position.set(0, -0.04, 0.06); foot.add(sole);
-      const top = box(0.22, 0.1, 0.32, theme.accent); top.position.set(0, 0.04, 0.04); foot.add(top);
-      add(s < 0 ? 'footL' : 'footR', foot, null);
-      add(s < 0 ? 'wheelFL' : 'wheelFR', wheelMesh(theme, 0.32), null);
-      add(s < 0 ? 'wheelRL' : 'wheelRR', wheelMesh(theme, 0.32), null);
-    });
-    add('wing', wingMesh(theme), null);
-
-    if (theme.energy) {
-      theme.energyMat = new T.MeshBasicMaterial({
-        color: theme.glowC, transparent: true, opacity: 0.4, blending: T.AdditiveBlending,
-        depthWrite: false, side: T.DoubleSide
-      });
-      [-1, 1].forEach(s => {
-        const pl = new T.Mesh(new T.PlaneGeometry(1.15, 0.7), theme.energyMat);
-        const g = new T.Group(); pl.position.x = s * 0.42; g.add(pl); root.add(g);
-        g.userData.energy = s;
-        parts[s < 0 ? 'eL' : 'eR'] = g;
-      });
-    }
-
-    const shell = buildShell(theme);
-    root.add(shell);
-
-    const aura = new T.Mesh(new T.CylinderGeometry(0.85, 1.05, 2.5, 28, 1, true), new T.MeshBasicMaterial({
-      color: theme.glowC, transparent: true, opacity: 0.16, blending: T.AdditiveBlending,
-      depthWrite: false, side: T.DoubleSide
-    }));
-    aura.position.y = 1.2; aura.renderOrder = 3; root.add(aura);
-
-    const ug = new T.Mesh(new T.PlaneGeometry(2.5, 4.2), new T.MeshBasicMaterial({
-      map: glowTex(), color: theme.glowC, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false
-    }));
-    ug.rotation.x = -Math.PI / 2; ug.position.y = 0.04; ug.renderOrder = 2; root.add(ug);
-
-    const halo = theme.halo ? new T.Mesh(new T.TorusGeometry(0.46, 0.035, 8, 40), glowMat(theme.glow2C, 2.2)) : null;
-    if (halo) { halo.rotation.x = Math.PI / 2; root.add(halo); }
-
-    const pillar = theme.pillar ? new T.Mesh(new T.CylinderGeometry(0.35, 0.9, 6, 16, 1, true), new T.MeshBasicMaterial({
-      color: theme.glow2C, transparent: true, opacity: 0, blending: T.AdditiveBlending, depthWrite: false, side: T.DoubleSide
-    })) : null;
-    if (pillar) { pillar.position.y = 2.2; pillar.renderOrder = 3; root.add(pillar); }
-
-    const C = centerPoses(theme);
-    const keys = {
-      pelvis: 'pelvis', torso: 'torso', chest: 'chest', chev: 'chev', head: 'head', visor: 'visor', wing: 'wing'
-    };
-    Object.keys(keys).forEach(id => { parts[id].userData.poses = C[id]; });
-    [-1, 1].forEach(s => {
-      const P = sidedPoses(s);
-      const map = s < 0
-        ? { shoulder: 'shoulderL', arm: 'armL', fore: 'foreL', hand: 'handL', thigh: 'thighL', shin: 'shinL', foot: 'footL', wheelF: 'wheelFL', wheelR: 'wheelRL' }
-        : { shoulder: 'shoulderR', arm: 'armR', fore: 'foreR', hand: 'handR', thigh: 'thighR', shin: 'shinR', foot: 'footR', wheelF: 'wheelFR', wheelR: 'wheelRR' };
-      Object.keys(map).forEach(k => { parts[map[k]].userData.poses = P[k]; });
-    });
-
-    root.userData.parts = parts;
-    root.userData.shell = shell;
-    root.userData.aura = aura;
-    root.userData.ug = ug;
-    root.userData.halo = halo;
-    root.userData.pillar = pillar;
-    root.userData.theme = theme;
-    root.userData.wheels = [parts.wheelFL, parts.wheelFR, parts.wheelRL, parts.wheelRR];
-    return root;
+    return TXRig.build(theme, { hyLoft, glowTex });
   }
 
   const THEMES = [
@@ -700,7 +331,7 @@
       id: 'aureate', name: '천상 오렐', icon: '✦', kicker: '시안 D · 천상',
       lead: '아이보리와 금이에요. 머리 위 빛고리가 지붕으로 내려오고, 빛의 날개가 리어윙으로 접혀요.',
       points: [
-        '변신: 금빛 기둥과 함께 날개가 접히고, 헤일로가 차 위의 고리가 돼요.',
+        '변신: 빛의 날개가 접히고, 머리 위 고리가 지붕의 헤일로가 돼요.',
         '이펙트: 금색 입자가 궤도를 돌고, 클리어코트 하이라이트가 하이퍼카보다 강해요.',
         '기존보다: 등급 표식이 초월+ 로 한 단계 위. 오라가 고리와 후광이에요.'
       ],
@@ -752,6 +383,28 @@
   const app = document.getElementById('app');
   const themes = ONLY ? THEMES.filter(t => t.id === ONLY) : THEMES;
   app.innerHTML = themes.map(cardHTML).join('');
+
+
+  const ENV = new WeakMap();
+  function studioEnv(renderer) {
+    if (ENV.has(renderer)) return ENV.get(renderer);
+    const c = document.createElement('canvas'); c.width = 512; c.height = 256;
+    const x = c.getContext('2d');
+    const g = x.createLinearGradient(0, 0, 0, 256);
+    g.addColorStop(0, '#b9d7ee'); g.addColorStop(0.42, '#f5fbff'); g.addColorStop(0.5, '#ffffff');
+    g.addColorStop(0.58, '#e4d0b0'); g.addColorStop(1, '#6d5e48');
+    x.fillStyle = g; x.fillRect(0, 0, 512, 256);
+    x.fillStyle = 'rgba(255,255,255,.92)';
+    x.fillRect(36, 36, 78, 34); x.fillRect(300, 22, 130, 46); x.fillRect(190, 78, 36, 16);
+    const tex = new T.CanvasTexture(c);
+    tex.mapping = T.EquirectangularReflectionMapping;
+    tex.encoding = T.sRGBEncoding;
+    const pm = new T.PMREMGenerator(renderer);
+    const env = pm.fromEquirectangular(tex).texture;
+    pm.dispose();
+    ENV.set(renderer, env);
+    return env;
+  }
 
   function makeRenderer(canvas) {
     const r = new T.WebGLRenderer({ canvas, antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' });
@@ -864,6 +517,7 @@
     const article = el.closest('article');
     const renderer = makeRenderer(canvas);
     const scene = makeScene();
+    scene.environment = studioEnv(renderer);
     const cam = new T.PerspectiveCamera(30, 1, 0.1, 80);
     const hyper = buildHyper();
     const concept = buildConcept(theme);
@@ -937,11 +591,11 @@
     const aspect = w / Math.max(1, h);
     st.cam.aspect = aspect;
     const narrow = aspect < 1.2;
-    st.cam.fov = narrow ? 36 : 30;
-    st.cam.position.set(0, narrow ? 3.05 : 2.45, narrow ? 12.2 : 9.6);
-    st.cam.lookAt(0, narrow ? 1.15 : 0.98, 0);
+    st.cam.fov = narrow ? 34 : 27;
+    st.cam.position.set(0, narrow ? 2.85 : 2.15, narrow ? 11.2 : 8.15);
+    st.cam.lookAt(0, narrow ? 1.08 : 0.95, 0);
     st.cam.updateProjectionMatrix();
-    const x = narrow ? 1.72 : 2.35;
+    const x = narrow ? 1.78 : 2.2;
     st.hyper.position.set(-x, 0, 0);
     st.concept.position.set(x, 0, 0);
     st.spread = x;
@@ -957,116 +611,38 @@
   }
 
   function tickConcept(st, dt, time) {
-    const c = st.concept, th = st.theme, U = c.userData;
-    const parts = U.parts;
-    Object.keys(parts).forEach(id => {
-      const g = parts[id];
-      if (!g.userData.poses) return;
-      const p = g.userData.poses;
-      applyPose(g, blend3(p.bot, p.mid, p.car, st.morph));
-    });
-    const jog = st.moving && st.morph < 0.12 && !st.queue.length;
-    if (jog) {
-      const s = Math.sin(time * 8);
-      parts.thighL.rotation.x += s * 0.55;
-      parts.thighR.rotation.x -= s * 0.55;
-      parts.shinL.rotation.x += Math.max(0, -s) * 0.7;
-      parts.shinR.rotation.x += Math.max(0, s) * 0.7;
-      parts.armL.rotation.x -= s * 0.4;
-      parts.armR.rotation.x += s * 0.4;
-      parts.footL.position.z += Math.max(0, s) * 0.08;
-      parts.footR.position.z += Math.max(0, -s) * 0.08;
-    }
-    const idleBob = (1 - st.morph) * Math.sin(time * 2.1) * (th.round ? 0.045 : 0.02);
-    const driveBob = st.morph > 0.8 && st.moving ? Math.abs(Math.sin(time * 14)) * 0.028 : 0;
-    let hop = 0;
-    if (th.round && st.queue.length) hop = Math.sin(st.morph * Math.PI) * 0.16;
-    c.position.y = idleBob + driveBob + hop;
-    if (th.round && st.queue.length) {
-      const sq = Math.sin(st.morph * Math.PI);
-      c.scale.set(1 + sq * 0.06, 1 - sq * 0.08, 1 + sq * 0.04);
-    } else c.scale.set(1, 1, 1);
-
+    const c = st.concept, th = st.theme;
+    const bob = TXRig.tick(c, st.morph, dt, time, st.moving, st.queue);
+    const baseY = (st._spreadY || 0);
+    c.position.y = bob + (th.round && st.queue.length ? Math.sin(st.morph * Math.PI) * 0.12 : 0);
     const k = st.morph;
-    U.shell.visible = k > 0.03;
-    U.shell.traverse(o => {
-      if (!o.isMesh || !o.material || o.material.userData.baseOp == null) return;
-      const op = o.material.userData.baseOp * k;
-      o.material.opacity = op;
-      o.material.transparent = true;
-      o.material.depthWrite = op > 0.88;
-    });
-    U.aura.scale.set(1 + k * 0.85, Math.max(0.06, 1 - k * 0.9), 1 + k * 0.85);
-    U.aura.position.y = lerp(1.25, 0.18, k);
-    U.aura.material.opacity = 0.1 + 0.06 * Math.sin(time * 2.4) + (st.moving ? 0.05 : 0);
-    if (U.ug) {
-      U.ug.material.opacity = (0.55 + 0.16 * Math.sin(time * 2.4)) * (0.2 + k * 0.85) + (st.moving ? 0.15 : 0);
-      U.ug.material.color.set(th.glowC);
-      U.ug.scale.set(1, 1, 1);
-    }
-    const spin = (st.moving ? (k > 0.5 ? 11 : 6) : (k < 0.2 ? 0.6 : 0.2)) * dt;
-    U.wheels.forEach(w => { if (w.userData.spin) w.userData.spin.rotation.x -= spin * (st.moving ? 1 : 0.35); });
-
-    if (th.face && parts.head) {
-      /* blink via visor scale */
-      const bl = Math.sin(time * 0.7) > 0.97 ? 0.2 : 1;
-      parts.visor.scale.y *= bl;
-    }
-    if (U.parts.chest && U.parts.chest.children[0] && U.parts.chest.children[0].userData) { /* core pulse via glow intensity */ }
-    th.glow.emissiveIntensity = 1.35 + Math.sin(time * 3) * 0.45;
-
-    if (parts.eL) {
-      const open = 1 - k;
-      parts.eL.position.set(-0.15, lerp(1.65, 0.9, k), lerp(-0.25, -1.35, k));
-      parts.eL.rotation.set(lerp(-0.4, 0.3, k), 0, lerp(0.7, 0.05, k));
-      parts.eL.scale.setScalar(Math.max(0.05, open));
-      parts.eR.position.set(0.15, lerp(1.65, 0.9, k), lerp(-0.25, -1.35, k));
-      parts.eR.rotation.set(lerp(-0.4, 0.3, k), 0, lerp(-0.7, -0.05, k));
-      parts.eR.scale.setScalar(Math.max(0.05, open));
-      th.energyMat.opacity = 0.45 * open;
-    }
-    if (U.halo) {
-      U.halo.position.set(0, lerp(2.42, 1.02, k), lerp(0.02, -0.15, k));
-      U.halo.rotation.z = time * 0.7;
-      U.halo.scale.setScalar(lerp(1, 1.7, k));
-    }
-    if (U.pillar) {
-      const pk = Math.sin(Math.min(1, k) * Math.PI);
-      U.pillar.material.opacity = pk * 0.28;
-      U.pillar.scale.set(0.6 + pk, 0.4 + pk * 1.2, 0.6 + pk);
-    }
-    st.motes.forEach((s, i) => {
-      const a = time * 0.8 + i / st.motes.length * TAU;
-      const rad = lerp(1.15, 1.7, k);
-      s.position.set(Math.cos(a) * rad, lerp(1.3, 0.55, k) + Math.sin(time * 2 + i) * 0.12, Math.sin(a) * rad * 0.72);
-      const sc = 0.12 + (i % 3) * 0.04;
-      s.scale.set(sc, sc, 1);
-    });
-
-    if (k > 0.45 && !st.crossed) {
+    if (k > 0.48 && !st.crossed) {
       st.crossed = true;
-      st.fx.burst(c, th.glowC, th.round ? 14 : 18, !!th.round);
+      st.fx.burst(c, th.glowC, th.round ? 16 : 20, !!th.round);
       if (st.rip) st.rip.pulse(c.position.x, c.position.z);
     }
-    if (k < 0.35) st.crossed = false;
-
+    if (k < 0.32) st.crossed = false;
     if (st.moving && k > 0.72) {
       st.trail = (st.trail || 0) - dt;
       if (st.trail <= 0) {
         st.trail = 0.045;
-        const p = backPoint(c, 0.35, -1.85);
+        const p = backPoint(c, 0.35, -1.9);
         st.fx.spawn(p.x, p.y, p.z, {
           color: Math.random() < 0.5 ? th.glowC : th.glow2C,
           heart: th.round && Math.random() < 0.45,
-          life: 0.55, size: 0.18 + Math.random() * 0.16,
-          v: [Math.sin(c.rotation.y) * -0.2, 0.25, -Math.cos(c.rotation.y) * 0.15]
+          life: 0.55, size: 0.18 + Math.random() * 0.14,
+          v: [Math.sin(c.rotation.y) * -0.15, 0.3, -Math.cos(c.rotation.y) * 0.1]
         });
-        if (th.id === 'lake' && Math.random() < 0.7) {
-          st.fx.spawn(p.x + (Math.random() - 0.5), 0.15, p.z, { color: '#e7fbff', life: 0.5, size: 0.14, v: [(Math.random() - 0.5) * 0.4, 0.7, 0] });
-        }
       }
-      if (st.rip && Math.random() < dt * 1.6) st.rip.pulse(c.position.x + (Math.random() - 0.5) * 0.4, c.position.z);
+      if (st.rip && Math.random() < dt * 1.4) st.rip.pulse(c.position.x, c.position.z);
     }
+    if (st.motes) st.motes.forEach((s, i) => {
+      const a = time * 0.8 + i / st.motes.length * Math.PI * 2;
+      const rad = 1.05 + k * 0.55;
+      s.position.set(Math.cos(a) * rad, 1.15 * (1 - k) + 0.55 * k + Math.sin(time * 2 + i) * 0.1, Math.sin(a) * rad * 0.65);
+      const sc = 0.1 + (i % 3) * 0.035;
+      s.scale.set(sc, sc, 1);
+    });
   }
 
   function tickHyper(st, dt, time) {
