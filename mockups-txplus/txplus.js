@@ -291,7 +291,7 @@
       glassPal: ['#12141c', '#2a3148', '#1a2838'],
       darkC: '#121318', silverC: '#d5d8e0', spokeC: '#c5cad3',
       metal: 0.62, rough: 0.3, mix: 0.28, ir: 0.82, gl: 1.15, pw: 4.0,
-      ref: true
+      ref: true, glb: 'models/tx-crimson.glb'
     },
     {
       id: 'cozy', name: '코지 퍼프', icon: '💗', kicker: '시안 B · 코지',
@@ -325,7 +325,8 @@
       shell: ['#08343c', '#1aa8a0', '#06202a'],
       glassPal: ['#062833', '#1a4a55', '#9fefff'],
       darkC: '#071c22', silverC: '#e7fbff', spokeC: '#b7e7ea',
-      metal: 0.48, rough: 0.26, mix: 0.3, ir: 0.8, gl: 1.2, cau: true, pw: 3.1, fin: true
+      metal: 0.48, rough: 0.26, mix: 0.3, ir: 0.8, gl: 1.2, cau: true, pw: 3.1, fin: true,
+      glb: 'models/tx-lake.glb'
     },
     {
       id: 'aureate', name: '천상 오렐', icon: '✦', kicker: '시안 D · 천상',
@@ -342,7 +343,8 @@
       shell: ['#f7f1e4', '#f0d48a', '#fffdf8'],
       glassPal: ['#fff8e8', '#f3e0a8', '#ffffff'],
       darkC: '#5a4630', silverC: '#fff8e6', spokeC: '#f0d48a',
-      metal: 0.28, rough: 0.28, mix: 0.34, ir: 0.9, gl: 1.35, pw: 3.3, halo: true, energy: true, pillar: true, spokes: 8
+      metal: 0.28, rough: 0.28, mix: 0.34, ir: 0.9, gl: 1.35, pw: 3.3, halo: true, energy: true, pillar: true, spokes: 8,
+      glb: 'models/tx-aureate.glb'
     }
   ];
 
@@ -381,7 +383,7 @@
   }
 
   const app = document.getElementById('app');
-  const themes = ONLY ? THEMES.filter(t => t.id === ONLY) : THEMES;
+  const themes = (ONLY ? THEMES.filter(t => t.id === ONLY) : THEMES).filter(t => t.glb);
   app.innerHTML = themes.map(cardHTML).join('');
 
 
@@ -520,9 +522,9 @@
     scene.environment = studioEnv(renderer);
     const cam = new T.PerspectiveCamera(30, 1, 0.1, 80);
     const hyper = buildHyper();
-    const concept = buildConcept(theme);
+    const concept = theme.glb ? new T.Group() : buildConcept(theme);
     hyper.add(blob());
-    concept.add(blob());
+    if (!theme.glb) concept.add(blob());
     scene.add(hyper, concept);
     const fx = new Particles(scene);
     const rip = theme.id === 'lake' ? new Ripples(scene, theme.glowC) : null;
@@ -581,7 +583,7 @@
     q('car').classList.toggle('on', st.form === 'car' && st.morph > 0.5);
     const form = st.morph > 0.82 ? '자동차' : st.morph < 0.18 ? '로봇' : '변신 중';
     const mv = st.moving ? '이동' : '정지';
-    st.article.querySelector('.status').textContent = (st.queue.length ? '변신하는 중 · ' : '') + form + ' · ' + mv + (st.auto ? '' : ' · 모습 고정');
+    st.article.querySelector('.status').textContent = (st.theme.glb && !st.isGlb ? '3D 모델을 불러오는 중 · ' : (st.queue.length ? '변신하는 중 · ' : '')) + form + ' · ' + mv + (st.auto ? '' : ' · 모습 고정');
     st.article.querySelector('.morph .bar i').style.width = (st.morph * 100).toFixed(1) + '%';
   }
 
@@ -610,8 +612,99 @@
     return _v.clone();
   }
 
+  const gltfLoader = new T.GLTFLoader();
+  const dracoLoader = new T.DRACOLoader();
+  dracoLoader.setDecoderPath('vendor/draco/');
+  gltfLoader.setDRACOLoader(dracoLoader);
+  let glbLeft = stages.filter(s => s.theme.glb).length;
+  function markGlb() { if (--glbLeft <= 0) document.body.dataset.glb = '1'; }
+  function installGlb(st, gltf) {
+    const g = gltf.scene;
+    g.traverse(o => {
+      if (!o.isMesh || !o.material) return;
+      const mats = Array.isArray(o.material) ? o.material : [o.material];
+      mats.forEach(m => {
+        m.envMapIntensity = Math.max(m.envMapIntensity || 0, 1.15);
+        if (m.emissive && m.emissive.getHex() > 0) m.emissiveIntensity = Math.max(m.emissiveIntensity || 1, 2.5);
+        if (m.transparent) { m.depthWrite = false; }
+      });
+    });
+    g.updateMatrixWorld(true);
+    const fwd = g.getObjectByName('Forward');
+    if (fwd) {
+      const p = new T.Vector3();
+      fwd.getWorldPosition(p);
+      if (Math.abs(p.x) > Math.abs(p.z)) g.rotation.y = p.x > 0 ? -Math.PI / 2 : Math.PI / 2;
+      else if (p.z < 0) g.rotation.y = Math.PI;
+    }
+    g.updateMatrixWorld(true);
+    const bb = new T.Box3().setFromObject(g);
+    if (bb.min.y > 0.02 || bb.min.y < -0.02) g.position.y -= bb.min.y;
+    const holder = new T.Group();
+    holder.add(g);
+    holder.add(blob());
+    st.scene.add(holder);
+    if (st.concept.parent) st.concept.parent.remove(st.concept);
+    st.concept = holder;
+    resizeStage(st);
+    const clips = gltf.animations || [];
+    if (clips.length) {
+      st.mixer = new T.AnimationMixer(g);
+      st.clipDur = 0;
+      clips.forEach(clip => {
+        const a = st.mixer.clipAction(clip);
+        a.play();
+        a.paused = false;
+        st.clipDur = Math.max(st.clipDur, clip.duration);
+      });
+      st.mixer.setTime(st.morph * st.clipDur);
+    }
+    st.spins = [];
+    g.traverse(o => { if (o.name && o.name.indexOf('Spin') === 0) st.spins.push(o); });
+    st.isGlb = true;
+    window.__fwd = window.__fwd || {};
+    window.__fwd[st.id] = fwd ? 'ok' : 'nofwd';
+    markGlb();
+  }
+  stages.forEach(st => {
+    if (!st.theme.glb) return;
+    gltfLoader.load(st.theme.glb, gltf => installGlb(st, gltf), undefined, err => {
+      console.warn(err);
+      st.article.querySelector('.status').textContent = '모델을 불러오지 못했어요';
+      markGlb();
+    });
+  });
+  if (!glbLeft) document.body.dataset.glb = '1';
+
   function tickConcept(st, dt, time) {
     const c = st.concept, th = st.theme;
+    if (st.isGlb && st.mixer) {
+      const end = Math.max(0, st.clipDur - 1 / 24);
+      st.mixer.setTime(st.morph >= 0.999 ? end : st.morph * end);
+      st._spin = (st._spin || 0) + dt * (st.moving ? 9 : 0.35);
+      (st.spins || []).forEach(o => {
+        if (!o.userData.q0) o.userData.q0 = o.quaternion.clone();
+        o.quaternion.copy(o.userData.q0);
+        o.rotateX(st._spin);
+      });
+      const k = st.morph;
+      if (k > 0.48 && !st.crossed) {
+        st.crossed = true;
+        st.fx.burst(c, th.glowC, 18, false);
+        if (st.rip) st.rip.pulse(c.position.x, c.position.z);
+      }
+      if (k < 0.32) st.crossed = false;
+      if (st.moving && k > 0.72) {
+        st.trail = (st.trail || 0) - dt;
+        if (st.trail <= 0) {
+          st.trail = 0.05;
+          const p = backPoint(c, 0.4, -1.6);
+          st.fx.spawn(p.x, p.y, p.z, { color: th.glowC, life: 0.5, size: 0.16, v: [0, 0.25, 0] });
+        }
+      }
+      return;
+    }
+    if (th.glb) return;
     const bob = TXRig.tick(c, st.morph, dt, time, st.moving, st.queue);
     const baseY = (st._spreadY || 0);
     c.position.y = bob + (th.round && st.queue.length ? Math.sin(st.morph * Math.PI) * 0.12 : 0);

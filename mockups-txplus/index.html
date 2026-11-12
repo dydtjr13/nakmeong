@@ -155,7 +155,6 @@ body.shot h1{font-size:22px}
   </header>
   <nav class="jump" aria-label="시안 바로가기">
     <a href="#c-crimson">크림슨 센티넬</a>
-    <a href="#c-cozy">코지 퍼프</a>
     <a href="#c-lake">호수의 미라</a>
     <a href="#c-aureate">천상 오렐</a>
   </nav>
@@ -165,7 +164,7 @@ body.shot h1{font-size:22px}
     <table>
       <thead><tr><th></th><th>프리즘 하이퍼카 · 초월</th><th>이번 시안 · 초월+</th></tr></thead>
       <tbody>
-        <tr><td>형태</td><td>매끈한 차체 하나. 로봇 모드 없음</td><td>베벨 장갑·관절로 접히는 로봇 + 같은 로프트의 투톤 차체</td></tr>
+        <tr><td>형태</td><td>매끈한 차체 하나. 로봇 모드 없음</td><td>Blender로 만든 GLB. 곡면 장갑 로봇과 클리어코트 하이퍼카</td></tr>
         <tr><td>움직임</td><td>바퀴 회전, 약한 흔들림</td><td>약 1.7초 변신, 로봇 대기 동작, 이동하면 주행</td></tr>
         <tr><td>이펙트</td><td>펄, 네온, 언더글로우, 반짝이 꼬리, 부스터 불꽃</td><td>오라가 눌려 언더글로우가 됨, 변신 스파크, 테마 입자·광택</td></tr>
         <tr><td>등급</td><td>회전 테두리 + 초월</td><td>초월+ 금색 배지, 테마색 이중 링</td></tr>
@@ -173,9 +172,11 @@ body.shot h1{font-size:22px}
     </table>
   </section>
   <div id="app"></div>
-  <p class="foot">렌더는 게임과 같은 three.js r147이에요. 비교용 왼쪽 차는 <code>game-v2.js</code>의 프리즘 하이퍼카(홀로그램)와 같은 차체·펄 셰이더·언더글로우·반짝이 꼬리예요. 시안을 고르기 전에는 게임에 넣지 않아요.</p>
+  <p class="foot">오른쪽 모델은 Blender 4.2에서 직접 만든 GLB예요. 외부 메시는 쓰지 않았고, Draco로 압축했어요. 왼쪽은 게임과 같은 three.js r147 프리즘 하이퍼카입니다. 본편에는 넣지 않았어요.</p>
 </div>
 <script src="../lib/three.min.js"></script>
+<script src="vendor/DRACOLoader.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
 <script src="rig.js"></script>
 <script src="txplus.js"></script>
 </body>
