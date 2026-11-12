@@ -1024,6 +1024,7 @@ export function sanitizePlay(input, prev, opt) {
   if ("xpPos" in input) out.xpPos = pickOf(input.xpPos, ["A2", "A4"]);
   if ("backAsk" in input) out.backAsk = pickOf(input.backAsk, ["off", "A", "B"]);
   if ("petFx" in input) out.petFx = pickOf(input.petFx, ["off", "on"]);
+  if ("bagMob" in input) out.bagMob = pickOf(input.bagMob, ["B", "A", "C", "old"]);
   if ("eqWin" in input) out.eqWin = pickOf(input.eqWin, ["off", "A", "B"]);
   if ("mission" in input) out.mission = pickOf(input.mission, ["off", "on"]);
   if ("msCfg" in input) {
