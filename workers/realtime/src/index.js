@@ -567,7 +567,7 @@ export class LakeRoom extends DurableObject {
     const st = await this.opsGet("stage", null);
     const play = await this.opsGet("play", null);
     // v135: grants·sanc 는 하늘섬 동기화용 (공개 /servers 응답에는 넣지 않아요 — 필드를 골라서 보내요)
-    return { n: this.openSockets().length, cap: CAP, stage: st ? { lay: st.lay, deckW: st.deckW, decks: st.decks, rev: st.rev } : null, play, grants: await this.opsGet("grants", {}), sanc: await this.opsGet("sanc", {}) };
+    return { n: this.openSockets().length, cap: CAP, stage: st ? { lay: st.lay, deckW: st.deckW, decks: st.decks, rev: st.rev } : null, play, grants: await this.opsGet("grants", {}), sanc: await this.opsGet("sanc", {}), titles: await this.opsGet("titles", {}) };
   }
 
   attachment(ws) {
@@ -931,6 +931,8 @@ export class LakeRoom extends DurableObject {
           await this.opsPut("grants", g2); ops.grants = g2;
           const s2 = sanitizeSancMap(mergeMax(await this.opsGet("sanc", {}), occ && occ.sanc), now2);
           await this.opsPut("sanc", s2); ops.sanc = s2;
+          // v140: 특별 칭호도 호숫가 1 기준으로 (달에서 칭호가 안 보이던 문제)
+          if (occ && occ.titles && typeof occ.titles === "object" && Object.keys(occ.titles).length) { const t2 = sanitizeTitles(occ.titles); await this.opsPut("titles", t2); ops.titles = t2; }
         } catch { /* ignore */ }
       }
       const meNick = next.att.nick;
