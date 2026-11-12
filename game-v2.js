@@ -1504,7 +1504,7 @@ function balanceV3(){const C=D.CHARM,T=D.BOX.tiers,E=D.ENH,SM=window.NK_SIM;
 // ───────── v3: 가방(상자·부적·강화) / 설정(저장·프로필·자동판매·그래픽) ─────────
 const TIER=i=>D.BOX.tiers[i];
 const charmHTML=c=>`<div class="charm" data-cid="${c.id}" style="--gc:${TIER(c.tier).c}"><div class="cico">${CIMG(c.tier)}</div><div class="meta"><span class="gbadge" style="--gc:${TIER(c.tier).c}">${TIER(c.tier).n} 부적</span>${c.lock?' 🔒':''}<br>${c.opts.map(o=>`<span class="opt" data-tip="${optTip(o.k,c.tier)}">${D.CHARM.opts[o.k].n} <b>+${o.v}%</b></span>`).join(' ')}</div>`;
-const tipC=c=>`${TIER(c.tier).n} 행운 부적${S.equip.includes(c.id)?' · 장착중':''}${c.lock?' · 🔒':''}\n`+c.opts.map(o=>`· ${D.CHARM.opts[o.k].n} +${o.v}%`).join('\n'),
+const tipC=c=>`${TIER(c.tier).n} 행운 부적${S.equip.includes(c.id)?' · 장착중':''}${c.lock?' · 🔒':''}\n`+c.opts.map(o=>`· ${D.CHARM.opts[o.k].n} +${o.v}%`).join('\n')+'\n우클릭: 착용·해제',
  tipG=g=>{const s=SYS.gearStats(D,g),G=SYS.GRADES[SYS.gearGrade(D,g)];return `${s.n} · ${G[0]}${g.star?' ★'+g.star:''}\n기본: ${rodOptTxt(s)}${g.br!=null?` (${Math.round(SYS.baseMul(D,g)*100)}%)`:''}`+(g.extra.length?'\n'+g.extra.map(e=>`· ${D.CHARM.opts[e.k].n} +${e.v}%`).join('\n'):'');},
  NWB=(t,it)=>it&&it.nw?`<em class="nwb" aria-label="새 아이템">NEW</em>`:'',NWK=(t,it)=>it&&it.nw?`data-nwk="${t}:${it.id}"`:'';
 const GGR=g=>{const k=SYS.gearGrade(D,g),G=SYS.GRADES[k];return `<span class="ggr g${k}" style="--gc:${G[1]}">${G[0]}</span>`;};
@@ -1742,7 +1742,7 @@ if(bagTab==='charm'){const eqC=S.equip.map(id=>S.charms.find(c=>c.id===id)).filt
  q('[data-uneq]').forEach(b=>b.onclick=()=>{S.equip=S.equip.filter(x=>x!=b.dataset.uneq);S.presets[S.preset]=S.equip.slice();rr();});
  q('[data-csel]').forEach(b=>b.onclick=()=>{CSEL=+b.dataset.csel;renderBag();});
  // v113: 장착한 부적을 오른쪽 클릭하면 바로 착용 해제
- q('[data-slot],[data-csel]').forEach(b=>b.addEventListener('contextmenu',e=>{const id=+(b.dataset.slot||b.dataset.csel);if(!S.equip.includes(id))return;e.preventDefault();e.stopPropagation();S.equip=S.equip.filter(x=>x!==id);S.presets[S.preset]=S.equip.slice();if(CPIN!=null)CPIN=null;save();rr();miniToast('🧿 부적을 착용 해제했어요',1200);}));
+ q('[data-slot],[data-csel]').forEach(b=>b.addEventListener('contextmenu',e=>{const id=+(b.dataset.slot||b.dataset.csel);if(!S.equip.includes(id)){if(!b.dataset.csel)return;e.preventDefault();e.stopPropagation();/* v137: 우클릭으로 바로 착용 */if(S.equip.length>=D.CHARM.slots){miniToast('🧿 부적 칸이 가득 찼어요 · 착용 중인 부적을 우클릭하면 빠져요',1800);return;}S.equip.push(id);S.presets[S.preset]=S.equip.slice();CSEL=id;save();rr();miniToast('🧿 부적을 착용했어요',1200);return;}e.preventDefault();e.stopPropagation();S.equip=S.equip.filter(x=>x!==id);S.presets[S.preset]=S.equip.slice();if(CPIN!=null)CPIN=null;save();rr();miniToast('🧿 부적을 착용 해제했어요',1200);}));
   q('[data-slot]').forEach(b=>b.onclick=()=>{const id=+b.dataset.slot,sc=S.charms.find(c=>c.id===CSEL);if(sc&&!S.equip.includes(sc.id)&&S.equip.length>=D.CHARM.slots){const ix=S.equip.indexOf(id);CPIN=CPIN===ix?null:ix;toast(CPIN==null?'교체 대상 지정 해제 (자동 추천)':`📌 슬롯 ${ix+1}을 교체 대상으로 고정했어요`,1200);}else{CSEL=id;}renderBag();});
   q('[data-swap]').forEach(b=>b.onclick=()=>{const id=+b.dataset.swap,t=$('bag').querySelector('.bslot.tgt'),tid=t?+t.dataset.slot:null;if(tid==null)return;S.equip=S.equip.map(x=>x===tid?id:x);S.presets[S.preset]=S.equip.slice();toast('🔁 부적 교체 완료');rr();});
   if(bagTab==='charm')bagDrag();
@@ -2729,8 +2729,15 @@ function bragArms(c){if(!c.bragV||c.rig)return;const k=Math.min(1,c.bragV.t*4);a
 function bragOffNow(){try{const RT=window.NK_RT;if(RT&&RT.status&&RT.status()==='on')return !!(RT.play&&+RT.play.bragOff);return String(window.NK_UI25&&NK_UI25.get('bragOff'))==='1';}catch(e){return false;}}
 function bragStart(id){if(bragOffNow()){toast('지금은 물고기 자랑하기를 쓸 수 없어요',1600);return;}const f=S.tank.find(x=>x.id==id);if(!f)return;if(brag&&brag.id===f.id){bragStop('📣 자랑을 그만했어요');tankView.on&&tankView.refresh();return;}
  if(fishing.state&&fishing.state!=='off'){toast('낚시 중에는 자랑할 수 없어요',1600);return;}if(!f.t)f.t=0;
- brag={id:f.id,k:f.k,g:f.g,cm:f.cm,v:f.v,vr:f.vr?fzVK(f.vr):'',st:f.st|0,at:Date.now(),lk:0,s:(window.NK_RT&&NK_RT.status()==='on'?NK_RT.serverId():0)|0,t:f.t||0};bragFrom=me.o.position.clone();closeM('tank');
+ brag={id:f.id,k:f.k,g:f.g,cm:f.cm,v:f.v,vr:f.vr?fzVK(f.vr):'',st:f.st|0,at:Date.now(),lk:0,s:(window.NK_RT&&NK_RT.status()==='on'?NK_RT.serverId():0)|0,t:f.t||0};bragFrom=me.o.position.clone();closeM('tank');bragSnd(1);
  toast(`📣 <b>${FI(f.k).n} ${f.cm}cm</b> 자랑 중!<br><small>움직이거나 낚시를 시작하면 내려놓아요</small>`,2600);if(f.g>=3)say('시스템',`📣 ${NICK()}님이 ${GR(f.g).n} ${FI(f.k).n} ${f.cm}cm를 자랑하고 있어요!`);try{rtPose(false);}catch(e){}}
+// v137: 📣 자랑 효과음 (시안 A 짠! 팡파르) — 파일 없이 만들어요 · 설정 소리 크기를 따라요
+let BRAC=null;function bragSnd(k=1){try{if(typeof snd!=='undefined'&&snd.on===false)return;const vol=Math.max(0,Math.min(2,(S.vol==null?.5:+S.vol)*2))*k;if(vol<=0)return;const a=BRAC||(BRAC=(typeof snd!=='undefined'&&snd.ctx)||new (window.AudioContext||window.webkitAudioContext)());if(a.state==='suspended')a.resume();
+ const out=a.createGain();out.gain.value=.8*vol;out.connect(a.destination);const t0=a.currentTime+.03,hz=n=>440*Math.pow(2,(n-69)/12);
+ const tone=(t,f,d,o)=>{const os=a.createOscillator(),g=a.createGain(),lp=a.createBiquadFilter();os.type=o.type;os.frequency.value=f;lp.type='lowpass';lp.frequency.value=o.lp;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(o.v,t+(o.a||.01));g.gain.exponentialRampToValueAtTime(.0008,t+d);os.connect(lp).connect(g).connect(out);os.start(t);os.stop(t+d+.05);};
+ [60,64,67].forEach((n,i)=>{tone(t0+i*.11,hz(n),.22,{type:'sawtooth',v:.12,lp:2200});tone(t0+i*.11,hz(n+12),.18,{type:'square',v:.03,lp:3000});});[60,64,67,72].forEach(n=>tone(t0+.36,hz(n),.9,{type:'sawtooth',v:.08,lp:2600,a:.02}));
+ const L=Math.ceil(a.sampleRate*.5),nb=a.createBuffer(1,L,a.sampleRate),ch=nb.getChannelData(0);for(let i=0;i<L;i++)ch[i]=(Math.random()*2-1)*Math.pow(1-i/L,3);const ns=a.createBufferSource();ns.buffer=nb;const bf=a.createBiquadFilter();bf.type='bandpass';bf.frequency.value=6000;bf.Q.value=.6;const ng=a.createGain();ng.gain.value=.06;ns.connect(bf).connect(ng).connect(out);ns.start(t0+.36);
+ setTimeout(()=>{try{out.disconnect();}catch(_){}},2000);}catch(e){}}
 function bragStop(why){if(!brag)return;brag=null;bragFrom=null;if(why)miniToast(why,1400);try{rtPose(false);}catch(e){}}
 function bragTick(moving){if(!brag||!me)return;if(moving||(fishing.state&&fishing.state!=='off')||(bragFrom&&me.o.position.distanceTo(bragFrom)>.35))return bragStop('📣 물고기를 내려놓았어요');if(!S.tank.some(x=>x.id===brag.id)&&!((S.tk3&&S.tk3.sl)||[]).some(z=>(z.fish||[]).some(x=>x.id===brag.id)))bragStop();}
 function bragHit(ray){const L=[];for(const c of chars)if(c.bragV&&c.bragV.g.visible)L.push(c.bragV.fs);if(!L.length)return null;const h=ray.intersectObjects(L,false)[0];return h?h.object.userData.brag:null;}
@@ -2763,7 +2770,7 @@ function syncRemotes(dt){const RT=window.NK_RT;if(!RT)return;const on=RT.status(
   // v93: 받은 위치의 속도를 재서 다음 위치를 예측 → 탈것처럼 빠를 때도 뚝뚝 끊기지 않게
   const px=+p.x||0,pz=+p.z||0,nw=performance.now();if(!r.tg){r.tg={x:px,z:pz,t:nw,vx:0,vz:0};}else if(px!==r.tg.x||pz!==r.tg.z){const gap=Math.max(.03,(nw-r.tg.t)/1000);let vx=(px-r.tg.x)/gap,vz=(pz-r.tg.z)/gap;const sp=Math.hypot(vx,vz);if(sp>30||gap>.6){vx=vz=0;}r.tg.vx=r.tg.vx*.4+vx*.6;r.tg.vz=r.tg.vz*.4+vz*.6;r.tg.x=px;r.tg.z=pz;r.tg.t=nw;}else if(nw-r.tg.t>350){r.tg.vx=r.tg.vz=0;}
   const el=Math.min(.3,(nw-r.tg.t)/1000),tx=sit?px:px+r.tg.vx*el,tz=sit?pz:pz+r.tg.vz*el,kk=sit?k:Math.min(1,dt*12);if(Math.hypot(tx-o.x,tz-o.z)>12){o.x=tx;o.z=tz;}else{o.x+=(tx-o.x)*kk;o.z+=(tz-o.z)*kk;}o.y=sit?(+p.y||o.y):(inDeck(o.x,o.z)?.39:Math.max(H(o.x,o.z),.1));
-  const _pb=p.br||null;if(_pb&&_pb.g>=3&&(!r.c.bragB||r.c.bragB.at!==_pb.at))say('시스템',`📣 ${nick}님이 ${GR(_pb.g).n} ${(FI(_pb.k)||{n:_pb.k}).n} ${_pb.cm}cm를 자랑하고 있어요!`);r.c.bragB=_pb;r.c.tt=p.tt||null;
+  const _pb=p.br||null;if(_pb&&(!r.c.bragB||r.c.bragB.at!==_pb.at)&&me&&r.c.o.position.distanceTo(me.o.position)<25&&Date.now()-(+_pb.at||0)<8000)bragSnd(.4);if(_pb&&_pb.g>=3&&(!r.c.bragB||r.c.bragB.at!==_pb.at))say('시스템',`📣 ${nick}님이 ${GR(_pb.g).n} ${(FI(_pb.k)||{n:_pb.k}).n} ${_pb.cm}cm를 자랑하고 있어요!`);r.c.bragB=_pb;r.c.tt=p.tt||null;
   r.c.dir=+p.d||0;const fish=p.fish&&p.fish!=='off';r.c.play(r.c._ao||(sit?'sit':fish?'holding-right':p.anim==='walk'?'walk':'idle'));r.c.rod.visible=!!fish;turn(r.c,dt);try{rfTick(r,p,dt);}catch(e){}for(const f of RHOOK)try{f(r,p,dt);}catch(e){}}
  for(const [id,r] of remotes)if(!live.has(id)){dropRemote(r);remotes.delete(id);}for(const f of (window.__nkPostSync||[]))try{f(dt);}catch(e){}rtPill();}
 let catchPose=null;
