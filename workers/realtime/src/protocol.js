@@ -1054,6 +1054,8 @@ export function sanitizePlay(input, prev, opt) {
   for (const k of ["moonRabbit", "moonRice", "moonLander", "moonRover", "moonMeteor", "moonJump"]) if (k in input) out[k] = pickOf(input[k], ["on", "off"]);
   if ("moonView" in input) out.moonView = pickOf(input.moonView, ["1", "2", "3"]);
   if ("moonHelm" in input) out.moonHelm = pickOf(input.moonHelm, ["B", "A", "off"]);
+  if ("moonSplash" in input) out.moonSplash = pickOf(input.moonSplash, ["B", "A", "C", "old"]);
+  if ("moonTourCap" in input) out.moonTourCap = pickOf(input.moonTourCap, ["B", "A", "C", "off"]);
   if ("petRide" in input) out.petRide = pickOf(input.petRide, ["on", "off"]);
   if ("ncPick" in input) out.ncPick = pickOf(input.ncPick, ["ym", "yf", "om", "of"]);
   if ("petFish" in input) out.petFish = pickOf(input.petFish, ["off", "on"]);
