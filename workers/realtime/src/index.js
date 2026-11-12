@@ -492,7 +492,8 @@ export class LakeRoom extends DurableObject {
       const prev = await this.opsGet("stage", null);
       const next = sanitizeStage(msg.stage, prev, { bump: true, now });
       if (!next) return;
-      await this.fan(fromId, all, { t: "stage", stage: next });
+      // v135: 데크 배치(stage)는 호숫가 1~4만 — 하늘섬은 자기 배치를 써요
+      await this.fan(fromId, all.filter((id) => id !== 7), { t: "stage", stage: next });
       return;
     }
     if (msg.t === "play") {
@@ -565,7 +566,8 @@ export class LakeRoom extends DurableObject {
   async occupancy() {
     const st = await this.opsGet("stage", null);
     const play = await this.opsGet("play", null);
-    return { n: this.openSockets().length, cap: CAP, stage: st ? { lay: st.lay, deckW: st.deckW, decks: st.decks, rev: st.rev } : null, play };
+    // v135: grants·sanc 는 하늘섬 동기화용 (공개 /servers 응답에는 넣지 않아요 — 필드를 골라서 보내요)
+    return { n: this.openSockets().length, cap: CAP, stage: st ? { lay: st.lay, deckW: st.deckW, decks: st.decks, rev: st.rev } : null, play, grants: await this.opsGet("grants", {}), sanc: await this.opsGet("sanc", {}) };
   }
 
   attachment(ws) {
@@ -922,6 +924,13 @@ export class LakeRoom extends DurableObject {
           const occ = await this.env.LAKE.getByName("lake-1").occupancy();
           const p1 = occ && occ.play;
           if (p1 && (!ops.play || (+p1.rev || 0) > (+ops.play.rev || 0))) { ops.play = p1; await this.opsPut("play", p1); }
+          // v135: 자동 낚시 이용 시간·제재도 호숫가 1 기준으로 합쳐요 (하늘섬에서 자동 낚시가 꺼지던 문제)
+          const now2 = Date.now();
+          const mergeMax = (a0, b0) => { const o = { ...(a0 || {}) }; for (const [k, v] of Object.entries(b0 || {})) { if (typeof v === "number") o[k] = Math.max(+o[k] || 0, v); else if (v && typeof v === "object") { const cur = o[k] && typeof o[k] === "object" ? o[k] : {}; const m = { ...cur, ...v }; for (const f of ["mute", "ban"]) m[f] = Math.max(+cur[f] || 0, +v[f] || 0); o[k] = m; } } return o; };
+          const g2 = sanitizeGrants(mergeMax(await this.opsGet("grants", {}), occ && occ.grants), now2);
+          await this.opsPut("grants", g2); ops.grants = g2;
+          const s2 = sanitizeSancMap(mergeMax(await this.opsGet("sanc", {}), occ && occ.sanc), now2);
+          await this.opsPut("sanc", s2); ops.sanc = s2;
         } catch { /* ignore */ }
       }
       const meNick = next.att.nick;
