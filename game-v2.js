@@ -2731,13 +2731,12 @@ function bragStart(id){if(bragOffNow()){toast('지금은 물고기 자랑하기�
  if(fishing.state&&fishing.state!=='off'){toast('낚시 중에는 자랑할 수 없어요',1600);return;}if(!f.t)f.t=0;
  brag={id:f.id,k:f.k,g:f.g,cm:f.cm,v:f.v,vr:f.vr?fzVK(f.vr):'',st:f.st|0,at:Date.now(),lk:0,s:(window.NK_RT&&NK_RT.status()==='on'?NK_RT.serverId():0)|0,t:f.t||0};bragFrom=me.o.position.clone();closeM('tank');bragSnd(1);
  toast(`📣 <b>${FI(f.k).n} ${f.cm}cm</b> 자랑 중!<br><small>움직이거나 낚시를 시작하면 내려놓아요</small>`,2600);if(f.g>=3)say('시스템',`📣 ${NICK()}님이 ${GR(f.g).n} ${FI(f.k).n} ${f.cm}cm를 자랑하고 있어요!`);try{rtPose(false);}catch(e){}}
-// v137: 📣 자랑 효과음 (시안 A 짠! 팡파르) — 파일 없이 만들어요 · 설정 소리 크기를 따라요
+// v138: 📣 자랑 효과음 F 물방울 퐁 — 파일 없이 만들어요 · 설정 소리 크기를 따라요
 let BRAC=null;function bragSnd(k=1){try{if(typeof snd!=='undefined'&&snd.on===false)return;const vol=Math.max(0,Math.min(2,(S.vol==null?.5:+S.vol)*2))*k;if(vol<=0)return;const a=BRAC||(BRAC=(typeof snd!=='undefined'&&snd.ctx)||new (window.AudioContext||window.webkitAudioContext)());if(a.state==='suspended')a.resume();
- const out=a.createGain();out.gain.value=.8*vol;out.connect(a.destination);const t0=a.currentTime+.03,hz=n=>440*Math.pow(2,(n-69)/12);
- const tone=(t,f,d,o)=>{const os=a.createOscillator(),g=a.createGain(),lp=a.createBiquadFilter();os.type=o.type;os.frequency.value=f;lp.type='lowpass';lp.frequency.value=o.lp;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(o.v,t+(o.a||.01));g.gain.exponentialRampToValueAtTime(.0008,t+d);os.connect(lp).connect(g).connect(out);os.start(t);os.stop(t+d+.05);};
- [60,64,67].forEach((n,i)=>{tone(t0+i*.11,hz(n),.22,{type:'sawtooth',v:.12,lp:2200});tone(t0+i*.11,hz(n+12),.18,{type:'square',v:.03,lp:3000});});[60,64,67,72].forEach(n=>tone(t0+.36,hz(n),.9,{type:'sawtooth',v:.08,lp:2600,a:.02}));
- const L=Math.ceil(a.sampleRate*.5),nb=a.createBuffer(1,L,a.sampleRate),ch=nb.getChannelData(0);for(let i=0;i<L;i++)ch[i]=(Math.random()*2-1)*Math.pow(1-i/L,3);const ns=a.createBufferSource();ns.buffer=nb;const bf=a.createBiquadFilter();bf.type='bandpass';bf.frequency.value=6000;bf.Q.value=.6;const ng=a.createGain();ng.gain.value=.06;ns.connect(bf).connect(ng).connect(out);ns.start(t0+.36);
- setTimeout(()=>{try{out.disconnect();}catch(_){}},2000);}catch(e){}}
+ const out=a.createGain();out.gain.value=.9*vol;out.connect(a.destination);const t0=a.currentTime+.03,hz=n=>440*Math.pow(2,(n-69)/12);
+ const tone=(t,f,d,v,bend,bt)=>{const os=a.createOscillator(),g=a.createGain();os.type='sine';os.frequency.setValueAtTime(f,t);if(bend)os.frequency.exponentialRampToValueAtTime(f*bend,t+bt);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.003);g.gain.exponentialRampToValueAtTime(.0006,t+d);os.connect(g).connect(out);os.start(t);os.stop(t+d+.05);};
+ tone(t0,hz(79),.22,.22,1.9,.08);tone(t0+.07,hz(91),.25,.05);tone(t0+.14,hz(96),.2,.03);
+ setTimeout(()=>{try{out.disconnect();}catch(_){}},1200);}catch(e){}}
 function bragStop(why){if(!brag)return;brag=null;bragFrom=null;if(why)miniToast(why,1400);try{rtPose(false);}catch(e){}}
 function bragTick(moving){if(!brag||!me)return;if(moving||(fishing.state&&fishing.state!=='off')||(bragFrom&&me.o.position.distanceTo(bragFrom)>.35))return bragStop('📣 물고기를 내려놓았어요');if(!S.tank.some(x=>x.id===brag.id)&&!((S.tk3&&S.tk3.sl)||[]).some(z=>(z.fish||[]).some(x=>x.id===brag.id)))bragStop();}
 function bragHit(ray){const L=[];for(const c of chars)if(c.bragV&&c.bragV.g.visible)L.push(c.bragV.fs);if(!L.length)return null;const h=ray.intersectObjects(L,false)[0];return h?h.object.userData.brag:null;}
@@ -5532,7 +5531,7 @@ LAB.push({k:'mythChar',n:'✨ 신화 캐릭터 (로봇·유령)',d:'시작 화�
 LAB.push({k:'tankGrp',n:'🐠 어항 분류 (어종·별자리·별 수·등급·변이)',d:'내 어항 › 물고기 탭에 「어종 · 별자리 · 별 수 · 등급 · 변이」 보기 버튼이 생겨요. 고른 기준으로 물고기를 묶어서 보여주고, 묶음을 누르면 접었다 펼쳐요 (어항 화면 A안에서 보여요)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'tank3',n:'🐠 어항 3개 · 규칙 정리',d:'가진 어항 중 3개까지 같이 써요. 어항 창 위에 어항 3칸이 생기고, 어항마다 「넣을 물고기」(등급·변이·크기·종류)를 골라 두면 새로 낚은 물고기가 규칙대로 들어가요. 데크에는 가장 큰 어항이 보여요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 const tk3On=()=>!PREV&&opt('tank3','off')==='on';window.NK_tk3On=tk3On;
-const TK3G=['일반','희귀','영웅','전설','신화'],TK3SZ=[[0,'아무 크기'],[50,'50cm 이상'],[80,'80cm 이상'],['p90','최대 크기 90% 이상']];
+const TK3G=(D.GRADES||[]).slice(0,5).map(g=>g.n),TK3SZ=[[0,'아무 크기'],[50,'50cm 이상'],[80,'80cm 이상'],['p90','최대 크기 90% 이상']];
 function tk3S(){const z=S.tk3&&typeof S.tk3==='object'?S.tk3:(S.tk3={sl:[],main:{},sw:0,last:(S.nid||1)-1});z.sl=(z.sl||[]).filter(x=>x&&x.k&&D.TANKS.find(t=>t.k===x.k)).slice(0,2);z.sl.forEach(x=>{x.fish=Array.isArray(x.fish)?x.fish:[];x.rule=x.rule||{};});z.main=z.main||{};return z;}
 const tkCap=k=>{const t=D.TANKS.find(x=>x.k===k);return (t?t.cap:20)+lvTankBonus();};
 const tkName=k=>{const t=D.TANKS.find(x=>x.k===k);return t?t.n:k;};
@@ -5553,6 +5552,8 @@ function tk3Match(f,r){if(!r)return false;const F=FI(f.k);const cats=[];
  if(r.vr&&r.vr.length)cats.push(!!f.vr&&r.vr.includes(typeof fzVK==='function'?fzVK(f.vr):f.vr));
  if(r.sz){cats.push(r.sz==='p90'?(F&&f.cm>=F.max*.9):f.cm>=+r.sz);}
  if(r.ks&&r.ks.length)cats.push(r.ks.includes(f.k));
+ if(r.st&&r.st.length)cats.push(r.st.includes(f.st|0));
+ if(r.zs&&r.zs.length)cats.push(r.zs.includes(f.k));
  return cats.length?cats.some(Boolean):!!r.rest;}
 // v113: 잠긴 물고기(변이 자동 잠금 포함)도 규칙대로 옮기고, 다른 어항을 보는 중에 들어온 물고기도 모든 어항에서 찾아 옮겨요
 function tk3Route(){if(!tk3On())return;const z=tk3S();if(z.sw||!z.sl.length)return;
@@ -5593,7 +5594,7 @@ function tk3StripHTML(){const z=tk3S(),cur=z.sw;const card=(i,k,list,rule)=>{con
  return `<div id="tk3"><div class="tk3s">${items.map(a=>card(...a)).join('')}${z.sl.length?'<button type="button" class="tk3mvb" data-tk3mv title="이 어항에서 여러 마리를 골라 다른 어항으로 옮겨요">🐠 여러 마리<br>옮기기</button>':''}${z.sl.length<2?`<div class="tk3add">${free.length?`<select data-tk3add><option value="">+ 어항 추가</option>${free.map(k=>`<option value="${k}">${tkName(k)} (${tkCap(k)})</option>`).join('')}</select>`:'<small>상점에서 어항을 더 사면 여기 추가할 수 있어요</small>'}</div>`:''}</div></div>`;}
 const esc0t=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const tk3Nm=(r,k)=>(r&&r.nm)||tkName(k);
-function tk3RuleTxt(r){if(!r)return '규칙 없음';const a=[];if(r.g&&r.g.length)a.push(r.g.map(i=>TK3G[i]).join('·'));if(r.vr&&r.vr.length)a.push('변이');if(r.sz)a.push(r.sz==='p90'?'최대 90%↑':r.sz+'cm↑');if(r.ks&&r.ks.length)a.push(r.ks.map(k=>FI(k).n).slice(0,2).join('·')+(r.ks.length>2?'…':''));if(r.rest)a.push('나머지 모두');return a.join(' · ')||'규칙 없음';}
+function tk3RuleTxt(r){if(!r)return '규칙 없음';const a=[];if(r.g&&r.g.length)a.push(r.g.map(i=>TK3G[i]).join('·'));if(r.vr&&r.vr.length)a.push('변이');if(r.sz)a.push(r.sz==='p90'?'최대 90%↑':r.sz+'cm↑');if(r.ks&&r.ks.length)a.push(r.ks.map(k=>FI(k).n).slice(0,2).join('·')+(r.ks.length>2?'…':''));if(r.st&&r.st.length)a.push(r.st.slice().sort().map(v=>'★'+(v+1)).join('·'));if(r.zs&&r.zs.length)a.push('별자리 '+r.zs.length);if(r.rest)a.push('나머지 모두');return a.join(' · ')||'규칙 없음';}
 function tk3Strip(){const m=$('tank'),w=m&&m.querySelector('.tankwrap');if(!w)return;let el=$('tk3');if(!tk3On()||tankView.owner!=='me'){if(el)el.remove();return;}if(el)el.remove();w.insertAdjacentHTML('afterbegin',tk3StripHTML());el=$('tk3');
  el.querySelectorAll('[data-tk3v]').forEach(b=>b.onclick=e=>{if(e.target.closest('[data-tk3r]'))return;tk3Swap(+b.dataset.tk3v);save();try{tankView.build();tankView.refresh();}catch(_){}tk3Strip();});
  el.querySelectorAll('[data-tk3r]').forEach(b=>b.onclick=e=>{e.stopPropagation();tk3Rule(+b.dataset.tk3r);});
@@ -5605,20 +5606,32 @@ setInterval(()=>{try{const m=$('tank');if(tk3S().sw&&(!m||!m.classList.contains(
 function tk3Rule(i){const z=tk3S();const ruleRef=()=>i===0?z.main:z.sl[i-1].rule;let r=JSON.parse(JSON.stringify(ruleRef()||{}));
  const realK=i===0?(z.sw?z.sl[z.sw-1].k:S.tankK):(z.sw===i?S.tankK:z.sl[i-1].k);
  let m=$('tk3Dlg');if(!m){m=document.createElement('div');m.id='tk3Dlg';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});}
+ // v138: 시안 A — 탭(등급·변이 / 별·별자리 / 크기 / 어종 / 어항 설정) · 맨 위 「들어갈 물고기」 요약 · 어종은 묶음으로 접기
+ let tb=0;const gOpen=new Set([0]);
  const R=()=>{const ch=(on,txt,cls,dk)=>`<button type="button" class="ch ${cls||''} ${on?'on':''}" ${dk}>${on?'✓ ':''}${txt}</button>`;
-  m.innerHTML=`<div class="card tk3card"><button class="x" data-tx>×</button><h3>🧺 ${esc0t(tk3Nm(r,realK))}에 넣을 물고기</h3><label class="tk3nm"><b>어항 이름</b><input type="text" maxlength="12" data-rnm value="${esc0t(r.nm||'')}" placeholder="${esc0t(tkName(realK))}"></label><p class="small muted">하나라도 맞으면 이 어항으로 들어가요 · 겹치면 위(왼쪽) 어항부터</p>
-  <b class="lb">등급</b><div class="rl">${TK3G.map((n,j)=>ch((r.g||[]).includes(j),n,'g',`data-rg="${j}"`)).join('')}</div>
-  <b class="lb">변이 (하나라도 맞으면)</b><div class="rl">${FZO.map(k=>ch((r.vr||[]).includes(k),FZV[k].n,'v',`data-rv="${k}"`)).join('')}</div>
-  <b class="lb">크기</b><div class="rl">${TK3SZ.map(([v,n])=>ch(String(r.sz||0)===String(v),n,'s',`data-rs="${v}"`)).join('')}</div>
-  <b class="lb">종류</b><div class="rl">${D.FISH.map(F=>ch((r.ks||[]).includes(F.k),F.n,'',`data-rk="${F.k}"`)).join('')}</div>
-  <label class="rest"><input type="checkbox" data-rr ${r.rest?'checked':''}> 🧺 나머지 모두 (어디에도 안 맞는 물고기)</label>
-  <div class="tk3opt"><div><b class="lb">어항 종류</b><select data-rtype>${[realK,...new Set(tk3Free())].filter((k,j,A)=>A.indexOf(k)===j).map(k=>`<option value="${k}" ${k===realK?'selected':''}>${tkName(k)} (${tkCap(k)}칸)${k===realK?' · 지금':''}</option>`).join('')}</select><small>가진 어항 중 남는 것으로 바꿔요</small></div>
-  <div><b class="lb">데크에 보이는 어항</b>${i===0?'<span class="tk3dk on">★ 지금 데크 어항이에요</span>':'<button type="button" class="tk3dk" data-rdeck>★ 이 어항을 데크에 놓기</button>'}</div></div>
-  <div class="go"><button type="button" class="g" data-rc>규칙 지우기</button><button type="button" class="p" data-rsv>✅ 규칙 저장</button><button type="button" class="w" data-rnow>⚡ 적용하기</button></div><p class="small muted tk3hint">⚡ 적용하기 = 규칙을 저장하고 지금 어항 3개에 있는 물고기도 규칙대로 바로 옮겨요</p></div>`;
+  const SKF=D.FISH.filter(F=>F.sky),GRP=[['흔한 어종',F=>!F.sky&&!F.limited&&(F.w||0)>=14],['보통 어종',F=>!F.sky&&!F.limited&&(F.w||0)>=6&&(F.w||0)<14],['귀한 어종',F=>!F.sky&&!F.limited&&(F.w||0)<6],['계절 어종',F=>!F.sky&&!!F.limited]];
+  const sum=tk3RuleTxt(r),cnt=[(r.g||[]).length+(r.vr||[]).length,(r.st||[]).length+(r.zs||[]).length,r.sz?1:0,(r.ks||[]).length,r.rest?1:0];
+  const TB=['🏅 등급·변이','⭐ 별·별자리','📏 크기','🐟 어종','⚙ 어항'];let pane='';
+  if(tb===0)pane=`<b class="lb">등급</b><div class="rl">${TK3G.map((n,j)=>ch((r.g||[]).includes(j),n,'g',`data-rg="${j}"`)).join('')}</div><b class="lb">변이 (하나라도 맞으면)</b><div class="rl">${FZO.map(k=>ch((r.vr||[]).includes(k),FZV[k].n,'v',`data-rv="${k}"`)).join('')}</div>`;
+  else if(tb===1)pane=`<b class="lb">⭐ 별 수</b><div class="rl">${[0,1,2,3,4].map(v=>ch((r.st||[]).includes(v),'★'+(v+1),'',`data-rst="${v}"`)).join('')}</div><b class="lb">🌙 별자리 물고기</b><div class="rl">${SKF.length?SKF.map(F=>ch((r.zs||[]).includes(F.k),F.n.split(' ')[0],'',`data-rz="${F.k}"`)).join(''):'<span class="small muted">달(하늘섬)에 다녀오면 보여요</span>'}</div>`;
+  else if(tb===2)pane=`<b class="lb">📏 크기</b><div class="rl">${TK3SZ.map(([v,n])=>ch(String(r.sz||0)===String(v),n,'s',`data-rs="${v}"`)).join('')}</div>`;
+  else if(tb===3)pane=`<b class="lb">🐟 어종 <small class="muted">묶음을 눌러 펼쳐요</small></b>${GRP.map(([gn,fn],gi)=>{const L=D.FISH.filter(fn);if(!L.length)return '';const n=L.filter(F=>(r.ks||[]).includes(F.k)).length;return `<details class="tkR-g" data-rgi="${gi}" ${gOpen.has(gi)?'open':''}><summary><span class="ar">›</span>${gn}<em>${n?n+'개 고름 · ':''}${L.length}종</em><span class="all" data-rall="${gi}">${L.every(F=>(r.ks||[]).includes(F.k))?'모두 해제':'모두'}</span></summary><div class="tkR-fg">${L.map(F=>`<button type="button" class="tkR-f ${(r.ks||[]).includes(F.k)?'on':''}" data-rk="${F.k}"><img src="${F.img}" alt="" loading="lazy"><b>${F.n}</b></button>`).join('')}</div></details>`;}).join('')}`;
+  else pane=`<label class="tk3nm"><b>어항 이름</b><input type="text" maxlength="12" data-rnm value="${esc0t(r.nm||'')}" placeholder="${esc0t(tkName(realK))}"></label><label class="rest"><input type="checkbox" data-rr ${r.rest?'checked':''}> 🧺 나머지 모두 (어디에도 안 맞는 물고기)</label>
+   <div class="tk3opt"><div><b class="lb">어항 종류</b><select data-rtype>${[realK,...new Set(tk3Free())].filter((k,j,A)=>A.indexOf(k)===j).map(k=>`<option value="${k}" ${k===realK?'selected':''}>${tkName(k)} (${tkCap(k)}칸)${k===realK?' · 지금':''}</option>`).join('')}</select><small>가진 어항 중 남는 것으로 바꿔요</small></div>
+   <div><b class="lb">데크에 보이는 어항</b>${i===0?'<span class="tk3dk on">★ 지금 데크 어항이에요</span>':'<button type="button" class="tk3dk" data-rdeck>★ 이 어항을 데크에 놓기</button>'}</div></div>`;
+  m.innerHTML=`<div class="card tk3card tkR"><button class="x" data-tx>×</button><h3>🧺 ${esc0t(tk3Nm(r,realK))}에 넣을 물고기</h3>
+  <div class="tkR-sum"><small>들어갈 물고기</small>${sum==='규칙 없음'?'<span>규칙 없음</span>':sum.split(' · ').map(x=>`<span>${esc0t(x)}</span>`).join('')}</div>
+  <div class="tkR-tabs">${TB.map((t,j)=>`<button type="button" class="${tb===j?'on':''}" data-rtab="${j}">${t}${cnt[j]?` <i>${cnt[j]}</i>`:''}</button>`).join('')}</div>
+  <div class="tkR-body">${pane}</div><p class="small muted tkR-hint">하나라도 맞으면 이 어항으로 들어가요 · 겹치면 왼쪽 어항부터</p>
+  <div class="go"><button type="button" class="g" data-rc>규칙 지우기</button><button type="button" class="p" data-rsv>✅ 저장</button><button type="button" class="w" data-rnow>⚡ 저장하고 바로 정리</button></div></div>`;
+  m.querySelectorAll('[data-rtab]').forEach(b=>b.onclick=()=>{tb=+b.dataset.rtab;R();});
+  m.querySelectorAll('[data-rst]').forEach(b=>b.onclick=()=>{r.st=tg(r.st,+b.dataset.rst);R();});m.querySelectorAll('[data-rz]').forEach(b=>b.onclick=()=>{r.zs=tg(r.zs,b.dataset.rz);R();});
+  m.querySelectorAll('details[data-rgi]').forEach(d=>d.ontoggle=()=>{const g=+d.dataset.rgi;d.open?gOpen.add(g):gOpen.delete(g);});
+  m.querySelectorAll('[data-rall]').forEach(b=>b.onclick=e=>{e.preventDefault();e.stopPropagation();const gi=+b.dataset.rall,L=D.FISH.filter(GRP[gi][1]).map(F=>F.k),all=L.every(k=>(r.ks||[]).includes(k));r.ks=all?(r.ks||[]).filter(k=>!L.includes(k)):[...new Set((r.ks||[]).concat(L))];gOpen.add(gi);R();});
   const tg=(arr,v)=>{arr=arr||[];return arr.includes(v)?arr.filter(x=>x!==v):arr.concat([v]);};
   m.querySelector('[data-tx]').onclick=()=>m.classList.remove('show');m.querySelectorAll('[data-rg]').forEach(b=>b.onclick=()=>{r.g=tg(r.g,+b.dataset.rg);R();});m.querySelectorAll('[data-rv]').forEach(b=>b.onclick=()=>{r.vr=tg(r.vr,b.dataset.rv);R();});
   m.querySelectorAll('[data-rs]').forEach(b=>b.onclick=()=>{const v=b.dataset.rs;r.sz=v==='0'?0:v==='p90'?'p90':+v;R();});m.querySelectorAll('[data-rk]').forEach(b=>b.onclick=()=>{r.ks=tg(r.ks,b.dataset.rk);R();});
-  m.querySelector('[data-rr]').onchange=e=>{r.rest=e.target.checked;};{const ni=m.querySelector('[data-rnm]');ni.oninput=()=>{const v=ni.value.replace(/[<>]/g,'').trim().slice(0,12);if(v)r.nm=v;else delete r.nm;};ni.onkeydown=e=>e.stopPropagation();}m.querySelector('[data-rc]').onclick=()=>{r=r.nm?{nm:r.nm}:{};R();};
+  {const rr=m.querySelector('[data-rr]');if(rr)rr.onchange=e=>{r.rest=e.target.checked;};}{const ni=m.querySelector('[data-rnm]');if(ni){ni.oninput=()=>{const v=ni.value.replace(/[<>]/g,'').trim().slice(0,12);if(v)r.nm=v;else delete r.nm;};ni.onkeydown=e=>e.stopPropagation();}}m.querySelector('[data-rc]').onclick=()=>{r=r.nm?{nm:r.nm}:{};R();};
   const saveR=()=>{const t=ruleRef();Object.keys(t).forEach(k=>delete t[k]);Object.assign(t,r);save();};
   m.querySelector('[data-rsv]').onclick=()=>{saveR();m.classList.remove('show');tk3Strip();toast('✅ 규칙을 저장했어요 · 새로 낚은 물고기부터 적용돼요',1800);};
   const ty=m.querySelector('[data-rtype]');if(ty)ty.onchange=()=>{const k=ty.value;if(k===realK)return;const z=tk3S();const sw=z.sw;tk3Swap(0);const L=i===0?S.tank:z.sl[i-1].fish;if(L.length>tkCap(k)){if(sw)tk3Swap(sw);toast(`🐠 물고기가 ${L.length}마리라 ${tkName(k)}(${tkCap(k)}칸)에 다 안 들어가요`,2200);ty.value=realK;return;}if(i===0)S.tankK=k;else z.sl[i-1].k=k;if(sw)tk3Swap(sw);save();try{updMyTankExt();tankView.build();tankView.refresh();}catch(_){}m.classList.remove('show');tk3Strip();toast(`🐠 ${tkName(k)}(으)로 바꿨어요`,1600);};
