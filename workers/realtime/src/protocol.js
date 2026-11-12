@@ -151,7 +151,9 @@ export function cleanDeco(v) {
   for (const it of v.slice(0, 4)) {
     if (!Array.isArray(it)) continue;
     const n = (x, hi) => Math.max(0, Math.min(hi, Math.round(Number(x) || 0)));
-    out.push([n(it[0], 15), n(it[1], 100), n(it[2], 100), n(it[3], 7)]);
+    const row = [n(it[0], 15), n(it[1], 100), n(it[2], 100), n(it[3], 7)];
+    if (it[4] != null) row.push(n(it[4], 4));
+    out.push(row);
   }
   return out.length ? out : null;
 }
@@ -769,7 +771,17 @@ export function sanitizeGift(input, now) {
   const s = Math.round(nonNeg(input.s, 1e6));
   const b = Math.round(nonNeg(input.b, 50));
   const x = Math.round(nonNeg(input.x, 1e8));
-  if (!(c || s || b || x)) return null;
+  // v136: 탈것·펫도 지급 (최대 6개)
+  const it = Array.isArray(input.it) ? input.it.slice(0, 6).map((o) => {
+    if (!o || typeof o !== "object") return null;
+    const ty = o.t === "veh" || o.t === "pet" ? o.t : null;
+    const k = String(o.k || "").replace(/[^\w-]/g, "").slice(0, 24);
+    if (!ty || !k) return null;
+    const r = { t: ty, k };
+    if (ty === "veh" && o.c) r.c = String(o.c).replace(/[^\w-]/g, "").slice(0, 16);
+    return r;
+  }).filter(Boolean) : [];
+  if (!(c || s || b || x || it.length)) return null;
   const servers = Array.isArray(input.servers)
     ? [...new Set(input.servers.map((n) => Math.round(Number(n))).filter((n) => (n >= 1 && n <= 4) || n === 7))]
     : null;
@@ -781,6 +793,7 @@ export function sanitizeGift(input, now) {
     b,
     bt: Math.round(nonNeg(input.bt, 5)),
     x,
+    it: it.length ? it : undefined,
     msg: cleanText(input.msg || "", 80),
     servers: servers && servers.length ? servers : null,
   };
@@ -1037,7 +1050,7 @@ export function sanitizePlay(input, prev, opt) {
     out.snowCfg = o;
   }
   // v133: 테스트 기능 중 서버 목록에 빠져 있던 것 — 「인게임 적용」이 버려지고 내 화면(나만 보기)으로 돌아가던 문제
-  for (const k of ["jet", "hyper", "taxi", "boat", "star5", "skyIsland", "jump", "camFx", "fitUi", "vbUser"]) if (k in input) out[k] = pickOf(input[k], ["off", "on"]);
+  for (const k of ["jet", "hyper", "taxi", "boat", "star5", "skyIsland", "jump", "camFx", "fitUi", "vbUser", "tankGrp"]) if (k in input) out[k] = pickOf(input[k], ["off", "on"]);
   if ("petRide" in input) out.petRide = pickOf(input.petRide, ["on", "off"]);
   if ("ncPick" in input) out.ncPick = pickOf(input.ncPick, ["ym", "yf", "om", "of"]);
   if ("petFish" in input) out.petFish = pickOf(input.petFish, ["off", "on"]);
@@ -1045,7 +1058,7 @@ export function sanitizePlay(input, prev, opt) {
   if ("lvSt" in input) out.lvSt = pickOf(input.lvSt, ["1", "3", "old"]);
   if ("cook" in input) out.cook = pickOf(input.cook, ["off", "on"]);
   if ("ckPos" in input) out.ckPos = pickOf(input.ckPos, ["ext", "back", "side", "mine", "off"]);
-  if ("ckSnd" in input) out.ckSnd = pickOf(input.ckSnd, ["B", "A", "off"]);
+  if ("ckSnd" in input) out.ckSnd = pickOf(input.ckSnd, ["F", "B", "A", "off"]);
   if ("tank3" in input) out.tank3 = pickOf(input.tank3, ["off", "on"]);
   if ("mythChar" in input) out.mythChar = pickOf(input.mythChar, ["off", "on"]);
   if ("tankHide" in input) out.tankHide = pickOf(input.tankHide, ["off", "peer", "all"]);
@@ -1479,7 +1492,7 @@ export function allowPose(now, att, pose) {
   const dt = now - (att.lastPose || 0);
   const bk = (b) => (b ? b.k + b.at + "|" + b.lk : "");
   const tk = (t) => (t ? t.n + t.bg : "");
-  const important = att.fish !== pose.fish || att.anim !== pose.anim || att.seat !== pose.seat || bk(att.br) !== bk(pose.br) || tk(att.tt) !== tk(pose.tt);
+  const important = att.fish !== pose.fish || att.anim !== pose.anim || att.seat !== pose.seat || bk(att.br) !== bk(pose.br) || tk(att.tt) !== tk(pose.tt) || JSON.stringify(att.dc || null) !== JSON.stringify(pose.dc || null) || JSON.stringify(att.ex || null) !== JSON.stringify(pose.ex || null);
   if (important) return dt >= 40;
   return dt >= POSE_MS;
 }
