@@ -50,10 +50,10 @@ import {
   worldFraction,
 } from "../src/protocol.js";
 
-test("4 servers, 50 real users each", () => {
+test("4 servers, 100 real users each", () => {
   assert.equal(SERVERS.length, 4);
   assert.deepEqual(SERVERS.map((s) => s.id), [1, 2, 3, 4]);
-  assert.equal(CAP, 50);
+  assert.equal(CAP, 100);
 });
 
 test("nick and chat are trimmed and stripped", () => {
