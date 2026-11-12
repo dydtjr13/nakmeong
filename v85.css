@@ -1115,3 +1115,12 @@ body.perf #dc{touch-action:none;-webkit-user-select:none;user-select:none;z-inde
 @media (max-width:480px){.tkR .tkR-tabs button{font-size:11px;padding:7px 1px}}
 .tkR .go{display:flex;gap:6px;flex-wrap:nowrap}.tkR .go button{flex:1 1 auto;white-space:nowrap;min-width:0}
 @media (max-width:480px){.tkR .go button{font-size:12.5px;padding:9px 6px}}
+/* v140: 별자리 소개 */
+#zodC .zodcard{width:min(360px,92vw);text-align:left;position:relative;background:linear-gradient(#141a36,#0c1024);color:#eef0fa;border:1.5px solid var(--zc)}
+#zodC .zh{display:flex;align-items:center;gap:8px;margin-bottom:6px}#zodC .zh b{font-size:19px;white-space:nowrap}#zodC .zh small{color:#a8b0d0;white-space:nowrap}
+#zodC .zdot{width:14px;height:14px;border-radius:50%;background:var(--zc);box-shadow:0 0 12px var(--zc)}
+#zodC p{margin:4px 0 12px;font-size:14px;line-height:1.55;color:#d8dcf0}
+#zodC .zf{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border-radius:12px;padding:8px 10px}#zodC .zf img{width:64px;height:36px;object-fit:contain}
+#zodC .zf b{display:block;white-space:nowrap}#zodC .zf small{color:#a8b0d0;font-size:12px;white-space:nowrap}
+#zodC .x{color:#eef0fa}
+#zodC .zodcard .x{background:rgba(255,255,255,.12);color:#fff;border:0}
