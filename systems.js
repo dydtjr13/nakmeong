@@ -88,6 +88,7 @@ SYS.boxRod=(D,tier,rnd=Math.random)=>{const pl=D.BOX.rodPool[tier];let k=pl[Math
 SYS.goalProg=(D,S,g)=>{const dx=S.dex||{},hasG=(k,m)=>dx[k]&&dx[k].gr.some((v,i)=>v&&i>=m);
   if(g.t==='set'){const n=g.ks.filter(k=>hasG(k,g.minG)).length;return [n,g.ks.length];}
   if(g.t==='species')return [Math.min(g.cnt,D.FISH.filter(f=>dx[f.k]).length),g.cnt];
+  if(g.t==='keys')return [Math.min(g.cnt,(g.ks||[]).filter(k=>dx[k]&&dx[k].n).length),g.cnt];
   if(g.t==='caught')return [Math.min(g.cnt,S.caught||0),g.cnt];
   if(g.t==='gradeSp')return [Math.min(g.cnt,D.FISH.filter(f=>hasG(f.k,g.g)).length),g.cnt];
   if(g.t==='myth')return [Math.min(g.n,((S.stats&&S.stats.g)||[])[4]||0),g.n];return [0,1];};
