@@ -4447,6 +4447,7 @@ LAB.push({k:'boats2',n:'🛥 새 배 (요트 · 카타마란 · 노 젓는 보�
 LAB.push({k:'ufoSuck',n:'🛸 UFO 빨아들이기 모양',d:'UFO를 타고 날 때 「🛸 빨아들이기」 버튼을 누르는 동안 빛이 밝아지고, 빛 안에 있는 다른 유저가 떠올라요 (놓으면 천천히 내려와요). B 소용돌이 반짝이가 기본이에요',scope:'all',o:[['B','B · 소용돌이 반짝이 (기본)'],['A','A · 빛 고리 올라가기'],['C','C · 초록 끌림 빛 + 고리'],['off','끄기']]});
 LAB.push({k:'ufo',n:'🛸 UFO 탈것',d:'상점 › 🚗 탈것에 하늘을 나는 「UFO」가 생겨요 (탈것 기능이 켜져 있어야 해요). 은빛 원반 · 파스텔 꼬마 2가지. 캐릭터가 유리 돔 안에 타고, 테두리 불빛이 돌아가며 아래로 끌어당김 빛이 내려와요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'jet',n:'🛫 전투기',d:'상점 › 🚗 탈것에 하늘을 나는 「전투기」가 생겨요 (탈것 기능이 켜져 있어야 해요). 전투기로 날고 있을 때 화면을 클릭(터치)하면 그쪽으로 미사일이 날아가 펑 터져요. 보기만 하는 효과라 다른 사람이나 물고기에는 아무 일도 없어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
+LAB.push({k:'tfx',n:'🤖 변신 로봇카',d:'상점 › 🚗 탈것에 「트랜스 로봇카」가 생겨요 (탈것 기능이 켜져 있어야 해요). 달리면 스포츠카, 멈춰 서면 부품이 하나씩 접히며 로봇으로 변신해요. 다시 움직이면 자동차로 돌아가요. 옆자리에 친구 1명이 탈 수 있어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'turtle',n:'🐢 거북이 탈것',d:'상점 › 🚗 탈것에 「거북이」가 생겨요 (탈것 기능이 켜져 있어야 해요). 등껍질 위 노란 방석에 앉아요. 땅에서는 느릿느릿 걷고, 물(호수·바다)에 들어가면 다리가 지느러미로 바뀌며 쌩쌩 헤엄쳐요. 물가를 지나면 자연스럽게 바뀌어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'hyper',n:'💎 초월 탈것',d:'상점 › 🚗 탈것에 초월 등급 「프리즘 하이퍼카」가 생겨요 (탈것 기능이 켜져 있어야 해요). 보는 각도에 따라 색이 바뀌는 홀로그램 펄 도장 · 네온 라인 · 바닥 언더글로우, 달리면 뒤로 반짝이 꼬리가 남아요. 옆자리에 친구 1명이 탈 수 있어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'taxi',n:'🚗 하늘 택시',d:'상점 › 🚗 탈것에 「하늘 택시」가 생겨요 (탈것 기능이 켜져 있어야 해요). 택시를 타면 화면에 「🚗 지상 / ✈️ 비행」과 「💰 요금」이 나와요. 지상은 땅에서 운전, 비행은 날개가 펴지며 하늘을 날아요. 다른 유저가 택시를 눌러 요금을 내면 옆자리에 타요 (요금은 운전한 사람이 받아요)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
@@ -4651,6 +4652,7 @@ const FLY={balloon:{n:'열기구',sc:1.55,alt:3.2,spd:25,cols:[['sun','선셋',3
 FLY.hyper={n:'프리즘 하이퍼카',sc:1.12,alt:0,spd:120,ground:1,ico:'💎',pas:1,tx:1,note:'옆자리 1명 · 반짝이 꼬리',cols:[['holo','홀로그램',30000000],['aurora','오로라',30000000],['nova','노바',30000000],['void','네뷸라',40000000]],sw:{holo:{a:'#ff7ad9',b:'#5ef0ff'},aurora:{a:'#5dffc8',b:'#c46bff'},nova:{a:'#ffd36b',b:'#b26bff'},void:{a:'#3a2a8a',b:'#ff3fbf'}}};// v105 🤖 로봇: 캐릭터가 머리 조종석에 타요 (땅으로만 걸어요)
 /* v151 🛥 새 배 (테스트 기능 'boats2') */FLY.yacht={n:'요트',sc:1.65,alt:0,spd:40,ground:1,ico:'🛥️',boat:1,note:'앞 갑판 의자에 앉아요 · 물 위로만 다녀요',cols:[['white','화이트',12000000],['navy','네이비',14000000]],sw:{white:{a:'#fbfbf8',b:'#1d2430'},navy:{a:'#22385e',b:'#fbfbf8'}}};FLY.cat={n:'카타마란',sc:1.25,alt:0,spd:35,ground:1,ico:'🚤',boat:1,pas:1,note:'2인승 · 옆자리 1명 · 물 위로만',cols:[['teal','청록',8000000],['coral','코랄',8000000]],sw:{teal:{a:'#2f6f6a',b:'#f6f6f2'},coral:{a:'#d9654c',b:'#f6f6f2'}}};FLY.rowb={n:'노 젓는 보트',sc:1,alt:0,spd:15,ground:1,ico:'🚣',boat:1,note:'입문용 · 물 위로만 다녀요',cols:[['orange','오렌지',500000]]};
 FLY.ufo={n:'UFO',sc:1.75,alt:3.4,spd:85,ico:'🛸',note:'유리 돔 안에 타요 · 아래로 끌어당김 빛',cols:[['chrome','은빛 원반',20000000],['pastel','파스텔 꼬마',20000000]],sw:{chrome:{a:'#c9d3de',b:'#6fd8ff'},pastel:{a:'#9fe3d0',b:'#ff9ec4'}}};// v148 🛸 UFO (테스트 기능 'ufo')
+/* v159 🤖 변신 로봇카 (테스트 기능 'tfx') */FLY.tfx={n:'트랜스 로봇카',sc:1.12,alt:0,spd:130,ground:1,ico:'🤖',pas:1,tx:1,note:'옆자리 1명 · 멈추면 로봇으로 변신',cols:[['crimson','크림슨',40000000],['gold','골드',40000000],['stealth','스텔스',45000000]],sw:{crimson:{a:'#f0142e',b:'#3fb0ff'},gold:{a:'#ffcc4a',b:'#ffb23f'},stealth:{a:'#3a3f52',b:'#3fffe0'}}};
 /* v158 🐢 거북이 (테스트 기능 'turtle') */FLY.turtle={n:'거북이',sc:1.4,alt:0,spd:10,spdW:70,ground:1,ico:'🐢',note:'땅에선 느릿느릿 · 물에선 쌩쌩 헤엄쳐요',cols:[['green','초록',8000000]],sw:{green:{a:'#90a862',b:'#ecb441'}}};
 const FLYC={balloon:{sun:['#ff7a5a','#ffd25e','#ff9a5a','#ffe9a8'],sky:['#6fa8e8','#ffffff','#9fd0f5','#ffffff'],mint:['#7ccfb8','#fff6e6','#a8e2d2','#fff6e6'],rainbow:['#ff7a8a','#ffd25e','#7ccfb8','#6fa8e8','#b98be0','#ff9a5a']},
  plane:{red:['#e85a4a','#fbf6ee','#ffcf4a'],blue:['#3d7fd1','#fbf6ee','#ffcf4a'],yellow:['#f5c63c','#5a6a8a','#e85a4a'],rainbow:['#ff6b6b','#fbf6ee','#ffd25e']},
@@ -4831,7 +4833,7 @@ function robShopHTML(k,F,o){const own=c=>o&&o.cs.includes(c);if(!ROBSEL[k]||!F.c
 // 나는 동안: 물 위로도 다니고 (호수 밖 92m까지), 높이 떠 있어요
 const jetOn=()=>!PREV&&opt('jet','off')==='on';const ufoOn=()=>!PREV&&opt('ufo','off')==='on';const boats2On=()=>!PREV&&opt('boats2','off')==='on';const alienOn=()=>!PREV&&opt('alienPet','off')==='on';
 const taxiOn=()=>!PREV&&opt('taxi','off')==='on',boatOn=()=>!PREV&&opt('boat','off')==='on';
-const vehPas=k=>{const b=vehBase(k);return b==='car'||b==='taxi'||b==='taxif'||b==='hyper'||b==='cat';};
+const vehPas=k=>{const b=vehBase(k);return b==='car'||b==='taxi'||b==='taxif'||b==='hyper'||b==='tfx'||b==='cat';};
 const flyNow=()=>!!(VW.me&&VW.mk&&isFly(VW.mk)&&S.vehRide);
 {const _w=walk;walk=function(x,z){if(flyNow())return Math.hypot(x,z)<(((VW.me&&VW.me.userData.alt)||0)>8?140:92);return _w.apply(this,arguments);};}
 
@@ -4999,6 +5001,78 @@ addEventListener('keydown',e=>{if(e.code!=='KeyG'||e.repeat||!hyDriving()||e.tar
 window.NK89.hyBoost={HB,hyBoost,hyDriving};
 window.NK89.hyper={flyHyper,HYPC,HYU,HYSP};
 {const _r=robShopHTML;robShopHTML=function(k,F,o){const h=_r.apply(this,arguments);if(k!=='hyper')return h;return h.replace('class="flyc robc"','class="flyc robc hyc"').replace(`<b>${F.ico} ${F.n}</b>`,`<b>${F.ico} ${F.n} <span class="rgb tx">초월</span></b>`);};}
+// v144 ── 🤖 초월+ 탈것 「트랜스 로봇카」(시안) — 달릴 땐 스포츠카, 멈추면 로봇으로 변신. 직접 만든 모양 (어떤 작품의 캐릭터도 따라 하지 않아요)
+const TFC={crimson:{p:['#f0142e','#6e0316','#ff5240'],n:'#3fb0ff',e:'#7fdcff',k:'#2a2e3a',n2:'크림슨'},gold:{p:['#ffcc4a','#8a5a08','#fff0a8'],n:'#ffb23f',e:'#ffe08a',k:'#2e2a26',n2:'골드'},stealth:{p:['#3a3f52','#15161e','#6a7ea8'],n:'#3fffe0',e:'#a8fff2',k:'#191a22',n2:'스텔스',dk:1}};
+// 차체 단면 (하이퍼카와 같은 방식 · 앞 +z)
+function tfBodyF(s){const L=1.8,WZ=[1.1,-1.08],WR=.32,z=-L+s*2*L,e=s<.05?Math.max(.7,Math.sqrt(1-Math.pow(1-s/.05,2))):s>.955?Math.sqrt(Math.max(0,1-Math.pow((s-.955)/.045,2))):1;
+ let w=.74+.09*Math.max(...WZ.map(q=>Math.exp(-Math.pow((z-q)/.4,2))))-.2*hySm(1.1,L,z)-.06*hySm(-1.3,-L,z);let yt=.42+.22*hySm(L,.3,z)-.03*hySm(-1.0,-L,z),yb=.2;
+ WZ.forEach(q=>{const d=Math.abs(z-q);if(d<WR+.1)yb=Math.max(yb,.3+Math.sqrt(Math.max(0,Math.pow(WR+.1,2)-d*d))*.9);});const ym=Math.min(yt-.05,Math.max(yb+.03,.37));
+ return {z,w:w*Math.max(.25,e),yt:ym+(yt-ym)*Math.max(.35,e),yb:ym-(ym-yb)*Math.max(.35,e),ym};}
+// 단면 일부(s0~s1)를 잘라 양 끝을 기계 속(어두운 판)으로 막은 조각 — 변신하면 단면이 보여요
+function tfSeg(F,s0,s1,N,M,pw,capM,paint){const pos=[],idx=[],ring=[];for(let i=0;i<=N;i++){const f=F(s0+(s1-s0)*i/N);const R=[];for(let j=0;j<M;j++){const t=j/M*Math.PI*2,c=Math.cos(t),sn=Math.sin(t),ac=Math.pow(Math.abs(c),2/pw)*Math.sign(c),as=Math.pow(Math.abs(sn),2/pw)*Math.sign(sn);const up=sn>0,x=ac*f.w*(up?1-.2*as:1),y=up?f.ym+as*(f.yt-f.ym):f.ym+as*(f.ym-f.yb);pos.push(x,y,f.z);R.push([x,y,f.z]);}ring.push(R);}
+ for(let i=0;i<N;i++)for(let j=0;j<M;j++){const a=i*M+j,b=i*M+(j+1)%M,c=(i+1)*M+j,d=(i+1)*M+(j+1)%M;idx.push(a,b,d,a,d,c);}const nSide=idx.length;
+ [[0,-1],[N,1]].forEach(([ri,dir])=>{const R=ring[ri],cx=0,cy=R.reduce((a,v)=>a+v[1],0)/M,cz=R[0][2],base=pos.length/3;pos.push(cx,cy,cz);R.forEach(v=>pos.push(v[0]*.96,cy+(v[1]-cy)*.96,v[2]));for(let j=0;j<M;j++){const a=base+1+j,b=base+1+(j+1)%M;if(dir>0)idx.push(base,a,b);else idx.push(base,b,a);}});
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setIndex(idx);g.addGroup(0,nSide,0);g.addGroup(nSide,idx.length-nSide,1);g.computeVertexNormals();return new THREE.Mesh(g,[paint,capM]);}
+function flyTfx(cc){const P=TFC[cc]||TFC.crimson,T=THREE,root=new T.Group(),g=new T.Group();root.add(g);
+ const paint=hyMat('tf'+cc,P.p,{base:'#ffffff',mix:P.dk?.22:.3,ir:P.dk?.75:.95,gl:1.5}),glass=hyMat('tfg',['#0e1a33','#1d3a6a','#2a6a9a'],{base:'#ffffff',mix:.5,ir:.4,gl:1.4}),dark=hyB(P.k,{metalness:.75,roughness:.32}),chrome=hyB('#c8ccd8',{metalness:.95,roughness:.18}),inner=hyB('#20232c',{metalness:.6,roughness:.45}),neon=hyN(P.n),eye=hyN(P.e);
+ const parts=[];const part=(name,pv,rob,d0,d1,o)=>{const grp=new T.Group();grp.position.set(pv[0],pv[1],pv[2]);g.add(grp);const pr={name,grp,c:{p:new T.Vector3(...pv),q:new T.Quaternion(),s:o&&o.cs!=null?o.cs:1},r:{p:new T.Vector3(...rob.p),q:new T.Quaternion().setFromEuler(new T.Euler(...(rob.r||[0,0,0]),rob.o||'XYZ')),s:rob.s==null?1:rob.s},d0,d1,arc:(o&&o.arc)||0,hid:o&&o.hid};if(pr.c.s!==1)grp.scale.setScalar(pr.c.s);parts.push(pr);return grp;};
+ const at=(grp,pv,m)=>{m.position.x-=pv[0];m.position.y-=pv[1];m.position.z-=pv[2];grp.add(m);return m;};
+ const mesh=(geo,mat,x,y,z,r)=>{const m=new T.Mesh(geo,mat);m.position.set(x,y,z);if(r)m.rotation.set(r[0]||0,r[1]||0,r[2]||0);return m;};
+ const S0=(z)=>(z+1.8)/3.6;
+ // ── 앞(보닛·범퍼·전조등) → 가슴
+ {const pv=[0,.32,.55],G=part('nose',pv,{p:[0,3.12,.22],r:[Math.PI/2,0,0]},.3,.82,{arc:.6});const m=tfSeg(tfBodyF,S0(.55),1,26,40,3.2,inner,paint);at(G,pv,m);
+  [-1,1].forEach(sd=>{at(G,pv,mesh(new T.BoxGeometry(.3,.035,.04),hyN('#f2fbff'),sd*.32,.47,1.58,[-.3,sd*.55,sd*-.12]));at(G,pv,mesh(new T.BoxGeometry(.18,.028,.04),neon,sd*.44,.41,1.5,[-.3,sd*.75,sd*.5]));
+   // 보닛 위 공기구멍 · 네온 줄
+   at(G,pv,mesh(new T.BoxGeometry(.05,.02,.6),neon,sd*.2,.625,1.0,[-.12,0,0]));at(G,pv,mesh(new T.BoxGeometry(.16,.02,.32),inner,sd*.36,.6,.85,[-.12,0,0]));});
+  at(G,pv,mesh(new T.BoxGeometry(1.0,.04,.2),dark,0,.21,1.62));at(G,pv,mesh(new T.BoxGeometry(.92,.02,.02),neon,0,.23,1.72));
+  // 가운데 엠블럼: 둥근 별 (우리 게임 표식)
+  const em=mesh(new T.OctahedronGeometry(.06),hyN('#ffffff'),0,.56,1.6,[-.5,0,0]);em.scale.set(1,1.3,.5);at(G,pv,em);}
+ // ── 가운데(캐노피·문 사이) → 배·허리 (유리가 앞을 봐요)
+ {const pv=[0,.32,.55],G=part('cabin',pv,{p:[0,1.58,-.56],r:[Math.PI/2,0,0]},.18,.7,{arc:.3});at(G,pv,tfSeg(tfBodyF,S0(-.45),S0(.55),14,40,3.2,inner,paint));
+  const can=new T.Mesh(hyLoft(s=>{const z=-.42+s*.96,e=Math.sin(Math.min(1,s)*Math.PI);return {z,w:.56*Math.pow(e,.45)+.02,yt:.62+.3*Math.pow(e,.8),yb:.56,ym:.6};},24,28,2.6),glass);at(G,pv,can);
+  // 속 기계: 빛나는 코어 (변신하면 배 가운데에서 빛나요)
+  const core=mesh(new T.CylinderGeometry(.16,.16,.08,20),eye,0,.42,.05,[Math.PI/2,0,0]);at(G,pv,core);const cr=mesh(new T.TorusGeometry(.2,.035,8,24),chrome,0,.42,.05);at(G,pv,cr);}
+ // ── 뒤(트렁크·리어윙) → 등 날개
+ {const pv=[0,.32,-.45],G=part('rear',pv,{p:[0,2.02,-.5],r:[Math.PI/2,Math.PI,0],o:'YXZ'},.12,.62,{arc:.5});at(G,pv,tfSeg(tfBodyF,0,S0(-.45),22,40,3.2,inner,paint));
+  at(G,pv,mesh(new T.BoxGeometry(1.0,.3,.06),dark,0,.42,-1.79));at(G,pv,mesh(new T.BoxGeometry(.92,.04,.04),neon,0,.5,-1.83));[-1,1].forEach(sd=>at(G,pv,mesh(new T.BoxGeometry(.16,.07,.05),hyN('#ff3a5a'),sd*.4,.48,-1.84)));
+  const wg=new T.Group();wg.position.set(0,.86,-1.52);at(G,pv,wg);wg.add(mesh(new T.BoxGeometry(1.46,.035,.3),paint,0,0,0,[.1,0,0]));wg.add(mesh(new T.BoxGeometry(1.46,.018,.02),neon,0,-.006,-.16));
+  [-1,1].forEach(sd=>{wg.add(mesh(new T.BoxGeometry(.025,.16,.32),paint,sd*.74,-.04,0));wg.add(mesh(new T.BoxGeometry(.03,.26,.07),dark,sd*.36,-.15,.03,[-.2,0,0]));});
+  // 등 추진기 두 개 (로봇일 때 위로 향해요)
+  [-1,1].forEach(sd=>{const ex=mesh(new T.CylinderGeometry(.07,.08,.16,14),chrome,sd*.22,.3,-1.82,[Math.PI/2,0,0]);at(G,pv,ex);at(G,pv,mesh(new T.CircleGeometry(.055,14),neon,sd*.22,.3,-1.905,[0,Math.PI,0]));});}
+ // ── 바퀴: 앞 → 어깨 · 뒤 → 정강이 바깥
+ const wheel=(sd)=>{const w=new T.Group(),WR=.32;const t=new T.Mesh(new T.CylinderGeometry(WR,WR,.25,26),hyB('#16151c',{roughness:.85}));t.rotation.z=Math.PI/2;w.add(t);const rim=new T.Mesh(new T.CylinderGeometry(WR*.74,WR*.74,.27,26),hyB('#2a2c38',{metalness:.8,roughness:.25}));rim.rotation.z=Math.PI/2;w.add(rim);
+  for(let k=0;k<6;k++){const sp=new T.Mesh(new T.BoxGeometry(.035,WR*1.36,.06),chrome);sp.position.x=sd*.14;sp.rotation.x=k/6*Math.PI*2;sp.rotation.y=sd*.12;w.add(sp);}const ring=new T.Mesh(new T.TorusGeometry(WR*.76,.014,6,32),neon);ring.rotation.y=Math.PI/2;ring.position.x=sd*.14;w.add(ring);const hub=new T.Mesh(new T.CylinderGeometry(.055,.055,.29,10),chrome);hub.rotation.z=Math.PI/2;w.add(hub);return w;};
+ const WH=[];[[-1,1.1,'fl',[-1.04,3.02,.02],[0,0,.25]],[1,1.1,'fr',[1.04,3.02,.02],[0,0,-.25]],[-1,-1.08,'rl',[-.64,.68,-.08],[0,0,0]],[1,-1.08,'rr',[.64,.68,-.08],[0,0,0]]].forEach(([sd,z,nm,rp,rr])=>{const pv=[sd*.73,.32,z],G=part('w'+nm,pv,{p:rp,r:rr},nm[0]==='f'?.32:.02,nm[0]==='f'?.78:.5,{arc:nm[0]==='f'?.9:.2});const w=wheel(sd);G.add(w);WH.push(w);
+  at(G,pv,mesh(new T.BoxGeometry(.06,.14,.12),hyB('#e8303e'),sd*.71,.42,z-.12));});
+ // ── 문 → 위팔 (바깥면은 차체 색 · 네온 줄)
+ [-1,1].forEach(sd=>{const pv=[sd*.79,.6,.48],G=part('door'+sd,pv,{p:[sd*1.08,2.78,.02],r:[-Math.PI/2,0,sd*.06]},.42,.88,{arc:.5});const d=mesh(new T.BoxGeometry(.06,.36,.9),paint,sd*.79,.42,.02);at(G,pv,d);at(G,pv,mesh(new T.BoxGeometry(.065,.025,.8),neon,sd*.8,.52,.02));at(G,pv,mesh(new T.BoxGeometry(.04,.2,.12),inner,sd*.76,.4,-.38));
+  // 사이드 미러는 문에 붙어 있다가 어깨 장식이 돼요
+  at(G,pv,mesh(new T.BoxGeometry(.16,.05,.1),paint,sd*.86,.66,.38,[0,0,sd*.25]));});
+ // ── 숨어 있던 부품: 아래팔+주먹 · 다리 · 골반 · 머리 (차일 땐 차 안에 작게 접혀 있어요)
+ [-1,1].forEach(sd=>{const G=part('arm'+sd,[sd*.35,.4,0],{p:[sd*1.1,1.74,.08]},.5,.92,{cs:.25,arc:.2});
+  G.add(mesh(new T.BoxGeometry(.3,.62,.3),dark,0,.25,0));G.add(mesh(new T.BoxGeometry(.32,.3,.32),paint,0,.38,0));G.add(mesh(new T.BoxGeometry(.035,.5,.035),neon,sd*.16,.22,.12));
+  const f=new T.Group();f.position.set(0,-.18,.02);G.add(f);f.add(mesh(new T.BoxGeometry(.32,.26,.3),chrome,0,0,0));for(let k=0;k<4;k++)f.add(mesh(new T.BoxGeometry(.065,.09,.07),dark,-.11+k*.073,-.05,.16));f.add(mesh(new T.BoxGeometry(.08,.12,.08),dark,sd*-.17,0,.1));});
+ [-1,1].forEach(sd=>{const G=part('leg'+sd,[sd*.3,.36,-1.0],{p:[sd*.36,1.6,-.05],s:1.13},0,.52,{cs:.3,arc:.1});
+  G.add(mesh(new T.BoxGeometry(.38,.5,.42),dark,0,-.25,0));G.add(mesh(new T.BoxGeometry(.4,.3,.44),paint,0,-.2,.02));G.add(mesh(new T.SphereGeometry(.16,14,10),chrome,0,-.55,0));
+  G.add(mesh(new T.BoxGeometry(.42,.62,.44),paint,0,-.92,.02));G.add(mesh(new T.BoxGeometry(.3,.5,.06),inner,0,-.95,.25));G.add(mesh(new T.BoxGeometry(.04,.44,.04),neon,sd*.18,-.9,.24));
+  G.add(mesh(new T.BoxGeometry(.48,.18,.72),dark,0,-1.33,.1));G.add(mesh(new T.BoxGeometry(.5,.06,.4),paint,0,-1.22,.24));G.add(mesh(new T.BoxGeometry(.4,.025,.02),neon,0,-1.3,.47));});
+ {const G=part('hip',[0,.38,-.3],{p:[0,1.64,-.05]},.02,.5,{cs:.3});G.add(mesh(new T.BoxGeometry(.82,.32,.5),dark,0,0,0));G.add(mesh(new T.BoxGeometry(.5,.22,.08),chrome,0,0,.26));G.add(mesh(new T.BoxGeometry(.2,.03,.02),neon,0,0,.31));}
+ // 머리: 둥근 헬멧 · 가로로 빛나는 바이저 하나 · 위쪽 짧은 지느러미 · 턱 보호대
+ {const G=part('head',[0,.45,.6],{p:[0,3.48,.06],s:1.3},.72,1,{cs:.15,arc:.4});const hm=mesh(new T.SphereGeometry(.27,24,18,0,Math.PI*2,0,Math.PI*.62),paint,0,.04,0);hm.scale.set(1,1.05,1.08);G.add(hm);
+  G.add(mesh(new T.CylinderGeometry(.24,.21,.24,20),dark,0,-.08,0));const vz=mesh(new T.BoxGeometry(.4,.07,.1),eye,0,.0,.22);G.add(vz);const vg=new T.Sprite(new T.SpriteMaterial({map:hyGlowTex(),color:P.n,transparent:true,blending:T.AdditiveBlending,depthWrite:false}));vg.position.set(0,0,.27);vg.scale.set(.7,.3,1);G.add(vg);
+  G.add(mesh(new T.BoxGeometry(.28,.1,.12),chrome,0,-.16,.18));G.add(mesh(new T.BoxGeometry(.05,.16,.3),paint,0,.27,-.02));[-1,1].forEach(sd=>G.add(mesh(new T.BoxGeometry(.05,.18,.14),paint,sd*.26,-.04,.06)));
+  G.userData.visor=vz;}
+ // 목·어깨 연결대 (로봇일 때만 보여요)
+ {const G=part('frame',[0,.4,0],{p:[0,2.92,-.1]},.3,.8,{cs:.2});G.add(mesh(new T.BoxGeometry(1.7,.16,.3),dark,0,0,0));G.add(mesh(new T.BoxGeometry(1.6,.03,.03),neon,0,.09,.14));G.add(mesh(new T.CylinderGeometry(.11,.13,.3,12),chrome,0,.2,0));}
+ g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
+ root.userData.tf={parts,P,t:0,wheels:WH};root.userData.wheels=WH;root.userData.seat=[-.3,.58,-.3];root.userData.seat2=[.3,.58,-.3];root.userData.pose='drive';root.userData.hideRider=1;tfxSet(root,0);return root;}
+// 변신 진행도 t: 0 자동차 → 1 로봇. 부품마다 시작·끝 시간이 달라서 순서대로 착착 변해요
+const _tq=new THREE.Quaternion();function tfxSet(root,t){const F=root.userData.tf;if(!F)return;F.t=t;for(const pr of F.parts){const k0=Math.max(0,Math.min(1,(t-pr.d0)/(pr.d1-pr.d0))),k=k0*k0*(3-2*k0);const G=pr.grp;G.position.lerpVectors(pr.c.p,pr.r.p,k);G.position.y+=Math.sin(k*Math.PI)*pr.arc;_tq.copy(pr.c.q).slerp(pr.r.q,k);G.quaternion.copy(_tq);const sc=pr.c.s+(pr.r.s-pr.c.s)*Math.min(1,k*1.4);G.scale.setScalar(sc);G.visible=!(pr.c.s<1&&k<.02);}}
+FLYB.tfx=flyTfx;window.NK89.tfx={flyTfx,tfxSet,TFC};
+// v159: 달리면 자동차, 멈춘 지 0.5초 지나면 로봇으로 변신 (약 1.6초) · 다시 움직이면 바로 자동차로
+const tfxOn=()=>!PREV&&opt('tfx','off')==='on';
+{const _va=vehAnim;vehAnim=function(g,dt,moving){const r=_va.apply(this,arguments),F=g.userData.tf;if(!F)return r;const now=performance.now();dt=Math.min(.12,Math.max(dt,(now-(F.lt||now))/1000));F.lt=now;F.st=moving?0:(F.st||0)+dt;const want=moving?0:F.st>.5?1:F.t;const sp=want<F.t?1/.9:1/1.6;let t=F.t;if(t<want)t=Math.min(want,t+dt*sp);else if(t>want)t=Math.max(want,t-dt*sp);if(t!==F.t)tfxSet(g,t);return t>.02?0:r;};}
+{const _r=robShopHTML;robShopHTML=function(k,F,o){const h=_r.apply(this,arguments);if(k!=='tfx')return h;return h.replace('class="flyc robc"','class="flyc robc hyc"').replace(`<b>${F.ico} ${F.n}</b>`,`<b>${F.ico} ${F.n} <span class="rgb tx">초월+</span></b>`);};}
 // v119 ── 🚗 하늘 택시 (지상/비행) · ⛵ 돛단배 (테스트 기능)
 const TXM={};const txm=(c,o)=>{const k=c+JSON.stringify(o||{});return TXM[k]||(TXM[k]=new THREE.MeshLambertMaterial(Object.assign({color:c,flatShading:true},o||{})));};
 const txB=(g,w,h,d,c,x,y,z,r,o)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),txm(c,o));m.position.set(x,y,z);if(r)m.rotation.set(r[0]||0,r[1]||0,r[2]||0);g.add(m);return m;};
@@ -5607,6 +5681,7 @@ PHOOK.push(dt=>{if(!me)return;const on=camFxOn();
 const petRideV=()=>{if(PREV)return '';const v=opt('petRide','on');return v==='off'?'':'B';};// v128: 모든 유저에게 켜짐 (관리자에서 끌 수 있어요)
 const PRSLOT={plane:[.95,.12,.2],jet:[.9,.06,-.4],archae:[0,.62,-.5],balloon:[.42,.36,.05],elephant:[0,.32,-.5],giraffe:[0,.1,-.55],capy:[0,.1,-.5],pig:[0,.1,-.48],dog:[0,.1,-.55],rudolph:[0,.1,-.48],sled:[0,0,-.55],santa:[-.42,.9,-.45],boat:[0,0,.45],turtle:[0,-.2,-.72]};
 const PRROOF={taxi:[0,1.56,-.5],taxif:[0,1.56,-.5],jet:[0,.6,-.32],hyper:[0,.72,-1.15]};
+/* v159 🤖 변신 로봇카: 펫은 자동차일 땐 지붕 위, 로봇일 땐 왼쪽 어깨 위 */{const _ps=petSeat;petSeat=function(c,V,v){const F=V&&V.g&&V.g.userData.tf;if(!F||V.pas)return _ps.apply(this,arguments);const t=F.t||0,a=[-.95*t,.95+(3.12-.95)*t,-.35+.33*t];_prv.set(a[0],a[1],a[2]);V.g.updateMatrixWorld(true);return [V.g.localToWorld(_prv),.8];};}
 const _prv=new THREE.Vector3(),_prq=new THREE.Quaternion();
 function charVeh(c){if(c===me){if(VPAS.id){const e=VW.peers.get(VPAS.id);return e?{g:e.g,pas:1}:null;}return VW.me&&S.vehRide?{g:VW.me,k:vehBase(VW.mk)}:null;}
  for(const [id,r] of remotes){if(r.c!==c)continue;const e=VW.peers.get(id);if(e)return {g:e.g,k:vehBase(e.k),id};for(const [id2,e2] of VW.peers){const rr=remotes.get(id2);if(rr&&rr.c&&rr.c!==c&&e2.g&&e2.g.userData.seat2&&c.o.position.distanceTo(vehSeat(e2.g,1))<.6)return {g:e2.g,pas:1};}return null;}return null;}
@@ -5651,7 +5726,7 @@ function vsShopHTML(){const c=vehCfg(),own=vehOwn();return VEHS.filter(v=>!FLY[v
 {const _rs4=_renderShop;_renderShop=function(){if(!vehOn()&&shopTab==='fly')shopTab='rod';_rs4.apply(this,arguments);if(!vehOn())return;const sh=$('shop'),tabs=sh.querySelector('.tabs');if(!tabs)return;
  const tb=document.createElement('button');tb.dataset.tab='fly';tb.className=shopTab==='fly'?'on':'';tb.textContent='🚗 탈것';const sell=tabs.querySelector('[data-tab="sell"]');tabs.insertBefore(tb,sell||null);tb.onclick=()=>{shopTab='fly';renderShop();};
  if(shopTab!=='fly')return;try{vehApplyPr();}catch(e){}tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===tb));const grid=tabs.nextElementSibling;if(!grid)return;grid.className='flyshop';
- grid.innerHTML=`<p class="small muted" style="grid-column:1/-1">가방 › 탈것에서 「🚗 타기」 · 나는 탈것은 물 위도 가요 (하늘에선 낚시 불가) · 색마다 따로 사요</p>`+vsShopHTML()+Object.entries(FLY).map(([k,F])=>{const o=flyOwn(k);if(vehHow(k)!=='shop')return '';if(F.hide)return '';if(k==='jet'&&!jetOn()&&!o)return '';if(k==='taxi'&&!taxiOn()&&!o)return '';if(k==='boat'&&!boatOn()&&!o)return '';if(k==='hyper'&&!hyperOn()&&!o)return '';if(k==='turtle'&&!turtleOn()&&!o)return '';if(k==='ufo'&&!ufoOn()&&!o)return '';if((k==='yacht'||k==='cat'||k==='rowb')&&!boats2On()&&!o)return '';if(F.ground)return robShopHTML(k,F,o);return `<div class="flyc"><div class="flyh"><b>${{plane:'✈️',archae:'🦖',balloon:'🎈',jet:'🛫'}[k]||F.ico||'✈️'} ${F.n}</b><small>속도 +${F.spd}%</small></div><div class="flycs">${F.cols.map(([c,n,pr])=>{const own=o&&o.cs.includes(c),on=own&&o.c===c&&S.vehOn===k;return `<div class="flyo ${on?'on':''}"><img data-flyimg="${k}.${c}" alt=""><b>${n}</b><small>🪙 ${pr.toLocaleString()}</small>${own?`<button type="button" class="${on?'':'acc'}" data-flyon="${k}.${c}" ${on?'disabled':''}>${on?'타는 중':'이걸로'}</button>${on?'':`<button type="button" class="sellb" data-flysell="${k}.${c}">💰 🪙 ${sellPr(pr).toLocaleString()}</button>`}`:`<button type="button" class="acc" data-flybuy="${k}.${c}" ${S.coins<pr?'disabled':''}>구매</button>`}</div>`;}).join('')}</div></div>`;}).join('');
+ grid.innerHTML=`<p class="small muted" style="grid-column:1/-1">가방 › 탈것에서 「🚗 타기」 · 나는 탈것은 물 위도 가요 (하늘에선 낚시 불가) · 색마다 따로 사요</p>`+vsShopHTML()+Object.entries(FLY).map(([k,F])=>{const o=flyOwn(k);if(vehHow(k)!=='shop')return '';if(F.hide)return '';if(k==='jet'&&!jetOn()&&!o)return '';if(k==='taxi'&&!taxiOn()&&!o)return '';if(k==='boat'&&!boatOn()&&!o)return '';if(k==='hyper'&&!hyperOn()&&!o)return '';if(k==='turtle'&&!turtleOn()&&!o)return '';if(k==='tfx'&&!tfxOn()&&!o)return '';if(k==='ufo'&&!ufoOn()&&!o)return '';if((k==='yacht'||k==='cat'||k==='rowb')&&!boats2On()&&!o)return '';if(F.ground)return robShopHTML(k,F,o);return `<div class="flyc"><div class="flyh"><b>${{plane:'✈️',archae:'🦖',balloon:'🎈',jet:'🛫'}[k]||F.ico||'✈️'} ${F.n}</b><small>속도 +${F.spd}%</small></div><div class="flycs">${F.cols.map(([c,n,pr])=>{const own=o&&o.cs.includes(c),on=own&&o.c===c&&S.vehOn===k;return `<div class="flyo ${on?'on':''}"><img data-flyimg="${k}.${c}" alt=""><b>${n}</b><small>🪙 ${pr.toLocaleString()}</small>${own?`<button type="button" class="${on?'':'acc'}" data-flyon="${k}.${c}" ${on?'disabled':''}>${on?'타는 중':'이걸로'}</button>${on?'':`<button type="button" class="sellb" data-flysell="${k}.${c}">💰 🪙 ${sellPr(pr).toLocaleString()}</button>`}`:`<button type="button" class="acc" data-flybuy="${k}.${c}" ${S.coins<pr?'disabled':''}>구매</button>`}</div>`;}).join('')}</div></div>`;}).join('');
  grid.querySelectorAll('[data-flybuy]').forEach(b=>b.onclick=()=>{const [k,c]=b.dataset.flybuy.split('.'),F=FLY[k],it=F.cols.find(x=>x[0]===c);if(!it||S.coins<it[2])return;if(!confirm(`${F.n} (${it[1]})을 ${it[2].toLocaleString()}골드에 살까요?`))return;S.coins-=it[2];const own=vehOwn();if(!own[k])own[k]={at:Date.now(),how:'shop',c,cs:[c]};else{flyOwn(k);if(!own[k].cs.includes(c))own[k].cs.push(c);own[k].c=c;}S.vehOn=k;save();hud();try{sfx.coin();}catch(e){}toast(`${F.n} (${it[1]}) 구매! 「🚗 타기」를 누르면 ${F.ground?'타요':'날아올라요'}`,2400);renderShop();});
  grid.querySelectorAll('[data-vsbuy]').forEach(b=>b.onclick=()=>{const k=b.dataset.vsbuy,v=VEHS.find(x=>x.k===k),pr=vehPr(k);if(!v||S.coins<pr||vehOwn()[k])return;if(!confirm(`${v.n}을(를) ${pr.toLocaleString()}골드에 살까요?`))return;S.coins-=pr;vehGet(k,'shop',k==='car'?'mint':undefined);save();hud();renderShop();});
  grid.querySelectorAll('[data-vson]').forEach(b=>b.onclick=()=>{S.vehOn=b.dataset.vson;S.vehRide=1;save();renderShop();});
