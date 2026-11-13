@@ -647,7 +647,7 @@
   RT.setNotice = function (notice) { return opsSend({ t: "notice", notice: notice || null }); };
   RT.setEvent = function (event) { return opsSend({ t: "event", event: event || null }); };
   RT.setBalance = function (balance) { return opsSend({ t: "balance", balance: balance || null }); };
-  RT.setGrant = function (grant) { return opsSend({ t: "grant", nick: grant && grant.nick, until: grant && grant.until, revoke: !!(grant && grant.revoke), mins: grant && grant.mins, id: grant && grant.id || "" }); };
+  RT.setGrant = function (grant) { return opsSend({ t: "grant", nick: grant && grant.nick, until: grant && grant.until, revoke: !!(grant && grant.revoke), mins: grant && grant.mins, id: grant && grant.id || "", pet: grant && grant.pet ? 1 : 0 }); };
   RT.setSanc = function (row) { return opsSend({ t: "sanc", nick: row && row.nick, mute: row && row.mute, ban: row && row.ban, why: row && row.why }); };
   RT.setGift = function (gift) { return opsSend({ t: "gift", gift }); };
   RT.setProf = function (prof) { return opsSend({ t: "prof", prof }); };

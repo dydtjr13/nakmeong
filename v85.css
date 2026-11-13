@@ -1209,7 +1209,7 @@ body.perf #dc{touch-action:none;-webkit-user-select:none;user-select:none;z-inde
 .rk10 .t.cs,.rk10.k1 .t.cs,.rk10.k2 .t.cs,.rk10.k3 .t.cs{background:var(--tb)!important;color:var(--tf)!important;box-shadow:0 0 0 2px var(--td) inset,0 2px 6px rgba(0,0,0,.18)!important;white-space:nowrap}
 /* v143: 접속자 표시 A — 마우스를 올리면 총 접속자수 */
 #rtPill.rpv{pointer-events:auto;cursor:default}
-#rtPill.rpv:hover::after{content:attr(data-tip);position:absolute;right:0;bottom:calc(100% + 6px);background:#2a2140f0;color:#fff;font-size:12px;font-weight:800;padding:5px 10px;border-radius:9px;white-space:nowrap;box-shadow:0 4px 12px #0004}
+#rtPill.rpv:hover::after{content:attr(data-rtip);position:absolute;right:0;bottom:calc(100% + 6px);background:#2a2140f0;color:#fff;font-size:12px;font-weight:800;padding:5px 10px;border-radius:9px;white-space:nowrap;box-shadow:0 4px 12px #0004}
 /* v143: 낚시 카드 E·F·G·J 폰 위치 */
 @media (max-width:699px){
  body #toast:has(.cc.E){top:auto!important;bottom:calc(250px + env(safe-area-inset-bottom))!important;left:50%!important;right:auto!important;transform:translate(-50%,0)!important}
@@ -1332,3 +1332,5 @@ body.perf #dc{touch-action:none;-webkit-user-select:none;user-select:none;z-inde
 #set section>.ssub:first-of-type,#set h4+.ssub{margin-top:4px}
 #set .svl{display:grid;gap:8px;margin:6px 0 10px}#set .svl label{display:grid;grid-template-columns:5.2em minmax(0,1fr) 3.4em;align-items:center;gap:10px;white-space:nowrap}#set .svl input{width:100%}#set .svl b{text-align:right;font-size:13px}
 #set .slay main label{white-space:nowrap}#set .slay main p{overflow-wrap:anywhere}
+/* v150: 가방 › 탈것 색 고르기 */
+.ptc .vcs{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:4px 0 2px}.ptc .vcs button{font-size:10.5px;padding:2px 7px;border-radius:99px;border:1.5px solid #e2d4c0;background:#fff;color:#6a5a4a;white-space:nowrap;line-height:1.4}.ptc .vcs button.on{background:var(--c,#e8784a);border-color:var(--c,#e8784a);color:#fff}.ptc .vcs button:disabled{opacity:.35}

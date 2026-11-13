@@ -175,6 +175,8 @@ export class LakeRoom extends DurableObject {
     return this._ops[key];
   }
 
+  /** v150: 달이 호숫가 1의 블록 탈것·탈것 모양을 받아 가요 (달에서 다른 유저 탈것이 안 보이던 문제) */
+  async vehSnap() { return { vmod: await this.opsGet("vmod", {}), vbx: await this.vbxAll() }; }
   async vbxAll() {
     const out = {};
     for (const k of await this.opsGet("vbxList", [])) { const d = await this.opsGet("vbx:" + k, null); if (d) out[k] = d; }
@@ -1049,6 +1051,13 @@ export class LakeRoom extends DurableObject {
           await this.opsPut("sanc", s2); ops.sanc = s2;
           // v140: 특별 칭호도 호숫가 1 기준으로 (달에서 칭호가 안 보이던 문제)
           if (occ && occ.titles && typeof occ.titles === "object" && Object.keys(occ.titles).length) { const t2 = sanitizeTitles(occ.titles); await this.opsPut("titles", t2); ops.titles = t2; }
+          const vs = await this.env.LAKE.getByName("lake-1").vehSnap();
+          if (vs && vs.vbx && typeof vs.vbx === "object") {
+            const keys = Object.keys(vs.vbx).slice(0, VB_MAX);
+            for (const k of keys) { const d = sanitizeVbxOne(vs.vbx[k]); if (d) await this.opsPut("vbx:" + k, d); }
+            await this.opsPut("vbxList", keys); ops.vbx = await this.vbxAll();
+          }
+          if (vs && vs.vmod && typeof vs.vmod === "object" && Object.keys(vs.vmod).length) { const v2 = sanitizeVmod(vs.vmod); await this.opsPut("vmod", v2); ops.vmod = v2; }
         } catch { /* ignore */ }
       }
       const meNick = next.att.nick;
