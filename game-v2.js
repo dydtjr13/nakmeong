@@ -5221,7 +5221,7 @@ function skySwitch(toSky){if(SKY.busy)return;SKY.busy=true;if(toSky)try{skyFishA
 // v135: 하늘섬을 오가면 타고 있던 탈것에 다시 태워요
 {let v='';try{v=sessionStorage.getItem('nk_skyVeh')||'';sessionStorage.removeItem('nk_skyVeh');}catch(e){}if(v){const iv=setInterval(()=>{try{if(!started||!me)return;clearInterval(iv);if(S.vehOn===v&&vehOwn()[v]){S.vehRide=1;save();}}catch(e){clearInterval(iv);}},500);}}
 // v151 🏘 바닷가 마을 (테스트 'seaTown') — 호숫가에서 배를 타면 「바닷가 마을로」 · 운하를 지나 바다에서 배 위 낚시 · 바다에서는 배에서 못 내려요
-const seaTownOn=()=>!PREV&&opt('seaTown','off')==='on';const SEA_OX=700;const SEA=window.__nkSEA={st:null};
+const seaTownOn=()=>!PREV&&opt('seaTown','off')==='on';const SEA_OX=700;const SEA=window.__nkSEA={st:null};FHOOK.push(()=>{const st=SEA.st;if(st&&st.night&&SEABOOT)st.night(NIGHT);});
 /* v156: 바다 물고기 12종 (사용자 제공 그림·데이터 game-data-v30.js) — 바닷가 마을 바다에서만 낚여요 */
 const SEAK=['godeungeo','jeonjaengi','nollaemi','ureok','gamseong','galchi','gwangeo','chamdom','bogeo','doldom','bangeo','darangeo'];
 /* v155 임시 어종 키 → v156 어종으로 옮겨요 (테스트 중 잡은 것) */const SEAMV={sea_mackerel:'godeungeo',sea_jeoneo:'jeonjaengi',sea_bollak:'nollaemi',sea_jogi:'jeonjaengi',sea_jwichi:'bogeo',sea_ureok:'ureok',sea_galchi:'galchi',sea_samchi:'godeungeo',sea_gwangeo:'gwangeo',sea_gamseong:'gamseong',sea_chamdom:'chamdom',sea_bangeo:'bangeo'};
