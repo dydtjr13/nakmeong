@@ -402,6 +402,7 @@
       fish: p.fish || "off",
       anim: p.anim || "idle",
       seat: p.seat == null ? null : p.seat | 0,
+      home: (p.home | 0) || undefined,
       cid: CID,
       adm: admCred ? { id: admCred.id, pw: admCred.pw } : (keepGet() ? { tok: keepGet() } : undefined),
     };

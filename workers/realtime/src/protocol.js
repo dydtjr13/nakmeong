@@ -1,11 +1,14 @@
 /** 피쉬코지 실시간 프로토콜. Durable Object와 단위 테스트가 같이 씁니다. */
 
 export const SERVERS = [
-  { id: 1, name: "호숫가 1" },
-  { id: 2, name: "호숫가 2" },
-  { id: 3, name: "호숫가 3" },
-  { id: 4, name: "호숫가 4" },
+  { id: 1, name: "물병자리" },
+  { id: 2, name: "물고기자리" },
+  { id: 3, name: "양자리" },
+  { id: 4, name: "황소자리" },
 ];
+
+// v146: 달에 간 유저가 어느 서버(별자리)에서 왔는지 — 서버 목록 인원에 달 인원까지 합쳐요
+export function cleanHome(v) { const n = Math.round(Number(v)); return n >= 1 && n <= 14 && n !== 7 && n !== 8 ? n : 0; }
 
 export const CAP = 100; // v141: 호숫가·달 한 곳에 100명까지
 export const POSE_MS = 90;
@@ -1488,6 +1491,7 @@ export function parseClient(raw) {
       fk: msg.fish === "catch" ? cleanId(msg.fk, 24) : undefined,
       fg: msg.fish === "catch" ? Math.max(0, Math.min(5, Math.round(Number(msg.fg) || 0))) : undefined,
       cid: cleanId(msg.cid, 40),
+      home: msg.t === "hello" ? cleanHome(msg.home) : undefined,
       adm: msg.t === "hello" && msg.adm && typeof msg.adm === "object" ? { id: cleanCred(msg.adm.id, 64), pw: cleanCred(msg.adm.pw, 128), ...(cleanCred(msg.adm.tok, 120) ? { tok: cleanCred(msg.adm.tok, 120) } : {}) } : null,
     };
   }
@@ -1609,6 +1613,7 @@ export function reduce(prev, msg, now, others) {
     denied = true;
   }
 
+  if (msg.t === "hello" && cleanHome(msg.home)) att.home = cleanHome(msg.home);
   att.nick = nick;
   att.ki = pose.ki;
   att.lv = pose.lv;
