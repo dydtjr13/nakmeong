@@ -503,6 +503,7 @@ const DWX=[],SEATS=[];function buildDW(wood){const ex=DW.ext,nE=ex.length*DWX.le
   const st2=new THREE.InstancedMesh(new THREE.BoxGeometry(1.3,.6,.7),M('#c49468'),n),gl2=new THREE.InstancedMesh(new THREE.BoxGeometry(1.2,.8,.6),new THREE.MeshLambertMaterial({color:'#bfeaf5',transparent:true,opacity:.55}),n);
   DWX.forEach((d,j)=>{Q.setFromAxisAngle(UP,d.ry);DW.stool.forEach(([x,z],m)=>{const c=d.LW(x,z),same0=Math.sign(x)===Math.sign(DW.tank[0][0]);SEATS.push({x:c[0],z:c[1],y:.96,cap:1,occ:[],deck:decks[d.i]||d.i,kind:'stool',twin:d.twin?1:0,twinI:d.i,tk:same0?(d.twin?'T'+d.i:d.i):d.tk});M4.makeTranslation(c[0],.92,c[1]);seat.setMatrixAt(j*2+m,M4);seat.setColorAt(j*2+m,new THREE.Color(cols[m]));M4.makeTranslation(c[0],.62,c[1]);leg.setMatrixAt(j*2+m,M4);});
    const t=d.LW(DW.tank[1][0],DW.tank[1][1]),tw=DW.tw||1;Q.setFromAxisAngle(UP,d.ry+TKR(1));const _ty=TKY(t[0],t[1]);M4.compose(V.set(t[0],.7+_ty,t[1]),Q,SC.set(tw,1,1));st2.setMatrixAt(j,M4);const _a=M4.clone();M4.compose(V.set(t[0],1.4+_ty,t[1]),Q,SC.set(tw,tw>1?.8:1,1));gl2.setMatrixAt(j,M4);TANKX[d.tk]={S:st2,G:gl2,j,x:t[0],z:t[1],y:_ty,ry:d.ry+TKR(1),tm:[_a,M4.clone()]};});
+  /* v147: 의자가 1개인 데크(달)에서 남는 의자가 호수 한가운데(0,0)에 검은 덩어리로 보이던 문제 → 안 쓰는 칸은 숨김 */{const Z=new THREE.Matrix4().makeScale(0,0,0);for(let i=0;i<n*2;i++){const j=i>>1,m=i&1;if(m>=DW.stool.length||j>=DWX.length){seat.setMatrixAt(i,Z);leg.setMatrixAt(i,Z);}}}
   [seat,leg,st2,gl2].forEach(m=>{m.frustumCulled=false;scene.add(m);});}
 const tankPickers=[];let myTankX=null,myTankPos=null,myTankK=null;
 // v78: Ctrl+S(맥은 ⌘+S) → 게임 저장
@@ -1602,9 +1603,9 @@ async function fetchSaveObj(raw){raw=String(raw||'').trim();if(!raw)throw new Er
  let r;try{r=await fetch(SV.api()+'/saves/'+c,{headers:{'X-Owner':SV.cid()}});}catch(e){throw new Error('서버에 연결하지 못했어요');}const j=await r.json().catch(()=>null);if(r.status===404)throw new Error('없는 코드예요. 다시 확인해 주세요');if(!r.ok||!j||!j.ok)throw new Error('코드를 읽지 못했어요');return JSON.parse(j.data);}
 // v56: 닉네임 + 비밀번호(숫자 4~6자리) 계정 — 다른 기기·브라우저·시크릿 창에서도 닉네임과 비밀번호로 이어 하기
 const ACC={err:{nick:'닉네임을 확인해 주세요',pin:'비밀번호는 숫자 4~6자리예요',taken:'이미 다른 사람이 쓰는 닉네임이에요',wrong:'닉네임 또는 비밀번호가 맞지 않아요',locked:'여러 번 틀려서 10분 동안 잠겼어요. 잠시 후 다시 해 주세요','no save':'저장 데이터를 찾지 못했어요'},
- async post(path,body){let r;try{r=await fetch(SV.api()+path,{method:'POST',headers:{'Content-Type':'application/json','X-Owner':SV.cid()},body:JSON.stringify(body)});}catch(e){throw new Error('서버에 연결하지 못했어요');}const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.ok)throw new Error(ACC.err[j&&j.error]||'잠시 후 다시 시도해 주세요');return j;},
+ async post(path,body,owner){let r;try{r=await fetch(SV.api()+path,{method:'POST',headers:{'Content-Type':'application/json','X-Owner':owner||SV.cid()},body:JSON.stringify(body)});}catch(e){throw new Error('서버에 연결하지 못했어요');}const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.ok)throw new Error(ACC.err[j&&j.error]||'잠시 후 다시 시도해 주세요');return j;},
  async link(nick,pin){nick=String(nick||'').trim();if(!nick)throw new Error(ACC.err.nick);if(!/^\d{4,6}$/.test(pin))throw new Error(ACC.err.pin);S.savedAt=Date.now();save();const c=await cloudSave(true);if(!c)throw new Error('서버에 저장하지 못했어요. 잠시 후 다시 해 주세요');const j=await ACC.post('/accounts/register',{nick,pin});S.acct=j.nick;save();return j;},
- async login(nick,pin){nick=String(nick||'').trim();if(!nick)throw new Error(ACC.err.nick);if(!/^\d{4,6}$/.test(pin))throw new Error(ACC.err.pin);const j=await ACC.post('/accounts/login',{nick,pin});const o=JSON.parse(j.data);SV.setCode(j.code);o.acct=j.nick;return o;}};
+ async login(nick,pin,owner){nick=String(nick||'').trim();if(!nick)throw new Error(ACC.err.nick);if(!/^\d{4,6}$/.test(pin))throw new Error(ACC.err.pin);const j=await ACC.post('/accounts/login',{nick,pin},owner);const o=JSON.parse(j.data);SV.setCode(j.code);o.acct=j.nick;return o;}};
 window.NK_ACC=ACC;
 function applySaveObj(o){if(!o||typeof o.coins!=='number')throw 0;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,S0,o);SYS.migrate(D,S);if(S.autoFish&&!afOK())S.autoFish=false;S.savedAt=Date.now();save();hud();}
 function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=Date.now();save();toast('💾 저장 완료');return;}
@@ -2749,7 +2750,7 @@ function benchPlace(c,st){const k=(c.o.userData.fitK||'?')+'|'+c.o.scale.x.toFix
 FHOOK.push(()=>{if(!me||!mySeat||mySeat.kind!=='bench'||mySeat.fx==null)return;const k=(me.o.userData.fitK||'?')+'|'+me.o.scale.x.toFixed(3);if(SFIT[k]){if(!me._bfitOK){me._bfitOK=1;benchPlace(me,mySeat);}return;}if(!me._bfitT||performance.now()-me._bfitT<(me.rig?1300:450))return;try{const r=sitMeasure(me);if(r){SFIT[k]=r;me._bfitOK=1;benchPlace(me,mySeat);}}catch(e){me._bfitT=performance.now()+1e9;}});
 window.__nkBench={SFIT,sitMeasure:c=>sitMeasure(c),place:(c,st)=>benchPlace(c,st)};
 function sitUI(){let b=$('sitBtn');if(!b){b=document.createElement('button');b.id='sitBtn';document.body.appendChild(b);b.onclick=e=>{e.stopPropagation();$('bSit').onclick();};}
- const on=!!(nearSeat||mySeat)&&!(mySeat&&mySeat.kind==='train')&&fishing.state==='off'&&!anyModal();b.style.display=on?'':'none';if(on){const fb=$('fishBtn'),r=fb&&fb.style.display!=='none'?fb.getBoundingClientRect():null;b.style.bottom=(r&&r.height?Math.round(innerHeight-r.top+12):150)+'px';}const t=mySeat?'🪑 일어나기':'🪑 앉기'+(nearSeat&&nearSeat.kind==='stool'&&DW?' (낚시 자리)':'');if(b._t!==t){b._t=t;b.textContent=t;}const sb=$('bSit');if(sb)sb.classList.toggle('ready',!!(nearSeat||mySeat));}
+ const _tc=$('toast'),ccOn=!!(_tc&&+_tc.style.opacity>0&&_tc.querySelector('.ccw'));/* v147: 낚시 중·낚시 카드가 떠 있는 동안에는 일어나기 버튼 숨김 */const on=!!(nearSeat||mySeat)&&!(mySeat&&mySeat.kind==='train')&&fishing.state==='off'&&!ccOn&&!(mySeat&&nearSpot&&castT>=0)&&!anyModal();b.style.display=on?'':'none';if(on){const fb=$('fishBtn'),r=fb&&fb.style.display!=='none'?fb.getBoundingClientRect():null;b.style.bottom=(r&&r.height?Math.round(innerHeight-r.top+12):150)+'px';}const t=mySeat?'🪑 일어나기':'🪑 앉기'+(nearSeat&&nearSeat.kind==='stool'&&DW?' (낚시 자리)':'');if(b._t!==t){b._t=t;b.textContent=t;}const sb=$('bSit');if(sb)sb.classList.toggle('ready',!!(nearSeat||mySeat));}
 function standUp(){if(me){me._bfitOK=0;me._seatY=null;}if(mySeat){const st=mySeat;seatLeave('me');mySeat=null;if(me){const p=me.o.position,a=me.dir;let ok=false;for(const r of [1.0,1.35,1.8,2.3]){for(const da of [0,.6,-.6,1.2,-1.2,Math.PI/2,-Math.PI/2,2.2,-2.2,Math.PI]){const x=st.x+Math.sin(a+da)*r,z=st.z+Math.cos(a+da)*r;if(walk(x,z)){p.x=x;p.z=z;ok=true;break;}}if(ok)break;}p.y=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);}}sitting=false;}
 const remotes=new Map();
 function dropRemote(r){const i=chars.indexOf(r.c);if(i>=0)chars.splice(i,1);dropChar(r.c);rfDrop(r);}
@@ -2975,7 +2976,7 @@ loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyV
   $('go').onclick=async()=>{if($('go')._busy)return;$('go')._busy=1;const prev=$('go').textContent;try{
     const id=SKYBOOT?7:(+CFG.ch===8&&nickBad(NICK())==='reserved')?8:Math.max(1,Math.min(4,+(V14&&V14.CH&&V14.CH.me)||+(CFG.ch)||1));let online=false,res=null;
     if(nickBad(NICK())==='reserved'){if(!window.NK_RT||NK_RT.mode==='off'){alertBox('<h3>관리자 닉네임</h3><p>관리자 닉네임은 실시간 서버에 접속할 때만 쓸 수 있어요.</p>');return;}if(NK_RT.hasAdminKeep&&NK_RT.hasAdminKeep())NK_RT.setAdminCred(null);else{const cr=await NK_ADM.askCred(NICK());if(!cr){return;}NK_RT.setAdminCred(cr.id,cr.pw);}}else if(window.NK_RT&&NK_RT.setAdminCred)NK_RT.setAdminCred(null);
-    if(window.NK_RT){$('go').textContent='서버 들어가는 중…';res=await NK_RT.connect(id,{home:id===7?Math.max(1,Math.min(4,+CFG.ch||1)):id,nick:NICK(),ki:S.char|0,lv:myLv(),x:d0.entry.x,z:d0.entry.z,y:.4,d:d0.a+Math.PI,fish:'off',anim:'idle',seat:null});
+    if(window.NK_RT){$('go').textContent='서버 들어가는 중…';res=await NK_RT.connect(id,{home:id===7?Math.max(1,Math.min(4,+(()=>{try{return sessionStorage.getItem('nk_skyFrom');}catch(e){return 0;}})()||+CFG.ch||1)):id,nick:NICK(),ki:S.char|0,lv:myLv(),x:d0.entry.x,z:d0.entry.z,y:.4,d:d0.a+Math.PI,fish:'off',anim:'idle',seat:null});
       if(res&&res.reason==='nick'){try{NK_RT.setAdminCred(null);}catch(_){}alertBox('<h3>닉네임</h3><p>'+(res.detail==='admin'?'관리자 아이디 또는 비밀번호가 맞지 않아요':nickBadText(res.detail))+'</p>');const st=document.querySelector('#start .stB');if(st)st.dataset.step='1';return;}
       if(res&&res.reason==='full'){toast('이 호숫가는 가득 찼어요. 다른 서버를 골라 주세요',2000);dispatchEvent(new Event('nk-rt-servers'));return;}
       online=!!(res&&res.ok);if(res&&res.reason==='banned')toast('이 닉네임은 정지 중이에요. 시간이 끝난 뒤에 다시 들어와 주세요',2600);else if(!online&&!(res&&res.reason==='off'))toast('실시간 서버에 연결하지 못해서 혼자(봇과) 플레이해요',2200);}
@@ -3205,7 +3206,7 @@ V14=(()=>{
    else{b.c.tag.visible=true;b.c.o.visible=true;const free=decks.filter(d=>d.i!==myDeckI&&!d.owner);if(free.length&&Math.random()<.85){const d=pick(free);d.owner=b.c.name;b.deck=d;}b.wait=0;}}}
  // ── 채널 ──
  const CH={n:(CFG.chN==null||CFG.chN==='')?4:Math.max(1,Math.min(8,+CFG.chN||1)),me:Math.max(1,+(CFG.ch||1))};
- const rtN=id=>{const RT=window.NK_RT;if(!RT)return null;const on=!!(RT.status&&RT.status()==='on'&&RT.serverId&&RT.serverId()===id);if(on)return RT.count()|0;if(id===CH.me)return null;const row=RT.server&&RT.server(id);if(row&&row.n!=null)return row.n|0;const list=RT.list&&RT.list();const hit=list&&list.find(s=>s.id===id);return hit&&hit.n!=null?hit.n|0:null;};
+ const rtN=id=>{const RT=window.NK_RT;if(!RT)return null;const on=!!(RT.status&&RT.status()==='on'&&RT.serverId&&RT.serverId()===id);if(on)return (RT.count()|0)+((RT.mh&&RT.mh[id])|0);if(RT.srvN){const v=RT.srvN(id);if(v!=null)return v;}if(id===CH.me)return null;const row=RT.server&&RT.server(id);if(row&&row.n!=null)return row.n|0;const list=RT.list&&RT.list();const hit=list&&list.find(s=>s.id===id);return hit&&hit.n!=null?hit.n|0:null;};
  const chPop=()=>Array.from({length:CH.n},(_,i)=>{const id=i+1,n=rtN(id);if(n!=null)return n;return id===CH.me?1:0;});
  const chLabel=id=>{const n=rtN(id);if(n==null&&id!==CH.me)return '?';return String(chPop()[id-1]);};
  let annT=rand(40,90);function serverAnn(dt){annT-=dt;if(annT>0||CH.n<2)return;annT=rand(70,160);const ch=pick(Array.from({length:CH.n},(_,i)=>i+1).filter(i=>i!==CH.me)),f=pick(D.FISH.filter(f=>!f.limited)),nm=pick(['바다사나이','달빛낚시','물비늘','강태공K','여울소년','호수지기']);say('시스템',`📣 [서버 전체] 채널 ${ch} ${nm}님이 주간 ${f.n} 랭킹 ${1+(Math.random()*3|0)}위에 올랐어요!`);}
@@ -3711,7 +3712,15 @@ if(SL&&!PREV){
  document.addEventListener('input',e=>{if(e.target&&(e.target.id==='stNick'||e.target.id==='stMkP'))setTimeout(slotMk,400);},true);
  // 📂 이어하기: 다른 계정을 불러오면 지금 칸에 덮어쓰지 않고, 그 계정 칸(없으면 새 칸)으로 바꿔요
  const _login=ACC.login.bind(ACC);
- ACC.login=async function(n,p){const prev=SV.code();const o=await _login(n,p);if(slotOn()&&hasProg()&&o&&o.acct!==S.acct){const code=SV.code();SV.setCode(prev);const ex=SL.list().find(x=>x.acct&&x.acct===o.acct&&x.id!==SL.cur());slotGo(ex?ex.id:'new',{load:JSON.stringify(o),code});throw new Error('계정 칸을 바꾸는 중이에요…');}return o;};
+ /* v147: 다른 계정으로 이어하면 그 계정 저장의 주인을 '새 칸'의 기기 ID로 옮겨요.
+    예전에는 지금 칸의 기기 ID가 주인이 돼서, 지금 칸에서 저장할 때 이 브라우저 진행이 그 계정 저장을 덮어쓰고
+    새 칸은 계정 연결이 끊겼어요 (다른 곳에서 로그인하면 이 브라우저 정보가 뜨던 문제) */
+ const lkey=v=>String(v||'').trim().toLowerCase(),newCid=()=>(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2,12)).replace(/[^\w-]/g,'');
+ ACC.login=async function(n,p){if(!(slotOn()&&hasProg())||lkey(n)===lkey(S.acct))return _login(n,p);
+  const ex0=SL.list().find(x=>x.acct&&lkey(x.acct)===lkey(n)&&x.id!==SL.cur());let cid='';try{if(ex0)cid=(JSON.parse(localStorage.getItem('nk_slot_'+ex0.id)||'{}')||{}).nk_cid||'';}catch(e){}if(!/^[\w-]{8,40}$/.test(cid))cid=newCid();
+  const prev=SV.code();const o=await _login(n,p,cid);
+  if(o&&o.acct!==S.acct){const code=SV.code();SV.setCode(prev);const ex=SL.list().find(x=>x.acct&&x.acct===o.acct&&x.id!==SL.cur());slotGo(ex?ex.id:'new',{load:JSON.stringify(o),code,cid});throw new Error('계정 칸을 바꾸는 중이에요…');}
+  try{localStorage.setItem('nk_cid',cid);}catch(e){}return o;};
  const _fso=fetchSaveObj;
  fetchSaveObj=async function(raw){const prev=SV.code();const o=await _fso(raw);if(slotOn()&&hasProg()&&o&&((o.acct||'')!==(S.acct||'')||(o.nick||'')!==(NICK0||''))){const code=SV.code();SV.setCode(prev);slotGo('new',{load:JSON.stringify(o),code});throw new Error('계정 칸을 바꾸는 중이에요…');}return o;};
  let msg=null;try{msg=JSON.parse(sessionStorage.getItem('nk_slot_msg')||'null');sessionStorage.removeItem('nk_slot_msg');}catch(e){}
@@ -5360,6 +5369,8 @@ const onGroundVeh=()=>!!(VW.me&&S.vehRide&&VW.mk&&!isFly(VW.mk)&&vehBase(VW.mk)!
 const canJump=()=>jumpOn()&&started&&me&&!anyModal()&&!(flyNow()||mySeat||VPAS.id||(VW.me&&S.vehRide)||fishing.state!=='off'||TR.riding);
 function jumpNow(){if(JP.h>.02)return;JP.v=6.4;JP.h=.001;try{tone(330,520,.12,'triangle',.04);}catch(_){}}
 addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat)return;if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;if(!canJump()||(!movingKeys()&&(nearSpot||(nearSeat&&!mySeat))))return;e.preventDefault();e.stopImmediatePropagation();jumpNow();},true);
+// v147: 의자 앞에서 Space → 앉기 · 앉아 있으면 Space → 일어나기 (낚시 버튼과 같은 동작)
+addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat)return;if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(!started||anyModal()||fishing.state!=='off'||movingKeys())return;const m=($('fishBtn')||{}).dataset;const mm=m&&m.m;if(mm!=='sit'&&mm!=='stand')return;e.preventDefault();e.stopImmediatePropagation();try{$('bSit').onclick();}catch(_){}},true);
 // 모바일: 낚시 버튼 하나로 — 움직이는 중 「점프」 · 의자 근처 「앉기」 · 앉아 있으면 「일어나기」 · 데크 낚시 자리면 그대로 낚시
 const touchUI=()=>('ontouchstart' in window||navigator.maxTouchPoints>0)&&innerWidth<1000;
 const joyMoving=()=>typeof joy!=='undefined'&&(Math.abs(joy.x)>.25||Math.abs(joy.y)>.25);

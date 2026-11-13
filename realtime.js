@@ -71,6 +71,9 @@
     by: {},
     total() { if (this.mode !== "on") return 0; let t = 0; for (const k in this.by) t += this.by[k] | 0; return Math.max(t, this.n | 0); },
     moonN() { return this.mode === "on" ? (this.by[7] | 0) : 0; },
+    // v147: 서버 인원 = 그 서버 호숫가 + 그 서버에서 달로 간 사람
+    mh: {},
+    srvN(id) { if (this.mode !== "on") return null; const lake = this.sid === id ? (this.n | 0) : (id in this.by ? this.by[id] | 0 : null); if (lake == null) return null; return lake + (this.mh[id] | 0); },
     peers() { return [...peers.values()]; },
   };
 
@@ -167,6 +170,7 @@
     RT.n = m.n | 0;
     if (m.server) RT.sid = m.server;
     RT.by = m.by && typeof m.by === "object" ? Object.assign({}, m.by) : {};
+    RT.mh = m.mh && typeof m.mh === "object" ? Object.assign({}, m.mh) : {};
     peers.clear();
     (m.peers || []).forEach((p) => { if (p && p.id && p.id !== RT.id) peers.set(p.id, p); });
     if (m.nick) RT.serverNick = String(m.nick);
@@ -374,7 +378,7 @@
       else if (m.need) dispatchEvent(new CustomEvent("nk-rt-auth-need", { detail: m }));
       dispatchEvent(new CustomEvent("nk-rt-auth", { detail: { ok: !!m.ok } }));
     }
-    else if (m.t === "cnt" && m.by && typeof m.by === "object") { RT.by = Object.assign({}, m.by); if (RT.sid) RT.by[RT.sid] = Math.max(RT.by[RT.sid] | 0, 0); }
+    else if (m.t === "cnt" && m.by && typeof m.by === "object") { RT.by = Object.assign({}, m.by); if (RT.sid) RT.by[RT.sid] = Math.max(RT.by[RT.sid] | 0, 0); if (m.mh && typeof m.mh === "object") RT.mh = Object.assign({}, m.mh); }
     else if (m.t === "chat" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-chat", { detail: m }));
     else if (m.t === "emote" && m.id !== RT.id) dispatchEvent(new CustomEvent("nk-rt-emote", { detail: m }));
     else if (m.t === "titles") takeTitles(m.titles);

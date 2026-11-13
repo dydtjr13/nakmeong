@@ -7,6 +7,7 @@ import {
   MAX_OPS,
   SERVERS,
   ackRecover,
+  cleanHomes,
   lakeTargets,
   mergeGrant,
   grantUntilFor,
@@ -271,7 +272,8 @@ export class LakeRoom extends DurableObject {
       if (!LakeRoom.isPub(srv)) return;
       this.cnt = this.cnt || {};
       this.cnt[srv] = Math.max(0, Math.min(1000, msg.n | 0));
-      this.broadcast({ t: "cnt", by: this.cnt });
+      if (srv === 7 && msg.homes && typeof msg.homes === "object") this.mh = cleanHomes(msg.homes);
+      this.broadcast({ t: "cnt", by: this.cnt, mh: this.mh || {} });
       return;
     }
     if (msg.t === "gamecfg" && msg.cfg) {
@@ -623,8 +625,11 @@ export class LakeRoom extends DurableObject {
     const n = this.readyCount(except);
     this.cnt = this.cnt || {};
     this.cnt[srv] = n;
-    this.broadcast({ t: "cnt", by: this.cnt });
-    this.postTo([...SERVERS.map((s) => s.id), 7].filter((id) => id !== srv), { t: "cnt", srv, n });
+    // v147: 달 방은 '어느 서버에서 왔는지' 인원도 같이 알려서, 각 서버 인원에 달 인원이 더해지게
+    const homes = srv === 7 ? this.homesOf(except) : null;
+    if (homes) this.mh = homes;
+    this.broadcast({ t: "cnt", by: this.cnt, mh: this.mh || {} });
+    this.postTo([...SERVERS.map((s) => s.id), 7].filter((id) => id !== srv), homes ? { t: "cnt", srv, n, homes } : { t: "cnt", srv, n });
   }
   /** 이 방 인원을 처음 알게 될 때(방이 막 깨어났을 때) 다른 곳 인원을 한 번 물어 와요 */
   cntFill(srv) {
@@ -634,10 +639,15 @@ export class LakeRoom extends DurableObject {
     if (!miss.length) return;
     this.ctx.waitUntil((async () => {
       for (const id of miss) {
-        try { const o = await this.env.LAKE.getByName(`lake-${id}`).occupancy(); this.cnt[id] = o && Number.isFinite(o.n) ? o.n : 0; } catch { /* ignore */ }
+        try { const o = await this.env.LAKE.getByName(`lake-${id}`).occupancy(); this.cnt[id] = o && Number.isFinite(o.n) ? o.n : 0; if (id === 7 && o && o.homes) this.mh = cleanHomes(o.homes); } catch { /* ignore */ }
       }
-      this.broadcast({ t: "cnt", by: this.cnt });
+      this.broadcast({ t: "cnt", by: this.cnt, mh: this.mh || {} });
     })());
+  }
+  homesOf(except) {
+    const h = {};
+    for (const ws of this.openSockets(except)) { const a = this.attachment(ws); if (a && a.ready && a.home) h[a.home] = (h[a.home] | 0) + 1; }
+    return h;
   }
   readyCount(except) {
     let n = 0;
@@ -1003,6 +1013,7 @@ export class LakeRoom extends DurableObject {
         n,
         cap: CAP,
         by: Object.assign({}, this.cnt || {}, { [next.att.server]: n }),
+        mh: next.att.server === 7 ? this.homesOf() : (this.mh || {}),
         peers: this.readyOthers(ws).map(publicPeer),
         world,
         now: nowHello,
