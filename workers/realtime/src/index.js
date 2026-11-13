@@ -582,7 +582,9 @@ export class LakeRoom extends DurableObject {
     const st = await this.opsGet("stage", null);
     const play = await this.opsGet("play", null);
     // v135: grants·sanc 는 하늘섬 동기화용 (공개 /servers 응답에는 넣지 않아요 — 필드를 골라서 보내요)
-    return { n: this.openSockets().length, cap: CAP, stage: st ? { lay: st.lay, deckW: st.deckW, decks: st.decks, rev: st.rev } : null, play, grants: await this.opsGet("grants", {}), sanc: await this.opsGet("sanc", {}), titles: await this.opsGet("titles", {}) };
+    const socks = this.openSockets(), homes = {};
+    for (const w of socks) { const a = this.attachment(w); if (a && a.home) homes[a.home] = (homes[a.home] | 0) + 1; }
+    return { n: socks.length, homes, cap: CAP, stage: st ? { lay: st.lay, deckW: st.deckW, decks: st.decks, rev: st.rev } : null, play, grants: await this.opsGet("grants", {}), sanc: await this.opsGet("sanc", {}), titles: await this.opsGet("titles", {}) };
   }
 
   attachment(ws) {
@@ -1224,10 +1226,14 @@ export default {
         }, 200, origin);
       }
       if (path === "/servers" && request.method === "GET") {
+        // v146: 서버 인원 = 그 서버 호숫가 + 그 서버에서 달로 간 유저
+        let moonHomes = {};
+        try { const mo = await env.LAKE.getByName("lake-7").occupancy(); moonHomes = (mo && mo.homes) || {}; } catch { /* ignore */ }
         const servers = await Promise.all(SERVERS.map(async (s) => {
           const stub = env.LAKE.getByName(`lake-${s.id}`);
           const occ = await stub.occupancy();
-          return { id: s.id, name: s.name, n: occ.n, cap: occ.cap || CAP, stage: occ.stage || null, play: occ.play || null };
+          const moon = moonHomes[s.id] | 0;
+          return { id: s.id, name: s.name, n: occ.n + moon, lake: occ.n, moon, cap: occ.cap || CAP, stage: occ.stage || null, play: occ.play || null };
         }));
         // v73: 관리자 설정(맵 등)을 접속 전에 미리 알려 줘서 첫 화면부터 맞는 맵이 보이게
         const play = (servers.find((r) => r.play) || {}).play || null;
