@@ -42,7 +42,7 @@
       PER.forEach(function (k) { LS.removeItem(k); });
       var data = {}; try { data = JSON.parse(LS.getItem('nk_slot_' + tid) || '{}') || {}; } catch (e) {}
       Object.keys(data).forEach(function (k) { if (PER.indexOf(k) >= 0) LS.setItem(k, data[k]); });
-      if (req.load) { LS.setItem(skey(), req.load); if (req.code) LS.setItem('nk_save_code', req.code); }
+      if (req.load) { LS.setItem(skey(), req.load); if (req.code) LS.setItem('nk_save_code', req.code); if (req.cid && /^[\w-]{8,40}$/.test(req.cid)) LS.setItem('nk_cid', req.cid); }
       else if (req.nick && !data.nakmeong_solo && !data.nakmeong_v2) LS.setItem(skey(), JSON.stringify({ nick: req.nick }));
       LS.removeItem('nk_slot_' + tid);
       st.cur = tid; wr(st);

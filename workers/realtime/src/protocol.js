@@ -9,6 +9,7 @@ export const SERVERS = [
 
 // v146: 달에 간 유저가 어느 서버(별자리)에서 왔는지 — 서버 목록 인원에 달 인원까지 합쳐요
 export function cleanHome(v) { const n = Math.round(Number(v)); return n >= 1 && n <= 14 && n !== 7 && n !== 8 ? n : 0; }
+export function cleanHomes(o) { const h = {}; if (o && typeof o === "object") for (const k of Object.keys(o).slice(0, 20)) { const id = cleanHome(k), n = Math.max(0, Math.min(1000, o[k] | 0)); if (id && n) h[id] = n; } return h; }
 
 export const CAP = 100; // v141: 호숫가·달 한 곳에 100명까지
 export const POSE_MS = 90;
