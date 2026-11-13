@@ -442,7 +442,7 @@ export class LakeRoom extends DurableObject {
   async acceptOps(fromId, msg) {
     const now = Date.now();
     // v133b: 하늘섬(7)도 관리자 설정을 같이 받아요 — 빠져 있어서 하늘섬에 다녀오면 예전 설정(어항 위치 등)이 덮어썼어요
-    const all = [1, 2, 3, 4, 7];
+    const all = [1, 2, 3, 4, 7, 20];
     if (msg.t === "vbx") {
       const d = msg.d ? sanitizeVbxOne(msg.d) : null;
       if (msg.d && !d) return;
@@ -729,7 +729,7 @@ export class LakeRoom extends DurableObject {
     if (n >= (testRoom ? 60 : admRoom ? 10 : CAP)) {
       return Response.json({ ok: false, error: "full", n, cap: CAP }, { status: 503 });
     }
-    const path = url.pathname.match(/\/ws\/([1-4]|7|8|9)$/);
+    const path = url.pathname.match(/\/ws\/([1-4]|7|8|9|20)$/);
     const server = path ? +path[1] : 0;
     const pair = new WebSocketPair();
     const [client, serverWs] = Object.values(pair);
@@ -1037,7 +1037,7 @@ export class LakeRoom extends DurableObject {
       const world = await this.worldGet();
       const ops = await this.welcomeOps();
       // v133b: 하늘섬은 예전에 관리자 설정을 못 받았어요 — 호숫가 1의 설정이 더 새것이면 그걸로 맞추고 저장
-      if (next.att.server === 7) {
+      if (next.att.server === 7 || next.att.server === 20) {
         try {
           const occ = await this.env.LAKE.getByName("lake-1").occupancy();
           const p1 = occ && occ.play;
@@ -1308,7 +1308,7 @@ export default {
         servers.forEach((r) => { delete r.play; });
         return json({ ok: true, servers, play }, 200, origin);
       }
-      const room = path.match(/^\/ws\/([1-4]|7|8|9)$/);
+      const room = path.match(/^\/ws\/([1-4]|7|8|9|20)$/);
       if (room && request.method === "GET") {
         if (!originAllowed(origin, host)) {
           return json({ ok: false, error: "origin" }, 403, origin);
