@@ -166,8 +166,11 @@ export function cleanEx(v) {
   if (!v || typeof v !== "object" || Array.isArray(v)) return null;
   const out = {};
   let n = 0;
-  for (const k of Object.keys(v)) {
-    if (n >= 12) break;
+  // v150: 꾸미기·기능이 늘어 12개를 넘으면 뒤에 붙는 탈것(vh) 등이 잘려서 다른 유저에게 탈것이 사라져 보였어요 → 24개 · 중요한 것 먼저
+  const PRI = ["vh", "fa", "ps", "pt", "ts", "jp", "seat"];
+  const keys = Object.keys(v).sort((a, b) => { const x = PRI.indexOf(a), y = PRI.indexOf(b); return (x < 0 ? 99 : x) - (y < 0 ? 99 : y); });
+  for (const k of keys) {
+    if (n >= 24) break;
     if (!/^[a-z]{1,4}$/.test(k)) continue;
     const x = v[k];
     if (typeof x === "number" && Number.isFinite(x)) out[k] = Math.round(Math.max(-1e6, Math.min(1e6, x)) * 100) / 100;
@@ -665,7 +668,8 @@ export function sanitizeGrants(map, now) {
   if (!map || typeof map !== "object" || Array.isArray(map)) return out;
   for (const k of Object.keys(map)) {
     if (Object.keys(out).length >= 200) break;
-    const nick = sanitizeNick(k);
+    // v150: "p:닉" = 펫 자동낚시 이용권
+    const pet = String(k).startsWith("p:"), nick = pet ? "p:" + sanitizeNick(String(k).slice(2)) : sanitizeNick(k);
     const until = Math.round(finite(map[k], 0));
     if (until > t && until < t + 400 * 864e5) out[nick] = until;
   }
@@ -688,8 +692,9 @@ export function mergeGrant(prev, patch, now, peers) {
   const t = Number.isFinite(now) ? now : Date.now();
   const next = sanitizeGrants(prev, t);
   if (!patch || (!String(patch.nick || "").trim() && !String(patch.id || "").trim())) return next;
-  const nick = resolveGrantNick(patch, peers);
-  if (!nick) return next;
+  const nick0 = resolveGrantNick(patch, peers);
+  if (!nick0) return next;
+  const nick = patch.pet ? "p:" + nick0.replace(/^p:/, "") : nick0;
   const mins = Math.round(Number(patch.mins));
   let until = Math.round(finite(patch.until, 0));
   if (mins > 0 && mins <= 400 * 24 * 60) until = t + mins * 60000;
@@ -703,10 +708,10 @@ export function moveGrant(prev, from, to, now) {
   const t = Number.isFinite(now) ? now : Date.now();
   const g = sanitizeGrants(prev, t);
   const a = sanitizeNick(from), b = sanitizeNick(to);
-  if (!a || !b || a === b || !(g[a] > t)) return null;
-  g[b] = Math.max(g[a], g[b] || 0);
-  delete g[a];
-  return g;
+  if (!a || !b || a === b) return null;
+  let ch = false;
+  for (const [x, y] of [[a, b], ["p:" + a, "p:" + b]]) { if (g[x] > t) { g[y] = Math.max(g[x], g[y] || 0); delete g[x]; ch = true; } }
+  return ch ? g : null;
 }
 
 /** 이 클라이언트가 쓸 자동낚시 만료. keys 는 자기 닉만. mine 은 서버가 이 소켓에 적어 준 값.
@@ -1412,7 +1417,7 @@ export function parseClient(raw) {
   if (msg.t === "grant") {
     const id = String(msg.id || "").replace(/[^\w.-]/g, "").slice(0, 40);
     if (!msg.nick && !id) return null;
-    return { t: "grant", nick: msg.nick, until: msg.until, revoke: !!msg.revoke, mins: msg.mins, id };
+    return { t: "grant", nick: msg.nick, until: msg.until, revoke: !!msg.revoke, mins: msg.mins, id, pet: msg.pet ? 1 : 0 };
   }
   if (msg.t === "grants") return { t: "grants", grants: msg.grants };
   if (msg.t === "sanc") {
