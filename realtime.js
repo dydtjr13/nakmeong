@@ -224,6 +224,7 @@
   }
   function onStaffMsg(m) {
     if (m.t === "staff") { takeStaff(m.staff); return true; }
+    if (m.t === "whoRes" && m.rooms && typeof m.rooms === "object") { RT.whoRooms = m.rooms; RT.whoAt = Date.now(); try { dispatchEvent(new CustomEvent("nk-rt-who")); } catch (e) { /* ignore */ } return true; }
     if (m.t === "staffTok") { opSet({ op: m.op, tok: m.tok }); send({ t: "opAuth", op: m.op, tok: m.tok }); return true; }
     if (m.t === "opAuth") {
       RT.op = m.ok ? { op: m.op, r: m.r || "운영자", p: Array.isArray(m.p) ? m.p : [], n: m.n || "" } : null;
@@ -250,6 +251,9 @@
   RT.isOp = function () { return !!RT.op; };
   RT.opCan = function (k) { return !!(RT.admin || (RT.op && RT.op.p.includes(k))); };
   RT.report = function (row) { if (RT.mode !== "on") return false; send(Object.assign({ t: "report" }, row || {})); return true; };
+  // v149: 관리자·운영자 — 모든 서버(달 포함)의 접속 유저 목록
+  RT.whoRooms = null; RT.whoAt = 0;
+  RT.who = function () { return RT.mode === "on" ? (send({ t: "who" }), true) : false; };
   RT.staffAdd = function (id, r, p) { return RT.mode === "on" ? (send({ t: "staffAdd", id, r, p }), true) : false; };
   RT.setStaff = function (staff) { return RT.mode === "on" ? (send({ t: "staff", staff: staff || {} }), true) : false; };
   RT.repDone = function (id, del) { return RT.mode === "on" ? (send({ t: "repDone", id, del: !!del }), true) : false; };

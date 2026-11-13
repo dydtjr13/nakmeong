@@ -22,7 +22,7 @@ const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "
 
 const FISH = new Set(["off", "cast", "bite", "catch"]);
 /** v52: 서버 인증된 관리자 소켓만 보낼 수 있는 운영 메시지 */
-export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet", "titles", "staff", "staffAdd", "repDone", "vmod", "vbx"]);
+export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet", "titles", "staff", "staffAdd", "repDone", "vmod", "vbx", "who"]);
 function cleanId(v, max) {
   return String(v == null ? "" : v).replace(/[^\w.-]/g, "").slice(0, max || 40);
 }
@@ -696,6 +696,17 @@ export function mergeGrant(prev, patch, now, peers) {
   if (patch.revoke || !(until > t)) delete next[nick];
   else next[nick] = until;
   return next;
+}
+
+/** v149: 닉네임을 바꾸면 자동낚시 이용 시간을 새 닉으로 옮겨요. 바뀐 게 없으면 null */
+export function moveGrant(prev, from, to, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  const g = sanitizeGrants(prev, t);
+  const a = sanitizeNick(from), b = sanitizeNick(to);
+  if (!a || !b || a === b || !(g[a] > t)) return null;
+  g[b] = Math.max(g[a], g[b] || 0);
+  delete g[a];
+  return g;
 }
 
 /** 이 클라이언트가 쓸 자동낚시 만료. keys 는 자기 닉만. mine 은 서버가 이 소켓에 적어 준 값.
@@ -1447,6 +1458,7 @@ export function parseClient(raw) {
   }
   // v79: 운영자 · 신고
   if (msg.t === "staff") return msg.staff && typeof msg.staff === "object" && !Array.isArray(msg.staff) ? { t: "staff", staff: msg.staff } : null;
+  if (msg.t === "who") return { t: "who" };
   if (msg.t === "staffAdd") {
     const id = cleanId(msg.id, 40);
     return id ? { t: "staffAdd", id, r: cleanText(msg.r || "운영자", 12), p: cleanPerms(msg.p) } : null;
@@ -1645,7 +1657,7 @@ export const STAFF_PERMS = ["dash", "user", "give", "sanc", "rep", "rec", "time"
 export const OP_NEED = {
   sanc: ["sanc"], grant: ["give"], grants: ["give"], gift: ["give"], recover: ["rec"], world: ["time"],
   stage: ["map"], play: ["map", "look", "lab", "bal"], balance: ["bal"], event: ["ev"], cue: ["ev"],
-  game: ["ev"], gameNow: ["ev"], gameGet: ["ev"], notice: ["ann"], prof: ["prof"], titles: ["user"],
+  game: ["ev"], gameNow: ["ev"], gameGet: ["ev"], notice: ["ann"], prof: ["prof"], titles: ["user"], who: ["dash", "user", "op", "sanc", "give"],
   staff: ["op"], staffAdd: ["op"], repDone: ["rep", "sanc"],
 };
 export function opAllowed(perms, t) {

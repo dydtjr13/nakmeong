@@ -10,6 +10,7 @@ import {
   cleanHomes,
   lakeTargets,
   mergeGrant,
+  moveGrant,
   grantUntilFor,
   mergeLosses,
   mergeNoticeLog,
@@ -481,6 +482,14 @@ export class LakeRoom extends DurableObject {
       await this.fan(fromId, all, { t: "balance", balance: sanitizeBalance(msg.balance) });
       return;
     }
+    if (msg.t === "grantMove") {
+      const next = moveGrant(await this.opsGet("grants", {}), msg.from, msg.to, now);
+      if (next) await this.fan(fromId, all, { t: "grants", grants: next });
+      // 운영자가 준 특별 칭호도 새 닉으로
+      const T = sanitizeTitles(await this.opsGet("titles", {})), fa = sanitizeNick(msg.from), tb = sanitizeNick(msg.to);
+      if (fa && tb && fa !== tb && T[fa]) { const L = (T[tb] || []).concat(T[fa]); const seen = new Set(); T[tb] = L.filter((x) => { const k = JSON.stringify(x); if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 8); delete T[fa]; await this.fan(fromId, all, { t: "titles", titles: T }); }
+      return;
+    }
     if (msg.t === "grant") {
       const peers = this.readyOthers(null).map((a) => ({ id: a.id, nick: a.nick }));
       const next = mergeGrant(await this.opsGet("grants", {}), msg, now, peers);
@@ -644,6 +653,21 @@ export class LakeRoom extends DurableObject {
       this.broadcast({ t: "cnt", by: this.cnt, mh: this.mh || {} });
     })());
   }
+  /** v149: 관리자·운영자 유저 목록 — 이 방에 접속한 실유저 (다른 방에서 불러요) */
+  async roster() {
+    const out = [];
+    for (const ws of this.openSockets()) { const a = this.attachment(ws); if (a && a.ready && a.nick) out.push({ id: a.id, nick: a.nick, lv: a.lv | 0, home: a.home | 0 }); }
+    return out.slice(0, 200);
+  }
+  /** v149: 다른 방에 있는 유저에게 메시지 보내기 (운영자 등록) — 닉을 돌려줘요 */
+  async peerInfo(id) {
+    for (const ws of this.openSockets()) { const a = this.attachment(ws); if (a && a.ready && a.id === id && a.nick) return { nick: a.nick }; }
+    return null;
+  }
+  async peerSend(id, obj) {
+    for (const ws of this.openSockets()) { const a = this.attachment(ws); if (a && a.ready && a.id === id) { try { ws.send(JSON.stringify(obj)); return true; } catch { return false; } } }
+    return false;
+  }
   homesOf(except) {
     const h = {};
     for (const ws of this.openSockets(except)) { const a = this.attachment(ws); if (a && a.ready && a.home) h[a.home] = (h[a.home] | 0) + 1; }
@@ -799,10 +823,28 @@ export class LakeRoom extends DurableObject {
       try { ws.send(JSON.stringify({ t: "auth", ok: false, need: 1 })); } catch { /* ignore */ }
       return;
     }
+    if (msg.t === "who") {
+      if (!prev.ready) return;
+      const rooms = {};
+      for (const id of [...SERVERS.map((x) => x.id), 7, 8]) {
+        if (id === prev.server) { rooms[id] = await this.roster(); continue; }
+        if (id === 8 && !prev.admin) continue;
+        try { rooms[id] = await this.env.LAKE.getByName(`lake-${id}`).roster(); } catch { rooms[id] = null; }
+      }
+      try { ws.send(JSON.stringify({ t: "whoRes", rooms, at: Date.now() })); } catch { /* ignore */ }
+      return;
+    }
     if (msg.t === "staffAdd") {
       if (!prev.ready) return;
       const target = this.openSockets().find((w) => { const a = this.attachment(w); return a && a.ready && a.id === msg.id && a.nick; });
-      const tAtt = target && this.attachment(target);
+      let tAtt = target && this.attachment(target), far = null;
+      // v149: 다른 서버(달 포함)에 있는 유저도 운영자로 등록할 수 있어요
+      if (!tAtt && typeof msg.id === "string" && msg.id) {
+        for (const id of [...SERVERS.map((x) => x.id), 7]) {
+          if (id === prev.server) continue;
+          try { const st = this.env.LAKE.getByName(`lake-${id}`), inf = await st.peerInfo(msg.id); if (inf && inf.nick) { tAtt = { nick: inf.nick }; far = st; break; } } catch { /* ignore */ }
+        }
+      }
       if (!tAtt) { try { ws.send(JSON.stringify({ t: "staffAddRes", ok: false, why: "offline" })); } catch { /* ignore */ } return; }
       const staff = sanitizeStaff(await this.opsGet("staff", {}));
       for (const k of Object.keys(staff)) if (staff[k].n === tAtt.nick) delete staff[k];
@@ -810,7 +852,8 @@ export class LakeRoom extends DurableObject {
       const opId = [...crypto.getRandomValues(new Uint8Array(8))].map((b) => b.toString(16).padStart(2, "0")).join("");
       staff[opId] = { n: tAtt.nick, r: msg.r || "운영자", p: msg.p || [], t: Date.now() };
       const tok = await hmacHex(this.env.ADMIN_PASSWORD || "", "op:" + opId);
-      try { target.send(JSON.stringify({ t: "staffTok", op: opId, tok, r: staff[opId].r, p: staff[opId].p, n: tAtt.nick })); } catch { /* ignore */ }
+      const tokMsg = { t: "staffTok", op: opId, tok, r: staff[opId].r, p: staff[opId].p, n: tAtt.nick };
+      if (target) { try { target.send(JSON.stringify(tokMsg)); } catch { /* ignore */ } } else if (far) { try { await far.peerSend(msg.id, tokMsg); } catch { /* ignore */ } }
       await this.acceptOps(prev.server, { t: "staff", staff });
       try { ws.send(JSON.stringify({ t: "staffAddRes", ok: true, n: tAtt.nick })); } catch { /* ignore */ }
       return;
@@ -934,6 +977,11 @@ export class LakeRoom extends DurableObject {
     const next = reduce(prev, play, Date.now(), others);
     if (next.drop) return;
     if (play.cid) next.att.cid = play.cid;
+    // v149: 게임 안에서 닉네임을 바꾸면 자동낚시 이용 시간이 새 닉으로 따라가요 (예전엔 초기화된 것처럼 보였어요)
+    if (prev.ready && prev.nick && next.att.nick && next.att.nick !== prev.nick && LakeRoom.isPub(next.att.server)) {
+      const from = prev.nick, to = next.att.nick, srv = next.att.server;
+      this.ctx.waitUntil(this.acceptOps(srv, { t: "grantMove", from, to }).catch(() => {}));
+    }
     if (helloAdmin) next.att.admin = 1;
     if (next.att.server === 8 && !next.att.admin) {
       try { ws.send(JSON.stringify({ t: "admonly" })); } catch { /* ignore */ }
