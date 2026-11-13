@@ -1335,6 +1335,6 @@ body.perf #dc{touch-action:none;-webkit-user-select:none;user-select:none;z-inde
 /* v150: 가방 › 탈것 색 고르기 */
 .ptc .vcs{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin:4px 0 2px}.ptc .vcs button{font-size:10.5px;padding:2px 7px;border-radius:99px;border:1.5px solid #e2d4c0;background:#fff;color:#6a5a4a;white-space:nowrap;line-height:1.4}.ptc .vcs button.on{background:var(--c,#e8784a);border-color:var(--c,#e8784a);color:#fff}.ptc .vcs button:disabled{opacity:.35}
 /* v151: 바닷가 마을 오가기 버튼 */
-#seaBtn{position:fixed;z-index:31;top:calc(96px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:#1f6f8bee;color:#fff;border:2px solid #fff8;border-radius:999px;padding:6px 14px;font:800 13px/1.2 system-ui,sans-serif;white-space:nowrap;box-shadow:0 4px 14px #0003;cursor:pointer}
+#seaBtn{position:fixed;z-index:56;top:calc(96px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:#1f6f8bee;color:#fff;border:2px solid #fff8;border-radius:999px;padding:6px 14px;font:800 13px/1.2 system-ui,sans-serif;white-space:nowrap;box-shadow:0 4px 14px #0003;cursor:pointer}
 #seaBtn:hover{background:#2a86a6}
 body.seaB #vehBtn{display:none!important}
