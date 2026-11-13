@@ -803,7 +803,7 @@ export function sanitizeGift(input, now) {
   }).filter(Boolean) : [];
   if (!(c || s || b || x || it.length)) return null;
   const servers = Array.isArray(input.servers)
-    ? [...new Set(input.servers.map((n) => Math.round(Number(n))).filter((n) => (n >= 1 && n <= 4) || n === 7))]
+    ? [...new Set(input.servers.map((n) => Math.round(Number(n))).filter((n) => (n >= 1 && n <= 4) || n === 7 || n === 20))]
     : null;
   return {
     id,
@@ -1074,6 +1074,8 @@ export function sanitizePlay(input, prev, opt) {
   for (const k of ["jet", "ufo", "boats2", "alienPet", "seaTown", "hyper", "taxi", "boat", "star5", "skyIsland", "jump", "camFx", "fitUi", "vbUser", "tankGrp", "wearFuse", "hunger"]) if (k in input) out[k] = pickOf(input[k], ["off", "on"]);
   for (const k of ["moonRabbit", "moonRice", "moonLander", "moonRover", "moonMeteor", "moonJump"]) if (k in input) out[k] = pickOf(input[k], ["on", "off"]);
   if ("moonView" in input) out.moonView = pickOf(input.moonView, ["1", "2", "3"]);
+  if ("seaLook" in input) out.seaLook = pickOf(input.seaLook, ["0", "A", "B", "C"]);
+  if ("ufoSuck" in input) out.ufoSuck = pickOf(input.ufoSuck, ["B", "A", "C", "off"]);
   if ("moonHelm" in input) out.moonHelm = pickOf(input.moonHelm, ["B", "A", "off"]);
   if ("moonSplash" in input) out.moonSplash = pickOf(input.moonSplash, ["B", "A", "C", "old"]);
   if ("moonTourCap" in input) out.moonTourCap = pickOf(input.moonTourCap, ["B", "A", "C", "off"]);
@@ -1300,9 +1302,18 @@ export function sanitizeRecover(input, now) {
   const t = Number.isFinite(now) ? now : Date.now();
   if (!input || typeof input !== "object" || Array.isArray(input)) return null;
   if (!String(input.nick || "").trim() || input.nick === "*") return null;
-  const cat = CATS.has(input.cat) ? input.cat : null;
+  // v155: 펫·탈것도 복구 (접속하지 않아도 들어올 때 받아요)
+  const cat = CATS.has(input.cat) || input.cat === "pet" || input.cat === "veh" ? input.cat : null;
   if (!cat) return null;
-  const obj = sanitizeItem(cat, input.obj);
+  const obj = cat === "pet" || cat === "veh" ? (() => {
+    const o = input.obj && typeof input.obj === "object" ? input.obj : {};
+    const k = String(o.k || "").replace(/[^\w-]/g, "").slice(0, 24);
+    if (!k) return null;
+    const r = { k };
+    if (cat === "veh" && o.c) r.c = String(o.c).replace(/[^\w-]/g, "").slice(0, 16);
+    if (cat === "veh" && Array.isArray(o.cs)) r.cs = o.cs.slice(0, 12).map((c) => String(c).replace(/[^\w-]/g, "").slice(0, 16)).filter(Boolean);
+    return r;
+  })() : sanitizeItem(cat, input.obj);
   if (!obj) return null;
   const id = safeId(input.id, t);
   if (!id) return null;
@@ -1322,7 +1333,7 @@ export function mergeRecover(prev, item, now) {
   const t = Number.isFinite(now) ? now : Date.now();
   const out = (Array.isArray(prev) ? prev : []).filter((x) => x && x.id && x.at > t - 7 * 864e5);
   if (item && item.id && !out.some((x) => x.id === item.id)) out.unshift(item);
-  return out.slice(0, 80);
+  return out.slice(0, 300);
 }
 
 export function ackRecover(prev, id, nick) {

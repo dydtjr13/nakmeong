@@ -97,6 +97,10 @@ async function ensureSchema(db) {
     'CREATE TABLE IF NOT EXISTS imgs (id TEXT PRIMARY KEY, post_id TEXT, owner TEXT, mime TEXT NOT NULL, data TEXT NOT NULL, size INTEGER NOT NULL, created_at INTEGER NOT NULL)',
     'CREATE INDEX IF NOT EXISTS idx_imgs_owner ON imgs(owner, created_at)',
     'CREATE TABLE IF NOT EXISTS accounts (nk TEXT PRIMARY KEY, nick TEXT NOT NULL, salt TEXT NOT NULL, ph TEXT NOT NULL, code TEXT NOT NULL, fails INTEGER NOT NULL DEFAULT 0, lock_until INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)',
+    // v155: 관리자 아이템 복구 — 저장 기록(6시간마다 1개 · 8일) · 판매/분해 기록(90일)
+    'CREATE TABLE IF NOT EXISTS save_hist (code TEXT NOT NULL, slot TEXT NOT NULL, data TEXT NOT NULL, at INTEGER NOT NULL, PRIMARY KEY (code, slot))',
+    'CREATE TABLE IF NOT EXISTS ilog (id TEXT PRIMARY KEY, owner TEXT NOT NULL, nk TEXT NOT NULL, nick TEXT NOT NULL, t INTEGER NOT NULL, row TEXT NOT NULL)',
+    'CREATE INDEX IF NOT EXISTS idx_ilog_nk ON ilog(nk, t DESC)',
   ];
   for (const sql of tries) { try { await db.prepare(sql).run(); } catch (e) { /* 이미 있음 */ } }
   schemaReady = true;
@@ -163,6 +167,28 @@ function newCode() {
 }
 const cleanCode = (c) => { const s = String(c || '').toUpperCase().replace(/[^0-9A-Z]/g, ''); return s.length === 12 ? s.slice(0, 4) + '-' + s.slice(4, 8) + '-' + s.slice(8) : ''; };
 const SAVE_MAX = 400 * 1024;
+// v155: 6시간마다 저장 1개씩 남겨요 (버그로 사라진 아이템을 예전 저장과 비교해 찾기)
+const slotOf = (t) => { const d = new Date(t + KST); return d.toISOString().slice(0, 10) + '-' + Math.floor(d.getUTCHours() / 6); };
+async function snapSave(db, code, data, now) {
+  try {
+    const slot = slotOf(now);
+    const hit = await db.prepare('SELECT at FROM save_hist WHERE code=? AND slot=?').bind(code, slot).first();
+    if (hit) return;
+    await db.batch([
+      db.prepare('INSERT OR IGNORE INTO save_hist (code,slot,data,at) VALUES (?,?,?,?)').bind(code, slot, data, now),
+      db.prepare('DELETE FROM save_hist WHERE code=? AND at<?').bind(code, now - 8 * 864e5),
+    ]);
+  } catch (e) { /* 기록 실패는 저장에 영향 없음 */ }
+}
+async function findUserCodes(db, nick) {
+  const nk = nickKey(nick), out = [], seen = new Set();
+  const acc = nk ? await db.prepare('SELECT nick, code FROM accounts WHERE nk=?').bind(nk).first() : null;
+  if (acc) { out.push({ code: acc.code, acct: acc.nick }); seen.add(acc.code); }
+  const like = '%"nick":' + JSON.stringify(cleanNick(nick)) + '%';
+  const rows = (await db.prepare('SELECT code FROM saves WHERE data LIKE ? ORDER BY updated_at DESC LIMIT 8').bind(like).all()).results || [];
+  for (const r of rows) if (!seen.has(r.code)) { seen.add(r.code); out.push({ code: r.code, acct: '' }); }
+  return out;
+}
 const IMG_MAX = 620 * 1024; // base64 글자 수 (실제 약 460KB)
 
 export default {
@@ -191,12 +217,14 @@ export default {
         const mine = await db.prepare('SELECT code FROM saves WHERE owner=? ORDER BY updated_at DESC LIMIT 1').bind(me).first();
         if (mine) {
           await db.prepare('UPDATE saves SET data=?, size=?, updated_at=? WHERE code=?').bind(data, data.length, now, mine.code).run();
+          await snapSave(db, mine.code, data, now);
           return json({ ok: true, code: mine.code, updated_at: now }, 200, origin);
         }
         let code = '';
         for (let i = 0; i < 5 && !code; i++) { const c = newCode(); const hit = await db.prepare('SELECT code FROM saves WHERE code=?').bind(c).first(); if (!hit) code = c; }
         if (!code) return bad('try again', 503, origin);
         await db.prepare('INSERT INTO saves (code,owner,data,size,created_at,updated_at) VALUES (?,?,?,?,?,?)').bind(code, me, data, data.length, now, now).run();
+        await snapSave(db, code, data, now);
         return json({ ok: true, code, updated_at: now }, 201, origin);
       }
       const saveOne = path !== "/saves/mine" && path !== "/saves/find" && path.match(/^\/saves\/([^/]+)$/);
@@ -224,6 +252,48 @@ export default {
         if (!me) return json({ ok: true, code: '', updated_at: 0 }, 200, origin);
         const row = await db.prepare('SELECT code, updated_at FROM saves WHERE owner=? ORDER BY updated_at DESC LIMIT 1').bind(me).first();
         return json({ ok: true, code: row ? row.code : '', updated_at: row ? row.updated_at : 0 }, 200, origin);
+      }
+
+      // ─ v155: 판매·분해·합성 기록 (유저 기기 → 서버, 관리자 복구용) ─
+      if (path === '/ilog' && request.method === 'POST') {
+        if (!me) return bad('owner required', 400, origin);
+        const text = await request.text();
+        if (text.length > 120000) return bad('too large', 413, origin);
+        let body; try { body = JSON.parse(text); } catch { return bad('invalid json', 400, origin); }
+        const nick = cleanNick(body.nick), nk = nickKey(nick);
+        if (!nk) return bad('nick', 400, origin);
+        const now = Date.now(), st = [];
+        for (const r of (Array.isArray(body.rows) ? body.rows : []).slice(0, 30)) {
+          if (!r || typeof r !== 'object') continue;
+          const id = String(r.id || '').replace(/[^\w.-]/g, '').slice(0, 40);
+          const raw = JSON.stringify(r);
+          if (!id || raw.length > 6000) continue;
+          let t = Math.round(Number(r.t) || now); if (t > now + 120000 || t < now - 90 * 864e5) t = now;
+          st.push(db.prepare('INSERT OR IGNORE INTO ilog (id,owner,nk,nick,t,row) VALUES (?,?,?,?,?,?)').bind(me.slice(0, 8) + ':' + id, me, nk, nick, t, raw));
+        }
+        if (Math.random() < 0.02) st.push(db.prepare('DELETE FROM ilog WHERE t<?').bind(now - 90 * 864e5));
+        if (st.length) await db.batch(st);
+        return json({ ok: true, n: st.length }, 200, origin);
+      }
+      // v155: 관리자 — 닉네임으로 유저 찾기 (접속 안 해 있어도): 지금 저장 · 예전 저장 목록 · 판매/분해 기록
+      if (path === '/admin/user' && request.method === 'GET') {
+        if (!admin) return bad('admin only', 401, origin);
+        const nick = cleanNick(url.searchParams.get('nick'));
+        if (!nick) return bad('nick', 400, origin);
+        const codes = await findUserCodes(db, nick);
+        const want = cleanCode(url.searchParams.get('code')) || (codes[0] && codes[0].code) || '';
+        const row = want ? await db.prepare('SELECT code, data, updated_at FROM saves WHERE code=?').bind(want).first() : null;
+        const hist = want ? ((await db.prepare('SELECT slot, at, length(data) AS size FROM save_hist WHERE code=? ORDER BY at DESC LIMIT 40').bind(want).all()).results || []) : [];
+        const lg = (await db.prepare('SELECT row FROM ilog WHERE nk=? ORDER BY t DESC LIMIT 400').bind(nickKey(nick)).all()).results || [];
+        const ilog = []; for (const r of lg) { try { ilog.push(JSON.parse(r.row)); } catch { /* skip */ } }
+        return json({ ok: true, nick, codes, code: row ? row.code : '', data: row ? row.data : '', updated_at: row ? row.updated_at : 0, hist, ilog }, 200, origin);
+      }
+      if (path === '/admin/hist' && request.method === 'GET') {
+        if (!admin) return bad('admin only', 401, origin);
+        const code = cleanCode(url.searchParams.get('code')), slot = String(url.searchParams.get('slot') || '').replace(/[^\d-]/g, '').slice(0, 16);
+        const row = code && slot ? await db.prepare('SELECT data, at FROM save_hist WHERE code=? AND slot=?').bind(code, slot).first() : null;
+        if (!row) return bad('not found', 404, origin);
+        return json({ ok: true, code, slot, data: row.data, at: row.at }, 200, origin);
       }
 
       // ─ v56: 계정 (닉네임 + 비밀번호) ─

@@ -1338,3 +1338,14 @@ body.perf #dc{touch-action:none;-webkit-user-select:none;user-select:none;z-inde
 #seaBtn{position:fixed;z-index:56;top:calc(96px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:#1f6f8bee;color:#fff;border:2px solid #fff8;border-radius:999px;padding:6px 14px;font:800 13px/1.2 system-ui,sans-serif;white-space:nowrap;box-shadow:0 4px 14px #0003;cursor:pointer}
 #seaBtn:hover{background:#2a86a6}
 body.seaB #vehBtn{display:none!important}
+
+/* v155: UFO 빨아들이기 버튼 */
+#ufsBtn{position:fixed;right:14px;bottom:200px;z-index:56;border:2px solid #fff8;border-radius:999px;padding:8px 16px;font:800 14px/1.2 system-ui,sans-serif;white-space:nowrap;background:#3a4c8ee6;color:#fff;box-shadow:0 4px 14px #0003;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}#ufsBtn.on{background:#7fd6ff;color:#14304a;transform:scale(1.06)}
+/* v155: 관리자 › 아이템 복구 › 유저 전체 조회 */
+.ufbox .ufsum{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;margin:6px 0}
+.ufbox .ufgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin:6px 0 10px}
+.ufbox .ufgrid>div{background:#0000000a;border-radius:10px;padding:6px 9px;display:flex;flex-direction:column;gap:2px;font-size:12.5px;min-width:0}
+.ufbox .ufgrid>div.w2{grid-column:span 2}
+.ufbox .ufgrid b{white-space:nowrap}.ufbox .ufl{font-size:12px;opacity:.85;line-height:1.35}
+.ufbox .ufb{display:flex;gap:4px}.ufbox .ufb button{white-space:nowrap}
+.ufbox details{margin-top:8px}
