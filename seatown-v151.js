@@ -1,6 +1,6 @@
 // v151 🏘 바닷가 마을 (테스트) — 유럽 운하를 지나 바닷가로. 배에서만 낚시, 바닷가에서는 내릴 수 없어요
 window.NK_SEATOWN=(function(){
-function build(T,OX,V){V=V||window.__nkSeaV||'';
+function build(T,OX,V){V=V||window.__nkSeaV||'';const SNOW=V==='Cs';if(SNOW)V='C';
 let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};
 const MM={};const M=(c,o)=>{const k=c+JSON.stringify(o||{});return MM[k]||(MM[k]=new T.MeshStandardMaterial(Object.assign({color:c,roughness:.85,metalness:0,flatShading:true},o||{})));};
 const add=(g,geo,m,x,y,z,ry)=>{const o=new T.Mesh(geo,typeof m==='string'?M(m):m);o.position.set(x,y,z);if(ry)o.rotation.y=ry;o.castShadow=o.receiveShadow=true;g.add(o);return o;};
@@ -45,11 +45,11 @@ function town(g,L){if(!L.length)return;const wg=new T.BoxGeometry(1,1,1);wg.tran
  const m=new T.Matrix4(),q=new T.Quaternion(),e=new T.Euler(),p=new T.Vector3(),sc=new T.Vector3(),c=new T.Color();
  L.forEach((h,i)=>{e.set(0,h.ry||0,0);q.setFromEuler(e);p.set(h.x,h.y||0,h.z);sc.set(h.w,h.h,h.d);m.compose(p,q,sc);W.setMatrixAt(i,m);W.setColorAt(i,c.set(h.c));
   p.set(h.x,(h.y||0)+h.h,h.z);sc.set(h.w,h.w*(h.rp||.9),h.d);m.compose(p,q,sc);R.setMatrixAt(i,m);R.setColorAt(i,c.set(h.rc||'#8a4a3a'));});
- W.castShadow=W.receiveShadow=R.castShadow=true;g.add(W);g.add(R);}
+ W.castShadow=W.receiveShadow=R.castShadow=true;R.userData.roof=1;g.add(W);g.add(R);}
 const ROOF=['#8a4a3a','#7a3e32','#9a5a44','#6a4438','#b0603e','#5a6a7a'];
 function trees(g,L){if(!L.length)return;const tg=new T.CylinderGeometry(.1,.14,1.4,6);tg.translate(0,.7,0);const cg=new T.IcosahedronGeometry(.9,1);cg.translate(0,1.9,0);
  const A=new T.InstancedMesh(tg,M('#7a5a3a'),L.length),B=new T.InstancedMesh(cg,new T.MeshStandardMaterial({roughness:.9,flatShading:true}),L.length),m=new T.Matrix4(),c=new T.Color();
- L.forEach((t,i)=>{m.makeScale(t.s,t.s*(t.sy||1),t.s);m.setPosition(t.x,t.y||0,t.z);A.setMatrixAt(i,m);B.setMatrixAt(i,m);B.setColorAt(i,c.set(t.c||['#5f9a4a','#6aa85a','#4f8a44'][i%3]));});A.castShadow=B.castShadow=true;g.add(A);g.add(B);}
+ L.forEach((t,i)=>{m.makeScale(t.s,t.s*(t.sy||1),t.s);m.setPosition(t.x,t.y||0,t.z);A.setMatrixAt(i,m);B.setMatrixAt(i,m);B.setColorAt(i,c.set(t.c||['#5f9a4a','#6aa85a','#4f8a44'][i%3]));});A.castShadow=B.castShadow=true;B.userData.leaf=1;g.add(A);g.add(B);}
 function backRows(g){/* 운하 집 뒤로 3줄 · 더 멀리 교회 탑 · 언덕 */const L=[],TR=[];
  [-1,1].forEach(q=>{for(let r=1;r<=3;r++){for(let z=CZ0+4;z>CZ1+2;){const w=2.2+rnd()*1.6;L.push({x:q*(W/2+Q+1.4+r*3.3),z:z-w/2,w,d:3.0,h:4.4+rnd()*2.6+r*.9,ry:Math.PI/2,c:PAL[(r*7+L.length)%PAL.length],rc:ROOF[(L.length*3)%ROOF.length]});z-=w+.05;}}
   for(let z=CZ0;z>CZ1;z-=9+rnd()*6)TR.push({x:q*(W/2+Q+1.4+13+rnd()*4),z,s:1.4+rnd()*.6});
@@ -124,6 +124,18 @@ function bay(v){const g=new T.Group();root.add(g);const BW=46,BZ=-168,isl=[];
  town(g,L);trees(g,TR);
  return {sail:(lx,z)=>z<CZ1-1&&z>BZ+2&&Math.abs(lx)<BW-2.5&&!isl.some(([x,zz,r])=>Math.hypot(lx-x,z-zz)<r),fishZone:[OX,-140]};}
 
+/* v156 시안: 눈 내린 마을 — 풀은 눈밭, 지붕·나무·나무 데크엔 눈, 길은 살짝 하얗게, 부두에 반짝이 전구 · 꼭대기 큰 트리 */
+function snowify(root){const WH=new T.Color('#f4f7fb'),hsl={},MC=new Map();
+ const fix=m=>{if(!m||!m.color||m.transparent||m.emissiveIntensity>0&&m.emissive&&m.emissive.getHex())return m;if(MC.has(m))return MC.get(m);m.color.getHSL(hsl);let t=0;
+  if(hsl.h>.17&&hsl.h<.47&&hsl.s>.12)t=.9;/* 초록 → 눈밭 */else if(hsl.h<.11&&hsl.l<.47&&hsl.s>.15)t=.72;/* 지붕·나무 → 눈 덮임 */else if(hsl.h<.17&&hsl.l>.62&&hsl.s<.45)t=.45;/* 길·돌 → 살짝 하얗게 */
+  const n=t?m.clone():m;if(t)n.color.lerp(WH,t);MC.set(m,n);return n;};
+ root.traverse(o=>{if(!o.isMesh)return;if(o.isInstancedMesh&&o.instanceColor&&(o.userData.roof||o.userData.leaf)){const a=o.instanceColor.array,c=new T.Color();for(let i=0;i<a.length;i+=3){c.setRGB(a[i],a[i+1],a[i+2]).lerp(WH,o.userData.roof?.78:.62);a[i]=c.r;a[i+1]=c.g;a[i+2]=c.b;}o.instanceColor.needsUpdate=true;return;}
+  if(Array.isArray(o.material))o.material=o.material.map(fix);else o.material=fix(o.material);});}
+function winterDeco(g,pts,tree){const cols=['#ff5a5a','#ffd36a','#7fe0ff','#9aff9a','#ff9ad8'],geo=new T.SphereGeometry(.09,8,6),mats=cols.map(c=>new T.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:1.6}));
+ pts.forEach(([x0,y,z0,x1,z1],k)=>{const n=Math.max(2,Math.round(Math.hypot(x1-x0,z1-z0)/.8));for(let i=0;i<=n;i++){const t=i/n,sag=Math.sin(t*Math.PI*6)*.18;const m=new T.Mesh(geo,mats[(i+k)%cols.length]);m.position.set(x0+(x1-x0)*t,y-Math.abs(sag),z0+(z1-z0)*t);g.add(m);}});
+ if(tree){const [x,y,z]=tree;for(let i=0;i<4;i++){const c=add(g,new T.ConeGeometry(2.6-i*.55,2.4,9),new T.MeshStandardMaterial({color:'#2f6a44',roughness:.8,flatShading:true}),x,y+1.6+i*1.5,z);c.material.color.lerp(new T.Color('#f4f7fb'),.35);}add(g,new T.OctahedronGeometry(.45,0),new T.MeshStandardMaterial({color:'#ffd36a',emissive:'#ffc23a',emissiveIntensity:2}),x,y+8.4,z);
+  for(let i=0;i<40;i++){const a=i*2.4,h=i/40,r=(2.5-h*2.1)*1.02;const m=new T.Mesh(geo,mats[i%cols.length]);m.position.set(x+Math.cos(a)*r,y+1.2+h*6.4,z+Math.sin(a)*r);g.add(m);}}}
+
 if(V)backRows(root);const BAY=V?bay(V):null;
 // 바다 · 마을
 const SZ=-150;if(!BAY){const SEA=new T.Group();SEA.position.z=SZ;root.add(SEA);/* v155: 바다 물이 운하 안쪽(-50~-100)까지 겹쳐서 운하 중간 색이 달라 보이던 문제 → 운하 끝부터 시작 · 살짝 아래 */const wa=water(300,152,'#3a9ec0',38);wa.position.set(0,-.07,-24);SEA.add(wa);
@@ -138,5 +150,6 @@ const SZ=-150;if(!BAY){const SEA=new T.Group();SEA.position.z=SZ;root.add(SEA);/
 // 다닐 수 있는 물 · 낚시할 수 있는 곳 (월드 좌표)
 const canSail=(x,z)=>{const lx=x-OX;if(z<=CZ0&&z>=CZ1-1&&Math.abs(lx)<W/2-.7)return true;if(BAY)return BAY.sail(lx,z);if(z<CZ1-1&&z>SZ-46&&Math.abs(lx)<95)return z<CZ1-2||Math.abs(lx)<W/2-.7;return false;};
 const fishable=(x,z)=>z<CZ1-4&&canSail(x,z);
+if(SNOW){snowify(root);{const BW=46,BZ=-168;winterDeco(root,[[-BW-1.25,3.1,CZ1-2,-BW-1.25,BZ-1],[BW+1.25,3.1,CZ1-2,BW+1.25,BZ-1],[-BW,3.1,BZ-1.25,-9.5,BZ-1.25],[9.5,3.1,BZ-1.25,BW,BZ-1.25]],[-34,18.6,BZ-7*4.4-6]);}}
 return {group:root,water:canSail,fishable,spawn:[OX,CZ0-4,Math.PI],fishZone:BAY?BAY.fishZone:[OX,SZ-14]};}
 return {build};})();
