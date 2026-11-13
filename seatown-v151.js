@@ -11,6 +11,7 @@ function rip(){const c=document.createElement('canvas');c.width=c.height=512;con
 const RIP=rip();
 function water(w,d,col,rep){const t=RIP.clone();t.needsUpdate=true;t.repeat.set(rep,rep*d/w);const m=new T.MeshStandardMaterial({color:col,roughness:.08,metalness:.15,bumpMap:t,bumpScale:.22,transparent:true,opacity:.96});const o=new T.Mesh(new T.PlaneGeometry(w,d),m);o.rotation.x=-Math.PI/2;o.receiveShadow=true;return o;}
 // 유럽 운하 집 (좁고 높은 집 · 박공/계단식 지붕 · 흰 창틀 · 꽃 상자)
+/* v156: 밤에 켜지는 창문 불빛 (st.night(0~1)로 세기 조절) */const LIT=[];const LITM=(()=>{const m=M('#3b4a5c',{emissive:'#ffc878',emissiveIntensity:0});if(!LIT.includes(m))LIT.push(m);return m;})();
 const PAL=['#e9b872','#d8705a','#f1e3c8','#9ec3b8','#c8a0c8','#f0c8a8','#8fb0d8','#e6d48a','#b86a4a','#f4ead8','#a8c890'];
 function house(g,x,z,face,w,d,h,col,kind){const H=new T.Group();H.position.set(x,0,z);H.rotation.y=face;g.add(H);
  bx(H,w,h,d,col,0,h/2,0);bx(H,w+.06,.12,d+.06,'#f4efe6',0,h+.02,0);
@@ -19,7 +20,7 @@ function house(g,x,z,face,w,d,h,col,kind){const H=new T.Group();H.position.set(x
  else if(kind===1){for(let i=0;i<4;i++){const ww=w*(1-i*.22);bx(H,ww,.42,d*.98,col,0,h+.21+i*.42,.0);bx(H,ww+.06,.06,d,'#f4efe6',0,h+.42+i*.42,0);}const s=new T.Shape();s.moveTo(-w/2,0);s.lineTo(w/2,0);s.lineTo(0,w*.7);s.closePath();const ge=new T.ExtrudeGeometry(s,{depth:d*.9,bevelEnabled:false});ge.translate(0,0,-d*.45-.04);add(H,ge,'#5a3a32',0,h,-.06);}
  else{const s=new T.Shape();s.moveTo(-w/2,0);s.lineTo(w/2,0);s.lineTo(w/2,.3);s.quadraticCurveTo(w*.42,w*.62,0,w*.82);s.quadraticCurveTo(-w*.42,w*.62,-w/2,.3);s.closePath();const ge=new T.ExtrudeGeometry(s,{depth:.16,bevelEnabled:false});add(H,ge,col,0,h,d/2-.16);const s2=new T.Shape();s2.moveTo(-w/2+.05,0);s2.lineTo(w/2-.05,0);s2.lineTo(0,w*.7);s2.closePath();const g2=new T.ExtrudeGeometry(s2,{depth:d-.2,bevelEnabled:false});g2.translate(0,0,-d/2);add(H,g2,'#6a4438',0,h,0);bx(H,.06,.4,.06,'#f4efe6',0,h+w*.82+.15,d/2-.08);}
  // 창 (앞면 +z)
- const fl=Math.max(2,Math.floor((h-.6)/1.05));for(let r=0;r<fl;r++){const n=w>2.2?3:2;for(let i=0;i<n;i++){const x0=(i-(n-1)/2)*(w/n),y0=1.0+r*1.05+.35;bx(H,.5,.68,.06,'#f8f6f0',x0,y0,d/2+.01);bx(H,.38,.56,.07,'#3b4a5c',x0,y0,d/2+.02);bx(H,.04,.56,.08,'#f8f6f0',x0,y0,d/2+.03);if(r===0&&rnd()<.75){bx(H,.52,.12,.16,'#7a4a2a',x0,y0-.4,d/2+.1);for(let k=0;k<4;k++){const f=add(H,new T.SphereGeometry(.06,6,4),['#ff6a7a','#ffd25e','#ff9ec4','#ffffff'][(k+i)%4],x0-.18+k*.12,y0-.31,d/2+.14);}}}}
+ const fl=Math.max(2,Math.floor((h-.6)/1.05));for(let r=0;r<fl;r++){const n=w>2.2?3:2;for(let i=0;i<n;i++){const x0=(i-(n-1)/2)*(w/n),y0=1.0+r*1.05+.35;bx(H,.5,.68,.06,'#f8f6f0',x0,y0,d/2+.01);bx(H,.38,.56,.07,rnd()<.62?LITM:'#3b4a5c',x0,y0,d/2+.02);bx(H,.04,.56,.08,'#f8f6f0',x0,y0,d/2+.03);if(r===0&&rnd()<.75){bx(H,.52,.12,.16,'#7a4a2a',x0,y0-.4,d/2+.1);for(let k=0;k<4;k++){const f=add(H,new T.SphereGeometry(.06,6,4),['#ff6a7a','#ffd25e','#ff9ec4','#ffffff'][(k+i)%4],x0-.18+k*.12,y0-.31,d/2+.14);}}}}
  bx(H,.62,1.05,.08,'#4a3a32',w>2.2?0:-(w/4),.52,d/2+.02);bx(H,.72,.08,.14,'#f4efe6',w>2.2?0:-(w/4),1.08,d/2+.06);return H;}
 function tree(g,x,z,s){add(g,new T.CylinderGeometry(.09*s,.13*s,1.4*s,6),'#7a5a3a',x,.7*s,z);const c=add(g,new T.IcosahedronGeometry(.85*s,1),['#5f9a4a','#6aa85a','#4f8a44'][rnd()*3|0],x,1.75*s,z);c.scale.y=1.1;}
 function lamp(g,x,z){add(g,new T.CylinderGeometry(.05,.07,2.4,6),'#2d3238',x,1.2,z);const l=add(g,new T.BoxGeometry(.24,.32,.24),new T.MeshStandardMaterial({color:'#fff1c4',emissive:'#ffc66a',emissiveIntensity:1.4}),x,2.5,z);bx(g,.32,.06,.32,'#2d3238',x,2.7,z);}
@@ -39,9 +40,11 @@ const W=7.2,Q=2.6,CZ0=12,CZ1=-100;
 // v155 시안: 운하 뒤 골목 채우기 + 작은 만(A 항구 · B 등대 해변 · C 절벽 마을)
 function winTex(){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle='#ffffff';x.fillRect(0,0,128,128);for(let r=0;r<3;r++)for(let i=0;i<3;i++){const X=12+i*40,Y=12+r*40;x.fillStyle='#e8e2d8';x.fillRect(X-3,Y-3,26,32);x.fillStyle='#4a5868';x.fillRect(X,Y,20,26);x.fillStyle='#e8e2d8';x.fillRect(X+9,Y,2,26);}x.fillStyle='#d8d0c4';x.fillRect(0,124,128,4);const t=new T.CanvasTexture(c);t.encoding=T.sRGBEncoding;return t;}
 const WT=winTex();
+function winEm(){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,128,128);const on=[1,1,0,1,0,1,1,1,0];for(let r=0;r<3;r++)for(let i=0;i<3;i++){if(!on[r*3+i])continue;const X=12+i*40,Y=12+r*40;x.fillStyle=['#ffd890','#ffc878','#ffe2a8'][(r+i)%3];x.fillRect(X,Y,20,26);x.fillStyle='#000';x.fillRect(X+9,Y,2,26);}const t=new T.CanvasTexture(c);t.encoding=T.sRGBEncoding;return t;}
+const WE=winEm();
 function town(g,L){if(!L.length)return;const wg=new T.BoxGeometry(1,1,1);wg.translate(0,.5,0);
  const s=new T.Shape();s.moveTo(-.53,0);s.lineTo(.53,0);s.lineTo(0,.62);s.closePath();const rg=new T.ExtrudeGeometry(s,{depth:1.04,bevelEnabled:false});rg.translate(0,0,-.52);
- const W=new T.InstancedMesh(wg,new T.MeshStandardMaterial({map:WT,roughness:.85,flatShading:true}),L.length),R=new T.InstancedMesh(rg,new T.MeshStandardMaterial({roughness:.8,flatShading:true}),L.length);
+ const wm=new T.MeshStandardMaterial({map:WT,emissiveMap:WE,emissive:'#ffffff',emissiveIntensity:0,roughness:.85,flatShading:true});LIT.push(wm);const W=new T.InstancedMesh(wg,wm,L.length),R=new T.InstancedMesh(rg,new T.MeshStandardMaterial({roughness:.8,flatShading:true}),L.length);
  const m=new T.Matrix4(),q=new T.Quaternion(),e=new T.Euler(),p=new T.Vector3(),sc=new T.Vector3(),c=new T.Color();
  L.forEach((h,i)=>{e.set(0,h.ry||0,0);q.setFromEuler(e);p.set(h.x,h.y||0,h.z);sc.set(h.w,h.h,h.d);m.compose(p,q,sc);W.setMatrixAt(i,m);W.setColorAt(i,c.set(h.c));
   p.set(h.x,(h.y||0)+h.h,h.z);sc.set(h.w,h.w*(h.rp||.9),h.d);m.compose(p,q,sc);R.setMatrixAt(i,m);R.setColorAt(i,c.set(h.rc||'#8a4a3a'));});
@@ -126,15 +129,19 @@ function bay(v){const g=new T.Group();root.add(g);const BW=46,BZ=-168,isl=[];
 
 /* v156 시안: 눈 내린 마을 — 풀은 눈밭, 지붕·나무·나무 데크엔 눈, 길은 살짝 하얗게, 부두에 반짝이 전구 · 꼭대기 큰 트리 */
 function snowify(root){const WH=new T.Color('#f4f7fb'),hsl={},MC=new Map();
- const fix=m=>{if(!m||!m.color||m.transparent||m.emissiveIntensity>0&&m.emissive&&m.emissive.getHex())return m;if(MC.has(m))return MC.get(m);m.color.getHSL(hsl);let t=0;
+ const fix=m=>{if(!m||!m.color||LIT.includes(m)||m.transparent||m.emissiveIntensity>0&&m.emissive&&m.emissive.getHex())return m;if(MC.has(m))return MC.get(m);m.color.getHSL(hsl);let t=0;
   if(hsl.h>.17&&hsl.h<.47&&hsl.s>.12)t=.9;/* 초록 → 눈밭 */else if(hsl.h<.11&&hsl.l<.47&&hsl.s>.15)t=.72;/* 지붕·나무 → 눈 덮임 */else if(hsl.h<.17&&hsl.l>.62&&hsl.s<.45)t=.45;/* 길·돌 → 살짝 하얗게 */
   const n=t?m.clone():m;if(t)n.color.lerp(WH,t);MC.set(m,n);return n;};
  root.traverse(o=>{if(!o.isMesh)return;if(o.isInstancedMesh&&o.instanceColor&&(o.userData.roof||o.userData.leaf)){const a=o.instanceColor.array,c=new T.Color();for(let i=0;i<a.length;i+=3){c.setRGB(a[i],a[i+1],a[i+2]).lerp(WH,o.userData.roof?.78:.62);a[i]=c.r;a[i+1]=c.g;a[i+2]=c.b;}o.instanceColor.needsUpdate=true;return;}
   if(Array.isArray(o.material))o.material=o.material.map(fix);else o.material=fix(o.material);});}
-function winterDeco(g,pts,tree){const cols=['#ff5a5a','#ffd36a','#7fe0ff','#9aff9a','#ff9ad8'],geo=new T.SphereGeometry(.09,8,6),mats=cols.map(c=>new T.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:1.6}));
- pts.forEach(([x0,y,z0,x1,z1],k)=>{const n=Math.max(2,Math.round(Math.hypot(x1-x0,z1-z0)/.8));for(let i=0;i<=n;i++){const t=i/n,sag=Math.sin(t*Math.PI*6)*.18;const m=new T.Mesh(geo,mats[(i+k)%cols.length]);m.position.set(x0+(x1-x0)*t,y-Math.abs(sag),z0+(z1-z0)*t);g.add(m);}});
- if(tree){const [x,y,z]=tree;for(let i=0;i<4;i++){const c=add(g,new T.ConeGeometry(2.6-i*.55,2.4,9),new T.MeshStandardMaterial({color:'#2f6a44',roughness:.8,flatShading:true}),x,y+1.6+i*1.5,z);c.material.color.lerp(new T.Color('#f4f7fb'),.35);}add(g,new T.OctahedronGeometry(.45,0),new T.MeshStandardMaterial({color:'#ffd36a',emissive:'#ffc23a',emissiveIntensity:2}),x,y+8.4,z);
-  for(let i=0;i<40;i++){const a=i*2.4,h=i/40,r=(2.5-h*2.1)*1.02;const m=new T.Mesh(geo,mats[i%cols.length]);m.position.set(x+Math.cos(a)*r,y+1.2+h*6.4,z+Math.sin(a)*r);g.add(m);}}}
+function winterDeco(g,lines,tree){/* 반짝이 전구: 색마다 전구 1개 + 은은한 빛무리 1개 (인스턴스) — 밤에 빛무리가 커져요 */const cols=['#ff5a5a','#ffd36a','#7fe0ff','#9aff9a','#ff9ad8'],P=cols.map(()=>[]);let k=0;
+ lines.forEach(([x0,y,z0,x1,z1])=>{const n=Math.max(2,Math.round(Math.hypot(x1-x0,z1-z0)/.7));for(let i=0;i<=n;i++){const t=i/n,sag=Math.abs(Math.sin(t*n*Math.PI/4))*.22;P[(k++)%cols.length].push([x0+(x1-x0)*t,y-sag,z0+(z1-z0)*t]);}});
+ if(tree){const [x,y,z]=tree;for(let i=0;i<4;i++){const c=add(g,new T.ConeGeometry(2.6-i*.55,2.4,9),new T.MeshStandardMaterial({color:'#2f6a44',roughness:.8,flatShading:true}),x,y+1.6+i*1.5,z);c.material.color.lerp(new T.Color('#f4f7fb'),.35);}const st=add(g,new T.OctahedronGeometry(.5,0),new T.MeshStandardMaterial({color:'#ffd36a',emissive:'#ffc23a',emissiveIntensity:2.2}),x,y+8.4,z);
+  for(let i=0;i<60;i++){const a=i*2.4,h=i/60,r=(2.5-h*2.1)*1.02;P[i%cols.length].push([x+Math.cos(a)*r,y+1.2+h*6.4,z+Math.sin(a)*r]);}}
+ const bg=new T.SphereGeometry(.13,8,6),hg=new T.SphereGeometry(.3,10,8),m4=new T.Matrix4(),HALO=[];
+ cols.forEach((c,ci)=>{const L=P[ci];if(!L.length)return;const B=new T.InstancedMesh(bg,new T.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:2.6}),L.length),Hm=new T.MeshBasicMaterial({color:c,transparent:true,opacity:.18,blending:T.AdditiveBlending,depthWrite:false}),Hh=new T.InstancedMesh(hg,Hm,L.length);
+  L.forEach((p,i)=>{m4.makeTranslation(p[0],p[1],p[2]);B.setMatrixAt(i,m4);Hh.setMatrixAt(i,m4);});B.frustumCulled=Hh.frustumCulled=false;g.add(B);g.add(Hh);HALO.push(Hm);});
+ return HALO;}
 
 if(V)backRows(root);const BAY=V?bay(V):null;
 // 바다 · 마을
@@ -150,6 +157,9 @@ const SZ=-150;if(!BAY){const SEA=new T.Group();SEA.position.z=SZ;root.add(SEA);/
 // 다닐 수 있는 물 · 낚시할 수 있는 곳 (월드 좌표)
 const canSail=(x,z)=>{const lx=x-OX;if(z<=CZ0&&z>=CZ1-1&&Math.abs(lx)<W/2-.7)return true;if(BAY)return BAY.sail(lx,z);if(z<CZ1-1&&z>SZ-46&&Math.abs(lx)<95)return z<CZ1-2||Math.abs(lx)<W/2-.7;return false;};
 const fishable=(x,z)=>z<CZ1-4&&canSail(x,z);
-if(SNOW){snowify(root);{const BW=46,BZ=-168;winterDeco(root,[[-BW-1.25,3.1,CZ1-2,-BW-1.25,BZ-1],[BW+1.25,3.1,CZ1-2,BW+1.25,BZ-1],[-BW,3.1,BZ-1.25,-9.5,BZ-1.25],[9.5,3.1,BZ-1.25,BW,BZ-1.25]],[-34,18.6,BZ-7*4.4-6]);}}
-return {group:root,water:canSail,fishable,spawn:[OX,CZ0-4,Math.PI],fishZone:BAY?BAY.fishZone:[OX,SZ-14]};}
+let HALO=[];if(SNOW){snowify(root);{const BW=46,BZ=-168,TW=4.4,TH=2.6,FZ=CZ1+2,G=r=>8+r*1.3,yT=r=>r*TH+.4,L=[];for(let r=0;r<=3;r++){const a=BW+r*TW+1.25,y=yT(r)+3.2,zb=BZ-r*TW-1.25;L.push([-a,y,FZ-2,-a,zb],[a,y,FZ-2,a,zb],[-a,y,zb,-G(r)-.5,zb],[G(r)+.5,y,zb,a,zb]);}
+ for(let z=CZ0-2;z>CZ1+3;z-=6){[-1,1].forEach(q=>L.push([q*(W/2+Q+.4),3.6,z,q*(W/2+Q+.4),z-5.2]));}/* 운하 양쪽 */
+ HALO=winterDeco(root,L,[-34,18.6,BZ-7*TW-6]);}}
+const night=v=>{v=Math.max(0,Math.min(1,+v||0));LIT.forEach(m=>{m.emissiveIntensity=v*1.15;});HALO.forEach(m=>{m.opacity=.06+.22*v;});};night(0);
+return {night,group:root,water:canSail,fishable,spawn:[OX,CZ0-4,Math.PI],fishZone:BAY?BAY.fishZone:[OX,SZ-14]};}
 return {build};})();
