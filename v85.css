@@ -1308,3 +1308,27 @@ body.perf #dc{touch-action:none;-webkit-user-select:none;user-select:none;z-inde
 }
 @media (max-width:699px){body.bgmB #bag .boxrow .bigbox{flex:0 0 96px;width:96px}body.bgmB #bag .boxrow .bigbox img{width:96px;height:auto}body.bgmB #bag .boxrow .small.muted{font-size:10px;white-space:nowrap}}
 @media (max-width:699px){body.bgmB #bag .boxrow{gap:10px!important}body.bgmB #bag .boxrow>div:last-child{min-width:0}body.bgmB #bag .boxrow button{padding:6px 9px!important;font-size:12px!important;white-space:nowrap}}
+
+/* v148: 낚시 카드 안 경험치 · 펫 알약 (가운데 경험치 알림 대신) */
+.ccx:empty{display:none}
+.ccw .cxc{flex:none;display:inline-flex;align-items:center;background:#efe7ff;color:#6b3fd0;border-radius:99px;padding:1px 7px;font-size:11px;font-weight:900;white-space:nowrap;margin-left:2px;line-height:1.5}
+.ccw .cc.G{overflow:visible}
+.ccw .cc .cxb{position:absolute;left:-7px;top:-9px;background:#7a4fd0;color:#fff;border-radius:99px;padding:0 7px;font-size:10.5px;font-weight:900;white-space:nowrap;box-shadow:0 2px 6px #0003;border:2px solid #fff;line-height:1.55;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+#toast:has(.cc.G .cxb:not(:empty)){margin-top:6px}
+.ccw .cxl{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#6a5a8a;white-space:nowrap;margin-top:7px}.ccw .cxl .lv{flex:none}.ccw .cxl b{flex:none;color:#6b3fd0}
+.ccw .cxl .tr{flex:1;min-width:40px;height:6px;border-radius:9px;background:#eee6f7;overflow:hidden;position:relative}.ccw .cxl .tr i{position:absolute;left:0;top:0;bottom:0;background:#c3b2ee}.ccw .cxl .tr u{position:absolute;top:0;bottom:0;background:#7a4fd0;transition:width .6s ease}
+.ccw .ccdm{visibility:hidden}
+.ppz{display:flex;flex-direction:column;gap:4px;margin-top:6px}.ppz.pzj{margin:0 0 6px}
+.ppz.pzc,.ppz.pze,.ppz.pzf{align-items:center}.ppz.pzg{align-items:flex-end}.ppz.pzj{align-items:flex-start}
+.pp{display:flex;align-items:center;gap:5px;max-width:min(250px,88vw);background:rgba(36,30,52,.86);color:#fff;border-radius:999px;padding:2px 10px 2px 3px;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:0 3px 10px #0003;line-height:1.35;opacity:var(--o,1);text-shadow:none}
+.pp .pa{flex:none;width:19px;height:19px;border-radius:50%;background:#ffe9d6;object-fit:contain}
+.pp .pn{flex:none}.pp .pf{flex:none;width:26px;height:15px;object-fit:contain}
+.pp .fn{min-width:0;overflow:hidden;text-overflow:ellipsis}.pp .cm{flex:none}.pp em{flex:none;font-style:normal}
+.ccw .cc.E,.ccw .cc.F,.ccw .cc.J{max-width:calc(100vw - 20px);box-sizing:border-box}
+.ccw .cc.F .nm,.ccw .cc.E .nm,.ccw .cc.J .nm{min-width:0;overflow:hidden;text-overflow:ellipsis}.ccw .cc.E .m,.ccw .cc.J .m{min-width:0}
+.ccw .cc.F>*{flex:none}.ccw .cc.F .nm{flex:0 1 auto;min-width:4em}
+/* v148: 설정 묶음 소제목 · 소리 막대 */
+#set .ssub{margin:16px 0 6px;padding-bottom:4px;border-bottom:1px dashed #ead9c4;font-size:12.5px;font-weight:900;color:#a0805a;letter-spacing:.03em}
+#set section>.ssub:first-of-type,#set h4+.ssub{margin-top:4px}
+#set .svl{display:grid;gap:8px;margin:6px 0 10px}#set .svl label{display:grid;grid-template-columns:5.2em minmax(0,1fr) 3.4em;align-items:center;gap:10px;white-space:nowrap}#set .svl input{width:100%}#set .svl b{text-align:right;font-size:13px}
+#set .slay main label{white-space:nowrap}#set .slay main p{overflow-wrap:anywhere}
