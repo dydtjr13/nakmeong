@@ -56,13 +56,13 @@ function backRows(g){/* 운하 집 뒤로 3줄 · 더 멀리 교회 탑 · 언�
   for(let z=CZ0-6;z>CZ1;z-=4.2){const w=2.6+rnd();L.push({x:q*(W/2+Q+20+rnd()*3),z,w,d:3.4,h:5+rnd()*3,ry:Math.PI/2,c:PAL[(L.length)%PAL.length],rc:ROOF[L.length%ROOF.length]});}});
  town(g,L);trees(g,TR);
  [[-1,-28],[1,-62],[-1,-86]].forEach(([q,z])=>{const x=q*(W/2+Q+11);bx(g,3.2,11,3.2,'#e8dcc8',x,5.5,z);const sp=add(g,new T.ConeGeometry(2.3,5,4),'#4a6a6a',x,13.5,z);sp.rotation.y=Math.PI/4;add(g,new T.CylinderGeometry(.5,.5,.1,16),'#f4efe6',x,8.5,z+1.62).rotation.x=Math.PI/2;});
- [-1,1].forEach(q=>{for(let i=0;i<6;i++){const h=add(g,new T.SphereGeometry(18,10,6,0,Math.PI*2,0,Math.PI/2),['#8aa86a','#7a9a5e','#9ab878'][i%3],q*(48+rnd()*10),-2,CZ0-10-i*22);h.scale.set(1.3,.5+rnd()*.35,1);h.castShadow=false;}});}
+ [-1,1].forEach(q=>{for(let i=0;i<4;i++){const h=add(g,new T.SphereGeometry(18,10,6,0,Math.PI*2,0,Math.PI/2),['#8aa86a','#7a9a5e','#9ab878'][i%3],q*(48+rnd()*10),-2,CZ0-10-i*22);h.scale.set(1.3,.5+rnd()*.35,1);h.castShadow=false;}});}
 function bay(v){const g=new T.Group();root.add(g);const BW=46,BZ=-168,isl=[];
  {const wa=water(160,110,'#3a9ec0',30);wa.position.set(0,-.07,-138);g.add(wa);const far=water(700,420,'#3a92b8',60);far.position.set(0,-.1,BZ-210);g.add(far);}
  const stone='#b8ad9c',top='#d8cdb8';
  const quay=(x0,z0,x1,z1,y)=>{const L=Math.hypot(x1-x0,z1-z0),a=Math.atan2(x1-x0,z1-z0);bx(g,4,(y||.3)+1.2,L,stone,(x0+x1)/2,((y||.3)-1.2)/2,(z0+z1)/2,a);bx(g,4.1,.14,L,top,(x0+x1)/2,(y||.3)+.02,(z0+z1)/2,a);};
  const gnd=(x,z,w,d,c,y)=>{const o=new T.Mesh(new T.PlaneGeometry(w,d),M(c||'#9fbf7a'));o.rotation.x=-Math.PI/2;o.position.set(x,y==null?.04:y,z);o.receiveShadow=true;g.add(o);return o;};
- const L=[],TR=[];const H=(x,z,ry,r,y)=>{const w=2.4+rnd()*1.4;L.push({x,z,w,d:3.2,h:4+rnd()*2.8+(r||0)*.6,ry,y:y||0,c:PAL[(L.length*5+3)%PAL.length],rc:ROOF[(L.length*7)%ROOF.length]});return w;};
+ const L=[],TR=[];const H=(x,z,ry,r,y,w0)=>{const w=w0||2.4+rnd()*1.4;L.push({x,z,w,d:3.2,h:4+rnd()*2.8+(r||0)*.6,ry,y:y||0,c:PAL[(L.length*5+3)%PAL.length],rc:ROOF[(L.length*7)%ROOF.length]});return w;};
  const boat=(x,z,ry,c)=>{const b=new T.Group();b.position.set(x,0,z);b.rotation.y=ry;g.add(b);bx(b,1.1,.36,3.0,c,0,.06,0);bx(b,.9,.08,2.6,'#c9a070',0,.26,0);bx(b,.6,.5,.7,'#f4efe6',0,.5,-.4);};
  const lampP=(x,z)=>lamp(g,x,z);
  const umb=(x,z,c)=>{add(g,new T.CylinderGeometry(.04,.04,2.1,6),'#f4efe6',x,1.05,z);add(g,new T.ConeGeometry(1.2,.5,8),c,x,2.2,z);};
@@ -91,16 +91,36 @@ function bay(v){const g=new T.Group();root.add(g);const BW=46,BZ=-168,isl=[];
   for(let i=0;i<7;i++){const x=-BW-14+rnd()*8,z=-106-i*9;add(g,new T.CylinderGeometry(.13,.2,4,6),'#9a7a50',x,2,z).rotation.z=.15;for(let k=0;k<5;k++){const lf=add(g,new T.BoxGeometry(2.2,.05,.5),'#4f8a44',x+.3,4,z);lf.rotation.y=k*Math.PI/2.5;lf.rotation.z=-.35;}}
   // 바깥 바다 (뒤) 막는 낮은 바위
   for(let x=-BW;x<=BW;x+=5)if(Math.abs(x)>12)add(g,new T.DodecahedronGeometry(2.2,0),'#9a9488',x,-.3,BZ-1);}
- if(v==='C'){/* 절벽 마을: 만을 감싼 높은 절벽에 알록달록 집이 층층이 · 꼭대기 성당 · 작은 선착장 */
-  const cliff=(x,z,w,d,h)=>bx(g,w,h,d,'#c9a77a',x,h/2-1,z);
-  [-1,1].forEach(q=>{for(let r=0;r<5;r++){const x=q*(BW+3+r*4.4),y=r*2.6+.4;cliff(x,-134,4.6,74,y+1.2);for(let z=CZ1-4;z>BZ+4;){z-=H(x+q*.6,z,q<0?Math.PI/2:-Math.PI/2,0,y)+.25;}}
-   for(let i=0;i<8;i++)bx(g,1.2,.25,2.4,'#e8dcc8',q*(BW+1.5+i*2.4),i*1.4,-118-(i%2)*1.6);});
-  for(let r=0;r<4;r++){const z=BZ-3-r*4.4,y=r*2.8+.4;cliff(0,z,BW*2+40,4.6,y+1.2);for(let x=-BW;x<BW;){if(r===0&&Math.abs(x)<7){x+=7;continue;}x+=H(x,z+.6,0,0,y)+.25;}}
-  bx(g,6,6,6,'#f4efe6',0,15.5,BZ-20);add(g,new T.SphereGeometry(3,16,10,0,Math.PI*2,0,Math.PI/2),'#4a7aa8',0,18.5,BZ-20);add(g,new T.ConeGeometry(.4,1.6,8),'#f2c64a',0,22,BZ-20);
-  bx(g,10,.2,3,'#a0784e',-BW+6,.3,-152);boat(-BW+5,-148,Math.PI/2,'#3a6aa8');boat(-BW+9,-156,Math.PI/2,'#d8705a');boat(BW-6,-120,-Math.PI/2,'#2f7a5a');
-  gnd(-BW-50,-134,40,110,'#8aa86a',13);gnd(BW+50,-134,40,110,'#8aa86a',13);
-  for(let i=0;i<10;i++)TR.push({x:(i%2?1:-1)*(BW+24+rnd()*6),z:-108-i*6,y:13,s:1.3});}
- /* 만 앞쪽 양옆 빈 땅 채우기 */[-1,1].forEach(q=>{for(let gx=0;gx<6;gx++)for(let gz=0;gz<5;gz++){const x=q*(W/2+Q+27+gx*5.2),z=CZ1+4+gz*5.5;if(Math.abs(x)>BW+30||(v==='A'&&Math.abs(x)<BW+2&&z<CZ1+10))continue;if(rnd()<.72)H(x,z,q<0?Math.PI/2:-Math.PI/2,1,0);else TR.push({x,z,s:1.3});}});
+ if(v==='C'){/* v156 절벽 마을 (C 다듬기): 만을 ㄷ자로 감싼 계단식 언덕 — 층마다 길·집·계단, 뒤쪽 가운데 협곡으로 바다와 이어지고 양쪽 끝에 등대, 꼭대기 넓은 언덕에 성당·종탑·나무, 멀리 산 */
+  const TW=4.4,TH=2.6,RN=6,yT=r=>r*TH+.4,G=r=>8+r*1.3,cliffC='#c9a77a',paveC='#e4d6b8',grassC='#9fbf7a';
+  const lampY=(x,y,z)=>{const gg=new T.Group();gg.position.y=y;g.add(gg);lamp(gg,x,z);};
+  const slab=(x0,x1,z0,z1,y,c)=>{if(x1-x0<.2||z1-z0<.2)return;bx(g,x1-x0,y+1.2,z1-z0,cliffC,(x0+x1)/2,(y-1.2)/2,(z0+z1)/2);bx(g,x1-x0+.02,.12,z1-z0+.02,c||paveC,(x0+x1)/2,y+.02,(z0+z1)/2);};
+  const FZ=CZ1+2;/* 앞쪽(운하 쪽) 끝 */
+  for(let r=0;r<=RN;r++){const y=yT(r),a=BW+r*TW,b=a+TW,zb=BZ-r*TW,zc=zb-TW;
+   [-1,1].forEach(q=>{slab(q<0?-b:a,q<0?-a:b,zc,FZ,y);});/* 양옆 층 (뒤 모서리까지) */
+   const gp=G(r);slab(-a,-gp,zc,zb,y);slab(gp,a,zc,zb,y);/* 뒤쪽 층 · 가운데 협곡 */}
+  /* 꼭대기 넓은 언덕 (밖으로 튀어나오지 않게 층과 딱 맞게) */{const y=yT(RN+1),a=BW+(RN+1)*TW,zb=BZ-(RN+1)*TW,O=34;[-1,1].forEach(q=>slab(q<0?-(a+O):a,q<0?-a:a+O,zb-O,FZ,y,grassC));slab(-a,-G(RN+1),zb-O,zb,y,grassC);slab(G(RN+1),a,zb-O,zb,y,grassC);
+   /* 협곡 양쪽 벽 */[-1,1].forEach(q=>{for(let r=0;r<=RN+1;r++){const gp=G(r);bx(g,.6,yT(r)+1.2,TW,'#b8956a',q*(gp+.3),(yT(r)-1.2)/2,BZ-r*TW-TW/2);}});
+   /* 언덕 위: 성당 · 종탑 · 집 · 나무 */const cy=y;bx(g,8,6,10,'#f4efe6',-22,cy+3,zb-12);add(g,new T.SphereGeometry(3.4,18,10,0,Math.PI*2,0,Math.PI/2),'#4a7aa8',-22,cy+6,zb-12);add(g,new T.ConeGeometry(.45,1.8,8),'#f2c64a',-22,cy+10.3,zb-12);
+   bx(g,3.2,12,3.2,'#efe2c8',22,cy+6,zb-8);const sp=add(g,new T.ConeGeometry(2.4,4.4,4),'#8a4a3a',22,cy+14.2,zb-8);sp.rotation.y=Math.PI/4;add(g,new T.CylinderGeometry(.55,.55,.1,16),'#f4efe6',22,cy+9.6,zb-6.35).rotation.x=Math.PI/2;
+   for(let i=0;i<26;i++){const q=i%2?1:-1,x=q*(a+4+rnd()*26),z=FZ-6-rnd()*(FZ-(zb-O)-10);if(rnd()<.55)H(x,z,q<0?Math.PI/2:-Math.PI/2,1,y);else TR.push({x,z,y,s:1.4+rnd()*.5});}
+   for(let i=0;i<10;i++){const x=-a+8+i*((2*a-16)/9);if(Math.abs(x)<G(RN+1)+3||Math.abs(x+22)<7||Math.abs(x-22)<4)continue;TR.push({x,z:zb-20-rnd()*10,y,s:1.5});}
+   /* 멀리 산 (가운데 협곡 너머 바다는 보이게 비워요) */for(let i=0;i<10;i++){const x=(i%2?1:-1)*(46+Math.floor(i/2)*30+rnd()*8);const m=add(g,new T.ConeGeometry(30+rnd()*16,26+rnd()*16,7),['#8aa86a','#7a9a5e','#9ab878'][i%3],x,y-4,zb-O-30-rnd()*30);m.castShadow=false;}}
+  /* 운하 쪽 앞면: 층마다 초록 비탈로 덮어서 절벽 벽이 튀어나와 보이지 않게 */for(let r=0;r<=RN+1;r++){const y=yT(r),a=BW+r*TW,b=r>RN?a+34:a+TW,len=Math.max(1,y*1.25),L=Math.hypot(len,y),ang=Math.atan2(y,len);[-1,1].forEach(q=>{const m=new T.Mesh(new T.BoxGeometry(b-a+.05,.5,L),M(grassC));m.position.set(q*(a+b)/2,y/2-.2,FZ+len/2);m.rotation.x=ang;m.receiveShadow=true;g.add(m);if(r>0&&r%2===0)for(let k=0;k<2;k++){const t=.3+rnd()*.4;TR.push({x:q*(a+1+rnd()*(b-a-2)),z:FZ+len*t,y:y*(1-t)-.2,s:1.2});}});}
+  /* 층마다 집 (만을 바라보게) · 계단 · 가로등 · 사이프러스 · 발코니 */const CYP=new T.ConeGeometry(.55,3.4,7),cypM=M('#3f6a3a');
+  for(let r=0;r<=RN;r++){const y=yT(r),a=BW+r*TW,zb=BZ-r*TW,hx=TW-1.3;/* 집 깊이 3.0 · 앞 길 1.3 */
+   const st=[];for(let k=0;k<3;k++)st.push(FZ-14-k*20-((r*7)%9));
+   [-1,1].forEach(q=>{const xh=q*(a+1.3+1.5);for(let z=FZ-2;z>zb+.6;){if(st.some(s=>z<s+1.5&&z>s-4.6)){z-=1;continue;}if(rnd()<.06){const c=new T.Mesh(CYP,cypM);c.position.set(xh,y+1.7,z-1);c.castShadow=true;g.add(c);z-=2.2;continue;}const w0=2.4+rnd()*1.4,w=H(xh,z-w0/2,q<0?Math.PI/2:-Math.PI/2,r%3,y,w0);
+     if(rnd()<.3)bx(g,.5,.12,Math.min(1.6,w-.6),PAL[(r*3+Math.round(z))%PAL.length],q*(a+1.3)+q*.05*-1,y+2.6,z-w/2);z-=w+.08;}
+    if(r<RN)st.forEach(s=>{for(let i=0;i<6;i++)bx(g,1.0,(i+1)*TH/6,.62,'#d8c9a8',q*(a+TW-.5),y+(i+1)*TH/12,s-i*.62);});
+    for(let z=FZ-8;z>zb+3;z-=11)lampY(q*(a+.45),y,z);});
+   const zh=zb-1.3-1.5;for(let x=-a+1;x<a-1;){const gp=G(r);if(Math.abs(x)<gp+.6){x=gp+.6;continue;}const w0=2.4+rnd()*1.4;if(Math.abs(x+w0/2)<gp+w0/2+.3){x+=.5;continue;}const w=H(x+w0/2,zh,0,r%3,y,w0);if(rnd()<.3)bx(g,Math.min(1.6,w-.6),.12,.5,PAL[(r+Math.round(x))%PAL.length],x+w0/2,y+2.6,zb-1.3);x+=w+.08;}
+   for(let x=-a+5;x<a-3;x+=11)if(Math.abs(x)>G(r)+1)lampY(x,y,zb-.45);}
+  /* 부두(층 0) 디테일: 배 · 통 · 나무 상자 · 그물 · 협곡 끝 등대 */
+  bx(g,10,.2,3,'#a0784e',-BW+6,.3,-152);boat(-BW+5,-148,Math.PI/2,'#3a6aa8');boat(-BW+9,-156,Math.PI/2,'#d8705a');boat(BW-6,-120,-Math.PI/2,'#2f7a5a');boat(BW-6,-135,-Math.PI/2,'#e8a040');boat(-14,BZ+3,0,'#f4efe6');boat(16,BZ+3.4,.2,'#3a6aa8');
+  for(let i=0;i<14;i++){const q=i%2?1:-1,z=-104-i*4.5;if(rnd()<.5)add(g,new T.CylinderGeometry(.32,.32,.7,10),'#8a5a32',q*(BW+.6),.75,z);else bx(g,.7,.6,.7,'#b88a5a',q*(BW+.6),.7,z);}
+  [-1,1].forEach(q=>{light(q*(G(0)+1.6),BZ-1.6,.4);});}
+ /* 만 앞쪽 양옆 빈 땅 채우기 */[-1,1].forEach(q=>{for(let gx=0;gx<6;gx++)for(let gz=0;gz<5;gz++){const x=q*(W/2+Q+27+gx*5.2),z=CZ1+4+gz*5.5;if(Math.abs(x)>BW+30||(v==='A'&&Math.abs(x)<BW+2&&z<CZ1+10)||v==='C')continue;if(rnd()<.72)H(x,z,q<0?Math.PI/2:-Math.PI/2,1,0);else TR.push({x,z,s:1.3});}});
  town(g,L);trees(g,TR);
  return {sail:(lx,z)=>z<CZ1-1&&z>BZ+2&&Math.abs(lx)<BW-2.5&&!isl.some(([x,zz,r])=>Math.hypot(lx-x,z-zz)<r),fishZone:[OX,-140]};}
 
