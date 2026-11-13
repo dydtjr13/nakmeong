@@ -160,6 +160,6 @@ const fishable=(x,z)=>z<CZ1-4&&canSail(x,z);
 let HALO=[];if(SNOW){snowify(root);{const BW=46,BZ=-168,TW=4.4,TH=2.6,FZ=CZ1+2,G=r=>8+r*1.3,yT=r=>r*TH+.4,L=[];for(let r=0;r<=3;r++){const a=BW+r*TW+1.25,y=yT(r)+3.2,zb=BZ-r*TW-1.25;L.push([-a,y,FZ-2,-a,zb],[a,y,FZ-2,a,zb],[-a,y,zb,-G(r)-.5,zb],[G(r)+.5,y,zb,a,zb]);}
  for(let z=CZ0-2;z>CZ1+3;z-=6){[-1,1].forEach(q=>L.push([q*(W/2+Q+.4),3.6,z,q*(W/2+Q+.4),z-5.2]));}/* 운하 양쪽 */
  HALO=winterDeco(root,L,[-34,18.6,BZ-7*TW-6]);}}
-const night=v=>{v=Math.max(0,Math.min(1,+v||0));LIT.forEach(m=>{m.emissiveIntensity=v*1.15;});HALO.forEach(m=>{m.opacity=.06+.22*v;});};night(0);
+/* 창문 불빛·전구는 지금은 눈 내린 모양(테스트)에서만 */const night=v=>{v=SNOW?Math.max(0,Math.min(1,+v||0)):0;LIT.forEach(m=>{m.emissiveIntensity=v*1.15;});HALO.forEach(m=>{m.opacity=.06+.22*v;});};night(0);
 return {night,group:root,water:canSail,fishable,spawn:[OX,CZ0-4,Math.PI],fishZone:BAY?BAY.fishZone:[OX,SZ-14]};}
 return {build};})();
