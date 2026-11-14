@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>초월+ 탈것 시안 · 피쉬코지</title>
+<style>
+:root{
+  --bg:#fffaf4;--ink:#4a4058;--muted:#8a7b90;--line:#eadfce;--acc:#e8744a;--acc2:#c45432;
+  --sky:#cfe6ef;--card:#fffaf4;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:linear-gradient(180deg,#cfe6ef 0%,#e7f3ea 38%,#f6efe4 100%);
+  color:var(--ink);
+  font-family:"Pretendard","Apple SD Gothic Neo","Noto Sans KR","WenQuanYi Micro Hei",system-ui,sans-serif;
+  line-height:1.55;
+}
+button,select{font-family:inherit}
+a{color:#2f6e8a}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 16px 64px}
+.top{
+  background:rgba(255,250,244,.92);border-radius:22px;padding:18px 18px 14px;
+  box-shadow:0 10px 30px #00000014;border:1px solid #fff;
+}
+.kicker{margin:0 0 4px;font-size:12px;font-weight:800;letter-spacing:.4px;color:#c45432}
+h1{margin:0 0 8px;font-size:28px;line-height:1.25}
+.lead{margin:0;color:#5e546c}
+.note{
+  margin:12px 0 0;padding:10px 12px;border-radius:14px;background:#fff4ea;border:1px solid #f3d7c4;
+  font-size:14px;
+}
+.note b{color:#a84828}
+nav.jump{
+  position:sticky;top:0;z-index:5;display:flex;gap:8px;flex-wrap:wrap;
+  margin:14px 0;padding:8px;border-radius:16px;background:rgba(255,250,244,.94);
+  box-shadow:0 6px 18px #00000012;backdrop-filter:blur(8px);
+}
+nav.jump a{
+  text-decoration:none;color:var(--ink);background:#fff;border-radius:999px;
+  padding:8px 12px;font-weight:800;font-size:14px;border:1px solid var(--line);
+  min-height:40px;display:inline-flex;align-items:center;
+}
+nav.jump a:hover{border-color:#e7b89a}
+.how{
+  background:var(--card);border-radius:22px;padding:16px 16px 8px;margin:8px 0 18px;
+  box-shadow:0 8px 24px #00000010;border:1px solid #fff;
+}
+.how h2,.concept h2{margin:0 0 6px;font-size:20px}
+.how p,.concept .desc{margin:0 0 10px;color:#5c5368;font-size:14.5px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:0 0 12px}
+th,td{text-align:left;padding:8px 8px;border-top:1px solid var(--line);vertical-align:top}
+th{background:#f6efe6;font-size:12.5px}
+.concept{
+  background:var(--card);border-radius:24px;padding:16px;margin:0 0 18px;
+  box-shadow:0 12px 32px #00000012;border:1px solid #fff;
+}
+.ch{display:grid;grid-template-columns:1.3fr .9fr;gap:12px 18px;align-items:start}
+.pts{margin:0;padding-left:18px;font-size:14px}
+.pts li{margin:0 0 4px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.mini{
+  border-radius:16px;padding:10px 12px;background:#fff;
+  border:3px solid transparent;
+}
+.mini b{display:block;font-size:14.5px}
+.mini small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.mini.old{
+  background:linear-gradient(160deg,#fff,#f6f2ff) padding-box,
+    conic-gradient(from var(--hya),#ff7ad9,#8a8cff,#5ef0ff,#5dffc8,#ffd36b,#ff7ad9) border-box;
+  animation:hyspin 3s linear infinite;
+}
+.mini.new{
+  background:linear-gradient(160deg,#fff,#fffaf4) padding-box,
+    conic-gradient(from var(--hya),var(--a),#fff,var(--b),var(--a)) border-box;
+  animation:hyspin 2.4s linear infinite;
+  box-shadow:0 0 16px color-mix(in srgb,var(--a) 35%,transparent);
+}
+@property --hya{syntax:'<angle>';inherits:false;initial-value:0deg}
+@keyframes hyspin{to{--hya:360deg}}
+.badge{
+  display:inline-block;padding:1px 8px;border-radius:999px;font-size:12px;font-weight:900;
+  color:#fff;vertical-align:1px;letter-spacing:.2px;
+}
+.badge.tx{
+  background:linear-gradient(90deg,#ff2d8a,#ff9a3c,#7a5cff,#ff2d8a);background-size:200% 100%;
+  animation:rgbtx 3s linear infinite;
+}
+.badge.plus{
+  background:linear-gradient(90deg,#fff6d8,#ffe08a 30%,#fff,#ffe9a8 70%,#fff6d8);background-size:200% 100%;
+  color:#5a3d08;box-shadow:0 0 0 1px #e6b34d,0 0 10px #ffd36b88;animation:rgbtx 2.2s linear infinite;
+}
+@keyframes rgbtx{to{background-position:200% 0}}
+.stage{
+  position:relative;height:clamp(320px,52vw,500px);border-radius:18px;overflow:hidden;
+  background:#d7ece8;border:1px solid #d5e4df;
+}
+.stage canvas{width:100%;height:100%;display:block;touch-action:none}
+.tags{
+  position:absolute;left:10px;right:10px;top:10px;display:flex;justify-content:space-between;gap:8px;
+  pointer-events:none;
+}
+.tag{
+  background:rgba(255,250,244,.92);border-radius:999px;padding:4px 8px 4px 4px;
+  font-size:12px;font-weight:800;display:inline-flex;align-items:center;gap:6px;
+  box-shadow:0 4px 12px #00000018;max-width:48%;
+}
+.morph{display:flex;align-items:center;gap:8px;margin:10px 0 4px;font-size:12px;font-weight:800;color:var(--muted)}
+.morph .bar{flex:1;height:8px;border-radius:99px;background:#f0e6da;overflow:hidden}
+.morph .bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#8a8cff,#ff7ad9)}
+.status{margin:0 0 8px;font-size:13px;font-weight:800}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px}
+.ctrls button{
+  min-height:44px;padding:8px 14px;border-radius:14px;border:0;cursor:pointer;font-weight:800;font-size:14px;
+  background:#fff;color:var(--ink);box-shadow:0 3px 0 #00000010,0 4px 12px #00000010;
+}
+.ctrls button.on{background:#3d3548;color:#fff}
+.ctrls button.pri{background:linear-gradient(180deg,#f08a55,#e0663a);color:#fff;box-shadow:0 3px 0 #b9522c}
+.ctrls button:active{transform:translateY(1px)}
+.hint{margin:8px 0 0;font-size:12.5px;color:var(--muted)}
+figure.ref{margin:12px 0 0}
+figure.ref img{width:100%;border-radius:16px;display:block;background:#e7d3b4}
+figure.ref figcaption{font-size:12.5px;color:var(--muted);margin-top:6px}
+.foot{font-size:13px;color:#6d6478}
+body.only .how,body.only nav.jump,body.only .foot,.only-hide{display:none}
+body.rec .top,body.rec .hint,body.rec figure.ref,body.rec .ch,body.rec .pair{display:none}
+body.rec .wrap{padding:8px 12px}
+body.rec .concept{padding:10px}
+body.rec .stage{height:520px}
+body.only .wrap{max-width:1200px}
+body.shot .top{padding:12px}
+body.shot h1{font-size:22px}
+@media (max-width:800px){
+  h1{font-size:23px}
+  .ch,.pair{grid-template-columns:1fr}
+  .tags{position:static;margin-top:8px;pointer-events:auto}
+  .stage{height:clamp(300px,78vw,420px);border-radius:16px 16px 0 0}
+  .tag{max-width:none;flex:1}
+  .ctrls button{flex:1 1 calc(50% - 8px);justify-content:center}
+  nav.jump{top:0}
+}
+@media (prefers-reduced-motion:reduce){
+  .mini.old,.mini.new,.badge.tx,.badge.plus{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <p class="kicker">피쉬코지 · FISH COZY · 시안만 · 게임 미적용</p>
+    <h1>초월+ 탈것 시안</h1>
+    <p class="lead">서 있으면 로봇, 달리면 자동차. 지금 게임의 초월 등급 「프리즘 하이퍼카」보다 디테일, 변신, 오라·입자·광택을 한 단계 올린 네 가지 방향이에요. 고르시면 그 다음에 게임에 넣어요.</p>
+    <p class="note"><b>이 페이지는 고르기용 시안이에요.</b> 본편(main)에는 반영하지 않았고, 배포하지도 않았어요. 왼쪽이 지금 게임 속 초월 스포츠카, 오른쪽이 시안이에요.</p>
+  </header>
+  <nav class="jump" aria-label="시안 바로가기">
+    <a href="#c-crimson">크림슨 센티넬</a>
+    <a href="#c-lake">호수의 미라</a>
+    <a href="#c-aureate">천상 오렐</a>
+  </nav>
+  <section class="how">
+    <h2>지금 초월 스포츠카는 이렇게 그려져요</h2>
+    <p>탈것은 그림 파일이 아니라 Three.js로 코드에서 만들어요. 눈썰매·자동차·로봇은 각진 박스이고, 초월 「프리즘 하이퍼카」만 단면을 이어 붙인 매끈한 차체에 홀로그램 펄 셰이더를 입혀요. 네온 라인, 바닥 언더글로우, 달리면 반짝이 꼬리, 부스터(G) 때 머플러 불꽃이 있어요. 바퀴가 돌고 차체가 조금 흔들려요. 변신은 없고, 탄 사람은 차 안에 숨겨요. 상점 카드는 돌아가는 무지개 테두리에 「초월」 배지예요. 속도는 +120%.</p>
+    <table>
+      <thead><tr><th></th><th>프리즘 하이퍼카 · 초월</th><th>이번 시안 · 초월+</th></tr></thead>
+      <tbody>
+        <tr><td>형태</td><td>매끈한 차체 하나. 로봇 모드 없음</td><td>Blender로 만든 GLB. 곡면 장갑 로봇과 클리어코트 하이퍼카</td></tr>
+        <tr><td>움직임</td><td>바퀴 회전, 약한 흔들림</td><td>약 1.7초 변신, 로봇 대기 동작, 이동하면 주행</td></tr>
+        <tr><td>이펙트</td><td>펄, 네온, 언더글로우, 반짝이 꼬리, 부스터 불꽃</td><td>오라가 눌려 언더글로우가 됨, 변신 스파크, 테마 입자·광택</td></tr>
+        <tr><td>등급</td><td>회전 테두리 + 초월</td><td>초월+ 금색 배지, 테마색 이중 링</td></tr>
+      </tbody>
+    </table>
+  </section>
+  <div id="app"></div>
+  <p class="foot">오른쪽 모델은 Blender 4.2에서 직접 만든 GLB예요. 외부 메시는 쓰지 않았고, Draco로 압축했어요. 왼쪽은 게임과 같은 three.js r147 프리즘 하이퍼카입니다. 본편에는 넣지 않았어요.</p>
+</div>
+<script src="../lib/three.min.js"></script>
+<script src="vendor/DRACOLoader.js"></script>
+<script src="vendor/GLTFLoader.js"></script>
+<script src="rig.js"></script>
+<script src="txplus.js"></script>
+</body>
+</html>
