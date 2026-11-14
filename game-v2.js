@@ -442,7 +442,7 @@ function occFade(dt,pp){OCC.t-=dt;if(OCC.t>0)return;OCC.t=.12;const tg=new THREE
 // ───────── 지형 ─────────
 const H0=(x,z)=>{const r=Math.hypot(x,z);if(r<LR-1)return -2.2;if(r<LR+2)return -2.2+(r-LR+1)/3*2.5;return .3+Math.max(0,r-(DW?LR+20:52))*.3*(1+Math.sin(x*.15)*Math.cos(z*.12))+Math.sin(x*.25)*Math.cos(z*.2)*.25;};
 // v56: 맵 시안(A·B·C)이 켜지면 HX 가 먼 지형만 바꿈 (호숫가 걷는 곳은 그대로)
-let HX=null;/* v154: 바닷가 마을(멀리 떨어진 곳)은 맵 지형 함수와 상관없이 늘 물 높이 — 맵 모양이 지형을 바꾸면 배가 하늘로 떠오르던 문제 */const H=(x,z)=>(window.__nkSeaW&&x>600)?-.05:HX?HX(x,z):H0(x,z);
+let HX=null;/* v154: 바닷가 마을(멀리 떨어진 곳)은 맵 지형 함수와 상관없이 늘 물 높이 — 맵 모양이 지형을 바꾸면 배가 하늘로 떠오르던 문제 */const H=(x,z)=>(window.__nkSeaW&&x>600)?(window.__nkCnlY?window.__nkCnlY(x,z):-.05):HX?HX(x,z):H0(x,z);
 function buildTerrain(){const g=new THREE.PlaneGeometry(220,220,80,80);g.rotateX(-Math.PI/2);const p=g.attributes.position,col=[],cs=['#b9dc9c','#acd38f','#c2e2a6'].map(c=>new THREE.Color(c)),sand=new THREE.Color('#f1e0b4'),wet=new THREE.Color('#d9c79a');
   for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i),r=Math.hypot(x,z);p.setY(i,H(x,z));const c=r<LR+.3?wet:r<LR+3.2?sand:cs[(Math.abs(Math.sin(x*12.9+z*78.2))*3)|0];col.push(c.r,c.g,c.b);}
   g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));const ng=g.toNonIndexed();ng.computeVertexNormals();TERR0=new THREE.Mesh(ng,new THREE.MeshLambertMaterial({vertexColors:true,flatShading:true}));scene.add(TERR0);}
@@ -1078,7 +1078,7 @@ function comboFish(){const c=pick(D.COMBO.list),k=pick(c.ks),f=FI(k),bd=[f.min,.
 let restockT=60;function botRestock(dt){restockT-=dt;if(restockT>0)return;restockT=rand(70,120);const b=pick(bots.filter(b=>b.deck));if(b&&b.tank.length<10){b.tank.push(comboFish());}}
 function botFix(b){seatLeave(b);b.seat=null;const p=b.c.o.position;b.path=[];b.goal='fish';b.wait=1e9;b.fix=1;
  const d=b.deck||decks.find(x=>x.i>0&&!bots.some(o=>o!==b&&o.fix&&o.fixD===x));
- const st=SEATS.find(x=>x.kind==='stool'&&seatFree(x)&&(d?(x.deck===d||x.deck===d.i||(x.deck&&x.deck.i)===d.i):true))||SEATS.find(x=>x.kind==='stool'&&seatFree(x));
+ const st=SEATS.find(x=>x.kind==='stool'&&!x.cnl&&seatFree(x)&&(d?(x.deck===d||x.deck===d.i||(x.deck&&x.deck.i)===d.i):true))||SEATS.find(x=>x.kind==='stool'&&!x.cnl&&seatFree(x));
  if(st){seatTake(st,b);b.seat=st;p.set(st.x,st.y,st.z);b.c.dir=b.c.o.rotation.y=Math.atan2(-p.x,-p.z);return;}
  if(d){b.fixD=d;const fx=d.tip.x+d.ca*.1-d.sa*.55,fz=d.tip.z+d.sa*.1+d.ca*.55;p.set(fx,.66,fz);b._fishSpot={x:fx,y:.66,z:fz};b.c.dir=b.c.o.rotation.y=d.a;return;}
  const bn=SEATS.find(x=>x.kind==='bench'&&seatFree(x));if(bn){seatTake(bn,b);b.seat=bn;b.goal='rest';p.set(bn.x,bn.y,bn.z);b.c.dir=b.c.o.rotation.y=Math.atan2(SH.x-p.x,SH.z-p.z);}}
@@ -2786,7 +2786,7 @@ function dropRemote(r){const i=chars.indexOf(r.c);if(i>=0)chars.splice(i,1);drop
 // v53: 다른 유저 낚시 모습 — 찌 던지기(포물선) · 찌 둥실 · 입질(찌 잠김+물결) · 낚아 올림(물고기 튀어오름).
 //      위치와 바라보는 방향만으로 찌 착수 지점을 계산(내 화면과 같은 식: 반지름 LR-12.5 원과 시선의 교점) → 추가 통신은 낚아 올릴 때 1번뿐.
 const RF_V=new THREE.Vector3(),RF_T=new THREE.Vector3();
-function rfLand(p,d){const ux=Math.sin(d),uz=Math.cos(d),R=LR-12.5,b=p.x*ux+p.z*uz,c=p.x*p.x+p.z*p.z-R*R,disc=b*b-c;let t=disc>0?-b-Math.sqrt(disc):Math.max(2,Math.hypot(p.x,p.z)-R);if(!(t>0))t=-b+Math.sqrt(Math.max(0,disc));if(!(t>0))t=4;return new THREE.Vector3(p.x+ux*t,-.05,p.z+uz*t);}
+function rfLand(p,d){if(p.x>600){const C=window.__nkCNL&&__nkCNL.st;let L=4;if(C){for(const l of [4.5,3.5,2.6])if(C.water(p.x+Math.sin(d)*l-700,p.z+Math.cos(d)*l)){L=l;break;}}return new THREE.Vector3(p.x+Math.sin(d)*L,-.05,p.z+Math.cos(d)*L);}const ux=Math.sin(d),uz=Math.cos(d),R=LR-12.5,b=p.x*ux+p.z*uz,c=p.x*p.x+p.z*p.z-R*R,disc=b*b-c;let t=disc>0?-b-Math.sqrt(disc):Math.max(2,Math.hypot(p.x,p.z)-R);if(!(t>0))t=-b+Math.sqrt(Math.max(0,disc));if(!(t>0))t=4;return new THREE.Vector3(p.x+ux*t,-.05,p.z+uz*t);}
 function rfMake(r){if(r.rf)return r.rf;const bobM=new THREE.Mesh(bob.geometry,bob.material);bobM.visible=false;scene.add(bobM);const g=new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]);const ln=new THREE.Line(g,line.material);ln.frustumCulled=false;ln.visible=false;scene.add(ln);
  const ring=new THREE.Mesh(new THREE.RingGeometry(.18,.28,24).rotateX(-Math.PI/2),new THREE.MeshBasicMaterial({color:'#ffffff',transparent:true,opacity:0,depthWrite:false}));ring.visible=false;scene.add(ring);
  r.rf={bob:bobM,ln,g,ring,st:'off',t:0,to:null,from:new THREE.Vector3(),pop:null,ringT:0};return r.rf;}
@@ -4441,7 +4441,7 @@ window.NK89.pets.ab={PET_AB,PET_GOLD,petHeart};window.NK89.pets.info=petInfo;win
 // ───────── v91 🛷 탈것 — 산타 썰매·자동차(신화 상자) · 루돌프·큰 강아지(전설+) · 눈썰매(영웅+) 에서 드물게 ─────────
 LAB.push({k:'veh',n:'🛷 탈것',d:'행운 상자에서 드물게 탈것이 나와요: 눈썰매(영웅 이상 상자) · 루돌프·큰 강아지(전설 이상) · 산타 썰매·자동차(신화 상자). 가방 › 🛷 탈것에서 고르고, 화면 오른쪽 「타기」 버튼으로 타고 내려요. 타면 이동 속도 +30%, 같은 호숫가 유저에게도 보여요. 확률은 아래 「🛷 탈것 설정」에서 바꿔요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'seaTown',n:'🏘 바닷가 마을 (운하 · 배 위 낚시)',d:'배(돛단배 · 요트 · 카타마란 · 노 젓는 보트)를 타고 있으면 「배에서 내리기」 위에 「🏘 바닷가 마을로」 버튼이 생겨요. 유럽 운하를 따라가면 바다가 나오고, 바다에서는 배에서 내릴 수 없이 배 위에서만 낚시해요. 배가 없으면 노 젓는 보트를 빌려줘요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
-LAB.push({k:'seaLook',n:'🏘 바닷가 마을 모양 (시안)',d:'운하 뒤 골목을 채우고 바다를 작은 만으로 줄인 시안이에요. 바닷가 마을에 다시 들어가면 바뀌어요. 0 지금 모양 · A 항구 마을 · B 등대 해변 · C 절벽 마을 · 눈 내린 C',scope:'all',o:[['0','0 · 지금 모양'],['A','A · 항구 마을'],['B','B · 등대 해변'],['C','C · 절벽 마을'],['Cs','C · 눈 내린 절벽 마을']]});
+LAB.push({k:'seaLook',n:'🏘 바닷가 마을 모양',d:'바닷가 마을에 다시 들어가면 바뀌어요. W 윤슬 운하(기본) — 걸어 다니고 물가 데크 의자에 앉아 낚시 · 낮/노을/밤(별빛 고래)/비/무지개/오로라 · 0 예전 모양(배 위 낚시) · A 항구 마을 · B 등대 해변 · C 절벽 마을 · 눈 내린 C',scope:'all',o:[['W','W · 윤슬 운하 (기본)'],['0','0 · 예전 모양'],['A','A · 항구 마을'],['B','B · 등대 해변'],['C','C · 절벽 마을'],['Cs','C · 눈 내린 절벽 마을']]});
 LAB.push({k:'alienPet',n:'🛸 우주선 팩 (외계인 펫)',d:'신화 펫 4종이 생겨요: 초록 꼬마 외계인 · 분홍 외눈 젤리 · 보라 세눈 문어 · 별토끼 외계인. 작은 원반을 타고 둥실 떠서 따라와요. 신화 행운 상자에서 다른 신화 펫과 같은 확률로 나와요 (관리자 지급도 돼요)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'boats2',n:'🛥 새 배 (요트 · 카타마란 · 노 젓는 보트)',d:'상점 › 🚗 탈것에 배 3종이 생겨요 (탈것 기능이 켜져 있어야 해요). 요트는 앞 갑판 의자에, 카타마란은 2인승(옆자리 1명), 노 젓는 보트는 입문용으로 싸요. 배는 물가에서 타고 물 위로만 다니며, 멈추면 배 위에서 낚시해요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'ufoSuck',n:'🛸 UFO 빨아들이기 모양',d:'UFO를 타고 날 때 「🛸 빨아들이기」 버튼을 누르는 동안 빛이 밝아지고, 빛 안에 있는 다른 유저가 떠올라요 (놓으면 천천히 내려와요). B 소용돌이 반짝이가 기본이에요',scope:'all',o:[['B','B · 소용돌이 반짝이 (기본)'],['A','A · 빛 고리 올라가기'],['C','C · 초록 끌림 빛 + 고리'],['off','끄기']]});
@@ -5328,13 +5328,42 @@ function seaSwitch(to){try{if(mySeat)standUp();}catch(e){}try{if(fishing.state!=
   sessionStorage.setItem('nk_autogo',String(Date.now()));sessionStorage.setItem('nk_autoTxt',to?'🏘 운하를 따라 바닷가 마을로…':'🏞 호숫가로 돌아가요…');}catch(e){}
  if(!to){try{const o=vehOwn();if(o.rowb&&o.rowb.tmp){delete o.rowb;if(S.vehOn==='rowb')S.vehOn=sessionStorage.getItem('nk_seaVeh0')||null;}}catch(e){}}S.vehRide=0;try{save();}catch(e){}miniToast(to?'🏘 운하를 따라 바닷가 마을로 가요…':'🏞 호숫가로 돌아가요…',1400);setTimeout(()=>location.reload(),900);}
 setInterval(()=>{let b=$('seaBtn');const show=seaTownOn()&&started&&!SKYBOOT&&!anyModal()&&(SEABOOT||boatNow()||(turNow()&&turWater(me.o.position.x,me.o.position.z)));if(!show){if(b)b.style.display='none';return;}if(!b){b=document.createElement('button');b.id='seaBtn';b.type='button';document.body.appendChild(b);b.onclick=()=>seaSwitch(!SEABOOT);}b.style.display='';const t=SEABOOT?'🏞 호숫가로':'🏘 바닷가 마을로';if(b.textContent!==t)b.textContent=t;/* v152: 위쪽 가운데의 달·지구 버튼에 가려서 안 보이던 문제 → 「배에서 내리기」 버튼 바로 위에 붙여요 */const v=$('vehBtn'),r=v&&v.style.display!=='none'?v.getBoundingClientRect():null;if(r&&r.width){b.classList.add('nearVeh');b.style.top='auto';b.style.left='auto';b.style.transform='none';b.style.right=Math.max(8,Math.round(innerWidth-r.right))+'px';b.style.bottom=Math.round(innerHeight-r.top+8)+'px';}else{b.classList.remove('nearVeh');b.style.top=b.style.left=b.style.right=b.style.bottom=b.style.transform='';}},400);
-if(SEABOOT){window.NK_NODUCK=1;const iv=setInterval(()=>{try{if(!started||!me||!window.NK_SEATOWN)return;clearInterval(iv);
-  const _sv=String(opt('seaLook','0'));const st=SEA.st=NK_SEATOWN.build(THREE,SEA_OX,/^([ABC]|Cs)$/.test(_sv)?_sv:'');window.__nkSeaSnowNow=_sv==='Cs';try{slimGroup(st.group);}catch(e){}st.group.userData.noMerge=1;st.group.traverse(o=>{o.frustumCulled=false;});scene.add(st.group);const h0=HX;HX=(x,z)=>x>SEA_OX-90?-.05:(h0?h0(x,z):H0(x,z));window.__nkSeaW=st.water;window.__nkSeaF=st.fishable;
+if(SEABOOT){window.NK_NODUCK=1;const iv=setInterval(()=>{try{if(!started||!me||!window.NK_SEATOWN)return;const _sv=String(opt('seaLook','W'));if(_sv==='W'&&window.NK_CANAL){clearInterval(iv);cnlStart();return;}clearInterval(iv);
+const st=SEA.st=NK_SEATOWN.build(THREE,SEA_OX,/^([ABC]|Cs)$/.test(_sv)?_sv:'');window.__nkSeaSnowNow=_sv==='Cs';try{slimGroup(st.group);}catch(e){}st.group.userData.noMerge=1;st.group.traverse(o=>{o.frustumCulled=false;});scene.add(st.group);const h0=HX;HX=(x,z)=>x>SEA_OX-90?-.05:(h0?h0(x,z):H0(x,z));window.__nkSeaW=st.water;window.__nkSeaF=st.fishable;
   // 배 태우기: 가진 배가 있으면 그 배, 없으면 노 젓는 보트를 빌려줘요
   const own=vehOwn();let k=sessionStorage.getItem('nk_seaVeh');if(!(k&&own[k]&&isBoatK(vehBase(k)))){k=Object.keys(own).find(x=>isBoatK(x));}if(!k){own.rowb={at:Date.now(),how:'rent',tmp:1};k='rowb';try{sessionStorage.setItem('nk_seaVeh0',S.vehOn||'');}catch(e){}}S.vehOn=k;S.vehRide=1;save();
   me.o.position.set(st.spawn[0],.1,st.spawn[1]);me.dir=st.spawn[2];try{yaw=yaw+Math.PI;}catch(e){}document.body.classList.add('seaB');
   miniToast('🏘 운하를 따라가면 바닷가 마을이에요 · 바다(부표 근처)에서 멈추면 배 위에서 낚시해요',3200);}catch(e){console.warn(e);}},300);
  PHOOK.push(()=>{if(!started||!SEA.st)return;if(!S.vehRide){S.vehRide=1;if(!PHOOK._seaT||performance.now()-PHOOK._seaT>3000){PHOOK._seaT=performance.now();miniToast('⛵ 바닷가 마을에서는 배에서 내릴 수 없어요',1600);}}});}
+// v160 🏘 윤슬 운하 (바닷가 마을 모양 'W' · 기본) — 걸어 다니고, 물가 데크의 낚시 의자에 앉아 바다 물고기를 낚아요 · 세계 시간·날씨에 맞춰 낮/노을/밤/비/무지개/오로라
+const CNL=window.__nkCNL={st:null,state:'',rbT:0,wasRain:0,hid:[],mir:false,auN:-1};const CSPOT={i:-1,ca:1,sa:0,tip:{x:0,z:0},cnl:1};
+function cnlDay(){const len=Math.max(30,Math.min(86400,+time.len||150));return time.auto?Math.floor((Date.now()-(+time.t0||0))/1000/len+(+time.off||0)):0;}
+/* 오로라: 맑은 밤 15% (겨울 +10%) · 밤마다 세계 시간으로 정해져서 같은 서버 사람은 모두 같이 봐요 */
+function cnlAurora(){const n=cnlDay();let h=Math.sin(n*12.9898+78.233)*43758.5453;h-=Math.floor(h);let pr=.15;if(S.__season==='winter')pr+=.1;return h<Math.min(.35,pr);}
+function cnlState(first,p){const C=CNL.st;if(!C)return;p=p||palette();const wx=S.__wx||'clear',rain=wx==='drizzle'||wx==='storm',night=(p.night||0)>.5,now=performance.now();
+ if(CNL.wasRain&&!rain&&!night)CNL.rbT=now+240000;if(rain||night)CNL.rbT=0;CNL.wasRain=rain;
+ const k=rain?'rain':night?((wx==='aurora'||cnlAurora())?'aurora':'night'):CNL.rbT>now?'rainbow':p.name==='노을'?'sunset':'day';
+ if(k!==CNL.state){CNL.state=k;C.setState(k,first?0:4);if(k==='aurora'){const n=cnlDay();if(CNL.auN!==n){CNL.auN=n;miniToast('🌌 오늘 밤 오로라!',2600);}}else if(k==='rainbow'&&!first)miniToast('🌈 비가 그치고 무지개가 떴어요',2200);}}
+function cnlHide(){const keep=new Set([CNL.st.group]),chs=new Set(chars.map(c=>c.o)),B=new THREE.Box3(),me0=me&&me.o.position;
+ const hide=o=>{if(o&&o.visible&&!keep.has(o)){o.visible=false;CNL.hid.push(o);}};try{hide(TERR0);}catch(e){}try{BASEDECO.forEach(hide);}catch(e){}try{const ms=MAPV.st&&MAPV.st();if(ms&&ms.g)hide(ms.g);}catch(e){}
+ scene.children.slice().forEach(o=>{if(keep.has(o)||chs.has(o)||o.isLight||o.isCamera||!o.visible||o===bob||o===line)return;try{B.setFromObject(o);if(B.isEmpty())return;if(B.max.x<400&&B.min.x>-400)hide(o);}catch(e){}});}
+function cnlStart(){try{const lowQ=!!(window.NK_GFX&&NK_GFX.q==='low');const C=CNL.st=NK_CANAL.build(THREE,{ox:SEA_OX,fishAtlas:'img/canal/atlas.png',seats:25,noMirror:lowQ});CNL.mir=!lowQ;
+ C.group.userData.noMerge=1;C.group.traverse(o=>{if(o.isInstancedMesh||o.isPoints)o.frustumCulled=false;});scene.add(C.group);C.attach(scene);cam.far=2000;cam.updateProjectionMatrix();
+ /* 다른 사람과 자리 번호가 같도록 운하 의자는 늘 200번부터 */while(SEATS.length<200)SEATS.push({x:1e5,z:1e5,y:0,cap:0,occ:[],kind:'pad',virt:1});
+ C.seats.forEach(st=>SEATS.push({x:SEA_OX+st.pos.x,z:st.pos.z,y:st.y,cap:1,occ:[],kind:'stool',virt:1,cnl:1,dir:st.dir,deck:null}));
+ window.__nkSeaW=(x,z)=>C.water(x-SEA_OX,z);window.__nkSeaF=window.__nkSeaW;window.__nkCnlY=(x,z)=>C.ground(x-SEA_OX,z);
+ if(S.vehRide){S.vehRide=0;save();}me.o.position.set(C.spawn[0]+.5,C.spawn[1]+.07,C.spawn[2]+.4);me.dir=C.spawn[3];me.o.rotation.y=me.dir;yaw=me.dir+Math.PI;
+ document.body.classList.add('seaB','cnlB');cnlState(true);setTimeout(()=>{try{cnlHide();}catch(e){console.warn(e);}},1200);
+ miniToast('🏘 윤슬 운하에 왔어요 · 물가 데크 의자에 앉아 낚시해요',3000);}catch(e){console.warn('[canal]',e);}}
+{const _w=walk;walk=function(x,z){const C=CNL.st;if(C&&x>600){if(boatNow())return C.water(x-SEA_OX,z);if(flyNow())return Math.abs(x-SEA_OX)<60&&z<60&&z>-200;return C.walk(x-SEA_OX,z);}return _w.apply(this,arguments);};}
+{const _so=sitOn;sitOn=function(st){const r=_so.apply(this,arguments);if(st&&st.cnl&&mySeat===st&&me){me.dir=st.dir;me.o.rotation.y=st.dir;}return r;};}
+{const _bs=window.__nkBoatSpot;window.__nkBoatSpot=function(){if(CNL.st){if(fishing.state!=='off'&&fishing.d===CSPOT)return CSPOT;if(mySeat&&mySeat.cnl&&!boatNow()){CSPOT.tip.x=mySeat.x;CSPOT.tip.z=mySeat.z;return CSPOT;}if(!boatNow())return null;}return _bs?_bs.apply(this,arguments):null;};}
+{const _wk=window.__wxK;window.__wxK=k=>{const v=_wk?_wk(k):k;if(CNL.st&&(v==='drizzle'||v==='storm'||v==='aurora'||v==='sunset'))return 'clear';return v;};}
+{const _c=MAPV.cull;MAPV.cull=function(c){try{if(_c)_c.apply(this,arguments);}finally{const C=CNL.st;if(C&&CNL.mir&&!BGRUN){/* 이름표는 물에 비치지 않게 */const hz=[];for(const ch of chars){const t=ch.tag;if(t&&t.visible){t.visible=false;hz.push(t);}}try{C.mirror(R,scene,c);}catch(e){CNL.mir=false;console.warn('[canal mirror]',e);}hz.forEach(t=>t.visible=true);}}};}
+FHOOK.push((dt,p)=>{const C=CNL.st;if(!C)return;try{cnlState(false,p);window.__nkCanalH=innerHeight*R.getPixelRatio();C.update(dt,cam,R);}catch(e){}hemi.intensity=0;sun.intensity=0;try{if(fireL)fireL.intensity=0;if(lanL)lanL.intensity=0;}catch(e){}scene.background=scene.fog.color;
+ if(fishing.state==='cast'&&fishing.d===CSPOT&&!fishing.cnlF&&me){fishing.cnlF=1;const p0=me.o.position,a0=mySeat&&mySeat.dir!=null?mySeat.dir:me.dir||0;let hit=null;for(const da of [0,.35,-.35,.7,-.7]){for(const L of [4.5,3.5,2.6]){const a=a0+da,x=p0.x+Math.sin(a)*L,z=p0.z+Math.cos(a)*L;if(C.water(x-SEA_OX,z)){hit=[x,z];break;}}if(hit)break;}
+  if(!hit)hit=[p0.x+Math.sin(a0)*3,p0.z+Math.cos(a0)*3];castTo.set(hit[0],-.05,hit[1]);me.dir=Math.atan2(castTo.x-p0.x,castTo.z-p0.z);}
+ if(S.vehRide){S.vehRide=0;}});
 if(SKYBOOT){window.NK_NODUCK=1;SKY.on=true;const iv=setInterval(()=>{try{if(!started||!decks.length)return;clearInterval(iv);skyApply(true);const RT=window.NK_RT;if(RT&&RT.serverId&&+RT.serverId()!==7)miniToast('달 서버에 연결하지 못했어요 · 🌏 지구로를 눌러 돌아가요',2600);else miniToast('🌙 달에 왔어요 · 별자리 물고기가 낚여요',2200);}catch(e){console.warn(e);}},300);}
 // 높이 올라가면 묻기
 function skyAsk(){let m=$('skyAsk');if(!m){m=document.createElement('div');m.id='skyAsk';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});}

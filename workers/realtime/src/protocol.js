@@ -205,7 +205,7 @@ export function sanitizePose(msg, prev) {
   const fish = FISH.has(msg.fish) ? msg.fish : p.fish || "off";
   const anim = ANIMS.has(msg.anim) ? msg.anim : p.anim || "idle";
   return {
-    x: +num(msg.x, -130, 130, p.x ?? 0).toFixed(2),
+    x: +num(msg.x, -130, 1000, p.x ?? 0).toFixed(2), // v160: 바닷가 마을(x 700 근처)도 위치가 맞게
     z: +num(msg.z, -130, 130, p.z ?? 0).toFixed(2),
     y: +num(msg.y, -1, 8, p.y ?? 0.4).toFixed(2),
     d: +num(msg.d, -7, 7, p.d ?? 0).toFixed(2),
@@ -1074,7 +1074,7 @@ export function sanitizePlay(input, prev, opt) {
   for (const k of ["jet", "ufo", "boats2", "alienPet", "seaTown", "hyper", "turtle", "tfx", "taxi", "boat", "star5", "skyIsland", "jump", "camFx", "fitUi", "vbUser", "tankGrp", "wearFuse", "hunger"]) if (k in input) out[k] = pickOf(input[k], ["off", "on"]);
   for (const k of ["moonRabbit", "moonRice", "moonLander", "moonRover", "moonMeteor", "moonJump"]) if (k in input) out[k] = pickOf(input[k], ["on", "off"]);
   if ("moonView" in input) out.moonView = pickOf(input.moonView, ["1", "2", "3"]);
-  if ("seaLook" in input) out.seaLook = pickOf(input.seaLook, ["0", "A", "B", "C", "Cs"]);
+  if ("seaLook" in input) out.seaLook = pickOf(input.seaLook, ["W", "0", "A", "B", "C", "Cs"]);
   if ("ufoSuck" in input) out.ufoSuck = pickOf(input.ufoSuck, ["B", "A", "C", "off"]);
   if ("moonHelm" in input) out.moonHelm = pickOf(input.moonHelm, ["B", "A", "off"]);
   if ("moonSplash" in input) out.moonSplash = pickOf(input.moonSplash, ["B", "A", "C", "old"]);
