@@ -818,3 +818,9 @@ test("v119 taxi fare peek key", () => {
   const d = parseClient(JSON.stringify({ t: "pk", to: "abc12345", k: "tank" }));
   assert.equal(d.k, "tank");
 });
+
+test("v160: 바닷가 마을 위치 x 700 근처도 그대로", () => {
+  const p = _sp({ x: 702.4, z: -40 }, null);
+  assert.equal(p.x, 702.4);
+  assert.equal(_sp({ x: 5000, z: 0 }, null).x, 1000);
+});
