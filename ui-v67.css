@@ -359,3 +359,9 @@ html body.don-off button#bDon,html body.don-off #mSys button#bDon,html body.don-
 @media(max-width:420px){#lvRoad .card{padding-left:14px!important;padding-right:14px!important}#lvRoad .lc{padding:12px!important;font-size:14px}#lvRoad .lc b{font-size:inherit}}
 /* v84: 화면·시안 인게임 적용 */
 .lkapply{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 0}.lkapply small b{color:#c2621f}
+/* v162: 모바일 공지가 길어도 잘리지 않게 — 줄을 바꿔 전부 보여 줘요 (너무 길면 안에서 스크롤) */
+body.tx #annBar{white-space:normal!important;text-overflow:clip!important;overflow:auto!important;flex-wrap:wrap;align-items:flex-start!important;justify-content:flex-start!important;text-align:left;height:auto!important;max-height:42vh;line-height:1.38;row-gap:4px}
+body.tx #annBar b{flex:1 0 auto;white-space:nowrap}
+body.tx #annBar span{flex:1 1 170px;order:3;min-width:0;white-space:normal;overflow-wrap:anywhere;word-break:keep-all}
+body.tx #annBar button{order:2;align-self:flex-start}
+body.tx #annBar small{order:4;flex-basis:100%}

@@ -55,7 +55,7 @@ if(!S.v43){S.v43=1;if(S.reelFx==null||S.reelFx==='E')S.reelFx='D';if(S.fishBtnS=
 const SYS=window.NK_SYS;S.auto=S.auto||Object.assign({},D.AUTO_DEFAULT,{keepNew:false});if(!S.auto.v6){S.auto.v6=1;S.auto.keepNew=false;}const NICK=()=>S.nick||'나';SYS.migrate(D,S);let NIGHT=0;setTimeout(()=>{try{cslotInit();wkRoll();}catch(e){}},0);
 // v118: 같은 브라우저에서 창(탭)을 두 개 열었을 때, 옛날 창이 새 진행을 덮어써서 물고기가 사라지지 않게 — 다른 창이 더 나중에 저장했으면 이 창은 저장하지 않고 알려요
 let _myAt=+(S.savedAt||0),TABSTALE=false;const savedAtOf=t=>{const m=t&&/"savedAt":(\d+)/.exec(t);return m?+m[1]:0;};
-function staleTab(){if(TABSTALE)return;TABSTALE=true;const show=()=>{if(!document.body){setTimeout(show,500);return;}let el=document.getElementById('tabStale');if(!el){el=document.createElement('div');el.id='tabStale';el.innerHTML='<span>'+(innerWidth<600?'⚠️ 다른 창에서 게임 중 (저장 안 됨)':'⚠️ 다른 창(탭)에서 게임을 하고 있어요 · 이 창은 저장되지 않아요')+'</span><button type="button">'+(innerWidth<600?'이 창으로':'이 창으로 하기')+'</button>';document.body.appendChild(el);el.querySelector('button').onclick=()=>{try{sessionStorage.setItem('nk_autogo',String(Date.now()));}catch(e){}location.reload();};}};show();}
+function staleTab(kind){if(TABSTALE)return;TABSTALE=true;const show=()=>{if(!document.body){setTimeout(show,500);return;}let el=document.getElementById('tabStale');if(!el){el=document.createElement('div');el.id='tabStale';el.innerHTML='<span>'+(kind==='other'?(innerWidth<600?'⚠️ 다른 브라우저에서 이어서 했어요 (저장 안 됨)':'⚠️ 다른 브라우저(기기)에서 이어서 플레이했어요 · 이 창은 저장되지 않아요'):innerWidth<600?'⚠️ 다른 창에서 게임 중 (저장 안 됨)':'⚠️ 다른 창(탭)에서 게임을 하고 있어요 · 이 창은 저장되지 않아요')+'</span><button type="button">'+(innerWidth<600?'이 창으로':'이 창으로 하기')+'</button>';document.body.appendChild(el);el.querySelector('button').onclick=()=>{try{sessionStorage.setItem('nk_autogo',String(Date.now()));}catch(e){}location.reload();};}};show();}
 addEventListener('storage',e=>{if(e.key===SKEY&&e.newValue&&savedAtOf(e.newValue)>_myAt+2)staleTab();});
 let _saveSnap='';const save=(force)=>{try{if(TABSTALE)return;const snap=JSON.stringify(S);if(!force&&snap===_saveSnap)return;const at0=savedAtOf(localStorage.getItem(SKEY));if(at0>_myAt+2){staleTab();return;}S.savedAt=Math.max(Date.now(),at0+1);_saveSnap=JSON.stringify(S);localStorage.setItem(SKEY,_saveSnap);_myAt=S.savedAt;}catch(e){console.warn('save fail',e);}};
 // ───────── v21 레벨 시스템 (v17 기획 · 만렙 99) ─────────
@@ -1613,23 +1613,28 @@ function alertBox(html){const m=$('confirm');m.innerHTML=`<div class="card cente
 // v54: 저장 및 불러오기 — 사용자 시안(양피지 카드) · 짧은 저장 코드(XXXX-XXXX-XXXX, 서버 보관) · 창 밖/Esc 닫기 · 5분마다 자동 클라우드 백업
 const SV={api:()=>String(window.NK_BOARD_API||(()=>{try{return localStorage.getItem('nk_board_api');}catch(e){return '';}})()||'https://fishcozy-board-api.mi1ku.workers.dev').replace(/\/$/,''),
  cid:()=>{try{let c=localStorage.getItem('nk_cid');if(!c||!/^[\w-]{8,40}$/.test(c)){c=(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2,12)).replace(/[^\w-]/g,'');localStorage.setItem('nk_cid',c);}return c;}catch(e){return '';}},code:()=>{try{return localStorage.getItem('nk_save_code')||'';}catch(e){return '';}},
- setCode:c=>{try{localStorage.setItem('nk_save_code',c);}catch(e){}},sent:0,busy:false};
+ setCode:c=>{try{localStorage.setItem('nk_save_code',c);}catch(e){}},sent:0,busy:false,pend:null,
+ /* v162: 이 코드의 서버 저장 시각 — 다른 브라우저가 더 나중에 저장했는지 알아보는 기준 */at:()=>{try{return +localStorage.getItem('nk_code_at')||0;}catch(e){return 0;}},setAt:t=>{try{if(t)localStorage.setItem('nk_code_at',String(+t));}catch(e){}}};
 async function cloudSave(force){if(SV.busy||TABSTALE)return null;const cid=SV.cid();if(!cid)return null;if(!force&&SV.sent&&(+S.savedAt||0)<=SV.sent)return SV.code()||null;SV.busy=true;
- try{S.savedAt=S.savedAt||Date.now();const _b=JSON.stringify({data:JSON.stringify(S)});const r=await fetch(SV.api()+'/saves',{method:'POST',headers:{'Content-Type':'application/json','X-Owner':cid},body:_b,keepalive:_b.length<60000});const j=await r.json();if(!r.ok||!j.ok)throw new Error(j&&j.error||r.status);{const was=SV.code();if(S.acct&&was&&j.code!==was){toast(`🔒 다른 기기에서 <b>${S.acct}</b> 계정으로 접속했어요<br><small>이 기기의 진행은 새 저장 코드로 따로 저장돼요</small>`,4200);S.acct='';save();}}SV.setCode(j.code);SV.sent=+S.savedAt||Date.now();return j.code;}
+ try{S.savedAt=S.savedAt||Date.now();const _c0=SV.code(),_h={'Content-Type':'application/json','X-Owner':cid};if(_c0)_h['X-Code']=_c0;const _b=JSON.stringify({data:JSON.stringify(S),base:SV.at()});const r=await fetch(SV.api()+'/saves',{method:'POST',headers:_h,body:_b,keepalive:_b.length<60000});const j=await r.json();/* v162: 같은 코드를 다른 브라우저가 더 나중에 저장했으면 덮어쓰지 않아요 */if(r.status===409&&j&&j.error==='newer'){staleTab('other');return null;}if(!r.ok||!j.ok)throw new Error(j&&j.error||r.status);SV.setAt(j.updated_at);{const was=SV.code();if(S.acct&&was&&j.code!==was){toast(`🔒 다른 기기에서 <b>${S.acct}</b> 계정으로 접속했어요<br><small>이 기기의 진행은 새 저장 코드로 따로 저장돼요</small>`,4200);S.acct='';save();}}SV.setCode(j.code);SV.sent=+S.savedAt||Date.now();return j.code;}
  catch(e){return null;}finally{SV.busy=false;}}
 // v56: 서버 저장 1분마다 + 탭을 숨기거나 닫을 때도 저장 (주소·브라우저가 바뀌어도 코드로 복구)
 setInterval(()=>{if(started&&!document.hidden)cloudSave(false);},60e3);document.addEventListener('visibilitychange',()=>{if(started&&document.hidden)try{save();cloudSave(false);}catch(e){}});addEventListener('pagehide',()=>{if(started)try{save();cloudSave(false);}catch(e){}});
 // v56: 저장 코드(12자리) 또는 JSON 으로 저장 데이터 가져오기 — 저장 창·시작 화면 공용
 async function fetchSaveObj(raw){raw=String(raw||'').trim();if(!raw)throw new Error('코드를 붙여넣어 주세요');if(raw[0]==='{'){try{return JSON.parse(raw);}catch(e){throw new Error('코드를 읽지 못했어요');}}
  const c=raw.toUpperCase().replace(/[^0-9A-Z]/g,'');if(c.length!==12)throw new Error('코드는 12자리예요 (예: A7X9-K2L8-B6P3)');
- let r;try{r=await fetch(SV.api()+'/saves/'+c,{headers:{'X-Owner':SV.cid()}});}catch(e){throw new Error('서버에 연결하지 못했어요');}const j=await r.json().catch(()=>null);if(r.status===404)throw new Error('없는 코드예요. 다시 확인해 주세요');if(!r.ok||!j||!j.ok)throw new Error('코드를 읽지 못했어요');return JSON.parse(j.data);}
+ let r;try{r=await fetch(SV.api()+'/saves/'+c,{headers:{'X-Owner':SV.cid()}});}catch(e){throw new Error('서버에 연결하지 못했어요');}const j=await r.json().catch(()=>null);if(r.status===404)throw new Error('없는 코드예요. 다시 확인해 주세요');if(!r.ok||!j||!j.ok)throw new Error('코드를 읽지 못했어요');SV.pend={code:j.code||raw,at:+j.updated_at||0};return JSON.parse(j.data);}
 // v56: 닉네임 + 비밀번호(숫자 4~6자리) 계정 — 다른 기기·브라우저·시크릿 창에서도 닉네임과 비밀번호로 이어 하기
 const ACC={err:{nick:'닉네임을 확인해 주세요',pin:'비밀번호는 숫자 4~6자리예요',taken:'이미 다른 사람이 쓰는 닉네임이에요',wrong:'닉네임 또는 비밀번호가 맞지 않아요',locked:'여러 번 틀려서 10분 동안 잠겼어요. 잠시 후 다시 해 주세요','no save':'저장 데이터를 찾지 못했어요'},
  async post(path,body,owner){let r;try{r=await fetch(SV.api()+path,{method:'POST',headers:{'Content-Type':'application/json','X-Owner':owner||SV.cid()},body:JSON.stringify(body)});}catch(e){throw new Error('서버에 연결하지 못했어요');}const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.ok)throw new Error(ACC.err[j&&j.error]||'잠시 후 다시 시도해 주세요');return j;},
  async link(nick,pin){nick=String(nick||'').trim();if(!nick)throw new Error(ACC.err.nick);if(!/^\d{4,6}$/.test(pin))throw new Error(ACC.err.pin);S.savedAt=Date.now();save();const c=await cloudSave(true);if(!c)throw new Error('서버에 저장하지 못했어요. 잠시 후 다시 해 주세요');const j=await ACC.post('/accounts/register',{nick,pin});S.acct=j.nick;save();return j;},
- async login(nick,pin,owner){nick=String(nick||'').trim();if(!nick)throw new Error(ACC.err.nick);if(!/^\d{4,6}$/.test(pin))throw new Error(ACC.err.pin);const j=await ACC.post('/accounts/login',{nick,pin},owner);const o=JSON.parse(j.data);SV.setCode(j.code);o.acct=j.nick;return o;}};
+ async login(nick,pin,owner){nick=String(nick||'').trim();if(!nick)throw new Error(ACC.err.nick);if(!/^\d{4,6}$/.test(pin))throw new Error(ACC.err.pin);const j=await ACC.post('/accounts/login',{nick,pin},owner);const o=JSON.parse(j.data);SV.pend={code:j.code,at:+j.updated_at||0};o.acct=j.nick;return o;}};
 window.NK_ACC=ACC;
-function applySaveObj(o){if(!o||typeof o.coins!=='number')throw 0;Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,S0,o);SYS.migrate(D,S);S.autoFish=false;S.savedAt=Date.now();save();hud();}
+// v162: 자동 접속할 때 — 같은 저장 코드를 쓰는 다른 브라우저가 더 나중에 저장했으면 그 진행을 먼저 받아와요
+(async()=>{try{if(window.NK_PREV)return;const c=SV.code();if(!c)return;window.__nkPulling=1;const ac=new AbortController();setTimeout(()=>ac.abort(),6000);const r=await fetch(SV.api()+'/saves/'+encodeURIComponent(c),{headers:{'X-Owner':SV.cid()},signal:ac.signal});const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.ok)return;
+ const at=SV.at(),srvAt=savedAtOf(j.data),newer=at?(+j.updated_at>at+1500):(srvAt>(+S.savedAt||0)+5000);if(!newer){if(!at)SV.setAt(j.updated_at);return;}
+ const o=JSON.parse(j.data);if(!o||typeof o.coins!=='number')return;if(started){staleTab('other');return;}SV.pend={code:c,at:+j.updated_at};applySaveObj(o);_myAt=+S.savedAt||_myAt;try{window.NK_STREFRESH&&NK_STREFRESH();}catch(e){}toast('☁️ 다른 브라우저에서 한 진행을 불러왔어요',2600);}catch(e){}finally{window.__nkPulling=0;}})();
+function applySaveObj(o){if(!o||typeof o.coins!=='number')throw 0;/* v162: 코드·계정으로 불러오면 이 브라우저도 같은 저장 칸을 이어 써요 */if(SV.pend){SV.setCode(SV.pend.code);SV.setAt(SV.pend.at);SV.sent=0;SV.pend=null;}Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,S0,o);SYS.migrate(D,S);S.autoFish=false;S.savedAt=Date.now();save();hud();}
 function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=Date.now();save();toast('💾 저장 완료');return;}
  if(!document.getElementById('sv54css')){const st=document.createElement('style');st.id='sv54css';st.textContent=`
 #sv54{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;background:rgba(40,32,24,.38);backdrop-filter:blur(3px)}
@@ -4616,12 +4621,12 @@ PHOOK.push((dt,moving)=>{if(typeof scene==='undefined')return;const want=vehCan(
  if(want!==VW.mk){if(VW.me){scene.remove(VW.me);VW.me=null;}VW.mk=want;if(want){VW.me=vehMesh(want);scene.add(VW.me);}if(!want&&me){me._post=null;if(!VPAS.id){const p=me.o.position;p.y=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);}}}
  if(VPAS.id){const e=VW.peers.get(VPAS.id);if(!e||!vehPas(e.k)||!remotes.has(VPAS.id)){pasOff('🚗 운전자가 내려서 옆자리에서 내렸어요');me._post=null;return;}const st=vehSeat(e.g,1);me.o.position.copy(st);me.o.rotation.y=e.g.rotation.y;me.dir=e.g.rotation.y;me.play('sit');me._post=null;if(me.rod)me.rod.visible=false;return;}
  if(!VW.me)return;const p=me.o.position,gy=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);VW.me.position.set(p.x,gy,p.z);VW.me.rotation.y=me.o.rotation.y;const st=vehSeat(VW.me);
- VW.me.position.x+=p.x-st.x;VW.me.position.z+=p.z-st.z;const bob=vehAnim(VW.me,dt,moving);VW.me.position.y+=bob;p.y=st.y+bob;rideAnim(me,VW.mk);if(me.rod)me.rod.visible=false;});
+ VW.me.position.x+=p.x-st.x;VW.me.position.z+=p.z-st.z;const bob=vehAnim(VW.me,dt,moving);VW.me.position.y+=bob;p.y=st.y+bob;rideAnim(me,VW.mk);/* v162: 배·거북이 위에서 낚시할 땐 낚싯대를 들고 있어요 (줄이 허공에서 나오지 않게) */if(me.rod)me.rod.visible=fishing.state!=='off'&&!!(fishing.d&&fishing.d.boat);});
 RHOOK.push((r,p,dt)=>{const ps=vehOn()&&p.ex&&p.ex.ps;
  if(ps){let g=null;const myId=window.NK_RT&&NK_RT.id;if(myId&&String(myId).startsWith(ps)&&VW.me&&vehPas(VW.mk))g=VW.me;else for(const [id,e] of VW.peers)if(String(id).startsWith(ps)&&vehPas(e.k)){g=e.g;break;}
   if(g){const st=vehSeat(g,1);r.c.o.position.copy(st);r.c.o.rotation.y=g.rotation.y;r.c._ao='sit';r.c.play('sit');r.c._post=null;if(r.c.rod)r.c.rod.visible=false;if(g===VW.me&&r._psT!==ps){r._psT=ps;miniToast(`🚗 ${escRT(r.c.name||'')}님이 옆자리에 탔어요`,1800);}}return;}
  r._psT=null;if(!ps&&!(p.ex&&p.ex.vh))r.c._ao=null;const k=vehOn()&&p.ex&&p.ex.vh,ok=k&&VEHS.some(v=>v.k===vehBase(k))&&p.seat==null&&!(p.ex&&p.ex.ts!=null);let e=VW.peers.get(p.id);if(!ok){r.c._ao=null;r.c._post=null;if(e){scene.remove(e.g);VW.peers.delete(p.id);}return;}
- if(!e||e.k!==k){if(e)scene.remove(e.g);e={k,g:vehMesh(k),lp:r.c.o.position.clone()};scene.add(e.g);VW.peers.set(p.id,e);}const o=r.c.o.position,mv=Math.hypot(o.x-e.lp.x,o.z-e.lp.z)>dt*.6;e.lp.copy(o);const gy=inDeck(o.x,o.z)?.39:Math.max(H(o.x,o.z),.1);e.g.position.set(o.x,gy,o.z);e.g.rotation.y=r.c.o.rotation.y;const st=vehSeat(e.g);e.g.position.x+=o.x-st.x;e.g.position.z+=o.z-st.z;const bob=vehAnim(e.g,dt,mv);e.g.position.y+=bob;o.y=st.y+bob;rideAnim(r.c,k);if(r.c.rod)r.c.rod.visible=false;});
+ if(!e||e.k!==k){if(e)scene.remove(e.g);e={k,g:vehMesh(k),lp:r.c.o.position.clone()};scene.add(e.g);VW.peers.set(p.id,e);}const o=r.c.o.position,mv=Math.hypot(o.x-e.lp.x,o.z-e.lp.z)>dt*.6;e.lp.copy(o);const gy=inDeck(o.x,o.z)?.39:Math.max(H(o.x,o.z),.1);e.g.position.set(o.x,gy,o.z);e.g.rotation.y=r.c.o.rotation.y;const st=vehSeat(e.g);e.g.position.x+=o.x-st.x;e.g.position.z+=o.z-st.z;const bob=vehAnim(e.g,dt,mv);e.g.position.y+=bob;o.y=st.y+bob;rideAnim(r.c,k);if(r.c.rod)r.c.rod.visible=!!(p.fish&&p.fish!=='off');try{const f=r.rf;if(f&&f.ln.visible&&r.c.tip){r.c.o.updateMatrixWorld(true);r.c.tip.getWorldPosition(RF_V);const a=f.g.attributes.position;a.setXYZ(0,RF_V.x,RF_V.y,RF_V.z);a.needsUpdate=true;}}catch(_){}});
 FHOOK.push(()=>{for(const [id,e] of VW.peers)if(!remotes.has(id)){scene.remove(e.g);VW.peers.delete(id);}});
 {const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};if(VW.me&&VW.mk)o.vh=VW.mk;if(VPAS.id)o.ps=String(VPAS.id).slice(0,24);return Object.keys(o).length?o:null;};}
 // 자동차 옆자리: 다른 유저 자동차를 누르면 옆에 탈 수 있어요 (한 명까지)
@@ -5172,6 +5177,7 @@ window.__nkBoatSpot=function(){try{if(PREV||!me)return null;if(fishing.state!=='
 FHOOK.push(()=>{try{if(fishing.state==='cast'&&fishing.d===BSPOT&&!fishing.boatF){fishing.boatF=1;const p=me.o.position,a0=me.dir||0;let hit=null;
  for(const da of [0,.5,-.5,1,-1,1.6,-1.6,2.4,-2.4,Math.PI]){for(const L of [4.5,3.5,2.6]){const a=a0+da,x=p.x+Math.sin(a)*L,z=p.z+Math.cos(a)*L;if(boatWater(x,z)){hit=[x,z];break;}}if(hit)break;}
  if(!hit)hit=[p.x*.85,p.z*.85];castTo.set(hit[0],-.05,hit[1]);me.dir=Math.atan2(castTo.x-p.x,castTo.z-p.z);}}catch(e){}});
+/* v162: 탈것 위에서는 캐릭터 높이가 낚싯줄 계산 뒤에 정해져서, 줄 시작점을 낚싯대 끝에 다시 맞춰요 */{const _tv=new THREE.Vector3();PHOOK.push(()=>{try{if(!line||!line.visible||!me||!me.tip||!VW.me)return;me.o.updateMatrixWorld(true);me.tip.getWorldPosition(_tv);const a=lineG.attributes.position;a.setXYZ(0,_tv.x,_tv.y,_tv.z);a.needsUpdate=true;}catch(e){}});}
 window.NK89.taxi={flyTaxi,flyBoat,taxiFareDlg,boatWater,waterSpot,landSpot,boatNow,taxiFare,raw:(x,z)=>rawWalk?rawWalk(x,z):null,TXLAND};
 // v158 ── 🐢 거북이 탈것 (테스트 기능 'turtle'): 땅에선 느리게 걷고, 물에 들어가면 다리가 지느러미로 바뀌며 빠르게 헤엄쳐요 (물가에서 자연스럽게 바뀌어요)
 const turtleOn=()=>!PREV&&opt('turtle','off')==='on';
@@ -5190,6 +5196,22 @@ FLYB.turtle=FLYB_RAW.turtle=cc=>{const g=window.TURTLE_C3();const U=g.userData;d
 PHOOK.unshift(()=>{if(SEABOOT||!me||!rawWalk||!isTurK(VW.mk))return;if(isTurK(S.vehOn)&&S.vehRide&&vehCan())return;const p=me.o.position;if(!rawWalk(p.x,p.z)){const sp=landSpot(p.x,p.z);p.x=sp[0];p.z=sp[1];p.y=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);}});
 {const _r=robShopHTML;robShopHTML=function(k,F,o){const h=_r.apply(this,arguments);if(k!=='turtle')return h;return h.replace(`속도 +${F.spd}%`,`🐢 땅 +${F.spd}% · 🌊 물 +${F.spdW}%`);};}
 window.NK89.turtle={turWater,turNow};
+// v162 ── 👑 이 주의 낚시왕 보상: 지난주 내 서버 종합 점수(어종마다 '내 최고 크기 ÷ 그 어종 최대 크기'를 더한 값) 1~3위에게 월요일에 보상
+LAB.push({k:'wkKing',n:'👑 이 주의 낚시왕 보상',scope:'all',d:'매주 월요일 0시(한국시간)에 지난주 서버 종합 1~3위가 다음 접속 때 보상을 받아요. 점수 = 어종마다 (내 최고 크기 ÷ 그 어종 최대 크기)를 모두 더한 값 → 많은 어종을, 크게 낚을수록 높아요. 조건: 지난주 5종 이상 기록 · 그 서버 참가자 3명 이상. 1위 신화 상자+전설 상자+3만 골드+강화석 20 · 2위 전설 상자 2+1만5천 골드+강화석 10 · 3위 전설 상자 1+8천 골드+강화석 5',o:[['on','켜기 (기본)'],['off','끄기']]});
+const WKK_RW=[null,{bx:[5,4],co:30000,st:20},{bx:[4,4],co:15000,st:10},{bx:[4],co:8000,st:5}],WKK_MIN={sp:5,ppl:3};
+function wkkRank(rows){const sc={},sp={};(rows||[]).forEach(x=>{const f=FI(x.k);if(!f||!f.max)return;const k=x.me?'__me':x.n;sc[k]=(sc[k]||0)+Math.min(1.2,x.cm/f.max);sp[k]=(sp[k]|0)+1;});const L=Object.keys(sc).sort((a,b)=>sc[b]-sc[a]);return {L,sc,sp};}
+let wkkBusy=false;async function wkkCheck(){if(wkkBusy||window.NK_PREV||!started||String(opt('wkKing','on'))!=='on')return;const id=wkId(wkStart()-864e5);S.wkk=S.wkk||{};if(S.wkk.done===id)return;wkkBusy=true;
+ try{const r=await fetch(SV.api()+'/ranks/server?prev=1&srv=0',{headers:{'X-Owner':SV.cid()}});const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.ok||(j.wk&&j.wk!==id))return;
+  const {L,sp}=wkkRank(j.rows),rk=L.indexOf('__me')+1;S.wkk.done=id;
+  if(!(rk>=1&&rk<=3)||(sp.__me|0)<WKK_MIN.sp||L.length<WKK_MIN.ppl){save();return;}
+  const w=WKK_RW[rk];w.bx.forEach(t=>S.boxes.push('lv'+t));S.newBox=(S.newBox||0)+w.bx.length;S.coins+=w.co;S.earned=(S.earned||0)+w.co;S.stones=(S.stones||0)+w.st;S.wkk.last={wk:id,rk,srv:j.srv};save();hud();try{updBagBadge();}catch(e){}try{sfx.coin();}catch(e){}
+  const med=['','🥇','🥈','🥉'][rk],bx=w.bx.map(t=>`<span class="wkkI"><img src="img/box/t${t}.png" alt="">${BXN[t]} 상자</span>`).join('');
+  alertBox(`<div class="wkk"><div class="wkkM">${med}</div><h3>👑 이 주의 낚시왕 ${rk}위</h3><p class="small muted">지난주 ${RKAPI.srvName(j.srv)} · 참가 ${L.length}명</p><div class="wkkR">${bx}<span class="wkkI"><img src="icons/emoji-png/1fa99.png" alt="" onerror="this.remove()">${w.co.toLocaleString()} 골드</span><span class="wkkI">💎 강화석 ${w.st}</span></div><p class="small muted">상자는 가방 › 상자에서 열어요</p></div>`);
+  say('시스템',`👑 지난주 ${RKAPI.srvName(j.srv)} 낚시왕 ${rk}위 보상을 받았어요!`);}catch(e){}finally{wkkBusy=false;}}
+{const st=document.createElement('style');st.textContent='.wkk{text-align:center}.wkkM{font-size:46px;line-height:1.1}.wkk h3{margin:4px 0 2px;white-space:nowrap;font-size:20px}.wkkR{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:12px 0 6px}.wkkI{display:inline-flex;align-items:center;gap:4px;background:#fff6e2;border-radius:12px;padding:5px 9px;font-weight:800;font-size:13px;color:#5a4632;white-space:nowrap}.wkkI img{width:22px;height:22px;object-fit:contain}';document.head.appendChild(st);}
+setInterval(wkkCheck,30e3);addEventListener('nk-rt-play',()=>setTimeout(wkkCheck,4000));
+window.NK89.wkk={wkkCheck,wkkRank,WKK_RW};
+
 // v119 ── ⭐ 5성 물고기 (시안 A · 테스트 기능)
 const s5On=()=>!PREV&&opt('star5','off')==='on';window.NK_s5On=s5On;
 const S5_SH=[1,2,4,8,15,30],s5Sh=f=>S5_SH[Math.max(0,Math.min(5,f.g|0))]||1,s5Z=()=>{const z=S.s5&&typeof S.s5==='object'?S.s5:(S.s5={sh:0,box:0,ttl:0,whale:0});z.sh=z.sh|0;return z;};
@@ -5304,11 +5326,17 @@ function skyApply(on){
 FHOOK.push(dt=>{if(!SKY.g)return;const t=performance.now()/1000;(SKY.lan||[]).forEach(L=>{L.position.y+=Math.sin(t*.8+L.userData.bob)*.004;L.rotation.y+=dt*.2;});(SKY.jump||[]).forEach(sp=>{const U=sp.userData,k=((t*.45+U.ph)%3)/3;if(k<.4){const q=k/.4;sp.visible=true;sp.position.set(U.x+(q-.5)*2.4,.3+Math.sin(q*Math.PI)*2.4,U.z);sp.material.rotation=(.5-q)*1.2;}else sp.visible=false;});});
 // 하늘섬에서는 맵 설정이 바뀌어도 지상 풍경이 다시 나오지 않게 (1초마다 확인)
 setInterval(()=>{try{if(SKY.on&&SKY.g&&!SKY.busy)skyHide();}catch(e){}},1000);
+// v162: 다른 맵으로 이동하는 동안 💡 꿀팁 (한 줄에 들어가게 짧게)
+function navTip(to){const L={sea:['데크 위 어디서나 낚시할 수 있어요','비가 그치면 운하에 무지개가 떠요','맑은 밤엔 가끔 오로라가 춤춰요','1분 가만히 두면 마을을 둘러봐요','여름밤엔 운하에 반딧불이가 날아요','겨울엔 지붕에 눈이 소복이 쌓여요'],
+ moon:['달에선 별자리 물고기가 낚여요','이번 달 별자리 물고기는 2배!','「🌏 지구로」를 누르면 돌아가요'],
+ lake:['많은 어종을 크게 낚으면 이 주의 낚시왕!','배 위에서도 멈추면 낚시할 수 있어요','어항이 가득 차면 상점에 팔아요']};
+ const l=L[to].slice();if(to!=='moon'){try{if(skyOn())l.push('Lv.50부터 하늘 끝에 닿으면 달에 가요','나는 탈것으로 높이 날면 달이 보여요');}catch(e){}try{if(to==='lake'&&seaTownOn())l.push('배를 타고 바다로 가면 바닷가 마을이에요');}catch(e){}}
+ try{sessionStorage.setItem('nk_autoTip',l[Math.random()*l.length|0]);}catch(e){}}
 // 들어가기 · 나오기: 구름 연출 → 하늘섬 맵으로 다시 불러와요 (채널 7)
 function skyFx(on,txt){let el=$('skyFx');if(!el){el=document.createElement('div');el.id='skyFx';el.innerHTML='<div class="sfc"></div><b></b>';document.body.appendChild(el);}el.querySelector('b').textContent=txt||'';el.classList.toggle('on',!!on);}
 function skySwitch(toSky){if(SKY.busy)return;SKY.busy=true;if(toSky)try{skyFishAdd();}catch(e){}try{if(mySeat)standUp();}catch(e){}try{if(fishing.state!=='off')endFish();}catch(e){}
  const RT=window.NK_RT,cur=+(RT&&RT.serverId&&RT.serverId())||+CFG.ch||1;
- try{if(toSky){sessionStorage.setItem('nk_sky','1');sessionStorage.setItem('nk_skyFrom',String(cur>=1&&cur<=4?cur:1));}else{sessionStorage.removeItem('nk_sky');const f=+sessionStorage.getItem('nk_skyFrom')||1;CFG.ch=f;try{localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},JSON.parse(localStorage.getItem('nk_cfg')||'{}'),{ch:f})));}catch(_){}}}catch(e){}try{sessionStorage.setItem('nk_autogo',String(Date.now()));sessionStorage.setItem('nk_autoTxt',toSky?'🌙 달로 날아가요…':'🌏 지구로 돌아가요…');}catch(e){}
+ try{if(toSky){sessionStorage.setItem('nk_sky','1');sessionStorage.setItem('nk_skyFrom',String(cur>=1&&cur<=4?cur:1));}else{sessionStorage.removeItem('nk_sky');const f=+sessionStorage.getItem('nk_skyFrom')||1;CFG.ch=f;try{localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},JSON.parse(localStorage.getItem('nk_cfg')||'{}'),{ch:f})));}catch(_){}}}catch(e){}try{sessionStorage.setItem('nk_autogo',String(Date.now()));sessionStorage.setItem('nk_autoTxt',toSky?'🌙 달로 날아가요…':'🌏 지구로 돌아가요…');navTip(toSky?'moon':'lake');}catch(e){}
  try{if(S.vehRide&&S.vehOn)sessionStorage.setItem('nk_skyVeh',String(S.vehOn));}catch(e){}S.vehRide=0;try{save();}catch(e){}skyFx(true,toSky?'🌙 달로 날아가요…':'🌏 지구로 돌아가요…');setTimeout(()=>location.reload(),1300);}
 // 하늘섬 맵으로 들어왔으면 풍경 켜기
 // v135: 하늘섬을 오가면 타고 있던 탈것에 다시 태워요
@@ -5325,7 +5353,7 @@ let SEAPICK=false;{const _w=SYS.weights;SYS.weights=function(D_){if(!SEAPICK)ret
 {const _rf=rollFish;rollFish=function(){if(SEABOOT){seaFishAdd();SEAPICK=true;try{return _rf.apply(this,arguments);}finally{SEAPICK=false;}}return _rf.apply(this,arguments);};}
 function seaSwitch(to){try{if(mySeat)standUp();}catch(e){}try{if(fishing.state!=='off')endFish();}catch(e){}const RT=window.NK_RT,cur=+(RT&&RT.serverId&&RT.serverId())||+CFG.ch||1;
  try{if(to){sessionStorage.setItem('nk_sea','1');sessionStorage.setItem('nk_seaFrom',String(cur>=1&&cur<=4?cur:1));if(S.vehRide&&S.vehOn)sessionStorage.setItem('nk_seaVeh',String(S.vehOn));}else{sessionStorage.removeItem('nk_sea');const f=+sessionStorage.getItem('nk_seaFrom')||1;CFG.ch=f;try{localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},JSON.parse(localStorage.getItem('nk_cfg')||'{}'),{ch:f})));}catch(_){}}
-  sessionStorage.setItem('nk_autogo',String(Date.now()));sessionStorage.setItem('nk_autoTxt',to?'🏘 운하를 따라 바닷가 마을로…':'🏞 호숫가로 돌아가요…');}catch(e){}
+  sessionStorage.setItem('nk_autogo',String(Date.now()));sessionStorage.setItem('nk_autoTxt',to?'⛵ 운하를 따라 바닷가 마을로…':'🏞 호숫가로 돌아가요…');navTip(to?'sea':'lake');}catch(e){}
  if(!to){try{const o=vehOwn();if(o.rowb&&o.rowb.tmp){delete o.rowb;if(S.vehOn==='rowb')S.vehOn=sessionStorage.getItem('nk_seaVeh0')||null;}}catch(e){}}S.vehRide=0;try{save();}catch(e){}miniToast(to?'🏘 운하를 따라 바닷가 마을로 가요…':'🏞 호숫가로 돌아가요…',1400);setTimeout(()=>location.reload(),900);}
 setInterval(()=>{let b=$('seaBtn');const show=seaTownOn()&&started&&!SKYBOOT&&!anyModal()&&(SEABOOT||boatNow()||(turNow()&&turWater(me.o.position.x,me.o.position.z)));if(!show){if(b)b.style.display='none';return;}if(!b){b=document.createElement('button');b.id='seaBtn';b.type='button';document.body.appendChild(b);b.onclick=()=>seaSwitch(!SEABOOT);}b.style.display='';const t=SEABOOT?'🏞 호숫가로':'🏘 바닷가 마을로';if(b.textContent!==t)b.textContent=t;/* v152: 위쪽 가운데의 달·지구 버튼에 가려서 안 보이던 문제 → 「배에서 내리기」 버튼 바로 위에 붙여요 */const v=$('vehBtn'),r=v&&v.style.display!=='none'?v.getBoundingClientRect():null;if(r&&r.width){b.classList.add('nearVeh');b.style.top='auto';b.style.left='auto';b.style.transform='none';b.style.right=Math.max(8,Math.round(innerWidth-r.right))+'px';b.style.bottom=Math.round(innerHeight-r.top+8)+'px';}else{b.classList.remove('nearVeh');b.style.top=b.style.left=b.style.right=b.style.bottom=b.style.transform='';}},400);
 if(SEABOOT){window.NK_NODUCK=1;const iv=setInterval(()=>{try{if(!started||!me||!window.NK_SEATOWN)return;const _sv=String(opt('seaLook','W'));if(_sv==='W'&&window.NK_CANAL){clearInterval(iv);cnlStart();return;}clearInterval(iv);
@@ -5368,6 +5396,10 @@ FHOOK.push((dt,p)=>{const C=CNL.st;if(!C)return;try{cnlState(false,p);{const wx=
  if(S.vehRide){S.vehRide=0;}});
 /* v161 🎥 운하 자동 둘러보기 — 1분 동안 입력이 없으면 지금 날씨·시간에 어울리는 볼거리를 9초씩 비추고 아래에 이름과 한 줄 소개를 띄워요 (누르거나 키를 치면 돌아와요) */
 CNL.last=performance.now();
+/* v162: 운하에서는 카메라가 멀어져도 집 뒤 빈 땅이 안 보이게 — 최대 거리 16, 옆을 볼 땐 카메라가 집 앞(운하 위)에 머물게 줄여요 */
+const CNL_DMAX=16,CNL_XW=10.6;PHOOK.push(dt=>{if(!CNL.st||!me||camOverride||(window.__fpv&&__fpv()))return;if(distT!=null){CNL.ud=Math.min(CNL_DMAX,distT);distT=null;}if(CNL.ud==null)CNL.ud=Math.min(CNL_DMAX,dist);
+ const px=me.o.position.x-SEA_OX,s=Math.sin(yaw)*Math.cos(Math.max(0,pitch));let lim=CNL_DMAX;if(Math.abs(s)>.02)lim=s>0?(CNL_XW-px)/s:(CNL_XW+px)/-s;lim=Math.max(3.5,Math.min(CNL_DMAX,lim));
+ const tg=Math.min(CNL.ud,lim);dist+=(tg-dist)*Math.min(1,dt*(tg<dist?10:4));});
 function cnlTourOff(){if(!CNL.tour)return;CNL.tour=null;camOverride=null;const el=$('tourPill');if(el)el.classList.remove('on');const z=$('zodTour');if(z)z.classList.remove('on');}
 ['keydown','pointerdown','wheel','touchstart'].forEach(t=>addEventListener(t,()=>{CNL.last=performance.now();cnlTourOff();},{capture:true,passive:true}));
 addEventListener('pointermove',()=>{if(!CNL.tour)CNL.last=performance.now();},{capture:true,passive:true});
@@ -7115,7 +7147,7 @@ function trAdmHTML(){const c=trCfg(),e=S.trEd||(S.trEd=Object.assign({},c));cons
 // v115→v118: 🔄 새 버전이 올라오면 화면 위에 알림을 고정해 두고, 「확인」을 눌러야 저장하고 다시 불러와요 (자동으로 새로고침하지 않아요). 다시 불러온 뒤에는 시작 화면을 건너뛰어요
 (function(){const cur=[...document.scripts].map(x=>x.src||'').find(x=>/\/app-[0-9a-f]+\.js/.test(x));const mine=cur?cur.match(/app-[0-9a-f]+\.js/)[0]:null;
  // 다시 불러온 경우: 시작 버튼을 대신 눌러요
- try{const t=+sessionStorage.getItem('nk_autogo')||0;if(t&&Date.now()-t<90000){sessionStorage.removeItem('nk_autogo');let n=0;const iv=setInterval(()=>{n++;if(n>80||started){clearInterval(iv);return;}const g=$('go');if(!g||g._busy||!g.offsetParent)return;const nk=$('stNick');if(nk&&!nk.value.trim()&&S.nick){nk.value=S.nick;nk.dispatchEvent(new Event('input'));}clearInterval(iv);setTimeout(()=>{try{g.click();}catch(e){}},300);},250);}}catch(e){}
+ try{const t=+sessionStorage.getItem('nk_autogo')||0;if(t&&Date.now()-t<90000){sessionStorage.removeItem('nk_autogo');let n=0;const iv=setInterval(()=>{n++;if(n>80||started){clearInterval(iv);return;}const g=$('go');if(!g||g._busy||!g.offsetParent||(window.__nkPulling&&n<30))return;const nk=$('stNick');if(nk&&!nk.value.trim()&&S.nick){nk.value=S.nick;nk.dispatchEvent(new Event('input'));}clearInterval(iv);setTimeout(()=>{try{g.click();}catch(e){}},300);},250);}}catch(e){}
  if(!mine)return;let pend=null,ok=0,el=null,cd=0;
  const safe=()=>started&&!document.querySelector('.modal.show')&&(typeof fishing==='undefined'||!fishing||fishing.state==='off')&&!document.body.classList.contains('vbOpen')&&!document.querySelector('#boxFx.show');
  const go=()=>{try{if(fishing&&fishing.state&&fishing.state!=='off')endFish();}catch(e){}try{save();}catch(e){}try{sessionStorage.setItem('nk_autogo',String(Date.now()));}catch(e){}location.reload();};
