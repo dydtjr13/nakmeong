@@ -23,7 +23,7 @@ function corsHeaders(origin) {
   return {
     'Access-Control-Allow-Origin': o,
     'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,X-Admin-Key,X-Admin-Token,X-Owner',
+    'Access-Control-Allow-Headers': 'Content-Type,X-Admin-Key,X-Admin-Token,X-Owner,X-Code',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin',
   };
@@ -214,6 +214,18 @@ export default {
         const data = typeof body.data === 'string' ? body.data : JSON.stringify(body.data || null);
         if (!data || data === 'null' || data.length > SAVE_MAX) return bad('invalid save', 400, origin);
         const now = Date.now();
+        // v162: 저장 코드로 이어 하는 기기들은 같은 저장 칸을 함께 써요 (코드 = 열쇠). 다른 기기가 더 나중에 저장했으면 덮어쓰지 않고 알려요
+        const xc = cleanCode(request.headers.get('X-Code'));
+        if (xc) {
+          const row = await db.prepare('SELECT code, updated_at FROM saves WHERE code=?').bind(xc).first();
+          if (row) {
+            const base = Number(body.base) || 0;
+            if (base && row.updated_at > base + 1500) return json({ ok: false, error: 'newer', code: xc, updated_at: row.updated_at }, 409, origin);
+            await db.prepare('UPDATE saves SET data=?, size=?, updated_at=? WHERE code=?').bind(data, data.length, now, xc).run();
+            await snapSave(db, xc, data, now);
+            return json({ ok: true, code: xc, updated_at: now }, 200, origin);
+          }
+        }
         const mine = await db.prepare('SELECT code FROM saves WHERE owner=? ORDER BY updated_at DESC LIMIT 1').bind(me).first();
         if (mine) {
           await db.prepare('UPDATE saves SET data=?, size=?, updated_at=? WHERE code=?').bind(data, data.length, now, mine.code).run();
@@ -333,7 +345,7 @@ export default {
           db.prepare('UPDATE saves SET owner=?, updated_at=? WHERE code=?').bind(me, now, a.code),
           db.prepare('UPDATE accounts SET fails=0, lock_until=0, updated_at=? WHERE nk=?').bind(now, nk),
         ]);
-        return json({ ok: true, nick: a.nick, code: a.code, data: row.data, updated_at: row.updated_at }, 200, origin);
+        return json({ ok: true, nick: a.nick, code: a.code, data: row.data, updated_at: now }, 200, origin);
       }
       if (path === '/accounts/check' && request.method === 'GET') {
         const nick = cleanNick(url.searchParams.get('nick')), nk = nickKey(nick);
@@ -389,10 +401,13 @@ export default {
         return json({ ok: true, wk, total, me: mine, list: rows.map((r, i) => ({ rk: i + 1, n: r.nick, srv: r.srv, cm: r.cm, g: r.g, me: !!me && r.owner === me })) }, 200, origin);
       }
       if (path === '/ranks/server' && request.method === 'GET') {
-        const srv = Number(url.searchParams.get('srv')) | 0;
+        // v162: prev=1 이면 지난주 (이 주의 낚시왕 보상 확인용) · srv=0 이면 내가 지난주에 가장 많이 기록한 서버
+        const prev = url.searchParams.get('prev') === '1', wk = wkId(prev ? wkStart(Date.now()) - 864e5 : Date.now());
+        let srv = Number(url.searchParams.get('srv')) | 0;
+        if (!srv && prev && me) { const m = await db.prepare('SELECT srv, COUNT(*) AS n FROM ranks WHERE wk=? AND owner=? GROUP BY srv ORDER BY n DESC LIMIT 1').bind(wk, me).first(); srv = m ? m.srv | 0 : 0; if (!srv) return json({ ok: true, wk, srv: 0, rows: [] }, 200, origin); }
         if (!srv) return bad('bad srv', 400, origin);
-        const rows = (await db.prepare('SELECT owner, nick, k, cm FROM ranks WHERE wk=? AND srv=? LIMIT 5000').bind(wkId(Date.now()), srv).all()).results || [];
-        return json({ ok: true, rows: rows.map((r) => ({ n: r.nick, k: r.k, cm: r.cm, me: !!me && r.owner === me })) }, 200, origin);
+        const rows = (await db.prepare('SELECT owner, nick, k, cm FROM ranks WHERE wk=? AND srv=? LIMIT 5000').bind(wk, srv).all()).results || [];
+        return json({ ok: true, wk, srv, rows: rows.map((r) => ({ n: r.nick, k: r.k, cm: r.cm, me: !!me && r.owner === me })) }, 200, origin);
       }
 
       // v80: 게시글 사진 보기 (한 번 올리면 바뀌지 않아서 오래 캐시)

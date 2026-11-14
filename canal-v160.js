@@ -153,6 +153,11 @@ const trees=[],trunks=[];const tree=(x,z,s,y0)=>{trunks.push([x,(y0||QY)+.9*s,z,
  if(rnd()<.3){const gp=R(2.6,4.2);tree(s*(HX+R(1.4,2.6)),z-gp/2,R(.95,1.25));bushL.push([s*(HX+.6),QY+.4,z-gp/2,0,[.8,.55,1.2],'#5a9a4a']);flowers(s*(HX+.2),QY+.7,z-gp/2,3,.3);z-=gp;}else z-=.06;}
  // 집 뒤 둥근 나무 숲 (지붕보다 낮게 · 틈 사이로 보여요)
  for(let z2=14;z2>-128;z2-=R(4,7))tree(s*(HX+R(8,13)),z2,R(1.1,1.5));});
+// v162: 집 뒤 언덕 마을 (뒷줄) — 멀리 줌아웃해도 집 뒤 빈 땅이 안 보이게 · 같은 인스턴스 목록에 넣어서 드로우콜은 그대로
+{const _sd=seed;seed=777;[-1,1].forEach(s=>{let z=18;while(z>-134){const w=R(5,7.5),h=R(7.2,9.6),d=R(5,7),fx=s*(HX+R(14.5,16.5)),cx=fx+s*d/2,zc=z-w/2,kind=rnd()<.5?'A':'B',rh=w*(kind==='A'?.42:.6),col=PAL[(rnd()*PAL.length)|0];
+ bodyL.push([cx,0,zc,0,[d,h,w],col]);(kind==='A'?gabA:gabB).push([cx,h,zc,0,[d,rh,w],col]);(kind==='A'?roofA:roofB).push([cx,h-.05,zc,0,[d+.55,rh,w+.1],ROOF[(rnd()*ROOF.length)|0]]);
+ const cols=w>6.2?3:2;for(let f=0;f<3;f++){const wy=QY+2.4+f*2.3;if(wy>h-.6)break;for(let c=0;c<cols;c++){const wz=zc+(c-(cols-1)/2)*(w/cols);if(rnd()<.2)continue;(rnd()<.6?winL:winD).push([fx-s*.06,wy,wz,0,[.1,.7,.7]]);}}
+ if(rnd()<.35)chimL.push([cx+s*R(-1,1),h+rh*.55,zc+R(-1,1),0,[.5,1.4,.5],'#b0705a']);z-=w+R(.05,.4);}});seed=_sd;}
 const UB=new T.BoxGeometry(1,1,1);
 inst(bodyG,M('#ffffff'),bodyL);inst(gabAG,M('#ffffff'),gabA);inst(gabBG,M('#ffffff'),gabB);var roofIA=inst(roofAG,M('#ffffff'),roofA),roofIB=inst(roofBG,M('#ffffff'),roofB);inst(UB,M('#ffffff'),chimL);inst(UB,M('#ffffff'),bandL);
 inst(archG,M('#ffffff'),frameL,false);inst(UB,M('#ffffff'),trimL,false);inst(archG,M('#ffffff'),doorF,false);inst(archG,M('#ffffff'),doorL,false);inst(UB,M('#ffffff'),awnL);inst(UB,M('#ffffff'),shutL,false);
@@ -344,23 +349,29 @@ const RN=1600;const rainU={op:{value:0},t:U.t,cp:{value:new T.Vector3()}};let ra
   fragmentShader:'uniform float op;varying float vE;void main(){gl_FragColor=vec4(vec3(.85,.9,1.),.38*op*(1.-vE*.6));}'}));rainL.frustumCulled=false;rainL.userData.noMirror=1;root.add(rainL);}
 // ── 쌍무지개 ──
 const rbU={op:{value:0}};
-// v2: 하늘을 크게 가로지르는 부드러운 반투명 쌍무지개 — 띠 가장자리는 종 모양으로 사라지고, 끝은 지평선 안개 속으로 녹아요
-function rbow(r0,r1,rev,a){const g=new T.RingGeometry(r0,r1,256,4,0,Math.PI);const m=new T.ShaderMaterial({uniforms:{op:rbU.op,r0:{value:r0},r1:{value:r1},rev:{value:rev},a:{value:a},hz:{value:new T.Color()}},transparent:true,depthWrite:false,fog:false,side:T.DoubleSide,
+// v162: 무지개 v3 — 화면 안에 들어오는 크기 · 한 장(드로우콜 1)에 다 그려요
+//  안쪽 밝은 빛 → 1차 무지개(안 보라 · 밖 빨강) + 안쪽 잔물결 띠(과잉 무지개) → 어두운 띠(알렉산더 띠) → 2차 무지개(색 순서 반대 · 흐리게)
+//  다리 쪽이 더 진하고 꼭대기는 살짝 옅게 · 지평선 안개 속으로 녹아요 · 빛이 아주 천천히 일렁여요
+const RBC=146,RBH=9.5,RBC2=184,RBH2=12;
+const rbM=new T.ShaderMaterial({uniforms:{op:rbU.op,t:U.t},transparent:true,depthWrite:false,fog:false,side:T.DoubleSide,
  vertexShader:'varying vec3 vP;varying vec3 vW;void main(){vP=position;vW=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
- fragmentShader:`uniform float op,r0,r1,rev,a;uniform vec3 hz;varying vec3 vP;varying vec3 vW;
- vec3 spec(float x){ // 0 보라 → 1 빨강, 색 사이가 부드럽게 섞여요
-  vec3 c=vec3(0.);c+=vec3(.55,.35,1.)*exp(-pow((x-.05)/.11,2.));c+=vec3(.2,.45,1.)*exp(-pow((x-.24)/.11,2.));c+=vec3(.25,.9,.4)*exp(-pow((x-.45)/.11,2.));
-  c+=vec3(1.,.9,.2)*exp(-pow((x-.63)/.1,2.));c+=vec3(1.,.5,.15)*exp(-pow((x-.79)/.1,2.));c+=vec3(1.,.22,.25)*exp(-pow((x-.95)/.12,2.));return c;}
- void main(){float r=(length(vP.xy)-r0)/(r1-r0);if(rev>.5)r=1.-r;float prof=pow(max(sin(3.14159*clamp(r,0.,1.)),0.),1.15);
-  vec3 c=spec(r)*1.32;float ang=atan(vP.y,vP.x);float ends=smoothstep(0.,.5,ang)*smoothstep(3.1416,2.64,ang);
-  float lo=smoothstep(-4.,70.,vW.y);float al=prof*ends*lo*op*a;gl_FragColor=vec4(c,min(1.,al*1.05));}`});
- const o=new T.Mesh(g,m);o.position.set(12,-40,-420);o.renderOrder=-4;root.add(o);return o;}
-const rb1=rbow(190,238,0,1),rb2=rbow(266,292,1,.6);
-// 무지개 안쪽이 살짝 밝아지는 빛
-const rbIn=new T.Mesh(new T.CircleGeometry(196,96,0,Math.PI),new T.ShaderMaterial({uniforms:{op:rbU.op},transparent:true,depthWrite:false,fog:false,
- vertexShader:'varying vec3 vP;varying vec3 vW;void main(){vP=position;vW=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
- fragmentShader:'uniform float op;varying vec3 vP;varying vec3 vW;void main(){float r=length(vP.xy)/196.;float a=smoothstep(.55,1.,r)*smoothstep(1.,.97,r)*smoothstep(0.,80.,vW.y);gl_FragColor=vec4(1.,1.,1.,a*op*.12);}'}));
-rbIn.position.set(12,-40,-421);rbIn.renderOrder=-5;root.add(rbIn);
+ fragmentShader:`uniform float op,t;varying vec3 vP;varying vec3 vW;
+ vec3 spec(float x){vec3 c=vec3(0.);c+=vec3(.58,.32,1.)*exp(-pow((x-.04)/.12,2.));c+=vec3(.22,.42,1.)*exp(-pow((x-.22)/.11,2.));c+=vec3(.2,.86,.45)*exp(-pow((x-.42)/.11,2.));
+  c+=vec3(1.,.92,.25)*exp(-pow((x-.6)/.1,2.));c+=vec3(1.,.55,.16)*exp(-pow((x-.76)/.1,2.));c+=vec3(1.,.2,.24)*exp(-pow((x-.93)/.12,2.));return c*1.25;}
+ float bell(float x){return pow(max(sin(3.14159*clamp(x,0.,1.)),0.),1.25);}
+ void main(){float r=length(vP.xy),ang=atan(vP.y,vP.x);
+  float lo=smoothstep(-2.,44.,vW.y)*(.55+.45*smoothstep(-2.,14.,vW.y));
+  float legs=mix(1.,.72,smoothstep(.55,1.,sin(ang)));
+  float sh=.9+.1*sin(t*.35+ang*3.);
+  float i0=${(RBC-RBH).toFixed(1)},o0=${(RBC+RBH).toFixed(1)},i1=${(RBC2-RBH2).toFixed(1)},o1=${(RBC2+RBH2).toFixed(1)};
+  float x1=(r-i0)/(o0-i0),a1=bell(x1)*.78*legs*sh;
+  float x2=1.-(r-i1)/(o1-i1),a2=bell(1.-x2)*.32*legs;
+  float din=i0-r,sup=din>0.?(.5+.5*cos(din*2.2))*exp(-din/4.)*.16:0.;
+  float glow=smoothstep(.5,1.,r/i0)*step(r,i0)*.16;
+  float dk=smoothstep(o0-1.,o0+4.,r)*smoothstep(i1+1.,i1-4.,r)*.12;
+  vec3 col=vec3(1.,.99,.95)*glow+vec3(.7,1.,.8)*sup+vec3(.22,.27,.36)*dk+spec(clamp(x2,0.,1.))*a2+spec(clamp(x1,0.,1.))*a1;
+  float a=glow+sup+dk+a2+a1;gl_FragColor=vec4(col/max(a,1e-3),min(1.,a)*lo*op);}`});
+const rbIn=new T.Mesh(new T.CircleGeometry(RBC2+RBH2+2,180,0,Math.PI),rbM);rbIn.position.set(10,-58,-430);rbIn.renderOrder=-4;rbIn.frustumCulled=false;root.add(rbIn);const rb1=rbIn,rb2=rbIn;
 // ── 오로라 v2: 하늘 돔에 그리는 주름진 커튼 (층마다 하늘 평면을 훑어 세로 빛줄기 + 노이즈 흐름, 초록→분홍) ──
 const auU={op:{value:0},t:U.t};
 const aur=new T.Mesh(new T.SphereGeometry(850,64,24,0,Math.PI*2,0,Math.PI*.52),new T.ShaderMaterial({uniforms:auU,side:T.BackSide,transparent:true,depthWrite:false,blending:T.AdditiveBlending,fog:false,
@@ -470,7 +481,7 @@ const POI={
  lotus:{n:'흘러가는 연꽃 등불',d:'작은 소원을 담은 등불이 물길을 따라 천천히 흘러가요',cam:[3.5,1.6,-3],tg:[-1,.2,-24]},
  whale:{n:'별빛 고래',d:'밤이 되면 별자리 고래가 마을 지붕 위를 헤엄쳐요',cam:[-2.5,2.2,5],tg:[0,30,-110]},
  swirl:{n:'나전빛 물고기 소용돌이',d:'밤 물속에서 바다 물고기들이 자개빛으로 빙글빙글 돌아요',cam:[-3.5,5.5,1],tg:[-.6,0,-9]},
- rainbow:{n:'비 갠 뒤 쌍무지개',d:'비가 그치면 금빛 종탑 너머로 무지개가 떠요',cam:[-3,2.4,8],tg:[8,22,-140]},
+ rainbow:{n:'비 갠 뒤 쌍무지개',d:'비가 그치면 금빛 종탑 너머로 무지개가 떠요',cam:[-3,2.4,8],tg:[8,36,-140]},
  market:{n:'수상 시장',d:'바다 물고기와 과일을 파는 배와 노점이 모여 있어요',cam:[1,3,4],tg:[7,1.5,-14]},
  aurora:{n:'오로라와 등대',d:'운이 좋은 밤에는 등대 위로 오로라가 흘러요',cam:[1,7,-82],tg:[-6,22,-220]},
  tower:{n:'금빛 종탑',d:'정시마다 종이 울려 물때가 바뀌는 걸 알려줘요',cam:[2,3,-26],tg:[14,13,-63]}};
