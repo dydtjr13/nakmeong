@@ -5342,7 +5342,7 @@ function cnlDay(){const len=Math.max(30,Math.min(86400,+time.len||150));return t
 function cnlAurora(){const n=cnlDay();let h=Math.sin(n*12.9898+78.233)*43758.5453;h-=Math.floor(h);let pr=.15;if(S.__season==='winter')pr+=.1;return h<Math.min(.35,pr);}
 function cnlState(first,p){const C=CNL.st;if(!C)return;p=p||palette();const wx=S.__wx||'clear',rain=wx==='drizzle'||wx==='storm',night=(p.night||0)>.5,now=performance.now();
  if(CNL.wasRain&&!rain&&!night)CNL.rbT=now+240000;if(rain||night)CNL.rbT=0;CNL.wasRain=rain;
- const k=rain?'rain':night?((wx==='aurora'||cnlAurora())?'aurora':'night'):CNL.rbT>now?'rainbow':p.name==='노을'?'sunset':'day';
+ const k=rain?'rain':night?((wx==='aurora'||cnlAurora())?'aurora':'night'):wx==='snow'?'snowy':CNL.rbT>now?'rainbow':p.name==='노을'?'sunset':'day';
  if(k!==CNL.state){CNL.state=k;C.setState(k,first?0:4);if(k==='aurora'){const n=cnlDay();if(CNL.auN!==n){CNL.auN=n;miniToast('🌌 오늘 밤 오로라!',2600);}}else if(k==='rainbow'&&!first)miniToast('🌈 비가 그치고 무지개가 떴어요',2200);}}
 function cnlHide(){const keep=new Set([CNL.st.group]),chs=new Set(chars.map(c=>c.o)),B=new THREE.Box3(),me0=me&&me.o.position;
  const hide=o=>{if(o&&o.visible&&!keep.has(o)){o.visible=false;CNL.hid.push(o);}};try{hide(TERR0);}catch(e){}try{BASEDECO.forEach(hide);}catch(e){}try{const ms=MAPV.st&&MAPV.st();if(ms&&ms.g)hide(ms.g);}catch(e){}
@@ -5357,13 +5357,34 @@ function cnlStart(){try{const lowQ=!!(window.NK_GFX&&NK_GFX.q==='low');const C=C
  miniToast('🏘 윤슬 운하에 왔어요 · 물가 데크 의자에 앉아 낚시해요',3000);}catch(e){console.warn('[canal]',e);}}
 {const _w=walk;walk=function(x,z){const C=CNL.st;if(C&&x>600){if(boatNow())return C.water(x-SEA_OX,z);if(flyNow())return Math.abs(x-SEA_OX)<60&&z<60&&z>-200;return C.walk(x-SEA_OX,z);}return _w.apply(this,arguments);};}
 {const _so=sitOn;sitOn=function(st){const r=_so.apply(this,arguments);if(st&&st.cnl&&mySeat===st&&me){me.dir=st.dir;me.o.rotation.y=st.dir;}return r;};}
-{const _bs=window.__nkBoatSpot;window.__nkBoatSpot=function(){if(CNL.st){if(fishing.state!=='off'&&fishing.d===CSPOT)return CSPOT;if(mySeat&&mySeat.cnl&&!boatNow()){CSPOT.tip.x=mySeat.x;CSPOT.tip.z=mySeat.z;return CSPOT;}if(!boatNow())return null;}return _bs?_bs.apply(this,arguments):null;};}
-{const _wk=window.__wxK;window.__wxK=k=>{const v=_wk?_wk(k):k;if(CNL.st&&(v==='drizzle'||v==='storm'||v==='aurora'||v==='sunset'))return 'clear';return v;};}
+{const _bs=window.__nkBoatSpot;window.__nkBoatSpot=function(){if(CNL.st){if(fishing.state!=='off'&&fishing.d===CSPOT)return CSPOT;if(mySeat&&mySeat.cnl&&!boatNow()){CSPOT.tip.x=mySeat.x;CSPOT.tip.z=mySeat.z;return CSPOT;}/* v161: 운하에서는 데크 위 어디서나 낚시 (가까운 빈 의자가 있으면 거기 앉아서) */if(!boatNow()&&me&&!mySeat){const p0=me.o.position,dd=CNL.st.deckAt(p0.x-SEA_OX,p0.z);if(dd!=null){CSPOT.dir=dd;CSPOT.tip.x=p0.x;CSPOT.tip.z=p0.z;return CSPOT;}}if(!boatNow())return null;}return _bs?_bs.apply(this,arguments):null;};}
+{const _wk=window.__wxK;window.__wxK=k=>{const v=_wk?_wk(k):k;if(CNL.st&&(v==='drizzle'||v==='storm'||v==='aurora'||v==='sunset'||v==='firefly'))return 'clear';return v;};}
+{const _fa=fishAction;fishAction=function(auto){try{if(CNL.st&&fishing.state==='off'&&!mySeat&&nearSpot===CSPOT&&me){const p0=me.o.position;const st=SEATS.filter(s=>s.cnl&&seatFree(s)).map(s=>[s,Math.hypot(s.x-p0.x,s.z-p0.z)]).filter(a=>a[1]<2.4).sort((a,b)=>a[1]-b[1]).map(a=>a[0])[0];if(st&&!remoteHolds(st))sitOn(st);}}catch(e){}return _fa.apply(this,arguments);};}
 {const _c=MAPV.cull;MAPV.cull=function(c){try{if(_c)_c.apply(this,arguments);}finally{const C=CNL.st;if(C&&CNL.mir&&!BGRUN){/* 이름표는 물에 비치지 않게 */const hz=[];for(const ch of chars){const t=ch.tag;if(t&&t.visible){t.visible=false;hz.push(t);}}try{C.mirror(R,scene,c);}catch(e){CNL.mir=false;console.warn('[canal mirror]',e);}hz.forEach(t=>t.visible=true);}}};}
-FHOOK.push((dt,p)=>{const C=CNL.st;if(!C)return;try{cnlState(false,p);window.__nkCanalH=innerHeight*R.getPixelRatio();C.update(dt,cam,R);}catch(e){}hemi.intensity=0;sun.intensity=0;try{if(fireL)fireL.intensity=0;if(lanL)lanL.intensity=0;}catch(e){}scene.background=scene.fog.color;
- if(fishing.state==='cast'&&fishing.d===CSPOT&&!fishing.cnlF&&me){fishing.cnlF=1;const p0=me.o.position,a0=mySeat&&mySeat.dir!=null?mySeat.dir:me.dir||0;let hit=null;for(const da of [0,.35,-.35,.7,-.7]){for(const L of [4.5,3.5,2.6]){const a=a0+da,x=p0.x+Math.sin(a)*L,z=p0.z+Math.cos(a)*L;if(C.water(x-SEA_OX,z)){hit=[x,z];break;}}if(hit)break;}
+FHOOK.push((dt,p)=>{const C=CNL.st;if(!C)return;try{cnlState(false,p);{const wx=S.__wx||'clear',se=S.__season||'',tg=wx==='snow'?1:se==='winter'?.35:0;CNL.snow=(CNL.snow==null?tg:CNL.snow+(tg-CNL.snow)*Math.min(1,dt/12));C.setSeason(se,CNL.snow,wx==='firefly'?1:se==='summer'&&(p.night||0)>.5?.35:0);}
+  CNL.lt=(CNL.lt||0)-dt;if(CNL.lt<=0){CNL.lt=2;/* 거울 그리기: 빛은 모두, 캐릭터는 나만 */scene.traverse(o=>{if(o.isLight)o.layers.enable(1);});try{me.o.traverse(o=>o.layers.enable(1));}catch(e){}}window.__nkCanalH=innerHeight*R.getPixelRatio();C.update(dt,cam,R);}catch(e){}hemi.intensity=0;sun.intensity=0;try{if(fireL)fireL.intensity=0;if(lanL)lanL.intensity=0;}catch(e){}scene.background=scene.fog.color;
+ if(fishing.state==='cast'&&fishing.d===CSPOT&&!fishing.cnlF&&me){fishing.cnlF=1;const p0=me.o.position,a0=mySeat&&mySeat.dir!=null?mySeat.dir:CSPOT.dir!=null?CSPOT.dir:me.dir||0;let hit=null;for(const da of [0,.35,-.35,.7,-.7]){for(const L of [4.5,3.5,2.6]){const a=a0+da,x=p0.x+Math.sin(a)*L,z=p0.z+Math.cos(a)*L;if(C.water(x-SEA_OX,z)){hit=[x,z];break;}}if(hit)break;}
   if(!hit)hit=[p0.x+Math.sin(a0)*3,p0.z+Math.cos(a0)*3];castTo.set(hit[0],-.05,hit[1]);me.dir=Math.atan2(castTo.x-p0.x,castTo.z-p0.z);}
  if(S.vehRide){S.vehRide=0;}});
+/* v161 🎥 운하 자동 둘러보기 — 1분 동안 입력이 없으면 지금 날씨·시간에 어울리는 볼거리를 9초씩 비추고 아래에 이름과 한 줄 소개를 띄워요 (누르거나 키를 치면 돌아와요) */
+CNL.last=performance.now();
+function cnlTourOff(){if(!CNL.tour)return;CNL.tour=null;camOverride=null;const el=$('tourPill');if(el)el.classList.remove('on');const z=$('zodTour');if(z)z.classList.remove('on');}
+['keydown','pointerdown','wheel','touchstart'].forEach(t=>addEventListener(t,()=>{CNL.last=performance.now();cnlTourOff();},{capture:true,passive:true}));
+addEventListener('pointermove',()=>{if(!CNL.tour)CNL.last=performance.now();},{capture:true,passive:true});
+const _tv=new THREE.Vector3();
+PHOOK.push(dt=>{const C=CNL.st;if(!C||!me)return;try{TOUR.last=performance.now();}catch(e){}
+ const idle=(performance.now()-CNL.last)/1000,want=S.tourOff!==true&&started&&!anyModal()&&idle>60;
+ if(!want){cnlTourOff();return;}
+ let T0=CNL.tour;if(!T0){const p=me.o.position;T0=CNL.tour={t:0,seg:-1,fc:cam.position.clone(),ft:new THREE.Vector3(p.x,p.y+1.6,p.z),pc:null,pt:null};let el=$('tourPill');if(!el){el=document.createElement('div');el.id='tourPill';document.body.appendChild(el);}el.textContent='🎥 둘러보는 중 · 화면을 누르면 돌아와요';el.classList.add('on');}
+ T0.t+=dt;const SEG=9,si=Math.floor(T0.t/SEG),q=(T0.t%SEG)/SEG;
+ if(si!==T0.seg){if(T0.pc){T0.fc.copy(T0.pc);T0.ft.copy(T0.pt);}T0.seg=si;const L=C.TOURS[CNL.state]||C.TOURS.day;T0.k=L[si%L.length];const P=C.POI[T0.k];T0.pc=new THREE.Vector3(P.cam[0]+SEA_OX,P.cam[1],P.cam[2]);T0.pt=new THREE.Vector3(P.tg[0]+SEA_OX,P.tg[1],P.tg[2]);}
+ const b=Math.min(1,q*SEG/2.6),e=b*b*(3-2*b),dr=q*.6;/* 천천히 앞으로 다가가요 */
+ _tv.copy(T0.pt).sub(T0.pc).normalize().multiplyScalar(dr);
+ const cx=T0.fc.x+(T0.pc.x+_tv.x-T0.fc.x)*e,cy=T0.fc.y+(T0.pc.y+_tv.y-T0.fc.y)*e,cz=T0.fc.z+(T0.pc.z+_tv.z-T0.fc.z)*e;
+ camOverride=[cx,cy,cz,T0.ft.x+(T0.pt.x-T0.ft.x)*e,T0.ft.y+(T0.pt.y-T0.ft.y)*e,T0.ft.z+(T0.pt.z-T0.ft.z)*e];
+ let z=$('zodTour');if(!z){z=document.createElement('div');z.id='zodTour';document.body.appendChild(z);}const on=q>.22&&q<.9,P=C.POI[T0.k];
+ if(z._k!=='cnl|'+T0.k){z._k='cnl|'+T0.k;z.className='ztB cnlCap';if(!$('cnlCapCss')){const st=document.createElement('style');st.id='cnlCapCss';st.textContent='#zodTour.cnlCap{top:auto;right:auto;left:50%;bottom:calc(168px + env(safe-area-inset-bottom));transform:translate(-50%,10px);text-align:center;max-width:min(420px,88vw)}#zodTour.cnlCap.on{transform:translate(-50%,0)}#zodTour.cnlCap .ztL{margin:6px auto 0;background:linear-gradient(90deg,transparent,var(--zc),transparent)}@media(max-width:600px){#zodTour.cnlCap{bottom:calc(205px + env(safe-area-inset-bottom))}#zodTour.cnlCap b{font-size:21px}#zodTour.cnlCap p{font-size:12.5px}}';document.head.appendChild(st);}z.style.setProperty('--zc','#ffd27a');z.innerHTML=`<i>윤슬 운하</i><b>${P.n}</b><span class="ztL"></span><p>${P.d}</p>`;}
+ z.classList.toggle('on',on);});
 if(SKYBOOT){window.NK_NODUCK=1;SKY.on=true;const iv=setInterval(()=>{try{if(!started||!decks.length)return;clearInterval(iv);skyApply(true);const RT=window.NK_RT;if(RT&&RT.serverId&&+RT.serverId()!==7)miniToast('달 서버에 연결하지 못했어요 · 🌏 지구로를 눌러 돌아가요',2600);else miniToast('🌙 달에 왔어요 · 별자리 물고기가 낚여요',2200);}catch(e){console.warn(e);}},300);}
 // 높이 올라가면 묻기
 function skyAsk(){let m=$('skyAsk');if(!m){m=document.createElement('div');m.id='skyAsk';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});}
