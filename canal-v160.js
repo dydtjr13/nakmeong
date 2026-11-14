@@ -22,6 +22,9 @@ const S0={
  rainbow:{skyTop:'#4f9ee8',skyMid:'#a8d6f6',skyHor:'#eaf4f4',fog:'#d6e8ee',fogN:60,fogF:420,sun:'#fff2d0',sunI:1.15,sx:40,sy:120,sz:400,disc:'#ffffff',discS:0,glow:0,
           hemS:'#d8ecff',hemG:'#8a8268',hemI:.65,amb:.2,lights:.2,stars:0,whale:0,lotus:0,skyLant:0,swirl:0,rain:0,wet:.65,rainbow:1,aurora:0,flies:0,beam:0,bigWhale:0,
           deep:'#3f8cc0',shal:'#62b6d8',mirror:.7,wave:.42,nacre:.9,glint:.6,cloud:'#ffffff',cloudO:1,quay:'#ae9f8c'},
+ snowy:  {skyTop:'#aeb9c6',skyMid:'#cdd5de',skyHor:'#e6eaee',fog:'#dbe2e8',fogN:34,fogF:280,sun:'#f4f6fa',sunI:.7,sx:60,sy:200,sz:-200,disc:'#ffffff',discS:0,glow:0,
+          hemS:'#eef2f8',hemG:'#9aa0a8',hemI:.82,amb:.24,lights:.4,stars:0,whale:0,lotus:0,skyLant:0,swirl:0,rain:0,wet:.25,rainbow:0,aurora:0,flies:0,beam:0,bigWhale:0,
+          deep:'#58768c',shal:'#86a2b6',mirror:.66,wave:.3,nacre:.3,glint:.12,cloud:'#e2e6ec',cloudO:1,quay:'#e4e8ec'},
  aurora: {skyTop:'#07102a',skyMid:'#12245a',skyHor:'#2a3f7a',fog:'#16244e',fogN:40,fogF:380,sun:'#a0c8ff',sunI:.3,sx:-120,sy:150,sz:-460,disc:'#f4f2ff',discS:0,glow:0,
           hemS:'#3a6a8a',hemG:'#14202a',hemI:.32,amb:.07,lights:.9,stars:1,whale:0,lotus:.5,skyLant:0,swirl:.5,rain:0,wet:0,rainbow:0,aurora:1,flies:1,beam:1,bigWhale:1,
           deep:'#0a1840',shal:'#132a62',mirror:.85,wave:.3,nacre:.4,glint:.15,cloud:'#24305a',cloudO:.15,quay:'#5a6478'}};
@@ -151,7 +154,7 @@ const trees=[],trunks=[];const tree=(x,z,s,y0)=>{trunks.push([x,(y0||QY)+.9*s,z,
  // 집 뒤 둥근 나무 숲 (지붕보다 낮게 · 틈 사이로 보여요)
  for(let z2=14;z2>-128;z2-=R(4,7))tree(s*(HX+R(8,13)),z2,R(1.1,1.5));});
 const UB=new T.BoxGeometry(1,1,1);
-inst(bodyG,M('#ffffff'),bodyL);inst(gabAG,M('#ffffff'),gabA);inst(gabBG,M('#ffffff'),gabB);inst(roofAG,M('#ffffff'),roofA);inst(roofBG,M('#ffffff'),roofB);inst(UB,M('#ffffff'),chimL);inst(UB,M('#ffffff'),bandL);
+inst(bodyG,M('#ffffff'),bodyL);inst(gabAG,M('#ffffff'),gabA);inst(gabBG,M('#ffffff'),gabB);var roofIA=inst(roofAG,M('#ffffff'),roofA),roofIB=inst(roofBG,M('#ffffff'),roofB);inst(UB,M('#ffffff'),chimL);inst(UB,M('#ffffff'),bandL);
 inst(archG,M('#ffffff'),frameL,false);inst(UB,M('#ffffff'),trimL,false);inst(archG,M('#ffffff'),doorF,false);inst(archG,M('#ffffff'),doorL,false);inst(UB,M('#ffffff'),awnL);inst(UB,M('#ffffff'),shutL,false);
 inst(roundG,M('#ffffff'),rwF,false);inst(UB,M('#ffffff'),boxL,false);inst(new T.IcosahedronGeometry(1,0),M('#ffffff'),flowL,false);inst(new T.IcosahedronGeometry(1,1),M('#ffffff'),bushL,false);
 inst(new T.CylinderGeometry(.5,.38,1,8),M('#ffffff'),potL,false);
@@ -162,7 +165,7 @@ inst(archG,winM,winL,false);inst(archG,winM2,winD,false);inst(roundG,winM,rwL,fa
 {const put=(x,z,s)=>tree(x,z,s);
  [-1,1].forEach(s=>{for(let z=10;z>-125;z-=R(11,17)){if(Math.abs(z+48)<6||z>-7)continue;put(s*(CW+2.6),z,R(.85,1.1));ob(s*(CW+2.6),z,.6);}});
  for(let i=0;i<14;i++)put(R(-36,-12),R(-150,-136),R(.8,1.2));for(let i=0;i<8;i++)put(R(12,34),R(-138,-132),R(.8,1.2));
- inst(new T.CylinderGeometry(.5,.6,1,6),M('#ffffff'),trunks);inst(new T.IcosahedronGeometry(1,1),M('#ffffff'),trees);}
+ inst(new T.CylinderGeometry(.5,.6,1,6),M('#ffffff'),trunks);var treeI=inst(new T.IcosahedronGeometry(1,1),M('#ffffff'),trees);}
 // ── 가로등 (인스턴싱) ──
 const lampHM=new T.MeshStandardMaterial({color:L('#fff0c8'),emissive:L('#ffcf7a'),emissiveIntensity:0,roughness:.4});
 const lampPts=[];{const po=[],ar=[],hd=[],cap=[];[-1,1].forEach(s=>{for(let z=8;z>-128;z-=9){const x=s*(CW+1.1);po.push([x,QY+1.6,z,0,[.12,3.2,.12],'#2c2c34']);hd.push([x,QY+3.35,z,0,[.42,.55,.42]]);cap.push([x,QY+3.72,z,0,[.55,.2,.55],'#2c2c34']);lampPts.push(new T.Vector3(x,QY+3.35,z));ob(x,z,.32);}});
@@ -219,7 +222,7 @@ const DK={x0:-CW,x1:-2.0,z0:-1.4,z1:4.6,y:.62};
 const lampPts2=[];const dLan=new T.Group();dLan.position.set(DK.x0+1.0,DK.y,DK.z0+.5);root.add(dLan);
 const dLanM=new T.MeshStandardMaterial({color:L('#fff0c0'),emissive:L('#ffc060'),emissiveIntensity:0,transparent:true,opacity:.92});
 {bx(dLan,.18,1.6,.18,'#2c2c34',0,.8,0);bx(dLan,.5,.08,.5,'#2c2c34',0,1.62,0);bx(dLan,.4,.5,.4,dLanM,0,1.92,0);bx(dLan,.52,.1,.52,'#2c2c34',0,2.2,0);}
-var dGlow=glowPoints([new T.Vector3(DK.x0+1.0,DK.y+1.92,DK.z0+.5)],'#ffc060',5);ob(DK.x0+1.0,DK.z0+.5,.3);ob(DK.x0+1.1,DK.z0+.9,.6);ob(DK.x0+.7,DK.z0+1.7,.3);DECKR.push([DK.x0,DK.x1,DK.z0,DK.z1]);
+var dGlow=glowPoints([new T.Vector3(DK.x0+1.0,DK.y+1.92,DK.z0+.5)],'#ffc060',5);ob(DK.x0+1.0,DK.z0+.5,.3);ob(DK.x0+1.1,DK.z0+.9,.6);ob(DK.x0+.7,DK.z0+1.7,.3);DECKR.push([DK.x0,DK.x1,DK.z0,DK.z1,Math.PI]);
 // ── 낚시 자리 배치 (opt.seats = 25 여유·코지 | 50 촘촘) ──
 const SEATN=+opt.seats===50?50:25,seats=[];
 seats.push({pos:new T.Vector3(DK.x1-.9,DK.y+.07,DK.z0+.15),dir:Math.PI,me:1});
@@ -228,7 +231,7 @@ if(SEATN===50)seats.push({pos:new T.Vector3(DK.x1-2.4,DK.y+.07,DK.z0+.15),dir:Ma
  for(let k=0;k<20&&slots.length<60;k++){[-1,1].forEach(s=>{const z=(s<0?-9.5:-5)-k*SP;if(z<-125||Math.abs(z+48)<6.5)return;slots.push([s,z]);});}
  slots.sort((a,b)=>b[1]-a[1]);const use=slots.slice(0,need);
  const pl=[],po=[],lp=[],lg=[],lc=[],tg=[],tf=[],pot=[],rug=[],leaf=[],fl=[];const WD=two?4.6:3.2,DP=2.6,DY=.62;
- use.forEach(([s,z],i)=>{const xw=s*CW,xf=s*(CW-DP),cx=(xw+xf)/2;DECKR.push([Math.min(xw,xf-s*.15),Math.max(xw,xf-s*.15),z-WD/2,z+WD/2]);ob(xw-s*.45,z-WD/2+.4,.25);ob(xw-s*.75,z+WD/2-.6,.55);if(!two)ob(xw-s*.5,z+.6,.28);
+ use.forEach(([s,z],i)=>{const xw=s*CW,xf=s*(CW-DP),cx=(xw+xf)/2;DECKR.push([Math.min(xw,xf-s*.15),Math.max(xw,xf-s*.15),z-WD/2,z+WD/2,s<0?Math.PI/2:-Math.PI/2]);ob(xw-s*.45,z-WD/2+.4,.25);ob(xw-s*.75,z+WD/2-.6,.55);if(!two)ob(xw-s*.5,z+.6,.28);
   for(let q=-WD/2+.25;q<WD/2;q+=.52)pl.push([cx,DY,z+q,0,[DP+.3,.14,.46],rnd()<.5?'#b8814e':'#a8743f']);
   po.push([xf+s*.2,DY-1.1,z-WD/2+.2,0,[.32,2.2,.32],'#7a5232']);po.push([xf+s*.2,DY-1.1,z+WD/2-.2,0,[.32,2.2,.32],'#7a5232']);
   po.push([xf+s*.08,DY+.02,z,0,[.2,.2,WD],'#8a5a36']);
@@ -415,7 +418,7 @@ root.add(sunL,hemi,amb,...pL);
 // ── 상태 전환 ──
 function setState(n,dur){if(!ST[n])return;for(const k in cur){if(cur[k] instanceof T.Color)from[k].copy(cur[k]);else from[k]=cur[k];}to=ST[n];curName=n;tD=dur==null?4:dur;tB=tD<=0?1:0;if(tD<=0)apply(1);}
 function apply(p){const e=p*p*(3-2*p);for(const k in cur){if(cur[k] instanceof T.Color)cur[k].copy(from[k]).lerp(to[k],e);else cur[k]=from[k]+(to[k]-from[k])*e;}}
-let scn=null;function attach(scene){scn=scene;sky.position.x=stars.position.x=OX;scene.add(sky,stars,disc,discCore);scene.fog=scene.fog||new T.Fog(0xffffff,50,400);}
+let scn=null;function attach(scene){scn=scene;sky.position.x=stars.position.x=OX;scene.add(sky,stars,disc,discCore);[sky,stars,disc,discCore].forEach(o=>o.layers.enable(1));scene.fog=scene.fog||new T.Fog(0xffffff,50,400);}
 const _v=new T.Vector3();let time=0;
 function update(dt,cam){time+=dt;U.t.value=time;if(tB<1){tB=Math.min(1,tB+dt/tD);apply(tB);}const c=cur;
  skyU.top.value.copy(c.skyTop);skyU.mid.value.copy(c.skyMid);skyU.hor.value.copy(c.skyHor);skyU.sunC.value.copy(c.sun);skyU.glow.value=c.glow;
@@ -427,7 +430,7 @@ function update(dt,cam){time+=dt;U.t.value=time;if(tB<1){tB=Math.min(1,tB+dt/tD)
  sunL.position.copy(sp).normalize().multiplyScalar(160).add(sunT.position);sunL.color.copy(c.sun);sunL.intensity=c.sunI;hemi.color.copy(c.hemS);hemi.groundColor.copy(c.hemG);hemi.intensity=c.hemI;amb.intensity=c.amb;
  cloudM.color.copy(c.cloud);cloudM.opacity=c.cloudO;
  wU.deep.value.copy(c.deep);wU.shal.value.copy(c.shal);wU.mirror.value=opt.noMirror?0:c.mirror;wU.wave.value=c.wave;wU.nacre.value=c.nacre;wU.glint.value=c.glint;wU.rain.value=c.rain;
- quayM.color.copy(c.quay);quayM.roughness=.9-c.wet*.6;quayM.metalness=c.wet*.15;
+ quayM.color.copy(c.quay).lerp(SNOWC,XF.snow*.75);quayM.roughness=.9-c.wet*.6;quayM.metalness=c.wet*.15;
  const li=c.lights;winM.emissiveIntensity=li*1.15;winM.color.setRGB(.06+.1*(1-li),.12+.1*(1-li),.2+.1*(1-li));winM2.emissiveIntensity=li*.12;lampHM.emissiveIntensity=li*1.6;dLanM.emissiveIntensity=li*1.5;lanternM.emissiveIntensity=.15+li*1.3;
  lampGlow.material.uniforms.op.value=li*.9;poolM.opacity=li*.5;bulbGlow.material.uniforms.op.value=li*.8;bulbCore.material.uniforms.op.value=li;dGlow.material.uniforms.op.value=li;dGlow2.material.uniforms.op.value=li;lanGlow.material.uniforms.op.value=li*.8;
  pL[0].intensity=li*1.6;pL[1].intensity=li*.6;pL[2].intensity=li*.5;
@@ -445,7 +448,7 @@ function update(dt,cam){time+=dt;U.t.value=time;if(tB<1){tB=Math.min(1,tB+dt/tD)
  // 비
  rainU.op.value=c.rain;rainL.visible=c.rain>.01;if(cam){rainU.cp.value.set(cam.position.x-OX,0,cam.position.z);}
  rbU.op.value=c.rainbow;rb1.visible=rb2.visible=rbIn.visible=c.rainbow>.01;
- auU.op.value=c.aurora;aur.visible=c.aurora>.01;ffly.material.uniforms.op.value=c.flies;ffly.visible=c.flies>.01;
+ auU.op.value=c.aurora;aur.visible=c.aurora>.01;{const fl=Math.max(c.flies,XF.flies);ffly.material.uniforms.op.value=fl;ffly.visible=fl>.01;}
  beamU.op.value=c.beam;beam.rotation.y=time*.5;LH.userData.lamp.material.emissiveIntensity=.4+c.beam*2;lhGlow.material.uniforms.op.value=c.beam*.8;
  // 멀리 고래: 18초마다 숨 쉬러 올라와요
  const cy=(time%18)/18;const up=Math.sin(Math.min(1,cy/.6)*Math.PI);BW.position.y=-4.2+c.bigWhale*up*4.6;BW.rotation.z=-.08+up*.08;BW.visible=c.bigWhale>.01;const sk=(cy-.18)/.3;spout.material.uniforms.k.value=Math.max(0,Math.min(1,sk));spout.material.uniforms.op.value=c.bigWhale*(sk>0&&sk<1?1:0);
@@ -457,7 +460,7 @@ function update(dt,cam){time+=dt;U.t.value=time;if(tB<1){tB=Math.min(1,tB+dt/tD)
 const mCam=new T.PerspectiveCamera(),plane=new T.Plane(new T.Vector3(0,1,0),.02),hideL=[];
 function mirror(r,scene,cam){const w=r.domElement.width>>1,h=r.domElement.height>>1;if(RT.width!==w||RT.height!==h)RT.setSize(w,h);
  cam.updateMatrixWorld();mCam.copy(cam);const p=cam.position,q=new T.Vector3();cam.getWorldDirection(q);mCam.position.set(p.x,-p.y,p.z);const rm=new T.Matrix4().extractRotation(cam.matrixWorld);mCam.up.set(0,1,0).applyMatrix4(rm).reflect(new T.Vector3(0,1,0));
- const tg=p.clone().add(q);mCam.lookAt(tg.x,-tg.y,tg.z);mCam.projectionMatrix.copy(cam.projectionMatrix);mCam.updateMatrixWorld();mCam.matrixWorldInverse.copy(mCam.matrixWorld).invert();
+ const tg=p.clone().add(q);mCam.lookAt(tg.x,-tg.y,tg.z);mCam.projectionMatrix.copy(cam.projectionMatrix);mCam.layers.set(1);mCam.updateMatrixWorld();mCam.matrixWorldInverse.copy(mCam.matrixWorld).invert();
  texMat.set(.5,0,0,.5, 0,.5,0,.5, 0,0,.5,.5, 0,0,0,1);texMat.multiply(mCam.projectionMatrix).multiply(mCam.matrixWorldInverse);
  hideL.length=0;[water,swI,swRing,rainL].forEach(o=>{if(o.visible){o.visible=false;hideL.push(o);}});
  const cp=r.clippingPlanes,rt=r.getRenderTarget(),sh=r.shadowMap.autoUpdate;r.shadowMap.autoUpdate=false;const rbo=rbU.op.value;rbU.op.value=rbo*.45;r.clippingPlanes=[plane];r.setRenderTarget(RT);r.clear();r.render(scene,mCam);rbU.op.value=rbo;r.setRenderTarget(rt);r.clippingPlanes=cp;r.shadowMap.autoUpdate=sh;hideL.forEach(o=>o.visible=true);}
@@ -472,6 +475,32 @@ const POI={
  aurora:{n:'오로라와 등대',d:'운이 좋은 밤에는 등대 위로 오로라가 흘러요',cam:[1,7,-82],tg:[-6,22,-220]},
  tower:{n:'금빛 종탑',d:'정시마다 종이 울려 물때가 바뀌는 걸 알려줘요',cam:[2,3,-26],tg:[14,13,-63]}};
 const TOURS={day:['market','tower','lotus'],sunset:['sun','lotus','tower'],night:['whale','swirl','lotus'],rain:['market','tower'],rainbow:['rainbow','tower','market'],aurora:['aurora','whale','swirl']};
+// v161: 계절 (나무 색) · 눈 (지붕·나무·물가가 하얗게) — 날씨 화면(눈·벚꽃·낙엽)은 게임의 날씨 그림을 그대로 써요
+const XF={snow:0,flies:0},SNOWC=L('#f2f5f8');let seaK='',snowK=-1;
+const keepC=m=>{const a=[];for(let i=0;i<m.count;i++){const c=new T.Color();m.getColorAt(i,c);a.push(c);}return a;};
+const TC0=keepC(treeI),RA0=keepC(roofIA),RB0=keepC(roofIB);
+const SEAP={spring:['#f6b8cc','#f9cddb','#f2a6c0','#8fc46a'],summer:null,autumn:['#e2863a','#d0602e','#e8b03a','#b8502a'],winter:['#6f8f6a','#5f8360','#7a9874','#58785a']};
+function recolor(){const p=SEAP[seaK],w=XF.snow,c=new T.Color();
+ TC0.forEach((c0,i)=>{c.copy(p?L(p[(i*7)%p.length]):c0);if(w>0)c.lerp(SNOWC,w*.7);treeI.setColorAt(i,c);});treeI.instanceColor.needsUpdate=true;
+ [[roofIA,RA0],[roofIB,RB0]].forEach(([m,a])=>{a.forEach((c0,i)=>{c.copy(c0);if(w>0)c.lerp(SNOWC,w*.8);m.setColorAt(i,c);});m.instanceColor.needsUpdate=true;});}
+function setSeason(k,snow,flies){snow=Math.max(0,Math.min(1,+snow||0));XF.flies=+flies||0;const sk=Math.round(snow*20);if(k===seaK&&sk===snowK)return;seaK=k;snowK=sk;XF.snow=snow;recolor();}
+// v161: 움직이지 않는 물체는 재질별로 한 덩어리로 합쳐서 그리기 횟수를 줄여요 (배·고래·등대 빛은 빼요)
+function mergeIn(box,skip){box.updateMatrixWorld(true);const inv=new T.Matrix4().copy(box.matrixWorld).invert(),mats=new Set(Object.values(MM)),G=new Map();
+ const key=mt=>mats.has(mt)?'V|'+[mt.roughness,mt.metalness,mt.emissive?mt.emissive.getHexString()+mt.emissiveIntensity:'',mt.flatShading?1:0,mt.side].join('|'):mt;
+ box.traverse(m=>{if(!m.isMesh||Array.isArray(m.material)||m.material.isShaderMaterial||m.material.transparent)return;if(m.isInstancedMesh&&!mats.has(m.material))return;for(let p=m;p&&p!==box;p=p.parent)if(skip.has(p))return;if(skip.has(m))return;const k=key(m.material);if(!G.has(k))G.set(k,[]);G.get(k).push(m);});
+ let n=0;const M4=new T.Matrix4(),IM=new T.Matrix4(),C=new T.Color();
+ G.forEach((list,k)=>{const vc=typeof k==='string';let cnt=list.reduce((a,m)=>a+(m.isInstancedMesh?m.count:1),0);if(cnt<2)return;const gs=[],keepUV=!vc&&!!list[0].material.map;
+  list.forEach(m=>{const base=m.geometry.index?m.geometry.toNonIndexed():m.geometry.clone();for(const a in base.attributes)if(a!=='position'&&a!=='normal'&&!(keepUV&&a==='uv'))base.deleteAttribute(a);if(!base.attributes.normal)base.computeVertexNormals();
+   M4.multiplyMatrices(inv,m.matrixWorld);const N=m.isInstancedMesh?m.count:1;
+   for(let i=0;i<N;i++){const g=base.clone();if(m.isInstancedMesh){m.getMatrixAt(i,IM);g.applyMatrix4(new T.Matrix4().multiplyMatrices(M4,IM));C.copy(m.material.color);if(m.instanceColor){const c2=new T.Color();m.getColorAt(i,c2);C.multiply(c2);}}else{g.applyMatrix4(M4);C.copy(m.material.color);}
+    if(vc){const nv=g.attributes.position.count,ca=new Float32Array(nv*3);for(let j=0;j<nv;j++){ca[j*3]=C.r;ca[j*3+1]=C.g;ca[j*3+2]=C.b;}g.setAttribute('color',new T.BufferAttribute(ca,3));}gs.push(g);}});
+  const mg=BG.mergeBufferGeometries(gs);if(!mg)return;let mt=list[0].material;if(vc){mt=mt.clone();mt.color.set(0xffffff);mt.vertexColors=true;}const mm=new T.Mesh(mg,mt);mm.frustumCulled=false;mm.receiveShadow=mm.castShadow=true;box.add(mm);
+  list.forEach(m=>{m.parent.remove(m);if(m.isInstancedMesh)m.dispose();});n+=cnt-1;});return n;}
+function mergeStill(){const dyn=[...boats.map(b=>b.g),WH,BW,beam];let n=mergeIn(root,new Set([...dyn,leafI,lotI,sklI,treeI,roofIA,roofIB]));boats.forEach(b=>{n+=mergeIn(b.g,new Set());});return n;}
+const merged=mergeStill();
+// 물에 비치는 것만 레이어 1 (작은 꽃·화분·풀 같은 건 빼서 거울 그리기를 가볍게)
+root.traverse(o=>{if(o.isLight){o.layers.enable(1);return;}if(!(o.isMesh||o.isPoints||o.isLine))return;if(o.isInstancedMesh){const g=o.geometry;if(!g.boundingSphere)g.computeBoundingSphere();const e=new T.Matrix4(),q=new T.Vector3(),sc=new T.Vector3(),r=new T.Quaternion();let mx=0;for(let i=0;i<Math.min(o.count,6);i++){o.getMatrixAt(i,e);e.decompose(q,r,sc);mx=Math.max(mx,sc.x,sc.y,sc.z);}if(g.boundingSphere.radius*mx<.45)return;}o.layers.enable(1);});
+const deckAt=(x,z)=>{for(const r of DECKR)if(x>=r[0]&&x<=r[1]&&z>=r[2]&&z<=r[3])return r[4];return null;};
 // v160: 걷기 · 땅 높이 · 물 판정 (운하 좌표 = 월드 x − OX)
 const BRH=lx=>QY+2.9*Math.pow(Math.max(0,Math.cos(lx/10*Math.PI/2)),.6)+.05;
 const onDeck=(x,z)=>{for(const r of DECKR)if(x>=r[0]&&x<=r[1]&&z>=r[2]&&z<=r[3])return true;return false;};
@@ -481,5 +510,5 @@ function walk(x,z){const ax=Math.abs(x);if(z>40||z<-127)return false;const br=Ma
  if(br){if(ax<9.6&&Math.abs(Math.abs(z-BZ)-1.95)<.22)return false;if(ax>(Math.abs(z-BZ+0)<5?14:HX-.5))return false;if(ax<10)return true;}
  else if(ax>HX-.5&&!(Math.abs(z-BZ)<5&&ax<14))return false;
  if(ax<CW&&!onDeck(x,z))return false;for(const o of OBS)if((x-o[0])*(x-o[0])+(z-o[1])*(z-o[1])<o[2]*o[2])return false;return true;}
-return {group:root,attach,update,mirror,setState,walk,ground,water:waterAt,obs:OBS,state:()=>curName,states:Object.keys(S0),POI,TOURS,seat:seats[0],seats,seatN:SEATN,spawn:[OX-4,DK.y,2,Math.PI],deck:DK};}
+return {group:root,attach,update,mirror,setState,setSeason,deckAt,merged,walk,ground,water:waterAt,obs:OBS,state:()=>curName,states:Object.keys(S0),POI,TOURS,seat:seats[0],seats,seatN:SEATN,spawn:[OX-4,DK.y,2,Math.PI],deck:DK};}
 return {build,STATES:S0};})();
