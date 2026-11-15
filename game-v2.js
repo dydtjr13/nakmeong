@@ -1633,7 +1633,7 @@ const ACC={err:{nick:'닉네임을 확인해 주세요',pin:'비밀번호는 숫
 window.NK_ACC=ACC;
 // v162: 자동 접속할 때 — 같은 저장 코드를 쓰는 다른 브라우저가 더 나중에 저장했으면 그 진행을 먼저 받아와요
 (async()=>{try{if(window.NK_PREV)return;const c=SV.code();if(!c)return;window.__nkPulling=1;const ac=new AbortController();setTimeout(()=>ac.abort(),6000);const r=await fetch(SV.api()+'/saves/'+encodeURIComponent(c),{headers:{'X-Owner':SV.cid()},signal:ac.signal});const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.ok)return;
- const at=SV.at(),srvAt=savedAtOf(j.data),newer=at?(+j.updated_at>at+1500):(srvAt>(+S.savedAt||0)+5000);if(!newer){if(!at)SV.setAt(j.updated_at);return;}
+ const srvAt=savedAtOf(j.data),newer=srvAt>(+S.savedAt||0)+2000;/* v164: 서버 진행이 이 기기 진행보다 실제로 나중일 때만 불러와요 */if(!newer){SV.setAt(j.updated_at);return;}
  const o=JSON.parse(j.data);if(!o||typeof o.coins!=='number')return;if(started){staleTab('other');return;}SV.pend={code:c,at:+j.updated_at};applySaveObj(o);_myAt=+S.savedAt||_myAt;try{window.NK_STREFRESH&&NK_STREFRESH();}catch(e){}toast('☁️ 다른 브라우저에서 한 진행을 불러왔어요',2600);}catch(e){}finally{window.__nkPulling=0;}})();
 function applySaveObj(o){if(!o||typeof o.coins!=='number')throw 0;/* v162: 코드·계정으로 불러오면 이 브라우저도 같은 저장 칸을 이어 써요 */if(SV.pend){SV.setCode(SV.pend.code);SV.setAt(SV.pend.at);SV.sent=0;SV.pend=null;}Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,S0,o);SYS.migrate(D,S);S.autoFish=false;S.savedAt=Date.now();save();hud();}
 function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=Date.now();save();toast('💾 저장 완료');return;}

@@ -217,10 +217,12 @@ export default {
         // v162: 저장 코드로 이어 하는 기기들은 같은 저장 칸을 함께 써요 (코드 = 열쇠). 다른 기기가 더 나중에 저장했으면 덮어쓰지 않고 알려요
         const xc = cleanCode(request.headers.get('X-Code'));
         if (xc) {
-          const row = await db.prepare('SELECT code, updated_at FROM saves WHERE code=?').bind(xc).first();
+          const row = await db.prepare('SELECT code, updated_at, data FROM saves WHERE code=?').bind(xc).first();
           if (row) {
             const base = Number(body.base) || 0;
-            if (base && row.updated_at > base + 1500) return json({ ok: false, error: 'newer', code: xc, updated_at: row.updated_at }, 409, origin);
+            // v164: 시간만 보면 휴대폰이 닫히며 응답을 못 받은 '자기 저장'까지 다른 기기로 착각해요 → 서버 진행(savedAt)이 실제로 더 나중일 때만 거부
+            const sa = t => { const m = t && /"savedAt":(\d+)/.exec(t); return m ? +m[1] : 0; };
+            if (base && row.updated_at > base + 1500 && sa(row.data) > sa(data) + 2000) return json({ ok: false, error: 'newer', code: xc, updated_at: row.updated_at }, 409, origin);
             await db.prepare('UPDATE saves SET data=?, size=?, updated_at=? WHERE code=?').bind(data, data.length, now, xc).run();
             await snapSave(db, xc, data, now);
             return json({ ok: true, code: xc, updated_at: now }, 200, origin);
