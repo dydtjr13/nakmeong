@@ -455,7 +455,8 @@ function dayGrade(p){const q=DAYQ[S.dayQ||'1']||DAYQ['1'],k=Math.max(0,1-(p.nigh
  if(q.sky){_skyC.set(q.sky);const sc=scene.background.clone?scene.background.clone().lerp(_skyC,k):_skyC;scene.background=sc;scene.fog.color.copy(sc);wU.sky.value.copy(sc);}
  const f=q.f&&k>.3?q.f:'';if(f!==_fl){_fl=f;R.domElement.style.filter=f;}}
 const WATER_VS=`varying vec3 wp;void main(){vec4 w=modelMatrix*vec4(position,1.);wp=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,WATER_FS=`uniform float t,night,R,mode;uniform vec3 deep,shal,sky,bob;varying vec3 wp;
-float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+// v163: sin 해시는 휴대폰 GPU에서 큰 값일 때 줄무늬(경계선)가 생겨서 sin 없는 해시로 바꿨어요
+float h(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
 float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+1.),f.x),f.y);}
 float fbm(vec2 p){float a=.5,s=0.;for(int i=0;i<4;i++){s+=a*vn(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return s;}
 float caus(vec2 p){vec2 q=p;float c=0.;for(int i=0;i<3;i++){q+=vec2(sin(q.y*1.3+t*.7),cos(q.x*1.1-t*.6))*.6;c+=abs(sin(q.x+q.y));}return pow(1.-c/3.,6.);}
@@ -5375,7 +5376,7 @@ function cnlState(first,p){const C=CNL.st;if(!C)return;p=p||palette();const wx=S
 function cnlHide(){const keep=new Set([CNL.st.group]),chs=new Set(chars.map(c=>c.o)),B=new THREE.Box3(),me0=me&&me.o.position;
  const hide=o=>{if(o&&o.visible&&!keep.has(o)){o.visible=false;CNL.hid.push(o);}};try{hide(TERR0);}catch(e){}try{BASEDECO.forEach(hide);}catch(e){}try{const ms=MAPV.st&&MAPV.st();if(ms&&ms.g)hide(ms.g);}catch(e){}
  scene.children.slice().forEach(o=>{if(keep.has(o)||chs.has(o)||o.isLight||o.isCamera||!o.visible||o===bob||o===line)return;try{B.setFromObject(o);if(B.isEmpty())return;if(B.max.x<400&&B.min.x>-400)hide(o);}catch(e){}});}
-function cnlStart(){try{const lowQ=!!(window.NK_GFX&&NK_GFX.q==='low');const C=CNL.st=NK_CANAL.build(THREE,{ox:SEA_OX,fishAtlas:'img/canal/atlas.png',seats:25,noMirror:lowQ});CNL.mir=!lowQ;
+function cnlStart(){try{const lowQ=!!(window.NK_GFX&&NK_GFX.q==='low');const C=CNL.st=NK_CANAL.build(THREE,{ox:SEA_OX,fishAtlas:'img/canal/atlas.png',seats:25,noMirror:lowQ,lite:lowQ||!!(window.NK_GFX&&NK_GFX.mob)});CNL.myL=new Set();C.group.traverse(o=>{if(o.isLight)CNL.myL.add(o);});CNL.mir=!lowQ;
  C.group.userData.noMerge=1;C.group.traverse(o=>{if(o.isInstancedMesh||o.isPoints)o.frustumCulled=false;});scene.add(C.group);C.attach(scene);cam.far=2000;cam.updateProjectionMatrix();
  /* 다른 사람과 자리 번호가 같도록 운하 의자는 늘 200번부터 */while(SEATS.length<200)SEATS.push({x:1e5,z:1e5,y:0,cap:0,occ:[],kind:'pad',virt:1});
  C.seats.forEach(st=>SEATS.push({x:SEA_OX+st.pos.x,z:st.pos.z,y:st.y,cap:1,occ:[],kind:'stool',virt:1,cnl:1,dir:st.dir,deck:null}));
@@ -5388,9 +5389,17 @@ function cnlStart(){try{const lowQ=!!(window.NK_GFX&&NK_GFX.q==='low');const C=C
 {const _bs=window.__nkBoatSpot;window.__nkBoatSpot=function(){if(CNL.st){if(fishing.state!=='off'&&fishing.d===CSPOT)return CSPOT;if(mySeat&&mySeat.cnl&&!boatNow()){CSPOT.tip.x=mySeat.x;CSPOT.tip.z=mySeat.z;return CSPOT;}/* v161: 운하에서는 데크 위 어디서나 낚시 (가까운 빈 의자가 있으면 거기 앉아서) */if(!boatNow()&&me&&!mySeat){const p0=me.o.position,dd=CNL.st.deckAt(p0.x-SEA_OX,p0.z);if(dd!=null){CSPOT.dir=dd;CSPOT.tip.x=p0.x;CSPOT.tip.z=p0.z;return CSPOT;}}if(!boatNow())return null;}return _bs?_bs.apply(this,arguments):null;};}
 {const _wk=window.__wxK;window.__wxK=k=>{const v=_wk?_wk(k):k;if(CNL.st&&(v==='drizzle'||v==='storm'||v==='aurora'||v==='sunset'||v==='firefly'))return 'clear';return v;};}
 {const _fa=fishAction;fishAction=function(auto){try{if(CNL.st&&fishing.state==='off'&&!mySeat&&nearSpot===CSPOT&&me){const p0=me.o.position;const st=SEATS.filter(s=>s.cnl&&seatFree(s)).map(s=>[s,Math.hypot(s.x-p0.x,s.z-p0.z)]).filter(a=>a[1]<2.4).sort((a,b)=>a[1]-b[1]).map(a=>a[0])[0];if(st&&!remoteHolds(st))sitOn(st);}}catch(e){}return _fa.apply(this,arguments);};}
-{const _c=MAPV.cull;MAPV.cull=function(c){try{if(_c)_c.apply(this,arguments);}finally{const C=CNL.st;if(C&&CNL.mir&&!BGRUN){/* 이름표는 물에 비치지 않게 */const hz=[];for(const ch of chars){const t=ch.tag;if(t&&t.visible){t.visible=false;hz.push(t);}}try{C.mirror(R,scene,c);}catch(e){CNL.mir=false;console.warn('[canal mirror]',e);}hz.forEach(t=>t.visible=true);}}};}
+/* v163: 바닷가 마을 자동 화질 — 드로우콜이 아니라 화면 픽셀(해상도 × 물·반사 셰이더)이 무거워서 생기는 끊김.
+   1.5초마다 평균 FPS를 재서 느리면 해상도를 조금씩 낮추고(최소 1배), 넉넉하면 다시 올려요. 아주 느리면 물 반사를 2프레임에 한 번 그려요 */
+{const AQ={n:0,tm:0,good:0,k:1,max:0,set:0};FHOOK.push(()=>{const nw=performance.now(),dt=AQ.lt?(nw-AQ.lt)/1000:0;AQ.lt=nw;/* 게임 dt는 0.05초로 잘려서 실제 시간을 따로 재요 */if(!CNL.st||BGRUN||document.hidden||!dt||dt>2)return;const cur=R.getPixelRatio();if(Math.abs(cur-AQ.set)>.01){AQ.max=cur;AQ.set=cur;AQ.k=Math.min(1,Math.max(AQ.k,1/Math.max(1,cur)));}
+ AQ.n++;AQ.tm+=dt;if(AQ.tm<1.5)return;const fps=AQ.n/AQ.tm;AQ.n=0;AQ.tm=0;const minK=1/Math.max(1,AQ.max);let k=AQ.k;
+ if(fps<44){k=Math.max(minK,k-(fps<30?.2:.1));AQ.good=0;}else if(fps>56){if(++AQ.good>=3){k=Math.min(1,k+.08);AQ.good=0;}}else AQ.good=0;
+ CNL.mskip=fps<36&&k<=minK+.01;CNL.fps=Math.round(fps);
+ if(Math.abs(k-AQ.k)>.001){AQ.k=k;const pr=Math.max(1,Math.round(AQ.max*k*20)/20);if(Math.abs(pr-cur)>.04){R.setPixelRatio(pr);R.setSize(innerWidth,innerHeight);AQ.set=pr;}}});
+ window.__nkAQ=AQ;}
+{const _c=MAPV.cull;MAPV.cull=function(c){try{if(_c)_c.apply(this,arguments);}finally{const C=CNL.st;if(C&&CNL.mir&&!BGRUN&&!(CNL.mskip&&((CNL.mf=(CNL.mf|0)+1)&1))){/* 이름표는 물에 비치지 않게 · v163: 느릴 땐 물 반사를 2프레임에 한 번 */const hz=[];for(const ch of chars){const t=ch.tag;if(t&&t.visible){t.visible=false;hz.push(t);}}try{C.mirror(R,scene,c);}catch(e){CNL.mir=false;console.warn('[canal mirror]',e);}hz.forEach(t=>t.visible=true);}}};}
 FHOOK.push((dt,p)=>{const C=CNL.st;if(!C)return;try{cnlState(false,p);{const wx=S.__wx||'clear',se=S.__season||'',tg=wx==='snow'?1:se==='winter'?.35:0;CNL.snow=(CNL.snow==null?tg:CNL.snow+(tg-CNL.snow)*Math.min(1,dt/12));C.setSeason(se,CNL.snow,wx==='firefly'?1:se==='summer'&&(p.night||0)>.5?.35:0);}
-  CNL.lt=(CNL.lt||0)-dt;if(CNL.lt<=0){CNL.lt=2;/* 거울 그리기: 빛은 모두, 캐릭터는 나만 */scene.traverse(o=>{if(o.isLight)o.layers.enable(1);});try{me.o.traverse(o=>o.layers.enable(1));}catch(e){}}window.__nkCanalH=innerHeight*R.getPixelRatio();C.update(dt,cam,R);}catch(e){}hemi.intensity=0;sun.intensity=0;try{if(fireL)fireL.intensity=0;if(lanL)lanL.intensity=0;}catch(e){}scene.background=scene.fog.color;
+  CNL.lt=(CNL.lt||0)-dt;if(CNL.lt<=0){CNL.lt=2;/* 거울 그리기: 빛은 모두, 캐릭터는 나만 */scene.traverse(o=>{if(o.isLight){o.layers.enable(1);/* v163: 운하에선 호숫가 빛(꺼 둔 해·하늘빛·모닥불·등불)을 아예 빼요 — 세기 0이어도 픽셀마다 계산돼요 */if(o.visible&&CNL.myL&&!CNL.myL.has(o))o.visible=false;}});try{me.o.traverse(o=>o.layers.enable(1));}catch(e){}}window.__nkCanalH=innerHeight*R.getPixelRatio();C.update(dt,cam,R);}catch(e){}hemi.intensity=0;sun.intensity=0;try{if(fireL)fireL.intensity=0;if(lanL)lanL.intensity=0;}catch(e){}scene.background=scene.fog.color;
  if(fishing.state==='cast'&&fishing.d===CSPOT&&!fishing.cnlF&&me){fishing.cnlF=1;const p0=me.o.position,a0=mySeat&&mySeat.dir!=null?mySeat.dir:CSPOT.dir!=null?CSPOT.dir:me.dir||0;let hit=null;for(const da of [0,.35,-.35,.7,-.7]){for(const L of [4.5,3.5,2.6]){const a=a0+da,x=p0.x+Math.sin(a)*L,z=p0.z+Math.cos(a)*L;if(C.water(x-SEA_OX,z)){hit=[x,z];break;}}if(hit)break;}
   if(!hit)hit=[p0.x+Math.sin(a0)*3,p0.z+Math.cos(a0)*3];castTo.set(hit[0],-.05,hit[1]);me.dir=Math.atan2(castTo.x-p0.x,castTo.z-p0.z);}
  if(S.vehRide){S.vehRide=0;}});
