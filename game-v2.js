@@ -1622,7 +1622,7 @@ async function cloudSave(force){if(SV.busy||TABSTALE)return null;const cid=SV.ci
 // v56: 서버 저장 1분마다 + 탭을 숨기거나 닫을 때도 저장 (주소·브라우저가 바뀌어도 코드로 복구)
 setInterval(()=>{if(started&&!document.hidden)cloudSave(false);},60e3);document.addEventListener('visibilitychange',()=>{if(started&&document.hidden)try{save();cloudSave(false);}catch(e){}});addEventListener('pagehide',()=>{if(started)try{save();cloudSave(false);}catch(e){}});
 // v56: 저장 코드(12자리) 또는 JSON 으로 저장 데이터 가져오기 — 저장 창·시작 화면 공용
-async function fetchSaveObj(raw){raw=String(raw||'').trim();if(!raw)throw new Error('코드를 붙여넣어 주세요');if(raw[0]==='{'){try{return JSON.parse(raw);}catch(e){throw new Error('코드를 읽지 못했어요');}}
+async function fetchSaveObj(raw){raw=String(raw||'').trim();if(!raw)throw new Error('코드를 붙여넣어 주세요');/* v165: QR 연결 번호(XXXX-XXXX)면 저장 코드로 바꿔요 */if(/^[A-Za-z0-9]{4}-?[A-Za-z0-9]{4}$/.test(raw))raw=await AUTHX.tokCode(raw);if(raw[0]==='{'){try{return JSON.parse(raw);}catch(e){throw new Error('코드를 읽지 못했어요');}}
  const c=raw.toUpperCase().replace(/[^0-9A-Z]/g,'');if(c.length!==12)throw new Error('코드는 12자리예요 (예: A7X9-K2L8-B6P3)');
  let r;try{r=await fetch(SV.api()+'/saves/'+c,{headers:{'X-Owner':SV.cid()}});}catch(e){throw new Error('서버에 연결하지 못했어요');}const j=await r.json().catch(()=>null);if(r.status===404)throw new Error('없는 코드예요. 다시 확인해 주세요');if(!r.ok||!j||!j.ok)throw new Error('코드를 읽지 못했어요');SV.pend={code:j.code||raw,at:+j.updated_at||0};return JSON.parse(j.data);}
 // v56: 닉네임 + 비밀번호(숫자 4~6자리) 계정 — 다른 기기·브라우저·시크릿 창에서도 닉네임과 비밀번호로 이어 하기
@@ -1635,6 +1635,47 @@ window.NK_ACC=ACC;
 (async()=>{try{if(window.NK_PREV)return;const c=SV.code();if(!c)return;window.__nkPulling=1;const ac=new AbortController();setTimeout(()=>ac.abort(),6000);const r=await fetch(SV.api()+'/saves/'+encodeURIComponent(c),{headers:{'X-Owner':SV.cid()},signal:ac.signal});const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.ok)return;
  const srvAt=savedAtOf(j.data),newer=srvAt>(+S.savedAt||0)+2000;/* v164: 서버 진행이 이 기기 진행보다 실제로 나중일 때만 불러와요 */if(!newer){SV.setAt(j.updated_at);return;}
  const o=JSON.parse(j.data);if(!o||typeof o.coins!=='number')return;if(started){staleTab('other');return;}SV.pend={code:c,at:+j.updated_at};applySaveObj(o);_myAt=+S.savedAt||_myAt;try{window.NK_STREFRESH&&NK_STREFRESH();}catch(e){}toast('☁️ 다른 브라우저에서 한 진행을 불러왔어요',2600);}catch(e){}finally{window.__nkPulling=0;}})();
+// v165: 간편 로그인(구글·카카오) · QR 기기 연결 — 모두 '저장 코드'로 바뀌어서 기존 코드 불러오기 흐름을 그대로 써요
+const AUTHX=(()=>{const CFG={g:'',k:''};const X={CFG,
+ on:()=>{try{return String(uiOpt('socLogin','off'))==='on';}catch(e){return false;}},
+ pname:p=>p==='k'?'카카오':'구글',
+ async post(path,body){const h={'Content-Type':'application/json','X-Owner':SV.cid()},c=SV.code();if(c)h['X-Code']=c;let r;try{r=await fetch(SV.api()+path,{method:'POST',headers:h,body:JSON.stringify(body||{})});}catch(e){throw new Error('서버에 연결하지 못했어요');}const j=await r.json().catch(()=>null)||{};j._s=r.status;return j;},
+ async mine(){const c=SV.code();if(!c)return [];try{const r=await fetch(SV.api()+'/auth/mine',{headers:{'X-Code':c}});const j=await r.json();return j&&j.provs||[];}catch(e){return [];}},
+ _gs:null,gLoad(){if(window.google&&google.accounts&&google.accounts.id)return Promise.resolve();if(X._gs)return X._gs;X._gs=new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;s.onload=()=>ok();s.onerror=()=>{X._gs=null;no(new Error('구글 로그인을 불러오지 못했어요'));};document.head.appendChild(s);});return X._gs;},
+ // 구글 버튼은 구글이 그려 줘요 (디자인 규칙) — 누르면 cb(신분 토큰)
+ async gButton(el,cb,text,w){if(!CFG.g||!el)return false;try{await X.gLoad();}catch(e){el.innerHTML='<small class="muted">구글 로그인을 불러오지 못했어요</small>';return false;}
+  google.accounts.id.initialize({client_id:CFG.g,callback:r=>{if(r&&r.credential)cb(r.credential);},ux_mode:'popup',auto_select:false,cancel_on_tap_outside:true});
+  el.innerHTML='';google.accounts.id.renderButton(el,{type:'standard',theme:'outline',size:'large',shape:'pill',text:text||'signin_with',locale:'ko',width:Math.max(200,Math.min(320,w||240))});return true;},
+ kRedirect:()=>/^www\./.test(location.hostname)?'https://www.fishcozy.com/kakao.html':'https://fishcozy.com/kakao.html',
+ // 카카오: 작은 창으로 로그인 → kakao.html 이 결과(code)를 돌려줘요. 작은 창이 막히면 이 창에서 이동했다가 돌아와요
+ kStart(act){if(!CFG.k)return Promise.reject(new Error('카카오 로그인이 아직 준비 중이에요'));const st=Math.random().toString(36).slice(2,12),rd=X.kRedirect();
+  const url='https://kauth.kakao.com/oauth/authorize?client_id='+encodeURIComponent(CFG.k)+'&redirect_uri='+encodeURIComponent(rd)+'&response_type=code&state='+st;
+  let w=null;try{localStorage.setItem('nk_kk_wait',JSON.stringify({st,mode:'pop',act,t:Date.now()}));}catch(e){}
+  try{w=window.open(url,'nkkakao','width=480,height=720');}catch(e){}
+  if(!w){try{localStorage.setItem('nk_kk_wait',JSON.stringify({st,mode:'tab',act,t:Date.now()}));save();}catch(e){}location.href=url;return new Promise(()=>{});}
+  return new Promise((ok,no)=>{let done=0;const fin=p=>{if(done||!p||p.state!==st)return;done=1;removeEventListener('message',onM);removeEventListener('storage',onS);clearInterval(iv);try{localStorage.removeItem('nk_kakao');localStorage.removeItem('nk_kk_wait');}catch(e){}if(p.err||!p.code)no(new Error('카카오 로그인을 취소했어요'));else ok({cred:p.code,redirect:rd});};
+   const onM=e=>{if(e.origin===location.origin&&e.data&&e.data.nkKakao)fin(e.data.nkKakao);};const onS=e=>{if(e.key==='nk_kakao'&&e.newValue)try{fin(JSON.parse(e.newValue));}catch(x){}};
+   addEventListener('message',onM);addEventListener('storage',onS);
+   const t0=Date.now();const iv=setInterval(()=>{try{const v=localStorage.getItem('nk_kakao');if(v)fin(JSON.parse(v));}catch(x){}if(!done&&Date.now()-t0>10*60e3){done=1;clearInterval(iv);no(new Error('카카오 로그인 시간이 지났어요'));}},700);});},
+ // 시작 화면: 로그인 → 저장 코드로 불러오기. 처음이면 '표'를 받아 두었다가 게임 시작 뒤 연결
+ async login(prov,cred,redirect,say){say&&say('muted',X.pname(prov)+' 계정 확인 중…');const j=await X.post('/auth/login',{prov,cred,redirect});
+  if(j.ok&&j.code){say&&say('ok','✅ '+X.pname(prov)+' 진행을 불러와요…');if(window.NK_STLOAD)NK_STLOAD(j.code);return j;}
+  if(j.error==='none'&&j.ticket){try{sessionStorage.setItem('nk_socT',JSON.stringify({t:j.ticket,p:prov,at:Date.now()}));}catch(e){}say&&say('ok','✨ 처음이네요! 시작하면 '+X.pname(prov)+'에 저장돼요');X.tick();return j;}
+  throw new Error(j.error==='off'?'간편 로그인이 아직 준비 중이에요':j.error==='auth'?X.pname(prov)+' 로그인 실패 · 다시 해 주세요':'로그인하지 못했어요 ('+(j.error||j._s)+')');},
+ async link(prov,cred,redirect,force){const j=await X.post('/auth/link',{prov,cred,redirect,force:!!force});if(j.ok)return j;const e=new Error(j.error==='taken'?'taken':j.error==='no save'?'아직 서버 저장이 없어요. 잠시 뒤 다시 해 주세요':j.error==='off'?'간편 로그인이 아직 준비 중이에요':X.pname(prov)+' 로그인을 확인하지 못했어요');e.code=j.error;throw e;},
+ _tk:0,tick(){if(X._tk)return;X._tk=setInterval(async()=>{let T=null;try{T=JSON.parse(sessionStorage.getItem('nk_socT')||'null');}catch(e){}if(!T||Date.now()-T.at>30*60e3){clearInterval(X._tk);X._tk=0;try{sessionStorage.removeItem('nk_socT');}catch(e){}return;}
+  if(!started)return;if(X._tb)return;X._tb=1;try{if(!SV.code())await cloudSave(true);if(!SV.code())throw 0;const j=await X.post('/auth/link',{ticket:T.t});if(j.ok){sessionStorage.removeItem('nk_socT');clearInterval(X._tk);X._tk=0;toast('🔗 <b>'+X.pname(T.p)+'</b> 계정에 연결했어요<br><small>다른 기기에서도 '+X.pname(T.p)+' 버튼으로 이어 해요</small>',3600);}else if(j._s===404){sessionStorage.removeItem('nk_socT');}}catch(e){}X._tb=0;},2500);},
+ // 📱 QR 기기 연결 (10분 · 한 번만)
+ _ql:null,qLoad(){if(window.NK_QR)return Promise.resolve();if(X._ql)return X._ql;X._ql=new Promise((ok,no)=>{const s=document.createElement('script');s.src='lib/qrcode-v165.js';s.onload=()=>ok();s.onerror=()=>{X._ql=null;no(new Error('QR을 불러오지 못했어요'));};document.head.appendChild(s);});return X._ql;},
+ async qrOpen(){let c=SV.code();if(!c){c=await cloudSave(true);}if(!c)throw new Error('서버에 저장하지 못했어요. 잠시 뒤 다시 해 주세요');await cloudSave(true);
+  const j=await X.post('/link/new',{});if(!j.ok||!j.tok)throw new Error('연결 번호를 만들지 못했어요');await X.qLoad();
+  const url=location.origin+(location.pathname.replace(/nakmeong(\.html)?$/,'')||'/')+'?lk='+j.tok;
+  let m=document.getElementById('qrLk');if(m)m.remove();m=document.createElement('div');m.id='qrLk';
+  m.innerHTML='<div class="qrc"><button type="button" class="x" aria-label="닫기">✕</button><h3>📱 다른 기기로 이어 하기</h3><div class="qrs">'+NK_QR(url,196)+'</div><p class="qrn">연결 번호 <b>'+j.tok+'</b></p><p class="muted">휴대폰 카메라로 찍으면 바로 이어져요<br>안 되면 시작 화면 › 이어하기에 번호 입력</p><p class="qrt"></p></div>';
+  document.body.appendChild(m);const tEl=m.querySelector('.qrt'),cl=()=>{clearInterval(iv);m.remove();};m.querySelector('.x').onclick=cl;m.addEventListener('pointerdown',e=>{if(e.target===m)cl();});
+  const iv=setInterval(()=>{const s=Math.max(0,Math.round((j.exp-Date.now())/1000));tEl.textContent=s?'⏱ '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+' 동안 쓸 수 있어요 · 한 번만':'⌛ 시간이 지났어요. 다시 만들어 주세요';if(!s)clearInterval(iv);if(!m.isConnected)clearInterval(iv);},500);},
+ async tokCode(tok){let r;try{r=await fetch(SV.api()+'/link/'+encodeURIComponent(tok));}catch(e){throw new Error('서버에 연결하지 못했어요');}const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.code)throw new Error('연결 번호가 없거나 시간이 지났어요. 원래 기기에서 QR을 다시 만들어 주세요');return j.code;}
+};return X;})();window.NK_AUTHX=AUTHX;
 function applySaveObj(o){if(!o||typeof o.coins!=='number')throw 0;/* v162: 코드·계정으로 불러오면 이 브라우저도 같은 저장 칸을 이어 써요 */if(SV.pend){SV.setCode(SV.pend.code);SV.setAt(SV.pend.at);SV.sent=0;SV.pend=null;}Object.keys(S).forEach(k=>delete S[k]);Object.assign(S,S0,o);SYS.migrate(D,S);S.autoFish=false;S.savedAt=Date.now();save();hud();}
 function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=Date.now();save();toast('💾 저장 완료');return;}
  if(!document.getElementById('sv54css')){const st=document.createElement('style');st.id='sv54css';st.textContent=`
@@ -1688,8 +1729,8 @@ function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=
    <div class="info">${I.cal}<div>마지막 저장: <b id="svWhen">${fmt(S.savedAt)}</b><br>낚시터: ${where}</div></div><button class="big" id="svNow">${I.disk} 지금 저장</button></div>
    <div class="col oth"><h4>다른 기기로 이어하기</h4><div class="muted">코드를 복사하거나 붙여넣어 저장 데이터를 옮겨요.</div><div class="codebox"><div class="code" id="svCode">${SV.code()||'코드 만드는 중…'}</div><button class="red" id="svCopy" ${SV.code()?'':'disabled'}>${I.doc} 코드 복사하기</button></div>
     <div class="lbl">${I.clip} 코드 붙여넣기</div><div class="paste"><input id="svIn" placeholder="여기에 코드를 붙여넣으세요…" autocomplete="off" spellcheck="false"><button id="svLoad">불러오기</button></div><div class="muted" style="margin-top:6px">코드를 입력한 후 이어서 플레이하세요.</div>
-    <div class="acct"><div class="lbl">🔒 닉네임 + 비밀번호로 연결</div><div class="muted" id="svAcMsg">${S.acct?`<b>${S.acct}</b> 계정에 연결돼 있어요. 다른 기기에서는 시작 화면 › 이어하기에 닉네임·비밀번호를 넣어요.`:'비밀번호(숫자 4~6자리)를 정하면 닉네임·비밀번호로 이어 할 수 있어요.'}</div>
-    <div class="paste"><input id="svPin" type="password" inputmode="numeric" maxlength="6" placeholder="${S.acct?'비밀번호 바꾸기 (숫자 4~6자리)':'비밀번호 (숫자 4~6자리)'}" autocomplete="new-password"><button id="svAcGo">${S.acct?'변경':'연결'}</button></div></div></div></div>
+    <div class="acct"><div class="lbl">🔒 닉네임 + 비밀번호로 연결</div><div class="muted" id="svAcMsg">${S.acct?`<b>${S.acct}</b> 계정에 연결돼 있어요. 다른 기기에서는 시작 화면 › 이어하기에 닉네임·비밀번호를 넣어요.`:'비밀번호를 정하면 닉네임으로 이어 해요.'}</div>
+    <div class="paste"><input id="svPin" type="password" inputmode="numeric" maxlength="6" placeholder="${S.acct?'비밀번호 바꾸기 (숫자 4~6자리)':'비밀번호 (숫자 4~6자리)'}" autocomplete="new-password"><button id="svAcGo">${S.acct?'변경':'연결'}</button></div></div>${AUTHX.on()?`<div class="acct soc"><div class="lbl">🔗 간편 로그인 · QR 연결</div><div class="muted" id="svSocMsg">${AUTHX.CFG.g||AUTHX.CFG.k?'연결하면 다른 기기에서 버튼 하나로 이어 해요':'QR을 다른 기기로 찍으면 바로 이어 해요'}</div>${AUTHX.CFG.g||AUTHX.CFG.k?`<div class="socB">${AUTHX.CFG.g?'<div id="svSocG"></div>':''}${AUTHX.CFG.k?'<button type="button" class="kko" id="svSocK">카카오로 연결</button>':''}</div>`:''}<button type="button" class="qrb" id="svQr">📱 QR로 다른 기기 연결</button></div>`:''}</div></div>
   <div class="foot">${I.fish.replace('width="40"','width="30"')} 클라우드 저장은 자동으로 백업돼요.</div></div>`;
  const close=()=>{m.remove();removeEventListener('keydown',key,true);};const key=e=>{if(e.key==='Escape'){e.stopPropagation();close();}};addEventListener('keydown',key,true);
  m.addEventListener('pointerdown',e=>{if(e.target===m)close();});m.querySelector('[data-x]').onclick=close;
@@ -1705,6 +1746,14 @@ function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=
  {const pin=m.querySelector('#svPin'),go=m.querySelector('#svAcGo'),msg=m.querySelector('#svAcMsg');pin.oninput=()=>{pin.value=pin.value.replace(/\D/g,'').slice(0,6);};
   const link=async()=>{go.disabled=true;msg.textContent='연결하는 중…';try{const j=await ACC.link(S.nick,pin.value);pin.value='';msg.innerHTML=`✅ <b>${j.nick}</b> 계정에 연결했어요. 다른 기기 시작 화면 › 이어하기에서 닉네임과 비밀번호를 넣으세요.`;toast('🔒 계정을 연결했어요',1800);go.textContent='변경';pin.placeholder='비밀번호 바꾸기 (숫자 4~6자리)';showCode(j.code);}catch(e){msg.textContent='⚠️ '+((e&&e.message)||'연결하지 못했어요');}go.disabled=false;};
   go.onclick=link;pin.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();link();}};}
+ /* v165: 간편 로그인 연결 · QR */
+ if(m.querySelector('.soc')){const sm=m.querySelector('#svSocMsg'),gEl=m.querySelector('#svSocG'),kb=m.querySelector('#svSocK'),qb=m.querySelector('#svQr');
+  const showM=async()=>{const p=await AUTHX.mine();if(p.length&&sm.isConnected)sm.innerHTML='✅ '+p.map(x=>'<b>'+AUTHX.pname(x)+'</b>').join(' · ')+' 연결됨 · 다른 기기에서 그 버튼으로';};showM();
+  const doLink=async(prov,cred,rd)=>{sm.textContent='연결하는 중…';try{if(!SV.code())await cloudSave(true);try{await AUTHX.link(prov,cred,rd);}catch(e){if(e.message!=='taken')throw e;if(!confirm('이 '+AUTHX.pname(prov)+' 계정은 다른 저장에 연결돼 있어요. 지금 이 진행으로 바꿀까요?\n(예전 저장은 저장 코드로만 불러올 수 있어요)')){sm.textContent='바꾸지 않았어요';return;}if(prov==='k'){const r=await AUTHX.kStart('link');cred=r.cred;rd=r.redirect;}await AUTHX.link(prov,cred,rd,true);}
+   toast('🔗 <b>'+AUTHX.pname(prov)+'</b> 계정에 연결했어요',2200);showM();}catch(e){sm.textContent='⚠️ '+e.message;}};
+  if(gEl)AUTHX.gButton(gEl,cred=>doLink('g',cred,''),'continue_with',230);
+  if(kb)kb.onclick=async()=>{kb.disabled=true;try{const r=await AUTHX.kStart('link');await doLink('k',r.cred,r.redirect);}catch(e){sm.textContent='⚠️ '+e.message;}kb.disabled=false;};
+  qb.onclick=async()=>{qb.disabled=true;try{await AUTHX.qrOpen();}catch(e){toast(e.message,2400);}qb.disabled=false;};}
  m.querySelector('#svLoad').onclick=load;m.querySelector('#svIn').onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();load();}};}
 // v8: 부적 드래그 (마우스 즉시 / 터치는 길게 눌러서) — 리스트→슬롯 장착·교체, 슬롯→리스트 해제, 슬롯↔슬롯 순서 교체
 let DRG=null,dragJustEnded=0;
@@ -2931,7 +2980,23 @@ addEventListener('nk-rt-seat',e=>{const m=e.detail;if(!m||m.ok!==false||!mySeat)
   const an=$('stAcN'),ap=$('stAcP');let mode='acct';bx.querySelectorAll('[data-sm]').forEach(b=>b.onclick=()=>{mode=b.dataset.sm;bx.querySelectorAll('[data-sm]').forEach(x=>x.classList.toggle('on',x===b));bx.dataset.m=mode;(mode==='acct'?an:inp).focus();});
   if(ap)ap.oninput=()=>{ap.value=ap.value.replace(/\D/g,'').slice(0,6);};
   const run=async()=>{msg.className='muted';msg.textContent='불러오는 중…';go.disabled=true;try{const o=mode==='acct'&&an?await ACC.login(an.value,ap.value):await fetchSaveObj(inp.value);if(!o||typeof o.coins!=='number')throw new Error('저장 데이터가 아니에요');applySaveObj(o);window.NK_STREFRESH();const K=KINDS[S.char]||KINDS[0];msg.className='ok';msg.textContent=`✅ ${S.nick||'나'} · Lv.${myLv()} · ${K.n} 불러왔어요! 시작하기를 누르세요`;if(mob())step(3);}catch(e){msg.className='bad';msg.textContent=(e&&e.message)||'코드를 읽지 못했어요';}go.disabled=false;};
-  go.onclick=run;[inp,an,ap].forEach(x=>{if(x)x.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();run();}};});}}
+  go.onclick=run;[inp,an,ap].forEach(x=>{if(x)x.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();run();}};});
+  /* v165: 간편 로그인·QR이 찾은 저장 코드를 이어하기 › 저장 코드로 불러와요 */
+  window.NK_STLOAD=c=>{bx.hidden=false;t.classList.add('on');const mb=$('stMkB');if(mb){mb.hidden=true;$('stMkT').classList.remove('on');}mode='code';bx.dataset.m='code';bx.querySelectorAll('[data-sm]').forEach(x=>x.classList.toggle('on',x.dataset.sm==='code'));inp.value=c;run();};}}
+ {const box=$('stSoc'),gEl=$('stSocG'),kb=$('stSocK'),sm=$('stSocMsg');if(box){const say=(c,h)=>{sm.className=c;sm.textContent=h;};let drawn=0;
+  const draw=()=>{const on=AUTHX.on()&&(AUTHX.CFG.g||AUTHX.CFG.k);box.hidden=!on;if(!on||drawn)return;drawn=1;
+   kb.hidden=!AUTHX.CFG.k;gEl.hidden=!AUTHX.CFG.g;
+   if(AUTHX.CFG.g)AUTHX.gButton(gEl,cred=>AUTHX.login('g',cred,'',say).catch(e=>say('bad',e.message)),'signin_with',Math.min(300,(box.clientWidth||300)/(AUTHX.CFG.k?2:1)-6));
+   kb.onclick=async()=>{kb.disabled=true;try{const r=await AUTHX.kStart('login');await AUTHX.login('k',r.cred,r.redirect,say);}catch(e){say('bad',e.message);}kb.disabled=false;};};
+  draw();addEventListener('nk-rt-preplay',()=>setTimeout(draw,50));addEventListener('nk-rt-play',()=>setTimeout(draw,50));}}
+ /* v165: QR(?lk=) · 카카오 같은 창 로그인(?kk=)으로 들어온 경우 */
+ {const q=new URLSearchParams(location.search),lk=q.get('lk'),kk=q.get('kk'),kst=q.get('kst');
+  if(lk||kk!=null){try{history.replaceState(null,'',location.pathname+location.hash);}catch(e){}}
+  if(lk&&window.NK_STLOAD)setTimeout(()=>NK_STLOAD(String(lk).toUpperCase()),400);
+  if(kk!=null){let w=null;try{w=JSON.parse(localStorage.getItem('nk_kk_wait')||'null');localStorage.removeItem('nk_kk_wait');localStorage.removeItem('nk_kakao');}catch(e){}
+   if(w&&w.st===kst&&kk&&!q.get('kerr')){const sm=$('stSocMsg'),say=(c,h)=>{if(sm){sm.className=c;sm.textContent=h;const b=$('stSoc');if(b)b.hidden=false;}else if(c==='bad')toast(h,2600);};
+    if(w.act==='link'){const iv=setInterval(async()=>{if(!started)return;clearInterval(iv);try{if(!SV.code())await cloudSave(true);await AUTHX.link('k',kk,AUTHX.kRedirect());toast('🔗 <b>카카오</b> 계정에 연결했어요',2600);}catch(e){toast('🔗 카카오 연결: '+(e.message==='taken'?'이 카카오 계정은 다른 저장에 연결돼 있어요':e.message),3200);}},1000);}
+    else setTimeout(()=>AUTHX.login('k',kk,AUTHX.kRedirect(),say).catch(e=>say('bad',e.message)),500);}}}
  step(S.nick&&mob()?3:1);const stInit=()=>{if(!V14)return setTimeout(stInit,80);srvDraw();stUpd();};stInit();addEventListener('resize',stUpd);}
 $('go').disabled=true;
 // ───────── 메인 ─────────
@@ -3436,6 +3501,18 @@ V14=(()=>{
      if((k==='af'||k==='paf')){const tot=Math.round((k==='paf'?pafLeftMs:afLeftMs)(n)/60000)+mins;if(!(k==='paf'?pafGrant:afGrant)(n,tot,u.id||''))return toast('보내지 못했어요 (실시간 서버 연결 확인)',1800);alog(`자동낚시 이용 ${n} +${fmtMin(mins)} (남은 ${fmtMin(tot)})`);toast(`🤖 ${n}님 · ${fmtMin(tot)}`,1600);uwClose();keepScroll('admin',admin);return;}
      const why=UW.why.trim();confirmBox(`<h3>${k==='mute'?'🔇 채팅 금지':'⛔ 정지'} 확인</h3><p><b>${uwHtml(n)}</b> · ${fmtMin(mins)}${why?`<br><small>사유: ${uwHtml(why)}</small>`:''}</p>`,()=>{const x=AD.ban[n]||{};x[k]=Date.now()+mins*60000;x.why=why;AD.ban[n]=x;LW('nk_admin_ban',AD.ban);pushSanc(n);const bt=bots.find(b=>b.c.name===n);if(bt&&k==='ban'&&bt.on!==false){bt.pt=0;presence(0);}if(bt&&k==='mute'){bt.c.adMuted=true;bt.c.muted=true;}alog(`${n} ${k==='mute'?'채팅 금지':'정지'} ${fmtMin(mins)}${why?' (사유: '+why+')':''}`);UW.why='';uwClose();keepScroll('admin',admin);});};}}
 
+ /* v165: 👥 가입 계정 목록 — 닉네임 · 저장 코드 · 간편 로그인 (비밀번호는 암호화돼서 볼 수 없어요) */
+ const aclHTML=()=>{const A=AD.acl||(AD.acl={});const e=v=>String(v==null?'':v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),tm=t=>t?new Date(t).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',year:'2-digit',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'-',pv=p=>String(p||'').split(',').filter(Boolean).map(x=>x==='k'?'카카오':'구글').join('·')||'-';
+  let h=`<div class="adbox"><h4>👥 가입 계정 목록 <small class="muted">닉네임+비밀번호 · 간편 로그인</small></h4><p class="small muted">비밀번호는 암호화돼 있어 볼 수 없어요. 저장 코드로는 언제든 불러올 수 있어요 (시작 화면 › 이어하기 › 저장 코드)</p><div class="adrow"><button type="button" class="sm acc" data-acl="load" ${A.busy?'disabled':''}>${A.busy?'불러오는 중…':A.rows?'새로고침':'목록 불러오기'}</button>${A.rows?`<button type="button" class="sm" data-acl="hide">접기</button>`:''}</div>`;
+  if(A.err)h+=`<p class="small" style="color:#c0392b">${e(A.err)}</p>`;
+  if(A.rows)h+=`<div style="overflow-x:auto"><table class="adt"><tr><th>닉네임</th><th>저장 코드</th><th>마지막 저장</th><th>간편 로그인</th></tr>${A.rows.map(r=>`<tr><td><b>${e(r.nick)}</b></td><td><code style="user-select:all">${e(r.code)}</code></td><td>${tm(r.saved_at||r.updated_at)}</td><td>${pv(r.provs)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">계정이 없어요</td></tr>'}${(A.soc||[]).map(r=>`<tr><td>${e(r.nick||'(닉네임 없음)')} <small class="muted">간편만</small></td><td><code style="user-select:all">${e(r.code)}</code></td><td>${tm(r.saved_at||r.at)}</td><td>${pv(r.provs)}</td></tr>`).join('')}</table></div><p class="small muted">${A.rows.length+(A.soc||[]).length}개</p>`;
+  return h+'</div>';};
+ document.addEventListener('click',async ev=>{const b=ev.target.closest&&ev.target.closest('[data-acl]');if(!b)return;const A=AD.acl||(AD.acl={});
+  if(b.dataset.acl==='hide'){A.rows=null;A.soc=null;try{keepScroll('admin',admin);}catch(e){}return;}
+  const tk=window.NK_RT&&NK_RT.adminToken;if(!tk){A.err='최고관리자 로그인이 필요해요 (실시간 서버 관리자 로그인)';try{keepScroll('admin',admin);}catch(e){}return;}
+  A.busy=1;A.err='';try{keepScroll('admin',admin);}catch(e){}
+  try{const r=await fetch(SV.api()+'/admin/accounts',{headers:{'X-Admin-Token':String(tk),'X-Owner':SV.cid()}});const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.ok)throw new Error(r.status===401?'관리자 확인에 실패했어요. 다시 로그인해 주세요':'목록을 불러오지 못했어요');A.rows=j.rows||[];A.soc=j.soc||[];}catch(e){A.err=e.message;}
+  A.busy=0;try{keepScroll('admin',admin);}catch(e){}});
  function admin(){if(!NK_ADM.ok()&&!OPM())return;staffSync();if(window.NK_RT&&NK_RT.who&&(!AD._whoAt||Date.now()-AD._whoAt>5000)){AD._whoAt=Date.now();NK_RT.who();}if((!AD._rtAt||Date.now()-AD._rtAt>4000)&&window.NK_RT&&NK_RT.refresh){AD._rtAt=Date.now();NK_RT.refresh(2000).then(()=>{const el=$('admin');if(el&&el.classList.contains('show')&&(AD.tab==='user'||AD.tab==='dash'))keepScroll('admin',admin);});}let m=$('admin');if(!m){m=document.createElement('div');m.id='admin';m.className='modal';document.body.appendChild(m);}
   const tabs=[['dash','대시보드'],['user','유저'],['rep','신고·도배'],['rec','아이템 복구'],['op','운영자'],['time','시간·날씨'],['map','맵'],['duck','오리'],['bal','밸런스'],['ev','이벤트'],['ann','서버 공지'],['prof','비속어'],['look','화면·시안'],['lab','🧪 테스트 기능'],['title','🏷 칭호'],['test','테스트·디버그']].filter(([k])=>NK_ADM.ok()||can(TABP[k]));if(!tabs.length)return toast('받은 운영 권한이 없어요',2000);if(!tabs.some(t=>t[0]===AD.tab))AD.tab=tabs[0][0];let body='';
   const st=stat(),chs=Array.from({length:CH.n},(_,i)=>i+1);
@@ -3461,7 +3538,7 @@ V14=(()=>{
     else if(op==='mute'||op==='ban')panel=`<div class="adbox"><div class="adform"><b>${op==='mute'?'🔇 채팅 금지':'⛔ 정지'} · ${esc(n)}</b><label>시간(분) <input type="number" id="sM" min="1" value="${op==='mute'?60:600}"></label><span class="qk">${(op==='mute'?[[10,'10분'],[60,'1시간'],[1440,'1일']]:[[60,'1시간'],[600,'10시간'],[1440,'1일'],[10080,'7일'],[14400,'10일']]).map(([v,t])=>`<button type="button" class="sm" data-sm="${v}">${t}</button>`).join('')}</span><b id="sMv" class="small"></b><label class="w">사유 <input id="sR" placeholder="${op==='mute'?'예: 도배':'예: 비매너 반복'}"></label><button class="acc" data-ua="${op}" data-n="${esc(n)}">적용</button><button data-ua="close">취소</button></div></div>`;
     else if(op==='af')panel=`<div class="adbox"><div class="adform"><b>🤖 자동낚시 · ${esc(n)}에게만</b><label>분 <input type="number" id="afM" min="1" value="60"></label><span class="qk">${[[30,'30분'],[60,'1시간'],[180,'3시간'],[1440,'1일'],[10080,'7일']].map(([v,t])=>`<button type="button" class="sm" data-afm2="${v}">${t}</button>`).join('')}</span><button class="acc" data-ua="af" data-n="${esc(n)}" data-id="${esc(u.id||'')}">주기</button><button data-ua="afx" data-n="${esc(n)}" data-id="${esc(u.id||'')}">회수</button><button data-ua="close">취소</button></div></div>`;}}
    const nkBox=can('give')?`<div class="adrow"><b class="small" style="white-space:nowrap">🎁 닉네임으로 지급</b><input id="gNick" placeholder="다른 호숫가·달 유저 닉네임" style="flex:1;min-width:0"><button type="button" class="sm" data-gnick>지급 창 열기</button></div>`:'';
-   body=`${afBox}${nkBox}${AD.back?`<p class="adback"><button class="sm" data-adback>← 대시보드로 돌아가기</button> <span class="small muted">${SRVN(AD.chView||AD.ch)} 접속 유저 목록에서 왔어요</span></p>`:''}<div class="adrow"><span class="segs">${chs.map(c=>`<button data-uch="${c}" class="${AD.ch===c?'on':''}">${SRVN(c)} <small>${chLabel(c)}</small></button>`).join('')}</span><input id="uQ" placeholder="닉네임 검색" value="${esc(AD.uq)}"></div>${AD.ch!==CH.me&&!(window.NK_RT&&NK_RT.whoRooms&&NK_RT.whoRooms[AD.ch])?`<p class="small muted">유저 목록을 불러오는 중이에요…</p>`:(window.NK_RT&&NK_RT.status&&NK_RT.status()==='on'?'':'<p class="small muted">혼자 플레이 중이에요. 봇은 목록에 넣지 않아요.</p>')}
+   body=`${afBox}${nkBox}${aclHTML()}${AD.back?`<p class="adback"><button class="sm" data-adback>← 대시보드로 돌아가기</button> <span class="small muted">${SRVN(AD.chView||AD.ch)} 접속 유저 목록에서 왔어요</span></p>`:''}<div class="adrow"><span class="segs">${chs.map(c=>`<button data-uch="${c}" class="${AD.ch===c?'on':''}">${SRVN(c)} <small>${chLabel(c)}</small></button>`).join('')}</span><input id="uQ" placeholder="닉네임 검색" value="${esc(AD.uq)}"></div>${AD.ch!==CH.me&&!(window.NK_RT&&NK_RT.whoRooms&&NK_RT.whoRooms[AD.ch])?`<p class="small muted">유저 목록을 불러오는 중이에요…</p>`:(window.NK_RT&&NK_RT.status&&NK_RT.status()==='on'?'':'<p class="small muted">혼자 플레이 중이에요. 봇은 목록에 넣지 않아요.</p>')}
    <table class="adt"><tr><th>닉네임</th><th>Lv</th><th>상태</th><th>기기</th><th>오늘 접속</th><th>작업</th></tr>${rows||`<tr><td colspan="6" class="muted">접속 중인 실유저가 없어요</td></tr>`}</table>${U.length>60?`<p class="small muted">외 ${U.length-60}명 · 닉네임으로 검색하세요</p>`:''}${panel}`;}
   if(AD.tab==='rec'){const R=AD.rq,seen=new Set(),lg=[];ILOG.all().concat(lostItems()).concat(AD.roomLoss||[]).forEach(e=>{if(!e||seen.has(e.id))return;seen.add(e.id);lg.push(e);});const since=R.days?Date.now()-R.days*864e5:0,L=lg.filter(e=>e.t>=since&&(!R.type||e.type===R.type)&&(!R.cat||e.cat===R.cat)&&(!R.who||String(e.who).includes(R.who))&&(!R.q||ILN(e).replace(/<[^>]+>/g,'').includes(R.q)));
    body=ufHTML()+`<h4 style="margin:14px 0 4px">이 기기 · 접속 중 유저의 기록</h4><p class="small muted">판매·분해·합성 재료·일괄 판매 기록과, 접속 중인 다른 유저가 올린 손실 기록을 함께 보여줘요. 복구는 그 닉네임에게 서버로 넣어요. 지금 없으면 들어올 때 받아요.</p>
@@ -5198,6 +5275,7 @@ PHOOK.unshift(()=>{if(SEABOOT||!me||!rawWalk||!isTurK(VW.mk))return;if(isTurK(S.
 {const _r=robShopHTML;robShopHTML=function(k,F,o){const h=_r.apply(this,arguments);if(k!=='turtle')return h;return h.replace(`속도 +${F.spd}%`,`🐢 땅 +${F.spd}% · 🌊 물 +${F.spdW}%`);};}
 window.NK89.turtle={turWater,turNow};
 // v162 ── 👑 이 주의 낚시왕 보상: 지난주 내 서버 종합 점수(어종마다 '내 최고 크기 ÷ 그 어종 최대 크기'를 더한 값) 1~3위에게 월요일에 보상
+LAB.push({k:'socLogin',n:'🔗 간편 로그인 · QR 기기 연결',scope:'all',d:'시작 화면에 구글·카카오 로그인 버튼, 저장 창 › 다른 기기에 간편 로그인 연결과 📱 QR 연결이 생겨요. 기존 닉네임+비밀번호·저장 코드는 그대로 써요',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'wkKing',n:'👑 이 주의 낚시왕 보상',scope:'all',d:'매주 월요일 0시(한국시간)에 지난주 서버 종합 1~3위가 다음 접속 때 보상을 받아요. 점수 = 어종마다 (내 최고 크기 ÷ 그 어종 최대 크기)를 모두 더한 값 → 많은 어종을, 크게 낚을수록 높아요. 조건: 지난주 5종 이상 기록 · 그 서버 참가자 3명 이상. 1위 신화 상자+전설 상자+3만 골드+강화석 20 · 2위 전설 상자 2+1만5천 골드+강화석 10 · 3위 전설 상자 1+8천 골드+강화석 5',o:[['on','켜기 (기본)'],['off','끄기']]});
 const WKK_RW=[null,{bx:[5,4],co:30000,st:20},{bx:[4,4],co:15000,st:10},{bx:[4],co:8000,st:5}],WKK_MIN={sp:5,ppl:3};
 function wkkRank(rows){const sc={},sp={};(rows||[]).forEach(x=>{const f=FI(x.k);if(!f||!f.max)return;const k=x.me?'__me':x.n;sc[k]=(sc[k]||0)+Math.min(1.2,x.cm/f.max);sp[k]=(sp[k]|0)+1;});const L=Object.keys(sc).sort((a,b)=>sc[b]-sc[a]);return {L,sc,sp};}

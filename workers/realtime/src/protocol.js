@@ -1074,6 +1074,7 @@ export function sanitizePlay(input, prev, opt) {
   for (const k of ["jet", "ufo", "boats2", "alienPet", "seaTown", "hyper", "turtle", "tfx", "taxi", "boat", "star5", "skyIsland", "jump", "camFx", "fitUi", "vbUser", "tankGrp", "wearFuse", "hunger"]) if (k in input) out[k] = pickOf(input[k], ["off", "on"]);
   // v162: 👑 이 주의 낚시왕 보상 (기본 켜짐)
   if ("wkKing" in input) out.wkKing = pickOf(input.wkKing, ["on", "off"]);
+  if ("socLogin" in input) out.socLogin = pickOf(input.socLogin, ["off", "on"]);
   for (const k of ["moonRabbit", "moonRice", "moonLander", "moonRover", "moonMeteor", "moonJump"]) if (k in input) out[k] = pickOf(input[k], ["on", "off"]);
   if ("moonView" in input) out.moonView = pickOf(input.moonView, ["1", "2", "3"]);
   if ("seaLook" in input) out.seaLook = pickOf(input.seaLook, ["W", "0", "A", "B", "C", "Cs"]);
