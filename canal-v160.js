@@ -32,13 +32,16 @@ const COLK=['skyTop','skyMid','skyHor','fog','sun','disc','hemS','hemG','deep','
 function prep(s){const o={};for(const k in s)o[k]=COLK.includes(k)?L(s[k]):s[k];return o;}
 
 function build(T,opt){opt=opt||{};const OX=opt.ox||0;
+/* v163: 휴대폰(lite)은 빛 계산이 가벼운 재질(Phong)을 써요 — 픽셀마다 하는 계산이 가장 무거웠어요. 거칠기·금속값은 합치기용으로만 남겨요 */
+class LiteMat extends T.MeshPhongMaterial{constructor(p){p=Object.assign({},p||{});const ro=p.roughness,me=p.metalness;delete p.roughness;delete p.metalness;super(Object.assign({shininess:ro!=null?Math.max(2,(1-ro)*60):10,specular:ro!=null&&ro<.4?0x303030:0x121212},p));this.roughness=ro!=null?ro:1;this.metalness=me||0;}}
+const MSM=opt.lite?LiteMat:T.MeshStandardMaterial;
 const ST={};for(const k in S0)ST[k]=prep(S0[k]);
 const cur=prep(S0.day),from=prep(S0.day);let to=ST.day,tB=1,tD=1,curName='day';
 let seed=11;const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646;};const R=(a,b)=>a+(b-a)*rnd();
 const OBS=[],DECKR=[];const ob=(x,z,r)=>OBS.push([x,z,r]);
 const root=new T.Group();root.name='canal';root.position.x=OX;
 const U={t:{value:0}};const MM={};
-const M=(c,o)=>{const k=c+JSON.stringify(o||{});return MM[k]||(MM[k]=new T.MeshStandardMaterial(Object.assign({color:L(c),roughness:.85,metalness:0,flatShading:true},o||{})));};
+const M=(c,o)=>{const k=c+JSON.stringify(o||{});return MM[k]||(MM[k]=new MSM(Object.assign({color:L(c),roughness:.85,metalness:0,flatShading:true},o||{})));};
 const add=(g,geo,m,x,y,z,ry)=>{const o=new T.Mesh(geo,typeof m==='string'?M(m):m);o.position.set(x,y,z);if(ry)o.rotation.y=ry;o.castShadow=o.receiveShadow=true;g.add(o);return o;};
 const bx=(g,w,h,d,m,x,y,z,ry)=>add(g,new T.BoxGeometry(w,h,d),m,x,y,z,ry);
 const BG=T.BufferGeometryUtils;const merge=a=>BG.mergeBufferGeometries(a.map(g=>g.index?g.toNonIndexed():g));
@@ -71,28 +74,32 @@ const cloudM=new T.MeshBasicMaterial({color:cur.cloud,fog:false,transparent:true
  [[-160,-430],[-90,-470],[150,-440],[220,-400],[-230,-380],[90,-500],[260,-480]].forEach(([x,z],i)=>{const h=add(root,new T.ConeGeometry(R(40,70),R(12,30),6),M('#8494a8'),x,4,z);h.castShadow=false;h.scale.y=.8;});}
 // ── 물 (거울 반사 + 나전 물결 + 금빛 반짝임 + 빗방울 고리) ──
 const RT=new T.WebGLRenderTarget(512,512,{encoding:T.LinearEncoding});const texMat=new T.Matrix4();
-const wU=Object.assign(T.UniformsUtils.clone(T.UniformsLib.fog),{tRef:{value:RT.texture},texMat:{value:texMat},t:U.t,deep:{value:cur.deep},shal:{value:cur.shal},mirror:{value:.5},wave:{value:.5},nacre:{value:.5},glint:{value:.5},sunD:{value:new T.Vector3()},sunC:{value:cur.sun},rain:{value:0}});
-const water=new T.Mesh(new T.PlaneGeometry(1400,1400,1,1),new T.ShaderMaterial({uniforms:wU,fog:true,depthWrite:false,
+const wU=Object.assign(T.UniformsUtils.clone(T.UniformsLib.fog),{tRef:{value:RT.texture},texMat:{value:texMat},t:U.t,deep:{value:cur.deep},shal:{value:cur.shal},mirror:{value:.5},wave:{value:.5},nacre:{value:.5},glint:{value:.5},sunD:{value:new T.Vector3()},sunC:{value:cur.sun},rain:{value:0},org:{value:new T.Vector2(OX,0)}});
+const water=new T.Mesh(new T.PlaneGeometry(1400,1400,1,1),new T.ShaderMaterial({uniforms:wU,fog:true,depthWrite:false,precision:'highp',
  vertexShader:'uniform mat4 texMat;varying vec4 vR;varying vec3 vW;\n#include <fog_pars_vertex>\nvoid main(){vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;vR=texMat*w;vec4 mvPosition=viewMatrix*w;gl_Position=projectionMatrix*mvPosition;\n#include <fog_vertex>\n}',
- fragmentShader:`uniform sampler2D tRef;uniform float t,mirror,wave,nacre,glint,rain;uniform vec3 deep,shal,sunD,sunC;varying vec4 vR;varying vec3 vW;
+ fragmentShader:`uniform sampler2D tRef;uniform float t,mirror,wave,nacre,glint,rain;uniform vec3 deep,shal,sunD,sunC;uniform vec2 org;varying vec4 vR;varying vec3 vW;
 #include <fog_pars_fragment>
-float h2(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
-float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h2(i),h2(i+vec2(1,0)),f.x),mix(h2(i+vec2(0,1)),h2(i+vec2(1,1)),f.x),f.y);}
-float H(vec2 p){return vn(p*.55+vec2(t*.12,t*.05))*.6+vn(p*1.3-vec2(t*.09,-t*.11))*.3+vn(p*3.1+vec2(t*.2,0.))*.12;}
+// v163: 휴대폰에서 물에 줄(경계선)이 생기던 문제 — 마을이 x=700 쯤에 있어서 sin 해시가 휴대폰 GPU에서 뭉개졌어요.
+//  운하 기준 좌표(p = 월드 − 마을 중심) + sin 없는 해시 + 값과 기울기를 한 번에 구하는 노이즈(예전엔 노이즈 9번 → 3번)
+float h2(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
+vec3 vnd(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f),du=6.*f*(1.-f);float a=h2(i),b=h2(i+vec2(1,0)),c=h2(i+vec2(0,1)),d=h2(i+vec2(1,1));float k=a-b-c+d;
+ return vec3(a+(b-a)*u.x+(c-a)*u.y+k*u.x*u.y,du*(vec2(b-a,c-a)+k*u.yx));}
+float vn(vec2 p){return vnd(p).x;}
 vec3 hsv(float h,float s,float v){vec3 k=clamp(abs(mod(h*6.+vec3(0,4,2),6.)-3.)-1.,0.,1.);return v*mix(vec3(1),k,s);}
-void main(){vec2 p=vW.xz;float e=.08;float h=H(p);vec2 g=vec2(H(p+vec2(e,0))-h,H(p+vec2(0,e))-h)/e;
+void main(){vec2 p=vW.xz-org;float tt=mod(t,600.);vec3 A=vnd(p*.55+vec2(tt*.12,tt*.05)),B=vnd(p*1.3-vec2(tt*.09,-tt*.11)),Cc=vnd(p*3.1+vec2(tt*.2,0.));
+ float h=A.x*.6+B.x*.3+Cc.x*.12;vec2 g=A.yz*.33+B.yz*.39+Cc.yz*.372;
  // 빗방울 고리
  vec2 rg=vec2(0.);if(rain>.01){for(int k=0;k<2;k++){vec2 q=p*(1.3+float(k)*.7)+float(k)*7.3;vec2 id=floor(q),f=fract(q)-.5;float r0=h2(id+float(k));float ph=fract(t*.9+r0);float d=length(f+vec2(r0-.5,h2(id*1.7)-.5)*.5);float ring=sin((d-ph*.5)*40.)*smoothstep(.06,.0,abs(d-ph*.5))*(1.-ph);rg+=normalize(f+1e-4)*ring*rain;}}
  vec3 N=normalize(vec3(-g.x*wave*.9-rg.x*.6,1.,-g.y*wave*.9-rg.y*.6));vec3 V=normalize(cameraPosition-vW);
  float fr=.18+.82*pow(1.-max(dot(N,V),0.),3.);
- vec2 uv=vR.xy/vR.w+vec2(N.x*.05,N.z*.12)*(wave+.25+rain*.5);vec3 ref=texture2D(tRef,uv).rgb;
+ vec2 uv=clamp(vR.xy/vR.w+vec2(N.x*.05,N.z*.12)*(wave+.25+rain*.5),.003,.997);vec3 ref=texture2D(tRef,uv).rgb;
  float dist=length(cameraPosition.xz-p);vec3 base=mix(shal,deep,smoothstep(4.,60.,dist)*.7+.3*h);
  vec3 c=mix(base,ref,clamp(mirror*(.55+.45*fr),0.,1.));
  // 나전(자개) 물결: 물결 마루를 따라 분홍·청록·금빛으로 바뀌는 띠
- float band=pow(max(0.,sin(h*14.+p.x*.15+t*.4)),5.)*smoothstep(.15,.9,fr+.25);
- vec3 iri=hsv(fract(h*1.7+p.x*.021+p.y*.013+t*.02),.55,1.);c+=iri*band*nacre*.38;
+ float band=pow(max(0.,sin(h*14.+p.x*.15+tt*.4)),5.)*smoothstep(.15,.9,fr+.25);
+ vec3 iri=hsv(fract(h*1.7+p.x*.021+p.y*.013+tt*.02),.55,1.);c+=iri*band*nacre*.38;
  // 금빛 반짝임 (해 쪽)
- vec3 Rf=reflect(-V,N);float s=pow(max(dot(Rf,normalize(sunD)),0.),90.);float sp=step(.86,vn(p*9.+t*.7))*pow(max(dot(Rf,normalize(sunD)),0.),18.);
+ vec3 Rf=reflect(-V,N);float s=pow(max(dot(Rf,normalize(sunD)),0.),90.);float sp=step(.86,vn(p*9.+tt*.7))*pow(max(dot(Rf,normalize(sunD)),0.),18.);
  c+=sunC*glint*(s*1.6+sp*1.4);
  gl_FragColor=vec4(c,1.);
 #include <encodings_fragment>
@@ -100,7 +107,7 @@ void main(){vec2 p=vW.xz;float e=.08;float h=H(p);vec2 g=vec2(H(p+vec2(e,0))-h,H
 }`}));
 water.rotation.x=-Math.PI/2;water.position.set(0,0,-500);water.renderOrder=1;water.userData.noMirror=1;water.receiveShadow=false;root.add(water);
 // ── 물가 · 벽 · 땅 ──
-const quayM=new T.MeshStandardMaterial({color:cur.quay.clone(),roughness:.9,flatShading:true});
+const quayM=new MSM({color:cur.quay.clone(),roughness:.9,flatShading:true});
 [-1,1].forEach(s=>{const q=add(root,new T.BoxGeometry(60,1,174),quayM,s*(CW+30),QY-.5,-43);
  bx(root,.6,2.4,174,'#8a7c6a',s*(CW+.3),QY-1.2,-43);
  // 물가 덮개돌
@@ -163,8 +170,8 @@ inst(bodyG,M('#ffffff'),bodyL);inst(gabAG,M('#ffffff'),gabA);inst(gabBG,M('#ffff
 inst(archG,M('#ffffff'),frameL,false);inst(UB,M('#ffffff'),trimL,false);inst(archG,M('#ffffff'),doorF,false);inst(archG,M('#ffffff'),doorL,false);inst(UB,M('#ffffff'),awnL);inst(UB,M('#ffffff'),shutL,false);
 inst(roundG,M('#ffffff'),rwF,false);inst(UB,M('#ffffff'),boxL,false);inst(new T.IcosahedronGeometry(1,0),M('#ffffff'),flowL,false);inst(new T.IcosahedronGeometry(1,1),M('#ffffff'),bushL,false);
 inst(new T.CylinderGeometry(.5,.38,1,8),M('#ffffff'),potL,false);
-const winM=new T.MeshStandardMaterial({color:L('#3a5a7a'),emissive:L('#ffa848'),emissiveIntensity:0,roughness:.25,metalness:.1});
-const winM2=new T.MeshStandardMaterial({color:L('#3a5a7a'),emissive:L('#ffb050'),emissiveIntensity:0,roughness:.25,metalness:.1});
+const winM=new MSM({color:L('#3a5a7a'),emissive:L('#ffa848'),emissiveIntensity:0,roughness:.25,metalness:.1});
+const winM2=new MSM({color:L('#3a5a7a'),emissive:L('#ffb050'),emissiveIntensity:0,roughness:.25,metalness:.1});
 inst(archG,winM,winL,false);inst(archG,winM2,winD,false);inst(roundG,winM,rwL,false);inst(roundG,winM2,rwD,false);
 // ── 나무 · 화분 ──
 {const put=(x,z,s)=>tree(x,z,s);
@@ -172,7 +179,7 @@ inst(archG,winM,winL,false);inst(archG,winM2,winD,false);inst(roundG,winM,rwL,fa
  for(let i=0;i<14;i++)put(R(-36,-12),R(-150,-136),R(.8,1.2));for(let i=0;i<8;i++)put(R(12,34),R(-138,-132),R(.8,1.2));
  inst(new T.CylinderGeometry(.5,.6,1,6),M('#ffffff'),trunks);var treeI=inst(new T.IcosahedronGeometry(1,1),M('#ffffff'),trees);}
 // ── 가로등 (인스턴싱) ──
-const lampHM=new T.MeshStandardMaterial({color:L('#fff0c8'),emissive:L('#ffcf7a'),emissiveIntensity:0,roughness:.4});
+const lampHM=new MSM({color:L('#fff0c8'),emissive:L('#ffcf7a'),emissiveIntensity:0,roughness:.4});
 const lampPts=[];{const po=[],ar=[],hd=[],cap=[];[-1,1].forEach(s=>{for(let z=8;z>-128;z-=9){const x=s*(CW+1.1);po.push([x,QY+1.6,z,0,[.12,3.2,.12],'#2c2c34']);hd.push([x,QY+3.35,z,0,[.42,.55,.42]]);cap.push([x,QY+3.72,z,0,[.55,.2,.55],'#2c2c34']);lampPts.push(new T.Vector3(x,QY+3.35,z));ob(x,z,.32);}});
  inst(new T.CylinderGeometry(1,1.3,1,6),M('#ffffff'),po);inst(new T.CylinderGeometry(.5,.6,1,6),M('#ffffff'),cap);inst(UB,lampHM,hd,false);}
 // 가로등 빛무리 (점 묶음 1번 그리기)
@@ -210,7 +217,7 @@ const TW=new T.Group();TW.position.set(13.4,QY,-61);root.add(TW);
 const LHP=[-11,1,-150];const LH=new T.Group();LH.position.set(...LHP);root.add(LH);
 const beamU={op:{value:0},t:U.t};let beam;
 {for(let i=0;i<6;i++){const r0=1.9-i*.12,r1=1.9-(i+1)*.12;add(LH,new T.CylinderGeometry(r1,r0,2,10),i%2?'#d84a42':'#f6f2ea',0,1+i*2,0);}
- add(LH,new T.CylinderGeometry(1.7,1.7,.3,12),'#3a3a44',0,12.15,0);const lamp=add(LH,new T.CylinderGeometry(.9,.9,1.6,8),new T.MeshStandardMaterial({color:L('#fff4c8'),emissive:L('#ffe08a'),emissiveIntensity:.6}),0,13.1,0);LH.userData.lamp=lamp;
+ add(LH,new T.CylinderGeometry(1.7,1.7,.3,12),'#3a3a44',0,12.15,0);const lamp=add(LH,new T.CylinderGeometry(.9,.9,1.6,8),new MSM({color:L('#fff4c8'),emissive:L('#ffe08a'),emissiveIntensity:.6}),0,13.1,0);LH.userData.lamp=lamp;
  add(LH,new T.ConeGeometry(1.2,1.3,8),'#d84a42',0,14.55,0);add(LH,new T.CylinderGeometry(.9,.95,1.2,8),'#f6f2ea',-1.9,.6,1.6);
  const bg=new T.ConeGeometry(2.6,60,16,1,true);bg.translate(0,-30,0);bg.rotateZ(Math.PI/2);
  const bm=new T.ShaderMaterial({uniforms:beamU,transparent:true,depthWrite:false,blending:T.AdditiveBlending,side:T.DoubleSide,fog:false,
@@ -225,7 +232,7 @@ const DK={x0:-CW,x1:-2.0,z0:-1.4,z1:4.6,y:.62};
  const kn=[];for(let x=DK.x0+.6;x<DK.x1;x+=1.0)kn.push([x,DK.y+.1,DK.z0+.12,0,[.16,.08,.16],'#6a4a30']);inst(UB,M('#ffffff'),kn,false);
  bx(root,DK.x1-DK.x0,.22,.22,'#8a5a36',(DK.x0+DK.x1)/2,DK.y+.02,DK.z0+.05);}
 const lampPts2=[];const dLan=new T.Group();dLan.position.set(DK.x0+1.0,DK.y,DK.z0+.5);root.add(dLan);
-const dLanM=new T.MeshStandardMaterial({color:L('#fff0c0'),emissive:L('#ffc060'),emissiveIntensity:0,transparent:true,opacity:.92});
+const dLanM=new MSM({color:L('#fff0c0'),emissive:L('#ffc060'),emissiveIntensity:0,transparent:true,opacity:.92});
 {bx(dLan,.18,1.6,.18,'#2c2c34',0,.8,0);bx(dLan,.5,.08,.5,'#2c2c34',0,1.62,0);bx(dLan,.4,.5,.4,dLanM,0,1.92,0);bx(dLan,.52,.1,.52,'#2c2c34',0,2.2,0);}
 var dGlow=glowPoints([new T.Vector3(DK.x0+1.0,DK.y+1.92,DK.z0+.5)],'#ffc060',5);ob(DK.x0+1.0,DK.z0+.5,.3);ob(DK.x0+1.1,DK.z0+.9,.6);ob(DK.x0+.7,DK.z0+1.7,.3);DECKR.push([DK.x0,DK.x1,DK.z0,DK.z1,Math.PI]);
 // ── 낚시 자리 배치 (opt.seats = 25 여유·코지 | 50 촘촘) ──
@@ -251,7 +258,7 @@ if(SEATN===50)seats.push({pos:new T.Vector3(DK.x1-2.4,DK.y+.07,DK.z0+.15),dir:Ma
    for(let k=0;k<3;k++)fl.push([px+R(-.12,.12),DY+1.15,pz+R(-.12,.12),0,[.11,.11,.11],['#ff7a9a','#ffd04a','#ffffff'][k]]);}
  });
  inst(UB,M('#ffffff'),pl);inst(UB,M('#ffffff'),po);inst(new T.CylinderGeometry(1,1.2,1,6),M('#ffffff'),lp);inst(UB,M('#ffffff'),lc);inst(UB,dLanM,lg,false);
- inst(UB,new T.MeshStandardMaterial({color:L('#bfe8f0'),transparent:true,opacity:.3,roughness:.05}),tg,false);inst(UB,M('#ffffff'),tf);
+ inst(UB,new MSM({color:L('#bfe8f0'),transparent:true,opacity:.3,roughness:.05}),tg,false);inst(UB,M('#ffffff'),tf);
  if(rug.length){inst(new T.CylinderGeometry(1,1,1,16),M('#ffffff'),rug,false);inst(new T.CylinderGeometry(.5,.4,1,8),M('#ffffff'),pot);inst(new T.ConeGeometry(.07,.8,4),M('#ffffff'),leaf,false);inst(new T.IcosahedronGeometry(1,0),M('#ffffff'),fl,false);}
 }
 var dGlow2=glowPoints(lampPts2,'#ffc060',4);
@@ -264,8 +271,8 @@ var dGlow2=glowPoints(lampPts2,'#ffc060',4);
 // 어항 + 참돔
 const fishTex=opt.fishAtlas?new T.TextureLoader().load(opt.fishAtlas):null;if(fishTex)fishTex.encoding=T.sRGBEncoding;
 {const tk=new T.Group();tk.position.set(DK.x0+1.1,DK.y+.07,DK.z0+.9);tk.scale.setScalar(.85);root.add(tk);bx(tk,1.3,.12,.8,'#3a5a66',0,.06,0);bx(tk,1.3,.06,.8,'#5a8a96',0,.96,0);
- const gl=new T.Mesh(new T.BoxGeometry(1.24,.84,.74),new T.MeshStandardMaterial({color:L('#bfe8f0'),transparent:true,opacity:.28,roughness:.05}));gl.position.y=.52;tk.add(gl);
- const wq=new T.Mesh(new T.BoxGeometry(1.2,.6,.7),new T.MeshStandardMaterial({color:L('#7fc8e0'),transparent:true,opacity:.35}));wq.position.y=.42;tk.add(wq);
+ const gl=new T.Mesh(new T.BoxGeometry(1.24,.84,.74),new MSM({color:L('#bfe8f0'),transparent:true,opacity:.28,roughness:.05}));gl.position.y=.52;tk.add(gl);
+ const wq=new T.Mesh(new T.BoxGeometry(1.2,.6,.7),new MSM({color:L('#7fc8e0'),transparent:true,opacity:.35}));wq.position.y=.42;tk.add(wq);
  if(fishTex){const t2=fishTex.clone();t2.needsUpdate=true;t2.repeat.set(.25,1/3);t2.offset.set(.75,1/3);const f=new T.Mesh(new T.PlaneGeometry(.75,.38),new T.MeshBasicMaterial({map:t2,transparent:true,alphaTest:.3}));f.position.set(0,.5,.05);tk.add(f);tk.userData.fish=f;}}
 // 물가 갈대·풀 (앞쪽)
 {const rd=[];for(let i=0;i<60;i++){const s=rnd()<.6?-1:1;rd.push([s*(CW+R(.6,2.2)),QY+.35,R(-6,9),R(0,3),[R(.6,1),R(.8,1.4),R(.6,1)],rnd()<.5?'#5a9a48':'#7ab85a',R(-.25,.25)]);}
@@ -273,11 +280,11 @@ const fishTex=opt.fishAtlas?new T.TextureLoader().load(opt.fishAtlas):null;if(fi
 // ── 수상 시장 (오른쪽 물가 노점 + 배) ──
 function stripeTex(a,b){return canvasTex(64,16,(x,w,h)=>{for(let i=0;i<8;i++){x.fillStyle=i%2?a:b;x.fillRect(i*8,0,8,h);}x.fillStyle='rgba(0,0,0,.15)';x.fillRect(0,h-3,w,3);});}
 const stripes=[stripeTex('#e8584a','#fff4e6'),stripeTex('#3a8a8a','#fff4e6'),stripeTex('#3a6ab8','#fff4e6'),stripeTex('#e8a83a','#fff4e6')];
-const lanternM=new T.MeshStandardMaterial({color:L('#fff0d8'),emissive:L('#ffb060'),emissiveIntensity:.15,roughness:.6});const lanPts=[];
+const lanternM=new MSM({color:L('#fff0d8'),emissive:L('#ffb060'),emissiveIntensity:.15,roughness:.6});const lanPts=[];
 function stall(x,z,ry,k){ob(x,z-.75,.95);ob(x,z+.75,.95);const g=new T.Group();g.position.set(x,QY,z);g.rotation.y=ry;root.add(g);
  [[-1.2,-.8],[1.2,-.8],[-1.2,.8],[1.2,.8]].forEach(([a,b])=>bx(g,.14,2.6,.14,'#7a5232',a,1.3,b));bx(g,2.6,.9,1.4,'#b8814e',0,.45,.2);bx(g,2.7,.1,1.5,'#d8a870',0,.92,.2);
- const aw=new T.Mesh(new T.BoxGeometry(2.9,.08,2.0),[M('#e8e0d0'),M('#e8e0d0'),new T.MeshStandardMaterial({map:stripes[k%4],roughness:.8}),M('#e8e0d0'),M('#e8e0d0'),M('#e8e0d0')]);aw.position.set(0,2.7,.1);aw.rotation.x=-.18;aw.castShadow=true;g.add(aw);
- const fr=new T.Mesh(new T.BoxGeometry(2.9,.35,.04),new T.MeshStandardMaterial({map:stripes[k%4]}));fr.position.set(0,2.45,1.12);g.add(fr);
+ const aw=new T.Mesh(new T.BoxGeometry(2.9,.08,2.0),[M('#e8e0d0'),M('#e8e0d0'),new MSM({map:stripes[k%4],roughness:.8}),M('#e8e0d0'),M('#e8e0d0'),M('#e8e0d0')]);aw.position.set(0,2.7,.1);aw.rotation.x=-.18;aw.castShadow=true;g.add(aw);
+ const fr=new T.Mesh(new T.BoxGeometry(2.9,.35,.04),new MSM({map:stripes[k%4]}));fr.position.set(0,2.45,1.12);g.add(fr);
  for(let i=0;i<3;i++){const b=add(g,new T.CylinderGeometry(.3,.24,.26,8),'#c8945a',-.8+i*.8,1.1,.25);const col=k%2?['#ff8a3a','#e84a4a','#ffd04a'][i]:'#c8d4dc';for(let j=0;j<5;j++)add(g,new T.IcosahedronGeometry(.11,0),col,-.8+i*.8+R(-.12,.12),1.27,.25+R(-.12,.12)).castShadow=false;}
  if(fishTex&&k%2===0){const t2=fishTex.clone();t2.needsUpdate=true;t2.repeat.set(.25,1/3);t2.offset.set(.0,2/3);const f=new T.Mesh(new T.PlaneGeometry(1.1,.5),new T.MeshBasicMaterial({map:t2,transparent:true,alphaTest:.3}));f.position.set(0,3.25,1.0);g.add(f);bx(g,1.4,.7,.06,'#8a5a36',0,3.25,.96);}
  [-1.2,1.2].forEach(a=>{const l=add(g,new T.SphereGeometry(.22,8,6),lanternM,a,2.2,1.0);l.scale.y=1.3;l.castShadow=false;const v=new T.Vector3(a,2.2,1.0);g.updateMatrixWorld(true);lanPts.push(v.applyMatrix4(g.matrix));});return g;}
@@ -286,7 +293,7 @@ var lanGlow=glowPoints(lanPts,'#ffb060',1.6);
 const boats=[];function boat(x,z,k,awn){const g=new T.Group();g.position.set(x,0,z);root.add(g);
  const sh=new T.Shape();sh.moveTo(-2.2,.0);sh.quadraticCurveTo(-1.2,-.7,0,-.7);sh.quadraticCurveTo(1.2,-.7,2.4,.15);sh.lineTo(2.4,.55);sh.lineTo(-2.3,.55);
  const hg=new T.ExtrudeGeometry(sh,{depth:1.5,bevelEnabled:false});hg.translate(0,0,-.75);const hull=add(g,hg,k%2?'#8a5a36':'#3f6a8a',0,.1,0);bx(g,4.3,.12,1.6,'#c8945a',0,.62,0);
- if(awn){[[-1.4,-.65],[1.4,-.65],[-1.4,.65],[1.4,.65]].forEach(([a,b])=>bx(g,.08,1.5,.08,'#5a3a22',a,1.35,b));const aw=new T.Mesh(new T.BoxGeometry(3.2,.06,1.7),[M('#eee'),M('#eee'),new T.MeshStandardMaterial({map:stripes[(k+1)%4]}),M('#eee'),M('#eee'),M('#eee')]);aw.position.y=2.1;g.add(aw);}
+ if(awn){[[-1.4,-.65],[1.4,-.65],[-1.4,.65],[1.4,.65]].forEach(([a,b])=>bx(g,.08,1.5,.08,'#5a3a22',a,1.35,b));const aw=new T.Mesh(new T.BoxGeometry(3.2,.06,1.7),[M('#eee'),M('#eee'),new MSM({map:stripes[(k+1)%4]}),M('#eee'),M('#eee'),M('#eee')]);aw.position.y=2.1;g.add(aw);}
  for(let i=0;i<3;i++){bx(g,.6,.4,.6,'#b8814e',-1+i*.9,.88,R(-.3,.3));for(let j=0;j<4;j++)add(g,new T.IcosahedronGeometry(.1,0),['#ff8a3a','#e84a4a','#ffd04a','#9ad04a'][(i+j)%4],-1+i*.9+R(-.15,.15),1.12,R(-.2,.2)).castShadow=false;}
  g.rotation.y=Math.PI/2+R(-.25,.25);boats.push({g,ph:rnd()*6,z0:z,x0:x});return g;}
 boat(1.6,-12,0,1);boat(-1.4,-22,1,1);boat(1.8,-31,2,1);
@@ -296,13 +303,13 @@ boat(1.6,-12,0,1);boat(-1.4,-22,1,1);boat(1.8,-31,2,1);
  const gl=add(g,new T.BoxGeometry(.24,.3,.24),lanternM,2.2,1.4,0);gl.castShadow=false;g.rotation.y=Math.PI/2-.2;boats.push({g,ph:2,z0:-40,x0:-1.5,glide:1});var gonG=g;}
 // ── 연꽃 등불 (인스턴싱 36개 · 물길 따라 흘러가요) ──
 const LOT=36,lotus=[];const petal=(()=>{const a=[];for(let i=0;i<8;i++){const c=new T.ConeGeometry(.15,.42,4);c.translate(0,.21,0);c.rotateZ(-.75);c.translate(.12,0,0);c.rotateY(i/8*Math.PI*2);a.push(c);}for(let i=0;i<6;i++){const c=new T.ConeGeometry(.12,.36,4);c.translate(0,.18,0);c.rotateZ(-.35);c.translate(.06,.03,0);c.rotateY(i/6*Math.PI*2+.3);a.push(c);}return merge(a);})();
-const lotM=new T.MeshStandardMaterial({color:L('#ffd8b8'),emissive:L('#ff9a50'),emissiveIntensity:.3,roughness:.6,flatShading:true});const leafG=new T.CylinderGeometry(.55,.55,.04,10);
+const lotM=new MSM({color:L('#ffd8b8'),emissive:L('#ff9a50'),emissiveIntensity:.3,roughness:.6,flatShading:true});const leafG=new T.CylinderGeometry(.55,.55,.04,10);
 const lotI=new T.InstancedMesh(petal,lotM,LOT),leafI=new T.InstancedMesh(leafG,M('#4a8a48'),LOT);root.add(lotI,leafI);
 for(let i=0;i<LOT;i++)lotus.push({x:R(-3.6,3.6),z:R(-130,6),s:R(1.5,2.2),ph:rnd()*6,v:R(.25,.45)});
 const lotPts=new T.BufferGeometry();lotPts.setAttribute('position',new T.BufferAttribute(new Float32Array(LOT*3),3));{const rr=new Float32Array(LOT);for(let i=0;i<LOT;i++)rr[i]=rnd();lotPts.setAttribute('r',new T.BufferAttribute(rr,1));}
 const lotGlow=new T.Points(lotPts,lampGlow.material.clone());lotGlow.material.uniforms.c.value=L('#ffb050');lotGlow.material.uniforms.sz.value=2.6;lotGlow.material.uniforms.tw.value=.25;lotGlow.material.uniforms.t=U.t;lotGlow.frustumCulled=false;root.add(lotGlow);
 // ── 풍등 (밤) ──
-const SKL=30,skl=[];const sklI=new T.InstancedMesh(new T.CylinderGeometry(.42,.3,.75,6),new T.MeshStandardMaterial({color:L('#ffd8a0'),emissive:L('#ff9a40'),emissiveIntensity:1.2}),SKL);root.add(sklI);
+const SKL=30,skl=[];const sklI=new T.InstancedMesh(new T.CylinderGeometry(.42,.3,.75,6),new MSM({color:L('#ffd8a0'),emissive:L('#ff9a40'),emissiveIntensity:1.2}),SKL);root.add(sklI);
 for(let i=0;i<SKL;i++)skl.push({x:R(-40,40),z:R(-160,-30),y:R(4,70),v:R(.6,1.1),ph:rnd()*6});
 const sklPts=new T.BufferGeometry();sklPts.setAttribute('position',new T.BufferAttribute(new Float32Array(SKL*3),3));{const rr=new Float32Array(SKL);sklPts.setAttribute('r',new T.BufferAttribute(rr,1));}
 const sklGlow=new T.Points(sklPts,lampGlow.material.clone());sklGlow.material.uniforms.c.value=L('#ff9a40');sklGlow.material.uniforms.sz.value=5;sklGlow.material.uniforms.t=U.t;sklGlow.frustumCulled=false;root.add(sklGlow);
@@ -374,7 +381,7 @@ const rbM=new T.ShaderMaterial({uniforms:{op:rbU.op,t:U.t},transparent:true,dept
 const rbIn=new T.Mesh(new T.CircleGeometry(RBC2+RBH2+2,180,0,Math.PI),rbM);rbIn.position.set(10,-58,-430);rbIn.renderOrder=-4;rbIn.frustumCulled=false;root.add(rbIn);const rb1=rbIn,rb2=rbIn;
 // ── 오로라 v2: 하늘 돔에 그리는 주름진 커튼 (층마다 하늘 평면을 훑어 세로 빛줄기 + 노이즈 흐름, 초록→분홍) ──
 const auU={op:{value:0},t:U.t};
-const aur=new T.Mesh(new T.SphereGeometry(850,64,24,0,Math.PI*2,0,Math.PI*.52),new T.ShaderMaterial({uniforms:auU,side:T.BackSide,transparent:true,depthWrite:false,blending:T.AdditiveBlending,fog:false,
+const aur=new T.Mesh(new T.SphereGeometry(850,64,24,0,Math.PI*2,0,Math.PI*.52),new T.ShaderMaterial({uniforms:auU,defines:{AUN:(window.NK_GFX&&(NK_GFX.mob||NK_GFX.q==='low'))?14:36},side:T.BackSide,transparent:true,depthWrite:false,blending:T.AdditiveBlending,fog:false,
  vertexShader:'varying vec3 vW;void main(){vW=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*viewMatrix*vec4(vW,1.);}',
  fragmentShader:`uniform float op,t;varying vec3 vW;
 float h1(float x){return fract(sin(x*127.1)*43758.5453);}
@@ -388,7 +395,7 @@ vec3 curtain(vec2 p,float z0,float amp,float fq,float ph,float hi,float pinkish)
  float edge=smoothstep(-9.,-4.,x)*smoothstep(10.,5.,x);
  return vec3(band*rays*edge,hi,pinkish);}
 void main(){vec3 d=normalize(vW-cameraPosition);if(d.y<.015){gl_FragColor=vec4(0.);return;}
- vec3 acc=vec3(0.);const int N=36;float jt=fract(sin(dot(d.xz,vec2(1291.7,3197.3)))*43758.5);
+ vec3 acc=vec3(0.);const int N=AUN;float jt=fract(sin(dot(d.xz,vec2(1291.7,3197.3)))*43758.5);
  for(int i=0;i<N;i++){float fi=(float(i)+jt)/float(N);float hg=1.+fi*2.;vec2 p=d.xz/d.y*hg*.55+vec2(0.,0.);
   float lw=exp(-fi*2.6);float up=smoothstep(.15,.85,fi);
   vec3 g=vec3(.15,1.,.42),tq=vec3(.2,.95,.75),pk=vec3(1.,.32,.78),vi=vec3(.62,.36,1.);
@@ -425,7 +432,7 @@ const sunL=new T.DirectionalLight(0xffffff,1);sunL.castShadow=true;sunL.shadow.m
 const sunT=new T.Object3D();root.add(sunT);sunT.position.set(0,0,-18);sunL.target=sunT;
 const hemi=new T.HemisphereLight(0xffffff,0x444444,.6),amb=new T.AmbientLight(0xffffff,.2);
 const pL=[new T.PointLight(0xffb060,0,9,2),new T.PointLight(0xffc070,0,10,2),new T.PointLight(0xffc070,0,10,2)];pL[0].position.set(DK.x0+1.0,DK.y+2.0,DK.z0+.5);pL[1].position.set(-CW-1.1,QY+3,-1);pL[2].position.set(CW+1.1,QY+3,-10);
-root.add(sunL,hemi,amb,...pL);
+root.add(sunL,hemi,amb,...pL);if(opt.lite)pL.forEach(l=>l.visible=false);/* v163: 휴대폰은 등불 점광원을 빼요 (등불 빛망울은 그대로) */
 // ── 상태 전환 ──
 function setState(n,dur){if(!ST[n])return;for(const k in cur){if(cur[k] instanceof T.Color)from[k].copy(cur[k]);else from[k]=cur[k];}to=ST[n];curName=n;tD=dur==null?4:dur;tB=tD<=0?1:0;if(tD<=0)apply(1);}
 function apply(p){const e=p*p*(3-2*p);for(const k in cur){if(cur[k] instanceof T.Color)cur[k].copy(from[k]).lerp(to[k],e);else cur[k]=from[k]+(to[k]-from[k])*e;}}
@@ -469,9 +476,11 @@ function update(dt,cam){time+=dt;U.t.value=time;if(tB<1){tB=Math.min(1,tB+dt/tD)
 }
 // ── 거울 반사 (물 높이 y=0 · 해상도 절반) ──
 const mCam=new T.PerspectiveCamera(),plane=new T.Plane(new T.Vector3(0,1,0),.02),hideL=[];
-function mirror(r,scene,cam){const w=r.domElement.width>>1,h=r.domElement.height>>1;if(RT.width!==w||RT.height!==h)RT.setSize(w,h);
- cam.updateMatrixWorld();mCam.copy(cam);const p=cam.position,q=new T.Vector3();cam.getWorldDirection(q);mCam.position.set(p.x,-p.y,p.z);const rm=new T.Matrix4().extractRotation(cam.matrixWorld);mCam.up.set(0,1,0).applyMatrix4(rm).reflect(new T.Vector3(0,1,0));
- const tg=p.clone().add(q);mCam.lookAt(tg.x,-tg.y,tg.z);mCam.projectionMatrix.copy(cam.projectionMatrix);mCam.layers.set(1);mCam.updateMatrixWorld();mCam.matrixWorldInverse.copy(mCam.matrixWorld).invert();
+/* v163: 반사 해상도 — 휴대폰은 화면의 1/3 (긴 변 최대 720), PC는 1/2 (최대 1024) · 매 프레임 새 객체를 만들지 않아요 */
+const _mq=new T.Vector3(),_mr=new T.Matrix4(),_mY=new T.Vector3(0,1,0),_mt=new T.Vector3(),MOB=!!(window.NK_GFX&&NK_GFX.mob);
+function mirror(r,scene,cam){const dw=r.domElement.width,dh=r.domElement.height,f=Math.min(MOB?1/3:.5,(MOB?720:1024)/Math.max(dw,dh)),w=Math.max(128,Math.round(dw*f)),h=Math.max(128,Math.round(dh*f));if(RT.width!==w||RT.height!==h)RT.setSize(w,h);
+ cam.updateMatrixWorld();mCam.copy(cam);const p=cam.position,q=_mq;cam.getWorldDirection(q);mCam.position.set(p.x,-p.y,p.z);const rm=_mr.extractRotation(cam.matrixWorld);mCam.up.set(0,1,0).applyMatrix4(rm).reflect(_mY);
+ const tg=_mt.copy(p).add(q);mCam.lookAt(tg.x,-tg.y,tg.z);mCam.projectionMatrix.copy(cam.projectionMatrix);mCam.layers.set(1);mCam.updateMatrixWorld();mCam.matrixWorldInverse.copy(mCam.matrixWorld).invert();
  texMat.set(.5,0,0,.5, 0,.5,0,.5, 0,0,.5,.5, 0,0,0,1);texMat.multiply(mCam.projectionMatrix).multiply(mCam.matrixWorldInverse);
  hideL.length=0;[water,swI,swRing,rainL].forEach(o=>{if(o.visible){o.visible=false;hideL.push(o);}});
  const cp=r.clippingPlanes,rt=r.getRenderTarget(),sh=r.shadowMap.autoUpdate;r.shadowMap.autoUpdate=false;const rbo=rbU.op.value;rbU.op.value=rbo*.45;r.clippingPlanes=[plane];r.setRenderTarget(RT);r.clear();r.render(scene,mCam);rbU.op.value=rbo;r.setRenderTarget(rt);r.clippingPlanes=cp;r.shadowMap.autoUpdate=sh;hideL.forEach(o=>o.visible=true);}
