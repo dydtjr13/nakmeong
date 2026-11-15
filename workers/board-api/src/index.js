@@ -101,6 +101,10 @@ async function ensureSchema(db) {
     'CREATE TABLE IF NOT EXISTS save_hist (code TEXT NOT NULL, slot TEXT NOT NULL, data TEXT NOT NULL, at INTEGER NOT NULL, PRIMARY KEY (code, slot))',
     'CREATE TABLE IF NOT EXISTS ilog (id TEXT PRIMARY KEY, owner TEXT NOT NULL, nk TEXT NOT NULL, nick TEXT NOT NULL, t INTEGER NOT NULL, row TEXT NOT NULL)',
     'CREATE INDEX IF NOT EXISTS idx_ilog_nk ON ilog(nk, t DESC)',
+    // v165: 구글·카카오 로그인(아이디는 해시만) · QR 기기 연결(10분 일회용)
+    'CREATE TABLE IF NOT EXISTS social (sid TEXT PRIMARY KEY, prov TEXT NOT NULL, code TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)',
+    'CREATE INDEX IF NOT EXISTS idx_social_code ON social(code)',
+    'CREATE TABLE IF NOT EXISTS qlink (tok TEXT PRIMARY KEY, code TEXT NOT NULL, exp INTEGER NOT NULL, tries INTEGER NOT NULL DEFAULT 0)',
   ];
   for (const sql of tries) { try { await db.prepare(sql).run(); } catch (e) { /* 이미 있음 */ } }
   schemaReady = true;
@@ -122,6 +126,40 @@ const RANK_ITEM = (x) => {
   if (!/^[a-z0-9_]{1,24}$/.test(k) || !(cm > 0 && cm <= 3000) || g < 0 || g > 9) return null;
   return { k, cm, g };
 };
+// v165: 구글·카카오 로그인 — 공개 키(구글 클라이언트 ID · 카카오 REST API 키)는 로그인 화면 주소에도 보이는 값이라 코드에 둬요
+const AUTH = { google: '', kakao: '', kakaoRedirect: ['https://fishcozy.com/kakao.html', 'https://www.fishcozy.com/kakao.html'] };
+const b64u = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
+let gKeys = null, gKeysAt = 0;
+async function googleSub(tok, env) {
+  const cid = (env && env.GOOGLE_CID) || AUTH.google; if (!cid) throw new Error('off');
+  const [h, p, sg] = String(tok || '').split('.'); if (!sg) throw new Error('bad');
+  const hd = JSON.parse(new TextDecoder().decode(b64u(h))), pl = JSON.parse(new TextDecoder().decode(b64u(p)));
+  if (hd.alg !== 'RS256') throw new Error('bad');
+  if (!gKeys || Date.now() - gKeysAt > 3600e3) { gKeys = (await (await fetch('https://www.googleapis.com/oauth2/v3/certs')).json()).keys || []; gKeysAt = Date.now(); }
+  const jwk = gKeys.find((k) => k.kid === hd.kid); if (!jwk) { gKeys = null; throw new Error('bad'); }
+  const key = await crypto.subtle.importKey('jwk', jwk, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
+  const ok = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, b64u(sg), new TextEncoder().encode(h + '.' + p));
+  if (!ok || pl.aud !== cid || !['accounts.google.com', 'https://accounts.google.com'].includes(pl.iss) || !(pl.exp * 1000 > Date.now())) throw new Error('bad');
+  return String(pl.sub);
+}
+async function kakaoSub(code, redirect, env) {
+  const key = (env && env.KAKAO_KEY) || AUTH.kakao; if (!key) throw new Error('off');
+  if (!AUTH.kakaoRedirect.includes(redirect)) throw new Error('bad');
+  const tr = await fetch('https://kauth.kakao.com/oauth/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' }, body: new URLSearchParams({ grant_type: 'authorization_code', client_id: key, redirect_uri: redirect, code: String(code || '') }) });
+  const tj = await tr.json().catch(() => ({})); if (!tr.ok || !tj.access_token) throw new Error('bad');
+  const ur = await fetch('https://kapi.kakao.com/v2/user/me', { headers: { Authorization: 'Bearer ' + tj.access_token } });
+  const uj = await ur.json().catch(() => ({})); if (!ur.ok || !uj.id) throw new Error('bad');
+  return String(uj.id);
+}
+async function socialId(body, env) {
+  const prov = body && body.prov === 'k' ? 'k' : body && body.prov === 'g' ? 'g' : '';
+  if (!prov) throw new Error('bad');
+  const sub = prov === 'g' ? await googleSub(body.cred, env) : await kakaoSub(body.cred, String(body.redirect || ''), env);
+  const h = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('fc-soc:' + prov + ':' + sub)));
+  return { prov, sid: prov + ':' + [...h].slice(0, 16).map((b) => b.toString(16).padStart(2, '0')).join('') };
+}
+const QR_ABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const cleanTok = (t) => { const s = String(t || '').toUpperCase().replace(/[^0-9A-Z]/g, ''); return s.length === 8 ? s.slice(0, 4) + '-' + s.slice(4) : ''; };
 // v56: 닉네임 + 비밀번호(숫자 4~6자리) 계정 — 비밀번호는 PBKDF2 해시로만 저장
 const nickKey = (n) => cleanNick(n).toLowerCase().replace(/\s+/g, '');
 async function pinHash(pin, salt) {
@@ -360,6 +398,75 @@ export default {
         const mine = await db.prepare('SELECT code FROM saves WHERE owner=? ORDER BY updated_at DESC LIMIT 1').bind(me).first();
         const a = mine ? await db.prepare('SELECT nick FROM accounts WHERE code=?').bind(mine.code).first() : null;
         return json({ ok: true, nick: a ? a.nick : '' }, 200, origin);
+      }
+
+      // ─ v165: 구글·카카오 로그인 → 저장 코드로 이어 하기 ─
+      if ((path === '/auth/link' || path === '/auth/login') && request.method === 'POST') {
+        if (!me) return bad('owner required', 400, origin);
+        const body = await request.json().catch(() => ({}));
+        let id = null; const now = Date.now();
+        if (path === '/auth/link' && body.ticket) {
+          // 처음 로그인한 사람: 시작 화면에서 받은 일회용 표로 게임 시작 뒤 연결
+          const tk = cleanTok(body.ticket), tr = tk ? await db.prepare('SELECT code, exp FROM qlink WHERE tok=?').bind(tk).first() : null;
+          if (!tr || tr.exp < now || !String(tr.code).startsWith('S|')) return bad('expired', 404, origin);
+          await db.prepare('DELETE FROM qlink WHERE tok=?').bind(tk).run();
+          const [, sid, prov] = String(tr.code).split('|'); id = { sid, prov };
+        }
+        if (!id) { try { id = await socialId(body, env); } catch (e) { return bad(e.message === 'off' ? 'off' : 'auth', e.message === 'off' ? 503 : 401, origin); } }
+        const had = await db.prepare('SELECT code FROM social WHERE sid=?').bind(id.sid).first();
+        if (path === '/auth/login') {
+          if (!had) {
+            const r = crypto.getRandomValues(new Uint8Array(8)), tk = cleanTok([...r].map((b) => QR_ABC[b % 32]).join(''));
+            await db.prepare('DELETE FROM qlink WHERE exp<?').bind(now).run();
+            await db.prepare('INSERT INTO qlink (tok,code,exp) VALUES (?,?,?)').bind(tk, 'S|' + id.sid + '|' + id.prov, now + 30 * 60e3).run();
+            return json({ ok: false, error: 'none', prov: id.prov, ticket: tk }, 404, origin);
+          }
+          const row = await db.prepare('SELECT code FROM saves WHERE code=?').bind(had.code).first();
+          if (!row) return bad('no save', 404, origin);
+          await db.prepare('UPDATE social SET updated_at=? WHERE sid=?').bind(now, id.sid).run();
+          return json({ ok: true, code: had.code, prov: id.prov }, 200, origin);
+        }
+        const xc = cleanCode(request.headers.get('X-Code'));
+        let code = '';
+        if (xc && await db.prepare('SELECT code FROM saves WHERE code=?').bind(xc).first()) code = xc;
+        if (!code) { const mine = await db.prepare('SELECT code FROM saves WHERE owner=? ORDER BY updated_at DESC LIMIT 1').bind(me).first(); code = mine ? mine.code : ''; }
+        if (!code) return bad('no save', 400, origin);
+        if (had && had.code !== code && !body.force) return json({ ok: false, error: 'taken', prov: id.prov }, 409, origin);
+        await db.prepare('INSERT INTO social (sid,prov,code,created_at,updated_at) VALUES (?,?,?,?,?) ON CONFLICT(sid) DO UPDATE SET code=excluded.code, updated_at=excluded.updated_at').bind(id.sid, id.prov, code, now, now).run();
+        return json({ ok: true, code, prov: id.prov }, 200, origin);
+      }
+      if (path === '/auth/mine' && request.method === 'GET') {
+        const xc = cleanCode(request.headers.get('X-Code'));
+        const rows = xc ? ((await db.prepare('SELECT prov FROM social WHERE code=?').bind(xc).all()).results || []) : [];
+        return json({ ok: true, provs: [...new Set(rows.map((r) => r.prov))] }, 200, origin);
+      }
+      // ─ v165: QR 기기 연결 — 10분 동안 한 번만 쓰는 연결 번호 ─
+      if (path === '/link/new' && request.method === 'POST') {
+        if (!me) return bad('owner required', 400, origin);
+        const xc = cleanCode(request.headers.get('X-Code'));
+        const row = xc ? await db.prepare('SELECT code FROM saves WHERE code=?').bind(xc).first() : null;
+        if (!row) return bad('no save', 400, origin);
+        const now = Date.now(); await db.prepare('DELETE FROM qlink WHERE exp<? OR code=?').bind(now, xc).run();
+        const r = crypto.getRandomValues(new Uint8Array(8)); const tok = cleanTok([...r].map((b) => QR_ABC[b % 32]).join(''));
+        await db.prepare('INSERT INTO qlink (tok,code,exp) VALUES (?,?,?)').bind(tok, xc, now + 10 * 60e3).run();
+        return json({ ok: true, tok, exp: now + 10 * 60e3 }, 200, origin);
+      }
+      const lk = path.match(/^\/link\/([^/]+)$/);
+      if (lk && request.method === 'GET') {
+        const tok = cleanTok(decodeURIComponent(lk[1]));
+        const row = tok ? await db.prepare('SELECT code, exp FROM qlink WHERE tok=?').bind(tok).first() : null;
+        if (!row || row.exp < Date.now() || String(row.code).startsWith('S|')) return bad('expired', 404, origin);
+        await db.prepare('DELETE FROM qlink WHERE tok=?').bind(tok).run();
+        return json({ ok: true, code: row.code }, 200, origin);
+      }
+      // ─ v165: 관리자 — 계정 목록 (닉네임 · 저장 코드 · 연결된 로그인) ─
+      if (path === '/admin/accounts' && request.method === 'GET') {
+        if (!admin) return bad('admin only', 401, origin);
+        const rows = (await db.prepare('SELECT a.nick, a.code, a.created_at, a.updated_at, s.updated_at AS saved_at, (SELECT group_concat(DISTINCT prov) FROM social WHERE social.code=a.code) AS provs FROM accounts a LEFT JOIN saves s ON s.code=a.code ORDER BY COALESCE(s.updated_at, a.updated_at) DESC LIMIT 500').all()).results || [];
+        const soc = (await db.prepare("SELECT x.code, group_concat(DISTINCT x.prov) AS provs, MAX(x.updated_at) AS at, s.updated_at AS saved_at FROM social x LEFT JOIN saves s ON s.code=x.code WHERE x.code NOT IN (SELECT code FROM accounts) GROUP BY x.code ORDER BY at DESC LIMIT 200").all()).results || [];
+        const nickOf = (d) => { const m = d && /"nick":"((?:[^"\\]|\\.){0,40})"/.exec(d); return m ? m[1] : ''; };
+        for (const r of soc) { const sv = await db.prepare('SELECT data FROM saves WHERE code=?').bind(r.code).first(); r.nick = nickOf(sv && sv.data); }
+        return json({ ok: true, rows, soc }, 200, origin);
       }
 
       // ─ 어종 랭킹 ─
