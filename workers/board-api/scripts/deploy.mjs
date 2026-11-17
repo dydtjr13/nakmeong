@@ -28,6 +28,8 @@ if (PW) {
   if (process.env.ADMIN_ID) metadata.bindings.push({ type: "secret_text", name: "ADMIN_ID", text: process.env.ADMIN_ID });
   console.log("관리자 비밀번호 시크릿 포함");
 } else console.log("ADMIN_PASSWORD 없음 → 기존 워커 시크릿 유지");
+// v166: 네이버 로그인 Client Secret — GitHub 보안 비밀 NAVER_SECRET 이 있으면 워커 시크릿으로 (코드·로그에 남지 않음)
+if (process.env.NAVER_SECRET) { metadata.bindings.push({ type: "secret_text", name: "NAVER_SECRET", text: process.env.NAVER_SECRET }); console.log("NAVER_SECRET → 워커 시크릿"); }
 const form = new FormData();
 form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
 for (const name of ["index.js", "profanity.js"]) {

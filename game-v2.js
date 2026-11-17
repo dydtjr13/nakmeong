@@ -1636,9 +1636,9 @@ window.NK_ACC=ACC;
  const srvAt=savedAtOf(j.data),newer=srvAt>(+S.savedAt||0)+2000;/* v164: 서버 진행이 이 기기 진행보다 실제로 나중일 때만 불러와요 */if(!newer){SV.setAt(j.updated_at);return;}
  const o=JSON.parse(j.data);if(!o||typeof o.coins!=='number')return;if(started){staleTab('other');return;}SV.pend={code:c,at:+j.updated_at};applySaveObj(o);_myAt=+S.savedAt||_myAt;try{window.NK_STREFRESH&&NK_STREFRESH();}catch(e){}toast('☁️ 다른 브라우저에서 한 진행을 불러왔어요',2600);}catch(e){}finally{window.__nkPulling=0;}})();
 // v165: 간편 로그인(구글·카카오) · QR 기기 연결 — 모두 '저장 코드'로 바뀌어서 기존 코드 불러오기 흐름을 그대로 써요
-const AUTHX=(()=>{const CFG={g:'',k:''};const X={CFG,
+const AUTHX=(()=>{const CFG={g:'1039496411057-0qkrtdd0qq48ej9idg3kdelhsvobuqua.apps.googleusercontent.com',k:'cfac3ce1979cba2c5ce3d2a8118b7d60',n:''};const X={CFG,
  on:()=>{try{return String(uiOpt('socLogin','off'))==='on';}catch(e){return false;}},
- pname:p=>p==='k'?'카카오':'구글',
+ pname:p=>p==='k'?'카카오':p==='n'?'네이버':'구글',
  async post(path,body){const h={'Content-Type':'application/json','X-Owner':SV.cid()},c=SV.code();if(c)h['X-Code']=c;let r;try{r=await fetch(SV.api()+path,{method:'POST',headers:h,body:JSON.stringify(body||{})});}catch(e){throw new Error('서버에 연결하지 못했어요');}const j=await r.json().catch(()=>null)||{};j._s=r.status;return j;},
  async mine(){const c=SV.code();if(!c)return [];try{const r=await fetch(SV.api()+'/auth/mine',{headers:{'X-Code':c}});const j=await r.json();return j&&j.provs||[];}catch(e){return [];}},
  _gs:null,gLoad(){if(window.google&&google.accounts&&google.accounts.id)return Promise.resolve();if(X._gs)return X._gs;X._gs=new Promise((ok,no)=>{const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;s.onload=()=>ok();s.onerror=()=>{X._gs=null;no(new Error('구글 로그인을 불러오지 못했어요'));};document.head.appendChild(s);});return X._gs;},
@@ -1646,23 +1646,23 @@ const AUTHX=(()=>{const CFG={g:'',k:''};const X={CFG,
  async gButton(el,cb,text,w){if(!CFG.g||!el)return false;try{await X.gLoad();}catch(e){el.innerHTML='<small class="muted">구글 로그인을 불러오지 못했어요</small>';return false;}
   google.accounts.id.initialize({client_id:CFG.g,callback:r=>{if(r&&r.credential)cb(r.credential);},ux_mode:'popup',auto_select:false,cancel_on_tap_outside:true});
   el.innerHTML='';google.accounts.id.renderButton(el,{type:'standard',theme:'outline',size:'large',shape:'pill',text:text||'signin_with',locale:'ko',width:Math.max(200,Math.min(320,w||240))});return true;},
- kRedirect:()=>/^www\./.test(location.hostname)?'https://www.fishcozy.com/kakao.html':'https://fishcozy.com/kakao.html',
+ kRedirect:(pv)=>'https://'+(/^www\./.test(location.hostname)?'www.':'')+'fishcozy.com/'+(pv==='n'?'naver':'kakao')+'.html',
  // 카카오: 작은 창으로 로그인 → kakao.html 이 결과(code)를 돌려줘요. 작은 창이 막히면 이 창에서 이동했다가 돌아와요
- kStart(act){if(!CFG.k)return Promise.reject(new Error('카카오 로그인이 아직 준비 중이에요'));const st=Math.random().toString(36).slice(2,12),rd=X.kRedirect();
-  const url='https://kauth.kakao.com/oauth/authorize?client_id='+encodeURIComponent(CFG.k)+'&redirect_uri='+encodeURIComponent(rd)+'&response_type=code&state='+st;
-  let w=null;try{localStorage.setItem('nk_kk_wait',JSON.stringify({st,mode:'pop',act,t:Date.now()}));}catch(e){}
-  try{w=window.open(url,'nkkakao','width=480,height=720');}catch(e){}
-  if(!w){try{localStorage.setItem('nk_kk_wait',JSON.stringify({st,mode:'tab',act,t:Date.now()}));save();}catch(e){}location.href=url;return new Promise(()=>{});}
-  return new Promise((ok,no)=>{let done=0;const fin=p=>{if(done||!p||p.state!==st)return;done=1;removeEventListener('message',onM);removeEventListener('storage',onS);clearInterval(iv);try{localStorage.removeItem('nk_kakao');localStorage.removeItem('nk_kk_wait');}catch(e){}if(p.err||!p.code)no(new Error('카카오 로그인을 취소했어요'));else ok({cred:p.code,redirect:rd});};
+ kStart(act,pv){pv=pv==='n'?'n':'k';if(!CFG[pv])return Promise.reject(new Error(X.pname(pv)+' 로그인이 아직 준비 중이에요'));const st=Math.random().toString(36).slice(2,12),rd=X.kRedirect(pv);
+  const url=(pv==='n'?'https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=':'https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=')+encodeURIComponent(CFG[pv])+'&redirect_uri='+encodeURIComponent(rd)+'&state='+st;
+  let w=null;try{localStorage.setItem('nk_kk_wait',JSON.stringify({st,mode:'pop',act,pv,t:Date.now()}));}catch(e){}
+  try{w=window.open(url,'nk'+pv+'login','width=480,height=720');}catch(e){}
+  if(!w){try{localStorage.setItem('nk_kk_wait',JSON.stringify({st,mode:'tab',act,pv,t:Date.now()}));save();}catch(e){}location.href=url;return new Promise(()=>{});}
+  return new Promise((ok,no)=>{let done=0;const fin=p=>{if(done||!p||p.state!==st)return;done=1;removeEventListener('message',onM);removeEventListener('storage',onS);clearInterval(iv);try{localStorage.removeItem('nk_kakao');localStorage.removeItem('nk_kk_wait');}catch(e){}if(p.err||!p.code)no(new Error(X.pname(pv)+' 로그인을 취소했어요'));else ok({cred:p.code,redirect:rd,state:st});};
    const onM=e=>{if(e.origin===location.origin&&e.data&&e.data.nkKakao)fin(e.data.nkKakao);};const onS=e=>{if(e.key==='nk_kakao'&&e.newValue)try{fin(JSON.parse(e.newValue));}catch(x){}};
    addEventListener('message',onM);addEventListener('storage',onS);
-   const t0=Date.now();const iv=setInterval(()=>{try{const v=localStorage.getItem('nk_kakao');if(v)fin(JSON.parse(v));}catch(x){}if(!done&&Date.now()-t0>10*60e3){done=1;clearInterval(iv);no(new Error('카카오 로그인 시간이 지났어요'));}},700);});},
+   const t0=Date.now();const iv=setInterval(()=>{try{const v=localStorage.getItem('nk_kakao');if(v)fin(JSON.parse(v));}catch(x){}if(!done&&Date.now()-t0>10*60e3){done=1;clearInterval(iv);no(new Error(X.pname(pv)+' 로그인 시간이 지났어요'));}},700);});},
  // 시작 화면: 로그인 → 저장 코드로 불러오기. 처음이면 '표'를 받아 두었다가 게임 시작 뒤 연결
- async login(prov,cred,redirect,say){say&&say('muted',X.pname(prov)+' 계정 확인 중…');const j=await X.post('/auth/login',{prov,cred,redirect});
+ async login(prov,cred,redirect,say,state){say&&say('muted',X.pname(prov)+' 계정 확인 중…');const j=await X.post('/auth/login',{prov,cred,redirect,state});
   if(j.ok&&j.code){say&&say('ok','✅ '+X.pname(prov)+' 진행을 불러와요…');if(window.NK_STLOAD)NK_STLOAD(j.code);return j;}
   if(j.error==='none'&&j.ticket){try{sessionStorage.setItem('nk_socT',JSON.stringify({t:j.ticket,p:prov,at:Date.now()}));}catch(e){}say&&say('ok','✨ 처음이네요! 시작하면 '+X.pname(prov)+'에 저장돼요');X.tick();return j;}
   throw new Error(j.error==='off'?'간편 로그인이 아직 준비 중이에요':j.error==='auth'?X.pname(prov)+' 로그인 실패 · 다시 해 주세요':'로그인하지 못했어요 ('+(j.error||j._s)+')');},
- async link(prov,cred,redirect,force){const j=await X.post('/auth/link',{prov,cred,redirect,force:!!force});if(j.ok)return j;const e=new Error(j.error==='taken'?'taken':j.error==='no save'?'아직 서버 저장이 없어요. 잠시 뒤 다시 해 주세요':j.error==='off'?'간편 로그인이 아직 준비 중이에요':X.pname(prov)+' 로그인을 확인하지 못했어요');e.code=j.error;throw e;},
+ async link(prov,cred,redirect,force,state){const j=await X.post('/auth/link',{prov,cred,redirect,state,force:!!force});if(j.ok)return j;const e=new Error(j.error==='taken'?'taken':j.error==='no save'?'아직 서버 저장이 없어요. 잠시 뒤 다시 해 주세요':j.error==='off'?'간편 로그인이 아직 준비 중이에요':X.pname(prov)+' 로그인을 확인하지 못했어요');e.code=j.error;throw e;},
  _tk:0,tick(){if(X._tk)return;X._tk=setInterval(async()=>{let T=null;try{T=JSON.parse(sessionStorage.getItem('nk_socT')||'null');}catch(e){}if(!T||Date.now()-T.at>30*60e3){clearInterval(X._tk);X._tk=0;try{sessionStorage.removeItem('nk_socT');}catch(e){}return;}
   if(!started)return;if(X._tb)return;X._tb=1;try{if(!SV.code())await cloudSave(true);if(!SV.code())throw 0;const j=await X.post('/auth/link',{ticket:T.t});if(j.ok){sessionStorage.removeItem('nk_socT');clearInterval(X._tk);X._tk=0;toast('🔗 <b>'+X.pname(T.p)+'</b> 계정에 연결했어요<br><small>다른 기기에서도 '+X.pname(T.p)+' 버튼으로 이어 해요</small>',3600);}else if(j._s===404){sessionStorage.removeItem('nk_socT');}}catch(e){}X._tb=0;},2500);},
  // 📱 QR 기기 연결 (10분 · 한 번만)
@@ -1730,7 +1730,7 @@ function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=
    <div class="col oth"><h4>다른 기기로 이어하기</h4><div class="muted">코드를 복사하거나 붙여넣어 저장 데이터를 옮겨요.</div><div class="codebox"><div class="code" id="svCode">${SV.code()||'코드 만드는 중…'}</div><button class="red" id="svCopy" ${SV.code()?'':'disabled'}>${I.doc} 코드 복사하기</button></div>
     <div class="lbl">${I.clip} 코드 붙여넣기</div><div class="paste"><input id="svIn" placeholder="여기에 코드를 붙여넣으세요…" autocomplete="off" spellcheck="false"><button id="svLoad">불러오기</button></div><div class="muted" style="margin-top:6px">코드를 입력한 후 이어서 플레이하세요.</div>
     <div class="acct"><div class="lbl">🔒 닉네임 + 비밀번호로 연결</div><div class="muted" id="svAcMsg">${S.acct?`<b>${S.acct}</b> 계정에 연결돼 있어요. 다른 기기에서는 시작 화면 › 이어하기에 닉네임·비밀번호를 넣어요.`:'비밀번호를 정하면 닉네임으로 이어 해요.'}</div>
-    <div class="paste"><input id="svPin" type="password" inputmode="numeric" maxlength="6" placeholder="${S.acct?'비밀번호 바꾸기 (숫자 4~6자리)':'비밀번호 (숫자 4~6자리)'}" autocomplete="new-password"><button id="svAcGo">${S.acct?'변경':'연결'}</button></div></div>${AUTHX.on()?`<div class="acct soc"><div class="lbl">🔗 간편 로그인 · QR 연결</div><div class="muted" id="svSocMsg">${AUTHX.CFG.g||AUTHX.CFG.k?'연결하면 다른 기기에서 버튼 하나로 이어 해요':'QR을 다른 기기로 찍으면 바로 이어 해요'}</div>${AUTHX.CFG.g||AUTHX.CFG.k?`<div class="socB">${AUTHX.CFG.g?'<div id="svSocG"></div>':''}${AUTHX.CFG.k?'<button type="button" class="kko" id="svSocK">카카오로 연결</button>':''}</div>`:''}<button type="button" class="qrb" id="svQr">📱 QR로 다른 기기 연결</button></div>`:''}</div></div>
+    <div class="paste"><input id="svPin" type="password" inputmode="numeric" maxlength="6" placeholder="${S.acct?'비밀번호 바꾸기 (숫자 4~6자리)':'비밀번호 (숫자 4~6자리)'}" autocomplete="new-password"><button id="svAcGo">${S.acct?'변경':'연결'}</button></div></div>${AUTHX.on()?`<div class="acct soc"><div class="lbl">🔗 간편 로그인 · QR 연결</div><div class="muted" id="svSocMsg">${AUTHX.CFG.g||AUTHX.CFG.k||AUTHX.CFG.n?'연결하면 다른 기기에서 버튼 하나로 이어 해요':'QR을 다른 기기로 찍으면 바로 이어 해요'}</div>${AUTHX.CFG.g||AUTHX.CFG.k||AUTHX.CFG.n?`<div class="socB">${AUTHX.CFG.g?'<div id="svSocG"></div>':''}${AUTHX.CFG.k?'<button type="button" class="kko" id="svSocK">카카오로 연결</button>':''}${AUTHX.CFG.n?'<button type="button" class="nvo" id="svSocN">네이버로 연결</button>':''}</div>`:''}<button type="button" class="qrb" id="svQr">📱 QR로 다른 기기 연결</button></div>`:''}</div></div>
   <div class="foot">${I.fish.replace('width="40"','width="30"')} 클라우드 저장은 자동으로 백업돼요.</div></div>`;
  const close=()=>{m.remove();removeEventListener('keydown',key,true);};const key=e=>{if(e.key==='Escape'){e.stopPropagation();close();}};addEventListener('keydown',key,true);
  m.addEventListener('pointerdown',e=>{if(e.target===m)close();});m.querySelector('[data-x]').onclick=close;
@@ -1749,10 +1749,10 @@ function openSaveGuide(){if(typeof legacyUI==='function'&&legacyUI()){S.savedAt=
  /* v165: 간편 로그인 연결 · QR */
  if(m.querySelector('.soc')){const sm=m.querySelector('#svSocMsg'),gEl=m.querySelector('#svSocG'),kb=m.querySelector('#svSocK'),qb=m.querySelector('#svQr');
   const showM=async()=>{const p=await AUTHX.mine();if(p.length&&sm.isConnected)sm.innerHTML='✅ '+p.map(x=>'<b>'+AUTHX.pname(x)+'</b>').join(' · ')+' 연결됨 · 다른 기기에서 그 버튼으로';};showM();
-  const doLink=async(prov,cred,rd)=>{sm.textContent='연결하는 중…';try{if(!SV.code())await cloudSave(true);try{await AUTHX.link(prov,cred,rd);}catch(e){if(e.message!=='taken')throw e;if(!confirm('이 '+AUTHX.pname(prov)+' 계정은 다른 저장에 연결돼 있어요. 지금 이 진행으로 바꿀까요?\n(예전 저장은 저장 코드로만 불러올 수 있어요)')){sm.textContent='바꾸지 않았어요';return;}if(prov==='k'){const r=await AUTHX.kStart('link');cred=r.cred;rd=r.redirect;}await AUTHX.link(prov,cred,rd,true);}
+  const doLink=async(prov,cred,rd,st)=>{sm.textContent='연결하는 중…';try{if(!SV.code())await cloudSave(true);try{await AUTHX.link(prov,cred,rd,false,st);}catch(e){if(e.message!=='taken')throw e;if(!confirm('이 '+AUTHX.pname(prov)+' 계정은 다른 저장에 연결돼 있어요. 지금 이 진행으로 바꿀까요?\n(예전 저장은 저장 코드로만 불러올 수 있어요)')){sm.textContent='바꾸지 않았어요';return;}if(prov!=='g'){const r=await AUTHX.kStart('link',prov);cred=r.cred;rd=r.redirect;st=r.state;}await AUTHX.link(prov,cred,rd,true,st);}
    toast('🔗 <b>'+AUTHX.pname(prov)+'</b> 계정에 연결했어요',2200);showM();}catch(e){sm.textContent='⚠️ '+e.message;}};
   if(gEl)AUTHX.gButton(gEl,cred=>doLink('g',cred,''),'continue_with',230);
-  if(kb)kb.onclick=async()=>{kb.disabled=true;try{const r=await AUTHX.kStart('link');await doLink('k',r.cred,r.redirect);}catch(e){sm.textContent='⚠️ '+e.message;}kb.disabled=false;};
+  [[kb,'k'],[m.querySelector('#svSocN'),'n']].forEach(([bt,pv])=>{if(bt)bt.onclick=async()=>{bt.disabled=true;try{const r=await AUTHX.kStart('link',pv);await doLink(pv,r.cred,r.redirect,r.state);}catch(e){sm.textContent='⚠️ '+e.message;}bt.disabled=false;};});
   qb.onclick=async()=>{qb.disabled=true;try{await AUTHX.qrOpen();}catch(e){toast(e.message,2400);}qb.disabled=false;};}
  m.querySelector('#svLoad').onclick=load;m.querySelector('#svIn').onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();load();}};}
 // v8: 부적 드래그 (마우스 즉시 / 터치는 길게 눌러서) — 리스트→슬롯 장착·교체, 슬롯→리스트 해제, 슬롯↔슬롯 순서 교체
@@ -2983,20 +2983,20 @@ addEventListener('nk-rt-seat',e=>{const m=e.detail;if(!m||m.ok!==false||!mySeat)
   go.onclick=run;[inp,an,ap].forEach(x=>{if(x)x.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();run();}};});
   /* v165: 간편 로그인·QR이 찾은 저장 코드를 이어하기 › 저장 코드로 불러와요 */
   window.NK_STLOAD=c=>{bx.hidden=false;t.classList.add('on');const mb=$('stMkB');if(mb){mb.hidden=true;$('stMkT').classList.remove('on');}mode='code';bx.dataset.m='code';bx.querySelectorAll('[data-sm]').forEach(x=>x.classList.toggle('on',x.dataset.sm==='code'));inp.value=c;run();};}}
- {const box=$('stSoc'),gEl=$('stSocG'),kb=$('stSocK'),sm=$('stSocMsg');if(box){const say=(c,h)=>{sm.className=c;sm.textContent=h;};let drawn=0;
-  const draw=()=>{const on=AUTHX.on()&&(AUTHX.CFG.g||AUTHX.CFG.k);box.hidden=!on;if(!on||drawn)return;drawn=1;
-   kb.hidden=!AUTHX.CFG.k;gEl.hidden=!AUTHX.CFG.g;
-   if(AUTHX.CFG.g)AUTHX.gButton(gEl,cred=>AUTHX.login('g',cred,'',say).catch(e=>say('bad',e.message)),'signin_with',Math.min(300,(box.clientWidth||300)/(AUTHX.CFG.k?2:1)-6));
-   kb.onclick=async()=>{kb.disabled=true;try{const r=await AUTHX.kStart('login');await AUTHX.login('k',r.cred,r.redirect,say);}catch(e){say('bad',e.message);}kb.disabled=false;};};
+ {const box=$('stSoc'),gEl=$('stSocG'),kb=$('stSocK'),nb=$('stSocN'),sm=$('stSocMsg');if(box){const say=(c,h)=>{sm.className=c;sm.textContent=h;};let drawn=0;
+  const draw=()=>{const on=AUTHX.on()&&(AUTHX.CFG.g||AUTHX.CFG.k||AUTHX.CFG.n);box.hidden=!on;if(!on||drawn)return;drawn=1;
+   kb.hidden=!AUTHX.CFG.k;nb.hidden=!AUTHX.CFG.n;gEl.hidden=!AUTHX.CFG.g;
+   if(AUTHX.CFG.g)AUTHX.gButton(gEl,cred=>AUTHX.login('g',cred,'',say).catch(e=>say('bad',e.message)),'signin_with',Math.min(320,(box.clientWidth||300)));
+   [[kb,'k'],[nb,'n']].forEach(([bt,pv])=>{bt.onclick=async()=>{bt.disabled=true;try{const r=await AUTHX.kStart('login',pv);await AUTHX.login(pv,r.cred,r.redirect,say,r.state);}catch(e){say('bad',e.message);}bt.disabled=false;};});};
   draw();addEventListener('nk-rt-preplay',()=>setTimeout(draw,50));addEventListener('nk-rt-play',()=>setTimeout(draw,50));}}
  /* v165: QR(?lk=) · 카카오 같은 창 로그인(?kk=)으로 들어온 경우 */
  {const q=new URLSearchParams(location.search),lk=q.get('lk'),kk=q.get('kk'),kst=q.get('kst');
   if(lk||kk!=null){try{history.replaceState(null,'',location.pathname+location.hash);}catch(e){}}
   if(lk&&window.NK_STLOAD)setTimeout(()=>NK_STLOAD(String(lk).toUpperCase()),400);
   if(kk!=null){let w=null;try{w=JSON.parse(localStorage.getItem('nk_kk_wait')||'null');localStorage.removeItem('nk_kk_wait');localStorage.removeItem('nk_kakao');}catch(e){}
-   if(w&&w.st===kst&&kk&&!q.get('kerr')){const sm=$('stSocMsg'),say=(c,h)=>{if(sm){sm.className=c;sm.textContent=h;const b=$('stSoc');if(b)b.hidden=false;}else if(c==='bad')toast(h,2600);};
-    if(w.act==='link'){const iv=setInterval(async()=>{if(!started)return;clearInterval(iv);try{if(!SV.code())await cloudSave(true);await AUTHX.link('k',kk,AUTHX.kRedirect());toast('🔗 <b>카카오</b> 계정에 연결했어요',2600);}catch(e){toast('🔗 카카오 연결: '+(e.message==='taken'?'이 카카오 계정은 다른 저장에 연결돼 있어요':e.message),3200);}},1000);}
-    else setTimeout(()=>AUTHX.login('k',kk,AUTHX.kRedirect(),say).catch(e=>say('bad',e.message)),500);}}}
+   if(w&&w.st===kst&&kk&&!q.get('kerr')){const pv=w.pv==='n'?'n':'k';const sm=$('stSocMsg'),say=(c,h)=>{if(sm){sm.className=c;sm.textContent=h;const b=$('stSoc');if(b)b.hidden=false;}else if(c==='bad')toast(h,2600);};
+    if(w.act==='link'){const iv=setInterval(async()=>{if(!started)return;clearInterval(iv);try{if(!SV.code())await cloudSave(true);await AUTHX.link(pv,kk,AUTHX.kRedirect(pv),false,kst);toast('🔗 <b>'+AUTHX.pname(pv)+'</b> 계정에 연결했어요',2600);}catch(e){toast('🔗 '+AUTHX.pname(pv)+' 연결: '+(e.message==='taken'?'다른 저장에 이미 연결돼 있어요':e.message),3200);}},1000);}
+    else setTimeout(()=>AUTHX.login(pv,kk,AUTHX.kRedirect(pv),say,kst).catch(e=>say('bad',e.message)),500);}}}
  step(S.nick&&mob()?3:1);const stInit=()=>{if(!V14)return setTimeout(stInit,80);srvDraw();stUpd();};stInit();addEventListener('resize',stUpd);}
 $('go').disabled=true;
 // ───────── 메인 ─────────
@@ -3502,7 +3502,7 @@ V14=(()=>{
      const why=UW.why.trim();confirmBox(`<h3>${k==='mute'?'🔇 채팅 금지':'⛔ 정지'} 확인</h3><p><b>${uwHtml(n)}</b> · ${fmtMin(mins)}${why?`<br><small>사유: ${uwHtml(why)}</small>`:''}</p>`,()=>{const x=AD.ban[n]||{};x[k]=Date.now()+mins*60000;x.why=why;AD.ban[n]=x;LW('nk_admin_ban',AD.ban);pushSanc(n);const bt=bots.find(b=>b.c.name===n);if(bt&&k==='ban'&&bt.on!==false){bt.pt=0;presence(0);}if(bt&&k==='mute'){bt.c.adMuted=true;bt.c.muted=true;}alog(`${n} ${k==='mute'?'채팅 금지':'정지'} ${fmtMin(mins)}${why?' (사유: '+why+')':''}`);UW.why='';uwClose();keepScroll('admin',admin);});};}}
 
  /* v165: 👥 가입 계정 목록 — 닉네임 · 저장 코드 · 간편 로그인 (비밀번호는 암호화돼서 볼 수 없어요) */
- const aclHTML=()=>{const A=AD.acl||(AD.acl={});const e=v=>String(v==null?'':v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),tm=t=>t?new Date(t).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',year:'2-digit',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'-',pv=p=>String(p||'').split(',').filter(Boolean).map(x=>x==='k'?'카카오':'구글').join('·')||'-';
+ const aclHTML=()=>{const A=AD.acl||(AD.acl={});const e=v=>String(v==null?'':v).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),tm=t=>t?new Date(t).toLocaleString('ko-KR',{timeZone:'Asia/Seoul',year:'2-digit',month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'-',pv=p=>String(p||'').split(',').filter(Boolean).map(x=>x==='k'?'카카오':x==='n'?'네이버':'구글').join('·')||'-';
   let h=`<div class="adbox"><h4>👥 가입 계정 목록 <small class="muted">닉네임+비밀번호 · 간편 로그인</small></h4><p class="small muted">비밀번호는 암호화돼 있어 볼 수 없어요. 저장 코드로는 언제든 불러올 수 있어요 (시작 화면 › 이어하기 › 저장 코드)</p><div class="adrow"><button type="button" class="sm acc" data-acl="load" ${A.busy?'disabled':''}>${A.busy?'불러오는 중…':A.rows?'새로고침':'목록 불러오기'}</button>${A.rows?`<button type="button" class="sm" data-acl="hide">접기</button>`:''}</div>`;
   if(A.err)h+=`<p class="small" style="color:#c0392b">${e(A.err)}</p>`;
   if(A.rows)h+=`<div style="overflow-x:auto"><table class="adt"><tr><th>닉네임</th><th>저장 코드</th><th>마지막 저장</th><th>간편 로그인</th></tr>${A.rows.map(r=>`<tr><td><b>${e(r.nick)}</b></td><td><code style="user-select:all">${e(r.code)}</code></td><td>${tm(r.saved_at||r.updated_at)}</td><td>${pv(r.provs)}</td></tr>`).join('')||'<tr><td colspan="4" class="muted">계정이 없어요</td></tr>'}${(A.soc||[]).map(r=>`<tr><td>${e(r.nick||'(닉네임 없음)')} <small class="muted">간편만</small></td><td><code style="user-select:all">${e(r.code)}</code></td><td>${tm(r.saved_at||r.at)}</td><td>${pv(r.provs)}</td></tr>`).join('')}</table></div><p class="small muted">${A.rows.length+(A.soc||[]).length}개</p>`;
