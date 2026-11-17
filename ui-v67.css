@@ -384,3 +384,8 @@ body.tx #annBar small{order:4;flex-basis:100%}
 #qrLk .x{position:absolute;top:8px;right:10px;border:0;background:none;font-size:18px;cursor:pointer;color:#555}
 .stSocB>[hidden],.soc .socB>[hidden]{display:none}
 .soc .socB{margin-top:6px}
+/* v166: 네이버 버튼 · 구글 버튼은 한 줄 전체, 카카오·네이버는 나란히 */
+.nvo{flex:1 1 130px;height:40px;border:0;border-radius:20px;background:#03C75A;color:#fff;font-weight:700;font-size:14px;white-space:nowrap;cursor:pointer;padding:0 14px}
+.nvo:disabled{opacity:.6}
+.stSocB .kko,.soc .socB .kko{flex-basis:130px}
+#stSocG,#svSocG{flex-basis:100%!important}

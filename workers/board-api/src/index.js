@@ -127,7 +127,7 @@ const RANK_ITEM = (x) => {
   return { k, cm, g };
 };
 // v165: 구글·카카오 로그인 — 공개 키(구글 클라이언트 ID · 카카오 REST API 키)는 로그인 화면 주소에도 보이는 값이라 코드에 둬요
-const AUTH = { google: '', kakao: '', kakaoRedirect: ['https://fishcozy.com/kakao.html', 'https://www.fishcozy.com/kakao.html'] };
+const AUTH = { google: '1039496411057-0qkrtdd0qq48ej9idg3kdelhsvobuqua.apps.googleusercontent.com', kakao: 'cfac3ce1979cba2c5ce3d2a8118b7d60', naver: '', kakaoRedirect: ['https://fishcozy.com/kakao.html', 'https://www.fishcozy.com/kakao.html'], naverRedirect: ['https://fishcozy.com/naver.html', 'https://www.fishcozy.com/naver.html'] };
 const b64u = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
 let gKeys = null, gKeysAt = 0;
 async function googleSub(tok, env) {
@@ -151,10 +151,20 @@ async function kakaoSub(code, redirect, env) {
   const uj = await ur.json().catch(() => ({})); if (!ur.ok || !uj.id) throw new Error('bad');
   return String(uj.id);
 }
+// v166: 네이버 — 토큰 교환에 Client Secret 이 필요해서 워커 시크릿 NAVER_SECRET(GitHub 보안 비밀)에서만 읽어요
+async function naverSub(code, state, redirect, env) {
+  const id = (env && env.NAVER_ID) || AUTH.naver, sec = env && env.NAVER_SECRET; if (!id || !sec) throw new Error('off');
+  if (!AUTH.naverRedirect.includes(redirect)) throw new Error('bad');
+  const tr = await fetch('https://nid.naver.com/oauth2.0/token?' + new URLSearchParams({ grant_type: 'authorization_code', client_id: id, client_secret: sec, code: String(code || ''), state: String(state || '') }));
+  const tj = await tr.json().catch(() => ({})); if (!tr.ok || !tj.access_token) throw new Error('bad');
+  const ur = await fetch('https://openapi.naver.com/v1/nid/me', { headers: { Authorization: 'Bearer ' + tj.access_token } });
+  const uj = await ur.json().catch(() => ({})); if (!ur.ok || !uj.response || !uj.response.id) throw new Error('bad');
+  return String(uj.response.id);
+}
 async function socialId(body, env) {
-  const prov = body && body.prov === 'k' ? 'k' : body && body.prov === 'g' ? 'g' : '';
+  const prov = body && ['g', 'k', 'n'].includes(body.prov) ? body.prov : '';
   if (!prov) throw new Error('bad');
-  const sub = prov === 'g' ? await googleSub(body.cred, env) : await kakaoSub(body.cred, String(body.redirect || ''), env);
+  const sub = prov === 'g' ? await googleSub(body.cred, env) : prov === 'n' ? await naverSub(body.cred, body.state, String(body.redirect || ''), env) : await kakaoSub(body.cred, String(body.redirect || ''), env);
   const h = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode('fc-soc:' + prov + ':' + sub)));
   return { prov, sid: prov + ':' + [...h].slice(0, 16).map((b) => b.toString(16).padStart(2, '0')).join('') };
 }
