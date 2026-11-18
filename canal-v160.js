@@ -120,7 +120,8 @@ const quayM=new MSM({color:cur.quay.clone(),roughness:.9,flatShading:true});
 const PAL=['#f6e6c8','#f2b8a0','#8fc4c0','#f4d27a','#e89a8a','#a8d0dc','#f8d8b0','#b8d8a0','#f0b8c4','#fbf4e6','#a8b8e0','#f2e08a'],
  ROOF=['#c8604a','#b0503c','#d88a5a','#8a5a7a','#5a7f96','#c4484a','#4f8a76','#9a6a4a'],SHUT=['#4f8a8a','#c86a5a','#6a8ac8','#7aa86a','#e8b04a'];
 const bodyL=[],gabA=[],gabB=[],roofA=[],roofB=[],winL=[],winD=[],frameL=[],trimL=[],doorL=[],doorF=[],boxL=[],flowL=[],chimL=[],awnL=[],shutL=[],rwL=[],rwD=[],rwF=[],potL=[],bushL=[],bandL=[];
-const HX=CW+4.6;// 집 앞면 (운하 중심에서)
+/* v167 길 시안: A 길 넓힘 · B 소품 줄임 · C 둘 다 */const LAY=String(opt.lay||''),LW=LAY==='A'||LAY==='C',LB=LAY==='B'||LAY==='C';
+const HX=CW+(LW?7:4.6);// 집 앞면 (운하 중심에서)
 // 몸통: 세로 모서리가 둥근 상자 (발자국 1×1 · 높이 1, 바닥이 y=0)
 const bodyG=(()=>{const r=.14,sh=new T.Shape();sh.moveTo(-.5+r,-.5);sh.lineTo(.5-r,-.5);sh.quadraticCurveTo(.5,-.5,.5,-.5+r);sh.lineTo(.5,.5-r);sh.quadraticCurveTo(.5,.5,.5-r,.5);sh.lineTo(-.5+r,.5);sh.quadraticCurveTo(-.5,.5,-.5,.5-r);sh.lineTo(-.5,-.5+r);sh.quadraticCurveTo(-.5,-.5,-.5+r,-.5);
  const g=new T.ExtrudeGeometry(sh,{depth:1,bevelEnabled:false,curveSegments:3});g.rotateX(-Math.PI/2);return g;})();
@@ -175,12 +176,12 @@ const winM2=new MSM({color:L('#3a5a7a'),emissive:L('#ffb050'),emissiveIntensity:
 inst(archG,winM,winL,false);inst(archG,winM2,winD,false);inst(roundG,winM,rwL,false);inst(roundG,winM2,rwD,false);
 // ── 나무 · 화분 ──
 {const put=(x,z,s)=>tree(x,z,s);
- [-1,1].forEach(s=>{for(let z=10;z>-125;z-=R(11,17)){if(Math.abs(z+48)<6||z>-7)continue;put(s*(CW+2.6),z,R(.85,1.1));ob(s*(CW+2.6),z,.6);}});
+ [-1,1].forEach(s=>{for(let z=10;z>-125;z-=R(11,17)){if(Math.abs(z+48)<6||z>-7)continue;const _z=z,_s=R(.85,1.1);if(LB){if(LW&&rnd()<.5){put(s*(HX-1.1),_z,_s*.8);ob(s*(HX-1.1),_z,.5);}continue;}put(s*(CW+2.6+(LW?1.2:0)),_z,_s);ob(s*(CW+2.6+(LW?1.2:0)),_z,.6);}});
  for(let i=0;i<14;i++)put(R(-36,-12),R(-150,-136),R(.8,1.2));for(let i=0;i<8;i++)put(R(12,34),R(-138,-132),R(.8,1.2));
  inst(new T.CylinderGeometry(.5,.6,1,6),M('#ffffff'),trunks);var treeI=inst(new T.IcosahedronGeometry(1,1),M('#ffffff'),trees);}
 // ── 가로등 (인스턴싱) ──
 const lampHM=new MSM({color:L('#fff0c8'),emissive:L('#ffcf7a'),emissiveIntensity:0,roughness:.4});
-const lampPts=[];{const po=[],ar=[],hd=[],cap=[];[-1,1].forEach(s=>{for(let z=8;z>-128;z-=9){const x=s*(CW+1.1);po.push([x,QY+1.6,z,0,[.12,3.2,.12],'#2c2c34']);hd.push([x,QY+3.35,z,0,[.42,.55,.42]]);cap.push([x,QY+3.72,z,0,[.55,.2,.55],'#2c2c34']);lampPts.push(new T.Vector3(x,QY+3.35,z));ob(x,z,.32);}});
+const lampPts=[];{const po=[],ar=[],hd=[],cap=[];[-1,1].forEach(s=>{for(let z=8;z>-128;z-=(LB?13.5:9)){const x=s*(CW+(LB?.5:1.1));po.push([x,QY+1.6,z,0,[.12,3.2,.12],'#2c2c34']);hd.push([x,QY+3.35,z,0,[.42,.55,.42]]);cap.push([x,QY+3.72,z,0,[.55,.2,.55],'#2c2c34']);lampPts.push(new T.Vector3(x,QY+3.35,z));ob(x,z,.32);}});
  inst(new T.CylinderGeometry(1,1.3,1,6),M('#ffffff'),po);inst(new T.CylinderGeometry(.5,.6,1,6),M('#ffffff'),cap);inst(UB,lampHM,hd,false);}
 // 가로등 빛무리 (점 묶음 1번 그리기)
 function glowPoints(pts,col,size,u){const g=new T.BufferGeometry();g.setFromPoints(pts);const rr=new Float32Array(pts.length);for(let i=0;i<rr.length;i++)rr[i]=rnd();g.setAttribute('r',new T.BufferAttribute(rr,1));
@@ -275,7 +276,7 @@ const fishTex=opt.fishAtlas?new T.TextureLoader().load(opt.fishAtlas):null;if(fi
  const wq=new T.Mesh(new T.BoxGeometry(1.2,.6,.7),new MSM({color:L('#7fc8e0'),transparent:true,opacity:.35}));wq.position.y=.42;tk.add(wq);
  if(fishTex){const t2=fishTex.clone();t2.needsUpdate=true;t2.repeat.set(.25,1/3);t2.offset.set(.75,1/3);const f=new T.Mesh(new T.PlaneGeometry(.75,.38),new T.MeshBasicMaterial({map:t2,transparent:true,alphaTest:.3}));f.position.set(0,.5,.05);tk.add(f);tk.userData.fish=f;}}
 // 물가 갈대·풀 (앞쪽)
-{const rd=[];for(let i=0;i<60;i++){const s=rnd()<.6?-1:1;rd.push([s*(CW+R(.6,2.2)),QY+.35,R(-6,9),R(0,3),[R(.6,1),R(.8,1.4),R(.6,1)],rnd()<.5?'#5a9a48':'#7ab85a',R(-.25,.25)]);}
+{const rd=[];for(let i=0;i<(LB?26:60);i++){const s=rnd()<.6?-1:1;rd.push([s*(CW+(LB?R(.25,.55):R(.6,2.2))),QY+.35,R(-6,9),R(0,3),[R(.6,1),R(.8,1.4),R(.6,1)],rnd()<.5?'#5a9a48':'#7ab85a',R(-.25,.25)]);}
  const gg=merge([0,1,2].map(i=>{const c=new T.ConeGeometry(.08,1,3);c.rotateZ((i-1)*.35);c.translate((i-1)*.12,0,0);return c;}));inst(gg,M('#ffffff'),rd,false);}
 // ── 수상 시장 (오른쪽 물가 노점 + 배) ──
 function stripeTex(a,b){return canvasTex(64,16,(x,w,h)=>{for(let i=0;i<8;i++){x.fillStyle=i%2?a:b;x.fillRect(i*8,0,8,h);}x.fillStyle='rgba(0,0,0,.15)';x.fillRect(0,h-3,w,3);});}
@@ -288,7 +289,7 @@ function stall(x,z,ry,k){ob(x,z-.75,.95);ob(x,z+.75,.95);const g=new T.Group();g
  for(let i=0;i<3;i++){const b=add(g,new T.CylinderGeometry(.3,.24,.26,8),'#c8945a',-.8+i*.8,1.1,.25);const col=k%2?['#ff8a3a','#e84a4a','#ffd04a'][i]:'#c8d4dc';for(let j=0;j<5;j++)add(g,new T.IcosahedronGeometry(.11,0),col,-.8+i*.8+R(-.12,.12),1.27,.25+R(-.12,.12)).castShadow=false;}
  if(fishTex&&k%2===0){const t2=fishTex.clone();t2.needsUpdate=true;t2.repeat.set(.25,1/3);t2.offset.set(.0,2/3);const f=new T.Mesh(new T.PlaneGeometry(1.1,.5),new T.MeshBasicMaterial({map:t2,transparent:true,alphaTest:.3}));f.position.set(0,3.25,1.0);g.add(f);bx(g,1.4,.7,.06,'#8a5a36',0,3.25,.96);}
  [-1.2,1.2].forEach(a=>{const l=add(g,new T.SphereGeometry(.22,8,6),lanternM,a,2.2,1.0);l.scale.y=1.3;l.castShadow=false;const v=new T.Vector3(a,2.2,1.0);g.updateMatrixWorld(true);lanPts.push(v.applyMatrix4(g.matrix));});return g;}
-stall(CW+2.3,-4.5,-Math.PI/2,0);stall(CW+2.3,-13.5,-Math.PI/2,1);stall(CW+2.3,-16.6,-Math.PI/2,2);stall(-CW-2.3,-23.5,Math.PI/2,3);stall(-CW-2.3,-32.5,Math.PI/2,0);
+if(LB){const sx=HX-1.4;stall(sx,-4.5,-Math.PI/2,0);stall(sx,-16.6,-Math.PI/2,2);stall(-sx,-23.5,Math.PI/2,3);}else{const sx=CW+2.3+(LW?1.2:0);stall(sx,-4.5,-Math.PI/2,0);stall(sx,-13.5,-Math.PI/2,1);stall(sx,-16.6,-Math.PI/2,2);stall(-sx,-23.5,Math.PI/2,3);stall(-sx,-32.5,Math.PI/2,0);}
 var lanGlow=glowPoints(lanPts,'#ffb060',1.6);
 const boats=[];function boat(x,z,k,awn){const g=new T.Group();g.position.set(x,0,z);root.add(g);
  const sh=new T.Shape();sh.moveTo(-2.2,.0);sh.quadraticCurveTo(-1.2,-.7,0,-.7);sh.quadraticCurveTo(1.2,-.7,2.4,.15);sh.lineTo(2.4,.55);sh.lineTo(-2.3,.55);
@@ -478,7 +479,7 @@ function update(dt,cam){time+=dt;U.t.value=time;if(tB<1){tB=Math.min(1,tB+dt/tD)
 const mCam=new T.PerspectiveCamera(),plane=new T.Plane(new T.Vector3(0,1,0),.02),hideL=[];
 /* v163: 반사 해상도 — 휴대폰은 화면의 1/3 (긴 변 최대 720), PC는 1/2 (최대 1024) · 매 프레임 새 객체를 만들지 않아요 */
 const _mq=new T.Vector3(),_mr=new T.Matrix4(),_mY=new T.Vector3(0,1,0),_mt=new T.Vector3(),MOB=!!(window.NK_GFX&&NK_GFX.mob);
-function mirror(r,scene,cam){const dw=r.domElement.width,dh=r.domElement.height,f=Math.min(MOB?1/3:.5,(MOB?720:1024)/Math.max(dw,dh)),w=Math.max(128,Math.round(dw*f)),h=Math.max(128,Math.round(dh*f));if(RT.width!==w||RT.height!==h)RT.setSize(w,h);
+function mirror(r,scene,cam){const dw=r.domElement.width,dh=r.domElement.height,f=Math.min(MOB?1/3:.5,(MOB?720:1024)/Math.max(dw,dh))*(window.__nkMirQ||1),w=Math.max(128,Math.round(dw*f)),h=Math.max(128,Math.round(dh*f));if(RT.width!==w||RT.height!==h)RT.setSize(w,h);
  cam.updateMatrixWorld();mCam.copy(cam);const p=cam.position,q=_mq;cam.getWorldDirection(q);mCam.position.set(p.x,-p.y,p.z);const rm=_mr.extractRotation(cam.matrixWorld);mCam.up.set(0,1,0).applyMatrix4(rm).reflect(_mY);
  const tg=_mt.copy(p).add(q);mCam.lookAt(tg.x,-tg.y,tg.z);mCam.projectionMatrix.copy(cam.projectionMatrix);mCam.layers.set(1);mCam.updateMatrixWorld();mCam.matrixWorldInverse.copy(mCam.matrixWorld).invert();
  texMat.set(.5,0,0,.5, 0,.5,0,.5, 0,0,.5,.5, 0,0,0,1);texMat.multiply(mCam.projectionMatrix).multiply(mCam.matrixWorldInverse);

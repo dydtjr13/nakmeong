@@ -1018,7 +1018,7 @@ export class LakeRoom extends DurableObject {
           }
         }
       }
-      if (next.event.t === "chat" && next.att.admin) next.event.adm = 1; // v100: 관리자 채팅 닉네임 빨강
+      if ((next.event.t === "chat" || next.event.t === "emote") && next.att.admin) next.event.adm = 1; // v167: 이모티콘도 // v100: 관리자 채팅 닉네임 빨강
       this.broadcast(next.event, ws);
       this.chatLink(next.att.server, next.event);
       return;
