@@ -169,3 +169,7 @@ body.mx-A:not(.mx-tqo) #tq25,body.mx-B:not(.mx-tqo) #tq25{max-width:calc(100vw -
 body.mx:not(.mx-tqo) #tq25 .bb{min-width:0;overflow:hidden}
 body.mx:not(.mx-tqo) #tq25 .bb>.goal{max-width:none;flex:1;min-width:0}
 body.mx-D #rtPill{top:auto!important;bottom:4px!important;right:auto!important;left:50%!important;transform:translateX(-50%)}
+/* v173: 가로 화면(D)에서도 🤖 자동 낚시 버튼 보이기 */
+body.mx-D #hud #mMain #bAutoFish{display:flex!important;flex-direction:column;align-items:center;justify-content:center}
+body.mx-D #hud #mMain{grid-template-columns:repeat(3,54px)!important}
+body.mx-D:not(.mx-tqo) #tq25:not(.fold){max-width:420px!important}
