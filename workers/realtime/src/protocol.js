@@ -794,10 +794,11 @@ export function sanitizeGift(input, now) {
   // v136: 탈것·펫도 지급 (최대 6개)
   const it = Array.isArray(input.it) ? input.it.slice(0, 6).map((o) => {
     if (!o || typeof o !== "object") return null;
-    const ty = o.t === "veh" || o.t === "pet" ? o.t : null;
+    const ty = o.t === "veh" || o.t === "pet" || o.t === "szt" ? o.t : null;
     const k = String(o.k || "").replace(/[^\w-]/g, "").slice(0, 24);
     if (!ty || !k) return null;
     const r = { t: ty, k };
+    if (ty === "szt") r.n = Math.max(1, Math.min(50, Math.round(Number(o.n) || 1))); // v167: 📏 크기 변화 이용권
     if (ty === "veh" && o.c) r.c = String(o.c).replace(/[^\w-]/g, "").slice(0, 16);
     return r;
   }).filter(Boolean) : [];
@@ -1071,10 +1072,11 @@ export function sanitizePlay(input, prev, opt) {
     out.snowCfg = o;
   }
   // v133: 테스트 기능 중 서버 목록에 빠져 있던 것 — 「인게임 적용」이 버려지고 내 화면(나만 보기)으로 돌아가던 문제
-  for (const k of ["jet", "ufo", "boats2", "alienPet", "seaTown", "hyper", "turtle", "tfx", "taxi", "boat", "star5", "skyIsland", "jump", "camFx", "fitUi", "vbUser", "tankGrp", "wearFuse", "hunger"]) if (k in input) out[k] = pickOf(input[k], ["off", "on"]);
+  for (const k of ["jet", "ufo", "boats2", "alienPet", "seaTown", "hyper", "turtle", "tfx", "taxi", "boat", "star5", "skyIsland", "jump", "camFx", "fitUi", "vbUser", "tankGrp", "wearFuse", "hunger", "szTk", "wishLan"]) if (k in input) out[k] = pickOf(input[k], ["off", "on"]);
   // v162: 👑 이 주의 낚시왕 보상 (기본 켜짐)
   if ("wkKing" in input) out.wkKing = pickOf(input.wkKing, ["on", "off"]);
   if ("socLogin" in input) out.socLogin = pickOf(input.socLogin, ["off", "on"]);
+  if ("seaLay" in input) out.seaLay = pickOf(input.seaLay, ["cur", "A", "B", "C"]);
   for (const k of ["moonRabbit", "moonRice", "moonLander", "moonRover", "moonMeteor", "moonJump"]) if (k in input) out[k] = pickOf(input[k], ["on", "off"]);
   if ("moonView" in input) out.moonView = pickOf(input.moonView, ["1", "2", "3"]);
   if ("seaLook" in input) out.seaLook = pickOf(input.seaLook, ["W", "0", "A", "B", "C", "Cs"]);

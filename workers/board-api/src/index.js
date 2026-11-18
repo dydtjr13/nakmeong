@@ -105,6 +105,9 @@ async function ensureSchema(db) {
     'CREATE TABLE IF NOT EXISTS social (sid TEXT PRIMARY KEY, prov TEXT NOT NULL, code TEXT NOT NULL, created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)',
     'CREATE INDEX IF NOT EXISTS idx_social_code ON social(code)',
     'CREATE TABLE IF NOT EXISTS qlink (tok TEXT PRIMARY KEY, code TEXT NOT NULL, exp INTEGER NOT NULL, tries INTEGER NOT NULL DEFAULT 0)',
+    // v167: 🏮 소원 연등 — 바닷가 마을 하늘에 띄우는 닉네임 + 소원 (2일 동안 보여요)
+    'CREATE TABLE IF NOT EXISTS wishes (id INTEGER PRIMARY KEY AUTOINCREMENT, owner TEXT NOT NULL, nick TEXT NOT NULL, text TEXT NOT NULL, at INTEGER NOT NULL, hid INTEGER NOT NULL DEFAULT 0)',
+    'CREATE INDEX IF NOT EXISTS idx_wishes_at ON wishes(at DESC)',
   ];
   for (const sql of tries) { try { await db.prepare(sql).run(); } catch (e) { /* 이미 있음 */ } }
   schemaReady = true;
@@ -127,7 +130,7 @@ const RANK_ITEM = (x) => {
   return { k, cm, g };
 };
 // v165: 구글·카카오 로그인 — 공개 키(구글 클라이언트 ID · 카카오 REST API 키)는 로그인 화면 주소에도 보이는 값이라 코드에 둬요
-const AUTH = { google: '1039496411057-0qkrtdd0qq48ej9idg3kdelhsvobuqua.apps.googleusercontent.com', kakao: 'cfac3ce1979cba2c5ce3d2a8118b7d60', naver: '', kakaoRedirect: ['https://fishcozy.com/kakao.html', 'https://www.fishcozy.com/kakao.html'], naverRedirect: ['https://fishcozy.com/naver.html', 'https://www.fishcozy.com/naver.html'] };
+const AUTH = { google: '1039496411057-0qkrtdd0qq48ej9idg3kdelhsvobuqua.apps.googleusercontent.com', kakao: 'cfac3ce1979cba2c5ce3d2a8118b7d60', naver: 'hXnhwedFOB4_A27rt438', kakaoRedirect: ['https://fishcozy.com/kakao.html', 'https://www.fishcozy.com/kakao.html'], naverRedirect: ['https://fishcozy.com/naver.html', 'https://www.fishcozy.com/naver.html'] };
 const b64u = (s) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)), (c) => c.charCodeAt(0));
 let gKeys = null, gKeysAt = 0;
 async function googleSub(tok, env) {
@@ -145,7 +148,7 @@ async function googleSub(tok, env) {
 async function kakaoSub(code, redirect, env) {
   const key = (env && env.KAKAO_KEY) || AUTH.kakao; if (!key) throw new Error('off');
   if (!AUTH.kakaoRedirect.includes(redirect)) throw new Error('bad');
-  const tr = await fetch('https://kauth.kakao.com/oauth/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' }, body: new URLSearchParams({ grant_type: 'authorization_code', client_id: key, redirect_uri: redirect, code: String(code || '') }) });
+  const tr = await fetch('https://kauth.kakao.com/oauth/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8' }, body: new URLSearchParams({ grant_type: 'authorization_code', client_id: key, redirect_uri: redirect, code: String(code || ''), ...(env && env.KAKAO_SECRET ? { client_secret: env.KAKAO_SECRET } : {}) }) });
   const tj = await tr.json().catch(() => ({})); if (!tr.ok || !tj.access_token) throw new Error('bad');
   const ur = await fetch('https://kapi.kakao.com/v2/user/me', { headers: { Authorization: 'Bearer ' + tj.access_token } });
   const uj = await ur.json().catch(() => ({})); if (!ur.ok || !uj.id) throw new Error('bad');
@@ -445,6 +448,10 @@ export default {
         await db.prepare('INSERT INTO social (sid,prov,code,created_at,updated_at) VALUES (?,?,?,?,?) ON CONFLICT(sid) DO UPDATE SET code=excluded.code, updated_at=excluded.updated_at').bind(id.sid, id.prov, code, now, now).run();
         return json({ ok: true, code, prov: id.prov }, 200, origin);
       }
+      if (path === '/auth/cfg' && request.method === 'GET') {
+        // v167: 서버 쪽 준비 상태 — 네이버는 Client Secret(워커 시크릿)이 있어야 켜져요
+        return json({ ok: true, g: !!((env && env.GOOGLE_CID) || AUTH.google), k: !!((env && env.KAKAO_KEY) || AUTH.kakao), n: !!(((env && env.NAVER_ID) || AUTH.naver) && env && env.NAVER_SECRET) }, 200, origin);
+      }
       if (path === '/auth/mine' && request.method === 'GET') {
         const xc = cleanCode(request.headers.get('X-Code'));
         const rows = xc ? ((await db.prepare('SELECT prov FROM social WHERE code=?').bind(xc).all()).results || []) : [];
@@ -468,6 +475,27 @@ export default {
         if (!row || row.exp < Date.now() || String(row.code).startsWith('S|')) return bad('expired', 404, origin);
         await db.prepare('DELETE FROM qlink WHERE tok=?').bind(tok).run();
         return json({ ok: true, code: row.code }, 200, origin);
+      }
+      // ─ v167: 🏮 소원 연등 ─
+      if (path === '/wishes' && request.method === 'GET') {
+        const rows = (await db.prepare('SELECT id, nick, text, at FROM wishes WHERE hid=0 AND at>? ORDER BY at DESC LIMIT 40').bind(Date.now() - 2 * 864e5).all()).results || [];
+        return json({ ok: true, rows }, 200, origin);
+      }
+      if (path === '/wishes' && request.method === 'POST') {
+        if (!me) return bad('owner required', 400, origin);
+        const body = await request.json().catch(() => ({}));
+        const text = cleanText(body.text, 24), nick = cleanNick(body.nick);
+        if (!text || !nick) return bad('empty', 400, origin);
+        const now = Date.now(), last = await db.prepare('SELECT at FROM wishes WHERE owner=? ORDER BY at DESC LIMIT 1').bind(me).first();
+        if (last && now - last.at < 10 * 60e3) return json({ ok: false, error: 'wait', left: 10 * 60e3 - (now - last.at) }, 429, origin);
+        const r = await db.prepare('INSERT INTO wishes (owner,nick,text,at) VALUES (?,?,?,?)').bind(me, nick, text, now).run();
+        return json({ ok: true, id: r.meta && r.meta.last_row_id, at: now }, 200, origin);
+      }
+      const wh = path.match(/^\/admin\/wishes\/(\d+)\/hide$/);
+      if (wh && request.method === 'POST') {
+        if (!admin) return bad('admin only', 401, origin);
+        await db.prepare('UPDATE wishes SET hid=1 WHERE id=?').bind(+wh[1]).run();
+        return json({ ok: true }, 200, origin);
       }
       // ─ v165: 관리자 — 계정 목록 (닉네임 · 저장 코드 · 연결된 로그인) ─
       if (path === '/admin/accounts' && request.method === 'GET') {

@@ -33,6 +33,7 @@ jobs:
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
           ADMIN_ID: ${{ secrets.ADMIN_ID }}
           NAVER_SECRET: ${{ secrets.NAVER_SECRET }}
+          KAKAO_SECRET: ${{ secrets.KAKAO_SECRET }}
         run: node scripts/deploy.mjs
       - name: 헬스·CORS 확인
         run: |
