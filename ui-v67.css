@@ -648,3 +648,6 @@ body.menu-open #gdCard{opacity:.35}
 .pipr>.pipm{display:grid;grid-template-columns:1fr 1fr;flex-direction:row}
 #gdArr.up{flex-direction:column-reverse}
 #gdArr.up svg{transform:rotate(180deg)}
+/* v174 📺 라이브 보기 (홈페이지 안 작은 화면) */
+html.nkWatch body>*:not(#world):not(#nkWatchTag):not(canvas){display:none!important}
+#nkWatchTag{position:fixed;left:10px;bottom:10px;z-index:9999;font:800 12px system-ui,sans-serif;color:#fff;background:rgba(200,40,40,.85);border-radius:8px;padding:4px 8px;pointer-events:none}

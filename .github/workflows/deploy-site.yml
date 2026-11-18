@@ -9,6 +9,8 @@ on:
     branches: [main]
     paths-ignore:
       - "workers/**"
+      - "guide-site/**"
+      - ".github/workflows/deploy-guide.yml"
   workflow_dispatch:
 
 concurrency:

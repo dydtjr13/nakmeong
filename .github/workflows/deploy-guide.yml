@@ -1,0 +1,38 @@
+# v176: 가이드 홈페이지 (guide.fishcozy.com · fishcozy-guide 워커) 배포
+# guide-site/ 가 바뀌어 main 에 머지되면 올려요. 게임 사이트와는 따로예요.
+name: Deploy guide site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "guide-site/**"
+      - ".github/workflows/deploy-guide.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-guide
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Cloudflare 에 올리기
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes wrangler@4 deploy --config guide-site/wrangler.toml
+      - name: guide.fishcozy.com 연결 시도
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --yes wrangler@4 deploy --config guide-site/wrangler.domain.toml
+      - name: 확인
+        run: |
+          sleep 5
+          curl -fsS -o /dev/null -w "workers.dev %{http_code}\n" "https://fishcozy-guide.mi1ku.workers.dev/"
+          curl -sS -o /dev/null -w "guide.fishcozy.com %{http_code}\n" "https://guide.fishcozy.com/" || echo "guide.fishcozy.com 아직 연결 안 됨"

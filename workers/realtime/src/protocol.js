@@ -1616,6 +1616,9 @@ const ALLOWED = new Set([
   "http://dydtjr13.github.io",
   // v87: Cloudflare 로 옮긴 사이트 (확인용 주소)
   "https://fishcozy-site.mi1ku.workers.dev",
+  // v176: 가이드 홈페이지 (실시간 인원 /servers 읽기)
+  "https://guide.fishcozy.com",
+  "https://fishcozy-guide.mi1ku.workers.dev",
   "null",
 ]);
 
