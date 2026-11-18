@@ -70,6 +70,7 @@ async function main() {
     ok(pz.x === 11 && pz.z === 13, "관전자가 B 의 움직임을 받아요");
 
     // 관전자가 보내는 건 모두 무시
+    await delay(300); a.inbox.length = 0;
     s.send(hello("관전자닉")); s.send({ t: "chat", text: "안녕" }); s.send({ t: "pose", x: 1, z: 1 });
     await delay(600);
     ok(!a.inbox.some((m) => m.t === "join" || m.t === "chat" || (m.t === "pose" && m.x === 1)), "관전자가 보낸 hello·채팅·움직임은 무시돼요");
