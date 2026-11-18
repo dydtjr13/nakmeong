@@ -1076,6 +1076,7 @@ export function sanitizePlay(input, prev, opt) {
   // v162: 👑 이 주의 낚시왕 보상 (기본 켜짐)
   if ("wkKing" in input) out.wkKing = pickOf(input.wkKing, ["on", "off"]);
   if ("socLogin" in input) out.socLogin = pickOf(input.socLogin, ["off", "on"]);
+  if ("stV2" in input) out.stV2 = pickOf(input.stV2, ["off", "on"]);
   if ("seaLay" in input) out.seaLay = pickOf(input.seaLay, ["cur", "A", "B", "C"]);
   for (const k of ["moonRabbit", "moonRice", "moonLander", "moonRover", "moonMeteor", "moonJump"]) if (k in input) out[k] = pickOf(input[k], ["on", "off"]);
   if ("moonView" in input) out.moonView = pickOf(input.moonView, ["1", "2", "3"]);
@@ -1128,6 +1129,14 @@ export function sanitizePlay(input, prev, opt) {
     if (v && typeof v === "object" && !Array.isArray(v)) {
       const n = (x, lo, hi, d) => Math.round(Math.max(lo, Math.min(hi, finite(x, d))) * 100) / 100;
       out.petCfg = { ph: n(v.ph, 0, 1e7, 8000), pf: n(v.pf, 0, 1e7, 25000), rr: n(v.rr, 0, 50, 1.5), mr: n(v.mr, 0, 10, 0.05), dupR: n(v.dupR, 0, 1e7, 3000), dupM: n(v.dupM, 0, 1e7, 20000) };
+      // v170: 펫마다 (기본 펫 + 블럭 펫) 얻는 방법 · 나오는 상자 등급 · 확률 · 가격 — 탈것 설정과 같은 모양
+      const KEY = /^[a-z][a-zA-Z0-9_]{1,23}$/;
+      const map = (o, f) => { const r = {}; if (o && typeof o === "object" && !Array.isArray(o)) for (const [k, x] of Object.entries(o).slice(0, 80)) { if (!KEY.test(k)) continue; const y = f(x); if (y !== undefined) r[k] = y; } return r; };
+      const ok = (x) => x !== null && x !== "" && Number.isFinite(Number(x));
+      if (v.how) out.petCfg.how = map(v.how, (x) => (["shop", "box", "lv", "star"].includes(x) ? x : undefined));
+      if (v.g) out.petCfg.g = map(v.g, (x) => { const y = Math.round(Number(x)); return Number.isFinite(y) ? Math.max(1, Math.min(5, y)) : undefined; });
+      if (v.p) out.petCfg.p = map(v.p, (x) => (ok(x) ? n(x, 0, 100, 0) : undefined));
+      if (v.pr) out.petCfg.pr = map(v.pr, (x) => { const y = Number(x); return Number.isFinite(y) ? Math.max(0, Math.min(1e10, Math.round(y))) : undefined; });
     } else delete out.petCfg;
   }
   if ("trCfg" in input) {
