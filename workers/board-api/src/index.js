@@ -487,8 +487,10 @@ export default {
         const body = await request.json().catch(() => ({}));
         const text = cleanText(body.text, 24), nick = cleanNick(body.nick);
         if (!text || !nick) return bad('empty', 400, origin);
+        // v169: 한 사람당 연등 하나 — 새로 띄우면 내 예전 연등은 사라져요 (연달아 누르기만 20초 막아요)
         const now = Date.now(), last = await db.prepare('SELECT at FROM wishes WHERE owner=? ORDER BY at DESC LIMIT 1').bind(me).first();
-        if (last && now - last.at < 10 * 60e3) return json({ ok: false, error: 'wait', left: 10 * 60e3 - (now - last.at) }, 429, origin);
+        if (last && now - last.at < 20e3) return json({ ok: false, error: 'wait', left: 20e3 - (now - last.at) }, 429, origin);
+        await db.prepare('DELETE FROM wishes WHERE owner=?').bind(me).run();
         const r = await db.prepare('INSERT INTO wishes (owner,nick,text,at) VALUES (?,?,?,?)').bind(me, nick, text, now).run();
         return json({ ok: true, id: r.meta && r.meta.last_row_id, at: now }, 200, origin);
       }
