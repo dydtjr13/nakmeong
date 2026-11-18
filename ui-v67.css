@@ -466,3 +466,19 @@ body.tx #annBar small{order:4;flex-basis:100%}
 #stV2 .sx2ch em{display:inline-flex;align-items:center;gap:3px;font-style:normal;font-size:10px;line-height:1;padding:3px 6px;border-radius:8px;background:rgba(58,51,64,.78);color:#fff;white-space:nowrap}
 .petadm input[type=number]{width:78px;min-width:78px;box-sizing:border-box}
 .petadm .vecc input[type=number]{width:92px}
+/* v171 새 시작 화면 · 불러오기 페이지 */
+#stV2 .sx2code h2{margin:4px 0 0}
+#stV2 .sx2hint{margin:0;font-size:13px;line-height:1.5;color:#6e6470}
+#stV2 #sx2cb .stCodeB{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;border:0;background:none}
+#stV2 #sx2cb .stTabs{display:flex;gap:6px}
+#stV2 #sx2cb .stTabs button{flex:1;min-width:0;height:40px;border-radius:12px;border:1.5px solid #ece2d6;background:#fff;font:700 14px inherit;color:#6e6470;white-space:nowrap}
+#stV2 #sx2cb .stTabs button.on{background:#3a3340;border-color:#3a3340;color:#fff}
+#stV2 #sx2cb .stCodeR{display:flex;flex-direction:column;gap:8px}
+#stV2 #sx2cb .stIn{display:flex;gap:8px}
+#stV2 #sx2cb .stIn input{flex:1;min-width:0;height:46px;border-radius:12px;border:1.5px solid #ece2d6;background:#fff;padding:0 12px;font-size:16px;box-sizing:border-box}
+#stV2 #sx2cb #stCodeGo{height:50px;border-radius:14px;border:0;background:#f08a4b;color:#fff;font-weight:800;font-size:16px}
+#stV2 #sx2cb small{font-size:12px;line-height:1.5}
+#stV2 #sx2cb,#stV2 #sx2cb *{box-sizing:border-box;max-width:100%}
+#stV2 #sx2cb .stIn input{width:100%}
+#stV2 #sx2cb .stCodeB[data-m=acct] .stCd,#stV2 #sx2cb .stCodeB[data-m=code] .stAc{display:none}
+#stV2 #sx2cb .stCodeB:not([data-m]) .stCd{display:none}

@@ -3849,7 +3849,7 @@ LAB.push(
  {k:'acctSlot',n:'👥 한 기기 여러 계정',d:'같은 브라우저에서 새 계정을 만들거나 다른 계정으로 이어하면, 지금 진행은 이 기기에 따로 보관하고 새 칸에서 시작해요. 시작 화면 닉네임 위에 「이 기기의 계정」 목록이 생겨 눌러서 바꿀 수 있어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
  {k:'advNote',n:'🧭 모험 완료 알림',d:'원정대가 돌아오면 바로 결과를 볼 수 있게 알려요. A 오른쪽 아래 카드 (게임은 그대로, 받기를 누르면 카드 안에 보상) · B 가운데 귀환 창 (보상 받기 → 결과 창)',scope:'me',o:[['off','끄기 (기존 알림)'],['A','A · 오른쪽 아래 카드'],['B','B · 귀환 연출 창']]},
  {k:'mChat',n:'💬 모바일 채팅',d:'휴대폰에서만 적용돼요. A 최근 두 줄만 반투명으로 + 입력 버튼 · B 채팅 버튼을 누르면 아래에서 올라오는 시트 · D 늘 보이는 작은 3줄 창 (위 손잡이를 누르거나 끌면 커져요)',scope:'me',o:[['off','기존 (기본)'],['A','A · 두 줄 티커'],['B','B · 하단 시트'],['D','D · 접히는 미니 창']]},
- {k:'welcome',n:'🐟 시작 화면 환영 문구',d:'A 시작 화면 옆 편지 카드 (PC 위치·크기는 아래 「환영 문구 A 위치」에서 정해요) · B 시작 화면 앞에 한 번 뜨는 전체 화면 (낚시하러 가기)',scope:'me',o:[['off','끄기 (기본)'],['A','A · 편지 카드'],['B','B · 첫 접속 전체 화면']]},
+ {k:'welcome',n:'🐟 시작 화면 환영 문구',d:'A 시작 화면 옆 편지 카드 (PC 위치·크기는 아래 「환영 문구 A 위치」에서 정해요) · B 시작 화면 앞에 한 번 뜨는 전체 화면 (낚시하러 가기)',scope:'me',o:[['off','끄기 (기본)'],['A','A · 편지 카드'],['B','B · 첫 접속 전체 화면 (지금은 꺼 둠)']]},
  {k:'deckTank',n:'🐠 데크 어항 위치',d:'B 입구 쪽 양옆 · C 데크와 바닥이 만나는 입구 양옆 · D 데크 밖 바닥 양옆 (9시 방향으로 돌림). 바꾸면 새로고침해야 적용돼요',scope:'me',o:[['off','기존 (기본)'],['B','B · 입구 쪽 양옆'],['C','C · 데크와 바닥이 만나는 입구 양옆'],['D','D · 데크 밖 바닥 양옆 (9시 방향)']]},
  {k:'deckDeco',n:'🪑 데크 꾸미기',d:'상점에 「데크 꾸미기」 탭이 생겨요 (빨간 파라솔 · 작은 탁자 · 전구줄). 데크 의자에 앉으면 「꾸미기」 버튼으로 내 의자 쪽 절반에만 놓을 수 있어요. 옆자리 사람도 자기 쪽을 꾸밀 수 있고, 앉아 있는 동안 다른 유저에게도 보여요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 const opt=(k,d)=>String(uiOpt(k,d)),mob=()=>innerWidth<700,startOn=()=>{const s=$('start');return !!(s&&s.classList.contains('show'));};
@@ -3878,7 +3878,12 @@ function slotMk(){const mb=$('stMkB');if(!mb)return;let nt=$('stMkNew');const ne
  /* v170 ✨ 새 시작 화면 — 처음 온 사람(간편 로그인·게스트) / 이 기기에 진행이 있는 사람(이어서 하기) → ① 서버 ② 캐릭터
     기존 시작 화면(닉네임·서버·캐릭터·이어하기·계정 칸)은 그대로 두고, 그 기능을 버튼으로 이어 받아요 · 🧪 실험실 「새 시작 화면」 */
  {const X={pg:'home',pend:0},CX=()=>window.__nkSt2Ctx();window.NK_ST2=X;
-  const on=()=>{try{if(/[?&]st2=1/.test(location.search))return true;return String(uiOpt('stV2','off'))==='on';}catch(e){return false;}};
+  /* v171: 한 번 켜진 새 시작 화면은 계정 칸을 바꾸거나(새로 시작) 서버 설정이 늦게 와도 이 기기에서 그대로 유지 */
+  const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){return null;}};
+  let ON=null;const on=()=>{try{if(/[?&]st2=1/.test(location.search))return true;if(ON===true&&st.classList.contains('show')&&!started)return true;
+   const me=S.stV2!=null&&S.stV2!==''?String(S.stV2):null;let v;
+   if(me){v=me==='on';ls('nk_st2me',me);}else if(ls('nk_st2me')){v=ls('nk_st2me')==='on';}else{v=String(uiOpt('stV2','off'))==='on';}
+   if(ON==null||v)ON=v;return ON;}catch(e){return false;}};
   const st=$('start'),E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const kinds=()=>{const tb=['b','h','a'].concat(String(uiOpt('mythChar','off'))==='on'?['m']:[]);return KINDS.map((k,i)=>[i,k]).filter(([i])=>tb.includes(CX().grp(i)));};
   const ago=t=>{if(!t)return '';const m=Math.round((Date.now()-t)/60000);if(m<2)return '방금 전';if(m<60)return m+'분 전';const h=Math.round(m/60);if(h<24)return h+'시간 전';const d=Math.round(h/24);return d<30?d+'일 전':'오래전';};
@@ -3887,7 +3892,7 @@ function slotMk(){const mb=$('stMkB');if(!mb)return;let nt=$('stMkNew');const ne
   const KK='<svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"><path d="M10 3C5.6 3 2 5.8 2 9.2c0 2.2 1.5 4.1 3.7 5.2l-.8 3 3.4-2.2c.6.1 1.1.1 1.7.1 4.4 0 8-2.8 8-6.1S14.4 3 10 3z" fill="#191919"/></svg>';
   const QR='<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-7"/></svg>';
   const BK='<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>';
-  function classic(openCode){st.classList.remove('sx2on');let b=$('sx2back');if(!b){b=document.createElement('button');b.id='sx2back';b.type='button';b.textContent='← 간단한 시작 화면';st.appendChild(b);b.onclick=()=>{b.remove();X.pg='home';draw();};}
+  function classic(openCode){st.classList.remove('sx2on');{const v=$('stV2');if(v)v.remove();}let b=$('sx2back');if(!b){b=document.createElement('button');b.id='sx2back';b.type='button';b.textContent='← 간단한 시작 화면';st.appendChild(b);b.onclick=()=>{b.remove();X.pg='home';draw();};}
    if(openCode){const t=$('stCodeT'),bx=$('stCodeB');if(bx&&bx.hidden&&t)t.click();try{CX().stEl.dataset.step=1;}catch(e){}}}
   function login(pv){return async()=>{say('muted',AUTHX.pname(pv)+' 확인 중…');X.pend=1;try{const r=await AUTHX.kStart('login',pv);const j=await AUTHX.login(pv,r.cred,r.redirect,say,r.state);if(j&&j.error==='none'){X.pend=0;X.pg='srv';draw();}}catch(e){X.pend=0;say('bad',e.message);}};}
   function home(){const prog=hasProg(),K=KINDS[S.char]||KINDS[0],soc=socOK(),C=AUTHX.CFG;
@@ -3908,13 +3913,19 @@ function slotMk(){const mb=$('stMkB');if(!mb)return;let nt=$('stMkNew');const ne
    return `<div class="sx2card sx2st"><div class="sx2top"><button type="button" class="sx2bk" data-sx="srv" aria-label="뒤로">${BK}</button><span class="sx2dots"><i></i><i class="on"></i></span></div>
     <h2>누구로 낚시할까요?</h2><div class="sx2gw2"><div class="sx2grid" id="sx2grid">${L.map(([i,k])=>{const ok=lvCharOK(i);return `<button type="button" class="sx2ch ${S.char===i?'on':''} ${ok?'':'lk'}" data-ch2="${i}"><img src="img/chars/${k.th||'b0'}.jpg" alt=""><span>${E(k.n)}</span>${ok?'':`<em><svg viewBox="0 0 24 24" width="10" height="10" aria-hidden="true"><path fill="currentColor" d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>Lv.${lvCharReq(i)}</em>`}</button>`;}).join('')}</div><span class="sx2more" id="sx2more" aria-hidden="true">▼</span></div>
     <button type="button" class="sx2go" data-sx="start" ${busy?'disabled':''}>${busy?'에셋 로딩 중…':(n=>E(n)+(c=>{const j=c>=0&&c<11172?c%28:0;return j===0||j===8?'로':'으로';})(n.charCodeAt(n.length-1)-0xAC00)+' 출발')(String(SRVN(+CFG.ch||1))||'')}</button></div>`;}
-  function draw(){let el=$('stV2');if(!on()||PREV||started){if(el)el.remove();st.classList.remove('sx2on');return;}
+  /* v171: 저장 코드 · 닉네임+비밀번호 불러오기를 새 화면 안에서 (예전 화면으로 안 넘어가요) */
+  const CB={home:null,next:null};
+  function cbBack(){const bx=$('stCodeB');if(bx&&CB.home&&bx.parentNode!==CB.home){CB.home.insertBefore(bx,CB.next&&CB.next.parentNode===CB.home?CB.next:null);bx.hidden=true;const t=$('stCodeT');if(t)t.classList.remove('on');}}
+  function cbIn(){const bx=$('stCodeB'),slot=$('sx2cb');if(!bx||!slot)return;if(!CB.home){CB.home=bx.parentNode;CB.next=bx.nextSibling;}slot.appendChild(bx);bx.hidden=false;const m=$('stCodeMsg');if(m&&!/ok|bad/.test(m.className)){m.className='muted';}const f=bx.dataset.m==='code'?$('stCode'):$('stAcN');if(f&&!/Mobi/.test(navigator.userAgent))setTimeout(()=>f.focus(),60);}
+  function code(){return `<div class="sx2card sx2st sx2code"><div class="sx2top"><button type="button" class="sx2bk" data-sx="home" aria-label="뒤로">${BK}</button></div>
+    <h2>다른 기기 진행 불러오기</h2><div id="sx2cb"></div></div>`;}
+  function draw(){let el=$('stV2');cbBack();if(!on()||PREV||started){if(el)el.remove();st.classList.remove('sx2on');return;}
    if($('sx2back'))return;if(!el){el=document.createElement('div');el.id='stV2';st.appendChild(el);}st.classList.add('sx2on');
-   el.classList.toggle('sx2sub2',X.pg!=='home');el.innerHTML=`<div class="sx2hd"><h1>피쉬코지</h1><p>잠시 쉬어가는 작은 낚시 공간</p></div><div class="sx2body sx2-${X.pg}">${X.pg==='srv'?srv():X.pg==='ch'?chs():home()}</div>`;
+   el.classList.toggle('sx2sub2',X.pg!=='home');el.innerHTML=`<div class="sx2hd"><h1>피쉬코지</h1><p>잠시 쉬어가는 작은 낚시 공간</p></div><div class="sx2body sx2-${X.pg}">${X.pg==='srv'?srv():X.pg==='ch'?chs():X.pg==='code'?code():home()}</div>`;if(X.pg==='code')cbIn();
    el.querySelectorAll('[data-sx]').forEach(b=>b.onclick=()=>{const a=b.dataset.sx;
-    if(a==='home'||a==='srv'){X.pg=a;draw();return;}
+    if(a==='home'||a==='srv'){if(a==='home')X.pend=0;X.pg=a;draw();return;}
     if(a==='cont'||a==='guest'){X.pg='srv';draw();return;}
-    if(a==='code'){classic(true);return;}
+    if(a==='code'){X.pend=1;X.pg='code';draw();return;}
     if(a==='new'){confirmBox(`<h3>새로 시작</h3><p>지금 진행(<b>${E(S.nick||'나')}</b> · Lv.${myLv()})은 이 기기에 그대로 보관돼요.<br>새 칸에서 처음부터 시작할까요?</p>`,()=>slotGo('new',{mk:0}));return;}
     if(a==='k'||a==='n'){login(a)();return;}
     if(a==='ch'){const v=($('stNick').value||'').trim(),bad=nickBad(v);if(bad&&bad!=='reserved'){say('bad',nickBadText(bad));return;}X.pg='ch';draw();return;}
@@ -3926,7 +3937,7 @@ function slotMk(){const mb=$('stMkB');if(!mb)return;let nt=$('stMkNew');const ne
    const gr=$('sx2grid'),mo=$('sx2more');if(gr&&mo){const f=()=>{mo.classList.toggle('show',gr.scrollHeight-gr.scrollTop-gr.clientHeight>10);};gr.onscroll=f;setTimeout(f,60);mo.onclick=()=>gr.scrollBy({top:gr.clientHeight*.7,behavior:'smooth'});}}
   X.draw=draw;
   // 불러오기(간편 로그인·코드)가 끝나면 서버 고르기로
-  {const _r=window.NK_STREFRESH;window.NK_STREFRESH=function(){try{_r&&_r.apply(this,arguments);}catch(e){}if(X.pend){X.pend=0;X.pg='srv';}if(!$('sx2back'))draw();};}
+  {const _r=window.NK_STREFRESH;window.NK_STREFRESH=function(){try{_r&&_r.apply(this,arguments);}catch(e){}if(X.pend&&(X.pg!=='code'||/\bok\b/.test(($('stCodeMsg')||{}).className||''))){X.pend=0;X.pg='srv';}if(!$('sx2back'))draw();};}
   addEventListener('nk-rt-servers',()=>{if(X.pg==='srv'&&st.classList.contains('show'))draw();});addEventListener('nk-rt-preplay',()=>setTimeout(draw,30));addEventListener('nk-rt-play',()=>setTimeout(draw,30));
   {let lb=null;setInterval(()=>{if(!st.classList.contains('show')||X.pg!=='ch')return;const g=$('go'),b=g&&g.disabled;if(b!==lb){lb=b;draw();}},500);}
   draw();}
@@ -4012,7 +4023,7 @@ addEventListener('resize',()=>{MCH='?';mchApply();});addEventListener('nk-rt-pla
 const WEL_T=`<p class="wh">Welcome to FISH COZY 🐟</p><p>Fish Cozy는 바쁜 일상 속에서<br>잠시 쉬어갈 수 있는 작은 낚시 공간입니다.</p><p>복잡한 생각은 잠시 내려놓고,<br>잔잔한 물결을 바라보며 낚싯대를 드리워보세요.</p><p>어떤 날은 새로운 물고기를 만나고,<br>어떤 날은 모닥불 앞에서 사람들과 대화를 나누고,<br>어떤 날은 그저 물가에 앉아 시간을 보내도 괜찮아요.</p><p>서두르지 않아도,<br>잘하지 않아도 괜찮습니다.</p><p>이곳에서는 나만의 속도로 낚시를 즐기면 되니까요.</p><p class="wl">오늘도 Fish Cozy에서 편안한 시간을 보내세요.</p>`;
 const WEL0={x:3,y:8,w:440,fs:14.5,op:.96,sp:.45};const qs=new URLSearchParams(location.search);
 function welPos(){if(PREV==='wel'){const o={};['x','y','w','fs','op','sp'].forEach(k=>{if(qs.has(k))o[k]=+qs.get(k);});return Object.assign({},WEL0,o);}let p=null;try{const RT=window.NK_RT;const P=RT&&RT.status&&RT.status()==='on'?RT.play:PLAYC;p=P&&P.welPos;}catch(e){}return Object.assign({},WEL0,S.welPosMe||{},p||{});}
-const welMode=()=>PREV==='wel'?'A':PREV?'off':opt('welcome','off');let WELB_DONE=false,WELA_X=false;
+/* v171: 인트로(환영 문구 B 전체 화면)는 끔 · 새 시작 화면이 켜져 있으면 A 편지 카드도 숨김 */const welMode=()=>{if(PREV==='wel')return 'A';if(PREV)return 'off';const m=opt('welcome','off');if(m==='B')return 'off';if(m==='A'&&$('stV2'))return 'off';return m;};let WELB_DONE=false,WELA_X=false;
 function welApply(){const m=welMode(),on=startOn();let a=$('welA'),b=$('welB');
  if(!on||m!=='A'||WELA_X){if(a)a.remove();}else{if(!a){a=document.createElement('div');a.id='welA';a.innerHTML=`<button type="button" class="wx" aria-label="닫기">×</button><div class="wt">${WEL_T}</div>${PREV==='wel'?'<i class="wrs" title="끌어서 너비 조절"></i>':''}`;document.body.appendChild(a);a.querySelector('.wx').onclick=()=>{WELA_X=true;a.remove();};if(PREV==='wel')welDrag(a);}
   const p=welPos();a.classList.toggle('m',mob());if(!mob()){a.style.left=p.x+'vw';a.style.top=p.y+'vh';a.style.width=p.w+'px';a.style.fontSize=p.fs+'px';a.style.setProperty('--op',p.op);}else{a.style.cssText='';}}
