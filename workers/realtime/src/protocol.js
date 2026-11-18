@@ -18,11 +18,11 @@ export const HELLO_MS = 20000;
 export const MAX_MSG = 900;
 /** 공지·이벤트·밸런스·금칙어처럼 본문이 긴 운영 메시지. 채팅·포즈는 MAX_MSG. */
 export const MAX_OPS = 48000;
-const OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses", "game", "gameNow", "titles", "staff", "vmod", "vbx"]);
+const OPS = new Set(["world", "notice", "event", "sched", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "recoverAck", "loss", "losses", "game", "gameNow", "titles", "staff", "vmod", "vbx"]);
 
 const FISH = new Set(["off", "cast", "bite", "catch"]);
 /** v52: 서버 인증된 관리자 소켓만 보낼 수 있는 운영 메시지 */
-export const ADMIN_OPS = new Set(["world", "notice", "event", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet", "titles", "staff", "staffAdd", "repDone", "vmod", "vbx", "who"]);
+export const ADMIN_OPS = new Set(["world", "notice", "event", "sched", "balance", "grant", "grants", "sanc", "gift", "prof", "stage", "play", "cue", "recover", "game", "gameNow", "gameGet", "titles", "staff", "staffAdd", "repDone", "vmod", "vbx", "who"]);
 function cleanId(v, max) {
   return String(v == null ? "" : v).replace(/[^\w.-]/g, "").slice(0, max || 40);
 }
@@ -620,6 +620,35 @@ export function sanitizeEvent(input, now) {
   return { coin, box, from, to };
 }
 
+// v174: 📅 이벤트 달력 — 예약 목록 (배율 이벤트 · 같은 날 보상). 끝난 지 14일 넘은 건 지워요, 최대 60개
+export function sanitizeSched(input, now) {
+  const t = Number.isFinite(now) ? now : Date.now();
+  if (!Array.isArray(input)) return [];
+  const out = [];
+  const ids = new Set();
+  for (const o of input.slice(0, 80)) {
+    if (!o || typeof o !== "object" || Array.isArray(o)) continue;
+    const id = String(o.id || "").replace(/[^\w.-]/g, "").slice(0, 32);
+    if (!id || ids.has(id)) continue;
+    const from = Math.round(finite(o.from, 0));
+    const to = Math.round(finite(o.to, 0));
+    if (!(from > 0) || !(to > from) || to - from > 62 * 864e5) continue;
+    if (to < t - 14 * 864e5) continue;
+    const coin = snapMul(o.coin), box = snapMul(o.box), xp = snapMul(o.xp);
+    let gift = null;
+    if (o.gift && typeof o.gift === "object") {
+      const c = Math.round(nonNeg(o.gift.c, 1e8)), s = Math.round(nonNeg(o.gift.s, 1e5)), b = Math.round(nonNeg(o.gift.b, 50)), x = Math.round(nonNeg(o.gift.x, 1e7));
+      if (c || s || b || x) gift = { c, s, b, bt: Math.round(nonNeg(o.gift.bt, 5)), x, mode: o.gift.mode === "live" ? "live" : "first", msg: String(o.gift.msg || "").slice(0, 60) };
+    }
+    if (coin <= 1 && box <= 1 && xp <= 1 && !gift) continue;
+    ids.add(id);
+    out.push({ id, from, to, coin, box, xp, gift, title: String(o.title || "").slice(0, 40), by: String(o.by || "").slice(0, 20) });
+    if (out.length >= 60) break;
+  }
+  out.sort((a, b) => a.from - b.from);
+  return out;
+}
+
 function cleanKey(k) {
   const s = String(k || "").replace(/[^a-z0-9_]/gi, "").slice(0, 32);
   return s;
@@ -1077,6 +1106,10 @@ export function sanitizePlay(input, prev, opt) {
   if ("wkKing" in input) out.wkKing = pickOf(input.wkKing, ["on", "off"]);
   if ("socLogin" in input) out.socLogin = pickOf(input.socLogin, ["off", "on"]);
   if ("stV2" in input) out.stV2 = pickOf(input.stV2, ["off", "on"]);
+  if ("pipOn" in input) out.pipOn = pickOf(input.pipOn, ["off", "on"]);
+  if ("guideV2" in input) out.guideV2 = pickOf(input.guideV2, ["off", "new"]);
+  if ("guideMe" in input) out.guideMe = pickOf(input.guideMe, ["off", "on"]);
+  if ("fzGrade" in input) out.fzGrade = pickOf(input.fzGrade, ["on", "off"]);
   if ("robotTkP" in input) out.robotTkP = pickOf(input.robotTkP, ["1", "0.3", "0.5", "2", "5", "0"]);
   if ("seaLay" in input) out.seaLay = pickOf(input.seaLay, ["cur", "A", "B", "C"]);
   for (const k of ["moonRabbit", "moonRice", "moonLander", "moonRover", "moonMeteor", "moonJump"]) if (k in input) out[k] = pickOf(input[k], ["on", "off"]);
@@ -1439,6 +1472,7 @@ export function parseClient(raw) {
   if (msg.t === "s5") { const k = String(msg.k == null ? "" : msg.k).replace(/[^\w-]/g, "").slice(0, 20); return k ? { t: "s5", k, g: Math.max(0, Math.min(9, msg.g | 0)) } : null; }
   if (msg.t === "notice") return { t: "notice", notice: msg.notice == null ? null : msg.notice };
   if (msg.t === "event") return { t: "event", event: msg.event == null ? null : msg.event };
+  if (msg.t === "sched") return { t: "sched", sched: Array.isArray(msg.sched) ? msg.sched : [] };
   if (msg.t === "balance") return { t: "balance", balance: msg.balance == null ? null : msg.balance };
   if (msg.t === "grant") {
     const id = String(msg.id || "").replace(/[^\w.-]/g, "").slice(0, 40);

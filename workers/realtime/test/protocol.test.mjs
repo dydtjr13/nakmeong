@@ -824,3 +824,21 @@ test("v160: 바닷가 마을 위치 x 700 근처도 그대로", () => {
   assert.equal(p.x, 702.4);
   assert.equal(_sp({ x: 5000, z: 0 }, null).x, 1000);
 });
+
+test("v174 sanitizeSched keeps valid schedule rows and drops bad ones", async () => {
+  const { sanitizeSched } = await import("../src/protocol.js");
+  const now = Date.UTC(2026, 10, 18);
+  const rows = sanitizeSched([
+    { id: "a", from: now + 1000, to: now + 86400000, coin: 2, title: "주말" },
+    { id: "b", from: now, to: now + 3600000, gift: { c: 3000, b: 3, bt: 2, mode: "first" } },
+    { id: "c", from: now, to: now - 1, coin: 2 },
+    { id: "d", from: now, to: now + 1000, coin: 1, box: 1 },
+    { id: "a", from: now, to: now + 5000, coin: 3 },
+    { id: "e", from: now - 30 * 864e5, to: now - 20 * 864e5, xp: 1.5 },
+  ], now);
+  assert.deepEqual(rows.map((r) => r.id), ["b", "a"]);
+  assert.equal(rows[1].coin, 2);
+  assert.equal(rows[0].gift.c, 3000);
+  assert.equal(rows[0].gift.mode, "first");
+  assert.equal(sanitizeSched("x", now).length, 0);
+});

@@ -47,6 +47,7 @@ import {
   sanitizeReport,
   mergeReports,
   spamStep,
+  sanitizeSched,
 } from "./protocol.js";
 
 function hostOf(request) {
@@ -222,6 +223,7 @@ export class LakeRoom extends DurableObject {
       notice: notes.active,
       notices: notes.rows,
       event: await this.eventGet(),
+      sched: sanitizeSched(await this.opsGet("sched", []), now),
       balance: await this.opsGet("balance", null),
       grants: sanitizeGrants(await this.opsGet("grants", {}), now),
       sanc: sanitizeSancMap(await this.opsGet("sanc", {}), now),
@@ -322,6 +324,12 @@ export class LakeRoom extends DurableObject {
       const e = sanitizeEvent(msg.event, now);
       await this.opsPut("event", e);
       this.broadcast({ t: "event", event: e });
+      return;
+    }
+    if (msg.t === "sched") {
+      const v = sanitizeSched(msg.sched, now);
+      await this.opsPut("sched", v);
+      this.broadcast({ t: "sched", sched: v });
       return;
     }
     if (msg.t === "balance") {
@@ -478,6 +486,10 @@ export class LakeRoom extends DurableObject {
     }
     if (msg.t === "event") {
       await this.fan(fromId, all, { t: "event", event: sanitizeEvent(msg.event, now) });
+      return;
+    }
+    if (msg.t === "sched") {
+      await this.fan(fromId, all, { t: "sched", sched: sanitizeSched(msg.sched, now) });
       return;
     }
     if (msg.t === "balance") {
@@ -918,7 +930,7 @@ export class LakeRoom extends DurableObject {
       this.broadcast({ t: "world", world });
       return;
     }
-    if (msg.t === "notice" || msg.t === "event" || msg.t === "balance" || msg.t === "grant" || msg.t === "sanc" || msg.t === "gift" || msg.t === "prof" || msg.t === "stage" || msg.t === "play" || msg.t === "cue" || msg.t === "recover") {
+    if (msg.t === "notice" || msg.t === "event" || msg.t === "sched" || msg.t === "balance" || msg.t === "grant" || msg.t === "sanc" || msg.t === "gift" || msg.t === "prof" || msg.t === "stage" || msg.t === "play" || msg.t === "cue" || msg.t === "recover") {
       if (!prev.ready) return;
       await this.acceptOps(prev.server, msg);
       return;
