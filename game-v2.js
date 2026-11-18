@@ -358,7 +358,7 @@ function fireC2(){if(!fireMesh||!THREE.GLTFLoader)return;new THREE.GLTFLoader().
 function animWalk(c,dt){const w=c.cur==='walk',st=c.cur==='sit';c.ph=(c.ph||0)+dt*(w?10:0);const k=Math.min(1,dt*12),a=w?Math.sin(c.ph)*.6:0;c.legs.forEach((l,i)=>{l.rotation.x+=((st?-(window.__anSitLeg||1.35):(i%2?a:-a))-l.rotation.x)*k;});
  // v95: 동물 캐릭터도 앉을 때 다리를 앞으로 뻗고 몸을 의자 높이로 내려요
  const by=st?-(window.__anSitY!=null?__anSitY:(c.legs.length?.2:.06)):w?Math.abs(Math.sin(c.ph))*(c.legs.length?.05:.09):0,rz=w?Math.sin(c.ph)*(c.legs.length?.05:.12):0;c.rig.position.y+=(by-c.rig.position.y)*k;c.rig.rotation.z+=(rz-c.rig.rotation.z)*k;}
-function addXP(n,why){n=Math.round(n);if(!(n>0))return;const L0=myLv();S.xp=(S.xp||0)+n;const td=new Date().toDateString();if(S.xpD!==td){S.xpD=td;S.xpT=0;S.xpSoc=0;}S.xpT+=n;const L1=myLv();try{lvHud(n,why);}catch(e){}if(L1>L0)lvUp(L0,L1);}
+function addXP(n,why){/* v174 경험치 배율 이벤트 (운영자·가이드 보상 제외) */try{if(!/운영자|가이드|복구/.test(why||'')&&typeof V14!=='undefined'&&V14&&V14.evMul){const xm=V14.evMul().xp||1;if(xm>1)n*=xm;}}catch(e){}n=Math.round(n);if(!(n>0))return;const L0=myLv();S.xp=(S.xp||0)+n;const td=new Date().toDateString();if(S.xpD!==td){S.xpD=td;S.xpT=0;S.xpSoc=0;}S.xpT+=n;const L1=myLv();try{lvHud(n,why);}catch(e){}if(L1>L0)lvUp(L0,L1);}
 function xpCatch(f,F,isNew){const base=LV.xpG[f.g]||10,sz=F&&F.max>F.min?Math.max(0,Math.min(1,(f.cm-F.min)/(F.max-F.min))):0;let x=base*(1+.3*sz)*XBAL.cfg().cm;x=Math.round(x)+(isNew?50:0);/* v148: 낚시 카드가 떠 있으면 경험치는 카드 안에만 (가운데 알림 끔) */const card=ccCard();if(card){XPQ=1;try{addXP(x,'');}finally{XPQ=0;}ccFillXP(card,x);return;}addXP(x,`${F?F.n:''} ${f.cm}cm${isNew?' <span class="xn">(첫 포획 +50)</span>':''}`);}
 function xpSocial(){const td=new Date().toDateString();if(S.xpD!==td){S.xpD=td;S.xpT=0;S.xpSoc=0;}if((S.xpSoc||0)>=50)return;S.xpSoc=(S.xpSoc||0)+2;addXP(2,'교류');}
 function lvUp(L0,L1){let co=0,bx=[],un=[];for(let L=L0+1;L<=L1;L++){if(lvClaimed(L))continue;co+=100*L;if(L%5===0)bx.push(lvBoxMin(L));if(L===10)bx.push(2);un=un.concat(lvUnlocks(L));}
@@ -2253,7 +2253,7 @@ function sxSub(v){const k=SETX.sub,R=$('set'),T={prof:'닉네임 · 칭호',amb:
  const seg=(id,cur,list,lab)=>`<div class="sxseg${list.length>3?' wr':''}" role="group" aria-label="${lab||''}">${list.map(([q,n])=>`<button type="button" data-sg="${id}" data-sv="${q}" class="${String(cur)===String(q)?'on':''}">${n}</button>`).join('')}</div>`;
  const col=(lab,inner,sub)=>`<div class="sxrow sxcol"><b>${lab}</b>${inner}${sub?`<small>${sub}</small>`:''}</div>`;
  let body='';
- if(k==='prof'){const L=myLv(),tt=myTitle(L),opts=[['','자동','레벨 최고 칭호']].concat(LV.titles.filter(x=>L>=x[0]).map(x=>['lv:'+x[1],x[1],'Lv.'+x[0]])).concat(spTitles().map(x=>['sp:'+x.n,x.n,'✨ 특별 칭호'])).concat((S.myTitles||[]).map(x=>['my:'+x.n,x.n,'🏅 변이 마스터'])).concat(S.s5&&S.s5.ttl?[['s5:별을 낚은 자','별을 낚은 자','👑 5성 교환소']]:[]);
+ if(k==='prof'){const L=myLv(),tt=myTitle(L),opts=[['','자동','레벨 최고 칭호']].concat(LV.titles.filter(x=>L>=x[0]).map(x=>['lv:'+x[1],x[1],'Lv.'+x[0]])).concat(spTitles().map(x=>['sp:'+x.n,x.n,'✨ 특별 칭호'])).concat((S.myTitles||[]).map(x=>['my:'+x.n,x.n,x.c||'🏅 변이 마스터'])).concat(S.s5&&S.s5.ttl?[['s5:별을 낚은 자','별을 낚은 자','👑 5성 교환소']]:[]);
   body=`<div class="sxme"><div class="sxav" style="background-image:${sxAv()}"></div><div class="sxmi"><b>${sxH(NICK())}</b> <span>Lv.${L}${tt?' '+sxH(tt.n):''}</span><small>닉네임은 10자까지 · 칭호는 머리 위에 보여요</small></div></div>
   <section class="sxcard"><h5>닉네임</h5><div class="sxrow sxin"><input id="sxNick" maxlength="10" value="${sxH(S.nick||'')}" placeholder="나" aria-label="닉네임"><button type="button" class="sxbtn acc" data-sa="nick">바꾸기</button></div></section>
   <section class="sxcard"><h5>한 줄 소개 <small style="font-weight:500">· 다른 유저가 내 프로필을 볼 때 보여요</small></h5><div class="sxrow sxin"><input id="sxBio" maxlength="40" value="${sxH(S.bio||'')}" placeholder="예: 무지개 잉어 찾는 중!" aria-label="한 줄 소개"><button type="button" class="sxbtn acc" data-sa="bio">저장</button></div></section>
@@ -2402,17 +2402,23 @@ function fzPool(){return [].concat(...fzLists()).filter(f=>(!f.lock||f.alk)&&!f.
 const fzVar=f=>f&&f.vr?fzVK(f.vr):'',fzNext=v=>{const i=FZO.indexOf(v);return i<0?null:FZO[Math.min(FZO.length-1,i+1)];},fzKey=x=>x.k+'|'+x.st+'|'+(x.vr||'');
 function fzGroups(){const g={};fzPool().forEach(f=>{const vr=fzVar(f),key=f.k+'|'+(f.st|0)+'|'+vr;(g[key]=g[key]||{k:f.k,st:f.st|0,vr,list:[]}).list.push(f);});return Object.values(g).filter(x=>x.st<FZ_MAXST&&FI(x.k)).sort((a,b)=>(b.list.length>=3)-(a.list.length>=3)||b.list.length-a.list.length);}
 function fzPick(G){return G.list.slice().sort((a,b)=>a.v-b.v).slice(0,3);}
-function fzCost(st){return 300*(st+1);}
+/* v174: 합성 등급 보상 (테스트 기능 fzGrade, 기본 켜짐) — 재료 물고기 등급(일반~초월)에 따라
+   ① 성공하면 물고기 정수 추가 ② 변이 확률 보정 ④ 비용 차등 ⑤ 등급별 첫 5성 칭호 · ③ 별 조각 차등은 5성 교환소에 이미 있어요 */
+const fzGrOn=()=>String(uiOpt('fzGrade','on'))!=='off';
+const FZG_ESS=[1,2,3,5,8,12],FZG_VAR=[1,1,1.2,1.2,1.5,1.5],FZG_COST=[0,0,.25,.5,1,1.5];
+function fzGr(mats){return Math.max(0,Math.min(5,...(mats||[]).map(f=>f&&f.g|0)));}
+function fzCost(st,mats){const g=fzGrOn()&&mats&&mats.length?fzGr(mats):0;return Math.round(300*(st+1)*(1+FZG_COST[g])/10)*10;}
+function fzGrNote(mats,wrap){if(!fzGrOn()||!mats||!mats.length)return '';const g=fzGr(mats),G=GR(g);const p=[];if(FZG_VAR[g]>1)p.push('변이 ×'+FZG_VAR[g]);p.push('성공하면 정수 +'+FZG_ESS[g]);if(FZG_COST[g])p.push('비용 +'+Math.round(FZG_COST[g]*100)+'%');return `<div class="fzgn ${wrap?'w':''}"><b>${G?G.n:''} 등급</b> ${p.join(' · ')}</div>`;}
 const FZ_ESS={black:5,pink:8,red:12,gold:18,rainbow:30};
-function fzProbs(G){const z=fzS(),P={};if(FZ.pity&&(z.ess|0)<(FZ_ESS[FZ.pity]||10))FZ.pity=null;if(G&&G.vr){FZO.forEach(k=>P[k]=k===fzNext(G.vr)?100:0);return {P,fail:0,ok:0,fix:1};}let vs=0;FZO.forEach(k=>{let p=FZV[k].p;if(FZ.cat===k)p*=2;P[k]=p;vs+=p;});if(FZ.pity){FZO.forEach(k=>P[k]=k===FZ.pity?100:0);return {P,fail:0,ok:0};}return {P,fail:FZ_FAIL,ok:Math.max(0,100-vs-FZ_FAIL)};}
+function fzProbs(G){const z=fzS(),P={};if(FZ.pity&&(z.ess|0)<(FZ_ESS[FZ.pity]||10))FZ.pity=null;if(G&&G.vr){FZO.forEach(k=>P[k]=k===fzNext(G.vr)?100:0);return {P,fail:0,ok:0,fix:1};}let vs=0;const gm=fzGrOn()&&G&&G.list?FZG_VAR[fzGr(fzPick(G))]:1;FZO.forEach(k=>{let p=FZV[k].p*gm;if(FZ.cat===k)p*=2;P[k]=Math.round(p*100)/100;vs+=P[k];});if(FZ.pity){FZO.forEach(k=>P[k]=k===FZ.pity?100:0);return {P,fail:0,ok:0};}return {P,fail:FZ_FAIL,ok:Math.max(0,100-vs-FZ_FAIL)};}
 // v107: 합성 뒤 그 물고기가 3마리 미만이면 목록 맨 위 합성 가능한 물고기를 자동으로 골라요
 function fzAutoSel(){const G=fzGroups(),c=G.find(x=>fzKey(x)===FZ.sel);if(c&&c.list.length>=3)return;const e=G.find(x=>x.list.length>=3);FZ.sel=e?fzKey(e):null;if(!e)FZ.sheet=false;}
-function fzAllN(cur){if(!cur)return 0;const c=fzCost(cur.st);return Math.max(0,Math.min(Math.floor(cur.list.length/3),c?Math.floor(S.coins/c):99));}
+function fzAllN(cur){if(!cur)return 0;const c=fzCost(cur.st,fzPick(cur));return Math.max(0,Math.min(Math.floor(cur.list.length/3),c?Math.floor(S.coins/c):99));}
 function fzGoB(cur,mats,cost){const n=fzAllN(cur),ok=mats.length&&S.coins>=cost&&!FZ.busy,left=cur?cur.list.length-n*3:0;
  return `<div class="fzgoB"><div class="need">필요 골드<b><img src="img/feat/coins-gold.png" alt="">${cost.toLocaleString()}</b></div><button type="button" class="one" id="fzGo" ${ok?'':'disabled'}>합성하기 <small>1번</small></button><button type="button" class="all" id="fzAll" ${ok&&n>=2?'':'disabled'}>⚡ 한 번에 합성 <small>×${n} · 🪙${(n*cost).toLocaleString()}</small></button></div>
   <p class="fzgoN">${cur?`${FI(cur.k).n} ★${cur.st+1} ${cur.list.length}마리 → ${n}번 합성할 수 있어요${left?` (${left}마리 남음)`:''} · 촉매는 첫 번째에만 써요`:''}</p>`;}
 function renderFuse(){const z=fzS(),G=fzGroups();if(FZ.sel&&!G.find(x=>fzKey(x)===FZ.sel))FZ.sel=null;if(!FZ.sel){const e=G.find(x=>x.list.length>=3);if(e)FZ.sel=fzKey(e);}
- const cur=G.find(x=>fzKey(x)===FZ.sel),mats=cur&&cur.list.length>=3?fzPick(cur):[],F=cur&&FI(cur.k),pr=fzProbs(cur),cost=cur?fzCost(cur.st):0;
+ const cur=G.find(x=>fzKey(x)===FZ.sel),mats=cur&&cur.list.length>=3?fzPick(cur):[],F=cur&&FI(cur.k),pr=fzProbs(cur),cost=cur?fzCost(cur.st,mats):0;
  const left=G.length?G.map(x=>{const key=fzKey(x),ok=x.list.length>=3;return `<button type="button" class="fzg ${key===FZ.sel?'on':''} ${ok?'':'no'}" data-fzg="${key}">${fzImg(x.list[0])}<span><b>${x.vr?`<i class="fzvt" style="color:${FZV[x.vr].c}">${FZV[x.vr].n}</i> `:''}${FI(x.k).n}</b> <small>×${x.list.length}</small><em>${ok?'합성 가능':(3-x.list.length)+'마리 더 필요'}</em></span><s>★${x.st+1}</s></button>`;}).join(''):'<p class="muted small">어항에 물고기가 없어요. 낚시로 같은 물고기 3마리를 모아요.</p>';
  const slot=f=>f?`<div class="fzs">${fzImg(f)}<span>${sxH(fzName(f))} ${f.cm}cm</span></div>`:`<div class="fzs e"><span>빈 칸</span></div>`;
  const catBtns=FZO.map(k=>{const n=z.cat[k]|0;return `<button type="button" class="fzc ${FZ.cat===k?'on':''}" data-fzc="${k}" ${n?'':'disabled'} style="--vc:${FZV[k].c};--vb:${FZV[k].bg}">${FZV[k].n} 촉매 <b>${n}</b></button>`;}).join('');
@@ -2425,7 +2431,7 @@ function renderFuse(){const z=fzS(),G=fzGroups();if(FZ.sel&&!G.find(x=>fzKey(x)=
   ${fzGoB(cur,mats,cost)}`:'<p class="muted">왼쪽에서 물고기를 골라요.</p>';
  const dx=cur?(fzSP()[cur.k]||{}):{},dexN=FZO.filter(k=>dx[k]).length;// v103 오른쪽 목록 = 보상까지 모은 변이 (보상 받으면 처음부터)
  const right=cur?`<div class="fzdh"><b>${F.n} 변이</b><small>${dexN}/5</small></div><div class="fzdex">${FZO.map(k=>`<div class="fzd ${dx[k]?'':'no'}" style="--vb:${FZV[k].bg};--vc:${FZV[k].c}">${dx[k]?fzImg({k:cur.k,vr:k}):`<img class="fzi sil" src="${(F.img||'img/fish/'+cur.k+'.png')}" alt="">`}<span>${FZV[k].n}${dx[k]?'':' ?'}</span></div>`).join('')}</div>${(window.NK_fzSetHTML?NK_fzSetHTML(cur.k):'')}
-  <div class="fzpity"><b>물고기 정수 ${z.ess}개</b><div class="fzess10 e30">${Array.from({length:30},(_,i)=>`<i class="${i<z.ess?'on':''} ${FZO.some(k=>FZ_ESS[k]===i+1)?'mk':''}"></i>`).join('')}</div><div class="fzessk">${FZO.map(k=>`<span class="${z.ess>=FZ_ESS[k]?'ok':''}" style="--vc:${FZV[k].c}">${FZV[k].n} ${FZ_ESS[k]}</span>`).join('')}</div><small>실패할 때마다 1개 · 모은 만큼 원하는 변이를 확정으로 받아요 (변이 등급이 높을수록 많이 필요해요)</small>${z.ess>=FZ_ESS.black?`<select id="fzPity"><option value="">변이 고르기</option>${FZO.filter(k=>z.ess>=FZ_ESS[k]).map(k=>`<option value="${k}" ${FZ.pity===k?'selected':''}>${FZV[k].n} (정수 ${FZ_ESS[k]}개)</option>`).join('')}</select>`:''}</div>`:'';
+  ${fzGrNote(mats,1)}<div class="fzpity"><b>물고기 정수 ${z.ess}개</b><div class="fzess10 e30">${Array.from({length:30},(_,i)=>`<i class="${i<z.ess?'on':''} ${FZO.some(k=>FZ_ESS[k]===i+1)?'mk':''}"></i>`).join('')}</div><div class="fzessk">${FZO.map(k=>`<span class="${z.ess>=FZ_ESS[k]?'ok':''}" style="--vc:${FZV[k].c}">${FZV[k].n} ${FZ_ESS[k]}</span>`).join('')}</div><small>실패할 때마다 1개 · 모은 만큼 원하는 변이를 확정으로 받아요 (변이 등급이 높을수록 많이 필요해요)</small>${z.ess>=FZ_ESS.black?`<select id="fzPity"><option value="">변이 고르기</option>${FZO.filter(k=>z.ess>=FZ_ESS[k]).map(k=>`<option value="${k}" ${FZ.pity===k?'selected':''}>${FZV[k].n} (정수 ${FZ_ESS[k]}개)</option>`).join('')}</select>`:''}</div>`:'';
  $('fuse').innerHTML=`<div class="card fzc0"><div class="fzh"><img src="img/feat/cauldron.png" alt=""><div><h2>물고기 합성 <span class="fzt">테스트</span></h2><small>같은 물고기·같은 별 3마리를 모아 별을 올려요. 가끔 색이 바뀐 변이가 나와요.</small></div><button type="button" class="fzx0" data-close="fuse" aria-label="닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="fzb"><div class="fzl">${left}</div><div class="fzm">${mid}</div><div class="fzr">${right}</div></div></div>`;
  const R=$('fuse');R.querySelector('[data-close]').onclick=()=>closeM('fuse');
@@ -2433,10 +2439,10 @@ function renderFuse(){const z=fzS(),G=fzGroups();if(FZ.sel&&!G.find(x=>fzKey(x)=
  R.querySelectorAll('[data-fzc]').forEach(b=>b.onclick=()=>{FZ.cat=FZ.cat===b.dataset.fzc?null:b.dataset.fzc;renderFuse();});
  const ps=$('fzPity');if(ps)ps.onchange=()=>{FZ.pity=ps.value||null;renderFuse();};
  const go=$('fzGo');if(go)go.onclick=()=>fzDo(cur,mats);const ga=$('fzAll');if(ga)ga.onclick=()=>fzAll(cur);if(window.NK_fzSetBind)NK_fzSetBind(R);}
-function fzDo(G,mats){if(FZ.busy||!G||mats.length<3)return;const cost=fzCost(G.st);if(S.coins<cost){toast('골드가 모자라요');return;}FZ.busy=true;const res=fzCore(G,mats);try{XBAL.ev(15,'합성');}catch(e){}save();hud();FZ.busy=false;fzReveal(res,G);fzAutoSel();renderFuse();}
+function fzDo(G,mats){if(FZ.busy||!G||mats.length<3)return;const cost=fzCost(G.st,mats);if(S.coins<cost){toast('골드가 모자라요');return;}FZ.busy=true;const res=fzCore(G,mats);try{XBAL.ev(15,'합성');}catch(e){}save();hud();FZ.busy=false;fzReveal(res,G);fzAutoSel();renderFuse();}
 // v104 ⚡ 한 번에 합성: 같은 물고기·같은 별이 3마리 이상 남아 있는 동안 연달아 (촉매·확정은 첫 번째에만)
 function fzAll(G){if(FZ.busy||!G)return;const key=fzKey(G),out=[];let spent=0;FZ.busy=true;
- for(let i=0;i<200;i++){const g=fzGroups().find(x=>fzKey(x)===key);if(!g||g.list.length<3)break;const mats=fzPick(g),cost=fzCost(g.st);if(mats.length<3||S.coins<cost)break;spent+=cost;out.push(fzCore(g,mats));}
+ for(let i=0;i<200;i++){const g=fzGroups().find(x=>fzKey(x)===key);if(!g||g.list.length<3)break;const mats=fzPick(g),cost=fzCost(g.st,mats);if(mats.length<3||S.coins<cost)break;spent+=cost;out.push(fzCore(g,mats));}
  FZ.busy=false;if(!out.length){toast('합성할 물고기나 골드가 모자라요',1600);return;}try{XBAL.ev(15*out.length,'합성');}catch(e){}save();hud();fzRevealAll(out,G,spent);fzAutoSel();renderFuse();}
 function fzRevealAll(out,G,spent){let m=$('fzr');if(!m){m=document.createElement('div');m.id='fzr';m.className='modal';document.body.appendChild(m);}
  const okN=out.filter(r=>!r.fail&&!r.f.vr).length,fails=out.filter(r=>r.fail),vars=out.filter(r=>!r.fail&&r.f.vr),F=FI(G.k),st=G.st+2,best=out.filter(r=>!r.fail&&!r.f.vr).map(r=>r.f).sort((a,b)=>b.cm-a.cm)[0];
@@ -2454,17 +2460,18 @@ function fzRevealAll(out,G,spent){let m=$('fzr');if(!m){m=document.createElement
  m.querySelector('[data-ok]').onclick=()=>m.classList.remove('show');m.classList.add('show');fzFit(m);try{V14.catchSfx(vars.length?4:okN?2:0);}catch(e){}}
 // 한 줄에 안 들어가면 글자를 조금씩 줄여요 (최소 10px)
 function fzFit(root){requestAnimationFrame(()=>root.querySelectorAll('.fzfit').forEach(el=>{let fs=parseFloat(getComputedStyle(el).fontSize)||14;for(let i=0;i<12&&el.scrollWidth>el.clientWidth+1&&fs>10;i++){fs-=.5;el.style.fontSize=fs+'px';}}));}
-function fzCore(G,mats){const z=fzS(),cost=fzCost(G.st);
+function fzCore(G,mats){const z=fzS(),cost=fzCost(G.st,mats),gq=fzGr(mats);
  const pr=fzProbs(G);let r=Math.random()*100,vr=null,fail=false;if(G.vr){vr=fzNext(G.vr);}else if(FZ.pity){vr=FZ.pity;z.ess-=FZ_ESS[FZ.pity]||10;FZ.pity=null;}else{for(const k of FZO){if(r<pr.P[k]){vr=k;break;}r-=pr.P[k];}if(!vr&&r<pr.fail)fail=true;}
  S.coins-=cost;if(!G.vr&&FZ.cat&&(z.cat[FZ.cat]|0)>0){z.cat[FZ.cat]--;}FZ.cat=null;const ids=mats.map(f=>f.id),F=FI(G.k);
  let res;if(fail){const keep=mats.slice().sort((a,b)=>b.cm-a.cm)[0];fzRemove(ids,keep.id);z.ess++;res={fail:true,keep};}
  else{const cm=Math.round(mats.reduce((a,f)=>a+f.cm,0)/3*1.08*10)/10,g=Math.max(...mats.map(f=>f.g|0)),inh=mats.reduce((a,f)=>fzBest(a,f.vr),null),v0=Math.round(valueOf(F,cm,g)*(1+.5*(G.st+1))*((fzBest(vr,inh)&&FZV[fzBest(vr,inh)])?FZV[fzBest(vr,inh)].m:1));
   const nf={id:S.nid++,k:G.k,cm,g,v:v0,price:Math.round(v0*1.3),sale:false,st:G.st+1,t:Date.now()};z.star=z.star||{};z.star[G.k]=Math.max(z.star[G.k]|0,G.st+1);if(vr||inh)nf.vr=fzBest(vr,inh);if(nf.vr&&S.vrLock!==false){nf.lock=true;nf.alk=1;}fzRemove(ids,null);S.tank.push(nf);
-  let first=false;if(nf.vr){const dx=z.dex[G.k]=z.dex[G.k]||{};first=!dx[nf.vr];dx[nf.vr]=1;try{const sp=fzSP();(sp[G.k]=sp[G.k]||{})[nf.vr]=1;}catch(e){}}res={f:nf,first,newVar:!!vr,avg:Math.round(mats.reduce((a,f)=>a+f.cm,0)/3)};}
+  let first=false;if(nf.vr){const dx=z.dex[G.k]=z.dex[G.k]||{};first=!dx[nf.vr];dx[nf.vr]=1;try{const sp=fzSP();(sp[G.k]=sp[G.k]||{})[nf.vr]=1;}catch(e){}}res={f:nf,first,newVar:!!vr,avg:Math.round(mats.reduce((a,f)=>a+f.cm,0)/3)};
+  if(fzGrOn()){const eb=FZG_ESS[gq];z.ess=(z.ess|0)+eb;res.ess=eb;if(nf.st>=4){z.g5=z.g5||{};if(!z.g5[gq]){z.g5[gq]=Date.now();const tn=(GR(gq)?GR(gq).n:'')+' 별 장인';S.myTitles=S.myTitles||[];if(!S.myTitles.some(x=>x.n===tn))S.myTitles.push({n:tn,c:'⭐ 등급 5성',t:Date.now()});res.ttl=tn;}}}}
  return res;}
 function fzReveal(res,G){let m=$('fzr');if(!m){m=document.createElement('div');m.id='fzr';m.className='modal';document.body.appendChild(m);}
  if(res.fail){m.innerHTML=`<div class="fzrw fail"><div class="fzrc"><span class="fzrk">아쉬워요</span><h2>합성 실패</h2>${fzImg(res.keep,'big')}<p>가장 큰 ${sxH(fzName(res.keep))} ${res.keep.cm}cm는 돌아왔어요<br><b>물고기 정수 +1</b> · 지금 ${fzS().ess}/10</p><div class="fzrb"><button type="button" class="acc" data-ok>확인</button></div></div></div>`;}
- else{const f=res.f,V=f.vr&&FZV[fzVK(f.vr)];m.innerHTML=`<div class="fzrw ${res.newVar?'var':''}" style="${V?'--vc:'+V.c+';--vb:'+V.bg:''}"><div class="fzrays" aria-hidden="true"></div><div class="fzrc">${res.newVar?`<span class="fzrk">VARIANT</span>`:`<span class="fzrk">STAR UP</span>`}<h2>${sxH(fzName(f))}</h2><div class="fzst">${fzStars(f.st)}</div>${fzImg(f,'big')}<div class="fzchips"><span><b>${f.cm}cm</b> · 재료 평균 ${res.avg}cm</span><span>가치 ${f.v.toLocaleString()}</span>${res.first?'<span class="hl">처음 발견 · 도감에 기록</span>':''}</div><div class="fzrb"><button type="button" class="acc" data-ok>어항에 넣기</button></div></div></div>`;}
+ else{const f=res.f,V=f.vr&&FZV[fzVK(f.vr)];m.innerHTML=`<div class="fzrw ${res.newVar?'var':''}" style="${V?'--vc:'+V.c+';--vb:'+V.bg:''}"><div class="fzrays" aria-hidden="true"></div><div class="fzrc">${res.newVar?`<span class="fzrk">VARIANT</span>`:`<span class="fzrk">STAR UP</span>`}<h2>${sxH(fzName(f))}</h2><div class="fzst">${fzStars(f.st)}</div>${fzImg(f,'big')}<div class="fzchips"><span><b>${f.cm}cm</b> · 재료 평균 ${res.avg}cm</span><span>가치 ${f.v.toLocaleString()}</span>${res.first?'<span class="hl">처음 발견 · 도감에 기록</span>':''}${res.ess?`<span>정수 +${res.ess}</span>`:''}${res.ttl?`<span class="hl">🏅 칭호 「${sxH(res.ttl)}」</span>`:''}</div><div class="fzrb"><button type="button" class="acc" data-ok>어항에 넣기</button></div></div></div>`;}
  m.querySelector('[data-ok]').onclick=()=>m.classList.remove('show');m.classList.add('show');try{V14.catchSfx(res.fail?0:res.newVar?4:2);}catch(e){}}
 function openFuse(){if(!$('fuse')){const d=document.createElement('div');d.id='fuse';d.className='modal';document.body.appendChild(d);}renderFuse();openM('fuse');}
 // ── 모험 ──
@@ -3030,13 +3037,13 @@ let _frameErrAt=-1e9,FRAMEAT=0;function frame(now){if(++_bmC%10===0){_bmOn=BIGM.
 // v79: 창을 내리거나 다른 탭·다른 작업 중이어도 자동 낚시가 이어지게 — 화면이 숨겨지면 브라우저가 화면 그리기(requestAnimationFrame)를 멈추므로,
 // 웹 워커 타이머(숨긴 탭에서도 잘 안 느려짐)로 0.25초마다 깨워서 게임 시간을 0.05초씩 나눠 진행해요. 이때는 화면을 그리지 않아요.
 let BGRUN=false,BGERR='';const nextF=()=>{if(!BGRUN)requestAnimationFrame(frame);};
-{let wk=null;const bgOn=()=>!!(document.hidden&&started&&S.autoFish);
+{let wk=null;const bgOn=()=>!!(document.hidden&&started&&(S.autoFish||window.__nkPipOn));
  const tick=()=>{if(!BGRUN)return;if(!bgOn()){return;}const target=performance.now(),step=Math.max(50,S.fpsCap?1000/S.fpsCap:0);let n=0;if(target-last>60000)last=target-60000;
-  while(last<target-step&&n<400){n++;try{frameBody(Math.min(target,last+step));}catch(e){last+=step;}}};
+  while(last<target-step&&n<400){n++;try{frameBody(Math.min(target,last+step));}catch(e){last+=step;}}try{window.__nkPipBg&&window.__nkPipBg();}catch(e){}};
  const start=()=>{if(BGRUN)return;BGRUN=true;try{if(!wk){const src='let h=0;onmessage=e=>{clearInterval(h);if(e.data)h=setInterval(()=>postMessage(0),250);};';wk=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));wk.onmessage=tick;}wk.postMessage(1);}catch(e){BGRUN=false;BGERR=String(e&&e.message||e);}};
  const stop=()=>{if(!BGRUN)return;BGRUN=false;try{wk&&wk.postMessage(0);}catch(e){}const t0=performance.now();last=t0;setTimeout(()=>{if(FRAMEAT<t0)requestAnimationFrame(frame);},250);};
- document.addEventListener('visibilitychange',()=>{if(document.hidden){if(started&&S.autoFish)start();}else stop();});
- setInterval(()=>{if(document.hidden&&started&&S.autoFish&&!BGRUN)start();},5000);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){if(started&&(S.autoFish||window.__nkPipOn))start();}else stop();});
+ setInterval(()=>{if(document.hidden&&started&&(S.autoFish||window.__nkPipOn)&&!BGRUN)start();},5000);
  window.NK_BG={on:()=>BGRUN,tick,dbg:()=>({started,auto:!!S.autoFish,hidden:document.hidden,err:BGERR})};}
 // v61: 관리자 접속 시 성능 정보 (FPS · 드로우콜 · 삼각형 · 해상도) — 모바일 포함, 눌러서 접기/펴기
 let perfT=0,perfMin=999,perfAdm=0;
@@ -3173,7 +3180,7 @@ V14=(()=>{
   if(!connected||row.ch==='all'||+row.ch===CH.me)applyNotice(row);
   if(connected)NK_RT.setNotice(row);else toast('실시간 서버에 연결되어 있지 않아 이 화면에만 보여요',1800);}
  let evSeen='';
- function showEvPill(){const ev=evMul();let el=$('evPill');if(!ev.on){if(el)el.remove();evSeen='';return;}const txt=`🎉 이벤트 · 골드 ×${ev.coin} · 상자 ×${ev.box}`;/* v56: 이벤트 창은 ev-v24(#evx) 하나만 — 예전 알약은 그리지 않음 */if(window.NK_EV){if(el)el.remove();}else{if(!el){el=document.createElement('div');el.id='evPill';document.body.appendChild(el);}if(el.textContent!==txt)el.textContent=txt;}const k=ev.coin+'|'+ev.box+'|'+(AD.ev.from||0);if(evSeen!==k){evSeen=k;say('시스템',txt+(AD.ev.to?` · ${left(AD.ev.to)} 남음`:''));}}
+ function showEvPill(){const ev=evMul();let el=$('evPill');if(!ev.on){if(el)el.remove();evSeen='';return;}const txt='🎉 이벤트 · '+[ev.coin>1?'골드 ×'+ev.coin:'',ev.box>1?'상자 ×'+ev.box:'',ev.xp>1?'경험치 ×'+ev.xp:''].filter(Boolean).join(' · ');/* v56: 이벤트 창은 ev-v24(#evx) 하나만 — 예전 알약은 그리지 않음 */if(window.NK_EV){if(el)el.remove();}else{if(!el){el=document.createElement('div');el.id='evPill';document.body.appendChild(el);}if(el.textContent!==txt)el.textContent=txt;}const k=ev.coin+'|'+ev.box+'|'+ev.xp+'|'+(ev.from||0);if(evSeen!==k){evSeen=k;say('시스템',txt+(ev.to?` · ${left(ev.to)} 남음`:''));}}
  function applyEvent(e){AD.ev=(e&&(e.coin>1||e.box>1))?{coin:+e.coin||1,box:+e.box||1,from:+e.from||0,to:+e.to||0}:{};try{LW('nk_admin_ev',AD.ev);}catch(err){}showEvPill();const adm=$('admin');if(adm&&adm.classList.contains('show')&&(AD.tab==='ev'||AD.tab==='dash')){try{keepScroll('admin',admin);}catch(err){}}}
  function publishEvent(e){applyEvent(e);if(rtOn()&&NK_RT.setEvent)NK_RT.setEvent(e&&(e.coin>1||e.box>1)?e:null);else toast('실시간 서버에 연결되어 있지 않아 이 화면에만 적용돼요',1800);}
  function applyBalance(B){let prev='';try{prev=localStorage.getItem('nk_admin_bal')||'';}catch(e){}const next=B?JSON.stringify(B):'';if(prev===next)return;const base=window.NK_BAL0||null;const src=B||base;if(!src)return;try{if(B)localStorage.setItem('nk_admin_bal',next);else localStorage.removeItem('nk_admin_bal');}catch(e){}
@@ -3538,6 +3545,57 @@ V14=(()=>{
   A.busy=1;A.err='';try{keepScroll('admin',admin);}catch(e){}
   try{const r=await fetch(SV.api()+'/admin/accounts',{headers:{'X-Admin-Token':String(tk),'X-Owner':SV.cid()}});const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.ok)throw new Error(r.status===401?'관리자 확인에 실패했어요. 다시 로그인해 주세요':'목록을 불러오지 못했어요');A.rows=j.rows||[];A.soc=j.soc||[];}catch(e){A.err=e.message;}
   A.busy=0;try{keepScroll('admin',admin);}catch(e){}});
+ // ───────── v174 📅 이벤트 달력 (관리자 › 이벤트 · 시안 A) ─────────
+ function schList(){try{const R=window.NK_RT;if(R&&Array.isArray(R.sched))return R.sched;return JSON.parse(localStorage.getItem('nk_sched_cache')||'[]')||[];}catch(e){return [];}}
+ const KO=9*36e5,dkey=t=>new Date(t+KO).toISOString().slice(0,10),dts=(k,hm)=>new Date(`${k}T${hm||'00:00'}:00+09:00`).getTime(),WD='일월화수목금토';
+ const schLab=r=>{const L=[];if(r.coin>1)L.push(['g','골드 '+r.coin+'배']);if(r.box>1)L.push(['b','상자 '+r.box+'배']);if(r.xp>1)L.push(['x','경험치 '+r.xp+'배']);if(r.gift)L.push(['r','보상 지급']);return L;};
+ const giftTxt=g=>g?[g.c?'골드 '+g.c.toLocaleString():'',g.b?`${(D.BOX.tiers[g.bt]||{}).n||''} 이상 상자 ${g.b}`:'',g.s?'강화석 '+g.s:'',g.x?'XP '+g.x:''].filter(Boolean).join(' + '):'';
+ function schCal(){const n=Date.now(),k=dkey(n);if(!AD.cal){AD.cal={y:+k.slice(0,4),m:+k.slice(5,7)-1,a:k,b:k,f:{k:'ev',coin:2,box:1,xp:1,ft:'00:00',tt:'23:59',wg:false,c:3000,gb:3,bt:2,s:0,x:0,mode:'first',msg:'',title:''}};}return AD.cal;}
+ function schHTML(){const C=schCal(),F=C.f,rows=schList(),now=Date.now(),today=dkey(now);
+  const first=Date.UTC(C.y,C.m,1),wd0=new Date(first).getUTCDay(),days=new Date(Date.UTC(C.y,C.m+1,0)).getUTCDate(),cells=Math.ceil((wd0+days)/7)*7;
+  const a=C.a<=C.b?C.a:C.b,b=C.a<=C.b?C.b:C.a;
+  let grid='';for(let i=0;i<cells;i++){const ms=first+(i-wd0)*864e5,k=new Date(ms).toISOString().slice(0,10),inM=i>=wd0&&i<wd0+days,d0=dts(k),d1=d0+864e5,wk=i%7;
+   const chips=rows.filter(r=>r.from<d1&&r.to>d0).slice(0,3).map(r=>{const past=r.to<=now,L=schLab(r)[0]||['o',''];const st=r.from>=d0?'s':'';const en=r.to<=d1?'e':'';return `<span class="sc ${past?'o':L[0]} ${st}${en}" title="${esc(r.title||'')}">${st||wk===0?esc(L[1]):'&nbsp;'}</span>`;}).join('');
+   grid+=`<button type="button" class="scd ${inM?'':'out'} ${k===today?'td':''} ${k>=a&&k<=b?'sel':''} ${k<today?'pst':''} w${wk}" data-day="${k}"><b>${+k.slice(8)}</b>${chips}</button>`;}
+  const dayRows=rows.filter(r=>r.from<dts(b)+864e5&&r.to>dts(a));
+  const tag=r=>r.to<=now?'<i class="st o">끝남</i>':r.from<=now?'<i class="st g">진행 중</i>':'<i class="st s">예약됨</i>';
+  const tm=t=>{const x=new Date(t+KO).toISOString();return `${+x.slice(5,7)}/${+x.slice(8,10)} ${x.slice(11,16)}`;};
+  const list=dayRows.map(r=>`<div class="scr"><i class="bar ${(schLab(r)[0]||['o'])[0]}"></i><div><b>${esc(r.title||schLab(r).map(x=>x[1]).join(' · '))}</b><small>${tm(r.from)} → ${tm(r.to)}${r.gift?' · '+esc(giftTxt(r.gift))+(r.gift.mode==='live'?' (시작 시각 접속자)':' (그날 처음 접속하면)'):''}</small></div>${tag(r)}<button type="button" class="sm" data-scdel="${r.id}">삭제</button></div>`).join('')||'<p class="muted small">이 날짜에는 일정이 없어요</p>';
+  const sel=(id,v,opts)=>`<select data-sf="${id}">${opts.map(x=>`<option ${+v===x?'selected':''} value="${x}">${x}배</option>`).join('')}</select>`,MU=[1,1.2,1.5,2,2.5,3,5];
+  const TT=[];for(let h=0;h<24;h++)for(const mm of ['00','30'])TT.push(String(h).padStart(2,'0')+':'+mm);TT.push('23:59');const tsel=(id,v)=>`<select data-sf="${id}">${TT.map(t=>`<option ${t===v?'selected':''}>${t}</option>`).join('')}</select>`;
+  const wg=F.k==='gift'||F.wg;
+  const ttl=a===b?`${+a.slice(5,7)}월 ${+a.slice(8)}일 ${WD[new Date(dts(a)+KO).getUTCDay()]}요일`:`${+a.slice(5,7)}/${+a.slice(8)} ~ ${+b.slice(5,7)}/${+b.slice(8)}`;
+  return `<div class="adbox schbox"><div class="schg"><div class="schl"><div class="schh"><button type="button" class="sm" data-scm="-1" aria-label="이전 달">‹</button><b>${C.y}년 ${C.m+1}월</b><button type="button" class="sm" data-scm="1" aria-label="다음 달">›</button><button type="button" class="sm" data-scm="0">오늘</button><span class="sclg"><i class="g"></i>골드<i class="b"></i>상자<i class="x"></i>경험치<i class="r"></i>보상</span></div>
+   <div class="scw">${[...WD].map((w,i)=>`<span class="w${i}">${w}</span>`).join('')}</div><div class="scg">${grid}</div><p class="small muted">날짜를 누르면 그날 일정 · 다른 날짜를 한 번 더 누르면(또는 끌면) 그 기간으로 새 일정을 만들어요 · 한국 시간 기준</p></div>
+   <div class="schr"><div class="schd"><b>${ttl}</b><small>일정 ${dayRows.length}개</small></div><div class="scrs">${list}</div><hr>
+    <b>새 일정 만들기</b><div class="seg2"><button type="button" class="${F.k==='ev'?'on':''}" data-sk="ev">배율 이벤트</button><button type="button" class="${F.k==='gift'?'on':''}" data-sk="gift">보상 지급</button></div>
+    ${F.k==='ev'?`<div class="scm"><label>골드${sel('coin',F.coin,MU)}</label><label>상자${sel('box',F.box,MU)}</label><label>경험치${sel('xp',F.xp,MU)}</label></div>`:''}
+    <div class="scp"><span>기간 <small>(달력에서 고르기)</small></span><div><b>${+a.slice(5,7)}/${+a.slice(8)}</b>${tsel('ft',F.ft)}<em>→</em><b>${+b.slice(5,7)}/${+b.slice(8)}</b>${tsel('tt',F.tt)}</div></div>
+    <label class="scn">이름 <input data-sf="title" value="${esc(F.title)}" maxlength="40" placeholder="예: 주말 골드 이벤트"></label>
+    ${F.k==='ev'?`<label class="scwg"><input type="checkbox" data-sf="wg" ${F.wg?'checked':''}> 같은 날 보상도 함께 지급</label>`:''}
+    ${wg?`<div class="scgf"><label>골드<input type="number" min="0" data-sf="c" value="${F.c}"></label><label>상자 수<input type="number" min="0" max="50" data-sf="gb" value="${F.gb}"></label><label>상자 등급<select data-sf="bt">${D.BOX.tiers.map((t,i)=>`<option value="${i}" ${+F.bt===i?'selected':''}>${t.n} 이상</option>`).join('')}</select></label><label>강화석<input type="number" min="0" data-sf="s" value="${F.s}"></label><label>XP<input type="number" min="0" data-sf="x" value="${F.x}"></label><label class="w">안내 문구<input data-sf="msg" maxlength="60" value="${esc(F.msg)}" placeholder="예: 주말 이벤트 보상이에요"></label></div>
+    <div class="seg2 sm2"><button type="button" class="${F.mode==='first'?'on':''}" data-sm2="first">그날 처음 접속하면</button><button type="button" class="${F.mode==='live'?'on':''}" data-sm2="live">시작 시각 접속자만</button></div>`:''}
+    <button type="button" class="acc scgo" data-scgo>예약하기 · ${+a.slice(5,7)}/${+a.slice(8)} ${F.ft} 시작</button></div></div></div>`;}
+ function schBind(m,re){const C=schCal(),F=C.f,q=s=>m.querySelectorAll(s);let down=null;
+  q('[data-scm]').forEach(b=>b.onclick=()=>{const v=+b.dataset.scm;if(!v){const k=dkey(Date.now());C.y=+k.slice(0,4);C.m=+k.slice(5,7)-1;}else{C.m+=v;if(C.m<0){C.m=11;C.y--;}if(C.m>11){C.m=0;C.y++;}}re();});
+  q('[data-day]').forEach(b=>{b.onmousedown=()=>{down=b.dataset.day;};b.onmouseenter=()=>{if(down&&b.dataset.day!==down){C.a=down;C.b=b.dataset.day;C.pk=0;m.querySelectorAll('[data-day]').forEach(x=>{const k=x.dataset.day,lo=C.a<C.b?C.a:C.b,hi=C.a<C.b?C.b:C.a;x.classList.toggle('sel',k>=lo&&k<=hi);});}};
+   b.onclick=()=>{const k=b.dataset.day;if(down&&down!==k){down=null;re();return;}down=null;if(C.pk&&k>C.a){C.b=k;C.pk=0;}else{C.a=C.b=k;C.pk=1;}re();};});
+  m.addEventListener('mouseup',()=>{if(down){setTimeout(()=>{down=null;},0);}},{once:true});
+  q('[data-sk]').forEach(b=>b.onclick=()=>{F.k=b.dataset.sk;re();});q('[data-sm2]').forEach(b=>b.onclick=()=>{F.mode=b.dataset.sm2;re();});
+  q('[data-sf]').forEach(i=>{const k=i.dataset.sf;i.onchange=i.oninput=()=>{F[k]=i.type==='checkbox'?i.checked:(i.type==='number'||i.tagName==='SELECT'?+i.value:i.value);if(k==='wg')re();};});
+  q('[data-scdel]').forEach(b=>b.onclick=()=>{const id=b.dataset.scdel,r=schList().find(x=>x.id===id);confirmBox(`<h3>일정 삭제</h3><p>「${esc((r&&r.title)||'일정')}」을 지울까요? 진행 중이면 바로 끝나요.</p>`,()=>{schPub(schList().filter(x=>x.id!==id),'일정 삭제');setTimeout(re,700);});});
+  const go=m.querySelector('[data-scgo]');if(go)go.onclick=()=>{const a=C.a<=C.b?C.a:C.b,b=C.a<=C.b?C.b:C.a,from=dts(a,F.ft||'00:00'),to=dts(b,F.tt||'23:59')+59999;if(!(to>from)){toast('끝나는 시간이 시작보다 빨라요',1800);return;}
+   const row={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),from,to,coin:F.k==='ev'?+F.coin:1,box:F.k==='ev'?+F.box:1,xp:F.k==='ev'?+F.xp:1,title:F.title||'',by:NICK()};
+   if(F.k==='gift'||F.wg){if(!(F.c>0||F.gb>0||F.s>0||F.x>0)){toast('보상을 하나 이상 넣어 주세요',1800);return;}row.gift={c:+F.c||0,b:+F.gb||0,bt:+F.bt||0,s:+F.s||0,x:+F.x||0,mode:F.mode,msg:F.msg||F.title||''};}
+   if(row.coin<=1&&row.box<=1&&row.xp<=1&&!row.gift){toast('배율을 1배보다 크게 골라 주세요',1800);return;}
+   const tm=t=>{const x=new Date(t+KO).toISOString();return `${+x.slice(5,7)}/${+x.slice(8,10)} ${x.slice(11,16)}`;};
+   confirmBox(`<h3>일정 예약</h3><p><b>${esc(row.title||schLab(row).map(x=>x[1]).join(' · '))}</b><br>${tm(from)} → ${tm(to)}<br>${schLab(row).map(x=>x[1]).join(' · ')}${row.gift?'<br>보상: '+esc(giftTxt(row.gift))+(row.gift.mode==='live'?' · 시작 시각 접속자만':' · 그날 처음 접속하면'):''}</p>`,()=>{if(schPub(schList().concat([row]),'일정 예약: '+(row.title||schLab(row).map(x=>x[1]).join(' · ')))){F.title='';setTimeout(re,700);}});};}
+ function schPub(list,log){if(!(rtOn()&&NK_RT.setSched)){toast('실시간 서버에 연결된 상태에서만 예약할 수 있어요',2000);return false;}NK_RT.setSched(list);try{NK_RT.sched=list;}catch(e){}try{alog(log);}catch(e){}toast('📅 '+log,1800);return true;}
+ // 같은 날 보상: 기간 안에 들어오면 한 번만 받아요 (시작 시각 접속자만: 시작 5분 안에 켜져 있던 사람)
+ const SCH_T0=Date.now();setInterval(()=>{try{if(!started)return;const now=Date.now();S.schGot=S.schGot||{};for(const r of schList()){if(!r.gift||now<r.from||now>=r.to||S.schGot[r.id])continue;if(r.gift.mode==='live'&&SCH_T0>r.from+5*6e4){S.schGot[r.id]=-1;continue;}S.schGot[r.id]=now;applyGift({id:'sch_'+r.id,nick:'*',c:r.gift.c,s:r.gift.s,b:r.gift.b,bt:r.gift.bt,x:r.gift.x,msg:r.gift.msg||r.title||'이벤트 보상'});}
+  const ks=Object.keys(S.schGot);if(ks.length>80)ks.slice(0,ks.length-80).forEach(k=>delete S.schGot[k]);}catch(e){console.warn('[sched gift]',e);}},5000);
+ addEventListener('nk-rt-sched',()=>{try{showEvPill();}catch(e){}const adm=$('admin');if(adm&&adm.classList.contains('show')&&AD.tab==='ev'){try{keepScroll('admin',admin);}catch(e){}}});
+ setInterval(()=>{try{showEvPill();}catch(e){}},30000);
  function admin(){if(!NK_ADM.ok()&&!OPM())return;staffSync();if(window.NK_RT&&NK_RT.who&&(!AD._whoAt||Date.now()-AD._whoAt>5000)){AD._whoAt=Date.now();NK_RT.who();}if((!AD._rtAt||Date.now()-AD._rtAt>4000)&&window.NK_RT&&NK_RT.refresh){AD._rtAt=Date.now();NK_RT.refresh(2000).then(()=>{const el=$('admin');if(el&&el.classList.contains('show')&&(AD.tab==='user'||AD.tab==='dash'))keepScroll('admin',admin);});}let m=$('admin');if(!m){m=document.createElement('div');m.id='admin';m.className='modal';document.body.appendChild(m);}
   const tabs=[['dash','대시보드'],['user','유저'],['rep','신고·도배'],['rec','아이템 복구'],['op','운영자'],['time','시간·날씨'],['map','맵'],['duck','오리'],['bal','밸런스'],['ev','이벤트'],['ann','서버 공지'],['prof','비속어'],['look','화면·시안'],['lab','🧪 테스트 기능'],['title','🏷 칭호'],['test','테스트·디버그']].filter(([k])=>NK_ADM.ok()||can(TABP[k]));if(!tabs.length)return toast('받은 운영 권한이 없어요',2000);if(!tabs.some(t=>t[0]===AD.tab))AD.tab=tabs[0][0];let body='';
   const st=stat(),chs=Array.from({length:CH.n},(_,i)=>i+1);
@@ -3605,12 +3663,12 @@ V14=(()=>{
    <details class="adbox"><summary><b>🐟 어종 가중치·기본가</b></summary><table class="adt">${D.FISH.map(f=>`<tr><td>${f.n}</td><td>${F('가중치','',f.w,'.5','bFw',`data-k="${f.k}" data-n="${f.n} 가중치"`)}</td><td>${F('기본가','',f.base,'.5','bFb',`data-k="${f.k}" data-n="${f.n} 기본가"`)}</td></tr>`).join('')}</table></details>
    <p><button data-ad="balsave" class="acc">저장…</button> <button data-ad="balundo">변경 모두 취소</button> <button data-ad="balreset">기본값으로…</button> <button data-ad="balexp">JSON 복사</button></p><p class="small muted">연결된 동안 밸런스는 네 호숫가에 같이 적용돼요. 저장하면 이 화면은 새로고침되고, 다른 유저는 바로 새 수치를 써요.</p>`;}
   if(AD.tab==='ev'){const e=AD.ev,ev=evMul(),dl=t=>{if(!t)return {d:'',t:''};const x=new Date(t+9*36e5).toISOString();return {d:x.slice(0,10),t:x.slice(11,19)};};
-   body=`<div class="adbox"><h4>🎉 배율 이벤트 ${ev.on?`<span class="tg g">진행 중 · ${e.to?left(e.to)+' 남음':'종료 시간 없음'}</span>`:e.from>Date.now()?'<span class="tg o">예약됨</span>':''}</h4><p class="small muted">연결된 동안 골드·상자 배율은 네 호숫가에 같이 적용돼요. 유저 화면 위에 이벤트 알약이 떠요.</p>
+   body=schHTML()+`<details class="adbox evold"><summary><b>⚡ 지금 바로 이벤트 (예전 방식)</b></summary><h4>🎉 배율 이벤트 ${ev.on?`<span class="tg g">진행 중 · ${e.to?left(e.to)+' 남음':'종료 시간 없음'}</span>`:e.from>Date.now()?'<span class="tg o">예약됨</span>':''}</h4><p class="small muted">연결된 동안 골드·상자 배율은 네 호숫가에 같이 적용돼요. 유저 화면 위에 이벤트 알약이 떠요.</p>
    <div class="evg"><label>💰 골드 배율 <select id="evCoin">${[1,1.2,1.5,2,2.5,3,5].map(x=>`<option ${(e.coin||1)==x?'selected':''}>${x}</option>`).join('')}</select></label><label>🎁 상자 드롭 배율 <select id="evBox">${[1,1.2,1.5,2,2.5,3,5].map(x=>`<option ${(e.box||1)==x?'selected':''}>${x}</option>`).join('')}</select></label></div>
    <div class="evg"><fieldset><legend>시작</legend><input type="date" id="evFd" value="${dl(e.from||Date.now()).d}"><input type="time" id="evFt" step="1" value="${dl(e.from||Date.now()).t}"><span class="qk"><button class="sm" data-evs="0">지금</button><button class="sm" data-evs="10">10분 뒤</button><button class="sm" data-evs="60">1시간 뒤</button><button class="sm" data-evs="mid">내일 0시</button></span></fieldset>
    <fieldset><legend>종료</legend><input type="date" id="evTd" value="${dl(e.to).d}"><input type="time" id="evTt" step="1" value="${dl(e.to).t}"><span class="qk">${[[10,'10분'],[30,'30분'],[60,'1시간'],[180,'3시간'],[1440,'1일'],[4320,'3일'],[10080,'7일']].map(([h,n])=>`<button class="sm" data-evh="${h}">+${n}</button>`).join('')}<button class="sm" data-evh="0">종료 없음</button></span></fieldset></div>
    <p class="evsum" id="evSum"></p>
-   <p><button class="acc" data-ad="evsave">적용…</button> ${e.coin>1||e.box>1?'<button data-ad="evstop">이벤트 중지</button>':''} <span class="small muted">한국 시간(KST) 기준 · 초 단위까지 설정돼요</span></p></div>
+   <p><button class="acc" data-ad="evsave">적용…</button> ${e.coin>1||e.box>1?'<button data-ad="evstop">이벤트 중지</button>':''} <span class="small muted">한국 시간(KST) 기준 · 초 단위까지 설정돼요</span></p></details>
    <div class="adbox"><h4>🎁 보상 일괄 지급</h4><div class="adrow">대상 서버 <label class="rb"><input type="checkbox" id="gfAll" ${AD.gfS?'':'checked'}> 전체</label>${chs.map(c=>`<label class="rb"><input type="checkbox" class="gfS" value="${c}" ${!AD.gfS||AD.gfS.includes(c)?'checked':''}> ${SRVN(c)} <small>${chPop()[c-1]}명</small></label>`).join('')}</div>
    <div class="adform"><label>골드 <input type="number" id="gfC" min="0" value="3000"></label><label>강화석 <input type="number" id="gfS" min="0" value="0"></label><label>행운 상자 <input type="number" id="gfB" min="0" max="50" value="3"></label><label>상자 등급 <select id="gfBt">${D.BOX.tiers.map((t,i)=>`<option value="${i}">${t.n} 이상</option>`).join('')}</select></label><label>XP <input type="number" id="gfX" min="0" value="0"></label><label class="w">안내 문구 <input id="gfM" placeholder="예: 점검 보상이에요"></label><button class="acc" data-ad="giftall">지급…</button></div>
    ${AD.gifts.length?`<h4>지급 내역</h4><div class="adlog">${AD.gifts.slice(0,20).map(g=>`<div>${new Date(g.t).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})} · ${g.ch} · ${g.txt}</div>`).join('')}</div>`:''}</div>`;if(window.NK_GAMEEV)body=NK_GAMEEV.adminHTML()+body;}
@@ -3695,6 +3753,7 @@ V14=(()=>{
   // 밸런스
   if(AD.tab==='bal'){const mark=i=>{const v=i.value,bad=v===''||isNaN(+v)||+v<0;i.classList.toggle('chg',!bad&&+v!==+i.dataset.o);i.classList.toggle('bad',bad);};q('.bi').forEach(i=>{i.oninput=()=>mark(i);});q('.rv').forEach(b=>b.onclick=()=>{const i=b.previousElementSibling;i.value=i.dataset.o;mark(i);});}
   if(AD.tab==='ev'&&window.NK_GAMEEV)try{NK_GAMEEV.adminBind(m,re);}catch(e){console.warn(e);}
+  if(AD.tab==='ev')try{schBind(m,re);}catch(e){console.warn('[sched]',e);}
   if(AD.tab==='ev'){const rd=k=>{const d=g('ev'+k+'d').value,t=g('ev'+k+'t').value||'00:00:00';return d?new Date(`${d}T${t.length===5?t+':00':t}+09:00`).getTime():0;},wr=(k,ms)=>{if(!ms){g('ev'+k+'d').value='';g('ev'+k+'t').value='';return;}const x=new Date(ms+9*36e5).toISOString();g('ev'+k+'d').value=x.slice(0,10);g('ev'+k+'t').value=x.slice(11,19);},
     sum=()=>{const f=rd('F')||Date.now(),t=rd('T'),n=Date.now(),el=g('evSum');if(!el)return;el.className='evsum'+(t&&t<=f?' bad':'');el.innerHTML=t&&t<=f?'⛔ 종료가 시작보다 빨라요':`기간 <b>${t?fmtMin((t-f)/60000):'종료 없음'}</b> · ${f>n+1000?`시작까지 <b>${fmtMin((f-n)/60000)}</b>`:'<b>바로 시작</b>'} · 골드 ×${g('evCoin').value} · 상자 ×${g('evBox').value}`;};
    q('[data-evs]').forEach(b=>b.onclick=()=>{const v=b.dataset.evs;let ms=Date.now();if(v==='mid'){const k=new Date(ms+9*36e5);k.setUTCHours(24,0,0,0);ms=k.getTime()-9*36e5;}else ms+=(+v)*6e4;wr('F',ms);sum();});
@@ -3733,7 +3792,7 @@ V14=(()=>{
     const fix=((m.querySelector('[name=anFix]:checked')||{}).value)==='1';publishNotice({msg:t,min:mins,ch,fix});alog(`공지 (${ch==='all'?'전체':SRVN(ch)}, ${fix?'고정':mins+'분'}): ${t}`);}
    if(a==='annoff'){if(AD.ann.some(x=>x.until>Date.now()&&!x.off)){publishNotice({off:true});alog('공지 내림');}}
    save();hud();re();});}
- const evInfo=()=>AD.ev||{};const evMul=()=>{const e=AD.ev||{},now=Date.now(),on=(e.coin>1||e.box>1)&&(!e.from||now>=e.from)&&(!e.to||now<e.to);return {coin:on?e.coin:1,box:on?e.box:1,on};};
+ /* v174: 📅 이벤트 달력 예약도 합쳐요 (같은 때 겹치면 큰 배율) */const evMul=()=>{const e=AD.ev||{},now=Date.now();let on=(e.coin>1||e.box>1)&&(!e.from||now>=e.from)&&(!e.to||now<e.to),coin=on?e.coin:1,box=on?e.box:1,xp=1,from=on?(e.from||0):0,to=on?(e.to||0):0;for(const r of schList()){if(now>=r.from&&now<r.to&&(r.coin>1||r.box>1||r.xp>1)){coin=Math.max(coin,r.coin||1);box=Math.max(box,r.box||1);xp=Math.max(xp,r.xp||1);if(!on){from=r.from;to=r.to;}else to=Math.max(to,r.to);on=true;}}return {coin,box,xp,on,from,to};};const evInfo=()=>{const m=evMul();return m.on?{coin:m.coin,box:m.box,xp:m.xp,from:m.from,to:m.to}:(AD.ev||{});};
 
  return {tick(dt,p){SIMP.sync();tick(dt,p);if(S.mapTheme&&S.mapTheme!==theme&&started)applyMap(S.mapTheme);presence(dt);reelTick(dt);admTick(dt);},rankDom,layer,farLOD,fx,reelFx,fishBtn,goalFx,catchSfx,boxSfx,admin:()=>{if(!NK_ADM.ok()&&!(window.NK_RT&&NK_RT.op)){NK_ADM.ask(()=>{closeM('set');admin();openM('admin');});return;}admin();openM('admin');},adminRe:()=>keepScroll('admin',admin),adminTab:()=>AD.tab,evMul,evInfo,WX,SN,season,CH,chPop,applyMap,pushWorld,worldSnap,pushGrant,publishStage,publishPlay,publishCue,publishRecover};
 })();
@@ -4656,6 +4715,7 @@ LAB.push({k:'turtle',n:'🐢 거북이 탈것',d:'상점 › 🚗 탈것에 「�
 LAB.push({k:'hyper',n:'💎 초월 탈것',d:'상점 › 🚗 탈것에 초월 등급 「프리즘 하이퍼카」가 생겨요 (탈것 기능이 켜져 있어야 해요). 보는 각도에 따라 색이 바뀌는 홀로그램 펄 도장 · 네온 라인 · 바닥 언더글로우, 달리면 뒤로 반짝이 꼬리가 남아요. 옆자리에 친구 1명이 탈 수 있어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'taxi',n:'🚗 하늘 택시',d:'상점 › 🚗 탈것에 「하늘 택시」가 생겨요 (탈것 기능이 켜져 있어야 해요). 택시를 타면 화면에 「🚗 지상 / ✈️ 비행」과 「💰 요금」이 나와요. 지상은 땅에서 운전, 비행은 날개가 펴지며 하늘을 날아요. 다른 유저가 택시를 눌러 요금을 내면 옆자리에 타요 (요금은 운전한 사람이 받아요)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'boat',n:'⛵ 돛단배',d:'상점 › 🚗 탈것에 「돛단배」가 생겨요 (탈것 기능이 켜져 있어야 해요). 호숫가·데크 끝처럼 물가에서만 탈 수 있고, 호수 위로만 다녀요. 내리면 가까운 땅이나 데크로 올라가요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
+LAB.push({k:'fzGrade',n:'🏅 합성 등급 보상',d:'재료 물고기 등급(일반·고급·희귀·전설·신화·초월)에 따라 ① 성공하면 정수 +1·2·3·5·8·12 ② 변이 확률 희귀·전설 ×1.2, 신화·초월 ×1.5 ④ 비용 희귀 +25%·전설 +50%·신화 +100%·초월 +150% ⑤ 등급마다 처음 5성을 만들면 칭호 「(등급) 별 장인」. ③ 별 조각 차등은 5성 교환소에 원래 있어요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기']]});
 LAB.push({k:'star5',n:'⭐ 5성 물고기 (시안 A)',d:'합성으로 5성(★★★★★)이 된 물고기가 특별해져요: 금빛 후광·별·빛줄기 카드, 같은 호숫가에 「OO님이 5성을 완성했어요!」 알림, 「⭐ 별 조각 교환소」(5성 물고기 → 별 조각 → 칭호 「별을 낚은 자」·신화 행운 상자(1주 1개)·한정 펫 별 고래). 합성 창 위 「⭐ 교환소」 버튼으로 열어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'skyIsland',n:'🌙 달 (별도 채널)',d:'나는 탈것을 타고 높이 36m 넘게 올라가면(Lv.50 이상) 「달로 갈까요?」가 떠요. 달은 따로 된 채널이라 지구(호숫가) 사람은 안 보이고, 둥근 달 위 호수에서 별자리 물고기 12종이 낚여요. 화면 위 「🌏 지구로」로 원래 호숫가로 돌아와요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'moonView',n:'🌙 달 · 낚시 시점',d:'달 맵의 분위기. 1 은빛 달(기본) · 2 푸른 달빛 · 3 은빛 달 + 물가 등불',scope:'all',o:[['1','1 · 은빛 달 (기본)'],['2','2 · 푸른 달빛'],['3','3 · 은빛 달 + 등불']]});
@@ -7140,7 +7200,7 @@ setInterval(()=>{try{const v=PREV?'old':String(opt('lvSt','1')),B=document.body.
 const fzMob=()=>matchMedia('(max-width:860px)').matches;
 {const _rfm=renderFuse;renderFuse=function(){if(!fzMob())return _rfm.apply(this,arguments);const z=fzS(),G=fzGroups();FZ.mt=FZ.mt||'ok';const ok=G.filter(x=>x.list.length>=3),wait=G.filter(x=>x.list.length<3);
  if(FZ.sel&&!G.find(x=>fzKey(x)===FZ.sel)){FZ.sel=null;FZ.sheet=false;}
- const cur=FZ.sheet&&G.find(x=>fzKey(x)===FZ.sel),mats=cur&&cur.list.length>=3?fzPick(cur):[],F=cur&&FI(cur.k),pr=cur?fzProbs(cur):null,cost=cur?fzCost(cur.st):0;
+ const cur=FZ.sheet&&G.find(x=>fzKey(x)===FZ.sel),mats=cur&&cur.list.length>=3?fzPick(cur):[],F=cur&&FI(cur.k),pr=cur?fzProbs(cur):null,cost=cur?fzCost(cur.st,mats):0;
  const card=x=>{const key=fzKey(x),n=x.list.length;return `<button type="button" class="fmc ${n>=3?'':'no'} ${key===FZ.sel&&FZ.sheet?'on':''}" data-fmg="${key}"><span class="n">${n}</span>${fzImg(x.list[0])}<b>${x.vr?`<i style="color:${FZV[x.vr].c}">${FZV[x.vr].n}</i> `:''}${FI(x.k).n}</b><small>${n>=3?`★${x.st+1} → ★${x.st+2}`:`${n}/3 · ★${x.st+1}`}</small></button>`;};
  let body='';
  if(FZ.mt==='ok')body=ok.length?`<div class="fmg">${ok.map(card).join('')}</div>`:'<p class="fme">지금 합성할 수 있는 물고기가 없어요<br><small>같은 물고기·같은 별 3마리를 모아요</small></p>';
@@ -7151,7 +7211,7 @@ const fzMob=()=>matchMedia('(max-width:860px)').matches;
  const sheet=cur?`<div class="fmdim" data-fmx></div><div class="fmsheet"><div class="grab" data-fmx></div><div class="fmst"><b>${F.n} ★${cur.st+1} × 3 → ★${cur.st+2}</b><small>가장 작은 3마리</small></div>
   <div class="fmsl">${[0,1,2].map(i=>mats[i]?`<div class="sl">${fzImg(mats[i])}<small>${mats[i].cm}cm</small></div>`:'<div class="sl e"><small>빈 칸</small></div>').join('')}<span class="arr">→</span><div class="res">${fzImg({k:cur.k,st:cur.st+1,vr:FZ.pity||null})}<b>★${cur.st+2}</b></div></div>
   ${pr&&pr.fix?`<p class="small fzfix">🌈 같은 ${FZV[cur.vr].n} 변이 3마리 → 실패 없음</p>`:''}<div class="fmpr">${chips}<button type="button" class="fmct" data-fmct>촉매 ${FZ.cat?FZV[FZ.cat].n:''} ${FZ.ct?'▴':'▾'}</button></div>${FZ.ct?`<div class="fzcats">${cats}</div>`:''}
-  <div class="fmgo">${fzGoB(cur,mats,cost)}</div></div>`:'';
+  <div class="fmgo">${fzGrNote(mats)}${fzGoB(cur,mats,cost)}</div></div>`:'';
  $('fuse').innerHTML=`<div class="card fzc0 fzm0"><div class="fzh"><img src="img/feat/cauldron.png" alt=""><div><h2>물고기 합성</h2></div><button type="button" class="fzx0" data-close="fuse" aria-label="닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
   <div class="fmtabs"><button type="button" data-fmt="ok" class="${FZ.mt==='ok'?'on':''}">합성 가능 ${ok.length}</button><button type="button" data-fmt="wait" class="${FZ.mt==='wait'?'on':''}">모으는 중 ${wait.length}</button><button type="button" data-fmt="dex" class="${FZ.mt==='dex'?'on':''}">변이 도감</button></div>
   <div class="fzb fmb">${body}</div>${sheet}</div>`;
@@ -7430,6 +7490,190 @@ function trAdmHTML(){const c=trCfg(),e=S.trEd||(S.trEd=Object.assign({},c));cons
 // v116: 모바일 상태바가 메뉴 버튼과 겹치면 선물 칸 숫자 → 골드 글자 순서로 줄여요 (칭호·이름은 그대로)
 function hudFit(){const B=document.body,st=$('mStat'),mb=$('bMore');if(!st)return;B.classList.remove('hudT1','hudT2');if(!B.classList.contains('m3')||innerWidth>=700)return;const lim=()=>{const L=[...st.children].filter(c=>c.getBoundingClientRect().width).map(c=>c.getBoundingClientRect().right);const R=Math.max(...L,0);return R>((mb&&mb.getBoundingClientRect().width?mb.getBoundingClientRect().left:innerWidth)-4);};if(lim()){B.classList.add('hudT1');if(lim())B.classList.add('hudT2');}}
 {const _h=hud;hud=function(){const r=_h.apply(this,arguments);try{hudFit();}catch(e){}return r;};addEventListener('resize',()=>setTimeout(()=>{try{hudFit();}catch(e){}},80));setInterval(()=>{try{hudFit();}catch(e){}},3000);}
+// ───────── v174 🧭 첫 유저 가이드 (테스트 기능 guideV2 · guideMe) ─────────
+//  할아버지 낚시 수업 17단계(5장) + 스포트라이트 · 단계 목록 · 가이드북 · 기능 열림 3컷 카드
+//  새 유저(처음 낚시 전)에게 자동으로 시작해요. 테스터는 「나만 테스트」를 켜거나 가이드북의 「처음부터 다시」로 언제든 해 볼 수 있어요
+(function(){
+const PREV=window.NK_PREV||'';
+LAB.push({k:'guideV2',n:'🧭 첫 유저 가이드',d:'처음 접속한 유저에게 할아버지 낚시 수업(17단계)을 보여 줘요. 눌러야 할 곳을 밝게 비추고, 단계마다 작은 보상을 줘요. 메뉴에 「가이드북」이 생기고, 합성·모험처럼 새 기능이 열리면 3컷 카드로 알려 줘요',scope:'all',o:[['off','끄기 (기본)'],['new','새 유저에게 켜기']]},
+ {k:'guideMe',n:'🧭 첫 유저 가이드 (나만 테스트)',d:'내 화면에서만 가이드를 켜요. 처음 유저가 아니어도 처음 단계부터 시작해요. 가이드북 › 「처음부터 다시」로 몇 번이든 다시 해 볼 수 있어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
+const forceQ=/[?&]guide=1/.test(location.search);
+const meOn=()=>String(uiOpt('guideMe','off'))==='on'||forceQ;
+const on=()=>!PREV&&(String(uiOpt('guideV2','off'))!=='off'||meOn());
+const mob=()=>innerWidth<700||matchMedia('(pointer:coarse)').matches;
+const GD=()=>(S.gd&&typeof S.gd==='object')?S.gd:(S.gd={});
+const isOpen=id=>{const m=$(id);return !!(m&&m.classList.contains('show'));};
+const vis=e=>{if(!e||!e.isConnected)return false;const r=e.getBoundingClientRect();if(r.width<2||r.height<2||r.bottom<0||r.top>innerHeight)return false;const c=getComputedStyle(e);return c.display!=='none'&&c.visibility!=='hidden'&&+c.opacity>.05&&(e.offsetParent||c.position==='fixed');};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const menuT=id=>{const b=$(id);return vis(b)?b:($('bMore')&&vis($('bMore'))?$('bMore'):null);};
+const hasPet=()=>{try{return String(uiOpt('pets','off'))==='on'&&Object.keys(S.petz||{}).length>0;}catch(e){return false;}};
+const cookOn=()=>{try{return String(uiOpt('cook','off'))==='on';}catch(e){return false;}};
+// 단계: ch 장 이름 · say 할아버지 말 · hint 작은 안내 · tg 비출 곳 · seat 빈 의자 비추기 · done/tick 끝났는지 · avail 이 기능이 켜져 있을 때만 · rw 보상
+const STEPS=[
+ {id:'seat',ch:'첫걸음',t:'빈 데크 의자에 앉기',say:()=>DW?'먼저 반짝이는 <b>빈 의자</b>까지 걸어가 보렴. 가까이 가면 <b>앉기</b>를 누를 수 있단다.':'먼저 반짝이는 <b>데크 끝</b>까지 걸어가 보렴. 거기가 낚시 자리란다.',hint:()=>mob()?'왼쪽 아래 동그라미를 끌면 걸어가요':'WASD나 방향키로 걸어가요',seat:1,tg:()=>{for(const id of ['sitBtn','fishBtn','bSit']){const f=$(id);if(vis(f)&&/앉기/.test(f.textContent))return f;}return null;},done:()=>DW?!!(mySeat&&mySeat.kind==='stool'):!!nearSpot,rw:{co:80}},
+ {id:'fish',t:'첫 물고기 낚기',say:'<b>낚시 시작</b>을 누르고 기다리다가, 머리 위에 <b>!</b>가 뜨면 바로 눌러 낚아 올리렴.',hint:()=>'놓쳐도 괜찮아요 · 다시 던지면 돼요',tg:()=>{const f=$('fishBtn');return vis(f)&&!/일어나기|앉기/.test(f.textContent)?f:null;},done:c=>(S.caught|0)>c.c0,rw:{co:100,xp:30}},
+ {id:'tank',t:'어항 열어 보기',say:'잡은 물고기는 <b>어항</b>에서 헤엄친단다. 아래 <b>어항</b>을 눌러 보렴.',tg:()=>$('bTank'),done:()=>isOpen('tank'),rw:{co:120}},
+ {id:'bag',t:'가방 열어 보기',say:'<b>가방</b>에는 낚싯대·미끼·장비가 들어 있지. 한 번 열어 보렴.',tg:()=>$('bBag'),done:()=>isOpen('bag'),rw:{co:80}},
+ {id:'shop',ch:'준비',t:'상점 둘러보기',say:'<b>상점</b>에서 미끼와 낚싯대를 살 수 있단다. 들어가 보렴.',tg:()=>$('bShop'),done:()=>isOpen('shop'),rw:{co:150}},
+ {id:'buy',t:'상점에서 하나 사 보기',say:'좋은 <b>미끼</b>를 쓰면 큰 물고기가 잘 문단다. 아무거나 하나 사 보렴.',hint:()=>'방금 받은 골드로 살 수 있어요',tg:()=>isOpen('shop')?null:$('bShop'),tick:c=>{if(isOpen('shop')){const r=c.lc!=null&&S.coins<c.lc;c.lc=S.coins;return r;}c.lc=null;return false;},rw:{co:100}},
+ {id:'dex',t:'도감 보기',say:'<b>도감</b>에는 지금까지 만난 물고기가 기록된단다. 모르는 물고기는 그림자로 보여.',tg:()=>$('bDex'),done:()=>isOpen('dex'),rw:{bx:1}},
+ {id:'box',ch:'생활',t:'행운 상자 열기',say:'방금 준 <b>행운 상자</b>를 열어 보렴. 골드나 장비, 운이 좋으면 펫도 나온단다.',tg:()=>vis($('bBox'))?$('bBox'):null,avail:()=>(S.boxes||[]).length>0,tick:c=>{const n=(S.boxes||[]).length;const r=c.bn!=null&&n<c.bn;c.bn=n;return r;},rw:{co:100}},
+ {id:'cook',t:'그릴에서 생선 굽기',say:'데크 의자에 앉으면 옆에 <b>그릴</b> 버튼이 생긴단다. 물고기를 구워 먹으면 힘이 나지.',hint:()=>'그릴 버튼 → 구울 물고기 고르기',tg:()=>vis($('ckBtn'))?$('ckBtn'):null,avail:cookOn,done:()=>isOpen('ckDlg'),rw:{co:120}},
+ {id:'auto',t:'자동 낚시 알아보기',say:'바쁠 땐 <b>자동 낚시</b>가 대신 낚아 준단다. 어떻게 쓰는지 눌러 보렴.',tg:()=>vis($('bAutoFish'))?$('bAutoFish'):null,click:'#bAutoFish',rw:{co:100}},
+ {id:'lv',t:'레벨 보상 길 보기',say:'레벨이 오를 때마다 받을 선물이 <b>레벨 길</b>에 있단다. 위쪽의 <b>레벨 숫자</b>를 눌러 보렴.',tg:()=>{const e=document.querySelector('#mStat .lvb,#mStat .lv,#lvBadge,#mStat [data-lv]');return vis(e)?e:null;},done:()=>isOpen('lvRoad'),rw:{xp:40}},
+ {id:'fuse',ch:'성장',t:'합성 창 열어 보기',say:'같은 물고기·같은 별 <b>3마리</b>를 모으면 <b>합성</b>으로 별을 올릴 수 있단다.',hint:()=>vis($('bFuse'))?'':'메뉴(☰)를 열면 합성이 있어요',tg:()=>menuT('bFuse'),avail:()=>{try{return fzOn();}catch(e){return false;}},done:()=>isOpen('fuse'),cut:'fuse',rw:{co:150}},
+ {id:'adv',t:'모험 지도 열어 보기',say:'물고기 3마리를 <b>모험</b>에 보내면 골드·상자·합성 촉매를 들고 돌아온단다.',hint:()=>vis($('bAdv'))?'':'메뉴(☰)를 열면 모험이 있어요',tg:()=>menuT('bAdv'),avail:()=>{try{return advOn();}catch(e){return false;}},done:()=>isOpen('adv'),cut:'adv',rw:{co:150}},
+ {id:'pet',t:'펫과 함께 다니기',say:'펫이 있으면 <b>가방 › 펫</b>에서 데리고 다닐 수 있단다. 펫도 레벨이 오르지.',tg:()=>$('bBag'),avail:hasPet,done:()=>!!S.petOn,cut:'pet',rw:{co:120}},
+ {id:'chat',ch:'함께',t:'채팅으로 인사하기',say:'호숫가엔 다른 낚시꾼도 있단다. <b>채팅</b>으로 반갑게 인사해 보렴.',hint:()=>'아무 말이나 보내면 돼요',tg:()=>{const m=$('msg');return vis(m)?m:(vis($('chatBtn'))?$('chatBtn'):null);},tick:c=>!!c.sent,rw:{co:80}},
+ {id:'map',t:'다른 낚시터 알아보기',say:'레벨 <b>30</b>이 되면 불빛 가득한 <b>운하</b>로, <b>70</b>이 되면 <b>달</b>까지 갈 수 있단다. 천천히 가 보렴.',hint:()=>'카드를 누르면 다음으로',tg:()=>null,tap:1,rw:{xp:40}},
+ {id:'book',t:'가이드북 열어 보기',say:'궁금한 게 생기면 메뉴의 <b>가이드북</b>을 펴 보렴. 오늘 수업은 여기까지란다!',tg:()=>menuT('bGuide'),done:()=>isOpen('gdBook'),rw:{co:300,bt:2,ttl:'호숫가 새내기'}}
+];
+const steps=()=>STEPS.filter(s=>!s.avail||s.avail());
+const CH=['첫걸음','준비','생활','성장','함께'];
+const chOf=s=>{let c='첫걸음';for(const x of STEPS){if(x.ch)c=x.ch;if(x===s)return c;}return c;};
+// 3컷 카드
+const CUTS={
+ fuse:{t:'물고기 합성',p:[['img/fish/bass.png','같은 물고기 · 같은 별 <b>3마리</b>를 모아요',3],['img/feat/cauldron.png','<b>합성</b>을 누르면 별이 하나 올라요',1],['img/feat/coins-gold.png','가끔 <b>변이</b>가 붙어 값이 훨씬 올라요',1]],open:()=>{try{openFuse();}catch(e){}}},
+ adv:{t:'물고기 모험',p:[['img/fish/carp.png','어항에서 물고기 <b>3마리</b>를 골라요',3],['img/adv/map.jpg','지도에서 갈 곳을 골라 <b>보내요</b>',0],['img/feat/chest.png','돌아오면 골드·상자·<b>합성 촉매</b>',1]],open:()=>{try{openAdv();}catch(e){}}},
+ pet:{t:'펫',p:[['img/feat/chest.png','행운 상자에서 가끔 <b>펫</b>이 나와요',1],['img/feat/bag.png','<b>가방 › 펫</b>에서 데리고 다녀요',1],['img/feat/flower.png','펫도 <b>레벨</b>이 오르고 능력이 세져요',1]],open:()=>{try{openBag();}catch(e){}}},
+ auto:{t:'자동 낚시',p:[['img/feat/coins.png','<b>자동 낚시 이용권</b>을 얻어요',1],['img/fish/bluegill.png','켜 두면 <b>대신</b> 낚아요',1],['img/tanks/m.png','어항이 차면 <b>멈춰요</b> · 가끔 비워 주세요',1]],open:()=>{try{$('bAutoFish').click();}catch(e){}}}
+};
+// ── 상태
+let cur=null,ctx={},cel=0,hole=null,arr=null,card=null,lastRw=0;
+function stepNow(){const L=steps(),g=GD();if(!g.act)return null;let i=Math.max(0,g.i|0);while(i<STEPS.length&&L.indexOf(STEPS[i])<0)i++;if(i>=STEPS.length)return null;if(i!==(g.i|0)){g.i=i;}return STEPS[i];}
+function begin(s){cur=s;ctx={c0:S.caught|0,t0:Date.now()};if(s.cut&&!GD().cut?.[s.cut])setTimeout(()=>cutShow(s.cut),500);drawCard();}
+function start(fromZero){const g=GD();g.act=1;g.i=0;g.done=0;g.skip=0;g.at=Date.now();if(fromZero)g.cut={};save();document.body.classList.add('gdOn');begin(stepNow());toast('🧭 할아버지 낚시 수업을 시작해요',1800);}
+function stop(done){const g=GD();g.act=0;if(done)g.done=Date.now();else g.skip=Date.now();save();cur=null;document.body.classList.remove('gdOn');if(card)card.remove();card=null;hideSpot();}
+function give(rw){if(!rw)return '';const L=[];if(rw.co){S.coins+=rw.co;L.push('🪙 '+rw.co.toLocaleString());}if(rw.xp){try{addXP(rw.xp,'가이드');}catch(e){}L.push('⭐ '+rw.xp+' XP');}if(rw.bx){for(let i=0;i<rw.bx;i++)S.boxes.push(Date.now()+i);S.newBox=(S.newBox||0)+rw.bx;L.push('🎁 행운 상자 '+rw.bx);}if(rw.bt!=null){S.boxes.push('lv'+rw.bt);S.newBox=(S.newBox||0)+1;L.push('🎁 '+((D.BOX.tiers[rw.bt]||{}).n||'')+' 이상 상자');}if(rw.ttl){S.myTitles=S.myTitles||[];if(!S.myTitles.some(x=>x.n===rw.ttl))S.myTitles.push({n:rw.ttl,c:'🧭 가이드',t:Date.now()});L.push('🏅 칭호 「'+rw.ttl+'」');}try{save();hud();}catch(e){}return L.join(' · ');}
+function next(){const g=GD();const s=cur;const txt=give(s&&s.rw);g.i=STEPS.indexOf(s)+1;save();try{sfx.coin();}catch(e){}
+ if(card){card.classList.add('ok');card.querySelector('.gdS').innerHTML=`잘했다! <b>${esc(s.t)}</b> 끝`;card.querySelector('.gdH').textContent=txt?'보상 '+txt:'';}
+ hideSpot();cur=null;cel=1;setTimeout(()=>{cel=0;if(card)card.classList.remove('ok');if(!GD().act)return;const n=stepNow();if(!n){finish();return;}begin(n);},1700);}
+function finish(){stop(true);const m=modal('gdFin');m.innerHTML=`<div class="card gdfin"><img src="img/chars/p1.jpg" alt=""><h3>할아버지 낚시 수업 끝!</h3><p>이제 호숫가에서 마음껏 놀아 보렴. 궁금한 건 메뉴의 <b>가이드북</b>에 다 있단다.</p><p class="gdft">칭호 「호숫가 새내기」를 받았어요 · 설정 › 칭호에서 달 수 있어요</p><button type="button" class="acc" data-x>고마워요</button></div>`;m.querySelector('[data-x]').onclick=()=>closeM('gdFin');openM('gdFin');}
+function modal(id){let m=$(id);if(!m){m=document.createElement('div');m.id=id;m.className='modal gdm';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)closeM(id);});}return m;}
+// ── 카드 (화면 위쪽 · 목표 카드 자리)
+function drawCard(){if(!cur)return;if(!card){card=document.createElement('div');card.id='gdCard';document.body.appendChild(card);}
+ const L=steps(),n=L.indexOf(cur)+1,rw=cur.rw||{},rt=[rw.co?'🪙 '+rw.co:'',rw.xp?'⭐ '+rw.xp:'',rw.bx?'🎁 상자':'',rw.bt!=null?'🎁 희귀 상자':'',rw.ttl?'🏅 칭호':''].filter(Boolean).join(' · ');
+ card.innerHTML=`<img src="img/chars/p1.jpg" alt="" class="gdA"><div class="gdB"><div class="gdT"><span>노인 어부 할아버지 · <b>${n} / ${L.length}</b></span><em>${rt}</em></div><div class="gdS">${typeof cur.say==='function'?cur.say():cur.say}</div><div class="gdH">${esc(cur.hint?cur.hint():'')}</div><div class="gdK"><button type="button" data-gl>수업 목록</button>${cur.tap?'<button type="button" class="acc" data-gn>알겠어요</button>':'<button type="button" data-gs>이 단계 건너뛰기</button>'}</div></div>`;
+ card.querySelector('[data-gl]').onclick=listShow;const gs=card.querySelector('[data-gs]');if(gs)gs.onclick=()=>{if(cur)next();};const gn=card.querySelector('[data-gn]');if(gn)gn.onclick=()=>{if(cur)next();};}
+// ── 스포트라이트
+let dim=null;function spot(x,y,w,h,r,lab){if(!dim){dim=document.createElement('div');dim.id='gdDim';document.body.appendChild(dim);}{const cx=x+w/2,cy=y+h/2,rx=(w/2+8)*(r>=Math.min(w,h)/2-1?1:1.3),ry=(h/2+8)*(r>=Math.min(w,h)/2-1?1:1.3),m=`radial-gradient(${rx}px ${ry}px at ${cx}px ${cy}px, transparent 0 96%, #000 100%)`;dim.style.webkitMaskImage=m;dim.style.maskImage=m;dim.classList.add('on');}if(!hole){hole=document.createElement('div');hole.id='gdHole';arr=document.createElement('div');arr.id='gdArr';arr.innerHTML='<span></span><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21l-7-9h4V3h6v9h4z" fill="#ffd36b" stroke="#3a3340" stroke-width="1.2" stroke-linejoin="round"/></svg>';document.body.appendChild(hole);document.body.appendChild(arr);}
+ const p=8;hole.style.cssText=`left:${x-p}px;top:${y-p}px;width:${w+p*2}px;height:${h+p*2}px;border-radius:${r}px`;hole.classList.add('on');arr.firstChild.textContent=lab||'';arr.classList.add('on');let ay=Math.max(4,y-p-62),dn=false;const cr=card&&!card.classList.contains('dim')?card.getBoundingClientRect():null;if(cr&&ay<cr.bottom+4&&x+w/2>cr.left-60&&x+w/2<cr.right+60){ay=y+h+p+4;dn=true;}arr.classList.toggle('up',dn);arr.style.left=(x+w/2)+'px';arr.style.top=ay+'px';}
+function hideSpot(){if(dim)dim.classList.remove('on');if(hole)hole.classList.remove('on');if(arr)arr.classList.remove('on');}
+function seatXY(){try{if(typeof SEATS==='undefined'||!me)return null;const p=me.o.position;let best=null,bd=1e9;if(DW){SEATS.forEach(s=>{if(s.kind!=='stool'||(s.occ||[]).length>=(s.cap||1))return;const d=(s.x-p.x)**2+(s.z-p.z)**2;if(d<bd){bd=d;best=s;}});}else{(decks||[]).forEach(d=>{if(!d.tip||(typeof canFishAt==='function'&&!canFishAt(d)))return;const e=(d.tip.x-p.x)**2+(d.tip.z-p.z)**2;if(e<bd){bd=e;best={x:d.tip.x,z:d.tip.z,y:.5};}});}if(!best)return null;const v=new THREE.Vector3(best.x,(best.y||.96)+.25,best.z).project(cam);if(v.z>1||Math.abs(v.x)>1.2||Math.abs(v.y)>1.2)return null;return [(v.x+1)/2*innerWidth,(1-v.y)/2*innerHeight];}catch(e){return null;}}
+function modalOpen(){return !!document.querySelector('.modal.show:not(.gdm)');}
+// ── 매 0.25초
+document.addEventListener('click',e=>{if(cur&&cur.click&&e.target.closest&&e.target.closest(cur.click))ctx.clk=1;},true);
+document.addEventListener('keydown',e=>{if(cur&&cur.id==='chat'&&e.key==='Enter'&&e.target&&e.target.id==='msg'&&String(e.target.value||'').trim())ctx.sent=1;},true);
+document.addEventListener('click',e=>{if(cur&&cur.id==='chat'&&e.target.closest&&e.target.closest('#sendBtn,#msgSend,.chatSend')){const m=$('msg');if(m&&String(m.value||'').trim())ctx.sent=1;}},true);
+setInterval(()=>{try{
+ if(!on()||!started){if(card&&!on())stop(false);return;}
+ const g=GD();
+ if(!g.act&&!g.done&&!g.skip){const fresh=(S.caught|0)===0&&myLv()<=2;if((fresh&&String(uiOpt('guideV2','off'))==='new')||meOn()){start(false);return;}}
+ if(!g.act){hideSpot();cutAuto();return;}
+ document.body.classList.add('gdOn');if(cel)return;
+ if(!cur){const n=stepNow();if(!n){finish();return;}begin(n);}
+ if(!cur)return;
+ if((cur.done&&cur.done(ctx))||(cur.tick&&cur.tick(ctx))||(cur.click&&ctx.clk)){next();return;}
+ if(!card)drawCard();
+ if(modalOpen()||document.body.classList.contains('menu-open')&&cur.id!=='fuse'&&cur.id!=='adv'&&cur.id!=='book'){hideSpot();card.classList.add('dim');return;}card.classList.remove('dim');
+ if(cur.seat&&!(cur.tg&&cur.tg())){const xy=seatXY();if(xy){spot(xy[0]-55,xy[1]-55,110,110,60,DW?'여기 빈 의자':'여기가 낚시 자리');return;}}
+ const t=cur.tg&&cur.tg();if(t&&vis(t)){const r=t.getBoundingClientRect();spot(r.left,r.top,r.width,r.height,Math.min(30,Math.max(r.width,r.height)/2),t.id==='bMore'?'메뉴 열기':'');}else hideSpot();
+}catch(e){console.warn('[guide]',e);}},250);
+// ── 수업 목록
+function listShow(){const m=modal('gdList'),L=steps(),g=GD(),ci=cur?L.indexOf(cur):(g.i|0);
+ let lastCh='';const rows=L.map((s,i)=>{const ch=chOf(s),hd=ch!==lastCh?`<h5>${ch}</h5>`:'';lastCh=ch;const st=i<ci||(!g.act&&g.done)?'done':i===ci&&g.act?'now':'lock';const rw=s.rw||{};return hd+`<div class="gdr ${st}"><span class="n">${st==='done'?'✓':i+1}</span><div><b>${esc(s.t)}</b></div><em>${rw.co?'🪙'+rw.co:rw.xp?'⭐'+rw.xp:rw.bx||rw.bt!=null?'🎁':''}</em></div>`;}).join('');
+ m.innerHTML=`<div class="card gdlist"><button type="button" class="x" data-x aria-label="닫기">×</button><div class="gdlh"><img src="img/chars/p1.jpg" alt=""><div><h3>할아버지의 낚시 수업</h3><small>${L.length}단계를 마치면 희귀 상자와 칭호 「호숫가 새내기」</small></div><b>${Math.min(ci,L.length)} / ${L.length}</b></div><div class="gdbar"><i style="width:${Math.round(Math.min(ci,L.length)/L.length*100)}%"></i></div><div class="gdrs">${rows}</div><div class="gdlk">${g.act?'<button type="button" data-stop>수업 그만하기</button>':''}<button type="button" class="acc" data-re>처음부터 다시</button></div></div>`;
+ m.querySelector('[data-x]').onclick=()=>closeM('gdList');const sp=m.querySelector('[data-stop]');if(sp)sp.onclick=()=>{confirmBox('<h3>수업 그만하기</h3><p>할아버지 수업을 그만둘까요? 가이드북에서 언제든 다시 시작할 수 있어요.</p>',()=>{stop(false);closeM('gdList');});};
+ m.querySelector('[data-re]').onclick=()=>{closeM('gdList');start(true);};openM('gdList');}
+// ── 가이드북
+const BOOK=[
+ {c:'낚시',t:'물고기 낚기',s:['빈 데크 의자에 앉아요','<b>낚시 시작</b> → 기다려요','머리 위 <b>!</b>가 뜨면 바로 눌러요'],tip:'좋은 미끼와 낚싯대를 쓰면 큰 물고기가 잘 물어요',img:'img/fish/bass.png'},
+ {c:'낚시',t:'자동 낚시',s:['자동 낚시 이용권을 얻어요','<b>자동 낚시</b> 버튼으로 켜요','어항이 차면 멈춰요'],tip:'이용권 시간은 켜 둔 동안만 흘러요',img:'img/feat/coins.png',cut:'auto'},
+ {c:'어항',t:'어항 보기',s:['아래 <b>어항</b> 버튼','물고기를 눌러 자세히 봐요','필요 없는 물고기는 팔아요'],tip:'잠금(🔒)을 걸면 실수로 팔지 않아요',img:'img/tanks/m.png'},
+ {c:'상점',t:'상점 쓰기',s:['아래 <b>상점</b> 버튼','미끼·낚싯대·꾸미기를 골라요','가방에서 장착해요'],tip:'상점에서 산 물건은 30% 값에 되팔 수 있어요',img:'img/feat/coins-gold.png'},
+ {c:'상자',t:'행운 상자',s:['낚시하다 보면 상자가 나와요','<b>상자</b> 버튼으로 열어요','등급이 높을수록 좋은 게 나와요'],tip:'신화 상자에서는 아주 드물게 로봇 캐릭터 이용권이 나와요',img:'img/feat/chest.png'},
+ {c:'요리',t:'그릴 요리',s:['의자에 앉으면 <b>그릴</b> 버튼','구울 물고기를 골라요','먹으면 배부름과 효과가 생겨요'],tip:'다 익었을 때 뒤집으면 더 맛있어요',img:'img/cook/ico-skewer.png',avail:cookOn},
+ {c:'합성',t:'물고기 합성',s:['같은 물고기·같은 별 <b>3마리</b>','<b>합성</b>을 눌러 별 올리기','가끔 <b>변이</b>(블랙~무지개)'],tip:'재료 등급이 높을수록 변이가 잘 나오고 정수도 더 받아요',img:'img/feat/cauldron.png',cut:'fuse',avail:()=>{try{return fzOn();}catch(e){return false;}},open:()=>{try{openFuse();}catch(e){}}},
+ {c:'모험',t:'물고기 모험',s:['물고기 <b>3마리</b>를 골라요','지도에서 갈 곳을 골라요','돌아오면 보상 받기'],tip:'합성 촉매는 모험에서만 얻어요',img:'img/feat/piece.png',cut:'adv',avail:()=>{try{return advOn();}catch(e){return false;}},open:()=>{try{openAdv();}catch(e){}}},
+ {c:'펫',t:'펫',s:['상자에서 가끔 펫이 나와요','<b>가방 › 펫</b>에서 데리고 다녀요','펫도 레벨이 올라요'],tip:'펫 낚시 이용권이 있으면 펫이 대신 낚아요',img:'img/feat/flower.png',cut:'pet',avail:()=>{try{return String(uiOpt('pets','off'))==='on';}catch(e){return false;}}},
+ {c:'도감',t:'도감',s:['아래 <b>도감</b> 버튼','만난 물고기가 기록돼요','별과 변이도 모아요'],tip:'처음 보는 물고기는 그림자로 보여요',img:'img/fish/bluegill.png'},
+ {c:'낚시터',t:'운하 · 달',s:['Lv.30: 불빛 가득한 <b>운하</b>','Lv.70: 헬멧 쓰고 <b>달</b>','맵마다 물고기가 달라요'],tip:'운하에서는 소원 연등을 띄울 수 있어요',img:'img/fish/chamdom.png'}
+];
+let BK={c:'',q:''};
+function bookShow(){const m=modal('gdBook'),g=GD(),L=steps(),cats=[...new Set(BOOK.filter(b=>!b.avail||b.avail()).map(b=>b.c))];if(!BK.c||!cats.includes(BK.c))BK.c=cats[0];
+ const q=BK.q.trim(),list=BOOK.filter(b=>(!b.avail||b.avail())&&(q?(b.t+b.s.join(' ')+b.tip).replace(/<[^>]+>/g,'').includes(q):b.c===BK.c));
+ const prog=g.act?`<b>${Math.min(g.i|0,L.length)} / ${L.length}</b> 진행 중`:g.done?'다 끝냈어요':'아직 안 했어요';
+ m.innerHTML=`<div class="card gdbook"><button type="button" class="x" data-x aria-label="닫기">×</button><h3>가이드북</h3><label class="gdq"><input placeholder="궁금한 것 찾기 (예: 변이, 촉매)" value="${esc(BK.q)}" data-q></label><div class="gdcats">${cats.map(c=>`<button type="button" class="${!q&&c===BK.c?'on':''}" data-c="${c}">${c}</button>`).join('')}</div>
+ <div class="gdents">${list.map((b,i)=>`<div class="gde"><div class="gdeh"><img src="${b.img}" alt=""><b>${b.t}</b></div><ol>${b.s.map(x=>`<li>${x}</li>`).join('')}</ol><p class="gdtip"><b>작은 팁</b> ${b.tip}</p><div class="gdek">${b.cut&&CUTS[b.cut]?`<button type="button" data-cut="${b.cut}">3컷 카드 보기</button>`:''}${b.open?`<button type="button" class="acc" data-op="${BOOK.indexOf(b)}">열어 보기</button>`:''}</div></div>`).join('')||'<p class="muted">찾는 내용이 없어요</p>'}</div>
+ <div class="gdbk"><span>🧭 할아버지 수업 · ${prog}</span>${g.act?'<button type="button" data-ls>수업 목록</button>':''}<button type="button" class="acc" data-re>처음부터 다시</button></div></div>`;
+ m.querySelector('[data-x]').onclick=()=>closeM('gdBook');m.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{BK.c=b.dataset.c;BK.q='';bookShow();});
+ const qi=m.querySelector('[data-q]');qi.oninput=()=>{BK.q=qi.value;clearTimeout(qi._t);qi._t=setTimeout(()=>{bookShow();const n=$('gdBook').querySelector('[data-q]');n.focus();n.setSelectionRange(n.value.length,n.value.length);},250);};
+ m.querySelectorAll('[data-cut]').forEach(b=>b.onclick=()=>cutShow(b.dataset.cut,1));m.querySelectorAll('[data-op]').forEach(b=>b.onclick=()=>{closeM('gdBook');BOOK[+b.dataset.op].open();});
+ const ls=m.querySelector('[data-ls]');if(ls)ls.onclick=()=>{closeM('gdBook');listShow();};m.querySelector('[data-re]').onclick=()=>{closeM('gdBook');start(true);};if(!m.classList.contains('show'))openM('gdBook');}
+// ── 3컷 카드
+function cutShow(k,again){const C=CUTS[k];if(!C)return;const g=GD();g.cut=g.cut||{};g.cut[k]=Date.now();save();const m=modal('gdCut');
+ m.innerHTML=`<div class="card gdcut"><span class="gdnew">${again?'다시 보기':'새 기능이 열렸어요'}</span><h3>${C.t}</h3><div class="gdps">${C.p.map(([img,tx,n],i)=>`<div class="gdp p${i}"><span class="gdpn">${i+1}</span><div class="gdpi ${img.endsWith('.jpg')?'ph':''}">${img.endsWith('.jpg')?`<img src="${img}" alt="">`:Array.from({length:Math.max(1,n)},()=>`<img src="${img}" alt="">`).join('')}</div><p>${tx}</p></div>`).join('')}</div><button type="button" class="acc" data-go>지금 해 보기</button><button type="button" class="gdlater" data-x>나중에 · 가이드북에서 다시 볼 수 있어요</button></div>`;
+ m.querySelector('[data-x]').onclick=()=>closeM('gdCut');m.querySelector('[data-go]').onclick=()=>{closeM('gdCut');C.open();};openM('gdCut');}
+// 수업을 안 하는 유저: 새 기능이 처음 생기면 한 번만 (이미 오래 한 유저는 조용히 넘겨요)
+let cutT=0;function cutAuto(){if(Date.now()-cutT<4000)return;cutT=Date.now();if(modalOpen()||(typeof fishing!=='undefined'&&fishing&&fishing.state&&fishing.state!=='off'))return;const g=GD();g.cut=g.cut||{};
+ const av={fuse:()=>{try{return fzOn();}catch(e){return false;}},adv:()=>{try{return advOn();}catch(e){return false;}},pet:hasPet};
+ if(!g.cutInit){g.cutInit=1;for(const k in av)if(av[k]())g.cut[k]=g.cut[k]||-1;save();return;}
+ for(const k in av){if(!g.cut[k]&&av[k]()){cutShow(k);return;}}}
+// ── 메뉴 「가이드북」 버튼
+function bookBtn(){const sy=$('mSys');if(!sy)return;let b=$('bGuide');if(!on()){if(b)b.remove();return;}if(!b){const tpl=$('bTime')||$('bBoard');b=document.createElement('button');b.id='bGuide';b.type='button';b.innerHTML='<b class="mi"><img src="img/feat/key.png" alt="" class="fti"></b><small class="ml">가이드북</small>';b.onclick=e=>{e.stopPropagation();document.body.classList.remove('menu-open');bookShow();};if(tpl)b.className=tpl.className.replace(/\bon\b/,'');}if(b.parentNode!==sy)sy.appendChild(b);}
+setInterval(bookBtn,1500);addEventListener('nk-rt-play',()=>setTimeout(bookBtn,80));
+window.NK_GUIDE={start,stop,bookShow,listShow,cutShow,steps:()=>steps().map(s=>s.id),cur:()=>cur&&cur.id,GD};
+})();
+
+// ───────── v174 🖼 작은 창 (PiP · 테스트 기능 pipOn) ─────────
+//  게임 화면이나 상태 카드를 작은 창(동영상 PiP)으로 띄워요. 창을 내려도 게임 시간이 흘러요(백그라운드 진행).
+//  입질 때는 작은 창이 주황색으로 반짝이고, 작은 창의 ⏸ 버튼을 누르면 챔질돼요 (작은 창은 버튼 말고는 누를 수 없어요)
+(function(){
+const PREV=window.NK_PREV||'';
+LAB.push({k:'pipOn',n:'🖼 작은 창 (PiP)',d:'메뉴에 「작은 창」이 생겨요. 게임 화면이나 상태 카드를 다른 앱 위에 작게 띄워요. 창을 내려도 낚시가 이어지고, 입질 때 작은 창이 반짝여요 (작은 창의 ⏸ 버튼 = 챔질). 안드로이드 크롬은 창 내릴 때 자동으로, 아이폰은 버튼을 한 번 눌러야 떠요',scope:'all',o:[['off','끄기 (기본)'],['on','켜기']]});
+const on=()=>!PREV&&String(uiOpt('pipOn','off'))==='on'&&!!document.pictureInPictureEnabled;
+const W=480,H=270;let cv=null,cx=null,vid=null,act=false,blink=0;const IMG={};
+const im=src=>{if(!IMG[src]){const i=new Image();i.src=src;IMG[src]=i;}return IMG[src].complete&&IMG[src].naturalWidth?IMG[src]:null;};
+const P=()=>{S.pip=S.pip||{mode:'game',auto:true,bite:true};return S.pip;};
+function ensure(){if(cv)return;cv=document.createElement('canvas');cv.width=W;cv.height=H;cx=cv.getContext('2d');vid=document.createElement('video');vid.muted=true;vid.playsInline=true;vid.setAttribute('playsinline','');vid.id='pipVid';vid.srcObject=cv.captureStream(8);document.body.appendChild(vid);
+ vid.addEventListener('enterpictureinpicture',()=>{act=true;window.__nkPipOn=1;});vid.addEventListener('leavepictureinpicture',()=>{act=false;window.__nkPipOn=0;try{vid.play();}catch(e){}if(!P().auto)stopVid();});
+ try{if('mediaSession' in navigator){navigator.mediaSession.setActionHandler('pause',()=>{reel();setTimeout(()=>{try{vid.play();}catch(e){}},50);});navigator.mediaSession.setActionHandler('play',()=>{reel();try{vid.play();}catch(e){}});try{navigator.mediaSession.setActionHandler('enterpictureinpicture',()=>openPip());}catch(e){}}}catch(e){}}
+function stopVid(){try{vid&&vid.pause();}catch(e){}}
+function reel(){try{if(typeof fishing!=='undefined'&&fishing&&fishing.state==='bite')fishAction();}catch(e){}}
+function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath();}
+function pill(x,y,t,bg,fg){cx.font='800 15px system-ui,sans-serif';const w=cx.measureText(t).width+18;rr(x,y,w,26,9);cx.fillStyle=bg;cx.fill();cx.fillStyle=fg;cx.fillText(t,x+9,y+18);return w;}
+function stateTxt(){try{const auto=!!S.autoFish,left=typeof afLeftMs==='function'?afLeftMs():0;if(fishing&&fishing.state==='bite')return ['입질!','#f08a4b'];if(auto)return ['자동 낚시 중'+(left>0?' · '+fmtLeft(left):''),'#3f9a5c'];if(fishing&&fishing.state==='cast')return ['낚시 중 · 기다리는 중','#3a6ab0'];return ['쉬는 중','#8a7f86'];}catch(e){return ['','#8a7f86'];}}
+function fmtLeft(ms){const m=Math.round(ms/6e4);return m>=60?Math.floor(m/60)+'시간 '+(m%60)+'분 남음':m+'분 남음';}
+function lastFish(){try{const L=S.tank||[];let b=null;for(const f of L){if(!b||(f.t||0)>(b.t||0))b=f;}return b;}catch(e){return null;}}
+function draw(){if(!cx)return;const bite=typeof fishing!=='undefined'&&fishing&&fishing.state==='bite'&&P().bite;blink=(blink+1)%4;
+ if(P().mode==='game'){try{R.render(scene,cam);const src=R.domElement,sw=src.width,sh=src.height,k=Math.max(W/sw,H/sh),dw=sw*k,dh=sh*k;cx.drawImage(src,(W-dw)/2,(H-dh)/2,dw,dh);}catch(e){cx.fillStyle='#2c2a30';cx.fillRect(0,0,W,H);}
+  const [t,c]=stateTxt();let x=10;x+=pill(x,10,t,c,'#fff')+6;const lf=lastFish();if(lf){const F=FI(lf.k);rr(10,H-46,W-20,36,11);cx.fillStyle='rgba(255,250,243,.94)';cx.fill();const fi=im((F&&F.img)||'img/fish/'+lf.k+'.png');if(fi)cx.drawImage(fi,18,H-42,40,28);cx.fillStyle='#3a3340';cx.font='800 15px system-ui,sans-serif';cx.fillText(((F&&F.n)||'')+(lf.st?' ★'+(lf.st+1):'')+' · '+(lf.cm||'')+'cm',64,H-22);cx.fillStyle='#c4602f';cx.textAlign='right';cx.fillText('어항 '+(S.tank||[]).length,W-20,H-22);cx.textAlign='left';}}
+ else{cx.fillStyle='#fffaf3';cx.fillRect(0,0,W,H);cx.fillStyle='#3a3340';cx.font='900 22px system-ui,sans-serif';cx.fillText('피쉬코지',18,36);cx.font='700 15px system-ui,sans-serif';cx.fillStyle='#6e6470';cx.fillText((S.nick||'')+' · Lv.'+myLv(),120,35);
+  const [t,c]=stateTxt();pill(18,52,t,c,'#fff');const lf=lastFish();if(lf){const F=FI(lf.k);const fi=im((F&&F.img)||'img/fish/'+lf.k+'.png');rr(18,92,W-36,96,16);cx.fillStyle='#fff1e6';cx.fill();if(fi)cx.drawImage(fi,30,104,110,72);cx.fillStyle='#3a3340';cx.font='900 22px system-ui,sans-serif';cx.fillText(((F&&F.n)||''),156,132);cx.font='700 16px system-ui,sans-serif';cx.fillStyle='#6e6470';cx.fillText((lf.st?'★'+(lf.st+1)+' · ':'')+(lf.cm||'')+'cm · 마지막으로 낚은 물고기',156,160);}
+  cx.font='800 16px system-ui,sans-serif';cx.fillStyle='#3a3340';cx.fillText('🪙 '+(S.coins|0).toLocaleString(),18,226);cx.fillText('어항 '+(S.tank||[]).length+'마리',220,226);cx.fillText('낚은 수 '+(S.caught|0),340,226);}
+ if(bite){cx.lineWidth=14;cx.strokeStyle=blink<2?'#f08a4b':'#ffd36b';cx.strokeRect(7,7,W-14,H-14);rr(W/2-120,H/2-38,240,76,20);cx.fillStyle='rgba(240,138,75,.95)';cx.fill();cx.fillStyle='#fff';cx.font='900 34px system-ui,sans-serif';cx.textAlign='center';cx.fillText('입질!',W/2,H/2+4);cx.font='800 14px system-ui,sans-serif';cx.fillText('가운데 재생 버튼을 누르면 챔질',W/2,H/2+28);cx.textAlign='left';
+  if(!S.pipBz||Date.now()-S.pipBz>3000){S.pipBz=Date.now();try{navigator.vibrate&&navigator.vibrate([120,60,120]);}catch(e){}}}}
+setInterval(()=>{if(cv&&(act||(P().auto&&vid&&!vid.paused))&&!document.hidden)draw();},250);
+window.__nkPipBg=()=>{if(act)draw();};
+async function openPip(){if(!on()){toast('작은 창을 쓸 수 없는 브라우저예요',2000);return;}ensure();draw();try{await vid.play();await vid.requestPictureInPicture();}catch(e){toast('작은 창을 열지 못했어요 · '+((e&&e.message)||''),2400);}}
+function closePip(){try{if(document.pictureInPictureElement)document.exitPictureInPicture();}catch(e){}}
+// 창 내리면 자동: 미리 작은 동영상을 재생해 두고(아이폰 사파리 autopictureinpicture), 크롬은 숨겨질 때 열어 봐요
+function armAuto(){if(!on()||!started||!P().auto){if(vid&&!act){vid.autoPictureInPicture=false;stopVid();}return;}ensure();vid.autoPictureInPicture=true;vid.setAttribute('autopictureinpicture','');if(vid.paused){draw();vid.play().catch(()=>{});}}
+setInterval(armAuto,3000);
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&on()&&started&&P().auto&&vid&&!act&&!document.pictureInPictureElement){draw();vid.requestPictureInPicture().catch(()=>{});}});
+// 설정 창
+function dlg(){let m=$('pipDlg');if(!m){m=document.createElement('div');m.id='pipDlg';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)closeM('pipDlg');});}const p=P();
+ m.innerHTML=`<div class="card pipc"><button type="button" class="x" data-x aria-label="닫기">×</button><h3>작은 창 (PiP)</h3><button type="button" class="acc pipgo" data-go>${act?'작은 창 닫기':'지금 작은 창으로 보기'}</button>
+ <div class="pipl"><div class="pipr"><div><b>창 내리면 자동으로 작은 창</b><small>휴대폰이 허락할 때만 (아래 안내)</small></div><button type="button" class="tg ${p.auto?'on':''}" data-t="auto" aria-label="창 내리면 자동"><i></i></button></div>
+ <div class="pipr col"><b>작은 창에 보일 것</b><div class="pipm"><button type="button" class="${p.mode==='game'?'on':''}" data-m="game">게임 화면</button><button type="button" class="${p.mode==='card'?'on':''}" data-m="card">상태 카드 (배터리 절약)</button></div></div>
+ <div class="pipr"><div><b>입질 때 작은 창 반짝이기</b><small>손으로 낚시할 때 · 작은 창 가운데 버튼 = 챔질</small></div><button type="button" class="tg ${p.bite?'on':''}" data-t="bite" aria-label="입질 반짝이기"><i></i></button></div></div>
+ <div class="pipn"><b>휴대폰마다 달라요</b><span>안드로이드 크롬: 창 내리면 자동으로 떠요 (안 되면 위 버튼)</span><span>아이폰 사파리: 위 버튼을 한 번 눌러야 떠요</span><span>PC 크롬·엣지: 다른 창 위에 떠 있어요</span></div></div>`;
+ m.querySelector('[data-x]').onclick=()=>closeM('pipDlg');m.querySelector('[data-go]').onclick=()=>{if(act)closePip();else{closeM('pipDlg');openPip();}};
+ m.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{p[b.dataset.t]=!p[b.dataset.t];save();dlg();});m.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{p.mode=b.dataset.m;save();dlg();});if(!m.classList.contains('show'))openM('pipDlg');}
+function btn(){const sy=$('mSys');if(!sy)return;let b=$('bPip');if(!on()){if(b)b.remove();return;}if(!b){const tpl=$('bTime')||$('bBoard');b=document.createElement('button');b.id='bPip';b.type='button';b.innerHTML='<b class="mi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="7" height="6" rx="1" fill="currentColor"/></svg></b><small class="ml">작은 창</small>';b.onclick=e=>{e.stopPropagation();document.body.classList.remove('menu-open');dlg();};if(tpl)b.className=tpl.className.replace(/\bon\b/,'');}if(b.parentNode!==sy)sy.appendChild(b);}
+setInterval(btn,1500);addEventListener('nk-rt-play',()=>setTimeout(btn,90));
+window.NK_PIP={open:openPip,close:closePip,dlg,draw:()=>{ensure();draw();return cv;}};
+})();
 window.NKV2={uiOpt:(k,d)=>uiOpt(k,d),PVK:{apply:(k,v)=>applyStyleSide(k,v),preview:(k,v)=>previewStyle(k,v),admin:()=>V14.admin()},LT:{start:(n,o)=>ltStart(n,o),stop:()=>ltStop(),snap:()=>ltSnap(),html:()=>loadHTML(),bind:(r,re)=>bindLoad(r,re)},featBtns:()=>featBtns(),openFuse:()=>openFuse(),openAdv:()=>openAdv(),FZV,ADVR,applyMx:()=>applyMx(),mxMode:()=>mxMode(),renderSet:()=>renderSet(),XBAL,BGM,bgmCfg,MAPX:{apply:v=>MAPV.apply(v),time:(v,auto)=>{if(v!=null){pinAuto(false);pinTime(v);}return time.t;}},SOLO:()=>SOLO,SKEY:()=>SKEY,bots:()=>bots,seats:()=>SEATS,decks,LR,S,catchFish:()=>catchFish(),legendAlert:(...a)=>legendAlert(...a),boxAlert:(...a)=>boxAlert(...a),seen:k=>{const [t,id]=k.split(':'),L=t==='c'?S.charms:S.gear,it=L&&L.find(x=>String(x.id)===id);if(it&&it.nw){delete it.nw;save();}document.querySelectorAll(`[data-nwk="${k}"]`).forEach(e=>{e.removeAttribute('data-nwk');e.querySelectorAll('.nwb').forEach(b=>b.classList.add('gone'));});},mvMul,ILOG,applyHud,lvPop,KINDS,fire:()=>fireMesh,LV,myLv,addXP,lvRoad,lvCharmSlots,lvTankBonus,resetInput,keys:()=>keys,SEATS,sitOn,standUp,mySeat:()=>mySeat,nearSeat:()=>nearSeat,SH:()=>SH,_n:{catchCard,toast,boxFx,synthFx,FI,GR,TIER,confirmBox,say,openBox:()=>SYS.openBox(D,S,Math.random,null),achCheck},DW,inDeck,R,cam,hemi,sun,wU,V15,V14,S,chars,decks,ROD_POSE,scene,THREE,openFishRank,miniToast,boxGot,calcRK3,updBagBadge,baitOut,baitLow,MAPV:()=>MAPV,bragStart,bragStop,bragCard,brag:()=>brag,labHTML:()=>labHTML(),bindLab:(r)=>bindLab(r),RK3:()=>RK3,project:a=>{const v=new THREE.Vector3(a[0],a[1],a[2]).project(cam);return [Math.round((v.x+1)/2*innerWidth),Math.round((1-v.y)/2*innerHeight)];},snd:()=>snd,emote,applyMenu,botBuyNow:()=>{buyT=0;botBuy(0);},S,D,decks,bots,fishAction,catchFish,tankView,renderShop,renderDex,openM,closeM,time,me:()=>me,setPos:(x,z)=>{me.o.position.set(x,.4,z);},nearSpot:()=>nearSpot,fishing:()=>fishing,save,VG,bag:()=>openBag(),legendAlert,botLegend,boxAlert,botBoxAlert,bagTab:t=>{bagTab=t;if(t==='box'||t==='charm')bagMode='box';else bagMode='bag';renderBag();},openBag,openSet:()=>{renderSet();openM('set');},afOK,afGrant,afRevoke,afLeftMs,rodNeed,lobbyCounts:()=>window.__lobbyCounts?window.__lobbyCounts():[],SYS,giveBox:(n=1)=>{for(let i=0;i<n;i++)S.boxes.push(Date.now());save();},setCam:(x,y,z,tx=0,ty=0,tz=0)=>{camOverride=x==null?null:[x,y,z,tx,ty,tz];},setDecks:n=>{},dexTab:t=>{dexTab=t;},synthFx,hud};});
 })();
 

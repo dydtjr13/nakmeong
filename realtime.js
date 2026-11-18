@@ -184,6 +184,7 @@
     if (Array.isArray(m.notices)) takeNotices(m.notices, "notice" in m ? m.notice : undefined);
     else if ("notice" in m) takeNotice(m.notice);
     if ("event" in m) takeEvent(m.event);
+    if ("sched" in m) takeSched(m.sched);
     if ("balance" in m) takeBalance(m.balance);
     if (m.grants) takeGrants(m.grants, m.now, { me: m.nick || m.me, mine: m.mine });
     if (m.sanc) takeSanc(m.sanc);
@@ -267,6 +268,11 @@
     RT.notices = Array.isArray(list) ? list : [];
     if (active !== undefined) RT.notice = active || null;
     try { dispatchEvent(new CustomEvent("nk-rt-notices", { detail: { notices: RT.notices, notice: RT.notice || null } })); } catch (e) { /* ignore */ }
+  }
+  function takeSched(v) {
+    RT.sched = Array.isArray(v) ? v : [];
+    try { localStorage.setItem("nk_sched_cache", JSON.stringify(RT.sched)); } catch (e) { /* ignore */ }
+    try { dispatchEvent(new CustomEvent("nk-rt-sched", { detail: RT.sched })); } catch (e2) { /* ignore */ }
   }
   function takeEvent(e) {
     RT.event = e || null;
@@ -361,6 +367,7 @@
       else takeNotice(m.notice);
     }
     else if (m.t === "event") takeEvent(m.event);
+    else if (m.t === "sched") takeSched(m.sched);
     else if (m.t === "balance") takeBalance(m.balance);
     else if (m.t === "grants") takeGrants(m.grants, m.now, { me: m.me, mine: m.mine });
     else if (m.t === "sanc") takeSanc(m.sanc);
@@ -646,6 +653,7 @@
   RT.gameGet = function () { return opsSend({ t: "gameGet" }); };
   RT.setNotice = function (notice) { return opsSend({ t: "notice", notice: notice || null }); };
   RT.setEvent = function (event) { return opsSend({ t: "event", event: event || null }); };
+  RT.setSched = function (list) { return opsSend({ t: "sched", sched: Array.isArray(list) ? list : [] }); };
   RT.setBalance = function (balance) { return opsSend({ t: "balance", balance: balance || null }); };
   RT.setGrant = function (grant) { return opsSend({ t: "grant", nick: grant && grant.nick, until: grant && grant.until, revoke: !!(grant && grant.revoke), mins: grant && grant.mins, id: grant && grant.id || "", pet: grant && grant.pet ? 1 : 0 }); };
   RT.setSanc = function (row) { return opsSend({ t: "sanc", nick: row && row.nick, mute: row && row.mute, ban: row && row.ban, why: row && row.why }); };
