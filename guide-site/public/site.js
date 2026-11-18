@@ -21,7 +21,7 @@
   const MAPS = { lake: { n: '호숫가', img: 'img/lake.jpg' }, canal: { n: '운하', img: 'img/canal.jpg' }, moon: { n: '달', img: 'img/moon.jpg' } };
   let map = 'lake', liveOn = false, SRV = null;
   const stage = $('stage'), img = $('stageImg');
-  const watchURL = (m) => { const u = new URL(GAME, location.href); u.searchParams.set('uiprev', 'watch'); u.searchParams.set('rt', 'off'); u.searchParams.set('map', m); return u.toString(); };
+  const watchURL = (m) => { const u = new URL(GAME, location.href); u.searchParams.set('uiprev', 'watch'); u.searchParams.set('map', m); return u.toString(); };
   function setLive(on) {
     liveOn = on; const old = stage.querySelector('iframe'); if (old) old.remove();
     $('stageOv').hidden = on; $('stopBtn').hidden = !on;
@@ -123,6 +123,7 @@
 
   /* ── 업데이트 */
   const UPD = [
+    { v: 'v178', d: '11월 18일', t: '진짜 라이브 관전', s: ['홈페이지 라이브 화면에 지금 낚시 중인 사람들이 그대로 보여요', '카메라가 20초마다 다른 사람을 따라가요 · 관전자는 서버 인원에 안 들어가요'] },
     { v: 'v177', d: '11월 18일', t: '뒤로가기 · 작은 창 개선', s: ['휴대폰 뒤로가기를 누르면 바로 나가지 않고 확인 창이 떠요', '작은 창(PiP)이 더 잘 열리고, 작은 창의 ⏸ 버튼으로 챔질돼요', '게임 메뉴에 「홈페이지」 버튼이 생겼어요'] },
     { v: 'v176', d: '11월 18일', t: '가이드 홈페이지 열림', s: ['처음 시작 안내 · 공략 · 게시판을 한곳에', '낚시터 라이브 화면 (호숫가 · 운하 · 달)'] },
     { v: 'v174', d: '11월 18일', t: '합성 등급 보상', s: ['재료 등급이 높을수록 정수와 변이 확률이 올라요', '등급별 첫 ★5에 「별 장인」 칭호', '새 업데이트 확인 후 멈추던 문제 해결'] },

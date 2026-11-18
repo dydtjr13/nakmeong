@@ -123,6 +123,10 @@ function messageText(message) {
   return null;
 }
 
+// v177: 홈페이지 라이브 관전 — 방마다 30명까지 · 2시간이 지나면 정리 (홈페이지가 다시 이어요)
+const SPEC_CAP = 30;
+const SPEC_MAX_MS = 2 * 3600e3;
+
 export class LakeRoom extends DurableObject {
   constructor(ctx, env) {
     super(ctx, env);
@@ -599,8 +603,17 @@ export class LakeRoom extends DurableObject {
     return false;
   }
 
+  // v177: 관전(spec) 접속은 인원·자리·닉 계산에서 빼요 — 방송(broadcast)만 받아요
   openSockets(except) {
-    return this.ctx.getWebSockets().filter((ws) => ws !== except && ws.readyState === WebSocket.OPEN);
+    return this.ctx.getWebSockets().filter((ws) => ws !== except && ws.readyState === WebSocket.OPEN && !LakeRoom.isSpecWs(ws));
+  }
+
+  static isSpecWs(ws) {
+    try { const a = ws.deserializeAttachment(); return !!(a && a.spec); } catch { return false; }
+  }
+
+  specSockets() {
+    return this.ctx.getWebSockets().filter((ws) => ws.readyState === WebSocket.OPEN && LakeRoom.isSpecWs(ws));
   }
 
   async occupancy() {
@@ -736,6 +749,8 @@ export class LakeRoom extends DurableObject {
       const occ = await this.occupancy();
       return Response.json({ ok: true, ...occ });
     }
+    // v177: 홈페이지 라이브 관전 — 인원에 안 들어가고, 아무것도 보낼 수 없고, 방송만 받아요
+    if (url.searchParams.get("spec") === "1") return this.acceptSpec(url);
     const n = this.openSockets().length;
     // v75: 9번은 관리자 부하 테스트 방(목록에 안 보임) — 60명까지
     const testRoom = /\/ws\/9$/.test(url.pathname);
@@ -773,7 +788,38 @@ export class LakeRoom extends DurableObject {
     return new Response(null, { status: 101, webSocket: client });
   }
 
+  async acceptSpec(url) {
+    const path = url.pathname.match(/\/ws\/([1-4]|7|20)$/);
+    if (!path) return Response.json({ ok: false, error: "spec room" }, { status: 404 });
+    if (this.specSockets().length >= SPEC_CAP) return Response.json({ ok: false, error: "full" }, { status: 503 });
+    const server = +path[1];
+    const pair = new WebSocketPair();
+    const [client, serverWs] = Object.values(pair);
+    this.ctx.acceptWebSocket(serverWs);
+    const id = "spec-" + crypto.randomUUID();
+    serverWs.serializeAttachment({ id, spec: 1, nick: "", ready: false, server, born: Date.now() });
+    const n = this.openSockets().length;
+    const ops = await this.welcomeOps();
+    // 관전자에게 필요 없는 운영 정보(신고·관리자용)는 빼고 보내요
+    delete ops.grants; delete ops.sanc;
+    try {
+      serverWs.send(JSON.stringify({
+        t: "welcome", spec: 1, id, server, n, cap: CAP,
+        by: Object.assign({}, this.cnt || {}, { [server]: n }),
+        mh: this.mh || {},
+        peers: this.readyOthers(serverWs).map(publicPeer),
+        world: await this.worldGet(), now: Date.now(), nick: "", mine: 0, admin: false, token: "", keep: "",
+        ...ops,
+        game: await this.gamePublic(),
+      }));
+    } catch { /* ignore */ }
+    const alarm = await this.ctx.storage.getAlarm();
+    if (!alarm || alarm > Date.now() + SPEC_MAX_MS) this.ctx.waitUntil(this.ctx.storage.setAlarm(Date.now() + SPEC_MAX_MS));
+    return new Response(null, { status: 101, webSocket: client });
+  }
+
   async webSocketMessage(ws, message) {
+    if (LakeRoom.isSpecWs(ws)) return; // 관전자는 보낼 수 없어요 (ping 은 자동 응답)
     const text = messageText(message);
     if (text == null) return;
     const msg = parseClient(text);
@@ -1141,8 +1187,11 @@ export class LakeRoom extends DurableObject {
     const STALE_MS = 75000;
     const now = Date.now();
     let pending = false;
+    let specAny = false;
     for (const ws of this.ctx.getWebSockets()) {
       const att = this.attachment(ws);
+      // v177: 관전 접속은 인사(hello) 없이 유지 · 너무 오래 열어 둔 관전은 정리 (홈페이지가 다시 이어요)
+      if (att && att.spec) { if (now - (att.born || 0) >= SPEC_MAX_MS) { try { ws.close(4010, "spec time"); } catch { /* ignore */ } } else specAny = true; continue; }
       if (!att || !att.ready) {
         const born = att && att.born ? att.born : 0;
         if (!born || now - born >= HELLO_MS) {
@@ -1173,7 +1222,7 @@ export class LakeRoom extends DurableObject {
       } else live++;
     }
     await this.gameTick(now);
-    await this.armAlarm(helloWait ? Date.now() + HELLO_MS : live ? Date.now() + 30000 : 0);
+    await this.armAlarm(helloWait ? Date.now() + HELLO_MS : live ? Date.now() + 30000 : specAny ? Date.now() + 120000 : 0);
   }
 
   // ───────── v55: 초성·밸런스 게임 ─────────

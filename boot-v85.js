@@ -9,8 +9,10 @@
     var mem = new Map(), P = Storage.prototype, g = P.getItem, s = P.setItem, r = P.removeItem;
     // 미리보기는 내 개인 배치 말고 '모든 유저 처음 화면 배치'에서 시작해요
     var hide = { nk_uipos_m: 1, nk_uipos_pc: 1, nk_umv_tip: 0 };
-    P.getItem = function (k) { if (this !== LS) return g.call(this, k); if (mem.has(k)) return mem.get(k); if (hide[k]) return null; if (k === 'nk_umv_tip') return '1'; return g.call(this, k); };
-    P.setItem = function (k, v) { if (this !== LS) return s.call(this, k, v); mem.set(k, String(v)); };
+    // v177: 라이브 관전은 서버 맵 배치(nk_cfg)·설정(nk_play_cache)을 받으면 한 번 새로고침해요 → 이 탭(sessionStorage)에 남겨서 다시 받지 않게 (무한 새로고침 방지)
+    var WK = qs.get('uiprev') === 'watch' ? { nk_cfg: 1, nk_play_cache: 1 } : {};
+    P.getItem = function (k) { if (this !== LS) return g.call(this, k); if (mem.has(k)) return mem.get(k); if (WK[k]) { try { var sv = sessionStorage.getItem('nkw_' + k); if (sv != null) return sv; } catch (e) {} } if (hide[k]) return null; if (k === 'nk_umv_tip') return '1'; return g.call(this, k); };
+    P.setItem = function (k, v) { if (this !== LS) return s.call(this, k, v); mem.set(k, String(v)); if (WK[k]) { try { sessionStorage.setItem('nkw_' + k, String(v)); } catch (e) {} } };
     P.removeItem = function (k) { if (this !== LS) return r.call(this, k); mem.set(k, null); };
     window.NK_PREV = qs.get('uiprev') || '1';
     // v174: 홈페이지 라이브 보기 (?uiprev=watch&map=lake|canal|moon) — 그 맵으로 바로 들어가요
