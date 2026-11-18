@@ -1,0 +1,13 @@
+# v176: 피쉬코지 가이드 홈페이지 (guide.fishcozy.com) — 게임과 완전히 분리된 정적 사이트
+# 게임 서버에서는 읽기만 해요: 실시간 인원(/servers), 게시판(/posts). 라이브 화면은 fishcozy.com 을 iframe 으로(uiprev=watch).
+name = "fishcozy-guide"
+account_id = "0dd46e415e6622db15aec7a31865b350"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+[assets]
+directory = "./public"
+not_found_handling = "404-page"
+
+# 사용자 도메인 연결 (토큰에 영역 권한이 없으면 실패할 수 있어요 → 대시보드에서 직접 연결)
+routes = [ { pattern = "guide.fishcozy.com", custom_domain = true } ]

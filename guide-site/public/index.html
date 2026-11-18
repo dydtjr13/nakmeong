@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>피쉬코지 가이드</title>
+<meta name="description" content="피쉬코지(FISH COZY) 처음 시작 안내, 공략, 낚시터 라이브, 게시판">
+<meta property="og:title" content="피쉬코지 가이드">
+<meta property="og:description" content="잠시 쉬어가는 작은 낚시 공간 · 처음 시작 안내와 공략, 게시판">
+<meta property="og:image" content="https://fishcozy.com/icons/brand-fishcozy-1024.png">
+<meta name="theme-color" content="#f7efe3">
+<link rel="icon" href="img/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="apple-touch-icon" href="img/app-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;800&display=swap">
+<script>try{var t=localStorage.getItem('fcg_theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="stylesheet" href="site.css?v176">
+</head>
+<body>
+<header class="top">
+ <div class="wrap row">
+  <a class="brand" href="#"><img src="img/app-180.png" alt="" width="38" height="38"><b>피쉬코지 가이드</b></a>
+  <nav aria-label="주 메뉴">
+   <a href="#start">처음이라면</a><a href="#maps">낚시터</a><a href="#tips">공략</a><a href="#board">게시판</a><a href="#updates">업데이트</a>
+  </nav>
+  <span class="sp"></span>
+  <button type="button" class="themeBtn" id="themeBtn" aria-label="밝게·어둡게 바꾸기" title="밝게·어둡게"><span class="ic"></span></button>
+  <a class="cta sm" href="https://fishcozy.com/"><span class="lg">게임 하러 가기</span><span class="shrt">게임하기</span></a>
+ </div>
+</header>
+
+<main>
+<section class="wrap hero">
+ <div class="heroTxt">
+  <span class="chip g">설치 없이 브라우저에서 바로</span>
+  <h1>잠시 쉬어가는<br>작은 낚시 공간</h1>
+  <p class="lead">호숫가 데크에 앉아 낚싯대를 드리우고, 잡은 물고기는 어항에 모으고, 운하와 달까지 천천히 넓혀 가요. 처음 오신 분을 위한 안내와 공략, 함께 나누는 게시판이 있어요.</p>
+  <div class="btns">
+   <a class="cta" href="#start">처음 시작 안내 보기</a>
+   <a class="ghost" href="#board">게시판 둘러보기</a>
+  </div>
+ </div>
+ <div class="live">
+  <div class="tabs" role="tablist" aria-label="낚시터 고르기">
+   <button type="button" role="tab" data-map="lake" aria-selected="true">호숫가</button>
+   <button type="button" role="tab" data-map="canal" aria-selected="false">운하</button>
+   <button type="button" role="tab" data-map="moon" aria-selected="false">달</button>
+   <span class="sp"></span>
+   <span class="cnt" id="liveCnt" hidden></span>
+  </div>
+  <div class="stage" id="stage">
+   <img id="stageImg" src="img/lake.jpg" alt="호숫가 낚시터 게임 화면">
+   <div class="stageOv" id="stageOv">
+    <button type="button" class="playBtn" id="playBtn"><span class="dot"></span>지금 낚시터 라이브로 보기</button>
+    <span class="ovNote">게임 속 시간·날씨 그대로</span>
+   </div>
+   <button type="button" class="stopBtn" id="stopBtn" hidden>라이브 끄기</button>
+  </div>
+  <div class="toast"><img src="img/fish-bluegill.png" alt=""><span>블루길 ★2 낚았어요!</span></div>
+ </div>
+</section>
+
+<section class="wrap sec" id="start">
+ <div class="h2row"><h2>처음이라면 이 순서로</h2><span class="sub">게임 속 할아버지 낚시 수업과 같은 순서예요</span></div>
+ <ol class="steps" id="steps"></ol>
+</section>
+
+<section class="band" id="maps">
+ <div class="wrap sec">
+  <h2>레벨 따라 넓어지는 낚시터</h2>
+  <div class="maps">
+   <article class="mapc"><img src="img/lake.jpg" alt="호숫가" loading="lazy"><div><div class="mt"><b>호숫가</b><span class="chip g">Lv.1 ~ 30</span></div><span class="mut">데크와 어항, 오리가 떠다니는 첫 호수</span></div></article>
+   <article class="mapc"><img src="img/canal.jpg" alt="운하" loading="lazy"><div><div class="mt"><b>운하</b><span class="chip o">Lv.30 ~ 50</span></div><span class="mut">불빛 켜진 골목 운하, 소원 연등</span></div></article>
+   <article class="mapc soon"><div class="ph">준비 중</div><div><div class="mt"><b>하늘섬</b><span class="chip b">Lv.50 ~ 70</span></div><span class="mut">구름 위 섬, 곧 열려요</span></div></article>
+   <article class="mapc"><img src="img/moon.jpg" alt="달" loading="lazy"><div><div class="mt"><b>달</b><span class="chip p">Lv.70 ~ 99</span></div><span class="mut">우주 헬멧 쓰고 별자리 물고기</span></div></article>
+  </div>
+ </div>
+</section>
+
+<section class="wrap sec" id="tips">
+ <div class="h2row"><h2>공략 · 가이드북</h2><span class="sub">게임 메뉴의 가이드북과 같은 내용이에요</span></div>
+ <div class="tipbar">
+  <label class="search"><span class="sr">공략 찾기</span><input id="tipQ" type="search" placeholder="궁금한 것 찾기 (예: 변이, 촉매)"></label>
+  <div class="cats" id="tipCats"></div>
+ </div>
+ <div class="tips" id="tipList"></div>
+</section>
+
+<section class="wrap sec split" id="board">
+ <div class="col main">
+  <div class="h2row sb"><h2>게시판</h2><a class="more" href="https://fishcozy.com/">게임에서 글 쓰기</a></div>
+  <div class="cats" id="bdCats"></div>
+  <div class="list" id="bdList"><div class="empty">글을 불러오는 중…</div></div>
+  <p class="mut sm">게임 속 게시판과 같은 글이 보여요. 글쓰기와 댓글은 게임 안에서 닉네임 그대로 할 수 있어요.</p>
+ </div>
+ <div class="col side" id="updates">
+  <h2>업데이트</h2>
+  <div class="upd" id="updList"></div>
+ </div>
+</section>
+</main>
+
+<footer class="foot">
+ <div class="wrap row">
+  <div class="fcol"><b>피쉬코지 가이드</b><span>guide.fishcozy.com · 게임은 fishcozy.com</span></div>
+  <a class="cta sm" href="https://fishcozy.com/">게임 하러 가기</a>
+ </div>
+</footer>
+
+<div class="dlg" id="postDlg" hidden>
+ <div class="dlgIn" role="dialog" aria-modal="true" aria-labelledby="pdT">
+  <button type="button" class="x" id="pdX" aria-label="닫기">×</button>
+  <div id="pdBody"></div>
+ </div>
+</div>
+<script src="site.js?v176"></script>
+</body>
+</html>

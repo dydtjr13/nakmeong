@@ -13,6 +13,8 @@
     P.setItem = function (k, v) { if (this !== LS) return s.call(this, k, v); mem.set(k, String(v)); };
     P.removeItem = function (k) { if (this !== LS) return r.call(this, k); mem.set(k, null); };
     window.NK_PREV = qs.get('uiprev') || '1';
+    // v174: 홈페이지 라이브 보기 (?uiprev=watch&map=lake|canal|moon) — 그 맵으로 바로 들어가요
+    if (window.NK_PREV === 'watch') { var mp = qs.get('map') || 'lake'; try { sessionStorage.setItem('nk_sea', mp === 'canal' ? '1' : '0'); sessionStorage.setItem('nk_sky', mp === 'moon' ? '1' : '0'); } catch (e) {} }
     // 미리보기는 서버에 아무것도 보내지 않아요 (저장·순위 업로드 막기)
     var of = window.fetch;
     if (of) window.fetch = function (u, o) { var m = o && o.method ? String(o.method).toUpperCase() : 'GET'; if (m !== 'GET' && m !== 'HEAD') return Promise.reject(new Error('preview')); return of.apply(this, arguments); };
