@@ -275,7 +275,7 @@ export class LakeRoom extends DurableObject {
       if (!LakeRoom.isPub(srv)) return;
       this.cnt = this.cnt || {};
       this.cnt[srv] = Math.max(0, Math.min(1000, msg.n | 0));
-      if (srv === 7 && msg.homes && typeof msg.homes === "object") this.mh = cleanHomes(msg.homes);
+      if (LakeRoom.isHub(srv) && msg.homes && typeof msg.homes === "object") { this.mhBy = this.mhBy || {}; this.mhBy[srv] = cleanHomes(msg.homes); this.mhMerge(); }
       this.broadcast({ t: "cnt", by: this.cnt, mh: this.mh || {} });
       return;
     }
@@ -619,7 +619,10 @@ export class LakeRoom extends DurableObject {
   }
 
   /** v141: 🌙 달(7) ↔ 호숫가(1~4) — 채팅을 서로 보여 주고, 실접속 인원을 함께 세요 */
-  static isPub(srv) { return srv === 7 || SERVERS.some((s) => s.id === srv); }
+  static isPub(srv) { return srv === 7 || srv === 20 || SERVERS.some((s) => s.id === srv); }
+  /** v168: 🌙 달(7)과 🏘 바닷가 마을(20)은 모두 '허브' — 호숫가·다른 허브와 채팅·인원을 함께 나눠요 */
+  static isHub(srv) { return srv === 7 || srv === 20; }
+  mhMerge() { const h = {}; for (const k of Object.keys(this.mhBy || {})) for (const [id, n] of Object.entries(this.mhBy[k] || {})) h[id] = (h[id] | 0) + (n | 0); this.mh = h; return h; }
   postTo(ids, payload) {
     const body = JSON.stringify(payload);
     this.ctx.waitUntil(Promise.all(ids.map(async (id) => {
@@ -628,7 +631,7 @@ export class LakeRoom extends DurableObject {
   }
   chatLink(srv, ev) {
     if (!LakeRoom.isPub(srv) || !ev || ev.t !== "chat") return;
-    const to = srv === 7 ? SERVERS.map((s) => s.id) : [7];
+    const to = LakeRoom.isHub(srv) ? [...SERVERS.map((s) => s.id), ...[7, 20].filter((h) => h !== srv)] : [7, 20];
     this.postTo(to, { t: "xchat", from: srv, ev: { id: ev.id, nick: ev.nick, text: ev.text, adm: ev.adm ? 1 : 0 } });
   }
   cntPush(srv, except) {
@@ -637,20 +640,20 @@ export class LakeRoom extends DurableObject {
     this.cnt = this.cnt || {};
     this.cnt[srv] = n;
     // v147: 달 방은 '어느 서버에서 왔는지' 인원도 같이 알려서, 각 서버 인원에 달 인원이 더해지게
-    const homes = srv === 7 ? this.homesOf(except) : null;
-    if (homes) this.mh = homes;
+    const homes = LakeRoom.isHub(srv) ? this.homesOf(except) : null;
+    if (homes) { this.mhBy = this.mhBy || {}; this.mhBy[srv] = homes; this.mhMerge(); }
     this.broadcast({ t: "cnt", by: this.cnt, mh: this.mh || {} });
-    this.postTo([...SERVERS.map((s) => s.id), 7].filter((id) => id !== srv), homes ? { t: "cnt", srv, n, homes } : { t: "cnt", srv, n });
+    this.postTo([...SERVERS.map((s) => s.id), 7, 20].filter((id) => id !== srv), homes ? { t: "cnt", srv, n, homes } : { t: "cnt", srv, n });
   }
   /** 이 방 인원을 처음 알게 될 때(방이 막 깨어났을 때) 다른 곳 인원을 한 번 물어 와요 */
   cntFill(srv) {
     if (!LakeRoom.isPub(srv)) return;
     this.cnt = this.cnt || {};
-    const miss = [...SERVERS.map((s) => s.id), 7].filter((id) => id !== srv && !(id in this.cnt));
+    const miss = [...SERVERS.map((s) => s.id), 7, 20].filter((id) => id !== srv && !(id in this.cnt));
     if (!miss.length) return;
     this.ctx.waitUntil((async () => {
       for (const id of miss) {
-        try { const o = await this.env.LAKE.getByName(`lake-${id}`).occupancy(); this.cnt[id] = o && Number.isFinite(o.n) ? o.n : 0; if (id === 7 && o && o.homes) this.mh = cleanHomes(o.homes); } catch { /* ignore */ }
+        try { const o = await this.env.LAKE.getByName(`lake-${id}`).occupancy(); this.cnt[id] = o && Number.isFinite(o.n) ? o.n : 0; if (LakeRoom.isHub(id) && o && o.homes) { this.mhBy = this.mhBy || {}; this.mhBy[id] = cleanHomes(o.homes); this.mhMerge(); } } catch { /* ignore */ }
       }
       this.broadcast({ t: "cnt", by: this.cnt, mh: this.mh || {} });
     })());
@@ -1070,7 +1073,7 @@ export class LakeRoom extends DurableObject {
         n,
         cap: CAP,
         by: Object.assign({}, this.cnt || {}, { [next.att.server]: n }),
-        mh: next.att.server === 7 ? this.homesOf() : (this.mh || {}),
+        mh: LakeRoom.isHub(next.att.server) ? (() => { this.mhBy = this.mhBy || {}; this.mhBy[next.att.server] = this.homesOf(); return this.mhMerge(); })() : (this.mh || {}),
         peers: this.readyOthers(ws).map(publicPeer),
         world,
         now: nowHello,

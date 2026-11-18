@@ -478,8 +478,9 @@ export default {
       }
       // ─ v167: 🏮 소원 연등 ─
       if (path === '/wishes' && request.method === 'GET') {
-        const rows = (await db.prepare('SELECT id, nick, text, at FROM wishes WHERE hid=0 AND at>? ORDER BY at DESC LIMIT 40').bind(Date.now() - 2 * 864e5).all()).results || [];
-        return json({ ok: true, rows }, 200, origin);
+        const rows = (await db.prepare('SELECT id, owner, nick, text, at FROM wishes WHERE hid=0 AND at>? ORDER BY at DESC LIMIT 40').bind(Date.now() - 2 * 864e5).all()).results || [];
+        // v168: 주인은 빼고 보내되 내 연등이면 mine:1 (내 연등은 내가 지울 수 있어요)
+        return json({ ok: true, rows: rows.map((r) => ({ id: r.id, nick: r.nick, text: r.text, at: r.at, ...(me && r.owner === me ? { mine: 1 } : {}) })) }, 200, origin);
       }
       if (path === '/wishes' && request.method === 'POST') {
         if (!me) return bad('owner required', 400, origin);
@@ -490,6 +491,15 @@ export default {
         if (last && now - last.at < 10 * 60e3) return json({ ok: false, error: 'wait', left: 10 * 60e3 - (now - last.at) }, 429, origin);
         const r = await db.prepare('INSERT INTO wishes (owner,nick,text,at) VALUES (?,?,?,?)').bind(me, nick, text, now).run();
         return json({ ok: true, id: r.meta && r.meta.last_row_id, at: now }, 200, origin);
+      }
+      const wd = path.match(/^\/wishes\/(\d+)\/delete$/);
+      if (wd && request.method === 'POST') {
+        // v168: 연등 삭제 — 관리자 또는 띄운 사람만
+        const row = await db.prepare('SELECT owner FROM wishes WHERE id=?').bind(+wd[1]).first();
+        if (!row) return bad('not found', 404, origin);
+        if (!admin && !(me && row.owner === me)) return bad('forbidden', 403, origin);
+        await db.prepare('DELETE FROM wishes WHERE id=?').bind(+wd[1]).run();
+        return json({ ok: true }, 200, origin);
       }
       const wh = path.match(/^\/admin\/wishes\/(\d+)\/hide$/);
       if (wh && request.method === 'POST') {
