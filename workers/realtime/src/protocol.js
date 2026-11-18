@@ -1077,6 +1077,7 @@ export function sanitizePlay(input, prev, opt) {
   if ("wkKing" in input) out.wkKing = pickOf(input.wkKing, ["on", "off"]);
   if ("socLogin" in input) out.socLogin = pickOf(input.socLogin, ["off", "on"]);
   if ("stV2" in input) out.stV2 = pickOf(input.stV2, ["off", "on"]);
+  if ("robotTkP" in input) out.robotTkP = pickOf(input.robotTkP, ["1", "0.3", "0.5", "2", "5", "0"]);
   if ("seaLay" in input) out.seaLay = pickOf(input.seaLay, ["cur", "A", "B", "C"]);
   for (const k of ["moonRabbit", "moonRice", "moonLander", "moonRover", "moonMeteor", "moonJump"]) if (k in input) out[k] = pickOf(input[k], ["on", "off"]);
   if ("moonView" in input) out.moonView = pickOf(input.moonView, ["1", "2", "3"]);

@@ -482,3 +482,7 @@ body.tx #annBar small{order:4;flex-basis:100%}
 #stV2 #sx2cb .stIn input{width:100%}
 #stV2 #sx2cb .stCodeB[data-m=acct] .stCd,#stV2 #sx2cb .stCodeB[data-m=code] .stAc{display:none}
 #stV2 #sx2cb .stCodeB:not([data-m]) .stCd{display:none}
+/* v172 새 시작 화면 준비 중: 예전 화면 숨김 */
+#start.sx2pre>.stB{visibility:hidden}
+#start.sx2pre::before{content:"피쉬코지";position:absolute;left:0;right:0;top:calc(56px + env(safe-area-inset-top));text-align:center;color:#fff;font-size:44px;font-weight:900;letter-spacing:-1px;text-shadow:0 3px 14px rgba(30,40,60,.5)}
+#stV2 .sx2gw{min-height:44px;height:44px}

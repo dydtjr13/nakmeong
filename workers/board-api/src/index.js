@@ -108,6 +108,8 @@ async function ensureSchema(db) {
     // v167: 🏮 소원 연등 — 바닷가 마을 하늘에 띄우는 닉네임 + 소원 (2일 동안 보여요)
     'CREATE TABLE IF NOT EXISTS wishes (id INTEGER PRIMARY KEY AUTOINCREMENT, owner TEXT NOT NULL, nick TEXT NOT NULL, text TEXT NOT NULL, at INTEGER NOT NULL, hid INTEGER NOT NULL DEFAULT 0)',
     'CREATE INDEX IF NOT EXISTS idx_wishes_at ON wishes(at DESC)',
+    // v172: 게스트 닉네임 번호 (나1, 나2 …) — 한 줄짜리 카운터
+    'CREATE TABLE IF NOT EXISTS guestseq (id INTEGER PRIMARY KEY, n INTEGER NOT NULL)',
   ];
   for (const sql of tries) { try { await db.prepare(sql).run(); } catch (e) { /* 이미 있음 */ } }
   schemaReady = true;
@@ -399,6 +401,17 @@ export default {
           db.prepare('UPDATE accounts SET fails=0, lock_until=0, updated_at=? WHERE nk=?').bind(now, nk),
         ]);
         return json({ ok: true, nick: a.nick, code: a.code, data: row.data, updated_at: now }, 200, origin);
+      }
+      // v172: 닉네임 없이 시작한 게스트에게 겹치지 않는 번호 닉네임을 줘요 (계정 닉네임과 겹치면 다음 번호)
+      if (path === '/guest/nick' && request.method === 'POST') {
+        for (let i = 0; i < 6; i++) {
+          await db.prepare('INSERT INTO guestseq (id, n) VALUES (1, 1) ON CONFLICT(id) DO UPDATE SET n = n + 1').run();
+          const row = await db.prepare('SELECT n FROM guestseq WHERE id=1').first();
+          const nick = '나' + (row ? row.n : Date.now() % 100000);
+          const had = await db.prepare('SELECT nk FROM accounts WHERE nk=?').bind(nickKey(nick)).first();
+          if (!had) return json({ ok: true, nick }, 200, origin);
+        }
+        return json({ ok: true, nick: '나' + (10000 + Math.floor(Math.random() * 89999)) }, 200, origin);
       }
       if (path === '/accounts/check' && request.method === 'GET') {
         const nick = cleanNick(url.searchParams.get('nick')), nk = nickKey(nick);
