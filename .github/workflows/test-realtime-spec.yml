@@ -1,0 +1,27 @@
+# v177: 실시간 서버 관전(라이브 보기) 테스트 — PR 에서 로컬 wrangler dev 로 확인 (배포는 하지 않아요)
+name: Test realtime spectator
+
+on:
+  pull_request:
+    paths:
+      - "workers/realtime/**"
+      - ".github/workflows/test-realtime-spec.yml"
+  workflow_dispatch:
+
+jobs:
+  spec:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: workers/realtime
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: workers/realtime/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - name: 관전 테스트
+        run: npm run test:spec

@@ -8,7 +8,8 @@
     "deploy": "node scripts/deploy.mjs",
     "dry-run": "wrangler deploy --dry-run",
     "test": "node --test test/protocol.test.mjs",
-    "test:live": "node test/live.mjs"
+    "test:live": "node test/live.mjs",
+    "test:spec": "node test/spec.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.45.0",

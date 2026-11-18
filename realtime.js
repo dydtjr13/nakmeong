@@ -21,6 +21,8 @@
   }
 
   const base = resolveBase();
+  // v177: 홈페이지 라이브 관전 (?uiprev=watch) — 서버에 '관전'으로 붙어요. 아무것도 보내지 않고(인원에도 안 들어가요) 받기만 해요
+  const SPEC = qs.get("uiprev") === "watch" && qs.get("spec") !== "0";
   const peers = new Map();
   // v52: 이 브라우저 고유 id — 나갔다 다시 들어올 때 남아 있던 이전 연결을 서버가 정리하는 데 쓴다 (다른 유저에게는 안 보임)
   const CID = (function () {
@@ -44,6 +46,7 @@
     base,
     cap: CAP,
     nServers: 4,
+    spec: SPEC,
     mode: base ? "idle" : "off",
     phase: base ? "load" : "down",
     servers: null,
@@ -95,7 +98,7 @@
     const u = new URL(base);
     u.protocol = u.protocol === "https:" ? "wss:" : "ws:";
     u.pathname = "/ws/" + id;
-    u.search = "";
+    u.search = SPEC ? "?spec=1" : "";
     u.hash = "";
     return u.toString();
   }
@@ -153,6 +156,7 @@
   // v104: 살아 있다는 신호 (서버가 자동으로 pong · 끊긴 줄 모르는 유령 접속을 서버가 정리해요)
   setInterval(() => { try { if (ws && ws.readyState === 1 && RT.mode === "on") ws.send("ping"); } catch (e) { /* ignore */ } }, 20000);
   function send(obj) {
+    if (SPEC) return;
     if (!ws || ws.readyState !== 1) return;
     try { ws.send(JSON.stringify(obj)); } catch (e) { /* ignore */ }
   }
@@ -448,7 +452,7 @@
         want = false;
         finish({ ok: false, reason: "offline" });
       }, 4000);
-      sock.onopen = () => { if (token === gen) send(profileOf(profile)); };
+      sock.onopen = () => { if (token === gen && !SPEC) send(profileOf(profile)); };
       sock.onmessage = (ev) => {
         if (token !== gen) return;
         let m = null;

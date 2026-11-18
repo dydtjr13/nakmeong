@@ -32,6 +32,8 @@ jobs:
       - run: npm ci
       - name: 단위 테스트
         run: npm test
+      - name: 관전(라이브 보기) 테스트 — 로컬 wrangler dev
+        run: npm run test:spec
       - name: 토큰 확인
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
