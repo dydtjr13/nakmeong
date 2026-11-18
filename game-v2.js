@@ -1652,7 +1652,7 @@ const AUTHX=(()=>{const CFG={g:'1039496411057-0qkrtdd0qq48ej9idg3kdelhsvobuqua.a
  // 구글 버튼은 구글이 그려 줘요 (디자인 규칙) — 누르면 cb(신분 토큰)
  async gButton(el,cb,text,w){if(!CFG.g||!el)return false;try{await X.gLoad();}catch(e){el.innerHTML='<small class="muted">구글 로그인을 불러오지 못했어요</small>';return false;}
   google.accounts.id.initialize({client_id:CFG.g,callback:r=>{if(r&&r.credential)cb(r.credential);},ux_mode:'popup',auto_select:false,cancel_on_tap_outside:true});
-  el.innerHTML='';google.accounts.id.renderButton(el,{type:'standard',theme:'outline',size:'large',shape:'pill',text:text||'signin_with',locale:'ko',width:Math.max(200,Math.min(320,w||240))});return true;},
+  el.innerHTML='';google.accounts.id.renderButton(el,w&&w<100?{type:'icon',theme:'outline',size:'large',shape:'circle'}:{type:'standard',theme:'outline',size:'large',shape:'pill',text:text||'signin_with',locale:'ko',width:Math.max(200,Math.min(320,w||240))});return true;},
  kRedirect:(pv)=>'https://'+(/^www\./.test(location.hostname)?'www.':'')+'fishcozy.com/'+(pv==='n'?'naver':'kakao')+'.html',
  // 카카오: 작은 창으로 로그인 → kakao.html 이 결과(code)를 돌려줘요. 작은 창이 막히면 이 창에서 이동했다가 돌아와요
  kStart(act,pv){pv=pv==='n'?'n':'k';if(!CFG[pv])return Promise.reject(new Error(X.pname(pv)+' 로그인이 아직 준비 중이에요'));const st=Math.random().toString(36).slice(2,12),rd=X.kRedirect(pv);
@@ -2972,6 +2972,7 @@ addEventListener('nk-rt-seat',e=>{const m=e.detail;if(!m||m.ok!==false||!mySeat)
  stEl.querySelectorAll('.stSteps span').forEach(x=>{x.setAttribute('role','button');x.tabIndex=0;x.onclick=()=>step(+x.dataset.s);});
   // v56: 시작 화면에서 저장 코드 불러오기 → 닉네임·레벨·캐릭터 반영
  window.NK_STREFRESH=()=>{try{$('stNick').value=S.nick||'';nickChk();tab=grp(S.char||0);drawCP();stUpd();}catch(e){}};
+ /* v170 새 시작 화면은 계정 칸(SL) 정의 뒤에 붙여요 → window.__nkSt2 */window.__nkSt2Ctx=()=>({grp,drawCP:()=>drawCP(),setTab:t=>{tab=t;},stUpd,srvDraw,lobbyCounts,stEl});
  // v57: 시작 화면에서 계정 만들기 — 닉네임(1번 칸) + 비밀번호. 게임이 시작되고 첫 서버 저장 뒤에 계정을 연결해요
  const MK={pin:'',t:0};{const mt=$('stMkT'),mb=$('stMkB'),p1=$('stMkP'),p2=$('stMkP2'),mm=$('stMkMsg');if(mt&&mb){
   const say=(c,s)=>{mm.className=c;mm.textContent=s;};
@@ -3093,7 +3094,7 @@ loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyV
     if(deckReload){location.reload();return;}
     try{window.NK_FULL&&NK_FULL.auto(S);}catch(e){}me=makeChar(S.char,NICK());const dSpawn=quietDeck();let x=dSpawn.entry.x,z=dSpawn.entry.z;
     if(online){const a=Math.random()*6.283,rad=1.1+Math.random()*1.7,tx=x+Math.cos(a)*rad,tz=z+Math.sin(a)*rad;if(walk(tx,tz)){x=tx;z=tz;}}
-    me.o.position.set(x,.4,z);me.dir=dSpawn.a+Math.PI;yaw=Math.atan2(Math.cos(dSpawn.a),Math.sin(dSpawn.a));try{window.__nkResume&&__nkResume(id,online);}catch(e){console.warn(e);}started=true;$('start').classList.remove('show');startAudio();hud();try{applyMx();}catch(e){}setTimeout(()=>{try{featBtns();}catch(e){}},1200);if(window.NK_STMK)setTimeout(()=>NK_STMK(),1500);
+    window.__nkStartAt=performance.now();me.o.position.set(x,.4,z);me.dir=dSpawn.a+Math.PI;yaw=Math.atan2(Math.cos(dSpawn.a),Math.sin(dSpawn.a));try{window.__nkResume&&__nkResume(id,online);}catch(e){console.warn(e);}started=true;$('start').classList.remove('show');startAudio();hud();try{applyMx();}catch(e){}setTimeout(()=>{try{featBtns();}catch(e){}},1200);if(window.NK_STMK)setTimeout(()=>NK_STMK(),1500);
     say('시스템',online?`Welcome to FISH COZY! ${SRVN(id)}에 들어왔어요. 같은 서버의 낚시꾼이 보여요.`:'Welcome to FISH COZY! 피쉬코지에 오신 걸 환영해요. 실시간 서버가 없으면 혼자(봇과) 플레이해요.');
   }finally{$('go')._busy=0;if($('start').classList.contains('show'))$('go').textContent=prev;}};
   hud();requestAnimationFrame(frame);setTimeout(()=>{try{calcRK3();}catch(e){}},1500);setInterval(()=>{try{calcRK3();}catch(e){}},30000);updBagBadge();
@@ -3196,9 +3197,11 @@ V14=(()=>{
   writeStage(Object.assign(currentStage(),{lay:st.lay,deckW:st.deckW||'',decks:st.decks}));const go=$('go');if(go){go.disabled=true;go.textContent='맵 준비 중…';}location.reload();}catch(e){}};
  addEventListener('nk-rt-servers',preStage);{let n=0;const tk=setInterval(()=>{preStage();if(++n>40||started)clearInterval(tk);},250);}
  function chBanner(){let el=$('chNote');const over=CH.me>Math.max(1,Math.min(4,CH.n));if(!over){if(el)el.remove();return;}if(!el){el=document.createElement('div');el.id='chNote';document.body.appendChild(el);}el.innerHTML=`<b>📡 채널 ${CH.n}개</b><span>다음 입장부터 ${Array.from({length:Math.max(1,Math.min(4,CH.n))},(_,i)=>SRVN(i+1)).join('·')}만 열려요. 이번 판의 위치·낚시는 유지해요.</span>`;}
- function applyStage(st){if(!st||typeof st!=='object'||SKYBOOT)return;if(st.rev&&stageRev&&st.rev<stageRev)return;if(st.rev)stageRev=st.rev;const prevCh=CH.n,prevBots=+CFG.bots||0;writeStage(st);CH.n=Math.max(1,Math.min(8,+st.chN||4));
+ function applyStage(st){/* v170: 운하·달은 호숫가 데크 배치를 쓰지 않아요 — 거기서 받은 배치를 저장하면 호숫가로 돌아갈 때 다른 맵이 보였어요 */if(!st||typeof st!=='object'||SKYBOOT||SEABOOT)return;if(st.rev&&stageRev&&st.rev<stageRev)return;if(st.rev)stageRev=st.rev;const prevCh=CH.n,prevBots=+CFG.bots||0;writeStage(st);CH.n=Math.max(1,Math.min(8,+st.chN||4));
   const geom=(st.lay||'a')!==(BOOT.lay||'a')||(st.deckW||'')!==(BOOT.deckW||'')||(+st.decks||0)!==(+BOOT.decks||0);
-  if(geom){if(qs.has('decks')||qs.has('mock30')){if(stageSeen)toast('주소에 데크 값이 있어 이 탭의 배치는 유지해요',2200);stageSeen=true;return;}stageSeen=true;if(!started){deckReload=true;return;}toast('🗺 데크 배치가 바뀌었어요. 이번 판은 이어서 하고, 다음 입장부터 새 맵이에요',3200);return;}
+  if(geom){if(qs.has('decks')||qs.has('mock30')){if(stageSeen)toast('주소에 데크 값이 있어 이 탭의 배치는 유지해요',2200);stageSeen=true;return;}stageSeen=true;if(!started){deckReload=true;try{sessionStorage.setItem('nk_autogo',String(Date.now()));}catch(e){}return;}
+   /* v170: 들어온 지 1분 안이면 (자동 접속이 서버 배치보다 먼저 들어간 경우) 바로 관리자 맵으로 다시 들어가요 */if(performance.now()-(window.__nkStartAt||0)<60000&&fishing.state==='off'){try{sessionStorage.setItem('nk_autogo',String(Date.now()));}catch(e){}softReload('관리자가 정한 맵으로 다시 들어가요');return;}
+   toast('🗺 데크 배치가 바뀌었어요. 이번 판은 이어서 하고, 다음 입장부터 새 맵이에요',3200);return;}
   stageSeen=true;
   if(+st.chN!==+prevCh){toast(`📡 채널이 ${CH.n}개가 됐어요`,2000);try{dispatchEvent(new Event('nk-rt-servers'));}catch(e){}chBanner();}
   if(+st.bots!==+prevBots){try{retuneBots(st.bots);}catch(e){}toast(`🤖 테스트 봇 ${Math.max(0,+st.bots||0)}명`,2000);}
@@ -3872,6 +3875,62 @@ function slotMk(){const mb=$('stMkB');if(!mb)return;let nt=$('stMkNew');const ne
  const n=($('stNick').value||'').trim();nt.innerHTML=`<p>이 칸에는 <b>${esc(NICK0||S.acct||'지금')}</b> 진행이 있어요. 새 계정은 <b>새 칸에서 처음부터</b> 만들어요 (지금 진행은 그대로 보관).</p><button type="button" class="acc" ${n&&n!==NICK0?'':'disabled'}>＋ 새 칸에서 「${esc(n&&n!==NICK0?n:'새 닉네임')}」 계정 만들기</button>${n&&n!==NICK0?'':'<small>1번 칸에 새 닉네임을 먼저 넣어 주세요</small>'}`;
  nt.querySelector('button').onclick=()=>{const v=($('stNick').value||'').trim();if(!v||v===NICK0)return;slotGo('new',{nick:v,mk:1});};
  const mm=$('stMkMsg');if(mm){mm.className='muted';mm.textContent='';}}
+ /* v170 ✨ 새 시작 화면 — 처음 온 사람(간편 로그인·게스트) / 이 기기에 진행이 있는 사람(이어서 하기) → ① 서버 ② 캐릭터
+    기존 시작 화면(닉네임·서버·캐릭터·이어하기·계정 칸)은 그대로 두고, 그 기능을 버튼으로 이어 받아요 · 🧪 실험실 「새 시작 화면」 */
+ {const X={pg:'home',pend:0},CX=()=>window.__nkSt2Ctx();window.NK_ST2=X;
+  const on=()=>{try{if(/[?&]st2=1/.test(location.search))return true;return String(uiOpt('stV2','off'))==='on';}catch(e){return false;}};
+  const st=$('start'),E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const kinds=()=>{const tb=['b','h','a'].concat(String(uiOpt('mythChar','off'))==='on'?['m']:[]);return KINDS.map((k,i)=>[i,k]).filter(([i])=>tb.includes(CX().grp(i)));};
+  const ago=t=>{if(!t)return '';const m=Math.round((Date.now()-t)/60000);if(m<2)return '방금 전';if(m<60)return m+'분 전';const h=Math.round(m/60);if(h<24)return h+'시간 전';const d=Math.round(h/24);return d<30?d+'일 전':'오래전';};
+  const socOK=()=>{try{return AUTHX.on()&&(AUTHX.CFG.g||AUTHX.CFG.k||AUTHX.CFG.n);}catch(e){return false;}};
+  const say=(c,h)=>{const m=document.querySelector('#stV2 .sx2msg');if(m){m.className='sx2msg '+(c||'');m.textContent=h;}};
+  const KK='<svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"><path d="M10 3C5.6 3 2 5.8 2 9.2c0 2.2 1.5 4.1 3.7 5.2l-.8 3 3.4-2.2c.6.1 1.1.1 1.7.1 4.4 0 8-2.8 8-6.1S14.4 3 10 3z" fill="#191919"/></svg>';
+  const QR='<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 14v7h-7"/></svg>';
+  const BK='<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>';
+  function classic(openCode){st.classList.remove('sx2on');let b=$('sx2back');if(!b){b=document.createElement('button');b.id='sx2back';b.type='button';b.textContent='← 간단한 시작 화면';st.appendChild(b);b.onclick=()=>{b.remove();X.pg='home';draw();};}
+   if(openCode){const t=$('stCodeT'),bx=$('stCodeB');if(bx&&bx.hidden&&t)t.click();try{CX().stEl.dataset.step=1;}catch(e){}}}
+  function login(pv){return async()=>{say('muted',AUTHX.pname(pv)+' 확인 중…');X.pend=1;try{const r=await AUTHX.kStart('login',pv);const j=await AUTHX.login(pv,r.cred,r.redirect,say,r.state);if(j&&j.error==='none'){X.pend=0;X.pg='srv';draw();}}catch(e){X.pend=0;say('bad',e.message);}};}
+  function home(){const prog=hasProg(),K=KINDS[S.char]||KINDS[0],soc=socOK(),C=AUTHX.CFG;
+   if(prog)return `<div class="sx2card sx2b"><div class="sx2me"><img src="img/chars/${K.th||'b0'}.jpg" alt=""><div><small>이 기기에서 하던 진행</small><b>Lv.${myLv()} ${E(S.nick||'나')}</b><span>골드 ${(S.coins|0).toLocaleString()}${S.savedAt?' · '+ago(+S.savedAt):''}</span></div></div>
+    <button type="button" class="sx2go" data-sx="cont">이어서 하기</button>
+    <div class="sx2sub"><span>다른 기기 진행 불러오기</span><div class="sx2ic">${soc&&C.g?'<div id="sx2G" class="sx2gi"></div>':''}${soc&&C.k?`<button type="button" class="sx2c kk" data-sx="k" aria-label="카카오로 불러오기">${KK}</button>`:''}${soc&&C.n?'<button type="button" class="sx2c nv" data-sx="n" aria-label="네이버로 불러오기">N</button>':''}<button type="button" class="sx2c qr" data-sx="code" aria-label="QR·저장 코드로 불러오기">${QR}</button></div><p class="sx2msg muted"></p></div></div>
+    ${SL&&!PREV?'<button type="button" class="sx2lnk" data-sx="new">처음부터 새로 시작</button>':''}`;
+   return `<div class="sx2card sx2a">${soc?`${C.g?'<div id="sx2G" class="sx2gw"></div>':''}${C.k?`<button type="button" class="sx2s kk" data-sx="k">${KK}카카오로 시작하기</button>`:''}${C.n?'<button type="button" class="sx2s nv" data-sx="n"><b>N</b>네이버로 시작하기</button>':''}<div class="sx2or"><i></i>또는<i></i></div>`:''}
+    <button type="button" class="sx2go" data-sx="guest">게스트로 바로 시작</button><p class="sx2msg muted">${soc?'게스트 진행은 이 기기에만 저장돼요':'진행은 이 기기에 저장돼요'}</p></div>
+    <button type="button" class="sx2lnk" data-sx="code">저장 코드 · QR로 이어하기</button>`;}
+  function srv(){const L=CX().lobbyCounts(),me=+CFG.ch||1,nn=!hasProg();
+   return `<div class="sx2card sx2st"><div class="sx2top"><button type="button" class="sx2bk" data-sx="home" aria-label="뒤로">${BK}</button><span class="sx2dots"><i class="on"></i><i></i></span></div>
+    <h2>어느 호숫가로 갈까요?</h2>${nn?`<label class="sx2nk"><span>닉네임</span><input id="sx2nick" maxlength="10" placeholder="최대 10자 · 비워 두면 '나'" value="${E(($('stNick').value||'').trim())}" autocomplete="off"></label>`:''}
+    <div class="sx2list">${L.map(s=>{const k=s.players!=null,n=k?s.players:0,full=k&&n>=s.cap,r=k?n/s.cap:0,tag=full?'가득':!k?(s.source==='offline'?'혼자 플레이':'확인 중'):r>.8?'북적여요':r<.25?'조용해요':'여유로워요';
+     return `<button type="button" class="sx2sv ${me===s.id?'on':''}" data-sv2="${s.id}" ${full?'disabled':''}><span class="sx2no">${s.id}</span><span class="sx2nm"><b>${E(s.name)}</b><small>${tag}</small></span><span class="sx2cnt"><b>${k?n:'–'}</b> / ${s.cap}명</span></button>`;}).join('')}</div>
+    <p class="sx2msg muted"></p><button type="button" class="sx2go" data-sx="ch">다음 · 캐릭터 고르기</button></div>`;}
+  function chs(){const L=kinds(),g=$('go'),busy=!g||g.disabled;
+   return `<div class="sx2card sx2st"><div class="sx2top"><button type="button" class="sx2bk" data-sx="srv" aria-label="뒤로">${BK}</button><span class="sx2dots"><i></i><i class="on"></i></span></div>
+    <h2>누구로 낚시할까요?</h2><div class="sx2gw2"><div class="sx2grid" id="sx2grid">${L.map(([i,k])=>{const ok=lvCharOK(i);return `<button type="button" class="sx2ch ${S.char===i?'on':''} ${ok?'':'lk'}" data-ch2="${i}"><img src="img/chars/${k.th||'b0'}.jpg" alt=""><span>${E(k.n)}</span>${ok?'':`<em><svg viewBox="0 0 24 24" width="10" height="10" aria-hidden="true"><path fill="currentColor" d="M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z"/></svg>Lv.${lvCharReq(i)}</em>`}</button>`;}).join('')}</div><span class="sx2more" id="sx2more" aria-hidden="true">▼</span></div>
+    <button type="button" class="sx2go" data-sx="start" ${busy?'disabled':''}>${busy?'에셋 로딩 중…':(n=>E(n)+(c=>{const j=c>=0&&c<11172?c%28:0;return j===0||j===8?'로':'으로';})(n.charCodeAt(n.length-1)-0xAC00)+' 출발')(String(SRVN(+CFG.ch||1))||'')}</button></div>`;}
+  function draw(){let el=$('stV2');if(!on()||PREV||started){if(el)el.remove();st.classList.remove('sx2on');return;}
+   if($('sx2back'))return;if(!el){el=document.createElement('div');el.id='stV2';st.appendChild(el);}st.classList.add('sx2on');
+   el.classList.toggle('sx2sub2',X.pg!=='home');el.innerHTML=`<div class="sx2hd"><h1>피쉬코지</h1><p>잠시 쉬어가는 작은 낚시 공간</p></div><div class="sx2body sx2-${X.pg}">${X.pg==='srv'?srv():X.pg==='ch'?chs():home()}</div>`;
+   el.querySelectorAll('[data-sx]').forEach(b=>b.onclick=()=>{const a=b.dataset.sx;
+    if(a==='home'||a==='srv'){X.pg=a;draw();return;}
+    if(a==='cont'||a==='guest'){X.pg='srv';draw();return;}
+    if(a==='code'){classic(true);return;}
+    if(a==='new'){confirmBox(`<h3>새로 시작</h3><p>지금 진행(<b>${E(S.nick||'나')}</b> · Lv.${myLv()})은 이 기기에 그대로 보관돼요.<br>새 칸에서 처음부터 시작할까요?</p>`,()=>slotGo('new',{mk:0}));return;}
+    if(a==='k'||a==='n'){login(a)();return;}
+    if(a==='ch'){const v=($('stNick').value||'').trim(),bad=nickBad(v);if(bad&&bad!=='reserved'){say('bad',nickBadText(bad));return;}X.pg='ch';draw();return;}
+    if(a==='start'){const g=$('go');if(g&&!g.disabled){try{CX().stEl.dataset.step=3;}catch(e){}g.click();}return;}});
+   const ni=$('sx2nick');if(ni)ni.oninput=()=>{const t=$('stNick');t.value=ni.value;t.dispatchEvent(new Event('input'));const bad=nickBad(ni.value.trim());say(bad&&bad!=='reserved'?'bad':'muted',bad&&bad!=='reserved'?nickBadText(bad):'');};
+   el.querySelectorAll('[data-sv2]').forEach(b=>b.onclick=()=>{if(b.disabled)return;const id=+b.dataset.sv2;CFG.ch=id;if(V14&&V14.CH)V14.CH.me=id;try{localStorage.setItem('nk_cfg',JSON.stringify(CFG));}catch(e){}try{CX().srvDraw();CX().stUpd();}catch(e){}draw();});
+   el.querySelectorAll('[data-ch2]').forEach(b=>b.onclick=()=>{const i=+b.dataset.ch2;if(!lvCharOK(i)){toast(`🔒 「${KINDS[i].n}」은(는) Lv.${lvCharReq(i)}에 열려요`,1800);return;}S.char=i;save();try{const c=CX();c.setTab(c.grp(i));c.drawCP();c.stUpd();}catch(e){}el.querySelectorAll('[data-ch2]').forEach(x=>x.classList.toggle('on',x===b));});
+   const gEl=$('sx2G');if(gEl)Promise.resolve(AUTHX.gButton(gEl,cred=>{X.pend=1;AUTHX.login('g',cred,'',say).then(j=>{if(j&&j.error==='none'){X.pend=0;X.pg='srv';draw();}}).catch(e=>{X.pend=0;say('bad',e.message);});},hasProg()?'signin':'continue_with',hasProg()?48:Math.min(320,(el.clientWidth||340)-44))).then(ok=>{if(ok===false&&gEl.isConnected){gEl.remove();}});
+   const gr=$('sx2grid'),mo=$('sx2more');if(gr&&mo){const f=()=>{mo.classList.toggle('show',gr.scrollHeight-gr.scrollTop-gr.clientHeight>10);};gr.onscroll=f;setTimeout(f,60);mo.onclick=()=>gr.scrollBy({top:gr.clientHeight*.7,behavior:'smooth'});}}
+  X.draw=draw;
+  // 불러오기(간편 로그인·코드)가 끝나면 서버 고르기로
+  {const _r=window.NK_STREFRESH;window.NK_STREFRESH=function(){try{_r&&_r.apply(this,arguments);}catch(e){}if(X.pend){X.pend=0;X.pg='srv';}if(!$('sx2back'))draw();};}
+  addEventListener('nk-rt-servers',()=>{if(X.pg==='srv'&&st.classList.contains('show'))draw();});addEventListener('nk-rt-preplay',()=>setTimeout(draw,30));addEventListener('nk-rt-play',()=>setTimeout(draw,30));
+  {let lb=null;setInterval(()=>{if(!st.classList.contains('show')||X.pg!=='ch')return;const g=$('go'),b=g&&g.disabled;if(b!==lb){lb=b;draw();}},500);}
+  draw();}
+
 if(SL&&!PREV){
  document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#stMkT'))setTimeout(slotMk,30);},true);
  document.addEventListener('input',e=>{if(e.target&&(e.target.id==='stNick'||e.target.id==='stMkP'))setTimeout(slotMk,400);},true);
@@ -4417,6 +4476,13 @@ const PETS=[{k:'hedgehog',n:'고슴도치',g:0,src:'shop'},{k:'frog',n:'청개�
 const PET_DEF={ph:8000,pf:25000,rr:1.5,mr:.05,dupR:3000,dupM:20000};
 const petOn=()=>!PREV&&opt('pets','off')==='on';
 function petCfg(){let c=null;try{c=(mvPlay()||{}).petCfg;}catch(e){}return Object.assign({},PET_DEF,S.petCfgEd&&NK_ADM.ok()?{}:{},c||{});}
+/* v170: 펫마다 얻는 방법 · 나오는 상자 등급 · 확률 · 가격 (관리자 › 펫 설정 표 · 새 펫은 자동으로 줄이 생겨요) */
+const PET_PR0=[8000,25000,80000,200000,500000,1500000];
+function petHow(k,c){c=c||petCfg();if(c.how&&c.how[k])return c.how[k];const P=PETS.find(x=>x.k===k);return P?P.src:'box';}
+function petBoxG(k,c){c=c||petCfg();if(c.g&&c.g[k]!=null)return Math.max(1,Math.min(5,c.g[k]|0));return 1;}
+function petP(k,c){c=c||petCfg();if(c.p&&c.p[k]!=null)return Math.max(0,+c.p[k]||0);const P=PETS.find(x=>x.k===k);if(!P)return 0;if(P.vbx)return +P.p||0;
+ const pool=PETS.filter(x=>!x.vbx&&x.src==='box'&&(x.g>=5?P.g>=5:x.g===P.g)&&(!x.ufo||alienOn()));if(P.g>=5)return Math.round(c.mr/Math.max(1,pool.length)*10000)/10000;return Math.round(c.rr/Math.max(1,pool.length)*10000)/10000;}
+function petPr(k,c){c=c||petCfg();if(c.pr&&c.pr[k]!=null)return Math.max(0,+c.pr[k]||0);const P=PETS.find(x=>x.k===k);if(k==='hedgehog')return c.ph;if(k==='frog')return c.pf;if(P&&P.vbx&&P.pr)return P.pr;return PET_PR0[P?P.g:2]||80000;}
 const petOwn=()=>(S.petz&&typeof S.petz==='object')?S.petz:(S.petz={});// S.pets 는 테스트 기능 켜기/끄기 값이라 다른 이름에 보관
 const PSRC={shop:'상점',box:'행운 상자',lv:'레벨 50 보상'};
 const petG=k=>{const p=PETS.find(x=>x.k===k);return p?SYS.GRADES[p.g]:SYS.GRADES[0];};
@@ -4426,14 +4492,15 @@ function petPop(p,how){let m=$('petPop');if(!m){m=document.createElement('div');
  m.querySelector('[data-pp="go"]').onclick=()=>{S.petOn=p.k;save();m.classList.remove('show');try{renderBag();}catch(e){}};m.querySelector('[data-pp="x"]').onclick=()=>m.classList.remove('show');m.classList.add('show');try{sfx.coin();}catch(e){}}
 // 상자: 희귀(여우·강아지·고양이) · 신화(오리·토끼). 상자 등급이 높을수록 조금 더 잘 나와요 (일반 ×0.5 … 신화 ×4)
 const PTM=[.5,.75,1,1.5,2.5,4];
-{const ob=SYS.openBox;SYS.openBox=function(D_,S_,rnd){const r=ob.apply(this,arguments);try{if(petOn()&&r){const c=petCfg(),t=Math.max(0,Math.min(5,r.tier|0)),m=PTM[t],x=Math.random()*100;let pool=null;if(x<c.mr*m)pool=PETS.filter(p=>p.src==='box'&&p.g===5&&(!p.ufo||alienOn()));else if(x<(c.mr+c.rr)*m)pool=PETS.filter(p=>p.src==='box'&&p.g===2);
-  if(pool){const p=pool[(Math.random()*pool.length)|0];if(petOwn()[p.k]){const g=p.g===5?c.dupM:c.dupR;S.coins+=g;setTimeout(()=>toast(`🐾 상자에서 ${p.n}이(가) 또 나왔어요 → 🪙 ${g.toLocaleString()} 골드로 바꿨어요`,3000),1800);}else setTimeout(()=>petGet(p.k,'box'),1800);r.pet=p.k;}}}catch(e){console.warn(e);}return r;};}
+{const ob=SYS.openBox;SYS.openBox=function(D_,S_,rnd){const r=ob.apply(this,arguments);try{if(petOn()&&r){const c=petCfg(),t=Math.max(0,Math.min(5,r.tier|0)),m=PTM[t];let pool=null;
+  /* v170: 펫마다 따로 굴려요 — 그 상자 등급 이상이면 (확률 × 상자 배율) */for(const p of PETS){if(petHow(p.k,c)!=='box'||t<petBoxG(p.k,c)||(p.ufo&&!alienOn()))continue;if(Math.random()*100<petP(p.k,c)*m){pool=[p];break;}}
+  if(pool){const p=pool[0];if(petOwn()[p.k]){const g=p.g>=5?c.dupM:c.dupR;S.coins+=g;setTimeout(()=>toast(`🐾 상자에서 ${p.n}이(가) 또 나왔어요 → 🪙 ${g.toLocaleString()} 골드로 바꿨어요`,3000),1800);}else setTimeout(()=>petGet(p.k,'box'),1800);r.pet=p.k;}}}catch(e){console.warn(e);}return r;};}
 // 레벨 50 펭귄
-setInterval(()=>{try{if(petOn()&&started&&myLv()>=50&&!petOwn().penguin)petGet('penguin','lv');}catch(e){}},3000);
+setInterval(()=>{try{if(petOn()&&started&&myLv()>=50&&!petOwn().penguin&&petHow('penguin')==='lv')petGet('penguin','lv');}catch(e){}},3000);
 // 가방 › 🐾 펫
 function petTabHTML(){const own=petOwn(),c=petCfg(),n=Object.keys(own).length;return `<div class="pettab"><div class="pth"><b>🐾 내 펫 ${n}/${PETS.length}</b><small>고른 펫이 나를 따라다녀요 · 같은 호숫가 유저에게도 보여요</small>${S.petOn?'<button type="button" data-pet="off">데리고 다니지 않기</button>':''}</div>
- <div class="ptg">${PETS.filter(p=>(p.src!=='star'||own[p.k]||(window.NK_s5On&&NK_s5On()))&&(!p.ufo||own[p.k]||alienOn())).map(p=>{const G=SYS.GRADES[p.g],h=!!own[p.k],on=S.petOn===p.k;return `<div class="ptc ${h?'':'lock'} ${on?'on':''}" style="--c:${G[1]}"><span class="ptr">${G[0]}</span>${on?'<span class="pton">함께 다니는 중</span>':''}<img class="pti" src="${petImg(p.k)}" alt=""><b>${p.n}</b>${h?petLvBar(p.k):''}<div class="ptab">${petAbTxt(p).map(x=>`<span>${x}</span>`).join('')}</div><small>${h?'보유 중':p.src==='shop'?`상점 🪙 ${(p.k==='hedgehog'?c.ph:c.pf).toLocaleString()}`:p.src==='lv'?'레벨 50 보상':p.src==='star'?'⭐ 별 조각 교환소':p.g===5?`행운 상자 (아주 드물게)`:'행운 상자'}</small>${h?`<button type="button" data-pet="${p.k}" class="${on?'':'acc'}">${on?'✓ 선택됨':'데리고 다니기'}</button>`:p.src==='shop'?`<button type="button" data-petshop>상점 가기</button>`:''}</div>`;}).join('')}</div>
- <p class="small muted">데리고 다니는 펫 1마리만 능력이 적용돼요 · 신화 펫은 이용권이 있으면 자동 낚시를 해요 · 상자에서 펫: 희귀 ${c.rr}% · 신화 ${c.mr}%</p></div>`;}
+ <div class="ptg">${PETS.filter(p=>(p.src!=='star'||own[p.k]||(window.NK_s5On&&NK_s5On()))&&(!p.ufo||own[p.k]||alienOn())).map(p=>{const G=SYS.GRADES[p.g],h=!!own[p.k],on=S.petOn===p.k;return `<div class="ptc ${h?'':'lock'} ${on?'on':''}" style="--c:${G[1]}"><span class="ptr">${G[0]}</span>${on?'<span class="pton">함께 다니는 중</span>':''}<img class="pti" src="${petImg(p.k)}" alt=""><b>${p.n}</b>${h?petLvBar(p.k):''}<div class="ptab">${petAbTxt(p).map(x=>`<span>${x}</span>`).join('')}</div><small>${(()=>{const hw=petHow(p.k,c);return h?'보유 중':hw==='shop'?`상점 🪙 ${petPr(p.k,c).toLocaleString()}`:hw==='lv'?'레벨 50 보상':hw==='star'?'⭐ 별 조각 교환소':`${SYS.GRADES[petBoxG(p.k,c)][0]}${petBoxG(p.k,c)<5?' 이상':''} 행운 상자 · 🎲 ${petP(p.k,c)}%`;})()}</small>${h?`<button type="button" data-pet="${p.k}" class="${on?'':'acc'}">${on?'✓ 선택됨':'데리고 다니기'}</button>`:petHow(p.k,c)==='shop'?`<button type="button" data-petshop>상점 가기</button>`:''}</div>`;}).join('')}</div>
+ <p class="small muted">데리고 다니는 펫 1마리만 능력이 적용돼요 · 펫 낚시 이용권이 있으면 펫이 자동으로 낚아요 · 상자 확률은 상자 등급이 높을수록 올라가요</p></div>`;}
 {const _rb=_renderBag;_renderBag=function(){_rb.apply(this,arguments);if(!petOn()||bagMode==='box')return;const card=$('bag').querySelector('.card'),tabs=card&&card.querySelector('.tabs');if(!tabs||tabs.querySelector('[data-pettab]'))return;
  const b=document.createElement('button');b.dataset.pettab='1';b.className=bagTab==='pet'?'on':'';b.innerHTML=`<span class="tico"><img src="${petImg(S.petOn||'dog')}" alt="" style="width:22px;height:22px;object-fit:contain"><em class="${Object.keys(petOwn()).length?'':'z zero'}">${Object.keys(petOwn()).length}</em></span>펫`;tabs.appendChild(b);b.onclick=()=>{bagTab='pet';renderBag();};
  if(bagTab!=='pet')return;tabs.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));let el=tabs.nextSibling;while(el){const nx=el.nextSibling;el.remove();el=nx;}tabs.insertAdjacentHTML('afterend',petTabHTML());
@@ -4442,19 +4509,36 @@ function petTabHTML(){const own=petOwn(),c=petCfg(),n=Object.keys(own).length;re
 {const _rs=_renderShop;_renderShop=function(){if(!petOn()&&shopTab==='pet')shopTab='rod';_rs.apply(this,arguments);if(!petOn())return;const sh=$('shop'),tabs=sh&&sh.querySelector('.tabs');if(!tabs||tabs.querySelector('[data-tab="pet"]'))return;
  const tb=document.createElement('button');tb.dataset.tab='pet';tb.textContent='🐾 펫';const sell=tabs.querySelector('[data-tab="sell"]');tabs.insertBefore(tb,sell||null);tb.onclick=()=>{shopTab='pet';renderShop();};
  if(shopTab!=='pet')return;tabs.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b===tb));const grid=tabs.nextElementSibling;if(!grid)return;grid.className='grid';const c=petCfg(),own=petOwn();
- grid.innerHTML=PETS.filter(p=>p.src==='shop').map(p=>{const pr=p.vbx?p.pr:p.k==='hedgehog'?c.ph:c.pf,G=SYS.GRADES[p.g],h=!!own[p.k];return `<div class="item petitem" style="--c:${G[1]}"><span class="ptr">${G[0]}</span><img src="${petImg(p.k)}" alt="" class="sico"><h4>${p.n}</h4><div class="small">나를 따라다니는 ${G[0]} 펫</div><div class="price">🪙 ${pr.toLocaleString()}</div>${h?'<button disabled>보유 중</button>':`<button class="acc" data-buypet="${p.k}" ${S.coins<pr?'disabled':''}>구매</button>`}</div>`;}).join('')+`<p class="small muted" style="grid-column:1/-1">여우·강아지·고양이·오리·토끼는 행운 상자에서, 펭귄은 레벨 50 보상으로 받아요.</p>`;
- grid.querySelectorAll('[data-buypet]').forEach(b=>b.onclick=()=>{const k=b.dataset.buypet,pp=PETS.find(x=>x.k===k)||{},pr=pp.vbx?pp.pr:k==='hedgehog'?c.ph:c.pf;if(S.coins<pr||own[k])return;S.coins-=pr;try{sfx.coin();}catch(e){}hud();petGet(k,'shop');renderShop();});};}
+ grid.innerHTML=PETS.filter(p=>petHow(p.k,c)==='shop').map(p=>{const pr=petPr(p.k,c),G=SYS.GRADES[p.g],h=!!own[p.k];return `<div class="item petitem" style="--c:${G[1]}"><span class="ptr">${G[0]}</span><img src="${petImg(p.k)}" alt="" class="sico"><h4>${p.n}</h4><div class="small">나를 따라다니는 ${G[0]} 펫</div><div class="price">🪙 ${pr.toLocaleString()}</div>${h?'<button disabled>보유 중</button>':`<button class="acc" data-buypet="${p.k}" ${S.coins<pr?'disabled':''}>구매</button>`}</div>`;}).join('')+`<p class="small muted" style="grid-column:1/-1">다른 펫은 행운 상자나 보상으로 받아요 · 가방 › 🐾 펫에서 얻는 방법을 볼 수 있어요</p>`;
+ grid.querySelectorAll('[data-buypet]').forEach(b=>b.onclick=()=>{const k=b.dataset.buypet,pr=petPr(k,c);if(petHow(k,c)!=='shop')return;if(S.coins<pr||own[k])return;S.coins-=pr;try{sfx.coin();}catch(e){}hud();petGet(k,'shop');renderShop();});};}
 // 관리자 › 🧪 테스트 기능: 🐾 펫 설정 (가격·확률 → ✅ 인게임 적용)
-function petAdmHTML(){const c=petCfg(),e=S.petEd||(S.petEd=Object.assign({},c));const f=(k,n,step,suf)=>`<label>${n} <input type="number" data-pe="${k}" value="${e[k]}" step="${step}" min="0" style="width:96px"> ${suf}</label>`;
- return `<div class="labrow petadm" style="display:block"><b>🐾 펫 설정</b> <span class="tg o">모든 유저</span><br><small class="muted">지금 적용 중: 고슴도치 🪙${c.ph.toLocaleString()} · 청개구리 🪙${c.pf.toLocaleString()} · 상자 희귀 ${c.rr}% · 신화 ${c.mr}% · 이미 가진 펫이 또 나오면 골드 ${c.dupR.toLocaleString()} / ${c.dupM.toLocaleString()}</small>
- <div class="xbg">${f('ph','고슴도치 가격',500,'골드')}${f('pf','청개구리 가격',500,'골드')}${f('rr','희귀 펫 확률',.1,'% / 상자')}${f('mr','신화 펫 확률',.01,'% / 상자')}${f('dupR','희귀 중복 → 골드',100,'')}${f('dupM','신화 중복 → 골드',500,'')}</div>
- <p class="small muted">상자 등급 배율: 일반 ×0.5 · 고급 ×0.75 · 희귀 ×1 · 영웅 ×1.5 · 전설 ×2.5 · 신화 ×4 (상자를 하루 50개 열면 희귀 펫 약 0.75마리, 신화 펫 약 0.025마리 = 40일에 1마리꼴)</p>
- <p><button class="sm" data-pegive>나에게 펫 모두 주기 (테스트)</button> <button class="sm" data-peclr>내 펫 모두 지우기</button> <button class="sm ok" data-pego>✅ 인게임 적용</button></p></div>`;}
-{const _l=labHTML,_b=bindLab;labHTML=function(){return _l.apply(this,arguments).replace(/<\/div>\s*$/,petAdmHTML()+'</div>');};
- bindLab=function(root,re){try{_b.apply(this,arguments);}catch(e){console.warn(e);}const box=root.querySelector('.petadm');if(!box)return;box.querySelectorAll('[data-pe]').forEach(i=>i.oninput=()=>{S.petEd[i.dataset.pe]=Math.max(0,+i.value||0);});
-  box.querySelector('[data-pegive]').onclick=()=>{PETS.forEach(p=>{petOwn()[p.k]=petOwn()[p.k]||{at:Date.now(),how:'test'};});save();toast('🐾 펫 8마리를 모두 넣었어요',1600);re&&re();};
+function petAdmHTML(){const c=petCfg(),e=S.petEd&&S.petEd.how?S.petEd:(S.petEd=Object.assign({},JSON.parse(JSON.stringify(c)),{how:Object.assign({},c.how||{}),g:Object.assign({},c.g||{}),p:Object.assign({},c.p||{}),pr:Object.assign({},c.pr||{})}));const G=SYS.GRADES;
+ const tot={1:0,2:0,3:0,4:0,5:0},HOWN={shop:'상점',box:'상자',lv:'Lv50',star:'별 조각'};
+ const rows=PETS.map(p=>{const k=p.k,how=petHow(k,e),g=petBoxG(k,e),box=how==='box',shop=how==='shop',pp=petP(k,e);if(box&&!(p.ufo&&!alienOn()))for(let t=g;t<=5;t++)tot[t]+=pp*PTM[t];
+  const opts=['shop','box'].concat(p.src==='lv'||p.src==='star'?[p.src]:[]);
+  return `<tr class="${box?'isbox':'isshop'}"><td><span class="vtn"><img src="${petImg(k)}" alt="">${p.n}</span> <small class="muted">${G[p.g][0]}${p.vbx?' · 블럭':''}${p.ufo?' · UFO':''}</small></td>
+  <td><span class="vpill">${opts.map(h=>`<button type="button" class="${how===h?'on':''}" data-phow="${k}.${h}">${HOWN[h]}</button>`).join('')}</span></td>
+  <td>${box?`<select data-pg="${k}">${[1,2,3,4,5].map(t=>`<option value="${t}" ${t===g?'selected':''}>${G[t][0]}${t<5?' 이상':''}</option>`).join('')}</select>`:'<span class="voff">안 나와요</span>'}</td>
+  <td>${box?`<input type="number" data-pe="p.${k}" value="${pp}" step=".01" min="0" max="100"> %`:'<span class="voff">—</span>'}</td>
+  <td>${shop?`<input type="number" data-pe="pr.${k}" value="${petPr(k,e)}" step="1000" min="0" class="vpr">`:'<span class="voff">'+(how==='lv'?'레벨 50 보상':how==='star'?'별 조각 교환소':'팔지 않아요')+'</span>'}</td></tr>`;}).join('');
+ return `<div class="labrow vehadm petadm" style="display:block"><b>🐾 펫 설정</b> <span class="tg o">모든 유저</span> <small class="muted">한 줄에 펫 하나 · 새로 만든 펫도 자동으로 줄이 생겨요 · 「얻는 방법」에 안 쓰는 칸은 잠겨요</small>
+ <div class="vetw"><table class="vet vet2"><thead><tr><th>펫</th><th>얻는 방법</th><th>나오는 상자</th><th>확률 <small>상자 1개당</small></th><th>가격</th></tr></thead><tbody>${rows}</tbody></table></div>
+ <div class="vesum">${[1,2,3,4,5].map(t=>`<span><img src="img/box/t${t}.png" alt=""><i><b>${G[t][0]} 상자</b><small>펫 ${Math.round(tot[t]*100)/100}%</small></i></span>`).join('')}</div>
+ <div class="vecc"><b>🔁 이미 가진 펫이 또 나오면</b> <label>신화 미만 → 골드 <input type="number" data-pe="dupR" value="${e.dupR}" step="100" min="0"></label> <label>신화 → 골드 <input type="number" data-pe="dupM" value="${e.dupM}" step="500" min="0"></label></div>
+ <p class="small muted">상자 등급 배율: 일반 ×0.5 · 고급 ×0.75 · 희귀 ×1 · 영웅 ×1.5 · 전설 ×2.5 · 신화 ×4 (위 합계에 이미 들어 있어요)</p>
+ <p><button class="sm" data-pegive>나에게 펫 모두 주기 (테스트)</button> <button class="sm" data-peclr>내 펫 모두 지우기</button> <button class="sm" data-perst>기본값으로</button> <button class="sm ok" data-pego>✅ 인게임 적용</button></p></div>`;}
+{const _l=labHTML,_b=bindLab;labHTML=function(){return _l.apply(this,arguments).replace(/<\/div>\s*$/,(()=>{try{return petAdmHTML();}catch(e){console.warn('petAdm',e);return '';}})()+'</div>');};
+ bindLab=function(root,re){try{_b.apply(this,arguments);}catch(e){console.warn(e);}const box=root.querySelector('.petadm');if(!box)return;const E=()=>S.petEd;
+  box.querySelectorAll('[data-pe]').forEach(i=>i.oninput=()=>{const [g,k]=i.dataset.pe.split('.');const v=Math.max(0,+i.value||0);if(k){E()[g]=E()[g]||{};E()[g][k]=v;}else E()[g]=v;});
+  box.querySelectorAll('[data-pe^="p."]').forEach(i=>i.onchange=()=>re&&re());
+  box.querySelectorAll('[data-phow]').forEach(b=>b.onclick=()=>{const [k,h]=b.dataset.phow.split('.');E().how[k]=h;if(h==='box'&&E().p[k]==null)E().p[k]=petP(k,E())||.1;if(h==='shop'&&E().pr[k]==null)E().pr[k]=petPr(k,E());re&&re();});
+  box.querySelectorAll('[data-pg]').forEach(x=>x.onchange=()=>{E().g[x.dataset.pg]=+x.value;re&&re();});
+  box.querySelector('[data-pegive]').onclick=()=>{PETS.forEach(p=>{petOwn()[p.k]=petOwn()[p.k]||{at:Date.now(),how:'test'};});save();toast(`🐾 펫 ${PETS.length}마리를 모두 넣었어요`,1600);re&&re();};
   box.querySelector('[data-peclr]').onclick=()=>{S.petz={};S.petOn=null;save();toast('🐾 내 펫을 모두 지웠어요',1600);re&&re();};
-  box.querySelector('[data-pego]').onclick=()=>{const e=S.petEd;if(!confirm(`펫 설정을 모든 유저에게 적용할까요?\n고슴도치 ${e.ph} · 청개구리 ${e.pf} · 희귀 ${e.rr}% · 신화 ${e.mr}%`))return;if(pub({petCfg:{ph:e.ph,pf:e.pf,rr:e.rr,mr:e.mr,dupR:e.dupR,dupM:e.dupM}},'펫 설정을')){S.petEd=null;setTimeout(()=>re&&re(),600);}};};}
+  box.querySelector('[data-perst]').onclick=()=>{S.petEd=Object.assign({},PET_DEF,{how:{},g:{},p:{},pr:{}});re&&re();};
+  box.querySelector('[data-pego]').onclick=()=>{const e=S.petEd;if(!confirm('펫 얻는 방법·상자 등급·확률·가격·중복 골드를 모든 유저에게 적용할까요?'))return;
+   const P={},PR={};PETS.forEach(p=>{const k=p.k;if(petHow(k,e)==='box')P[k]=petP(k,e);if(petHow(k,e)==='shop')PR[k]=petPr(k,e);});
+   if(pub({petCfg:{ph:petPr('hedgehog',e),pf:petPr('frog',e),rr:e.rr,mr:e.mr,dupR:e.dupR,dupM:e.dupM,how:Object.fromEntries(PETS.map(p=>[p.k,petHow(p.k,e)])),g:Object.fromEntries(PETS.map(p=>[p.k,petBoxG(p.k,e)])),p:P,pr:PR}},'펫 설정을')){S.petEd=null;setTimeout(()=>re&&re(),600);}};};}
 // 3D: 나와 다른 유저의 펫이 따라다녀요
 const PETW={me:null,mk:'',peers:new Map()};
 // v114: 펫 최적화 — 상자 20여 개로 된 펫을 색칠한 한 덩어리로 합쳐서 펫 1마리 = 그리기 1번 (모양·색은 그대로)
@@ -4465,9 +4549,10 @@ function petMerge(k){if(PETGEO[k])return PETGEO[k];const g=PETB(k);g.updateMatri
  const G=new THREE.BufferGeometry();G.setAttribute('position',new THREE.Float32BufferAttribute(P,3));if(N.length===P.length)G.setAttribute('normal',new THREE.Float32BufferAttribute(N,3));else G.computeVertexNormals();G.setAttribute('color',new THREE.Float32BufferAttribute(C,3));G.computeBoundingSphere();
  g.traverse(o=>{if(o.isMesh)o.geometry.dispose();});return PETGEO[k]=G;}
 function petMesh(k){try{const g=new THREE.Group(),m=new THREE.Mesh(petMerge(k),PETMAT);m.castShadow=false;g.add(m);g.userData.petK=k;return g;}catch(e){const g=PETB(k);g.traverse(o=>{if(o.isMesh)o.castShadow=false;});g.userData.petK=k;return g;}}
+/* v170: 펫 발 높이 — 운하에서는 운하 바닥 높이를 써요 (호숫가 지형 높이를 쓰면 운하에서 공중에 떠 있었어요) */function petGY(x,z,fy){const C=window.__nkCNL&&__nkCNL.st;if(C&&C.ground&&x>350){const g=C.ground(x-700,z);return g<0&&fy!=null?fy:g;}return inDeck(x,z)?.39:Math.max(H(x,z),.1);}
 function petFollow(g,c,dt,sit){const o=c.o.position,d=+c.dir||0,tx=o.x-Math.sin(d)*.95+Math.cos(d)*.75,tz=o.z-Math.cos(d)*.95-Math.sin(d)*.75;const p=g.position,dx=tx-p.x,dz=tz-p.z,dist=Math.hypot(dx,dz);
  if(dist>9){p.x=tx;p.z=tz;}else{const k=Math.min(1,dt*(dist>1.5?6:3));p.x+=dx*k;p.z+=dz*k;}const mv=dist>.12;if(mv)g.rotation.y+=((Math.atan2(dx,dz)-g.rotation.y+Math.PI*3)%(Math.PI*2)-Math.PI)*Math.min(1,dt*8);else g.rotation.y+=((d-g.rotation.y+Math.PI*3)%(Math.PI*2)-Math.PI)*Math.min(1,dt*3);
- g.userData.t=(g.userData.t||0)+dt*(mv?11:2.4);const gy=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);p.y=gy+(mv?Math.abs(Math.sin(g.userData.t))*.12:Math.sin(g.userData.t)*.015);}
+ g.userData.t=(g.userData.t||0)+dt*(mv?11:2.4);const gy=petGY(p.x,p.z);p.y=gy+(mv?Math.abs(Math.sin(g.userData.t))*.12:Math.sin(g.userData.t)*.015);}
 FHOOK.push(dt=>{if(typeof scene==='undefined')return;const on=petOn()&&started&&me&&S.petOn&&petOwn()[S.petOn]&&!TR.riding;const want=on?S.petOn:'';
  if(want!==PETW.mk){if(PETW.me){scene.remove(PETW.me);PETW.me=null;}PETW.mk=want;if(want){PETW.me=petMesh(want);PETW.me.position.copy(me.o.position);scene.add(PETW.me);}}
  if(PETW.me)petFollow(PETW.me,me,dt);
@@ -4492,7 +4577,7 @@ function petXpAdd(k,n){const o=(S.petz||{})[k];if(!o)return;const l0=petLv(k);o.
 function petLvBar(k){const l=petLv(k),xp=petXpOf(k),a=l>1?petNeed(l-1):0,b=petNeed(l),pc=l>=PET_LVMAX?100:Math.max(0,Math.min(100,(xp-a)/(b-a)*100));return `<div class="petlv"><b>Lv.${l}</b><span class="bar"><i style="width:${pc.toFixed(0)}%"></i></span><small>${l>=PET_LVMAX?'최고 레벨':`${Math.max(0,b-xp)} 남음`}</small></div>`;}
 // v92 펫 눌러서 정보 보기
 function petInfo(k,owner,mine){const p=PETS.find(x=>x.k===k);if(!p)return;let m=$('petInfo');if(!m){m=document.createElement('div');m.id='petInfo';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});}const G=SYS.GRADES[p.g];
- const src={shop:'상점',box:'행운 상자',lv:'레벨 50 보상'}[p.src]||'';const ab=[`⏱️ 입질 대기 <b>-${petAb(p,'wait')}%</b>`,`🪙 낚시 성공 시 골드 주머니 <b>${petAb(p,'gold')}%</b> (${petGold(p)}골드)`];if(petAb(p,'box'))ab.push(`🎁 상자 획득 확률 <b>+${petAb(p,'box')}%</b>`);if(p.g>=PAFG)ab.push(mine&&pafOK()?'🎣 <b>자동 낚시 가능</b>':'🎣 자동 낚시 이용 가능 <small>(이용권 필요)</small>');
+ const src={shop:'상점',box:'행운 상자',lv:'레벨 50 보상'}[p.src]||'';const ab=[`⏱️ 입질 대기 <b>-${petAb(p,'wait')}%</b>`,`🪙 낚시 성공 시 골드 주머니 <b>${petAb(p,'gold')}%</b> (${petGold(p)}골드)`];if(petAb(p,'box'))ab.push(`🎁 상자 획득 확률 <b>+${petAb(p,'box')}%</b>`);ab.push(mine&&pafOK()?`🎣 <b>자동 낚시 가능</b> <small>${afFmt(pafLeftMs())} 남음</small>`:'🎣 자동 낚시 <small>(펫 낚시 이용권 필요)</small>');
  m.innerHTML=`<div class="card petpop pinfo" style="--c:${G[1]}"><button class="close" data-pix>×</button><div class="ppg">${G[0]} 펫</div><img class="ppi" src="${petImg(p.k)}" alt=""><h3>${p.n}</h3>${mine?petLvBar(p.k):''}<p class="small muted">${mine?'내 펫이에요':`<b>${escRT(owner||'')}</b>님의 펫이에요`}${src?' · 얻는 곳: '+src:''}</p><ul class="piab">${ab.map(x=>`<li>${x}</li>`).join('')}</ul>${mine?'<div class="two"><button type="button" data-pi="bag" class="acc">가방에서 보기</button><button type="button" data-pi="off">쉬게 하기</button></div>':''}</div>`;
  m.querySelector('[data-pix]').onclick=()=>m.classList.remove('show');const bg=m.querySelector('[data-pi="bag"]');if(bg)bg.onclick=()=>{m.classList.remove('show');try{openBag();bagTab='pet';renderBag();}catch(e){}};const of=m.querySelector('[data-pi="off"]');if(of)of.onclick=()=>{S.petOn=null;save();m.classList.remove('show');miniToast('🐾 펫이 쉬러 갔어요',1400);};m.classList.add('show');}
 // v92 펫 빛 효과 (시안 · 테스트) — 반짝이 입자 없이 발밑 빛 고리 + 광채만. 내 화면에서만 그려요
@@ -4659,7 +4744,7 @@ function vehAdmHTML(){const c=vehCfg(),e=S.vehEd2&&S.vehEd2.how?S.vehEd2:(S.vehE
  <div class="vecc"><b>🚗 자동차 색 비율</b> ${CARS.map(([k,n])=>`<label><i class="ccb cc-${k}"></i>${n} <input type="number" data-ve="cc.${k}" value="${e.cc[k]}" step="1" min="0"></label>`).join('')}</div>
  <p><button class="sm" data-vegive>나에게 탈것 모두 주기 (테스트)</button> <button class="sm" data-veclr>내 탈것 모두 지우기</button> <button class="sm" data-verst>기본값으로</button> <button class="sm ok" data-vego>✅ 인게임 적용</button></p></div>`;}
 {const _l=labHTML,_b=bindLab;labHTML=function(){return _l.apply(this,arguments).replace(/<\/div>\s*$/,(()=>{try{return vehAdmHTML();}catch(e){console.warn('vehAdm',e);return '';}})()+'</div>');};
- bindLab=function(root,re){try{_b.apply(this,arguments);}catch(e){console.warn(e);}const box=root.querySelector('.vehadm');if(!box)return;const E2=()=>S.vehEd2;
+ bindLab=function(root,re){try{_b.apply(this,arguments);}catch(e){console.warn(e);}const box=root.querySelector('.vehadm:not(.petadm)');if(!box)return;const E2=()=>S.vehEd2;
   box.querySelectorAll('[data-ve]').forEach(i=>i.oninput=()=>{const [g,k]=i.dataset.ve.split('.');E2()[g]=E2()[g]||{};E2()[g][k]=Math.max(0,+i.value||0);const b=box.querySelector(`[data-vsb="${k}"]`);if(b&&g==='s')b.textContent='+'+i.value+'%';});
   box.querySelectorAll('[data-ve^="p."]').forEach(i=>i.onchange=()=>re&&re());
   box.querySelectorAll('[data-vhow]').forEach(b=>b.onclick=()=>{const [k,h]=b.dataset.vhow.split('.');E2().how[k]=h;if(h==='box'&&E2().p[k]==null)E2().p[k]=.2;re&&re();});
@@ -5974,6 +6059,7 @@ window.NK89.fly={FLY,flyOwn,flyThumb,flyNow};
 
 // v93 장착 장비 창 A·B (시안 → 테스트) · 낚싯대 타일 작게
 LAB.push({k:'eqWin',n:'🎒 장착 장비 창 (시안 A·B)',d:'가방 낚싯대·장비 화면 왼쪽 위 장착 장비 창을 새 디자인으로 바꿔요. A: 네이비·샴페인 골드 — 캐릭터 가운데·양옆 장비·아래 낚싯대 카드 / B: 아이보리·월넛 — 낚싯대 큰 칸 + 장비 2×2. 오른쪽 낚싯대 타일도 조금 작아져요. 칸을 누르면 그 장비 목록으로 가요',scope:'me',o:[['off','끄기 (기본)'],['A','A · 네이비 + 샴페인 골드'],['B','B · 아이보리 + 월넛']]});
+LAB.push({k:'stV2',n:'✨ 새 시작 화면',d:'처음 온 사람은 간편 로그인·게스트로 바로 시작, 이 기기에 진행이 있으면 「이어서 하기」 한 번 → ① 호숫가(서버, 지금 인원/최대 인원) ② 캐릭터(레벨별로 열림) 두 단계로 들어가요. 저장 코드·QR·닉네임+비밀번호는 「저장 코드 · QR로 이어하기」에서 예전 화면으로 써요',scope:'all',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'reelSnd',n:'🎣 입질 릴 소리',d:'물고기가 걸리면 릴이 풀리는 「찌르르륵」 소리가 나요. 자동 낚시 중에는 나지 않고 직접 낚을 때만 나요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기']]});
 LAB.push({k:'seaLay',n:'🛤 운하 길 시안',d:'운하 길 모양을 바꿔 봐요 (운하에 다시 들어가면 바뀌어요). A 길 넓힘: 집을 뒤로 물려 길이 1.5배 · B 소품 줄임: 길 위 나무를 빼고 가로등은 물가 쪽으로 성기게, 노점은 집 쪽으로 · C 둘 다',scope:'all',o:[['cur','지금 그대로 (기본)'],['A','A 길 넓힘'],['B','B 소품 줄임'],['C','C 둘 다']]});
 LAB.push({k:'wishLan',n:'🏮 소원 연등',d:'운하에 「🏮 소원 연등」 버튼이 생겨요. 닉네임과 소원(20자)을 적어 하늘에 띄우면, 다른 사람이 연등을 눌러서 볼 수 있어요. 한 사람당 하나(새로 띄우면 예전 것은 사라져요) · 🪙 10,000골드 · 2일 동안 떠 있어요 · 관리자·본인은 연등을 눌러 지울 수 있어요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기']]});
@@ -6026,7 +6112,7 @@ function vrLockBtn(){const on=S.vrLock!==false,n=S.tank.filter(f=>f.vr).length;r
 // v94 ── 펫 낚시 + 펫 장비창 (낚싯대 칸만 열림, 나머지는 업데이트 예정)
 LAB.push({k:'petFish',n:'🎣 펫 낚시 · 펫 장비',d:'내가 낚시하면 데리고 다니는 펫도 옆에 앉아 앞발로 미니 낚싯대를 들고 같이 낚아요 (약 1분에 1마리 · 경험치는 절반). 가방 › 🐾 펫에 「펫 장비」 칸이 생기고 낚싯대를 끼울 수 있어요 (안 끼우면 주인 낚싯대와 같은 모양). 모자·옷·장신구 칸은 업데이트 예정',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 const petFishOn=()=>petOn()&&opt('petFish','off')==='on';
-/* v150: 펫 자동낚시는 신화 등급 펫 + 펫 자동낚시 이용권이 있을 때만 */const petAFok=()=>{try{const p=PETS.find(x=>x.k===(PETW.mk||S.petOn));return !!p&&p.g>=PAFG&&pafOK();}catch(e){return false;}};
+/* v150: 펫 자동낚시는 신화 등급 펫 + 펫 자동낚시 이용권이 있을 때만 *//* v170: 펫 낚시 이용권을 쓰는 중이면 등급과 상관없이 펫이 낚아요 */const petAFok=()=>{try{const p=PETS.find(x=>x.k===(PETW.mk||S.petOn));return !!p&&pafOK();}catch(e){return false;}};
 const petEq=k=>{S.petEq=S.petEq&&typeof S.petEq==='object'?S.petEq:{};return S.petEq[k]||(S.petEq[k]={});};
 const petRodG=k=>{const id=petEq(k).rod;return id!=null?(S.gear||[]).find(g=>g.id===id)||null:null;};
 const petRodK=k=>{const g=petRodG(k)||SYS.gearOf(S);return g?g.k:'bamboo';};
@@ -6037,7 +6123,7 @@ function petEqHTML(){const k=S.petOn;if(!k||!petFishOn())return '';const p=PETS.
   <div class="pes rod ${g?'on':''}" data-pes="rod" title="${g?`${R.n} ★${g.star||0}${g.enh?' +'+g.enh:''} · 펫이 이 낚싯대로 낚아요`:'비어 있으면 주인 낚싯대와 같은 모양으로 낚아요'}"><span class="sn">낚싯대</span>${g?RIMG(g.k,'pri'):`<span class="ic">🎣</span>`}<b>${g?R.n.replace(' 낚싯대',''):'주인과 같게'}</b><small>${g?'★'.repeat(g.star||0)+(g.enh?' +'+g.enh:''):'눌러서 끼우기'}</small></div>
   ${soon('🎩','모자')}${soon('👕','옷')}${soon('🎀','장신구')}</div>
   <div class="pepick" hidden><small>펫에게 줄 낚싯대를 골라요 (내 낚싯대와 겹쳐도 돼요)</small><div class="pepg"><button type="button" data-perod="">주인과 같게</button>${(S.gear||[]).slice().sort((a,b)=>D.RODS.findIndex(r=>r.k===b.k)-D.RODS.findIndex(r=>r.k===a.k)||b.star-a.star).slice(0,30).map(x=>{const r=D.RODS.find(y=>y.k===x.k)||{n:x.k};return `<button type="button" data-perod="${x.id}" class="${g&&g.id===x.id?'on':''}">${RIMG(x.k,'pri')}<span>${r.n.replace(' 낚싯대','')}${x.star?' ★'+x.star:''}${x.enh?' +'+x.enh:''}</span></button>`;}).join('')}</div></div>
-  <p class="small muted">${p.g>=PAFG?(pafOK()?`🎣 자동 낚시 가능 · ${afFmt(pafLeftMs())} 남음 · `:'🎣 펫 자동 낚시 이용권이 있어야 낚아요 · '):'🎣 신화 등급 펫만 자동 낚시를 해요 · '}내가 낚시하는 동안 약 1분마다 한 마리씩 낚아요</p></div>`;}
+  <p class="small muted">${pafOK()?`🎣 <b>자동 낚시 가능</b> · ${afFmt(pafLeftMs())} 남음 · `:'🎣 펫 낚시 이용권이 있으면 자동으로 낚아요 · '}내가 낚시하는 동안 약 1분마다 한 마리씩 낚아요</p></div>`;}
 {const _rb=_renderBag;_renderBag=function(){_rb.apply(this,arguments);if(bagTab!=='pet'||!petFishOn())return;const card=$('bag')&&$('bag').querySelector('.card'),tab=card&&card.querySelector('.pettab');if(!tab||tab.querySelector('.peq'))return;tab.insertAdjacentHTML('afterbegin',petEqHTML());
  const pk=tab.querySelector('.pepick');const sl=tab.querySelector('[data-pes="rod"]');if(sl)sl.onclick=()=>{pk.hidden=!pk.hidden;};
  tab.querySelectorAll('[data-perod]').forEach(b=>b.onclick=()=>{const v=b.dataset.perod;petEq(S.petOn).rod=v===''?null:+v;save();PF.rk='';renderBag();miniToast(v===''?'🎣 펫이 주인과 같은 낚싯대를 들어요':'🎣 펫에게 낚싯대를 줬어요',1400);});};}
@@ -6064,7 +6150,7 @@ function pfCatch(){const k=PETW.mk,p=PETS.find(x=>x.k===k);let f;try{const g=pet
 // 낚시할 때 펫 자리: 내 옆 데크 끝, 같은 방향
 FHOOK.push(dt=>{if(me&&fishing.state&&fishing.state!=='off'){PF.own=performance.now();PF.ax=me.o.position.x;PF.az=me.o.position.z;}const near=me&&PF.ax!=null&&Math.hypot(me.o.position.x-PF.ax,me.o.position.z-PF.az)<2.5;const want=petFishOn()&&petAFok()&&PETW.me&&me&&!TR.riding&&((fishing.state&&fishing.state!=='off')||(near&&(mySeat||performance.now()-(PF.own||-1e9)<45000)));if(!want){if(PF.rod)pfDrop();if(PF.pop){PF.popT+=dt;if(PF.popT>1.6){scene.remove(PF.pop);PF.pop=null;}}return;}
  if(!pfEnsure())return;const g=PETW.me,d=me.dir,fx=Math.sin(d),fz=Math.cos(d),rx=Math.cos(d),rz=-Math.sin(d),mp=me.o.position;
- const tx=mp.x+rx*.8+fx*.5,tz=mp.z+rz*.8+fz*.5;g.position.x+=(tx-g.position.x)*Math.min(1,dt*4);g.position.z+=(tz-g.position.z)*Math.min(1,dt*4);g.position.y=inDeck(g.position.x,g.position.z)?.39:Math.max(H(g.position.x,g.position.z),.1);g.rotation.y+=((d-g.rotation.y+Math.PI*3)%(Math.PI*2)-Math.PI)*Math.min(1,dt*5);
+ const tx=mp.x+rx*.8+fx*.5,tz=mp.z+rz*.8+fz*.5;g.position.x+=(tx-g.position.x)*Math.min(1,dt*4);g.position.z+=(tz-g.position.z)*Math.min(1,dt*4);g.position.y=petGY(g.position.x,g.position.z,mySeat?null:mp.y);g.rotation.y+=((d-g.rotation.y+Math.PI*3)%(Math.PI*2)-Math.PI)*Math.min(1,dt*5);
  PF.t+=dt;PF.lift=Math.max(0,PF.lift-dt*1.2);PF.rod.rotation.x=-PF.lift*.7+Math.sin(PF.t*1.3)*.03;
  const bx=g.position.x+fx*2.1+rx*.15,bz=g.position.z+fz*2.1+rz*.15,by=.06+Math.sin(PF.t*2.1)*.025-(performance.now()>PF.next-1500?Math.abs(Math.sin(PF.t*9))*.06:0);PF.bob.position.set(bx,by,bz);PF.bob.visible=PF.lift<.3;
  const tip=pfTip(),a=PF.line.geometry.attributes.position;a.setXYZ(0,tip.x,tip.y,tip.z);if(PF.bob.visible)a.setXYZ(1,bx,by+.05,bz);else a.setXYZ(1,tip.x,tip.y-.4,tip.z);a.needsUpdate=true;
@@ -6084,7 +6170,7 @@ RHOOK.push((r,p,dt)=>{const v=p.ex&&p.ex.pf,e=PETW.peers.get(p.id);if(!v||!e||!p
   const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(),new THREE.Vector3()]),new THREE.LineBasicMaterial({color:'#ffffff',transparent:true,opacity:.75}));scene.add(line);
   x={rk:rk+'|'+e.k,g,rod:holder,rodM:rod,bob,line,t:Math.random()*9,lift:0,cn,pop:null,popT:0};PFR.set(p.id,x);}
  const g=x.g,c=r.c,d=+c.dir||0,fx=Math.sin(d),fz=Math.cos(d),rx=Math.cos(d),rz=-Math.sin(d),mp=c.o.position;
- const tx=mp.x+rx*.8+fx*.5,tz=mp.z+rz*.8+fz*.5;g.position.x+=(tx-g.position.x)*Math.min(1,dt*4);g.position.z+=(tz-g.position.z)*Math.min(1,dt*4);g.position.y=inDeck(g.position.x,g.position.z)?.39:Math.max(H(g.position.x,g.position.z),.1);g.rotation.y+=((d-g.rotation.y+Math.PI*3)%(Math.PI*2)-Math.PI)*Math.min(1,dt*5);
+ const tx=mp.x+rx*.8+fx*.5,tz=mp.z+rz*.8+fz*.5;g.position.x+=(tx-g.position.x)*Math.min(1,dt*4);g.position.z+=(tz-g.position.z)*Math.min(1,dt*4);g.position.y=petGY(g.position.x,g.position.z,mp.y);g.rotation.y+=((d-g.rotation.y+Math.PI*3)%(Math.PI*2)-Math.PI)*Math.min(1,dt*5);
  if(cn!==x.cn){x.cn=cn;x.lift=1;const im=fishImg(fk);if(im&&im.complete){if(x.pop)scene.remove(x.pop);const t=new THREE.Texture(im);t.needsUpdate=true;t.encoding=THREE.sRGBEncoding;const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false}));const ar=im.naturalHeight/im.naturalWidth;sp.scale.set(.75,.75*ar,1);sp.renderOrder=12;scene.add(sp);x.pop=sp;x.popT=0;}}
  x.t+=dt;x.lift=Math.max(0,x.lift-dt*1.2);x.rod.rotation.x=-x.lift*.7+Math.sin(x.t*1.3)*.03;
  const bx=g.position.x+fx*2.1+rx*.15,bz=g.position.z+fz*2.1+rz*.15,by=.06+Math.sin(x.t*2.1)*.025;x.bob.position.set(bx,by,bz);x.bob.visible=x.lift<.3;
