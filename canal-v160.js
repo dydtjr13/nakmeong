@@ -108,7 +108,7 @@ void main(){vec2 p=vW.xz-org;float tt=mod(t,600.);vec3 A=vnd(p*.55+vec2(tt*.12,t
 water.rotation.x=-Math.PI/2;water.position.set(0,0,-500);water.renderOrder=1;water.userData.noMirror=1;water.receiveShadow=false;root.add(water);
 // ── 물가 · 벽 · 땅 ──
 const quayM=new MSM({color:cur.quay.clone(),roughness:.9,flatShading:true});
-[-1,1].forEach(s=>{const q=add(root,new T.BoxGeometry(60,1,174),quayM,s*(CW+30),QY-.5,-43);
+/* v168: 길 바닥 상자의 물 쪽 면이 물가 벽(CW~CW+.6)과 같은 자리라 화면이 움직이면 두 색이 번갈아 깜빡였어요 → 벽 뒤로 .6 물려요 */[-1,1].forEach(s=>{const q=add(root,new T.BoxGeometry(60,1,174),quayM,s*(CW+.6+30),QY-.5,-43);
  bx(root,.6,2.4,174,'#8a7c6a',s*(CW+.3),QY-1.2,-43);
  // 물가 덮개돌
  const cs=[];for(let z=42;z>-130;z-=1.2)cs.push([s*(CW+.35),QY+.06,z,0,[.95,.14,1.12],rnd()<.5?'#d8ccb8':'#cbbfa8']);inst(new T.BoxGeometry(1,1,1),M('#ffffff'),cs);});

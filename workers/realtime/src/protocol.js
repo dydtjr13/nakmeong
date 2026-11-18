@@ -1072,7 +1072,7 @@ export function sanitizePlay(input, prev, opt) {
     out.snowCfg = o;
   }
   // v133: 테스트 기능 중 서버 목록에 빠져 있던 것 — 「인게임 적용」이 버려지고 내 화면(나만 보기)으로 돌아가던 문제
-  for (const k of ["jet", "ufo", "boats2", "alienPet", "seaTown", "hyper", "turtle", "tfx", "taxi", "boat", "star5", "skyIsland", "jump", "camFx", "fitUi", "vbUser", "tankGrp", "wearFuse", "hunger", "szTk", "wishLan"]) if (k in input) out[k] = pickOf(input[k], ["off", "on"]);
+  for (const k of ["jet", "ufo", "boats2", "alienPet", "seaTown", "hyper", "turtle", "tfx", "taxi", "boat", "star5", "skyIsland", "jump", "camFx", "fitUi", "vbUser", "tankGrp", "wearFuse", "hunger", "szTk", "wishLan", "reelSnd"]) if (k in input) out[k] = pickOf(input[k], ["off", "on"]);
   // v162: 👑 이 주의 낚시왕 보상 (기본 켜짐)
   if ("wkKing" in input) out.wkKing = pickOf(input.wkKing, ["on", "off"]);
   if ("socLogin" in input) out.socLogin = pickOf(input.socLogin, ["off", "on"]);
