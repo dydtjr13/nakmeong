@@ -167,7 +167,7 @@ export function cleanEx(v) {
   const out = {};
   let n = 0;
   // v150: 꾸미기·기능이 늘어 12개를 넘으면 뒤에 붙는 탈것(vh) 등이 잘려서 다른 유저에게 탈것이 사라져 보였어요 → 24개 · 중요한 것 먼저
-  const PRI = ["vh", "fa", "ps", "pt", "ts", "jp", "seat"];
+  const PRI = ["vh", "fa", "ps", "pn", "pt", "ts", "jp", "em", "seat"];
   const keys = Object.keys(v).sort((a, b) => { const x = PRI.indexOf(a), y = PRI.indexOf(b); return (x < 0 ? 99 : x) - (y < 0 ? 99 : y); });
   for (const k of keys) {
     if (n >= 24) break;
@@ -1119,6 +1119,7 @@ export function sanitizePlay(input, prev, opt) {
   if ("socLogin" in input) out.socLogin = pickOf(input.socLogin, ["off", "on"]);
   if ("stV2" in input) out.stV2 = pickOf(input.stV2, ["off", "on"]);
   if ("pipOn" in input) out.pipOn = pickOf(input.pipOn, ["off", "on"]);
+  if ("emoteOn" in input) out.emoteOn = pickOf(input.emoteOn, ["on", "off"]);
   if ("guideV2" in input) out.guideV2 = pickOf(input.guideV2, ["off", "new"]);
   if ("guideMe" in input) out.guideMe = pickOf(input.guideMe, ["off", "on"]);
   if ("fzGrade" in input) out.fzGrade = pickOf(input.fzGrade, ["on", "off"]);
@@ -1133,6 +1134,17 @@ export function sanitizePlay(input, prev, opt) {
   if ("moonTourCap" in input) out.moonTourCap = pickOf(input.moonTourCap, ["B", "A", "C", "off"]);
   if ("petRide" in input) out.petRide = pickOf(input.petRide, ["on", "off"]);
   if ("ncPick" in input) out.ncPick = pickOf(input.ncPick, ["ym", "yf", "om", "of"]);
+  // v183: 관리자·운영자끼리 같이 보는 테스트 설정(adm) · 정식 기능으로 옮긴 테스트 기능 목록(labGrad)
+  if ("adm" in input) {
+    const v = input.adm, o = {};
+    if (v && typeof v === "object" && !Array.isArray(v)) for (const [k, x] of Object.entries(v).slice(0, 300)) {
+      if (!/^[\w:.-]{1,40}$/.test(k)) continue;
+      if (typeof x === "string" && x.length <= 60) o[k] = x;
+      else if (typeof x === "number" && Number.isFinite(x)) o[k] = x;
+    }
+    out.adm = o;
+  }
+  if ("labGrad" in input) out.labGrad = Array.isArray(input.labGrad) ? [...new Set(input.labGrad.filter((k) => typeof k === "string" && /^[\w-]{1,40}$/.test(k)))].slice(0, 300) : [];
   if ("petFish" in input) out.petFish = pickOf(input.petFish, ["off", "on"]);
   if ("neonBB" in input) out.neonBB = pickOf(input.neonBB, ["off", "on"]);
   if ("lvSt" in input) out.lvSt = pickOf(input.lvSt, ["1", "3", "old"]);

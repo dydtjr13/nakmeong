@@ -34,10 +34,12 @@ window.NK_BOAT2 = (function () {
     box(T, g, B * .95, .06, .45, TK, 0, -.02, -L / 2 - .2);
     const bow = slab(T, hullShape(T, 1.6, 1.25, .9), .66, .7, TK); bow.position.z = 1.85; g.add(bow);
     // 앞 갑판 의자 (지붕 없는 곳) — 흰 몸체 + 크림 쿠션 + 티크 팔걸이
-    { const ch = new T.Group(); ch.position.set(0, .7, 1.45); g.add(ch);
+    // v183: 4인승 — 앞 갑판 의자 2개 + 뒤 갑판 벤치 2자리 (뒤를 보고 앉아요)
+    const chair = (x, z, ry) => { const ch = new T.Group(); ch.position.set(x, .7, z); ch.rotation.y = ry || 0; g.add(ch);
       box(T, ch, .66, .12, .62, W, 0, .06, 0); box(T, ch, .56, .07, .52, CR, 0, .15, .02);
       box(T, ch, .66, .5, .1, W, 0, .36, -.3, -.22, 0, 0); box(T, ch, .54, .38, .05, CR, 0, .38, -.24, -.22, 0, 0);
-      [-1, 1].forEach(q => { box(T, ch, .08, .16, .5, TK, q * .33, .2, 0); }); }
+      [-1, 1].forEach(q => { box(T, ch, .08, .16, .5, TK, q * .33, .2, 0); }); };
+    chair(-.36, 1.45); chair(.36, 1.45); chair(-.4, -2.5, Math.PI); chair(.4, -2.5, Math.PI);
     // 선실 (짙은 유리창)
     const cab = slab(T, hullShape(T, 3.0, 1.6, 1.0), .66, 1.28, W); cab.position.z = -.25; g.add(cab);
     [-1, 1].forEach(q => box(T, g, .02, .32, 2.1, GL, q * .815, .98, -.45));
@@ -53,7 +55,8 @@ window.NK_BOAT2 = (function () {
     box(T, g, .06, .4, .06, ST, 0, 2.6, -1.25); box(T, g, .45, .04, .06, ST, 0, 2.78, -1.25);
     // 난간
     [-1, 1].forEach(q => { const r = new T.Mesh(new T.CylinderGeometry(.018, .018, 2.4, 6), ST); r.rotation.x = Math.PI / 2; r.position.set(q * .82, .92, 1.25); g.add(r); for (let i = 0; i < 5; i++) box(T, g, .02, .26, .02, ST, q * .82, .79, .2 + i * .5); });
-    g.userData.seat = [0, .9, 1.47];
+    g.userData.seat = [-.36, .9, 1.47]; g.userData.seat2 = [.36, .9, 1.47];
+    g.userData.seats = [[.36, .9, 1.47], [-.4, .9, -2.5], [.4, .9, -2.5]]; g.userData.seatsR = [0, Math.PI, Math.PI];
     return g;
   }
   function cat(T, cc) {
