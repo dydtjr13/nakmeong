@@ -621,12 +621,16 @@ export function sanitizeEvent(input, now) {
 }
 
 // v174: 📅 이벤트 달력 — 예약 목록 (배율 이벤트 · 같은 날 보상). 끝난 지 14일 넘은 건 지워요, 최대 60개
+const WX_MAPS = new Set(["lake", "canal", "moon"]);
+const WX_KEYS = new Set(["clear", "drizzle", "storm", "snow", "cherry", "leaf", "firefly", "meteor", "aurora", "sunset"]);
+const WX_SNOW = new Set(["hambak", "soft", "powder", "crystal", "glitter", "glow", "sleet", "sakura"]);
+
 export function sanitizeSched(input, now) {
   const t = Number.isFinite(now) ? now : Date.now();
   if (!Array.isArray(input)) return [];
   const out = [];
   const ids = new Set();
-  for (const o of input.slice(0, 80)) {
+  for (const o of input.slice(0, 200)) {
     if (!o || typeof o !== "object" || Array.isArray(o)) continue;
     const id = String(o.id || "").replace(/[^\w.-]/g, "").slice(0, 32);
     if (!id || ids.has(id)) continue;
@@ -640,10 +644,18 @@ export function sanitizeSched(input, now) {
       const c = Math.round(nonNeg(o.gift.c, 1e8)), s = Math.round(nonNeg(o.gift.s, 1e5)), b = Math.round(nonNeg(o.gift.b, 50)), x = Math.round(nonNeg(o.gift.x, 1e7));
       if (c || s || b || x) gift = { c, s, b, bt: Math.round(nonNeg(o.gift.bt, 5)), x, mode: o.gift.mode === "live" ? "live" : "first", msg: String(o.gift.msg || "").slice(0, 60) };
     }
-    if (coin <= 1 && box <= 1 && xp <= 1 && !gift) continue;
+    // v181: 맵별 날씨 예약 줄 — { m: 맵, k: 날씨, sn: 눈 스타일 } (배율·보상 없이 날씨만)
+    let wx = null;
+    if (o.wx && typeof o.wx === "object" && WX_MAPS.has(o.wx.m) && WX_KEYS.has(o.wx.k)) {
+      wx = { m: o.wx.m, k: o.wx.k };
+      if (o.wx.k === "snow" && WX_SNOW.has(o.wx.sn)) wx.sn = o.wx.sn;
+    }
+    if (coin <= 1 && box <= 1 && xp <= 1 && !gift && !wx) continue;
     ids.add(id);
-    out.push({ id, from, to, coin, box, xp, gift, title: String(o.title || "").slice(0, 40), by: String(o.by || "").slice(0, 20) });
-    if (out.length >= 60) break;
+    const row = { id, from, to, coin: wx ? 1 : coin, box: wx ? 1 : box, xp: wx ? 1 : xp, gift: wx ? null : gift, title: String(o.title || "").slice(0, 40), by: String(o.by || "").slice(0, 20) };
+    if (wx) row.wx = wx;
+    out.push(row);
+    if (out.length >= 160) break;
   }
   out.sort((a, b) => a.from - b.from);
   return out;

@@ -653,3 +653,48 @@ html.nkWatch body>*:not(#world):not(#nkWatchTag):not(canvas){display:none!import
 #nkWatchTag{position:fixed;left:10px;bottom:10px;z-index:9999;font:800 12px system-ui,sans-serif;color:#fff;background:rgba(200,40,40,.85);border-radius:8px;padding:4px 8px;pointer-events:none;white-space:nowrap}
 #nkWatchTag.solo{background:rgba(40,48,60,.8)}
 .ckst{color:#e8a21a;font-weight:800;white-space:nowrap}
+/* v181: 휴대폰에서 어항 3칸이 닫기 버튼 밑으로 잘리던 문제 → 한 줄 3칸 */
+@media (max-width:640px){
+ #tank #tk3{left:8px;right:56px;top:8px}
+ #tank #tk3 .tk3s{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+ #tank #tk3 .tk3c{min-width:0!important;width:auto!important;max-width:none!important;flex-direction:column;align-items:center;gap:1px;padding:4px 4px 5px;text-align:center}
+ #tank #tk3 .tk3c img{width:40px;height:26px}
+ #tank #tk3 .tk3c span{min-width:0;width:100%}
+ #tank #tk3 .tk3c b{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ #tank #tk3 .tk3c em{display:none}
+ #tank #tk3 .tk3c.on b::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#3d9fc4;margin-right:3px;vertical-align:middle}
+ #tank #tk3 .tk3c small{font-size:10px;max-width:none}
+ #tank #tk3 .tk3c i{top:4px;right:4px;transform:none;width:20px;height:20px;font-size:11px}
+ #tank #tk3 .tk3mvb{grid-column:1/-1;height:30px;font-size:12px;padding:0 10px}
+ #tank #tk3 .tk3mvb br{display:none}
+ #tank #tk3 .tk3add{grid-column:1/-1}
+}
+/* v181: 🗓 맵별 날씨 시간표 */
+.adbox.wxt .wxtop{display:flex;flex-direction:column;gap:8px;align-items:flex-start;margin:6px 0 10px}
+.adbox.wxt .wxday{display:flex;align-items:center;gap:6px}
+.adbox.wxt .wxday b{white-space:nowrap;padding:0 4px}
+.adbox.wxt .wxbs{display:flex;flex-wrap:nowrap;gap:3px;align-items:center;max-width:100%;overflow-x:auto}
+.adbox.wxt .wxbs>span{font-size:12px;font-weight:800;color:#8a7f86;margin-right:2px}
+.adbox.wxt .wxb{height:30px;padding:0 6px;border-radius:9px;border:1.5px solid #eadfce;background:#fff;font:700 11.5px inherit;font-family:inherit;color:#3a3340;display:flex;align-items:center;gap:5px;white-space:nowrap;cursor:pointer}
+.adbox.wxt .wxb i{width:9px;height:9px;border-radius:3px;border:1px solid rgba(0,0,0,.12)}
+.adbox.wxt .wxb.on{background:#fff7ec!important;color:#3a3340!important;border-color:#3a3340!important;box-shadow:inset 0 0 0 1px #3a3340}
+.adbox.wxt .wxc,.adbox.wxt .wxb{min-height:0;box-sizing:border-box}
+.adbox.wxt .wxsn{font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.adbox.wxt .wxg{display:flex;flex-direction:column;gap:4px;overflow-x:auto}
+.adbox.wxt .wxl{display:grid;grid-template-columns:96px minmax(480px,1fr);gap:6px;align-items:center}
+.adbox.wxt .wxn{display:flex;flex-direction:column;min-width:0}
+.adbox.wxt .wxn b{font-size:14px;white-space:nowrap}
+.adbox.wxt .wxn small{font-size:10.5px;color:#6e6470;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adbox.wxt .wxcs{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:2px}
+.adbox.wxt .wxh .wxcs span{font-size:10px;color:#8a7f86;white-space:nowrap;overflow:visible}
+.adbox.wxt .wxc{position:relative;height:34px;border:0;border-radius:5px;background:#efe8dc!important;padding:0;cursor:pointer;overflow:visible}
+.adbox.wxt .wxc.on{background:var(--wc)!important;color:inherit!important}
+.adbox.wxt .wxc i{position:absolute;left:3px;top:50%;transform:translateY(-50%);font-style:normal;font-size:11px;font-weight:800;color:#2a2530;white-space:nowrap;z-index:1;pointer-events:none;text-shadow:0 0 3px rgba(255,255,255,.8)}
+.adbox.wxt .wxc.now{box-shadow:inset 0 -3px 0 #e0453a}
+.adbox.wxt .wxc.sel,.adbox.wxt .wxc.drag{outline:2px solid #f08a4b;outline-offset:-2px}
+.adbox.wxt .wxc.pk{outline:2px solid #3a3340;outline-offset:-2px}
+.adbox.wxt .wxl.off{opacity:.5}
+.adbox.wxt .wxl.off em{grid-column:1/-1;font-style:normal;font-size:12px;color:#6e6470;border:1.5px dashed #d8c9b4;border-radius:6px;padding:8px}
+.adbox.wxt .wxpk{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border:1.5px solid #eadfce;border-radius:12px;padding:8px 10px}
+.adbox.wxt .wxpk i{width:12px;height:12px;border-radius:4px}
+.adbox.wxt .wxpk small{color:#6e6470}
