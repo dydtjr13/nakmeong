@@ -3040,7 +3040,7 @@ let BGRUN=false,BGERR='';const nextF=()=>{if(!BGRUN)requestAnimationFrame(frame)
 {let wk=null;const bgOn=()=>!!(document.hidden&&started&&(S.autoFish||window.__nkPipOn));
  const tick=()=>{if(!BGRUN)return;if(!bgOn()){return;}const target=performance.now(),step=Math.max(50,S.fpsCap?1000/S.fpsCap:0);let n=0;if(target-last>60000)last=target-60000;
   while(last<target-step&&n<400){n++;try{frameBody(Math.min(target,last+step));}catch(e){last+=step;}}try{window.__nkPipBg&&window.__nkPipBg();}catch(e){}};
- const start=()=>{if(BGRUN)return;BGRUN=true;try{if(!wk){const src='let h=0;onmessage=e=>{clearInterval(h);if(e.data)h=setInterval(()=>postMessage(0),250);};';wk=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));wk.onmessage=tick;}wk.postMessage(1);}catch(e){BGRUN=false;BGERR=String(e&&e.message||e);}};
+ const start=()=>{if(BGRUN)return;BGRUN=true;try{if(!wk){const src='let h=0;onmessage=e=>{clearInterval(h);if(e.data)h=setInterval(()=>postMessage(0),e.data);};';wk=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));wk.onmessage=tick;}wk.postMessage(window.__nkPipOn?125:250);/* v179: 작은 창이 떠 있으면 1초에 8번 */}catch(e){BGRUN=false;BGERR=String(e&&e.message||e);}};
  const stop=()=>{if(!BGRUN)return;BGRUN=false;try{wk&&wk.postMessage(0);}catch(e){}const t0=performance.now();last=t0;setTimeout(()=>{if(FRAMEAT<t0)requestAnimationFrame(frame);},250);};
  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(started&&(S.autoFish||window.__nkPipOn))start();}else stop();});
  setInterval(()=>{if(document.hidden&&started&&(S.autoFish||window.__nkPipOn)&&!BGRUN)start();},5000);
@@ -3091,7 +3091,7 @@ function frameBody(now){if(S.fpsCap&&now-last<1000/S.fpsCap-1.5){nextF();return;
   // v27: 카메라 행렬을 이름표 투영 전에 갱신 (이전엔 렌더 때만 갱신돼서 HTML 이름표가 한 프레임 늦게 따라가며 이탈)
   if(camOverride){cam.position.set(camOverride[0],camOverride[1],camOverride[2]);cam.lookAt(camOverride[3],camOverride[4],camOverride[5]);}cam.updateMatrixWorld();
   const _bOff=bragOffNow();for(const c of chars){if(!c._fc){c._fc=1;c.o.traverse(m=>{if(m.isMesh)m.frustumCulled=false;});}if(!c.offline&&!(c.simp&&c.simp.visible)){c.mixer.update(dt);if(c.holdQ&&c.cur==='sit'&&c.rod.visible)c.arm.quaternion.copy(c.holdQ);if(c.rig)animWalk(c,dt);bragArms(c);if(c._post)try{c._post(c);}catch(_e){}}poseRod(c,dt);try{bragVis(c,_bOff?null:(c===me?brag:(c.remote?c.bragB:null)),dt);}catch(e){}const _hs=c.o.userData.ckB?c.o.scale.x/c.o.userData.ckB:1;c.tag.position.set(c.o.position.x,c.o.position.y+c.h*_hs+.62+(c.bragV?1.5:0),c.o.position.z);const dd=cam.position.distanceTo(c.tag.position),far=V14.farLOD(c,dd);const rk=S.rankTag!==false&&!c.offline?tagRank(c):0;V14.layer();const rs=rk?V14.rankDom(c,rk,dd):V14.rankDom(c,0,dd);c.tag.visible=!rs&&!c.offline&&!far;if(!rs){if(c===me)c.tag.userData.ttl=myTitle(myLv());else if(c.remote)c.tag.userData.ttl=c.tt||null;c.tag.userData.lv=c===me?myLv():c.lv||(c.lv=3+Math.floor(seedR(c.name)()*58));drawTag(c.tag,null,0);}c.rkUp=rs;const bb=c.offline||c.muted?null:bubbleOf(c);domBub(c,dd<70?bb:null,dd);}V14.tick(dt,p);
-  if(camOverride){cam.position.set(camOverride[0],camOverride[1],camOverride[2]);cam.lookAt(camOverride[3],camOverride[4],camOverride[5]);}if(!BGRUN){try{MAPV.cull(cam);}catch(e){}R.render(scene,cam);tankView.frame(dt,T);}
+  if(camOverride){cam.position.set(camOverride[0],camOverride[1],camOverride[2]);cam.lookAt(camOverride[3],camOverride[4],camOverride[5]);}if(!BGRUN){try{MAPV.cull(cam);}catch(e){}R.render(scene,cam);try{window.__nkPipPost&&window.__nkPipPost(dt);}catch(e){}tankView.frame(dt,T);}
   fpsA=fpsA*.95+(1/Math.max(dt,1e-3))*.05;perfHud(dt);window.__nk={calls:R.info.render.calls,tris:R.info.render.triangles};nextF();}
 loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyVG();setInterval(()=>{const go=()=>{try{save();}catch(e){}};if(window.requestIdleCallback)requestIdleCallback(go,{timeout:4000});else go();},15000);addEventListener('beforeunload',()=>{try{save(1);}catch(_){}});document.addEventListener('visibilitychange',()=>{if(document.hidden)try{save(1);}catch(_){}});
   bob=new THREE.Mesh(new THREE.SphereGeometry(.15,8,6),new THREE.MeshLambertMaterial({color:'#ff6a5a',emissive:'#ff3a2a',emissiveIntensity:.3}));bob.visible=false;scene.add(bob);
@@ -6047,8 +6047,10 @@ addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat)return;if(e.target&
 const touchUI=()=>('ontouchstart' in window||navigator.maxTouchPoints>0)&&innerWidth<1000;
 const joyMoving=()=>typeof joy!=='undefined'&&(Math.abs(joy.x)>.25||Math.abs(joy.y)>.25);
 let FBM='',fbmT=0;
+/* v179: 운하는 의자가 물가 낚시 자리와 붙어 있어요 → 의자 가까이(1.5m)에 서 있으면 낚시보다 「앉기」를 먼저 (예전 앉기 버튼이 따로 뜨던 문제) */
+const seatFirst=window.__nkSeatFirst=()=>{try{if(!nearSeat||mySeat||nearSeat.kind!=='stool'||!me||me.o.position.x<600)return false;const p=me.o.position;return Math.hypot(p.x-nearSeat.x,p.z-nearSeat.z)<1.5;}catch(e){return false;}};
 PHOOK.push(dt=>{const b=$('fishBtn');if(!b)return;let m='';
- /* v146: PC도 앉기·일어나기를 낚시 버튼 하나로 (점프는 폰에서 점프 기능을 켰을 때만) */if(started&&fishing.state==='off'&&!anyModal()){const J=jumpOn()&&touchUI();if(J&&((joyMoving()&&canJump())||JP.h>.02))m='jump';else if(nearSpot&&!onGroundVeh())m='';else if(nearSeat&&!mySeat&&nearSeat.kind!=='train'&&!(VW.me&&S.vehRide))m='sit';else if(mySeat&&mySeat.kind!=='train')m='stand';else if(J&&canJump())m='jump';}
+ /* v146: PC도 앉기·일어나기를 낚시 버튼 하나로 (점프는 폰에서 점프 기능을 켰을 때만) */if(started&&fishing.state==='off'&&!anyModal()){const J=jumpOn()&&touchUI();if(J&&((joyMoving()&&canJump())||JP.h>.02))m='jump';else if(nearSpot&&!onGroundVeh()&&!seatFirst())m='';else if(nearSeat&&!mySeat&&nearSeat.kind!=='train'&&!(VW.me&&S.vehRide))m='sit';else if(mySeat&&mySeat.kind!=='train')m='stand';else if(J&&canJump())m='jump';}
  if(m==='jump')fbmT=.6;else{fbmT=Math.max(0,fbmT-dt);if(fbmT>0&&!m)m='jump';}
  if(m!==FBM){FBM=m;b.dataset.m=m;b._k=null;b._fbh='';if(m){const T={jump:['점프','탭해서 폴짝'],sit:['앉기','의자에 앉아요'],stand:['일어나기','탭해서 일어나요']}[m],v=S.fishBtnS||'E';b._fbh=v==='F'?`<b>${T[0]}</b><small>${T[1]}</small><span class="gg"><i style="width:0%"></i></span>`:`<span>${T[0]}</span>`;}}
  if(m&&b._fbh&&b._fbm!==b.innerHTML){b.innerHTML=b._fbh;b._fbm=b.innerHTML;}
@@ -6744,10 +6746,12 @@ const ckOn=()=>!PREV&&opt('cook','off')==='on';
 const CKE={xp:['⭐','경험치'],pouch:['💰','골드 주머니'],box:['🎁','상자 확률']};
 // v101: 효과는 3가지 — 민물=⭐경험치 · 육식어=💰골드 주머니 · 귀한 어종=🎁상자
 const CK_TYPE={bass:'pouch',snakehead:'pouch',mandarin:'pouch',catfish:'pouch',kkeuri:'pouch',eel:'pouch',maple_mandarin:'box',rainbow_ayu:'box',sakura_trout:'box',gangjunchi:'box',chambungeo:'box',tteokbungeo:'box',trout:'box'};
-const CK_G={xp:[5,8,12,18,25],pouch:[2,3,4,6,8],box:[1,1.5,2,3,4]},CK_V={black:1,pink:1.25,red:1.5,gold:2,rainbow:2.5};
+/* v179: 초월(5) 등급 칸 추가 — 일반·고급·희귀·전설·신화·초월 */const CK_G={xp:[5,8,12,18,25,35],pouch:[2,3,4,6,8,11],box:[1,1.5,2,3,4,5.5]},CK_V={black:1,pink:1.25,red:1.5,gold:2,rainbow:2.5};
 const ckS=()=>{const z=S.ck&&typeof S.ck==='object'?S.ck:(S.ck={b:[],n:0,nt:0});z.b=(z.b||[]).filter(x=>x.u>Date.now()&&CKE[x.t]);if(z.n>0){const now=Date.now(),step=30*60000;if(!z.nt)z.nt=now;while(z.n>0&&now-z.nt>=step){z.n--;z.nt+=step;}if(!z.n)z.nt=0;}return z;};
-function ckEff(f){const F=FI(f.k);if(!F)return null;const t=CK_TYPE[f.k]||'xp',r=Math.max(0,Math.min(1,(f.cm-(F.min||0))/Math.max(1,(F.max||f.cm)-(F.min||0)))),mul=.8+.7*r,g=Math.min(4,f.g|0),R1=v=>Math.round(v*10)/10;
- const out=[{t,v:R1(CK_G[t][g]*mul)}];const vk=f.vr?(typeof fzVK==='function'?fzVK(f.vr):f.vr):null;if(vk&&CK_V[vk]){const t2=t==='xp'?'pouch':'xp';out.push({t:t2,v:R1(CK_G[t2][1]*CK_V[vk]),vr:vk});}return {e:out,min:Math.round(10+10*r),mul:Math.round(mul*10)/10};}
+/* v179: 합성 별(★)도 효과에 더해요 — ★1 ×1 · ★2 ×1.2 · ★3 ×1.4 · ★4 ×1.6 · ★5 ×1.8, 시간도 별마다 +3분 */
+const ckStarK=f=>1+.2*Math.max(0,Math.min(4,f&&f.st|0));
+function ckEff(f){const F=FI(f.k);if(!F)return null;const t=CK_TYPE[f.k]||'xp',r=Math.max(0,Math.min(1,(f.cm-(F.min||0))/Math.max(1,(F.max||f.cm)-(F.min||0)))),sk=ckStarK(f),mul=(.8+.7*r)*sk,g=Math.min(5,f.g|0),R1=v=>Math.round(v*10)/10;
+ const out=[{t,v:R1(CK_G[t][g]*mul)}];const vk=f.vr?(typeof fzVK==='function'?fzVK(f.vr):f.vr):null;if(vk&&CK_V[vk]){const t2=t==='xp'?'pouch':'xp';out.push({t:t2,v:R1(CK_G[t2][1]*CK_V[vk]),vr:vk});}return {e:out,min:Math.round(10+10*r)+3*Math.max(0,Math.min(4,f.st|0)),mul:Math.round(mul*10)/10,sk};}
 // v134: 같은 효과도 겹쳐요 — 센 것부터 100%·50%·30%·20%·15%·10%… 로 더하고, 효과마다 상한 (경험치 50% · 골드 주머니 16% · 상자 8%)
 const CK_W=[1,.5,.3,.2,.15,.1,.1,.1,.1,.1,.1,.1],CK_CAP={xp:50,pouch:16,box:8};
 const ckSum=(L,t)=>{const v=L.filter(x=>x.t===t).map(x=>+x.v||0).sort((a,b)=>b-a);let s=0;v.forEach((x,i)=>s+=x*(CK_W[i]||.1));return Math.round(Math.min(CK_CAP[t]||s,s)*10)/10;};
@@ -7151,7 +7155,7 @@ function grillSvg(){return `<svg class="ckgrill" viewBox="0 0 400 300" preserveA
 function ckStart(f){if(!f||CK.cook||!CK.g)return;if(ckFood().length>=CK_FOODMAX){toast('가방 음식이 가득 찼어요 · 먼저 먹어요',1600);return;}const fm=ckFishMesh(f);if(fm){if(CK.g.userData.fish)CK.g.remove(CK.g.userData.fish);CK.g.add(fm);CK.g.userData.fish=fm;}
  S.tank=S.tank.filter(x=>x.id!==f.id);save();CK.cook={f,t0:performance.now(),dur:8000};ckSndStart();ckRender();}
 function ckProg(p){const i=$('ckBarI');if(i)i.style.width=(p*100).toFixed(0)+'%';const t=$('ckPct');if(t)t.textContent=Math.round(p*100)+'%';const v=$('ckFishV');if(v){v.style.setProperty('--d',p.toFixed(2));const fl=p>.5;if(v.classList.contains('flip')!==fl){if($('ckDlg')&&$('ckDlg').classList.contains('show'))ckRender();}}}
-function ckDone(){const c=CK.cook;CK.cook=null;ckSndStop();if(!c)return;const f=c.f,F=FI(f.k);ckFood().push({id:S.nid++,k:f.k,g:f.g|0,cm:f.cm,vr:f.vr||null,t:Date.now()});S.newFood=(S.newFood||0)+1;save();
+function ckDone(){const c=CK.cook;CK.cook=null;ckSndStop();if(!c)return;const f=c.f,F=FI(f.k);ckFood().push({id:S.nid++,k:f.k,g:f.g|0,cm:f.cm,vr:f.vr||null,st:f.st|0,t:Date.now()});S.newFood=(S.newFood||0)+1;save();
  if(CK.g&&CK.g.userData.fish){CK.g.remove(CK.g.userData.fish);CK.g.userData.fish=null;}
  miniToast(`🍢 <b>${F.n} 구이</b> 완성! 가방 › 🍢 음식에 넣었어요`,2400);try{V14.catchSfx(2);}catch(e){}if($('ckDlg')&&$('ckDlg').classList.contains('show'))ckRender();}
 // 가방 › 🍢 음식 탭 + 먹기
@@ -7161,7 +7165,7 @@ function ckEat(id){const L=ckFood(),f=L.find(x=>x.id===id);if(!f)return;const z=
  z.n=Math.min(8,z.n+1);if(!z.nt)z.nt=Date.now();S.food=L.filter(x=>x.id!==id);CKFS=null;save();miniToast(`😋 <b>${F.n} 구이</b> 냠냠! ${E.e.map(e=>CKE[e.t][0]+' '+CKE[e.t][1]+' +'+e.v+'%').join(' · ')} · ${E.min}분`,2600);try{V14.catchSfx(2);}catch(e){}ckHud();}
 function ckFoodHTML(){const L=ckFood(),z=ckS();const cur=L.find(x=>x.id===CKFS)||null;const pip=n=>Array.from({length:8},(_,i)=>`<i class="${i<z.n?'on':''} ${cur&&i===z.n?'nx':''}"></i>`).join('');
  let eat='';if(cur){const E=ckEff(cur),F=FI(cur.k);const cmp=E.e.map(e=>{const now=ckVal(e.t),nx=ckSum(z.b.concat([{t:e.t,v:e.v}]),e.t);return `${CKE[e.t][0]} ${CKE[e.t][1]} ${now?`<s>+${now}%</s> → `:''}<b>+${nx}%</b>${nx>=CK_CAP[e.t]?' (최대)':''}${now?'':' (새로)'}`;}).join(' · ');
-  eat=`<div class="ckeat">${ckGrilled(cur,true)}<div style="flex:1"><div class="t">${F.n} 구이 먹을까요?</div><div class="ckcmp">포만감 ${z.n} → <b>${Math.min(8,z.n+1)}</b> / 8${z.n+1>=3?' · 몸이 조금 커져요':''}</div><div class="ckcmp">${cmp} · ⏱ ${E.min}분</div><div class="ckgo"><button type="button" class="g" data-ckfx>나중에</button><button type="button" class="p" data-ckeat="${cur.id}" ${z.n>=8?'disabled':''}>${z.n>=8?'배불러요!':'냠냠 먹기'}</button></div></div></div>`;}
+  eat=`<div class="ckeat">${ckGrilled(cur,true)}<div style="flex:1"><div class="t">${F.n}${cur.st?` <span class="ckst">★${(cur.st|0)+1}</span>`:''} 구이 먹을까요?</div><div class="ckcmp">포만감 ${z.n} → <b>${Math.min(8,z.n+1)}</b> / 8${z.n+1>=3?' · 몸이 조금 커져요':''}</div><div class="ckcmp">${cmp} · ⏱ ${E.min}분${E.sk>1?` · <b>★ ×${E.sk.toFixed(1)}</b>`:''}</div><div class="ckgo"><button type="button" class="g" data-ckfx>나중에</button><button type="button" class="p" data-ckeat="${cur.id}" ${z.n>=8?'disabled':''}>${z.n>=8?'배불러요!':'냠냠 먹기'}</button></div></div></div>`;}
  return `<div class="ckbag"><div class="ckfull"><b>🍽 포만감 ${z.n}/8</b><div class="pips">${pip()}</div><small>30분마다 1칸 꺼져요</small></div>
  <div class="ckfoods">${L.map(f=>{const n=L.filter(x=>x.k===f.k&&x.g===f.g).length,g=GR(f.g);return `<button type="button" class="ckfd ${f.id===CKFS?'on':''}" data-ckfd="${f.id}"><span class="plate">${ckGrilled(f)}</span><b>${FI(f.k).n} 구이</b><small>${g?g.n:''} · ${f.cm}cm</small></button>`;}).join('')}${Array.from({length:Math.max(0,4-L.length)},()=>`<div class="ckfd e"><span class="plate"></span><b>빈 칸</b><small>최대 ${CK_FOODMAX}개</small></div>`).join('')}</div>
  ${L.length?eat||'<p class="small muted" style="margin:8px 2px 0">음식을 누르면 먹었을 때 바뀌는 포만감과 효과를 보여줘요</p>':'<p class="small muted" style="margin:8px 2px 0">데크 의자에 앉아 「🔥 그릴」로 물고기를 구워요</p>'}</div>`;}
@@ -7657,8 +7661,8 @@ function pill(x,y,t,bg,fg){cx.font='800 15px system-ui,sans-serif';const w=cx.me
 function stateTxt(){try{const auto=!!S.autoFish,left=typeof afLeftMs==='function'?afLeftMs():0;if(fishing&&fishing.state==='bite')return ['입질!','#f08a4b'];if(auto)return ['자동 낚시 중'+(left>0?' · '+fmtLeft(left):''),'#3f9a5c'];if(fishing&&fishing.state==='cast')return ['낚시 중 · 기다리는 중','#3a6ab0'];return ['쉬는 중','#8a7f86'];}catch(e){return ['','#8a7f86'];}}
 function fmtLeft(ms){const m=Math.round(ms/6e4);return m>=60?Math.floor(m/60)+'시간 '+(m%60)+'분 남음':m+'분 남음';}
 function lastFish(){try{const L=S.tank||[];let b=null;for(const f of L){if(!b||(f.t||0)>(b.t||0))b=f;}return b;}catch(e){return null;}}
-function draw(){if(!cx)return;const bite=typeof fishing!=='undefined'&&fishing&&fishing.state==='bite'&&P().bite;blink=(blink+1)%4;
- if(P().mode==='game'){try{R.render(scene,cam);const src=R.domElement,sw=src.width,sh=src.height,k=Math.max(W/sw,H/sh),dw=sw*k,dh=sh*k;cx.drawImage(src,(W-dw)/2,(H-dh)/2,dw,dh);}catch(e){cx.fillStyle='#2c2a30';cx.fillRect(0,0,W,H);}
+function draw(pre){if(!cx)return;const bite=typeof fishing!=='undefined'&&fishing&&fishing.state==='bite'&&P().bite;blink=(blink+1)%4;
+ if(P().mode==='game'){try{if(!pre)R.render(scene,cam);const src=R.domElement,sw=src.width,sh=src.height,k=Math.max(W/sw,H/sh),dw=sw*k,dh=sh*k;cx.drawImage(src,(W-dw)/2,(H-dh)/2,dw,dh);}catch(e){cx.fillStyle='#2c2a30';cx.fillRect(0,0,W,H);}
   const [t,c]=stateTxt();let x=10;x+=pill(x,10,t,c,'#fff')+6;const lf=lastFish();if(lf){const F=FI(lf.k);rr(10,H-46,W-20,36,11);cx.fillStyle='rgba(255,250,243,.94)';cx.fill();const fi=im((F&&F.img)||'img/fish/'+lf.k+'.png');if(fi)cx.drawImage(fi,18,H-42,40,28);cx.fillStyle='#3a3340';cx.font='800 15px system-ui,sans-serif';cx.fillText(((F&&F.n)||'')+(lf.st?' ★'+(lf.st+1):'')+' · '+(lf.cm||'')+'cm',64,H-22);cx.fillStyle='#c4602f';cx.textAlign='right';cx.fillText('어항 '+(S.tank||[]).length,W-20,H-22);cx.textAlign='left';}}
  else{cx.fillStyle='#fffaf3';cx.fillRect(0,0,W,H);cx.fillStyle='#3a3340';cx.font='900 22px system-ui,sans-serif';cx.fillText('피쉬코지',18,36);cx.font='700 15px system-ui,sans-serif';cx.fillStyle='#6e6470';cx.fillText((S.nick||'')+' · Lv.'+myLv(),120,35);
   const [t,c]=stateTxt();pill(18,52,t,c,'#fff');const lf=lastFish();if(lf){const F=FI(lf.k);const fi=im((F&&F.img)||'img/fish/'+lf.k+'.png');rr(18,92,W-36,96,16);cx.fillStyle='#fff1e6';cx.fill();if(fi)cx.drawImage(fi,30,104,110,72);cx.fillStyle='#3a3340';cx.font='900 22px system-ui,sans-serif';cx.fillText(((F&&F.n)||''),156,132);cx.font='700 16px system-ui,sans-serif';cx.fillStyle='#6e6470';cx.fillText((lf.st?'★'+(lf.st+1)+' · ':'')+(lf.cm||'')+'cm · 마지막으로 낚은 물고기',156,160);}
@@ -7666,9 +7670,13 @@ function draw(){if(!cx)return;const bite=typeof fishing!=='undefined'&&fishing&&
  if(bite){cx.lineWidth=14;cx.strokeStyle=blink<2?'#f08a4b':'#ffd36b';cx.strokeRect(7,7,W-14,H-14);rr(W/2-120,H/2-38,240,76,20);cx.fillStyle='rgba(240,138,75,.95)';cx.fill();cx.fillStyle='#fff';cx.font='900 34px system-ui,sans-serif';cx.textAlign='center';cx.fillText('입질!',W/2,H/2+4);cx.font='800 14px system-ui,sans-serif';cx.fillText('가운데 재생 버튼을 누르면 챔질',W/2,H/2+28);cx.textAlign='left';
   if(!S.pipBz||Date.now()-S.pipBz>3000){S.pipBz=Date.now();try{navigator.vibrate&&navigator.vibrate([120,60,120]);}catch(e){}}}}
 setInterval(()=>{if(cv&&!act&&P().auto&&vid&&!vid.paused&&!document.hidden)draw();},500);
-/* v177: 작은 창이 떠 있고 게임이 보이는 동안은 1초에 10번 그려서 부드럽게 */
-let pipT=0;FHOOK.push(dt=>{if(!act||!cx||document.hidden)return;pipT+=dt;if(pipT<.1)return;pipT=0;draw();});
-window.__nkPipBg=()=>{if(act)draw();};
+/* v179: 게임이 보이는 동안은 화면을 한 번 더 그리지 않고, 방금 그린 게임 화면을 그대로 옮겨요 (느려지지 않게) · 1초에 10번 */
+let pipT=0;window.__nkPipPost=dt=>{if(!act||!cx||document.hidden)return;pipT+=dt;if(pipT<.1)return;pipT=0;draw(true);};
+/* v179: 창을 내린 동안은 작은 해상도로 그려서 가볍게 (1초에 8번) · 돌아오면 원래대로 */
+let lowPR=0;function lowRes(on){try{if(on&&!lowPR){lowPR=R.getPixelRatio();const k=Math.max(.35,Math.min(lowPR,(W*1.25)/Math.max(1,innerWidth)));if(k<lowPR)R.setPixelRatio(k);else lowPR=0;}else if(!on&&lowPR){R.setPixelRatio(lowPR);lowPR=0;}}catch(e){}}
+/* v179: 게임 화면으로 돌아오면 작은 창을 닫아요 (전체 화면인데 작은 창이 남아 있던 문제) */
+let wasHid=false;document.addEventListener('visibilitychange',()=>{if(document.hidden){wasHid=true;return;}lowRes(false);if(wasHid&&act){wasHid=false;setTimeout(()=>{if(!document.hidden)closePip();},250);}wasHid=false;});
+window.__nkPipBg=()=>{if(act){lowRes(true);draw();}};
 /* v177: 버튼을 누른 그 순간(사용자 동작)에 바로 열어야 해요 — 영상 재생을 기다리느라 늦어지면 휴대폰이 막아요.
    그래서 작은 창 기능이 켜져 있으면 숨은 영상을 미리 재생해 두고, 누르면 곧바로 엽니다 */
 function prime(){if(!on()||!started)return;ensure();if(vid.paused||vid.readyState<1){draw();vid.play().catch(()=>{});}}

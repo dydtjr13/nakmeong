@@ -652,3 +652,4 @@ body.menu-open #gdCard{opacity:.35}
 html.nkWatch body>*:not(#world):not(#nkWatchTag):not(canvas){display:none!important}
 #nkWatchTag{position:fixed;left:10px;bottom:10px;z-index:9999;font:800 12px system-ui,sans-serif;color:#fff;background:rgba(200,40,40,.85);border-radius:8px;padding:4px 8px;pointer-events:none;white-space:nowrap}
 #nkWatchTag.solo{background:rgba(40,48,60,.8)}
+.ckst{color:#e8a21a;font-weight:800;white-space:nowrap}
