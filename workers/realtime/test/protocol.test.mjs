@@ -842,3 +842,20 @@ test("v174 sanitizeSched keeps valid schedule rows and drops bad ones", async ()
   assert.equal(rows[0].gift.mode, "first");
   assert.equal(sanitizeSched("x", now).length, 0);
 });
+
+test("v181 sanitizeSched keeps map weather rows (wx) and cleans them", async () => {
+  const { sanitizeSched } = await import("../src/protocol.js");
+  const now = Date.UTC(2026, 10, 19, 6);
+  const rows = sanitizeSched([
+    { id: "w1", from: now, to: now + 36e5, wx: { m: "lake", k: "snow", sn: "crystal" }, coin: 5, gift: { c: 999 } },
+    { id: "w2", from: now, to: now + 36e5, wx: { m: "canal", k: "drizzle", sn: "crystal" } },
+    { id: "w3", from: now, to: now + 36e5, wx: { m: "mars", k: "snow" } },
+    { id: "w4", from: now, to: now + 36e5, wx: { m: "moon", k: "tornado" } },
+    { id: "w5", from: now, to: now + 36e5, wx: { m: "moon", k: "meteor" } },
+  ], now);
+  assert.deepEqual(rows.map((r) => r.id), ["w1", "w2", "w5"]);
+  assert.deepEqual(rows[0].wx, { m: "lake", k: "snow", sn: "crystal" });
+  assert.equal(rows[0].coin, 1);
+  assert.equal(rows[0].gift, null);
+  assert.deepEqual(rows[1].wx, { m: "canal", k: "drizzle" });
+});

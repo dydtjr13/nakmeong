@@ -3040,7 +3040,7 @@ let BGRUN=false,BGERR='';const nextF=()=>{if(!BGRUN)requestAnimationFrame(frame)
 {let wk=null;const bgOn=()=>!!(document.hidden&&started&&(S.autoFish||window.__nkPipOn));
  const tick=()=>{if(!BGRUN)return;if(!bgOn()){return;}const target=performance.now(),step=Math.max(50,S.fpsCap?1000/S.fpsCap:0);let n=0;if(target-last>60000)last=target-60000;
   while(last<target-step&&n<400){n++;try{frameBody(Math.min(target,last+step));}catch(e){last+=step;}}try{window.__nkPipBg&&window.__nkPipBg();}catch(e){}};
- const start=()=>{if(BGRUN)return;BGRUN=true;try{if(!wk){const src='let h=0;onmessage=e=>{clearInterval(h);if(e.data)h=setInterval(()=>postMessage(0),e.data);};';wk=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));wk.onmessage=tick;}wk.postMessage(window.__nkPipOn?66:250);/* v179: 작은 창이 떠 있으면 1초에 8번 */}catch(e){BGRUN=false;BGERR=String(e&&e.message||e);}};
+ const start=()=>{if(BGRUN)return;BGRUN=true;try{if(!wk){const src='let h=0;onmessage=e=>{clearInterval(h);if(e.data)h=setInterval(()=>postMessage(0),e.data);};';wk=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));wk.onmessage=tick;}wk.postMessage(window.__nkPipOn?33:250);/* v179: 작은 창이 떠 있으면 1초에 8번 */}catch(e){BGRUN=false;BGERR=String(e&&e.message||e);}};
  const stop=()=>{if(!BGRUN)return;BGRUN=false;try{wk&&wk.postMessage(0);}catch(e){}const t0=performance.now();last=t0;setTimeout(()=>{if(FRAMEAT<t0)requestAnimationFrame(frame);},250);};
  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(started&&(S.autoFish||window.__nkPipOn))start();}else stop();});
  setInterval(()=>{if(document.hidden&&started&&(S.autoFish||window.__nkPipOn)&&!BGRUN)start();},5000);
@@ -3280,7 +3280,11 @@ V14=(()=>{
   if(sea&&r<.22)return sea;if(r<(sea?.22:0)+.15)return 'drizzle';if(r<(sea?.22:0)+.15+(se==='summer'?.15:.08))return se==='winter'?'snow':'storm';return 'clear';}
  function rollNight(){const se=season(),r=Math.random(),au=se==='winter'?.04:.02,me=.12,ff=se==='summer'?.40:se==='winter'?0:.25;
   if(r<au)return 'aurora';if(r<au+me)return 'meteor';if(r<au+me+ff)return 'firefly';return null;}
- function cur(){const RT=window.NK_RT,SY=window.NK_SYNC;if(RT&&SY&&RT.status&&RT.status()==='on'&&RT.world&&+RT.world.ambSeed){const s=SY.weather(Date.now(),RT.world);W.k=s.k;if(s.until)W.until=performance.now()+Math.max(1000,s.until-Date.now());return s.k==='sunset'?'clear':s.k;}const ov=S.wxOv&&S.wxOv!=='auto'?S.wxOv:null;if(ov)return ov;const night=NIGHT>.5;
+ /* v181: 관리자 날씨 시간표 — 지금 이 맵에 예약된 날씨가 있으면 그게 먼저 (눈이면 고른 눈 스타일도) */
+ function wxMapNow(){try{if(SKY.on)return 'moon';}catch(e){}try{if(CNL.st)return 'canal';}catch(e){}return 'lake';}
+ function wxSchNow(){let L=null;try{const R=window.NK_RT;L=R&&Array.isArray(R.sched)?R.sched:JSON.parse(localStorage.getItem('nk_sched_cache')||'[]');}catch(e){}if(!Array.isArray(L))return null;const n=Date.now(),m=wxMapNow();for(const r of L){if(r&&r.wx&&r.wx.m===m&&n>=r.from&&n<r.to)return r.wx;}return null;}
+ window.__nkWxSchNow=wxSchNow;
+ function cur(){const _ws=wxSchNow();window.__nkWxSn=_ws&&_ws.k==='snow'&&_ws.sn?_ws.sn:'';if(_ws){W.k=_ws.k;W.night=null;return _ws.k==='sunset'?'clear':_ws.k;}const RT=window.NK_RT,SY=window.NK_SYNC;if(RT&&SY&&RT.status&&RT.status()==='on'&&RT.world&&+RT.world.ambSeed){const s=SY.weather(Date.now(),RT.world);W.k=s.k;if(s.until)W.until=performance.now()+Math.max(1000,s.until-Date.now());return s.k==='sunset'?'clear':s.k;}const ov=S.wxOv&&S.wxOv!=='auto'?S.wxOv:null;if(ov)return ov;const night=NIGHT>.5;
   if(performance.now()>W.until){W.k=rollDay();W.until=performance.now()+rand(240,420)*1000;}
   if(night){if(W.night===null){W.night=W.k==='clear'||W.k==='leaf'||W.k==='cherry'?rollNight()||'':'';}if(W.night)return W.night;}else W.night=null;
   return W.k;}
@@ -3547,7 +3551,10 @@ V14=(()=>{
   try{const r=await fetch(SV.api()+'/admin/accounts',{headers:{'X-Admin-Token':String(tk),'X-Owner':SV.cid()}});const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.ok)throw new Error(r.status===401?'관리자 확인에 실패했어요. 다시 로그인해 주세요':'목록을 불러오지 못했어요');A.rows=j.rows||[];A.soc=j.soc||[];}catch(e){A.err=e.message;}
   A.busy=0;try{keepScroll('admin',admin);}catch(e){}});
  // ───────── v174 📅 이벤트 달력 (관리자 › 이벤트 · 시안 A) ─────────
- function schList(){try{const R=window.NK_RT;if(R&&Array.isArray(R.sched))return R.sched;return JSON.parse(localStorage.getItem('nk_sched_cache')||'[]')||[];}catch(e){return [];}}
+ function schAll(){try{const R=window.NK_RT;if(R&&Array.isArray(R.sched))return R.sched;return JSON.parse(localStorage.getItem('nk_sched_cache')||'[]')||[];}catch(e){return [];}}
+ /* v181: 날씨 시간표 줄(wx)도 같은 서버 예약에 들어가요 → 이벤트 달력에는 이벤트만 보여요 */
+ function schList(){return schAll().filter(r=>r&&!r.wx);}
+ function wxtList(){return schAll().filter(r=>r&&r.wx);}
  const KO=9*36e5,dkey=t=>new Date(t+KO).toISOString().slice(0,10),dts=(k,hm)=>new Date(`${k}T${hm||'00:00'}:00+09:00`).getTime(),WD='일월화수목금토';
  const schLab=r=>{const L=[];if(r.coin>1)L.push(['g','골드 '+r.coin+'배']);if(r.box>1)L.push(['b','상자 '+r.box+'배']);if(r.xp>1)L.push(['x','경험치 '+r.xp+'배']);if(r.gift)L.push(['r','보상 지급']);return L;};
  const giftTxt=g=>g?[g.c?'골드 '+g.c.toLocaleString():'',g.b?`${(D.BOX.tiers[g.bt]||{}).n||''} 이상 상자 ${g.b}`:'',g.s?'강화석 '+g.s:'',g.x?'XP '+g.x:''].filter(Boolean).join(' + '):'';
@@ -3591,7 +3598,47 @@ V14=(()=>{
    if(row.coin<=1&&row.box<=1&&row.xp<=1&&!row.gift){toast('배율을 1배보다 크게 골라 주세요',1800);return;}
    const tm=t=>{const x=new Date(t+KO).toISOString();return `${+x.slice(5,7)}/${+x.slice(8,10)} ${x.slice(11,16)}`;};
    confirmBox(`<h3>일정 예약</h3><p><b>${esc(row.title||schLab(row).map(x=>x[1]).join(' · '))}</b><br>${tm(from)} → ${tm(to)}<br>${schLab(row).map(x=>x[1]).join(' · ')}${row.gift?'<br>보상: '+esc(giftTxt(row.gift))+(row.gift.mode==='live'?' · 시작 시각 접속자만':' · 그날 처음 접속하면'):''}</p>`,()=>{if(schPub(schList().concat([row]),'일정 예약: '+(row.title||schLab(row).map(x=>x[1]).join(' · ')))){F.title='';setTimeout(re,700);}});};}
- function schPub(list,log){if(!(rtOn()&&NK_RT.setSched)){toast('실시간 서버에 연결된 상태에서만 예약할 수 있어요',2000);return false;}NK_RT.setSched(list);try{NK_RT.sched=list;}catch(e){}try{alog(log);}catch(e){}toast('📅 '+log,1800);return true;}
+ function schPub(list,log,kind){if(!(rtOn()&&NK_RT.setSched)){toast('실시간 서버에 연결된 상태에서만 예약할 수 있어요',2000);return false;}list=kind==='wx'?schList().concat(list.filter(r=>r.wx)):list.filter(r=>!r.wx).concat(wxtList());NK_RT.setSched(list);try{NK_RT.sched=list;}catch(e){}try{alog(log);}catch(e){}toast('📅 '+log,1800);return true;}
+ // ── v181 🗓 맵별 날씨 시간표 (관리자 › 시간·날씨) — 맵 줄에서 시간 칸을 끌거나 두 번 눌러 그 시간에 날씨를 예약해요 ──
+ const WXT_MAPS=[['lake','호숫가'],['canal','운하'],['moon','달']];
+ const WXT_K={lake:['clear','drizzle','storm','snow','cherry','leaf','firefly','meteor','aurora','sunset'],canal:['clear','drizzle','storm','snow','cherry','leaf','firefly','meteor','aurora','sunset'],moon:['clear','meteor','aurora']};
+ const WXT_N=k=>k==='sunset'?'노을':k==='clear'?'맑음':(WX[k]||k).replace('소나기·천둥','소나기').replace('반딧불 밤','반딧불').replace('별똥별 밤','별똥별').replace('벚꽃 바람','벚꽃').replace('함박눈','눈');
+ const WXT_C={clear:'#f2c443',drizzle:'#7ab3e0',storm:'#4a6fa5',snow:'#dfe8f2',cherry:'#f3a6c3',leaf:'#e08a4a',firefly:'#9fd36b',meteor:'#6d5bd0',aurora:'#39b7a0',sunset:'#f08a4b'};
+ const WXT_SN=[['hambak','함박눈'],['soft','포근 함박눈'],['powder','가루눈'],['crystal','눈꽃 결정'],['glitter','반짝이는 눈'],['glow','별빛 눈 (밤)'],['sleet','진눈깨비'],['sakura','벚꽃눈']];
+ const wxtMapName=()=>{try{const o=(LAB.find(x=>x.k==='mapSt')||{}).o||[],c=MAPV.cur||'old';return ((o.find(x=>x[0]===c)||[])[1]||c).replace(' (기본)','');}catch(e){return '기본';}};
+ function wxtSt(){if(!AD.wxt)AD.wxt={day:dkey(Date.now()),k:'drizzle',sn:'hambak',sel:null,pick:null};return AD.wxt;}
+ function wxtHTML(){const W0=wxtSt(),d0=dts(W0.day),now=Date.now(),rows=wxtList(),nowH=dkey(now)===W0.day?new Date(now+KO).getUTCHours():-1;
+  const lbl=r=>WXT_N(r.wx.k)+(r.wx.sn?' · '+((WXT_SN.find(x=>x[0]===r.wx.sn)||[])[1]||''):'');
+  const line=(m,n)=>{let cells='';for(let h=0;h<24;h++){const a=d0+h*36e5,b=a+36e5,r=rows.find(x=>x.wx.m===m&&x.from<b&&x.to>a),sel=W0.sel&&W0.sel.m===m&&h===W0.sel.h,st=r&&r.from>a-1&&r.from<b;
+    cells+=`<button type="button" class="wxc ${r?'on':''} ${sel?'sel':''} ${h===nowH?'now':''} ${r&&W0.pick===r.id?'pk':''}" data-wc="${m}|${h}" ${r?`style="--wc:${WXT_C[r.wx.k]||'#ccc'}" title="${esc(lbl(r))}"`:''} aria-label="${n} ${h}시">${st||(r&&h===0)?`<i>${esc(lbl(r))}</i>`:''}</button>`;}
+   return `<div class="wxl"><div class="wxn"><b>${n}</b>${m==='lake'?`<small>지금 맵: ${esc(wxtMapName())}</small>`:m==='moon'?'<small>우주 날씨만</small>':'<small>서버 20</small>'}</div><div class="wxcs">${cells}</div></div>`;};
+  const hrs=Array.from({length:24},(_,h)=>`<span>${h%3===0?h+'시':''}</span>`).join('');
+  const brushes=['clear','drizzle','storm','snow','cherry','leaf','firefly','meteor','aurora','sunset'].map(k=>`<button type="button" class="wxb ${W0.k===k?'on':''}" data-wb="${k}"><i style="background:${WXT_C[k]}"></i>${WXT_N(k)}</button>`).join('');
+  const pr=W0.pick&&rows.find(r=>r.id===W0.pick);const tm=t=>{const x=new Date(t+KO).toISOString();return `${+x.slice(5,7)}/${+x.slice(8,10)} ${x.slice(11,16)}`;};
+  const dl=new Date(d0+KO);
+  return `<div class="adbox wxt"><h4>🗓 맵별 날씨 시간표 <small>한국 시간 · 예약한 시간에는 그 맵의 모든 사람에게 그 날씨가 보여요</small></h4>
+   <div class="wxtop"><div class="wxday"><button type="button" class="sm" data-wd="-1" aria-label="전날">‹</button><b>${+W0.day.slice(5,7)}월 ${+W0.day.slice(8)}일 (${WD[dl.getUTCDay()]})</b><button type="button" class="sm" data-wd="1" aria-label="다음날">›</button><button type="button" class="sm" data-wd="0">오늘</button></div>
+    <div class="wxbs"><span>붓</span>${brushes}</div>${W0.k==='snow'?`<label class="wxsn">눈 스타일 <select data-wsn>${WXT_SN.map(([k,n])=>`<option value="${k}" ${W0.sn===k?'selected':''}>${n}</option>`).join('')}</select></label>`:''}</div>
+   <div class="wxg"><div class="wxl wxh"><div class="wxn"></div><div class="wxcs">${hrs}</div></div>${WXT_MAPS.map(([m,n])=>line(m,n)).join('')}<div class="wxl off"><div class="wxn"><b>하늘섬</b><small>준비 중</small></div><div class="wxcs"><em>맵이 열리면 쓸 수 있어요</em></div></div></div>
+   <p class="small muted">${W0.sel?`<b>${(WXT_MAPS.find(x=>x[0]===W0.sel.m)||[])[1]} ${W0.sel.h}시</b>부터 — 끝나는 칸을 한 번 더 눌러요`:'붓을 고르고 맵 줄의 시작 칸 → 끝 칸을 눌러요 (끌어도 돼요) · 칠한 칸을 누르면 지울 수 있어요'}</p>
+   ${pr?`<div class="wxpk"><i style="background:${WXT_C[pr.wx.k]}"></i><b>${(WXT_MAPS.find(x=>x[0]===pr.wx.m)||[])[1]} · ${esc(lbl(pr))}</b><small>${tm(pr.from)} → ${tm(pr.to)}</small><button type="button" class="sm" data-wdel="${pr.id}">지우기</button><button type="button" class="sm" data-wpx>닫기</button></div>`:''}</div>`;}
+ function wxtBind(m,re){const W0=wxtSt(),q=s=>m.querySelectorAll(s);let down=null;
+  q('[data-wd]').forEach(b=>b.onclick=()=>{const v=+b.dataset.wd;W0.day=v?dkey(dts(W0.day)+v*864e5+36e5):dkey(Date.now());W0.sel=null;W0.pick=null;re();});
+  q('[data-wb]').forEach(b=>b.onclick=()=>{W0.k=b.dataset.wb;re();});const sn=m.querySelector('[data-wsn]');if(sn)sn.onchange=()=>{W0.sn=sn.value;};
+  const pub=(mp,h0,h1)=>{const a=Math.min(h0,h1),b=Math.max(h0,h1),k=W0.k;if(!WXT_K[mp].includes(k)){toast(`${(WXT_MAPS.find(x=>x[0]===mp)||[])[1]}에는 「${WXT_N(k)}」를 쓸 수 없어요`,1800);W0.sel=null;re();return;}
+   const from=dts(W0.day)+a*36e5,to=dts(W0.day)+(b+1)*36e5;const others=wxtList().filter(r=>!(r.wx.m===mp&&r.from<to&&r.to>from));/* 겹치는 예약은 새 것으로 바꿔요 */
+   const wx={m:mp,k};if(k==='snow')wx.sn=W0.sn||'hambak';const row={id:'w'+Date.now().toString(36)+Math.random().toString(36).slice(2,4),from,to,coin:1,box:1,xp:1,wx,title:'',by:NICK()};
+   const nm=(WXT_MAPS.find(x=>x[0]===mp)||[])[1];const txt=`${nm} ${a}시~${b+1}시 ${WXT_N(k)}${wx.sn?' · '+(WXT_SN.find(x=>x[0]===wx.sn)||[])[1]:''}`;
+   if(schPub(others.concat([row]),'날씨 예약: '+txt,'wx')){W0.sel=null;W0.pick=null;setTimeout(re,500);}};
+  q('[data-wc]').forEach(b=>{const [mp,hs]=b.dataset.wc.split('|'),h=+hs;
+   b.onmousedown=()=>{if(b.classList.contains('on'))return;down={m:mp,h};};
+   b.onmouseenter=()=>{if(!down||down.m!==mp)return;const lo=Math.min(down.h,h),hi=Math.max(down.h,h);q(`[data-wc^="${mp}|"]`).forEach(x=>{const xh=+x.dataset.wc.split('|')[1];x.classList.toggle('drag',xh>=lo&&xh<=hi);});};
+   b.onclick=()=>{if(down&&down.m===mp&&down.h!==h){const d=down;down=null;pub(mp,d.h,h);return;}down=null;
+    const a=dts(W0.day)+h*36e5,r=wxtList().find(x=>x.wx.m===mp&&x.from<a+36e5&&x.to>a);if(r&&!W0.sel){W0.pick=r.id;re();return;}
+    if(W0.sel&&W0.sel.m===mp){pub(mp,W0.sel.h,h);return;}W0.sel={m:mp,h};W0.pick=null;re();};});
+  m.addEventListener('mouseup',()=>{if(down)setTimeout(()=>{down=null;},0);},{once:true});
+  q('[data-wdel]').forEach(b=>b.onclick=()=>{const id=b.dataset.wdel;if(schPub(wxtList().filter(r=>r.id!==id),'날씨 예약 지움','wx')){W0.pick=null;setTimeout(re,500);}});
+  q('[data-wpx]').forEach(b=>b.onclick=()=>{W0.pick=null;re();});}
  // 같은 날 보상: 기간 안에 들어오면 한 번만 받아요 (시작 시각 접속자만: 시작 5분 안에 켜져 있던 사람)
  const SCH_T0=Date.now();setInterval(()=>{try{if(!started)return;const now=Date.now();S.schGot=S.schGot||{};for(const r of schList()){if(!r.gift||now<r.from||now>=r.to||S.schGot[r.id])continue;if(r.gift.mode==='live'&&SCH_T0>r.from+5*6e4){S.schGot[r.id]=-1;continue;}S.schGot[r.id]=now;applyGift({id:'sch_'+r.id,nick:'*',c:r.gift.c,s:r.gift.s,b:r.gift.b,bt:r.gift.bt,x:r.gift.x,msg:r.gift.msg||r.title||'이벤트 보상'});}
   const ks=Object.keys(S.schGot);if(ks.length>80)ks.slice(0,ks.length-80).forEach(k=>delete S.schGot[k]);}catch(e){console.warn('[sched gift]',e);}},5000);
@@ -3641,7 +3688,7 @@ V14=(()=>{
    ${sel?`<div class="adbox"><h4>「${esc(sel)}」 권한 설정</h4><div class="adrow">역할 프리셋 ${Object.keys(ROLE).filter(r=>r!=='최고관리자').map(r=>`<button class="sm ${AD.opRole===r?'on':''}" data-opq="${r}">${r}</button>`).join('')}</div><div class="perm">${PERM.filter(p=>p[0]!=='op').map(([k,n])=>`<label class="pc ${(AD.opP||[]).includes(k)?'on':''}"><input type="checkbox" class="opNP" value="${k}" ${(AD.opP||[]).includes(k)?'checked':''}>${n}</label>`).join('')}</div><p><button class="acc" data-ad="opadd">운영자로 등록</button> <button data-ad="opcancel">취소</button></p></div>`:''}
    <p class="small muted">역할: 최고관리자 = 전체 · 운영자 = 운영 전반 · CS 상담 = 유저 조회·신고·복구·제재 · 모니터 = 조회만. 프리셋을 고른 뒤 체크로 세부 권한을 바꿀 수 있어요.<br>등록하면 그 유저에게 바로 <b>🛡 운영자</b> 칭호가 붙고, 화면 위에 <b>운영자 모드</b> 버튼이 생겨요. 지금 접속 중인 유저만 등록할 수 있어요 (모든 서버 · 달 포함).</p>`;}
   if(AD.tab==='time'){const p=palette(),TP=[['아침',.97],['낮',.1],['오후',.25],['노을',.4],['해질녘',.6],['밤',.75]],fmtDur=s=>{s=Math.round(+s||0);if(s<=0)return '기존 사이클';if(s<60)return s+'초';const m=Math.floor(s/60),r=s%60;if(m<60)return r?m+'분 '+r+'초':m+'분';return fmtMin(s/60);},sl=+S.seasonLen||0,link=!!S.seasonLink,slPresets=[[0,'기존 사이클'],[30,'30초'],[60,'1분'],[150,'2분 30초'],[300,'5분'],[600,'10분'],[3600,'1시간']];
-   body=`<div class="adbox"><h4>⏰ 시각 <small>지금: ${p.name}${clockLocked()?' · 호숫가 공통':''}</small></h4><div class="tiles">${TP.map(([n,v])=>`<button class="tile" data-ad="t" data-v="${v}">${n}</button>`).join('')}</div><div class="adrow"><input type="range" id="tS" min="0" max="1" step=".01" value="${time.t.toFixed(2)}" style="flex:1"><b id="tSv">${p.name}</b></div><div class="adrow"><button class="${time.auto?'on':''}" data-ad="auto">${time.auto?'⏸ 시간 멈추기':'▶ 시간 흐르게'}</button><span class="small muted">시간 흐름 ${time.auto?'ON':'OFF'} · 같은 호숫가는 벽시계로 같이 흘러요</span></div></div>
+   body=wxtHTML()+`<div class="adbox"><h4>⏰ 시각 <small>지금: ${p.name}${clockLocked()?' · 호숫가 공통':''}</small></h4><div class="tiles">${TP.map(([n,v])=>`<button class="tile" data-ad="t" data-v="${v}">${n}</button>`).join('')}</div><div class="adrow"><input type="range" id="tS" min="0" max="1" step=".01" value="${time.t.toFixed(2)}" style="flex:1"><b id="tSv">${p.name}</b></div><div class="adrow"><button class="${time.auto?'on':''}" data-ad="auto">${time.auto?'⏸ 시간 멈추기':'▶ 시간 흐르게'}</button><span class="small muted">시간 흐름 ${time.auto?'ON':'OFF'} · 같은 호숫가는 벽시계로 같이 흘러요</span></div></div>
    <div class="adbox"><h4>🕒 하루 길이 <small>지금 ${fmtMin(time.len/60)}</small></h4><div class="tiles">${[[150,'2분 30초'],[300,'5분'],[600,'10분'],[1200,'20분'],[3600,'1시간'],[86400,'실제 하루']].map(([v,n])=>`<button class="tile ${time.len===v?'on':''}" data-ad="lenp" data-v="${v}">${n}</button>`).join('')}</div><div class="adrow">직접 입력 <input type="number" id="adLen" value="${time.len}" min="30" style="width:90px">초 <button data-ad="len">적용</button></div></div>
    <div class="adbox"><h4>🌦 날씨 <small>지금: ${WX[S.__wx]||'-'}${S.wxOv&&S.wxOv!=='auto'?' (강제'+(S.wxUntil?' · '+left(S.wxUntil)+' 남음':'')+')':' (자동)'}</small></h4><div class="adrow">유지 시간 ${[[0,'계속'],[10,'10분'],[30,'30분'],[60,'1시간'],[180,'3시간']].map(([v,n])=>`<label class="rb"><input type="radio" name="wxD" value="${v}" ${(AD.wxD||0)==v?'checked':''}> ${n}</label>`).join('')}<span class="small muted">지나면 자동 날씨로 돌아가요</span></div>
    <div class="tiles">${[['auto','🔄','자동']].concat([['clear','☀️'],['drizzle','🌦️'],['storm','⛈️'],['snow','❄️'],['cherry','🌸'],['leaf','🍂'],['firefly','✨'],['meteor','🌠'],['aurora','🌌']].map(([k,e])=>[k,e,WX[k]]),[['sunset','🌇','노을 색조']]).map(([k,e,n])=>`<button class="tile wx ${(S.wxOv||'auto')===k?'on':''}" data-wx="${k}"><span>${e}</span>${n}</button>`).join('')}</div></div>
@@ -3755,6 +3802,7 @@ V14=(()=>{
   if(AD.tab==='bal'){const mark=i=>{const v=i.value,bad=v===''||isNaN(+v)||+v<0;i.classList.toggle('chg',!bad&&+v!==+i.dataset.o);i.classList.toggle('bad',bad);};q('.bi').forEach(i=>{i.oninput=()=>mark(i);});q('.rv').forEach(b=>b.onclick=()=>{const i=b.previousElementSibling;i.value=i.dataset.o;mark(i);});}
   if(AD.tab==='ev'&&window.NK_GAMEEV)try{NK_GAMEEV.adminBind(m,re);}catch(e){console.warn(e);}
   if(AD.tab==='ev')try{schBind(m,re);}catch(e){console.warn('[sched]',e);}
+  if(AD.tab==='time')try{wxtBind(m,re);}catch(e){console.warn('[wxt]',e);}
   if(AD.tab==='ev'){const rd=k=>{const d=g('ev'+k+'d').value,t=g('ev'+k+'t').value||'00:00:00';return d?new Date(`${d}T${t.length===5?t+':00':t}+09:00`).getTime():0;},wr=(k,ms)=>{if(!ms){g('ev'+k+'d').value='';g('ev'+k+'t').value='';return;}const x=new Date(ms+9*36e5).toISOString();g('ev'+k+'d').value=x.slice(0,10);g('ev'+k+'t').value=x.slice(11,19);},
     sum=()=>{const f=rd('F')||Date.now(),t=rd('T'),n=Date.now(),el=g('evSum');if(!el)return;el.className='evsum'+(t&&t<=f?' bad':'');el.innerHTML=t&&t<=f?'⛔ 종료가 시작보다 빨라요':`기간 <b>${t?fmtMin((t-f)/60000):'종료 없음'}</b> · ${f>n+1000?`시작까지 <b>${fmtMin((f-n)/60000)}</b>`:'<b>바로 시작</b>'} · 골드 ×${g('evCoin').value} · 상자 ×${g('evBox').value}`;};
    q('[data-evs]').forEach(b=>b.onclick=()=>{const v=b.dataset.evs;let ms=Date.now();if(v==='mid'){const k=new Date(ms+9*36e5);k.setUTCHours(24,0,0,0);ms=k.getTime()-9*36e5;}else ms+=(+v)*6e4;wr('F',ms);sum();});
@@ -5737,11 +5785,12 @@ PHOOK.push(dt=>{const C=CNL.st;if(!C||!me)return;try{TOUR.last=performance.now()
  if(!want){cnlTourOff();return;}
  let T0=CNL.tour;if(!T0){const p=me.o.position;T0=CNL.tour={t:0,seg:-1,fc:cam.position.clone(),ft:new THREE.Vector3(p.x,p.y+1.6,p.z),pc:null,pt:null};let el=$('tourPill');if(!el){el=document.createElement('div');el.id='tourPill';document.body.appendChild(el);}el.textContent='🎥 둘러보는 중 · 화면을 누르면 돌아와요';el.classList.add('on');}
  T0.t+=dt;const SEG=9,si=Math.floor(T0.t/SEG),q=(T0.t%SEG)/SEG;
- if(si!==T0.seg){if(T0.pc){T0.fc.copy(T0.pc);T0.ft.copy(T0.pt);}T0.seg=si;const L=C.TOURS[CNL.state]||C.TOURS.day;T0.k=L[si%L.length];const P=C.POI[T0.k];T0.pc=new THREE.Vector3(P.cam[0]+SEA_OX,P.cam[1],P.cam[2]);T0.pt=new THREE.Vector3(P.tg[0]+SEA_OX,P.tg[1],P.tg[2]);}
+ /* v181: 장면이 바뀔 때 마지막으로 보던 위치·방향에서 그대로 이어요 (다가간 거리를 빼먹어 카메라가 뒤로 튀던 문제) */
+ if(si!==T0.seg){if(T0.lc){T0.fc.set(T0.lc[0],T0.lc[1],T0.lc[2]);T0.ft.set(T0.lc[3],T0.lc[4],T0.lc[5]);}else if(T0.pc){T0.fc.copy(T0.pc);T0.ft.copy(T0.pt);}T0.seg=si;const L=C.TOURS[CNL.state]||C.TOURS.day;T0.k=L[si%L.length];const P=C.POI[T0.k];T0.pc=new THREE.Vector3(P.cam[0]+SEA_OX,P.cam[1],P.cam[2]);T0.pt=new THREE.Vector3(P.tg[0]+SEA_OX,P.tg[1],P.tg[2]);}
  const b=Math.min(1,q*SEG/2.6),e=b*b*(3-2*b),dr=q*.6;/* 천천히 앞으로 다가가요 */
  _tv.copy(T0.pt).sub(T0.pc).normalize().multiplyScalar(dr);
  const cx=T0.fc.x+(T0.pc.x+_tv.x-T0.fc.x)*e,cy=T0.fc.y+(T0.pc.y+_tv.y-T0.fc.y)*e,cz=T0.fc.z+(T0.pc.z+_tv.z-T0.fc.z)*e;
- camOverride=[cx,cy,cz,T0.ft.x+(T0.pt.x-T0.ft.x)*e,T0.ft.y+(T0.pt.y-T0.ft.y)*e,T0.ft.z+(T0.pt.z-T0.ft.z)*e];
+ camOverride=[cx,cy,cz,T0.ft.x+(T0.pt.x-T0.ft.x)*e,T0.ft.y+(T0.pt.y-T0.ft.y)*e,T0.ft.z+(T0.pt.z-T0.ft.z)*e];T0.lc=camOverride.slice();
  let z=$('zodTour');if(!z){z=document.createElement('div');z.id='zodTour';document.body.appendChild(z);}const on=q>.22&&q<.9,P=C.POI[T0.k];
  if(z._k!=='cnl|'+T0.k){z._k='cnl|'+T0.k;z.className='ztB cnlCap';if(!$('cnlCapCss')){const st=document.createElement('style');st.id='cnlCapCss';st.textContent='#zodTour.cnlCap{top:auto;right:auto;left:50%;bottom:calc(168px + env(safe-area-inset-bottom));transform:translate(-50%,10px);text-align:center;max-width:min(420px,88vw)}#zodTour.cnlCap.on{transform:translate(-50%,0)}#zodTour.cnlCap .ztL{margin:6px auto 0;background:linear-gradient(90deg,transparent,var(--zc),transparent)}@media(max-width:600px){#zodTour.cnlCap{bottom:calc(205px + env(safe-area-inset-bottom))}#zodTour.cnlCap b{font-size:21px}#zodTour.cnlCap p{font-size:12.5px}}';document.head.appendChild(st);}z.style.setProperty('--zc','#ffd27a');z.innerHTML=`<i>윤슬 운하</i><b>${P.n}</b><span class="ztL"></span><p>${P.d}</p>`;}
  z.classList.toggle('on',on);});
@@ -6066,7 +6115,8 @@ const jumpOn=()=>!PREV&&opt('jump','off')==='on';const JP={h:0,v:0,out:0};
 const movingKeys=()=>!!(keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||keys.ArrowUp||keys.ArrowDown||keys.ArrowLeft||keys.ArrowRight||(typeof joy!=='undefined'&&(Math.abs(joy.x)>.3||Math.abs(joy.y)>.3)));
 const onGroundVeh=()=>!!(VW.me&&S.vehRide&&VW.mk&&!isFly(VW.mk)&&!isBoatK(vehBase(VW.mk)));
 const canJump=()=>jumpOn()&&started&&me&&!anyModal()&&!(flyNow()||mySeat||VPAS.id||(VW.me&&S.vehRide)||fishing.state!=='off'||TR.riding);
-function jumpNow(){if(JP.h>.02)return;JP.v=6.4;JP.h=.001;try{tone(330,520,.12,'triangle',.04);}catch(_){}}
+/* v181: 달에서는 중력이 약해서 붕~ (약 2.2m · 1.7초) */const moonG=()=>{try{return !!SKY.on;}catch(e){return false;}};
+function jumpNow(){if(JP.h>.02)return;JP.v=moonG()?5.3:6.4;JP.moon=moonG();JP.h=.001;try{tone(330,520,.12,'triangle',.04);}catch(_){}}
 addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat)return;if(e.target&&/INPUT|TEXTAREA/.test(e.target.tagName))return;if(!canJump()||(!movingKeys()&&(nearSpot||(nearSeat&&!mySeat))))return;e.preventDefault();e.stopImmediatePropagation();jumpNow();},true);
 // v147: 의자 앞에서 Space → 앉기 · 앉아 있으면 Space → 일어나기 (낚시 버튼과 같은 동작)
 addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat)return;if(e.target&&/INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;if(!started||anyModal()||fishing.state!=='off'||movingKeys())return;const m=($('fishBtn')||{}).dataset;const mm=m&&m.m;if(mm!=='sit'&&mm!=='stand')return;e.preventDefault();e.stopImmediatePropagation();try{$('bSit').onclick();}catch(_){}},true);
@@ -6084,7 +6134,7 @@ PHOOK.push(dt=>{const b=$('fishBtn');if(!b)return;let m='';
  if(m){b.style.display='block';b.classList.remove('far');const sb=$('sitBtn');if(sb)sb.style.display='none';}});
 $('fishBtn').addEventListener('pointerdown',e=>{if($('fishBtn').dataset.m!=='jump')return;e.preventDefault();e.stopImmediatePropagation();if(canJump())jumpNow();$('fishBtn')._jd=performance.now();},true);
 $('fishBtn').addEventListener('click',e=>{const m=$('fishBtn').dataset.m;if(!m&&!(performance.now()-($('fishBtn')._jd||0)<600))return;e.preventDefault();e.stopImmediatePropagation();if(m==='jump'||performance.now()-($('fishBtn')._jd||0)<600){return;}else if(m==='sit'||m==='stand'){try{$('bSit').onclick();}catch(_){}}},true);
-PHOOK.push(dt=>{if(!me||JP.h<=0)return;JP.v-=21*dt;JP.h=Math.max(0,JP.h+JP.v*dt);me.o.position.y+=JP.h;if(onGroundVeh())VW.me.position.y+=JP.h;if(JP.h<=0){JP.v=0;try{tone(180,120,.08,'sine',.03);}catch(_){}}});
+PHOOK.push(dt=>{if(!me||JP.h<=0)return;JP.v-=(JP.moon?(Math.abs(JP.v)<1.2?4.5:6.5):21)*dt;/* 달: 꼭대기에서 조금 더 머물러요 */JP.h=Math.max(0,JP.h+JP.v*dt);me.o.position.y+=JP.h;if(onGroundVeh())VW.me.position.y+=JP.h;if(JP.h<=0){JP.v=0;try{tone(180,120,.08,'sine',.03);}catch(_){}}});
 {const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};if(JP.h>.02)o.jp=Math.round(JP.h*10);return Object.keys(o).length?o:null;};}
 RHOOK.push((r,p)=>{if(!r||!r.c||!p.ex||!p.ex.jp)return;const h=Math.max(0,Math.min(20,+p.ex.jp))/10;r.c.o.position.y+=h;const e=VW.peers.get(p.id);if(e&&e.g&&!e.g.userData.fly)e.g.position.y+=h;});
 // 👀 1인칭 (Ctrl+1 · 설정에서 V/Alt+1) · 🎥 자동 둘러보기
@@ -6682,7 +6732,7 @@ function tk3StripHTML(){const z=tk3S(),cur=z.sw;const card=(i,k,list,rule)=>{con
  const mainK=cur?z.sl[cur-1].k:S.tankK,mainL=cur?z.sl[cur-1].fish:S.tank;// 바뀐 상태 보정
  const items=[[0,mainK,mainL,z.main]];z.sl.forEach((s,i)=>{const k=cur===i+1?S.tankK:s.k,L=cur===i+1?S.tank:s.fish;items.push([i+1,k,L,s.rule]);});
  const free=[...new Set(tk3Free())];
- return `<div id="tk3"><div class="tk3s">${items.map(a=>card(...a)).join('')}${z.sl.length?'<button type="button" class="tk3mvb" data-tk3mv title="이 어항에서 여러 마리를 골라 다른 어항으로 옮겨요">🐠 여러 마리<br>옮기기</button>':''}${z.sl.length<2?`<div class="tk3add">${free.length?`<select data-tk3add><option value="">+ 어항 추가</option>${free.map(k=>`<option value="${k}">${tkName(k)} (${tkCap(k)})</option>`).join('')}</select>`:'<small>상점에서 어항을 더 사면 여기 추가할 수 있어요</small>'}</div>`:''}</div></div>`;}
+ return `<div id="tk3"><div class="tk3s">${items.map(a=>card(...a)).join('')}${z.sl.length?'<button type="button" class="tk3mvb" data-tk3mv title="이 어항에서 여러 마리를 골라 다른 어항으로 옮겨요">🐠 여러 마리 <br>옮기기</button>':''}${z.sl.length<2?`<div class="tk3add">${free.length?`<select data-tk3add><option value="">+ 어항 추가</option>${free.map(k=>`<option value="${k}">${tkName(k)} (${tkCap(k)})</option>`).join('')}</select>`:'<small>상점에서 어항을 더 사면 여기 추가할 수 있어요</small>'}</div>`:''}</div></div>`;}
 const esc0t=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const tk3Nm=(r,k)=>(r&&r.nm)||tkName(k);
 function tk3RuleTxt(r){if(!r)return '규칙 없음';const a=[];if(r.g&&r.g.length)a.push(r.g.map(i=>TK3G[i]).join('·'));if(r.vr&&r.vr.length)a.push('변이');if(r.sz)a.push(r.sz==='p90'?'최대 90%↑':r.sz+'cm↑');if(r.ks&&r.ks.length)a.push(r.ks.map(k=>FI(k).n).slice(0,2).join('·')+(r.ks.length>2?'…':''));if(r.st&&r.st.length)a.push(r.st.slice().sort().map(v=>'★'+(v+1)).join('·'));if(r.zs&&r.zs.length)a.push('별자리 '+r.zs.length);if(r.rest)a.push('나머지 모두');return a.join(' · ')||'규칙 없음';}
@@ -7367,11 +7417,11 @@ LAB.push({k:'snowFx',n:'❄ 눈 스타일 (시안)',d:'눈 날씨가 올 때 아
 const SNS=[['base','맵 기본 눈','3d','눈 맵 · 맑은 날도 늘'],['nunbal','눈발·함박눈 (눈 맵)','3d','눈 맵 비·눈 날씨'],['blizzard','눈보라 (눈 맵)','3d','눈 맵 소나기 날씨'],['hambak','함박눈 (일반 맵)','old','일반 맵 눈 날씨'],
  ['soft','① 포근 함박눈','new','눈 날씨'],['powder','② 가루눈','new','눈 날씨'],['crystal','③ 눈꽃 결정','new','눈 날씨'],['glitter','④ 반짝이는 눈','new','눈 날씨'],['glow','⑥ 별빛 눈','new','눈 날씨 · 밤에만'],['sleet','⑦ 진눈깨비','new','눈 날씨'],['sakura','⑧ 벚꽃눈','new','눈 날씨 · 벚꽃 성탄 맵에 잘 어울려요']];
 const SN_DEF=()=>Object.fromEntries(SNS.map(([k,n,t])=>[k,{on:1,w:t==='new'?1:2,a:100}]));
-const snOn=()=>opt('snowFx','off')==='on';
+const snOn=()=>opt('snowFx','off')==='on'||!!window.__nkWxSn;/* v181: 날씨 시간표에서 고른 눈은 테스트 기능이 꺼져 있어도 내려요 */
 function snCfg(){let c=null;try{c=(mvPlay()||{}).snowCfg;}catch(e){}const d=SN_DEF();if(c&&typeof c==='object')for(const k in d)if(c[k])d[k]=Object.assign(d[k],c[k]);if(S.snEd&&NK_ADM.ok())for(const k in d)if(S.snEd[k])d[k]=Object.assign({},d[k],S.snEd[k]);return d;}
 // 지금 눈 날씨면 어떤 눈인지 (모든 유저가 같은 6분 단위로 같은 눈을 골라요)
 const SNPRE={k:null,until:0};
-function snPick(){if(!snOn())return null;if(SNPRE.k&&performance.now()<SNPRE.until)return SNPRE.k;const k=S.__wx,snowy=MAPV.cur==='X'||MAPV.cur==='XM',night=worldFrac()>=2/3;
+function snPick(){if(!snOn())return null;if(window.__nkWxSn&&S.__wx==='snow')return window.__nkWxSn;if(SNPRE.k&&performance.now()<SNPRE.until)return SNPRE.k;const k=S.__wx,snowy=MAPV.cur==='X'||MAPV.cur==='XM',night=worldFrac()>=2/3;
  const isSnow=snowy?['drizzle','storm','snow','cherry','leaf'].includes(k):k==='snow';if(!isSnow)return null;const C=snCfg();
  const pool=SNS.filter(([q,,t])=>C[q].on&&C[q].w>0&&(t==='new'?(q!=='glow'||night):snowy?(k==='storm'?q==='blizzard':q==='nunbal'):q==='hambak')&&!(snowy&&k==='storm'&&t==='new'&&q!=='powder'));
  if(!pool.length)return snowy?(k==='storm'?'blizzard':'nunbal'):'hambak';let tot=0;pool.forEach(([q])=>tot+=+C[q].w);let r=((Math.sin((Math.floor(Date.now()/36e4)+k.length*7)*12.9898)*43758.5453)%1+1)%1*tot;for(const [q] of pool){r-=+C[q].w;if(r<0)return q;}return pool[0][0];}
@@ -7706,7 +7756,7 @@ function draw(pre){if(!cx)return;const bite=typeof fishing!=='undefined'&&fishin
 setInterval(()=>{if(cv&&!act&&vid&&!document.hidden&&on()&&started)draw();},500);
 /* v179: 게임이 보이는 동안은 화면을 한 번 더 그리지 않고, 방금 그린 게임 화면을 그대로 옮겨요 (느려지지 않게) · 1초에 10번 */
 window.__nkPipPost=dt=>{if(!act||!cx||document.hidden)return;draw(true);};/* v180: 게임이 그릴 때마다 (일반 화면과 같은 프레임) */
-/* v179: 창을 내린 동안은 작은 해상도로 그려서 가볍게 (v180: 1초에 15번) · 돌아오면 원래대로 */
+/* v179: 창을 내린 동안은 작은 해상도로 그려서 가볍게 (v181: 1초에 30번) · 돌아오면 원래대로 */
 let lowPR=0;function lowRes(on){try{if(on&&!lowPR){lowPR=R.getPixelRatio();const k=Math.max(.35,Math.min(lowPR,(W*1.25)/Math.max(1,innerWidth)));if(k<lowPR)R.setPixelRatio(k);else lowPR=0;}else if(!on&&lowPR){R.setPixelRatio(lowPR);lowPR=0;}}catch(e){}}
 /* v179: 게임 화면으로 돌아오면 작은 창을 닫아요 (전체 화면인데 작은 창이 남아 있던 문제) */
 let wasHid=false;document.addEventListener('visibilitychange',()=>{if(document.hidden){wasHid=true;return;}lowRes(false);if(wasHid&&act){wasHid=false;setTimeout(()=>{if(!document.hidden)closePip();},250);}wasHid=false;});
