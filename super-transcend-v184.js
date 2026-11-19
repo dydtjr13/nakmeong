@@ -287,5 +287,10 @@ const tp=setInterval(()=>{if(I()&&I().tankView){tankPatch();clearInterval(tp);}}
   b.querySelectorAll('[data-stp]').forEach(x=>x.onclick=()=>{inp.value=x.dataset.stp;});
   b.querySelector('[data-stgo]').onclick=()=>{const n=Math.max(10000,Math.min(1e8,Math.round(+inp.value||RATE0)));const ok=pubPlay({stRate:n});I().toast(ok?`👑 슈퍼 초월급 확률을 1/${n.toLocaleString()}로 모든 유저에게 적용했어요`:'서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2000);setTimeout(()=>re&&re(),700);};
   b.querySelectorAll('[data-stt]').forEach(x=>x.onclick=()=>{const k=NKST.force(x.dataset.stt);if(!k)return;const sp=SPK(k);try{I().closeM('admin');}catch(e){}I().toast(`🧪 다음 입질이 ${sp.n}예요 — ${sp.mapN} 낚시 자리에서 던져 보세요`,2600);});}});
+// v185: 운영자(테스트 기능 권한이 없어도) — 관리자 › 🎉 이벤트 탭 위에 테스트 낚시 버튼만 따로 보여요
+(window.__nkEvX=window.__nkEvX||[]).push({
+ html(){const R=window.NK_RT;if(!(R&&R.op&&!(R.isAdmin&&R.isAdmin())))return '';
+  return `<div class="stadm stop"><div class="sah"><b>👑 슈퍼 초월급 테스트 낚시</b><small>운영자용 · 전체 서버 공지·순위에는 안 올라가요</small></div><div class="satb">${SP.map(s=>`<div class="sacell"><img src="img/fish/${s.k}.png" alt=""><b>${s.icon} ${s.n}</b><small>${s.mapN}</small><button type="button" data-stt="${s.k}" ${s.soon&&!skyOpen()?'disabled':''}>🎣 다음 입질로 테스트</button></div>`).join('')}</div></div>`;},
+ bind(root){const b=root.querySelector('.stadm.stop');if(!b)return;b.querySelectorAll('[data-stt]').forEach(x=>x.onclick=()=>{const k=NKST.force(x.dataset.stt);if(!k)return;const sp=SPK(k);try{I().closeM('admin');}catch(e){}I().toast(`🧪 다음 입질이 ${sp.n}예요 — ${sp.mapN} 낚시 자리에서 던져 보세요`,2600);});}});
 function pubPlay(o){try{if(window.NKV2&&NKV2.pubPlay)return NKV2.pubPlay(o);}catch(e){}return false;}
 })();

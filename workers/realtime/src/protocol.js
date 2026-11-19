@@ -843,13 +843,19 @@ export function sanitizeGift(input, now) {
   const b = Math.round(nonNeg(input.b, 50));
   const x = Math.round(nonNeg(input.x, 1e8));
   // v136: 탈것·펫도 지급 (최대 6개)
-  const it = Array.isArray(input.it) ? input.it.slice(0, 6).map((o) => {
+  // v185: 낚싯대(rod)·장비(wear)·부적(charm)·미끼(bait)도 지급 (한 번에 14가지까지)
+  const GIFT_T = ["veh", "pet", "szt", "rod", "wear", "charm", "bait"];
+  const it = Array.isArray(input.it) ? input.it.slice(0, 14).map((o) => {
     if (!o || typeof o !== "object") return null;
-    const ty = o.t === "veh" || o.t === "pet" || o.t === "szt" ? o.t : null;
+    const ty = GIFT_T.includes(o.t) ? o.t : null;
     const k = String(o.k || "").replace(/[^\w-]/g, "").slice(0, 24);
     if (!ty || !k) return null;
     const r = { t: ty, k };
+    const cl = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(Number(v) || 0)));
     if (ty === "szt") r.n = Math.max(1, Math.min(50, Math.round(Number(o.n) || 1))); // v167: 📏 크기 변화 이용권
+    if (ty === "rod") { r.n = cl(o.n, 1, 10); r.g = cl(o.g, 0, 5); r.st = cl(o.st, 0, 5); }
+    if (ty === "charm") { r.n = cl(o.n, 1, 20); r.g = cl(o.g, 0, 5); }
+    if (ty === "bait") r.n = cl(o.n, 1, 9999);
     if (ty === "veh" && o.c) r.c = String(o.c).replace(/[^\w-]/g, "").slice(0, 16);
     return r;
   }).filter(Boolean) : [];

@@ -879,3 +879,11 @@ test("v184 super transcend: sanitizeSt and play stOn/stRate", () => {
   assert.equal(p.stRate, 10000);
   assert.equal(sanitizePlay({ stRate: "abc" }, null, { bump: true, now: 1 }).stRate, 300000);
 });
+
+test("v185 gift: rod/wear/charm/bait items", () => {
+  const g = sanitizeGift({ nick: "a", it: [{ t: "rod", k: "dragon", g: 9, st: 3, n: 50 }, { t: "wear", k: "hat10" }, { t: "charm", k: "c", g: 5, n: 3 }, { t: "bait", k: "golden", n: 100 }, { t: "evil", k: "x" }] }, 1000);
+  assert.equal(g.it.length, 4);
+  assert.deepEqual(g.it[0], { t: "rod", k: "dragon", n: 10, g: 5, st: 3 });
+  assert.deepEqual(g.it[2], { t: "charm", k: "c", n: 3, g: 5 });
+  assert.equal(g.it[3].n, 100);
+});

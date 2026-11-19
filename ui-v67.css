@@ -714,3 +714,10 @@ body.tourOn #xpF{display:none!important}
 .fzset>div{min-width:0;flex:1 1 auto;overflow:hidden}
 .fzset b,.fzset small,.fzset .fzcnt{overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .fzset>button,.fzset>.lock,.fzset>.done{flex:0 0 auto}
+/* v185: 관리자 지급 창 — 탭이 늘어서 한 줄로 밀어 보기 · 낚싯대 등급/별 고르기 */
+#uWin .uw-win .uw-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding-bottom:4px}#uWin .uw-win .uw-tabs button{flex:0 0 auto}
+#uWin .uw-opt{display:flex;gap:10px;margin:0 0 8px;flex-wrap:wrap}#uWin .uw-opt label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#3b3340;white-space:nowrap}
+#uWin .uw-opt select{padding:4px 6px;border-radius:8px;border:1px solid #eadccb}
+#uWin .uw-row b .sico{width:22px;height:22px;object-fit:contain;vertical-align:middle}
+#nkTip{position:fixed;z-index:100000;display:none;pointer-events:none;background:#2b2530;color:#fff;font-size:12.5px;line-height:1.5;padding:7px 10px;border-radius:9px;box-shadow:0 6px 18px rgba(0,0,0,.28);white-space:pre-line;word-break:keep-all;overflow-wrap:anywhere}
+#uWin .uw-row.uw-bt>b{display:flex;align-items:center;gap:6px;white-space:nowrap;min-width:150px;justify-content:flex-start;text-align:left}#uWin .uw-row.uw-bt>b .sico{width:24px;height:24px;object-fit:contain;flex:0 0 auto}
