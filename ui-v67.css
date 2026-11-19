@@ -709,3 +709,8 @@ html.nkWatch body>*:not(#world):not(#nkWatchTag):not(canvas){display:none!import
 #mnSet .mnseg{display:flex;gap:3px;background:#eadfce;border-radius:11px;padding:3px}
 #mnSet .mnseg button{border:0;background:transparent;border-radius:9px;padding:6px 10px;font-weight:700;font-size:12px;white-space:nowrap;color:#6e6470;cursor:pointer}
 #mnSet .mnseg button.on{background:#fff;color:#3a3340;box-shadow:0 1px 3px #0002}
+body.tourOn #xpF{display:none!important}
+/* v183: 변이 5종 완성 보상 — 긴 물고기 이름이 칸 밖으로 나가지 않게 */
+.fzset>div{min-width:0;flex:1 1 auto;overflow:hidden}
+.fzset b,.fzset small,.fzset .fzcnt{overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.fzset>button,.fzset>.lock,.fzset>.done{flex:0 0 auto}

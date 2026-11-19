@@ -859,3 +859,12 @@ test("v181 sanitizeSched keeps map weather rows (wx) and cleans them", async () 
   assert.equal(rows[0].gift, null);
   assert.deepEqual(rows[1].wx, { m: "canal", k: "drizzle" });
 });
+
+test("v183 sanitizePlay keeps staff-only settings (adm) and graduated lab keys", () => {
+  const p = sanitizePlay({ adm: { pipOn: "on", "u25:xp": "A4", "bad key!": "x", long: "y".repeat(80), n: 3, o: { a: 1 } }, labGrad: ["pipOn", "pipOn", "bad key", 5] }, null, { bump: true, now: 1000 });
+  assert.deepEqual(p.adm, { pipOn: "on", "u25:xp": "A4", n: 3 });
+  assert.deepEqual(p.labGrad, ["pipOn"]);
+  const q = sanitizePlay({ adm: {} }, p, { bump: true, now: 2000 });
+  assert.deepEqual(q.adm, {});
+  assert.deepEqual(q.labGrad, ["pipOn"]);
+});
