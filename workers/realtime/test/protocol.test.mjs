@@ -37,6 +37,7 @@ import {
   sanitizeItem,
   sanitizeLoss,
   sanitizePlay,
+  sanitizeSt,
   sanitizeRecover,
   sanitizeStage,
   sanitizeWorld,
@@ -867,4 +868,14 @@ test("v183 sanitizePlay keeps staff-only settings (adm) and graduated lab keys",
   const q = sanitizePlay({ adm: {} }, p, { bump: true, now: 2000 });
   assert.deepEqual(q.adm, {});
   assert.deepEqual(q.labGrad, ["pipOn"]);
+});
+
+test("v184 super transcend: sanitizeSt and play stOn/stRate", () => {
+  assert.deepEqual(sanitizeSt({ k: "st_carp", cm: 249.57 }), { k: "st_carp", cm: 249.6 });
+  assert.equal(sanitizeSt({ k: "carp", cm: 30 }), null);
+  assert.equal(sanitizeSt({ k: "st_whale", cm: -1 }), null);
+  const p = sanitizePlay({ stOn: "off", stRate: 50 }, null, { bump: true, now: 1 });
+  assert.equal(p.stOn, "off");
+  assert.equal(p.stRate, 10000);
+  assert.equal(sanitizePlay({ stRate: "abc" }, null, { bump: true, now: 1 }).stRate, 300000);
 });

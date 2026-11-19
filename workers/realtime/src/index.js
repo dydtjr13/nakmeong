@@ -6,6 +6,8 @@ import {
   HELLO_MS,
   MAX_OPS,
   SERVERS,
+  sanitizeSt,
+  ST_KEYS,
   ackRecover,
   cleanHomes,
   lakeTargets,
@@ -265,6 +267,17 @@ export class LakeRoom extends DurableObject {
     if (!msg || typeof msg !== "object") return;
     const now = Date.now();
     // v128: ⭐ 5성 완성 알림 띠 — 모든 호숫가·하늘섬에 그대로 전달 (저장하지 않음)
+    // v184: 👑 슈퍼 초월급 — 전체 서버 공지(st)와 축하(stc)를 모든 방에 그대로 전달
+    if (msg.t === "st") {
+      const st = sanitizeSt(msg);
+      if (st) this.broadcast({ t: "st", a: String(msg.a || "").slice(0, 48), id: String(msg.id || "").slice(0, 40), nick: String(msg.nick || "").slice(0, 24), srv: msg.srv | 0, k: st.k, cm: st.cm, n: Math.max(1, Math.min(1e7, msg.n | 0)), at: +msg.at || Date.now() });
+      return;
+    }
+    if (msg.t === "stc") {
+      const a = String(msg.a || "").slice(0, 48);
+      if (a) this.broadcast({ t: "stc", a, nick: String(msg.nick || "").slice(0, 24), id: String(msg.id || "").slice(0, 40) });
+      return;
+    }
     if (msg.t === "s5") {
       this.broadcast({ t: "s5", nick: String(msg.nick || "").slice(0, 24), id: String(msg.id || "").slice(0, 40), srv: msg.srv | 0, k: String(msg.k || "").slice(0, 20), g: msg.g | 0 });
       return;
@@ -616,6 +629,16 @@ export class LakeRoom extends DurableObject {
     return this.ctx.getWebSockets().filter((ws) => ws.readyState === WebSocket.OPEN && LakeRoom.isSpecWs(ws));
   }
 
+  /** v184: 👑 슈퍼 초월급 — 종마다 전체 서버에서 몇 번째로 낚였는지 (호숫가 1이 기록해요) */
+  async stBump(k) {
+    if (!ST_KEYS.includes(k)) return 0;
+    const c = { ...(await this.opsGet("stcnt", {})) };
+    c[k] = (c[k] | 0) + 1;
+    await this.opsPut("stcnt", c);
+    return c[k];
+  }
+  async stCounts() { return { ...(await this.opsGet("stcnt", {})) }; }
+
   async occupancy() {
     const st = await this.opsGet("stage", null);
     const play = await this.opsGet("play", null);
@@ -831,6 +854,32 @@ export class LakeRoom extends DurableObject {
       } catch {
         /* already closing */
       }
+      return;
+    }
+    // v184: 👑 슈퍼 초월급 낚음 — 호숫가 1이 전체 서버 몇 번째인지 세고, 모든 서버에 공지해요 (한 사람당 60초에 한 번)
+    if (msg.t === "st") {
+      if (!prev.ready) return;
+      const st = sanitizeSt(msg);
+      if (!st) return;
+      const now = Date.now();
+      if (now - (prev.lastSt || 0) < 60000) return;
+      prev.lastSt = now;
+      try { ws.serializeAttachment(prev); } catch { /* ignore */ }
+      let n = 0;
+      try { n = prev.server === 1 ? await this.stBump(st.k) : await this.env.LAKE.getByName("lake-1").stBump(st.k); } catch (e) { n = 0; }
+      const a = `${prev.server}:${prev.id}:${now}`;
+      await this.fan(prev.server, [...SERVERS.map((x) => x.id), 7, 20], { t: "st", a, id: prev.id, nick: prev.nick, srv: prev.server, k: st.k, cm: st.cm, n, at: now });
+      return;
+    }
+    if (msg.t === "stc") {
+      if (!prev.ready) return;
+      const a = String(msg.a || "").replace(/[^\w:.-]/g, "").slice(0, 48);
+      if (!a) return;
+      prev.stcSeen = Array.isArray(prev.stcSeen) ? prev.stcSeen : [];
+      if (prev.stcSeen.includes(a)) return;
+      prev.stcSeen = [...prev.stcSeen.slice(-9), a];
+      try { ws.serializeAttachment(prev); } catch { /* ignore */ }
+      await this.fan(prev.server, [...SERVERS.map((x) => x.id), 7, 20], { t: "stc", a, id: prev.id, nick: prev.nick });
       return;
     }
     // v128: ⭐ 5성 완성 알림 — 서버 전체(1~4 · 7)로 · 한 사람당 8초에 한 번
