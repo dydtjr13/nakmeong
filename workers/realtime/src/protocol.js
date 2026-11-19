@@ -1,5 +1,15 @@
 /** 피쉬코지 실시간 프로토콜. Durable Object와 단위 테스트가 같이 씁니다. */
 
+/** v184: 👑 슈퍼 초월급 물고기 4종 */
+export const ST_KEYS = ["st_carp", "st_whale", "st_ray", "st_stur"];
+export function sanitizeSt(m) {
+  if (!m || typeof m !== "object") return null;
+  const k = String(m.k || "");
+  if (!ST_KEYS.includes(k)) return null;
+  const cm = Number(m.cm);
+  if (!Number.isFinite(cm) || cm <= 0 || cm > 5000) return null;
+  return { k, cm: Math.round(cm * 10) / 10 };
+}
 export const SERVERS = [
   { id: 1, name: "물병자리" },
   { id: 2, name: "물고기자리" },
@@ -1120,6 +1130,9 @@ export function sanitizePlay(input, prev, opt) {
   if ("stV2" in input) out.stV2 = pickOf(input.stV2, ["off", "on"]);
   if ("pipOn" in input) out.pipOn = pickOf(input.pipOn, ["off", "on"]);
   if ("emoteOn" in input) out.emoteOn = pickOf(input.emoteOn, ["on", "off"]);
+  // v184: 👑 슈퍼 초월급 — 켜기/끄기 · 확률 1/N (기본 300,000)
+  if ("stOn" in input) out.stOn = pickOf(input.stOn, ["on", "off"]);
+  if ("stRate" in input) { const n = Math.round(Number(input.stRate)); out.stRate = Number.isFinite(n) ? Math.max(10000, Math.min(100000000, n)) : 300000; }
   if ("guideV2" in input) out.guideV2 = pickOf(input.guideV2, ["off", "new"]);
   if ("guideMe" in input) out.guideMe = pickOf(input.guideMe, ["off", "on"]);
   if ("fzGrade" in input) out.fzGrade = pickOf(input.fzGrade, ["on", "off"]);
