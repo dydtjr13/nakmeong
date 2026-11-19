@@ -2405,10 +2405,10 @@ function fzPick(G){return G.list.slice().sort((a,b)=>a.v-b.v).slice(0,3);}
 /* v174: 합성 등급 보상 (테스트 기능 fzGrade, 기본 켜짐) — 재료 물고기 등급(일반~초월)에 따라
    ① 성공하면 물고기 정수 추가 ② 변이 확률 보정 ④ 비용 차등 ⑤ 등급별 첫 5성 칭호 · ③ 별 조각 차등은 5성 교환소에 이미 있어요 */
 const fzGrOn=()=>String(uiOpt('fzGrade','on'))!=='off';
-const FZG_ESS=[1,2,3,5,8,12],FZG_VAR=[1,1,1.2,1.2,1.5,1.5],FZG_COST=[0,0,.25,.5,1,1.5];
+/* v180: 정수 밸런스 — 성공 정수가 너무 많았어요 (1·2·3·5·8·12 → 일반·고급 0 · 희귀 1 · 전설 2 · 신화 3 · 초월 5). 실패하면 +1 은 그대로 */const FZG_ESS=[0,0,1,2,3,5],FZG_VAR=[1,1,1.2,1.2,1.5,1.5],FZG_COST=[0,0,.25,.5,1,1.5];
 function fzGr(mats){return Math.max(0,Math.min(5,...(mats||[]).map(f=>f&&f.g|0)));}
 function fzCost(st,mats){const g=fzGrOn()&&mats&&mats.length?fzGr(mats):0;return Math.round(300*(st+1)*(1+FZG_COST[g])/10)*10;}
-function fzGrNote(mats,wrap){if(!fzGrOn()||!mats||!mats.length)return '';const g=fzGr(mats),G=GR(g);const p=[];if(FZG_VAR[g]>1)p.push('변이 ×'+FZG_VAR[g]);p.push('성공하면 정수 +'+FZG_ESS[g]);if(FZG_COST[g])p.push('비용 +'+Math.round(FZG_COST[g]*100)+'%');return `<div class="fzgn ${wrap?'w':''}"><b>${G?G.n:''} 등급</b> ${p.join(' · ')}</div>`;}
+function fzGrNote(mats,wrap){if(!fzGrOn()||!mats||!mats.length)return '';const g=fzGr(mats),G=GR(g);const p=[];if(FZG_VAR[g]>1)p.push('변이 ×'+FZG_VAR[g]);if(FZG_ESS[g])p.push('성공하면 정수 +'+FZG_ESS[g]);if(FZG_COST[g])p.push('비용 +'+Math.round(FZG_COST[g]*100)+'%');return `<div class="fzgn ${wrap?'w':''}"><b>${G?G.n:''} 등급</b> ${p.join(' · ')}</div>`;}
 const FZ_ESS={black:5,pink:8,red:12,gold:18,rainbow:30};
 function fzProbs(G){const z=fzS(),P={};if(FZ.pity&&(z.ess|0)<(FZ_ESS[FZ.pity]||10))FZ.pity=null;if(G&&G.vr){FZO.forEach(k=>P[k]=k===fzNext(G.vr)?100:0);return {P,fail:0,ok:0,fix:1};}let vs=0;const gm=fzGrOn()&&G&&G.list?FZG_VAR[fzGr(fzPick(G))]:1;FZO.forEach(k=>{let p=FZV[k].p*gm;if(FZ.cat===k)p*=2;P[k]=Math.round(p*100)/100;vs+=P[k];});if(FZ.pity){FZO.forEach(k=>P[k]=k===FZ.pity?100:0);return {P,fail:0,ok:0};}return {P,fail:FZ_FAIL,ok:Math.max(0,100-vs-FZ_FAIL)};}
 // v107: 합성 뒤 그 물고기가 3마리 미만이면 목록 맨 위 합성 가능한 물고기를 자동으로 골라요
@@ -3040,7 +3040,7 @@ let BGRUN=false,BGERR='';const nextF=()=>{if(!BGRUN)requestAnimationFrame(frame)
 {let wk=null;const bgOn=()=>!!(document.hidden&&started&&(S.autoFish||window.__nkPipOn));
  const tick=()=>{if(!BGRUN)return;if(!bgOn()){return;}const target=performance.now(),step=Math.max(50,S.fpsCap?1000/S.fpsCap:0);let n=0;if(target-last>60000)last=target-60000;
   while(last<target-step&&n<400){n++;try{frameBody(Math.min(target,last+step));}catch(e){last+=step;}}try{window.__nkPipBg&&window.__nkPipBg();}catch(e){}};
- const start=()=>{if(BGRUN)return;BGRUN=true;try{if(!wk){const src='let h=0;onmessage=e=>{clearInterval(h);if(e.data)h=setInterval(()=>postMessage(0),e.data);};';wk=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));wk.onmessage=tick;}wk.postMessage(window.__nkPipOn?125:250);/* v179: 작은 창이 떠 있으면 1초에 8번 */}catch(e){BGRUN=false;BGERR=String(e&&e.message||e);}};
+ const start=()=>{if(BGRUN)return;BGRUN=true;try{if(!wk){const src='let h=0;onmessage=e=>{clearInterval(h);if(e.data)h=setInterval(()=>postMessage(0),e.data);};';wk=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));wk.onmessage=tick;}wk.postMessage(window.__nkPipOn?66:250);/* v179: 작은 창이 떠 있으면 1초에 8번 */}catch(e){BGRUN=false;BGERR=String(e&&e.message||e);}};
  const stop=()=>{if(!BGRUN)return;BGRUN=false;try{wk&&wk.postMessage(0);}catch(e){}const t0=performance.now();last=t0;setTimeout(()=>{if(FRAMEAT<t0)requestAnimationFrame(frame);},250);};
  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(started&&(S.autoFish||window.__nkPipOn))start();}else stop();});
  setInterval(()=>{if(document.hidden&&started&&(S.autoFish||window.__nkPipOn)&&!BGRUN)start();},5000);
@@ -4716,7 +4716,7 @@ LAB.push({k:'turtle',n:'🐢 거북이 탈것',d:'상점 › 🚗 탈것에 「�
 LAB.push({k:'hyper',n:'💎 초월 탈것',d:'상점 › 🚗 탈것에 초월 등급 「프리즘 하이퍼카」가 생겨요 (탈것 기능이 켜져 있어야 해요). 보는 각도에 따라 색이 바뀌는 홀로그램 펄 도장 · 네온 라인 · 바닥 언더글로우, 달리면 뒤로 반짝이 꼬리가 남아요. 옆자리에 친구 1명이 탈 수 있어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'taxi',n:'🚗 하늘 택시',d:'상점 › 🚗 탈것에 「하늘 택시」가 생겨요 (탈것 기능이 켜져 있어야 해요). 택시를 타면 화면에 「🚗 지상 / ✈️ 비행」과 「💰 요금」이 나와요. 지상은 땅에서 운전, 비행은 날개가 펴지며 하늘을 날아요. 다른 유저가 택시를 눌러 요금을 내면 옆자리에 타요 (요금은 운전한 사람이 받아요)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'boat',n:'⛵ 돛단배',d:'상점 › 🚗 탈것에 「돛단배」가 생겨요 (탈것 기능이 켜져 있어야 해요). 호숫가·데크 끝처럼 물가에서만 탈 수 있고, 호수 위로만 다녀요. 내리면 가까운 땅이나 데크로 올라가요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
-LAB.push({k:'fzGrade',n:'🏅 합성 등급 보상',d:'재료 물고기 등급(일반·고급·희귀·전설·신화·초월)에 따라 ① 성공하면 정수 +1·2·3·5·8·12 ② 변이 확률 희귀·전설 ×1.2, 신화·초월 ×1.5 ④ 비용 희귀 +25%·전설 +50%·신화 +100%·초월 +150% ⑤ 등급마다 처음 5성을 만들면 칭호 「(등급) 별 장인」. ③ 별 조각 차등은 5성 교환소에 원래 있어요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기']]});
+LAB.push({k:'fzGrade',n:'🏅 합성 등급 보상',d:'재료 물고기 등급(일반·고급·희귀·전설·신화·초월)에 따라 ① 성공하면 정수 희귀 +1·전설 +2·신화 +3·초월 +5 (일반·고급은 없음) ② 변이 확률 희귀·전설 ×1.2, 신화·초월 ×1.5 ④ 비용 희귀 +25%·전설 +50%·신화 +100%·초월 +150% ⑤ 등급마다 처음 5성을 만들면 칭호 「(등급) 별 장인」. ③ 별 조각 차등은 5성 교환소에 원래 있어요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기']]});
 LAB.push({k:'star5',n:'⭐ 5성 물고기 (시안 A)',d:'합성으로 5성(★★★★★)이 된 물고기가 특별해져요: 금빛 후광·별·빛줄기 카드, 같은 호숫가에 「OO님이 5성을 완성했어요!」 알림, 「⭐ 별 조각 교환소」(5성 물고기 → 별 조각 → 칭호 「별을 낚은 자」·신화 행운 상자(1주 1개)·한정 펫 별 고래). 합성 창 위 「⭐ 교환소」 버튼으로 열어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'skyIsland',n:'🌙 달 (별도 채널)',d:'나는 탈것을 타고 높이 36m 넘게 올라가면(Lv.50 이상) 「달로 갈까요?」가 떠요. 달은 따로 된 채널이라 지구(호숫가) 사람은 안 보이고, 둥근 달 위 호수에서 별자리 물고기 12종이 낚여요. 화면 위 「🌏 지구로」로 원래 호숫가로 돌아와요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'moonView',n:'🌙 달 · 낚시 시점',d:'달 맵의 분위기. 1 은빛 달(기본) · 2 푸른 달빛 · 3 은빛 달 + 물가 등불',scope:'all',o:[['1','1 · 은빛 달 (기본)'],['2','2 · 푸른 달빛'],['3','3 · 은빛 달 + 등불']]});
@@ -5083,13 +5083,22 @@ FHOOK.push(dt=>{const list=[VW.me,...[...VW.peers.values()].map(e=>e.g)],src=[];
   F.pd.position.set(w.x,gy+.06,w.z);F.pd.scale.setScalar(rB*1.05);F.pd.material.opacity=(.18+.06*Math.sin(F.t*4))*k;
   src.push({x:w.x,z:w.z,top,gy,h,rad,k,me:g===VW.me});}
  UFS.src=src;});
-(window.__nkPostSync=window.__nkPostSync||[]).push(dt=>{const src=UFS.src||[],mode=ufsMode(),LIFT=mode==='A'?.7:mode==='C'?.45:1.4;dt=Math.min(.1,dt||.016);
- for(const [,r] of remotes){const c=r.c,o=c&&c.o;if(!o)continue;const p=r._p||{},ex=p.ex||{};let tgt=0;
-  if(src.length&&!(ex.vh||ex.ts!=null||p.seat!=null)){for(const s of src){const d=Math.hypot(o.position.x-s.x,o.position.z-s.z),f=Math.max(0,Math.min(1,(o.position.y-s.gy)/s.h));if(s.top>o.position.y+1.2&&d<s.rad(f)*.95){tgt=Math.max(tgt,LIFT*s.k);}}}
-  const lf=r._lf||0;r._lf=lf+(tgt-lf)*Math.min(1,dt*(tgt>lf?2.2:1.1));if(r._lf<.005&&!tgt){r._lf=0;if(r._tl){o.rotation.x=0;o.rotation.z=0;r._tl=0;}if(r._gl){r._gl.visible=false;}continue;}
-  o.position.y+=r._lf+Math.sin(performance.now()/380+(o.id||0))*.06*Math.min(1,r._lf);
-  if(mode==='B'){const q=r._lf/1.4;o.rotation.x=.25*q;o.rotation.z=.18*q;r._tl=1;}else if(r._tl){o.rotation.x=0;o.rotation.z=0;r._tl=0;}
-  if(mode==='C'){if(!r._gl){const T=THREE,gg=new T.Group(),M=new T.MeshBasicMaterial({color:'#b8ffd0',transparent:true,opacity:.18,blending:T.AdditiveBlending,depthWrite:false});const s=new T.Mesh(UFS.G?UFS.G.gl:new T.SphereGeometry(1,16,12),M);s.scale.set(.75,1.05,.75);s.position.y=.9;gg.add(s);for(let i=0;i<3;i++){const a=new T.Mesh(UFS.G?UFS.G.ar:new T.ConeGeometry(.15,.26,4),new T.MeshBasicMaterial({color:'#eaffef',transparent:true,opacity:.8-i*.2,blending:T.AdditiveBlending,depthWrite:false}));a.position.set(.75,.7+i*.45,0);gg.add(a);}o.add(gg);r._gl=gg;}r._gl.visible=true;const q=Math.min(1,r._lf/.45);r._gl.children.forEach((m,i)=>{m.material.opacity=(i?(.8-(i-1)*.2):.18)*q;if(i)m.position.y=.7+(i-1)*.45+((performance.now()/600)%1)*.3;});}else if(r._gl)r._gl.visible=false;}});
+/* v180: 빨아들이기 — UFO 바로 아래까지 빙글빙글 돌며 떠올라요 (꼭대기 근처에서 작아지며 빨려 들어가는 느낌).
+   끌려가는 사람 화면에서도 자기 캐릭터가 똑같이 떠올라요 (상대 UFO 의 빛 안에 서 있으면) */
+function ufsLift(o,st,src,dt,mode,okHere){let tgt=0,top=0;if(okHere&&src.length){for(const s of src){const d=Math.hypot(o.position.x-s.x,o.position.z-s.z),f=Math.max(0,Math.min(1,(o.position.y-s.gy)/s.h));if(s.top>o.position.y+1.2&&d<s.rad(f)*.95){const H=Math.max(1.4,s.top-o.position.y-1.1)*(mode==='B'?1:mode==='A'?.75:.55);if(H*s.k>tgt){tgt=H*s.k;top=H;}}}}
+ const lf=st._lf||0;st._lf=lf+(tgt-lf)*Math.min(1,dt*(tgt>lf?.9:1.3));const ch=o.children&&o.children[0];
+ if(st._lf<.01&&!tgt){st._lf=0;st._top=0;if(ch&&st._b){ch.rotation.y=st._b.ry;ch.rotation.x=st._b.rx;ch.position.copy(st._b.p);ch.scale.copy(st._b.s);st._b=null;}return 0;}
+ if(top)st._top=top;const T0=st._top||1.4,q=Math.min(1,st._lf/T0);
+ o.position.y+=st._lf+Math.sin(performance.now()/380+(o.id||0))*.06*Math.min(1,st._lf);
+ if(ch){if(!st._b)st._b={ry:ch.rotation.y,rx:ch.rotation.x,p:ch.position.clone(),s:ch.scale.clone(),a:0};const B=st._b;B.a+=dt*(2.5+11*q);
+  ch.rotation.y=B.ry+B.a;ch.rotation.x=B.rx+.35*q*Math.sin(B.a*.5);const rr=.45*(1-q)*Math.min(1,q*4);ch.position.set(B.p.x+Math.cos(B.a)*rr,B.p.y,B.p.z+Math.sin(B.a)*rr);
+  const sh=q>.78?1-.5*Math.min(1,(q-.78)/.22):1;ch.scale.set(B.s.x*sh,B.s.y*sh,B.s.z*sh);}
+ return q;}
+(window.__nkPostSync=window.__nkPostSync||[]).push(dt=>{const src=UFS.src||[],mode=ufsMode();dt=Math.min(.1,dt||.016);
+ for(const [,r] of remotes){const c=r.c,o=c&&c.o;if(!o)continue;const p=r._p||{},ex=p.ex||{};const q=ufsLift(o,r,src,dt,mode,!(ex.vh||ex.ts!=null||p.seat!=null));
+  if(mode==='C'&&q>0){if(!r._gl){const T=THREE,gg=new T.Group(),M=new T.MeshBasicMaterial({color:'#b8ffd0',transparent:true,opacity:.18,blending:T.AdditiveBlending,depthWrite:false});const s=new T.Mesh(UFS.G?UFS.G.gl:new T.SphereGeometry(1,16,12),M);s.scale.set(.75,1.05,.75);s.position.y=.9;gg.add(s);for(let i=0;i<3;i++){const a=new T.Mesh(UFS.G?UFS.G.ar:new T.ConeGeometry(.15,.26,4),new T.MeshBasicMaterial({color:'#eaffef',transparent:true,opacity:.8-i*.2,blending:T.AdditiveBlending,depthWrite:false}));a.position.set(.75,.7+i*.45,0);gg.add(a);}o.add(gg);r._gl=gg;}r._gl.visible=true;r._gl.children.forEach((m,i)=>{m.material.opacity=(i?(.8-(i-1)*.2):.18)*q;if(i)m.position.y=.7+(i-1)*.45+((performance.now()/600)%1)*.3;});}else if(r._gl)r._gl.visible=false;}
+ /* 나도 떠올라요 — 남의 UFO 빛 안 · 탈것·의자에 없을 때 */
+ try{if(me&&me.o){const ok=!mySeat&&!(VW.me&&S.vehRide)&&!VPAS.id;ufsLift(me.o,UFS.meL||(UFS.meL={}),src.filter(s=>!s.me),dt,mode,ok);}}catch(e){}});
 let ROBSEL={};
 function robShopHTML(k,F,o){const own=c=>o&&o.cs.includes(c);if(!ROBSEL[k]||!F.cols.find(x=>x[0]===ROBSEL[k]))ROBSEL[k]=(o&&o.c)||F.cols[0][0];const it=F.cols.find(x=>x[0]===ROBSEL[k]),[c,n,pr]=it,on=own(c)&&o.c===c&&S.vehOn===k;
  return `<div class="flyc robc"><div class="flyh"><b>${F.ico||'🤖'} ${F.n}</b><small>속도 +${F.spd}% · ${F.note||((F.ani?'등에 타요':'머리 조종석에 타요')+' · 땅으로만 다녀요')}</small></div><div class="robb"><img class="robim" data-flyimg="${k}.${c}" alt=""><div class="robi"><div class="robsw">${F.cols.map(([cc,nn])=>`<button type="button" class="${cc===c?'on':''} ${own(cc)?'own':''}" data-robsw="${k}.${cc}" title="${nn}" style="--rc:${(F.sw?F.sw[cc]:F.ani?ANIM_C[k][cc]:ROBC[cc]).a};--rb:${(F.sw?F.sw[cc]:F.ani?ANIM_C[k][cc]:ROBC[cc]).b}"></button>`).join('')}</div>
@@ -5793,13 +5802,24 @@ function moonBuild(){const T=THREE,g=new T.Group();g.name='moon';g.userData.noMe
    const pole=new T.Mesh(new T.CylinderGeometry(.05,.07,1.6,6),new T.MeshStandardMaterial({color:'#3a3440'}));pole.position.set(x,.8,z);g.add(pole);const lt=new T.Mesh(new T.CylinderGeometry(.18,.14,.32,8),new T.MeshStandardMaterial({color:'#ffc870',emissive:'#ff9a3a',emissiveIntensity:1}));lt.position.set(x,1.72,z);g.add(lt);skyGlow(g,x,1.72,z,'#ffc87a',2.2);const pl=new T.PointLight('#ffb060',1.1,9,2);pl.position.set(x,1.9,z);g.add(pl);}}
  const skyG=new T.Group();g.add(skyG);SKY.skyG=skyG;
  // 지구: 늘 화면을 향하는 둥근 그림 (어디서 봐도 동그랗게)
- {const ES=512,c=document.createElement('canvas');c.width=c.height=ES;const x=c.getContext('2d'),im=x.createImageData(ES,ES),d=im.data,rr=ES*.4,c0=ES/2,L=new T.Vector3(-.75,.35,.56).normalize(),rot=1.9;
-  for(let j=0;j<ES;j++)for(let i=0;i<ES;i++){const dx=(i-c0)/rr,dy=(c0-j)/rr,q=dx*dx+dy*dy,k=(j*ES+i)*4;if(q>1){const dd=Math.sqrt(q);if(dd<1.22){const a=Math.pow(1-(dd-1)/.22,2.2),lit=Math.max(.15,(dx*L.x+dy*L.y)/dd*.6+.55);d[k]=90*lit;d[k+1]=170*lit;d[k+2]=255*lit;d[k+3]=a*200;}continue;}
-   const nz=Math.sqrt(1-q),px=dx*Math.cos(rot)+nz*Math.sin(rot),pz=-dx*Math.sin(rot)+nz*Math.cos(rot),py=dy;const h=fbm(px*1.7+11,py*1.7+3,pz*1.7,5),dt=fbm(px*7,py*7,pz*7,3),cl=fbm(px*3.2+40,py*5+2,pz*3.2,4),lat=Math.abs(py);let r,gg,b;
+ /* v180: 지구가 천천히 돌아요 — 지구 겉면 지도(경도·위도)를 한 번 만들어 두고, 화면의 둥근 그림은 그 지도를 조금씩 밀어 다시 칠해요 (계산은 처음에 한 번) */
+ {const ES=512,c=document.createElement('canvas');c.width=c.height=ES;const x=c.getContext('2d'),im=x.createImageData(ES,ES),d=im.data,rr=ES*.4,c0=ES/2,L=new T.Vector3(-.75,.35,.56).normalize();
+  const MW=512,MH=256,MAP=new Uint8ClampedArray(MW*MH*3);
+  for(let v=0;v<MH;v++){const la=(.5-(v+.5)/MH)*Math.PI,py=Math.sin(la),cl0=Math.cos(la),lat=Math.abs(py);for(let u=0;u<MW;u++){const lo=(u/MW)*Math.PI*2,px=cl0*Math.sin(lo),pz=cl0*Math.cos(lo);
+   const h=fbm(px*1.7+11,py*1.7+3,pz*1.7,5),dt=fbm(px*7,py*7,pz*7,3),cl=fbm(px*3.2+40,py*5+2,pz*3.2,4);let r,gg,b;
    if(h>.54){const e=(h-.54)/.2,dry=fbm(px*2.4+5,py*2.4,pz*2.4+9,3);if(dry>.55&&lat<.5){r=196+dt*30;gg=168+dt*20;b=112;}else{r=70+e*60+dt*25;gg=130+e*30+dt*25;b=58+dt*10;}}else{const dep=Math.min(1,(.54-h)*4);r=22+(1-dep)*30;gg=82+(1-dep)*70;b=170+(1-dep)*50;}
    if(lat>.86){const s2=Math.min(1,(lat-.86)/.05);r+=(245-r)*s2;gg+=(250-gg)*s2;b+=(255-b)*s2;}const cc=Math.max(0,Math.min(1,(cl-.55)*4.5));r+=(250-r)*cc*.9;gg+=(252-gg)*cc*.9;b+=(255-b)*cc*.9;
-   const lam=Math.max(0,dx*L.x+dy*L.y+nz*L.z),lit=.12+.98*Math.pow(lam,.85),rim=Math.pow(1-nz,3);d[k]=Math.min(255,r*lit+rim*80);d[k+1]=Math.min(255,gg*lit+rim*140);d[k+2]=Math.min(255,b*lit+rim*230);d[k+3]=255;}
-  x.putImageData(im,0,0);const et=new T.CanvasTexture(c);et.encoding=T.sRGBEncoding;const sp=new T.Sprite(new T.SpriteMaterial({map:et,transparent:true,depthWrite:false,fog:false}));{const az=(4.5)/12*Math.PI*2+.4,el=.17;sp.position.set(Math.sin(az)*Math.cos(el),Math.sin(el),-Math.cos(az)*Math.cos(el)).multiplyScalar(300);}sp.scale.set(78,78,1);skyG.add(sp);SKY.earth=sp;}
+   const k=(v*MW+u)*3;MAP[k]=r;MAP[k+1]=gg;MAP[k+2]=b;}}
+  /* 둥근 그림의 칸마다: 위도 줄 · 기준 경도 · 빛 · 가장자리 빛 (고정) */
+  const PX=[],PV=[],PL=[],PLIT=[],PRIM=[];
+  for(let j=0;j<ES;j++)for(let i=0;i<ES;i++){const dx=(i-c0)/rr,dy=(c0-j)/rr,q=dx*dx+dy*dy,k=(j*ES+i)*4;if(q>1){const dd=Math.sqrt(q);if(dd<1.22){const a=Math.pow(1-(dd-1)/.22,2.2),lit=Math.max(.15,(dx*L.x+dy*L.y)/dd*.6+.55);d[k]=90*lit;d[k+1]=170*lit;d[k+2]=255*lit;d[k+3]=a*200;}continue;}
+   const nz=Math.sqrt(1-q),la=Math.asin(Math.max(-1,Math.min(1,dy))),lo=Math.atan2(dx,nz),lam=Math.max(0,dx*L.x+dy*L.y+nz*L.z);
+   PX.push(k);PV.push(Math.min(MH-1,Math.max(0,Math.floor((.5-la/Math.PI)*MH)))*MW);PL.push(lo/(Math.PI*2)*MW);PLIT.push(.12+.98*Math.pow(lam,.85));PRIM.push(Math.pow(1-nz,3));d[k+3]=255;}
+  const N=PX.length,AX=Int32Array.from(PX),AV=Int32Array.from(PV),AL=Float32Array.from(PL),ALIT=Float32Array.from(PLIT),ARIM=Float32Array.from(PRIM);
+  const paint=rot=>{const off=rot/(Math.PI*2)*MW;for(let n=0;n<N;n++){let u=Math.floor(AL[n]+off)%MW;if(u<0)u+=MW;const m=(AV[n]+u)*3,k=AX[n],lit=ALIT[n],rim=ARIM[n];d[k]=Math.min(255,MAP[m]*lit+rim*80);d[k+1]=Math.min(255,MAP[m+1]*lit+rim*140);d[k+2]=Math.min(255,MAP[m+2]*lit+rim*230);}x.putImageData(im,0,0);};
+  paint(1.9);const et=new T.CanvasTexture(c);et.encoding=T.sRGBEncoding;const sp=new T.Sprite(new T.SpriteMaterial({map:et,transparent:true,depthWrite:false,fog:false}));{const az=(4.5)/12*Math.PI*2+.4,el=.17;sp.position.set(Math.sin(az)*Math.cos(el),Math.sin(el),-Math.cos(az)*Math.cos(el)).multiplyScalar(300);}sp.scale.set(78,78,1);skyG.add(sp);SKY.earth=sp;
+  /* 4분에 한 바퀴 · 0.35초마다 다시 칠해요 (보일 때만) */
+  let rot=1.9,acc=0;FHOOK.push(dt=>{if(!SKY.on||!sp.parent||!sp.visible||document.hidden)return;acc+=dt;if(acc<.35)return;rot-=acc*(Math.PI*2/240);acc=0;paint(rot);/* 서쪽→동쪽 (표면이 왼쪽에서 오른쪽으로) */et.needsUpdate=true;});}
  // 별 · 은하수 · 별자리 12개 (이름 없이)
  {const n=3500,pa=new Float32Array(n*3);for(let i=0;i<n;i++){const a=rnd()*Math.PI*2,y=rnd()*1.6-.45,rr=Math.sqrt(Math.max(0,1-y*y)),D=350;pa.set([Math.cos(a)*rr*D,y*D,Math.sin(a)*rr*D],i*3);}const gg=new T.BufferGeometry();gg.setAttribute('position',new T.BufferAttribute(pa,3));skyG.add(new T.Points(gg,new T.PointsMaterial({color:'#ffffff',size:1.4,sizeAttenuation:false,fog:false})));}
  const ZOD=[[[0,0],[1.2,.4],[2.1,.5],[2.5,1.2]],[[0,0],[1,.6],[1.6,.2],[2.2,.9],[1.7,-.6],[2.6,-1],[3.2,1.5]],[[0,2],[.4,1],[.6,0],[.9,-1],[1.2,2.2],[1.5,1.1],[1.8,.1],[2.1,-.9]],[[0,0],[.3,.9],[-.6,1.6],[1.1,1.7],[.4,2.4]],[[0,0],[1,.3],[2,0],[2.8,.6],[2.6,1.4],[2,1.8],[1.4,1.5],[-.8,.8]],[[0,0],[.9,.5],[1.8,.3],[2.6,.9],[1.4,1.4],[.5,1.8],[3.2,.1]],[[0,0],[1,.8],[2,0],[1,-1],[.2,-1.8],[1.9,-1.7]],[[0,2],[.3,1.4],[.5,.8],[.9,.2],[1.5,-.3],[2.2,-.5],[2.8,-.2],[3.1,.4],[2.8,.9],[-.4,2.6],[.5,2.6]],[[0,0],[1,0],[1.4,.9],[.6,1.1],[0,.8],[1.9,.2],[1.9,1.6],[2.5,.9]],[[0,1],[.8,.2],[1.8,-.3],[2.8,.1],[3.4,.9],[2.2,.8],[1.2,1.1]],[[0,1.5],[.8,1.2],[1.4,1.6],[2,1],[1.6,.3],[2.4,-.2],[3,.4],[3.6,-.1]],[[0,0],[.9,.3],[1.8,.5],[2.7,.9],[3.4,1.6],[3,2.3],[2.6,1.9],[1.8,-.2],[1,-.8],[.4,-1.4],[.9,-2]]];
@@ -5911,6 +5931,13 @@ FHOOK.push(()=>{if(!SKY.tw||!SKY.g||SKY.tw.mb)return;const t=performance.now()/1
 const ZINFO=[['양자리','3월','양자리 은어','황금 털을 가진 숫양 이야기의 별자리예요. 봄의 시작을 알려요.'],['황소자리','4월','황소자리 메기','붉은 별 알데바란이 황소의 눈이에요. 근처에 좀생이별(플레이아데스)이 있어요.'],['쌍둥이자리','5월','쌍둥이자리 참붕어','나란히 빛나는 두 별 카스토르와 폴룩스가 쌍둥이 형제예요.'],['게자리','6월','게자리 블루길','가운데에 벌집처럼 별이 모인 프레세페 성단이 있어요.'],['사자자리','7월','사자자리 쏘가리','물음표를 뒤집은 듯한 사자의 머리와 밝은 별 레굴루스가 보여요.'],['처녀자리','8월','처녀자리 벚꽃송어','하늘에서 두 번째로 큰 별자리예요. 밝은 별 스피카가 이삭을 들고 있어요.'],['천칭자리','9월','천칭자리 떡붕어','공평하게 무게를 다는 저울 모양의 별자리예요.'],['전갈자리','10월','전갈자리 가물치','S자로 휘어진 꼬리와 붉은 심장 별 안타레스가 눈에 띄어요.'],['궁수자리','11월','궁수자리 강준치','활을 겨눈 반인반마예요. 주전자 모양 별 무리로 찾기 쉬워요.'],['염소자리','12월','염소자리 꺽지','앞은 염소, 뒤는 물고기인 신비한 동물의 별자리예요.'],['물병자리','1월','물병자리 은어','물병을 기울여 물을 붓는 모습이에요. 물고기자리 쪽으로 물이 흘러요.'],['물고기자리','2월','물고기자리 잉어','리본으로 이어진 두 마리 물고기예요. 봄을 기다리는 별자리예요.']];
 function zodCard(i){const Z=ZINFO[i],k=['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'][i],col=SKYCOL[k]||'#9fb4ff',T=SKYT&&SKYT[k];let m=$('zodC');if(!m){m=document.createElement('div');m.id='zodC';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});}
  m.innerHTML=`<div class="card zodcard" style="--zc:${col}"><button class="x" data-zx>×</button><div class="zh"><span class="zdot"></span><b>${Z[0]}</b><small>${Z[1]}의 별자리</small></div><p>${Z[3]}</p><div class="zf"><img src="img/fish/sky_${k}.png" alt=""><div><b>${Z[2]}</b><small>${T?T[0]+' 등급 · ':''}${Z[1]}엔 2배로 잘 나와요</small></div></div></div>`;m.classList.add('show');m.querySelector('[data-zx]').onclick=()=>m.classList.remove('show');SKY.zhl={i,until:performance.now()+6000};}
+/* v180: 달에서 지구를 누르면 소개 카드 (별자리 카드와 같은 모양) */
+window.__nkSKY=SKY;
+function earthCard(){let m=$('zodC');if(!m){m=document.createElement('div');m.id='zodC';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');});}
+ let n=0;try{n=((window.NK_RT&&NK_RT.servers)||[]).filter(r=>r&&r.id>=1&&r.id<=4).reduce((t,r)=>t+(r.lake|0),0);}catch(e){}
+ m.innerHTML=`<div class="card zodcard earthc" style="--zc:#6ab8ff"><button class="x" data-zx aria-label="닫기">×</button><div class="zh"><span class="zdot"></span><b>지구</b><small>우리가 사는 별</small></div><p>우리가 살고 있는 지구예요. 호숫가에서 낚시하는 우리 친구들을 상상해 보세요.</p>${n>0?`<div class="zf"><img src="img/fish/bluegill.png" alt=""><div><b>지금 호숫가에 ${n}명</b><small>저 파란 별 어딘가에서 낚시 중이에요</small></div></div>`:''}</div>`;
+ m.classList.add('show');m.querySelector('[data-zx]').onclick=()=>m.classList.remove('show');}
+(window.__nkPick=window.__nkPick||[]).push(ray=>{if(!SKY.earth||!SKY.g||!SKY.on||!SKY.earth.visible)return false;const rd=(ray.ray||ray).direction,dir=SKY.earth.position.clone().normalize(),R=Math.atan((SKY.earth.scale.x*.4)/Math.max(1,SKY.earth.position.length()));const ppr=innerHeight/(2*Math.tan(cam.fov*Math.PI/360)),ex=(window.__nkPT==='touch'?30:8)/ppr;if(rd.angleTo(dir)>R+ex)return false;earthCard();return true;});
 (window.__nkPick=window.__nkPick||[]).push(ray=>{if(!SKY.zod||!SKY.g)return false;let best=-1,bd=1e9;const rd=(ray.ray||ray).direction;/* v141: 손가락은 마우스보다 굵어서 화면 기준 여유를 더 줘요 (폰에서 잘 안 눌리던 문제) */const ppr=innerHeight/(2*Math.tan(cam.fov*Math.PI/360)),ex=(window.__nkPT==='touch'?40:12)/ppr;for(const z of SKY.zod){const a=rd.angleTo(z.dir);if(a<Math.max(.06,z.r)+ex&&a-z.r<bd){bd=a-z.r;best=z.i;}}if(best<0)return false;zodCard(best);return true;});
 // 🎥 달에서는 자동 둘러보기가 하늘(지구·별자리)을 올려다봐요
 window.__nkMoonTour=t=>{if(!SKY.g||!SKY.zod)return null;const L=[SKY.earth?SKY.earth.position.clone().normalize():null,...SKY.zod.map(z=>z.dir)].filter(Boolean);const n=L.length,seg=10,f=t/seg,i=Math.floor(f)%n,j=(i+1)%n,q=f-Math.floor(f),e=q<.7?0:(q-.7)/.3,ee=e*e*(3-2*e);SKY.tourAt={i:SKY.earth?i-1:i,q,at:performance.now()};const d=L[i].clone().lerp(L[j],ee).normalize();const a=t*.025,R=LR-4;const pos=[Math.sin(a)*R,2.4,Math.cos(a)*R];return [pos,[pos[0]+d.x*100,pos[1]+d.y*100,pos[2]+d.z*100]];};
@@ -7644,15 +7671,21 @@ LAB.push({k:'pipOn',n:'🖼 작은 창 (PiP)',d:'메뉴에 「작은 창」이 �
 const wkPip=()=>{try{const v=document.createElement('video');return typeof v.webkitSetPresentationMode==='function'&&(!v.webkitSupportsPresentationMode||v.webkitSupportsPresentationMode('picture-in-picture'));}catch(e){return false;}};
 const canPip=()=>!!document.pictureInPictureEnabled||wkPip();
 const on=()=>!PREV&&String(uiOpt('pipOn','off'))==='on'&&canPip();
-let selfPause=0;
+let selfPause=0,inflight=0;
 const W=480,H=270;let cv=null,cx=null,vid=null,act=false,blink=0;const IMG={};
 const im=src=>{if(!IMG[src]){const i=new Image();i.src=src;IMG[src]=i;}return IMG[src].complete&&IMG[src].naturalWidth?IMG[src]:null;};
 const P=()=>{S.pip=S.pip||{mode:'game',auto:true,bite:true};return S.pip;};
-function ensure(){if(cv)return;cv=document.createElement('canvas');cv.width=W;cv.height=H;cx=cv.getContext('2d');vid=document.createElement('video');vid.muted=true;vid.playsInline=true;vid.setAttribute('playsinline','');vid.id='pipVid';vid.srcObject=cv.captureStream(8);document.body.appendChild(vid);
- vid.addEventListener('enterpictureinpicture',()=>{act=true;window.__nkPipOn=1;});vid.addEventListener('leavepictureinpicture',()=>{act=false;window.__nkPipOn=0;try{vid.play();}catch(e){}if(!P().auto)stopVid();});
+/* v180: 프레임 — 캔버스를 새로 그릴 때마다 영상 프레임이 나가요 (게임 화면과 같은 속도) */
+function ensure(){if(cv)return;cv=document.createElement('canvas');cv.width=W;cv.height=H;cx=cv.getContext('2d');makeVid();}
+/* v180: 작은 창이 한 번 닫히면 브라우저(특히 삼성 인터넷)에 따라 영상이 이상한 상태로 남아서 다음에 안 열렸어요 → 닫힐 때마다 새 영상으로 바꿔 끼워요 */
+function makeVid(){if(vid){try{selfPause=1;vid.pause();selfPause=0;vid.srcObject=null;vid.remove();}catch(e){selfPause=0;}}
+ vid=document.createElement('video');vid.muted=true;vid.playsInline=true;vid.setAttribute('playsinline','');vid.id='pipVid';vid.srcObject=cv.captureStream();document.body.appendChild(vid);
+ vid.addEventListener('enterpictureinpicture',()=>{act=true;window.__nkPipOn=1;inflight=0;});const me0=vid;vid.addEventListener('leavepictureinpicture',()=>{act=false;window.__nkPipOn=0;me0._used=1;
+  /* 닫힘 신호가 늦게 올 때가 있어요 → 그 사이 새로 여는 중이면 영상을 바꾸지 않아요 (열리는 중인 영상을 지워서 실패하던 문제) */
+  setTimeout(()=>{if(inflight||act||me0!==vid)return;makeVid();if(on()&&started){draw();vid.play().catch(()=>{});armAuto();}},120);});
  vid.addEventListener('webkitpresentationmodechanged',()=>{const a=vid.webkitPresentationMode==='picture-in-picture';act=a;window.__nkPipOn=a?1:0;if(!a&&!P().auto)stopVid();});
  /* v177: 소리 없는 영상은 크롬이 mediaSession 버튼을 안 보내요 → 작은 창의 ⏸ 를 누르면 영상이 멈추는 걸 보고 챔질한 뒤 다시 재생해요 */
- vid.addEventListener('pause',()=>{if(selfPause||!act)return;reel();setTimeout(()=>{try{vid.play().catch(()=>{});}catch(e){}},60);});
+ vid.addEventListener('pause',()=>{const v=vid;if(selfPause||!act||(document.pictureInPictureElement!==v&&v.webkitPresentationMode!=='picture-in-picture'))return;reel();setTimeout(()=>{try{vid.play().catch(()=>{});}catch(e){}},60);});
  try{if('mediaSession' in navigator){navigator.mediaSession.setActionHandler('pause',()=>{reel();setTimeout(()=>{try{vid.play();}catch(e){}},50);});navigator.mediaSession.setActionHandler('play',()=>{reel();try{vid.play();}catch(e){}});try{navigator.mediaSession.setActionHandler('enterpictureinpicture',()=>openPip());}catch(e){}}}catch(e){}}
 function stopVid(){try{if(vid){selfPause=1;vid.pause();selfPause=0;}}catch(e){selfPause=0;}}
 function reel(){try{if(typeof fishing!=='undefined'&&fishing&&fishing.state==='bite')fishAction();}catch(e){}}
@@ -7669,10 +7702,11 @@ function draw(pre){if(!cx)return;const bite=typeof fishing!=='undefined'&&fishin
   cx.font='800 16px system-ui,sans-serif';cx.fillStyle='#3a3340';cx.fillText('🪙 '+(S.coins|0).toLocaleString(),18,226);cx.fillText('어항 '+(S.tank||[]).length+'마리',220,226);cx.fillText('낚은 수 '+(S.caught|0),340,226);}
  if(bite){cx.lineWidth=14;cx.strokeStyle=blink<2?'#f08a4b':'#ffd36b';cx.strokeRect(7,7,W-14,H-14);rr(W/2-120,H/2-38,240,76,20);cx.fillStyle='rgba(240,138,75,.95)';cx.fill();cx.fillStyle='#fff';cx.font='900 34px system-ui,sans-serif';cx.textAlign='center';cx.fillText('입질!',W/2,H/2+4);cx.font='800 14px system-ui,sans-serif';cx.fillText('가운데 재생 버튼을 누르면 챔질',W/2,H/2+28);cx.textAlign='left';
   if(!S.pipBz||Date.now()-S.pipBz>3000){S.pipBz=Date.now();try{navigator.vibrate&&navigator.vibrate([120,60,120]);}catch(e){}}}}
-setInterval(()=>{if(cv&&!act&&P().auto&&vid&&!vid.paused&&!document.hidden)draw();},500);
+/* v180: 작은 창이 닫혀 있어도 숨은 영상 장면을 0.5초마다 새로 그려 둬요 — 창을 내릴 때 오래된 장면(이상한 화면)이 뜨지 않게 */
+setInterval(()=>{if(cv&&!act&&vid&&!document.hidden&&on()&&started)draw();},500);
 /* v179: 게임이 보이는 동안은 화면을 한 번 더 그리지 않고, 방금 그린 게임 화면을 그대로 옮겨요 (느려지지 않게) · 1초에 10번 */
-let pipT=0;window.__nkPipPost=dt=>{if(!act||!cx||document.hidden)return;pipT+=dt;if(pipT<.1)return;pipT=0;draw(true);};
-/* v179: 창을 내린 동안은 작은 해상도로 그려서 가볍게 (1초에 8번) · 돌아오면 원래대로 */
+window.__nkPipPost=dt=>{if(!act||!cx||document.hidden)return;draw(true);};/* v180: 게임이 그릴 때마다 (일반 화면과 같은 프레임) */
+/* v179: 창을 내린 동안은 작은 해상도로 그려서 가볍게 (v180: 1초에 15번) · 돌아오면 원래대로 */
 let lowPR=0;function lowRes(on){try{if(on&&!lowPR){lowPR=R.getPixelRatio();const k=Math.max(.35,Math.min(lowPR,(W*1.25)/Math.max(1,innerWidth)));if(k<lowPR)R.setPixelRatio(k);else lowPR=0;}else if(!on&&lowPR){R.setPixelRatio(lowPR);lowPR=0;}}catch(e){}}
 /* v179: 게임 화면으로 돌아오면 작은 창을 닫아요 (전체 화면인데 작은 창이 남아 있던 문제) */
 let wasHid=false;document.addEventListener('visibilitychange',()=>{if(document.hidden){wasHid=true;return;}lowRes(false);if(wasHid&&act){wasHid=false;setTimeout(()=>{if(!document.hidden)closePip();},250);}wasHid=false;});
@@ -7681,17 +7715,19 @@ window.__nkPipBg=()=>{if(act){lowRes(true);draw();}};
    그래서 작은 창 기능이 켜져 있으면 숨은 영상을 미리 재생해 두고, 누르면 곧바로 엽니다 */
 function prime(){if(!on()||!started)return;ensure();if(vid.paused||vid.readyState<1){draw();vid.play().catch(()=>{});}}
 function pipErr(e){const m=String((e&&(e.name||e.message))||'');return /NotAllowed|gesture|activation/i.test(m)?'휴대폰이 막았어요 · 화면을 한 번 누른 뒤 다시 눌러 주세요':/metadata|InvalidState/i.test(m)?'준비 중이에요 · 1초 뒤에 다시 눌러 주세요':'작은 창을 열지 못했어요';}
-function openPip(){if(!on()){toast('이 브라우저는 작은 창을 지원하지 않아요',2200);return;}ensure();draw();try{vid.play().catch(()=>{});}catch(e){}
+function openPip(){if(!on()){toast('이 브라우저는 작은 창을 지원하지 않아요',2200);return;}ensure();if(vid._used&&!inflight&&!act)makeVid();draw();try{vid.play().catch(()=>{});}catch(e){}
  const go=()=>{try{if(document.pictureInPictureEnabled&&vid.requestPictureInPicture)return vid.requestPictureInPicture();vid.webkitSetPresentationMode('picture-in-picture');return Promise.resolve();}catch(e){return Promise.reject(e);}};
- const run=()=>go().catch(e=>{toast(pipErr(e),2600);});
- if(vid.readyState>=1)run();else{let done=0;const f=()=>{if(done)return;done=1;run();};vid.addEventListener('loadedmetadata',f,{once:true});setTimeout(f,900);}}
+ /* v180: 막 닫힌 직후엔 브라우저가 「아직 준비 안 됨」으로 거절할 때가 있어요 → 0.3초 뒤 3번까지 다시 (버튼 누른 직후라 허락 시간 안이에요) */
+ const run=(n=0)=>{if(act||(inflight&&!n))return;inflight=1;go().then(()=>{inflight=0;},e=>{const nm=String(e&&e.name);if(nm==='InvalidStateError'&&n<3){setTimeout(()=>{try{draw();vid.play().catch(()=>{});}catch(x){}run(n+1);},300);return;}inflight=0;toast(pipErr(e),2600);});};
+ if(vid.readyState>=1)run();else{let done=0;const f=()=>{if(done)return;done=1;run();};vid.addEventListener('loadedmetadata',f,{once:true});vid.addEventListener('loadeddata',f,{once:true});setTimeout(f,2500);}}
 function closePip(){try{if(document.pictureInPictureElement)document.exitPictureInPicture();else if(vid&&vid.webkitPresentationMode==='picture-in-picture')vid.webkitSetPresentationMode('inline');}catch(e){}}
 // 창 내리면 자동: 미리 작은 동영상을 재생해 두고(아이폰 사파리 autopictureinpicture), 크롬은 숨겨질 때 열어 봐요
 function armAuto(){if(!on()||!started){if(vid&&!act){vid.autoPictureInPicture=false;stopVid();}return;}prime();const a=!!P().auto;vid.autoPictureInPicture=a;if(a)vid.setAttribute('autopictureinpicture','');else vid.removeAttribute('autopictureinpicture');}
 setInterval(armAuto,3000);
 /* 창을 내릴 때 자동으로 열어 봐요. 안드로이드 크롬은 사용자 동작 없이 여는 걸 막아서 대부분 실패해요 →
    돌아왔을 때 한 번만 「창 내리기 전에 작은 창 버튼」을 안내해요 */
-let autoMiss=0;document.addEventListener('visibilitychange',()=>{if(document.hidden){if(on()&&started&&P().auto&&vid&&!act&&!document.pictureInPictureElement){draw();try{const p=vid.requestPictureInPicture?vid.requestPictureInPicture():null;if(p)p.catch(()=>{autoMiss=1;});}catch(e){autoMiss=1;}}}
+/* v180: 한 번만 시도해요 (두 번 겹쳐 열리면 삼성 인터넷에서 빈 화면이 먼저 뜨던 문제) */
+let autoMiss=0;document.addEventListener('visibilitychange',()=>{if(document.hidden){if(on()&&started&&P().auto&&vid&&!act&&!inflight&&!document.pictureInPictureElement&&vid.readyState>=1){draw();inflight=1;try{const p=vid.requestPictureInPicture?vid.requestPictureInPicture():null;if(p)p.then(()=>{inflight=0;},()=>{inflight=0;autoMiss=1;});else inflight=0;}catch(e){inflight=0;autoMiss=1;}}}
  else if(autoMiss&&!act){autoMiss=0;if(!S.pipMissTip){S.pipMissTip=1;save();toast('🖼 이 휴대폰은 창을 내릴 때 작은 창이 자동으로 안 떠요 · 내리기 전에 메뉴의 「작은 창」을 눌러 주세요',4200);}}});
 // 설정 창
 function dlg(){let m=$('pipDlg');if(!m){m=document.createElement('div');m.id='pipDlg';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)closeM('pipDlg');});}const p=P();
