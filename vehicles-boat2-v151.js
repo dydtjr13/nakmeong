@@ -94,12 +94,29 @@ window.NK_BOAT2 = (function () {
     g.userData.seat = [-.42, .62, -.5]; g.userData.seat2 = [.42, .62, -.5];
     return g;
   }
+  // v182: 노 한 짝씩 나눠서 노걸이(뱃전)를 축으로 저을 수 있게 해요
+  function splitOars(T, s) {
+    const pd = s.getObjectByName('paddles'); if (!pd) return;
+    const mesh = pd.isMesh ? pd : (() => { let m = null; pd.traverse((o) => { if (!m && o.isMesh) m = o; }); return m; })(); if (!mesh) return;
+    const geo = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone(), pos = geo.attributes.position, n = pos.count / 3;
+    const parent = mesh.parent;
+    [1, -1].forEach((sg) => {
+      const keep = [];
+      for (let t = 0; t < n; t++) { const cx = (pos.getX(t * 3) + pos.getX(t * 3 + 1) + pos.getX(t * 3 + 2)) / 3; if (Math.sign(cx) === sg) keep.push(t); }
+      const g2 = new T.BufferGeometry();
+      for (const name in geo.attributes) { const A = geo.attributes[name], sz = A.itemSize, arr = new A.array.constructor(keep.length * 3 * sz); keep.forEach((t, i) => { for (let v = 0; v < 3; v++) for (let c = 0; c < sz; c++) arr[(i * 3 + v) * sz + c] = A.array[(t * 3 + v) * sz + c]; }); g2.setAttribute(name, new T.BufferAttribute(arr, sz)); }
+      const px = .71 * sg, py = .57; g2.translate(-px, -py, 0);
+      const piv = new T.Group(); piv.name = sg > 0 ? 'oarR' : 'oarL'; piv.position.copy(mesh.position).add(new T.Vector3(px, py, 0)); piv.quaternion.copy(mesh.quaternion);
+      const m = new T.Mesh(g2, mesh.material); m.castShadow = true; piv.add(m); parent.add(piv);
+    });
+    parent.remove(mesh);
+  }
   // 노 젓는 보트: Kenney 모델을 한 번 불러와서 복사해요
   let RB = null, RBW = [];
   function rowb(T) {
     const g = new T.Group();
-    const put = (sc) => { const o = sc.clone(true); g.add(o); };
-    if (RB) put(RB); else { RBW.push(put); if (RBW.length === 1 && T.GLTFLoader) new T.GLTFLoader().load('assets/kenney/watercraft/boat-row-large.glb', (x) => { const s = x.scene; s.traverse((o) => { if (o.isMesh) { o.castShadow = true; if (o.material && o.material.map) o.material.map.encoding = T.sRGBEncoding; } }); const bb = new T.Box3().setFromObject(s), sz = bb.getSize(new T.Vector3()), k = 2.6 / Math.max(sz.x, sz.z); s.scale.setScalar(k); s.position.y = -bb.min.y * k - .32; if (sz.x > sz.z) s.rotation.y = Math.PI / 2; RB = s; RBW.splice(0).forEach((f) => f(RB)); }); }
+    const put = (sc) => { const o = sc.clone(true); g.add(o); const L = o.getObjectByName('oarL'), R = o.getObjectByName('oarR'); if (L && R) g.userData.oars = [L, R]; };
+    if (RB) put(RB); else { RBW.push(put); if (RBW.length === 1 && T.GLTFLoader) new T.GLTFLoader().load('assets/kenney/watercraft/boat-row-large.glb', (x) => { const s = x.scene; s.traverse((o) => { if (o.isMesh) { o.castShadow = true; if (o.material && o.material.map) o.material.map.encoding = T.sRGBEncoding; } }); const bb = new T.Box3().setFromObject(s), sz = bb.getSize(new T.Vector3()), k = 2.6 / Math.max(sz.x, sz.z); s.scale.setScalar(k); s.position.y = -bb.min.y * k - .32; if (sz.x > sz.z) s.rotation.y = Math.PI / 2; try { splitOars(T, s); } catch (e) { console.warn('[rowb oars]', e); } RB = s; RBW.splice(0).forEach((f) => f(RB)); }); }
     g.userData.seat = [0, .02, -.15];
     return g;
   }
