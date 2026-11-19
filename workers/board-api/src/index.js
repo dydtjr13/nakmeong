@@ -111,6 +111,8 @@ async function ensureSchema(db) {
     // v167: 🏮 소원 연등 — 바닷가 마을 하늘에 띄우는 닉네임 + 소원 (2일 동안 보여요)
     'CREATE TABLE IF NOT EXISTS wishes (id INTEGER PRIMARY KEY AUTOINCREMENT, owner TEXT NOT NULL, nick TEXT NOT NULL, text TEXT NOT NULL, at INTEGER NOT NULL, hid INTEGER NOT NULL DEFAULT 0)',
     'CREATE INDEX IF NOT EXISTS idx_wishes_at ON wishes(at DESC)',
+    // v182: ⛵ 호숫가 소원 돛단배 — 같은 표에 맵(m)만 달라요 (예전 줄은 운하)
+    "ALTER TABLE wishes ADD COLUMN m TEXT NOT NULL DEFAULT 'canal'",
     // v172: 게스트 닉네임 번호 (나1, 나2 …) — 한 줄짜리 카운터
     'CREATE TABLE IF NOT EXISTS guestseq (id INTEGER PRIMARY KEY, n INTEGER NOT NULL)',
   ];
@@ -494,20 +496,21 @@ export default {
       }
       // ─ v167: 🏮 소원 연등 ─
       if (path === '/wishes' && request.method === 'GET') {
-        const rows = (await db.prepare('SELECT id, owner, nick, text, at FROM wishes WHERE hid=0 AND at>? ORDER BY at DESC LIMIT 40').bind(Date.now() - 2 * 864e5).all()).results || [];
+        const wm = url.searchParams.get('m') === 'lake' ? 'lake' : 'canal';
+        const rows = (await db.prepare("SELECT id, owner, nick, text, at FROM wishes WHERE hid=0 AND at>? AND COALESCE(m,'canal')=? ORDER BY at DESC LIMIT 40").bind(Date.now() - 2 * 864e5, wm).all()).results || [];
         // v168: 주인은 빼고 보내되 내 연등이면 mine:1 (내 연등은 내가 지울 수 있어요)
         return json({ ok: true, rows: rows.map((r) => ({ id: r.id, nick: r.nick, text: r.text, at: r.at, ...(me && r.owner === me ? { mine: 1 } : {}) })) }, 200, origin);
       }
       if (path === '/wishes' && request.method === 'POST') {
         if (!me) return bad('owner required', 400, origin);
         const body = await request.json().catch(() => ({}));
-        const text = cleanText(body.text, 24), nick = cleanNick(body.nick);
+        const text = cleanText(body.text, 24), nick = cleanNick(body.nick), wm = body.m === 'lake' ? 'lake' : 'canal';
         if (!text || !nick) return bad('empty', 400, origin);
         // v169: 한 사람당 연등 하나 — 새로 띄우면 내 예전 연등은 사라져요 (연달아 누르기만 20초 막아요)
-        const now = Date.now(), last = await db.prepare('SELECT at FROM wishes WHERE owner=? ORDER BY at DESC LIMIT 1').bind(me).first();
+        const now = Date.now(), last = await db.prepare("SELECT at FROM wishes WHERE owner=? AND COALESCE(m,'canal')=? ORDER BY at DESC LIMIT 1").bind(me, wm).first();
         if (last && now - last.at < 20e3) return json({ ok: false, error: 'wait', left: 20e3 - (now - last.at) }, 429, origin);
-        await db.prepare('DELETE FROM wishes WHERE owner=?').bind(me).run();
-        const r = await db.prepare('INSERT INTO wishes (owner,nick,text,at) VALUES (?,?,?,?)').bind(me, nick, text, now).run();
+        await db.prepare("DELETE FROM wishes WHERE owner=? AND COALESCE(m,'canal')=?").bind(me, wm).run();
+        const r = await db.prepare('INSERT INTO wishes (owner,nick,text,at,m) VALUES (?,?,?,?,?)').bind(me, nick, text, now, wm).run();
         return json({ ok: true, id: r.meta && r.meta.last_row_id, at: now }, 200, origin);
       }
       const wd = path.match(/^\/wishes\/(\d+)\/delete$/);
