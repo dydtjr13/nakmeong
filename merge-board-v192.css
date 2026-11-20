@@ -222,3 +222,32 @@ body.mb-open .boxget.mbbx{transform-origin:50% 0}
 .boxget.mbbxS b small{font-size:10px}
 body.mb-open.mb-miniT #miniT{top:var(--mbMiniT,8px);bottom:auto;left:50%;right:auto;transform:translateX(-50%);align-items:center;width:max-content;max-width:calc(100vw - 16px)}
 body.mb-open.mb-miniT #miniT .mt{white-space:nowrap;font-size:12px;padding:7px 12px;max-width:calc(100vw - 16px);overflow:hidden;text-overflow:ellipsis}
+/* v204: 보유 물고기 거르기 [전체][★1]~[★5][변이] */
+#mbd .mbtf{display:flex;gap:4px;margin:2px 0 8px;min-width:0}
+#mbd .mbtf .mtf{flex:1 1 0;min-width:0;height:30px;padding:0 2px;border:0;border-radius:10px;background:#f6ecdc;box-shadow:inset 0 0 0 1.5px #e9d9bf;color:#6b5844;font:inherit;font-weight:900;font-size:11.5px;line-height:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;white-space:nowrap;filter:none;transition:background .12s}
+#mbd .mbtf .mtf span{display:block}
+#mbd .mbtf .mtf b{display:block;font-size:9.5px;font-weight:800;color:#a08a70}
+#mbd .mbtf .mtf.on{background:#e8784a;box-shadow:0 2px 0 #c45a2e;color:#fff}
+#mbd .mbtf .mtf.on b{color:#ffe1d2}
+#mbd .mbtf .mtf.zero:not(.on){opacity:.45}
+#mbd .mbtf .mtf:active{transform:translateY(1px)}
+#mbd .mbtf .mtf[data-tf="v"]:not(.on) span{background:linear-gradient(90deg,#e0558a,#c9362a,#d99a0c,#7a6bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* 키가 작은 폰: 한 줄로 낮게 (판이 덜 줄어들게) */
+@media (max-height:700px) and (max-width:899px){#mbd .mbtf{margin:0 0 4px}#mbd .mbtf .mtf{height:24px;flex-direction:row;gap:2px;font-size:11px}#mbd .mbtf .mtf b{font-size:9px}}
+/* v204: 별 단계 D안 — 별이 오를수록 물고기가 커지고(★1 56% → ★5 90%) 테두리가 별 색(흰→초록→파랑→보라→주황) · 왼쪽 위 작은 ★N 표 (★1은 표 없음) · 변이는 모습 그대로, 크기만 ★5 */
+#mbd .mbit.mt1 img{width:56%;height:41%;margin-top:-11%}
+#mbd .mbit.mt2 img{width:64%;height:46%;margin-top:-12%}
+#mbd .mbit.mt3 img{width:73%;height:53%;margin-top:-13%}
+#mbd .mbit.mt4 img{width:82%;height:59%;margin-top:-12%}
+#mbd .mbit.mt5 img,#mbd .mbit.mtv img{width:90%;height:65%;margin-top:-11%}
+#mbd .mbit.mt2,#mbd .mbit.mt3,#mbd .mbit.mt4,#mbd .mbit.mt5{border-width:3px}
+#mbd .mbit.mt2{border-color:#8fd47e}
+#mbd .mbit.mt3{border-color:#5aaaf2;background:linear-gradient(#fff 55%,#eef7ff)}
+#mbd .mbit.mt4{border-color:#a674f0;background:linear-gradient(#fff 45%,#f3eaff)}
+#mbd .mbit.mt5{border-color:#ff9326;background:linear-gradient(#fffaf0 35%,#ffe6c4);box-shadow:0 0 0 1px #ffdcb0 inset,0 0 8px rgba(255,147,38,.5)}
+#mbd .mbit .mtb{position:absolute;top:3%;left:4%;font-size:calc(var(--cs)*.115);font-weight:900;padding:0 3px;border-radius:5px;color:#fff;line-height:1.3;background:#c9bba5;z-index:2;pointer-events:none;white-space:nowrap}
+#mbd .mbit.mt1 .mtb{display:none}
+#mbd .mbit.mt2 .mtb{background:#5fbf4e}#mbd .mbit.mt3 .mtb{background:#2f8ce0}#mbd .mbit.mt4 .mtb{background:#8a48e6}#mbd .mbit.mt5 .mtb{background:linear-gradient(90deg,#ff9a2e,#f06a1c)}
+#mbd .mbti .mbit .mtb,#mbd .mblad .mbit .mtb,#mbd .mdx .mbit .mtb,.mbret .mbit .mtb{display:none}
+/* ★5는 물고기가 커서 표가 지느러미에 닿지 않게 그림을 조금 아래로(위 -11%) · 칸이 아주 작으면(44px 미만, 작은 폰 6×6·7×7) 표는 숨기고 색 테두리·별로만 보여요 */
+@container (max-width:44px){#mbd .mbit .mtb{display:none}}
