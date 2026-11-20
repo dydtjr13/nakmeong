@@ -336,7 +336,7 @@ const WH=new T.Group();WH.position.set(0,34,-110);root.add(WH);const whU={op:{va
  const sh=new T.Shape();top.forEach((p,i)=>i?sh.lineTo(p[0],p[1]):sh.moveTo(p[0],p[1]));tail.slice(1).forEach(p=>sh.lineTo(p[0],p[1]));bot.slice().reverse().forEach(p=>sh.lineTo(p[0],p[1]));
  const fg=new T.ShapeGeometry(sh,8);const fm=new T.ShaderMaterial({uniforms:whU,transparent:true,depthWrite:false,blending:T.AdditiveBlending,fog:false,vertexShader:wv+'varying vec2 vP;void main(){vP=position.xy;gl_Position=projectionMatrix*modelViewMatrix*vec4(bend(position),1.);}',
   fragmentShader:'uniform float op;uniform float t;varying vec2 vP;void main(){float g=.5+.5*sin(vP.x*.4-t*.8);vec3 c=mix(vec3(.25,.22,.6),vec3(.45,.55,.95),g)*(.16+.1*smoothstep(-3.,4.,vP.y));gl_FragColor=vec4(c*op,1.);}'});
- const FM=new T.Mesh(fg,fm);WH.add(FM);WH.scale.setScalar(2.5);}
+ const FM=new T.Mesh(fg,fm);WH.add(FM);WH.scale.setScalar(1.9);}
 // ── 물속 나전빛 물고기 소용돌이 ──
 const SWC=new T.Vector3(-.6,-.15,-9),SWN=36;const swU={op:{value:0},t:U.t,map:{value:fishTex}};let swI,swRing;
 {const g=new T.PlaneGeometry(1.25,.55);g.rotateX(-Math.PI/2);const cell=new Float32Array(SWN);for(let i=0;i<SWN;i++)cell[i]=i%12;g.setAttribute('cell',new T.InstancedBufferAttribute(cell,1));
