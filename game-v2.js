@@ -1356,7 +1356,7 @@ let duckChk=0;function duckBob(dt){if(String(uiOpt('duckCatch','off'))!=='on'||!
  if(R.cat){const ks=['black','pink','red','gold','rainbow'],k=ks[Math.random()*ks.length|0],z=fzS();z.cat[k]=(z.cat[k]|0)+1;got.push(`✨ ${(FZV[k]||{n:k}).n} 촉매`);}
  S.duckDay.n++;S.duckN=(S.duckN||0)+1;endFish();try{sfx.coin();V14.catchSfx(Math.min(4,L+1));}catch(e){}save();hud();try{updBagBadge();}catch(e){}
  duckGotCard(L,got,g);say('시스템',`🦆 ${L?'Lv.'+(L+1)+' ':''}오리를 낚았어요 · ${got.join(', ')}`);}
-function catchFish(){const f=rollFish(),F=FI(f.k),G0=GR(f.g);S.caught++;const _td=new Date().toDateString();if(S.gDay!==_td){S.gDay=_td;S.gN=0;}let streakBox=false;if(!(D.BOX.dailyCap&&S.gN>=D.BOX.dailyCap)){S.streak=(S.streak||0)+1;if(D.BOX.streakEvery&&S.streak>=D.BOX.streakEvery){S.streak=0;S.gN=(S.gN||0)+1;S.boxes.push(-Date.now());streakBox=true;}}f.t=Date.now();const dx=S.dex[f.k]||(S.dex[f.k]={n:0,max:0,gr:[0,0,0,0,0]});const isNew=!dx.n,newG=!dx.gr[f.g],rec=f.cm>dx.max;dx.n++;dx.gr[f.g]=1;dx.max=Math.max(dx.max,f.cm);wkRec(f);S.stats=S.stats||{g:[0,0,0,0,0]};S.stats.g[f.g]=(S.stats.g[f.g]||0)+1;
+function catchFish(){const f=rollFish(),F=FI(f.k),G0=GR(f.g);S.caught++;try{window.NK_MB&&NK_MB.onCatch(f);}catch(e){}/* v191: 합성판 하루 낚시 보너스 */const _td=new Date().toDateString();if(S.gDay!==_td){S.gDay=_td;S.gN=0;}let streakBox=false;if(!(D.BOX.dailyCap&&S.gN>=D.BOX.dailyCap)){S.streak=(S.streak||0)+1;if(D.BOX.streakEvery&&S.streak>=D.BOX.streakEvery){S.streak=0;S.gN=(S.gN||0)+1;S.boxes.push(-Date.now());streakBox=true;}}f.t=Date.now();const dx=S.dex[f.k]||(S.dex[f.k]={n:0,max:0,gr:[0,0,0,0,0]});const isNew=!dx.n,newG=!dx.gr[f.g],rec=f.cm>dx.max;dx.n++;dx.gr[f.g]=1;dx.max=Math.max(dx.max,f.cm);wkRec(f);S.stats=S.stats||{g:[0,0,0,0,0]};S.stats.g[f.g]=(S.stats.g[f.g]||0)+1;
   let where;const AU=S.auto;cslotInit();if(comboKs().includes(f.k)&&!S.cslot[f.k]){S.cslot[f.k]=f;where='🧩 조합 보관함에 보관했어요 (어항 칸 차지 안 함)';}
   else if(AU.on&&f.v<AU.th&&!(AU.keepNew&&isNew)){const p=sellP(f);S.coins+=p;S.earned+=p;where=`⚙ 자동판매`;}
   else if(window.NK_tkPut&&(where=NK_tkPut(f))){where=`🐠 ${where}에 넣었어요`;}/* v188: 어항 3개 — 규칙에 맞는 어항, 없으면 빈 칸 있는 어항에 바로 넣어요 (대표 어항이 가득 차도 다른 어항에 자리가 있으면 팔지 않아요) */
@@ -2023,6 +2023,8 @@ const LAB=[
  {k:'hudSt',n:'💎 상단 상태바 강화석 표시',d:'골드 오른쪽에 강화석 개수를 같은 크기로 표시해요',scope:'me',o:[['old','기존 (강화석 없음)'],['H1','H1 한 줄 균등'],['H3','H3 컴팩트 링'],['H4','H4 알약 묶음']]},
  {k:'mapSt',n:'🗺 맵 시안',d:'데크·오리·상점·쉼터는 그대로 두고 주변 풍경만 바뀌어요. 🎄·🌻 시안은 시간(낮·노을·밤)과 날씨(눈·비·폭풍)에 따라 불빛·눈·바람이 바뀌고, 처음 고를 때 풍경을 따로 불러와요. 세부(구조물·디테일·밝기)는 설정 › 화면에서 조절해요',scope:'me',o:[['old','기존 (기본)'],['A','A 포근한 호숫가'],['B','B 숲속 비밀 호수'],['C','C 바닷가 항구'],['X','🎄 눈 내리는 성탄 마을'],['XM','🎄 성탄 아침 햇살'],['GB','🌻 황금빛 노을 보리밭']]},
  {k:'fuseOn',n:'✨ 물고기 합성',d:'같은 물고기·같은 별 3마리 → 별 올리기 + 가끔 변이(황금·벚꽃·알비노·무지개·유령). 메뉴에 「합성」 버튼이 생겨요. 촉매는 모험에서 얻어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
+ {k:'mergeBoard',n:'🪵 나무 작업대 합성판',d:'「합성」 버튼을 누르면 새 합성판이 열려요. 목록에서 물고기를 누르면 빈 칸으로 들어가고, 같은 물고기·같은 단계 2개를 겹치면 1개로 (★1~★5 → 블랙~무지개). 하루 횟수 기본 30 + 낚시 50회마다 +5 + 광고 +10 + 후원자 +100 (자정 초기화). 「예전 합성」은 3마리 별 올리기 창. 물고기 데이터는 둘 다 같아요',scope:'me',o:[['on','새 합성판 (기본)'],['off','예전 합성 (3마리)']]},
+ {k:'mbTidy',n:'🧺 합성판 정리 버튼',d:'합성판 아래 「정리」 버튼: 같은 물고기·같은 단계끼리 왼쪽 위부터 모아 줘요. 끄면 버튼이 사라져요',scope:'me',o:[['on','보이기 (기본)'],['off','숨기기']]},
  {k:'advOn',n:'🧭 물고기 모험',d:'탐험 지도에서 물고기 3마리를 원정 보내요. 돌아오면 골드·상자·지도 조각·합성 촉매. 「빠른 테스트」는 1시간 = 1분 (관리자 확인용)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기'],['fast','빠른 테스트 (1시간=1분)']]},
  {k:'topUi',n:'📱 모바일 상단 정리',d:'휴대폰 세로 화면의 위쪽만 바꿔요 (아래 버튼은 그대로). A 알림 한 줄 · B 왼쪽 레일+오른쪽 알림 · C 상단 바가 알림으로 변신 · D 알림함+짧은 토스트. 고르면 「모바일 화면 배치」보다 먼저 적용돼요',scope:'me',o:[['old','기존 (기본)'],['A','A 알림 한 줄'],['B','B 왼쪽 레일 + 오른쪽 알림'],['C','C 상단 바가 알림으로'],['D','D 알림함 + 짧은 토스트']]},
  {k:'tankPlus',n:'⭐ 어항 조합 추가 옵션',d:'조합 칸 물고기의 별·변이로 보너스가 붙어요. 조합 안 가장 낮은 별 기준 단계당 효과 +8% (★5 ×1.32) · 변이 물고기 1마리마다 작은 옵션 (블랙 감정 · 핑크 미끼 · 레드 빠른입질 · 황금 상인 · 무지개 행운, 어항 전체 최대 3개). 옵션별 상한은 그대로',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
@@ -2507,7 +2509,9 @@ function fzReveal(res,G){let m=$('fzr');if(!m){m=document.createElement('div');m
  if(res.fail){m.innerHTML=`<div class="fzrw fail"><div class="fzrc"><span class="fzrk">아쉬워요</span><h2>합성 실패</h2>${fzImg(res.keep,'big')}<p>가장 큰 ${sxH(fzName(res.keep))} ${res.keep.cm}cm는 돌아왔어요<br><b>물고기 정수 +1</b> · 지금 ${fzS().ess}/10</p><div class="fzrb"><button type="button" class="acc" data-ok>확인</button></div></div></div>`;}
  else{const f=res.f,V=f.vr&&FZV[fzVK(f.vr)];m.innerHTML=`<div class="fzrw ${res.newVar?'var':''}" style="${V?'--vc:'+V.c+';--vb:'+V.bg:''}"><div class="fzrays" aria-hidden="true"></div><div class="fzrc">${res.newVar?`<span class="fzrk">VARIANT</span>`:`<span class="fzrk">STAR UP</span>`}<h2>${sxH(fzName(f))}</h2><div class="fzst">${fzStars(f.st)}</div>${fzImg(f,'big')}<div class="fzchips"><span><b>${f.cm}cm</b> · 재료 평균 ${res.avg}cm</span><span>가치 ${f.v.toLocaleString()}</span>${res.first?'<span class="hl">처음 발견 · 도감에 기록</span>':''}${res.ess?`<span>정수 +${res.ess}</span>`:''}${res.ttl?`<span class="hl">🏅 칭호 「${sxH(res.ttl)}」</span>`:''}</div><div class="fzrb"><button type="button" class="acc" data-ok>어항에 넣기</button></div></div></div>`;}
  m.querySelector('[data-ok]').onclick=()=>m.classList.remove('show');m.classList.add('show');try{V14.catchSfx(res.fail?0:res.newVar?4:2);}catch(e){}}
-function openFuse(){if(!$('fuse')){const d=document.createElement('div');d.id='fuse';d.className='modal';document.body.appendChild(d);}renderFuse();openM('fuse');}
+/* v191: 🪵 나무 작업대 합성판(merge-board-v191.js)이 켜져 있으면(LAB mergeBoard, 기본 on) 새 합성판을 열어요. off면 예전 3마리 합성 */
+const mbOnG=()=>{try{return !!(window.NK_MB&&NK_MB.on());}catch(e){return false;}};
+function openFuse(){if(mbOnG()&&NK_MB.open())return;if(!$('fuse')){const d=document.createElement('div');d.id='fuse';d.className='modal';document.body.appendChild(d);}renderFuse();openM('fuse');}
 // ── 모험 ──
 const ADV_START={x:.120,y:.728};
 // v81: 탐험 시간 — 바위 협곡 30분 · 폭포 아래 1시간 · 벚꽃 강 1시간 30분 · 얼음 호수 2시간 · 보물섬 5시간
@@ -2575,7 +2579,7 @@ setInterval(()=>{if(!S||!S.adv||!S.adv.teams)return;const now=Date.now(),open=$(
 function featBtns(){const sy=$('mSys');if(!sy)return;const tpl=$('bTime')||$('bBoard');const mk=(id,icon,lab,fn)=>{let b=$(id);if(!b){b=document.createElement('button');b.id=id;b.type='button';b.innerHTML=`<b class="mi"><img src="${icon}" alt="" class="fti"></b><small class="ml">${lab}</small>`;b.onclick=e=>{e.stopPropagation();document.body.classList.remove('menu-open');fn();};}if(tpl)b.className=tpl.className.replace(/\bon\b/,'');return b;};
  const want=[[fzOn(),'bFuse','img/feat/cauldron.png','합성',openFuse],[advOn(),'bAdv','img/feat/piece.png','모험',openAdv]];
  want.forEach(([on,id,ic,lab,fn])=>{const b=mk(id,ic,lab,fn);if(on){if(!sy.contains(b))sy.insertBefore(b,sy.firstChild);}else if(b.parentNode)b.remove();});
- if(!fzOn()&&$('fuse'))closeM('fuse');if(!advOn()&&$('adv'))closeM('adv');}
+ if(!fzOn()&&$('fuse'))closeM('fuse');if(!fzOn()&&$('mbd'))closeM('mbd');if(!advOn()&&$('adv'))closeM('adv');}
 addEventListener('nk-rt-play',()=>setTimeout(featBtns,50));
 // v67: 🧪 테스트 — 📱 모바일 상단 정리(topUi A~D) + ✋ 꾹 눌러 옮기기(uiMove)
 const TXL=[['annBar','#annBar',6,'ann','운영자 공지'],['lvT','#lvT',5,'lv','레벨 업'],['gq','#gq',5,'gq','목표 달성'],['evbn','#evx .bn',4,'ev','이벤트'],['gift','.giftBan',4,'gift','선물'],['rib','#ribbons',3,'rib','알림'],['evch','#evx .ch',2,'evch','이벤트'],['xpF','#xpF',1,'xp','경험치']];
@@ -4171,7 +4175,7 @@ function adnTick(){const m=advNote();if(m==='off'||startOn()){['advA','advB'].fo
  if(m==='A')adnA(done);else{const t=done[0];ADN.shown.add(t.id);adnB(t,adnDone().length);}}
 // v97: 메뉴 「합성」(합성할 수 있는 물고기 묶음 수) · 「모험」(돌아온 원정대 수)에도 빨간 숫자
 setInterval(()=>{const put=(id,n)=>{const b=$(id);if(!b)return;let e=b.querySelector('.msn');if(!e){e=document.createElement('i');e.className='msn';b.appendChild(e);}e.textContent=n>99?'99+':(n||'');e.style.display=n?'':'none';};
- try{put('bFuse',fzOn()?fzGroups().filter(g=>g.list.length>=3).length:0);}catch(e){}try{put('bAdv',advOn()?adnDone().length:0);}catch(e){}},1500);
+ try{put('bFuse',fzOn()?(mbOnG()?NK_MB.badge():fzGroups().filter(g=>g.list.length>=3).length):0);}catch(e){}try{put('bAdv',advOn()?adnDone().length:0);}catch(e){}},1500);
 function adnA(done){let c=$('advA');if(c&&c._got)return;const t=done[0];if(c&&c._id===t.id){c.querySelector('.adnn').textContent=done.length>1?`+${done.length-1}팀 더`:'';return;}
  const R=advR(t.r);if(!R)return;if(!c){c=document.createElement('div');c.id='advA';c.className='adnA';document.body.appendChild(c);}c._id=t.id;c._got=0;
  c.innerHTML=`<button type="button" class="adnx" aria-label="닫기">×</button><div class="adnt">${boat}<div><small class="ok">🧭 원정대 귀환</small><b>${esc(R.n)}에서 돌아왔어요</b><small class="muted">성공 확률 ${Math.round((t.p||0)*100)}% <span class="adnn">${done.length>1?`+${done.length-1}팀 더`:''}</span></small></div></div><div class="adnf">${t.fish.map(f=>fzImg(f)).join('')}</div><div class="adnbt"><button type="button" class="acc" data-get>보상 받기</button><button type="button" data-map>지도 보기</button></div>`;
@@ -7779,7 +7783,7 @@ const STEPS=[
  {id:'cook',t:'그릴에서 생선 굽기',say:'데크 의자에 앉으면 옆에 <b>그릴</b> 버튼이 생긴단다. 물고기를 구워 먹으면 힘이 나지.',hint:()=>'그릴 버튼 → 구울 물고기 고르기',tg:()=>vis($('ckBtn'))?$('ckBtn'):null,avail:cookOn,done:()=>isOpen('ckDlg'),rw:{co:120}},
  {id:'auto',t:'자동 낚시 알아보기',say:'바쁠 땐 <b>자동 낚시</b>가 대신 낚아 준단다. 어떻게 쓰는지 눌러 보렴.',tg:()=>vis($('bAutoFish'))?$('bAutoFish'):null,click:'#bAutoFish',rw:{co:100}},
  {id:'lv',t:'레벨 보상 길 보기',say:'레벨이 오를 때마다 받을 선물이 <b>레벨 길</b>에 있단다. 위쪽의 <b>레벨 숫자</b>를 눌러 보렴.',tg:()=>{const e=document.querySelector('#mStat .lvb,#mStat .lv,#lvBadge,#mStat [data-lv]');return vis(e)?e:null;},done:()=>isOpen('lvRoad'),rw:{xp:40}},
- {id:'fuse',ch:'성장',t:'합성 창 열어 보기',say:'같은 물고기·같은 별 <b>3마리</b>를 모으면 <b>합성</b>으로 별을 올릴 수 있단다.',hint:()=>vis($('bFuse'))?'':'메뉴(☰)를 열면 합성이 있어요',tg:()=>menuT('bFuse'),avail:()=>{try{return fzOn();}catch(e){return false;}},done:()=>isOpen('fuse'),cut:'fuse',rw:{co:150}},
+ {id:'fuse',ch:'성장',t:'합성 창 열어 보기',say:()=>mbOnG()?'같은 물고기·같은 단계 <b>2마리</b>를 합성판에서 겹치면 <b>한 단계 위</b> 물고기가 된단다.':'같은 물고기·같은 별 <b>3마리</b>를 모으면 <b>합성</b>으로 별을 올릴 수 있단다.',hint:()=>vis($('bFuse'))?'':'메뉴(☰)를 열면 합성이 있어요',tg:()=>menuT('bFuse'),avail:()=>{try{return fzOn();}catch(e){return false;}},done:()=>isOpen('fuse')||isOpen('mbd'),cut:'fuse',rw:{co:150}},
  {id:'adv',t:'모험 지도 열어 보기',say:'물고기 3마리를 <b>모험</b>에 보내면 골드·상자·합성 촉매를 들고 돌아온단다.',hint:()=>vis($('bAdv'))?'':'메뉴(☰)를 열면 모험이 있어요',tg:()=>menuT('bAdv'),avail:()=>{try{return advOn();}catch(e){return false;}},done:()=>isOpen('adv'),cut:'adv',rw:{co:150}},
  {id:'pet',t:'펫과 함께 다니기',say:'펫이 있으면 <b>가방 › 펫</b>에서 데리고 다닐 수 있단다. 펫도 레벨이 오르지.',tg:()=>$('bBag'),avail:hasPet,done:()=>!!S.petOn,cut:'pet',rw:{co:120}},
  {id:'chat',ch:'함께',t:'채팅으로 인사하기',say:'호숫가엔 다른 낚시꾼도 있단다. <b>채팅</b>으로 반갑게 인사해 보렴.',hint:()=>'아무 말이나 보내면 돼요',tg:()=>{const m=$('msg');return vis(m)?m:(vis($('chatBtn'))?$('chatBtn'):null);},tick:c=>!!c.sent,rw:{co:80}},
@@ -7791,7 +7795,7 @@ const CH=['첫걸음','준비','생활','성장','함께'];
 const chOf=s=>{let c='첫걸음';for(const x of STEPS){if(x.ch)c=x.ch;if(x===s)return c;}return c;};
 // 3컷 카드
 const CUTS={
- fuse:{t:'물고기 합성',p:[['img/fish/bass.png','같은 물고기 · 같은 별 <b>3마리</b>를 모아요',3],['img/feat/cauldron.png','<b>합성</b>을 누르면 별이 하나 올라요',1],['img/feat/coins-gold.png','가끔 <b>변이</b>가 붙어 값이 훨씬 올라요',1]],open:()=>{try{openFuse();}catch(e){}}},
+ fuse:{t:'물고기 합성',get p(){return mbOnG()?[['img/fish/bass.png','물고기를 누르면 합성판 <b>빈 칸</b>으로 들어가요',3],['img/feat/cauldron.png','같은 물고기 · 같은 단계 <b>2개</b>를 겹쳐요',1],['img/feat/coins-gold.png','★5 다음은 <b>블랙 → 무지개</b>까지 올라가요',1]]:[['img/fish/bass.png','같은 물고기 · 같은 별 <b>3마리</b>를 모아요',3],['img/feat/cauldron.png','<b>합성</b>을 누르면 별이 하나 올라요',1],['img/feat/coins-gold.png','가끔 <b>변이</b>가 붙어 값이 훨씬 올라요',1]];},open:()=>{try{openFuse();}catch(e){}}},
  adv:{t:'물고기 모험',p:[['img/fish/carp.png','어항에서 물고기 <b>3마리</b>를 골라요',3],['img/adv/map.jpg','지도에서 갈 곳을 골라 <b>보내요</b>',0],['img/feat/chest.png','돌아오면 골드·상자·<b>합성 촉매</b>',1]],open:()=>{try{openAdv();}catch(e){}}},
  pet:{t:'펫',p:[['img/feat/chest.png','행운 상자에서 가끔 <b>펫</b>이 나와요',1],['img/feat/bag.png','<b>가방 › 펫</b>에서 데리고 다녀요',1],['img/feat/flower.png','펫도 <b>레벨</b>이 오르고 능력이 세져요',1]],open:()=>{try{openBag();}catch(e){}}},
  auto:{t:'자동 낚시',p:[['img/feat/coins.png','<b>자동 낚시 이용권</b>을 얻어요',1],['img/fish/bluegill.png','켜 두면 <b>대신</b> 낚아요',1],['img/tanks/m.png','어항이 차면 <b>멈춰요</b> · 가끔 비워 주세요',1]],open:()=>{try{$('bAutoFish').click();}catch(e){}}}
@@ -7851,7 +7855,7 @@ const BOOK=[
  {c:'상점',t:'상점 쓰기',s:['아래 <b>상점</b> 버튼','미끼·낚싯대·꾸미기를 골라요','가방에서 장착해요'],tip:'상점에서 산 물건은 30% 값에 되팔 수 있어요',img:'img/feat/coins-gold.png'},
  {c:'상자',t:'행운 상자',s:['낚시하다 보면 상자가 나와요','<b>상자</b> 버튼으로 열어요','등급이 높을수록 좋은 게 나와요'],tip:'신화 상자에서는 아주 드물게 로봇 캐릭터 이용권이 나와요',img:'img/feat/chest.png'},
  {c:'요리',t:'그릴 요리',s:['의자에 앉으면 <b>그릴</b> 버튼','구울 물고기를 골라요','먹으면 배부름과 효과가 생겨요'],tip:'다 익었을 때 뒤집으면 더 맛있어요',img:'img/cook/ico-skewer.png',avail:cookOn},
- {c:'합성',t:'물고기 합성',s:['같은 물고기·같은 별 <b>3마리</b>','<b>합성</b>을 눌러 별 올리기','가끔 <b>변이</b>(블랙~무지개)'],tip:'재료 등급이 높을수록 변이가 잘 나오고 정수도 더 받아요',img:'img/feat/cauldron.png',cut:'fuse',avail:()=>{try{return fzOn();}catch(e){return false;}},open:()=>{try{openFuse();}catch(e){}}},
+ {c:'합성',t:'물고기 합성',get s(){return mbOnG()?['물고기를 누르면 <b>빈 칸</b>으로','같은 물고기·같은 단계 <b>2개</b> 겹치기','★5 다음 <b>블랙~무지개</b>']:['같은 물고기·같은 별 <b>3마리</b>','<b>합성</b>을 눌러 별 올리기','가끔 <b>변이</b>(블랙~무지개)'];},get tip(){return mbOnG()?'하루 합성 횟수는 자정(한국 시간)에 초기화돼요 · ⓘ 에서 내역을 볼 수 있어요':'재료 등급이 높을수록 변이가 잘 나오고 정수도 더 받아요';},img:'img/feat/cauldron.png',cut:'fuse',avail:()=>{try{return fzOn();}catch(e){return false;}},open:()=>{try{openFuse();}catch(e){}}},
  {c:'모험',t:'물고기 모험',s:['물고기 <b>3마리</b>를 골라요','지도에서 갈 곳을 골라요','돌아오면 보상 받기'],tip:'합성 촉매는 모험에서만 얻어요',img:'img/feat/piece.png',cut:'adv',avail:()=>{try{return advOn();}catch(e){return false;}},open:()=>{try{openAdv();}catch(e){}}},
  {c:'펫',t:'펫',s:['상자에서 가끔 펫이 나와요','<b>가방 › 펫</b>에서 데리고 다녀요','펫도 레벨이 올라요'],tip:'펫 낚시 이용권이 있으면 펫이 대신 낚아요',img:'img/feat/flower.png',cut:'pet',avail:()=>{try{return String(uiOpt('pets','off'))==='on';}catch(e){return false;}}},
  {c:'도감',t:'도감',s:['아래 <b>도감</b> 버튼','만난 물고기가 기록돼요','별과 변이도 모아요'],tip:'처음 보는 물고기는 그림자로 보여요',img:'img/fish/bluegill.png'},
@@ -7988,6 +7992,10 @@ if(window.NK_PREV==='watch'){document.documentElement.classList.add('nkWatch');
   const RT=window.NK_RT,on=!!(RT&&RT.mode==='on'),n=L.length,sv=on&&RT.server?(RT.server(RT.sid)||{}).name||'':'';const k2=new Date(Date.now()+9*36e5).toISOString().slice(11,16);
   const t=`● LIVE · ${MAPN[mp]||''}${sv&&mp==='lake'?' '+sv:''} · ${on?`${n}명 낚시 중`:'둘러보기'} · ${k2}`;if(tag.textContent!==t)tag.textContent=t;tag.classList.toggle('solo',!on);});}
 window.__nkInt={camSet:(y,p,d)=>{if(y!=null)yaw=y;if(p!=null)pitch=p;if(d!=null){dist=d;distT=null;}return [yaw,pitch,dist]},get fishing(){return fishing},FH:()=>FHOOK,PH:()=>PHOOK,fishAction:a=>fishAction(a),endFish:()=>endFish(),get bob(){return bob},get castTo(){return castTo},get me(){return me},snd:()=>snd,tone:(...a)=>tone(...a),sfx:()=>sfx,tankView:()=>tankView,save:()=>save(),hud:()=>hud(),say:(...a)=>say(...a),toast:(...a)=>toast(...a),openM:k=>openM(k),closeM:k=>closeM(k),renderDex:()=>renderDex(),FI:k=>FI(k),GR:g=>GR(g),D:()=>D,NICK:()=>NICK(),get mySeat(){return mySeat},get nearSpot(){return nearSpot},SKY:()=>window.__nkSKY,CNL:()=>window.__nkCNL,get T(){return T}};
+/* v191: 🪵 합성판(merge-board-v191.js)이 쓰는 다리 — 게임 안쪽 함수·데이터를 그대로 빌려줘요 (새 규칙·숫자는 merge-board 쪽에) */
+window.__nkMB={get S(){return S;},fzOn:()=>fzOn(),uiOpt:(k,d)=>uiOpt(k,d),pool:()=>fzPool(),remove:(ids,keep)=>fzRemove(ids,keep),FI:k=>FI(k),FZV:()=>FZV,fzVK:k=>fzVK(k),fzS:()=>fzS(),fzSP:()=>fzSP(),valueOf:(f,cm,g)=>valueOf(f,cm,g),sellP:f=>sellP(f),
+ save:()=>save(),hud:()=>hud(),toast:(h,ms)=>toast(h,ms),openM:id=>openM(id),closeM:id=>closeM(id),confirmBox:(h,ok)=>confirmBox(h,ok),ilog:(...a)=>ILOG.add(...a),ms:(t,n)=>{try{if(msOn())msAdd(t,n);}catch(e){}},xbal:(n,w)=>{try{XBAL.ev(n,w);}catch(e){}},
+ snd:()=>snd,coin:()=>{try{sfx.coin();}catch(e){}},tankView:()=>tankView};
 /* v182 🧪 관리자 › 테스트 기능 — 시안 C: 켜진 것/전체 · 분류 · 끄기/나만/모두에게 · 정식 기능으로 (세부 설정 상자와 예전 목록은 아래 접기 안에 그대로) */
 {const LC={f:'on',c:'',q:'',open:{}};
  const CATS=[['first','처음 유저','#5b3fa6',/처음|가이드|튜토|tut|guide|wel|할아버지/i],['veh','탈것 · 펫','#2e7a46',/탈것|펫|veh|pet|turtle|거북|boats|배 |요트|ufo/i],['tank','어항 · 합성 · 요리','#8a6510',/어항|합성|요리|음식|tank|fuse|정수|cook/i],['map','맵 · 날씨','#2f7a8a',/맵|날씨|운하|달 |하늘|map|wx|sea|moon|sky|눈|비 |오로라|연등/i],['fish','낚시','#b5532a',/낚시|미끼|낚싯대|rod|bait|입질|챔질|reel/i],['ui','화면 · 메뉴','#2f5b9a',/화면|메뉴|ui|hud|버튼|창|채팅|카드|lay/i]];
