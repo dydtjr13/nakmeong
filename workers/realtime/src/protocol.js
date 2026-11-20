@@ -1141,6 +1141,8 @@ export function sanitizePlay(input, prev, opt) {
   // v192: 🪵 새 합성판 (테스트) · 정리 버튼
   if ("mergeBoard" in input) out.mergeBoard = pickOf(input.mergeBoard, ["on", "off"]);
   if ("mbTidy" in input) out.mbTidy = pickOf(input.mbTidy, ["on", "off"]);
+  // v194: ♾️ 합성판 테스트 무제한
+  if ("mbInf" in input) out.mbInf = pickOf(input.mbInf, ["on", "off"]);
   if ("stRate" in input) { const n = Math.round(Number(input.stRate)); out.stRate = Number.isFinite(n) ? Math.max(10000, Math.min(100000000, n)) : 300000; }
   if ("guideV2" in input) out.guideV2 = pickOf(input.guideV2, ["off", "new"]);
   if ("guideMe" in input) out.guideMe = pickOf(input.guideMe, ["off", "on"]);

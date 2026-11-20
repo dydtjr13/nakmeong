@@ -28,7 +28,8 @@ function save(){B().save();}function hud(){B().hud();}function toast(h,ms){B().t
 const FZV=new Proxy({},{get:(_,k)=>B().FZV()[k]});
 const opt=(k,d)=>{try{return String(uiOpt(k,d));}catch(e){return d;}};
 const on=()=>{try{return !!B()&&fzOn()&&opt('mergeBoard','off')==='on';}catch(e){return false;}};
-const tidyOn=()=>opt('mbTidy','on')!=='off';
+const tidyOn=()=>true;/* v194: 정리 버튼은 항상 보여요 */
+const infOn=()=>opt('mbInf','on')==='on';/* v194: ♾️ 테스트 중 무제한 (LAB mbInf) */
 const PCL=()=>innerWidth>=900;/* 3단 PC 배치 */
 const IMPACT=()=>{try{return matchMedia('(pointer:coarse)').matches;}catch(e){return false;}};/* 모바일(터치)만 흔들림·멈칫·진동 */
 /* v193: 서버 연결이 있으면 서버 시각으로 한국 날짜를 정해요 (기기 시계를 바꿔도 하루가 바뀌지 않아요) · 연결이 없으면 마지막으로 서버에서 받은 날짜를 그대로 써요 */
@@ -45,7 +46,7 @@ const SRV={st:null,pf:0,pa:0,t:0,rid:0};
 function srvFresh(){return RTon()&&SRV.st&&SRV.st.d===kst();}
 function isSup(){return !!(srvFresh()&&SRV.st.sup);}
 function total(){const d=day();if(!srvFresh())return MB_CFG.base;return MB_CFG.base+fishB(d.fish)+adB(d.ads)+(isSup()?MB_CFG.supAmt:0);}
-function left(){return Math.max(0,total()-day().used);}
+function left(){if(infOn())return 9999;return Math.max(0,total()-day().used);}
 function offRec(n){const S=gS();if(!S)return;const d=kst();if(!S.mbOff||S.mbOff.d!==d)S.mbOff={d,n:0};S.mbOff.n+=n;}
 function srvSync(op){if(!RTon())return false;op=op||{};const S=gS();if(SRV.pf){op.fish=(op.fish|0)+SRV.pf;SRV.pf=0;}if(SRV.pa){op.ad=(op.ad|0)+SRV.pa;SRV.pa=0;}if(S&&S.mbOff&&S.mbOff.n>0){op.off={d:S.mbOff.d,n:S.mbOff.n};S.mbOff=null;}SRV.t=Date.now();op.rid=String(++SRV.rid);try{return NK_RT.mbSync(op);}catch(e){return false;}}
 addEventListener('nk-rt-mb',e=>{const m=e.detail||{};if(!m.d)return;SRV.st=m;const S=gS();if(!S)return;S.mbSrvD=m.d;S.mbd={d:m.d,used:m.used|0,fish:m.fish|0,ads:m.ads|0};S.mbSup=!!m.sup;try{save();}catch(_){}if(m.ok===false)bubble('오늘 합성 횟수를 다 썼어요');if(ST.open){try{drawCnt();}catch(_){}}});
@@ -97,7 +98,7 @@ function build(){let m=$('mbd');if(m)return m;m=document.createElement('div');m.
  $('mbDim').onclick=()=>infoClose();
  $('mbArrL').onclick=()=>trayBy(-1);$('mbArrR').onclick=()=>trayBy(1);
  ['mbQP','mbQM'].forEach(id=>{const t=$(id);t.addEventListener('scroll',dots,{passive:true});t.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){t.scrollLeft+=e.deltaY;e.preventDefault();}},{passive:false});t.addEventListener('click',e=>{const it=e.target.closest('.mbti');if(it)place(it.dataset.key,it.querySelector('.mbcell'));});});
- const g=$('mbGrid');g.addEventListener('pointerdown',gDown);addEventListener('pointermove',gMove);addEventListener('pointerup',gUp);addEventListener('pointercancel',gUp);
+ const g=$('mbGrid');g.addEventListener('pointerdown',gDown);g.addEventListener('contextmenu',e=>{const c=e.target.closest('.mbcell');if(!c||c.parentNode!==g)return;e.preventDefault();ST.drag=null;$('mbDrag').style.display='none';backOne(+c.dataset.i);});addEventListener('pointermove',gMove);addEventListener('pointerup',gUp);addEventListener('pointercancel',gUp);
  addEventListener('keydown',e=>{if(!ST.open||e.key!=='Escape')return;if(ST.info)infoClose();else close();});
  addEventListener('resize',()=>{if(ST.open){layout();draw();requestAnimationFrame(slots);}});
  new MutationObserver(()=>{const sh=m.classList.contains('show');if(!sh&&ST.open)closed();}).observe(m,{attributes:true,attributeFilter:['class']});
@@ -120,12 +121,12 @@ function slots(){const B0=document.body,st=B0.style;const AH=annH();B0.classList
 function fxClear(){const fx=$('mbFx');if(fx){const g2=fx.getContext('2d');g2.setTransform(1,0,0,1,0,0);g2.clearRect(0,0,fx.width,fx.height);}}
 function cellEl(i){return $('mbGrid').children[i];}
 function draw(){if(!ST.open)return;const P=pool();if(sync(P))try{save();}catch(e){}ST.P=P;const b=mbS();
- b.cells.forEach((id,i)=>{const e=cellEl(i);if(!e)return;const f=id!=null?P.get(id):null,ov=ST.ov[i],hold=ST.hold.has(i);const h=hold?'':ov?itemHTML(ov.k,ov.t):f?itemHTML(f.k,tierOf(f))+(f.lock&&!f.alk?'':(f.alk?'<span class="mblk" title="자동 잠금(변이)">🔒</span>':'')):'';if(e._h!==h){e.innerHTML=h;e._h=h;}e.className='mbcell'+(hold?' mwait':(!f&&!ov?' mempty':''))+(ST.sell&&f&&ST.sel.has(id)?' msel':'');});
+ b.cells.forEach((id,i)=>{const e=cellEl(i);if(!e)return;const f=id!=null?P.get(id):null,ov=ST.ov[i],hold=ST.hold.has(i);const h=hold?'':ov?itemHTML(ov.k,ov.t):f?itemHTML(f.k,tierOf(f))+(f.lock&&!f.alk?'':(f.alk?'<span class="mblk" title="자동 잠금(변이)">🔒</span>':'')):'';if(e._h!==h){e.innerHTML=h;e._h=h;}e.className='mbcell'+(hold?' mwait':(!f&&!ov?' mempty':''))+(ST.sell&&f&&ST.sel.has(id)?' msel':'')+(ST.hintP&&ST.hintP.includes(i)&&f?' mbhint':'');});
  drawCnt();drawTray(P);drawLad(P);drawBB();
  document.querySelectorAll('#mbd .mbcoin').forEach(e=>{const S=gS();e.textContent=(S?S.coins|0:0).toLocaleString();});}
 function drawCnt(){const d=day(),fb=fishB(d.fish),cap=MB_CFG.fishMax/MB_CFG.fishAmt*MB_CFG.fishStep,nxt=d.fish>=cap?null:MB_CFG.fishStep-d.fish%MB_CFG.fishStep,pc=PCL();
  const nxtT=nxt?`다음 <b>+${MB_CFG.fishAmt}회</b>까지 ${nxt}마리`:'낚시 보너스 최대';const ticks=pc?[400,800]:[200,400,600,800];
- const mid=`<div class="mr1"><div class="mic">⚒</div><div><div class="mlb">오늘 남은 합성</div><div class="mnum">${left()}<small> / ${total()}</small></div></div><button class="mbibtn" type="button" aria-label="합성 정보">i</button></div>`;
+ const mid=`<div class="mr1"><div class="mic">⚒</div><div><div class="mlb">오늘 남은 합성</div><div class="mnum">${infOn()?'∞<small> 테스트 무제한</small>':`${left()}<small> / ${total()}</small>`}</div></div><button class="mbibtn" type="button" aria-label="합성 정보">i</button></div>`;
  const bar=`<div class="mfbar"><i style="width:${Math.min(100,d.fish/cap*100)}%"></i>${ticks.map(m=>`<s class="${d.fish>=m?'mok':''}" style="left:calc(${m/cap*100}% - 2px)"></s>`).join('')}</div><div class="mticks">${ticks.map(m=>`<span style="left:${m/cap*100}%;${m===cap?'transform:translateX(-80%)':m===200?'transform:translateX(-30%)':''}">${m}회${pc?'':'<br><b>+'+(m/MB_CFG.fishStep*MB_CFG.fishAmt)+'</b>'}</span>`).join('')}</div>`;
  const h=pc?`${mid}<div class="mfps"><span>🎣 낚시 ${d.fish}회</span><span>보너스 ${fb}/${MB_CFG.fishMax}</span></div><div class="mfp"><span>${nxtT}</span></div>${bar}`:`${mid}<div class="mfp"><span>🎣 오늘 낚시 ${d.fish}회 · 보너스 ${fb}/${MB_CFG.fishMax}</span><span>${nxtT}</span></div>${bar}`;
  ['mbCntM','mbCntP'].forEach(id=>{const e=$(id);if(e&&e._h!==h){e.innerHTML=h;e._h=h;e.querySelector('.mbibtn').onclick=()=>infoOpen();}});if(ST.info)infoBody();}
@@ -173,11 +174,17 @@ function place(key,fromEl){if(ST.sell){bubble('판매 모드를 닫고 넣어 �
  for(let q=0;q<n;q++){const f=fs[q],j=emp[q];b.cells[j]=f.id;const c=cellEl(j).getBoundingClientRect();ST.hold.add(j);ST.flies.push({k:f.k,t:tierOf(f),x0:r.left+r.width/2,y0:r.top+r.height/2,x1:c.left+c.width/2,y1:c.top+c.height/2,t0:now+q*gap,dur:320,to:j});}
  ST.lad=fs[0].k;try{save();}catch(e){}if(n<fs.length)bubble(`빈 칸이 모자라서 ${n}마리만 넣었어요`);play('whoosh');draw();kick();}
 // ── 판 끌기 ──
-function gDown(e){if(ST.info||!ST.open)return;const c=e.target.closest('.mbcell');if(!c||c.parentNode!==$('mbGrid'))return;const i=+c.dataset.i,b=mbS(),id=b.cells[i];if(id==null||ST.hold.has(i)||ST.ov[i])return;e.preventDefault();
- ST.drag={from:i,id,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,moved:false,pid:e.pointerId};}
-function gMove(e){const d=ST.drag;if(!d||e.pointerId!==d.pid)return;d.x=e.clientX;d.y=e.clientY;if(!d.moved&&Math.hypot(d.x-d.x0,d.y-d.y0)>6){if(ST.sell){return;}d.moved=true;const f=(ST.P||pool()).get(d.id);if(!f){ST.drag=null;return;}const cs=ST.cs;$('mbDrag').innerHTML=`<div class="mbcell" style="width:${cs}px;height:${cs}px;--cs:${cs}px">${itemHTML(f.k,tierOf(f))}</div>`;$('mbDrag').style.display='block';cellEl(d.from).style.opacity=.35;hint(d.from,true);play('squish',0);}
+function gDown(e){poke();if(e.button===2)return;if(ST.info||!ST.open)return;const c=e.target.closest('.mbcell');if(!c||c.parentNode!==$('mbGrid'))return;const i=+c.dataset.i,b=mbS(),id=b.cells[i];if(id==null||ST.hold.has(i)||ST.ov[i])return;e.preventDefault();
+ ST.drag={from:i,id,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,moved:false,pid:e.pointerId};
+ /* v194: 손가락으로 꾹 누르고 있으면(0.6초) 보유 물고기로 돌려놔요 · 마우스는 오른쪽 클릭 */
+ if(e.pointerType!=='mouse'){const d=ST.drag;clearTimeout(ST.lp);ST.lp=setTimeout(()=>{if(ST.drag===d&&!d.moved&&!ST.sell){ST.drag=null;d.lp=1;backOne(i);}},600);}}
+/* v194: 판의 물고기 1마리를 보유 물고기로 (오른쪽 클릭·꾹 누르기) */
+function backOne(i){if(ST.sell||ST.hold.has(i)||ST.ov[i])return;const b=mbS(),id=b.cells[i];if(id==null)return;const P=ST.P||pool(),f=P.get(id);b.cells[i]=null;try{save();}catch(e){}
+ const c=cellEl(i),t=document.querySelector('#mbd .mbstrip')||$('mbBB');if(f&&c&&t){const r=c.getBoundingClientRect(),q=t.getBoundingClientRect(),el=document.createElement('div'),cs=ST.cs;el.className='mbcell mbret';el.style.cssText=`position:fixed;left:0;top:0;width:${cs}px;height:${cs}px;--cs:${cs}px;z-index:60;pointer-events:none;transform:translate(${r.left}px,${r.top}px);transition:transform .32s cubic-bezier(.5,0,.6,1),opacity .32s`;el.innerHTML=itemHTML(f.k,tierOf(f));$('mbd').appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(()=>{el.style.transform=`translate(${q.left+q.width/2-cs/2}px,${q.top+q.height/2-cs/2}px) scale(.55)`;el.style.opacity='.2';}));setTimeout(()=>el.remove(),380);}
+ play('whoosh');draw();bubble(f?`${esc(fnm(f.k))}${jo(fnm(f.k))} 보유 물고기로 돌려놨어요`:'보유 물고기로 돌려놨어요',1100);}
+function gMove(e){const d=ST.drag;if(!d||e.pointerId!==d.pid)return;if(Math.hypot(e.clientX-d.x0,e.clientY-d.y0)>6)clearTimeout(ST.lp);d.x=e.clientX;d.y=e.clientY;if(!d.moved&&Math.hypot(d.x-d.x0,d.y-d.y0)>6){if(ST.sell){return;}d.moved=true;const f=(ST.P||pool()).get(d.id);if(!f){ST.drag=null;return;}const cs=ST.cs;$('mbDrag').innerHTML=`<div class="mbcell" style="width:${cs}px;height:${cs}px;--cs:${cs}px">${itemHTML(f.k,tierOf(f))}</div>`;$('mbDrag').style.display='block';cellEl(d.from).style.opacity=.35;hint(d.from,true);play('squish',0);}
  if(d.moved){const D=$('mbDrag'),cs=ST.cs;D.style.transform=`translate(${d.x-cs*.5}px,${d.y-cs*.75}px) rotate(-6deg) scale(1.15)`;}}
-function gUp(e){const d=ST.drag;if(!d||(e.pointerId!==d.pid))return;ST.drag=null;$('mbDrag').style.display='none';const fe=cellEl(d.from);if(fe)fe.style.opacity='';hint(d.from,false);
+function gUp(e){clearTimeout(ST.lp);const d=ST.drag;if(!d||(e.pointerId!==d.pid))return;ST.drag=null;$('mbDrag').style.display='none';const fe=cellEl(d.from);if(fe)fe.style.opacity='';hint(d.from,false);
  if(!d.moved){if(ST.sell){ST.sel.has(d.id)?ST.sel.delete(d.id):ST.sel.add(d.id);draw();}else{const f=(ST.P||pool()).get(d.id);if(f){ST.lad=f.k;drawLad(ST.P||pool());}}return;}
  const el=document.elementsFromPoint(d.x,d.y).find(x=>x.classList&&x.classList.contains('mbcell')&&x.parentNode===$('mbGrid'));if(!el)return;const to=+el.dataset.i;if(to===d.from)return;
  const b=mbS(),P=ST.P||pool(),a=P.get(b.cells[d.from]),c=b.cells[to]!=null?P.get(b.cells[to]):null;if(!a)return;
@@ -186,10 +193,22 @@ function gUp(e){const d=ST.drag;if(!d||(e.pointerId!==d.pid))return;ST.drag=null
  else if(c&&c.k===a.k&&tierOf(a)>=9){bubble('무지개는 가장 높은 단계예요');play('deny');}
  else if(c){const t=b.cells[to];b.cells[to]=b.cells[d.from];b.cells[d.from]=t;try{save();}catch(e){}draw();}}
 function hint(from,onn){const b=mbS(),P=ST.P||pool(),a=P.get(b.cells[from]);[...$('mbGrid').children].forEach((e,i)=>{e.classList.remove('mok','mdim');if(!onn||i===from||!a)return;const c=b.cells[i]!=null?P.get(b.cells[i]):null;if(!c)return;e.classList.add(c.k===a.k&&tierOf(c)===tierOf(a)&&tierOf(a)<9?'mok':'mdim');});}
+// ── v194: 5초 동안 가만히 보고만 있으면 합칠 수 있는 물고기를 살짝 흔들어 보여줘요 · 합칠 게 하나도 없으면 알림창 ──
+const jo=w=>{const c=String(w||'').charCodeAt(String(w||'').length-1)-0xAC00;return c>=0&&c<11172&&c%28?'을':'를';};
+function pairOnBoard(){const b=mbS(),P=ST.P||pool(),m={};for(let i=0;i<b.cells.length;i++){const id=b.cells[i];if(id==null||ST.hold.has(i)||ST.ov[i])continue;const f=P.get(id);if(!f)continue;const t=tierOf(f);if(t<0||t>=9)continue;const k=f.k+'|'+t;if(m[k]!=null)return [m[k],i];m[k]=i;}return null;}
+function trayCan(){const L=ST.tray||[];if(L.some(g=>g.list.length>=2))return L.find(g=>g.list.length>=2);const b=mbS(),P=ST.P||pool(),on=new Set();b.cells.forEach(id=>{const f=id!=null&&P.get(id);if(f)on.add(f.k+'|'+tierOf(f));});return L.find(g=>on.has(g.k+'|'+g.t))||null;}
+function poke(){ST.idle=performance.now();if(ST.hintP){ST.hintP.forEach(i=>{const e=cellEl(i);if(e)e.classList.remove('mbhint');});ST.hintP=null;}document.querySelectorAll('#mbd .mbti.mbhint').forEach(e=>e.classList.remove('mbhint'));}
+function noneAlert(){if($('mbNone'))return;const d=document.createElement('div');d.id='mbNone';d.className='mbnone';d.innerHTML=`<div class="mbnc"><div class="mbni">🎣</div><b>지금은 합성할 물고기가 없어요</b><p>같은 물고기·같은 별 2마리가 있어야 합성돼요<br>낚시로 물고기를 더 모아 와요</p><button type="button" class="mb3">확인</button></div>`;d.addEventListener('pointerdown',e=>{e.stopPropagation();});d.querySelector('button').onclick=()=>{d.remove();poke();};$('mbd').appendChild(d);play('deny');}
+setInterval(()=>{try{if(!ST.open||ST.drag||ST.info||ST.sell||ST.flies.length||ST.ev.length||$('mbNone'))return;const idle=performance.now()-(ST.idle||0);
+ if(idle>1200){const pr=pairOnBoard(),tc=pr?null:trayCan(),sig=mbS().cells.join(',')+'#'+(ST.tray||[]).map(g=>g.k+g.t+'x'+g.list.length).join(',');
+  if(!pr&&!tc){if(ST.noneSig!==sig){ST.noneSig=sig;noneAlert();}return;}ST.noneSig=null;
+  if(idle>5000&&!ST.hintP){if(pr){ST.hintP=pr;const a=cellEl(pr[0]),c=cellEl(pr[1]);if(a&&c){const ra=a.getBoundingClientRect(),rc=c.getBoundingClientRect(),dx=rc.left-ra.left,dy=rc.top-ra.top,L=Math.hypot(dx,dy)||1,m=Math.min(10,ST.cs*.16);a.style.setProperty('--hx',(dx/L*m)+'px');a.style.setProperty('--hy',(dy/L*m)+'px');c.style.setProperty('--hx',(-dx/L*m)+'px');c.style.setProperty('--hy',(-dy/L*m)+'px');a.classList.add('mbhint');c.classList.add('mbhint');}}
+   else if(tc){ST.hintP=[];document.querySelectorAll(`#mbd .mbti[data-key="${tc.k}|${tc.t}"]`).forEach(e=>e.classList.add('mbhint'));}}}}catch(e){}},500);
+addEventListener('pointerdown',()=>{if(ST.open)poke();},true);addEventListener('keydown',()=>{if(ST.open)poke();},true);
 // ── 합성 (데이터는 바로 바꾸고, 그림만 0.1~0.3초 늦게 보여요) ──
 function merge(from,to){if(left()<=0){bubble('오늘 합성 횟수를 다 썼어요');play('deny');return false;}
  const b=mbS(),P=ST.P||pool(),a=P.get(b.cells[from]),c=P.get(b.cells[to]);if(!a||!c)return false;const t0=tierOf(a);let r=t0+1;if(r<9&&Math.random()<MB_CFG.luck)r++;
- const nf=makeFish(a,c,r);if(!nf)return false;day().used++;if(srvFresh())srvSync({use:1});else offRec(1);b.cells[from]=null;b.cells[to]=nf.id;try{save();hud();}catch(e){}
+ const nf=makeFish(a,c,r);if(!nf)return false;if(!infOn()){day().used++;if(srvFresh())srvSync({use:1});else offRec(1);}b.cells[from]=null;b.cells[to]=nf.id;try{save();hud();}catch(e){}
  const now=performance.now(),I0=IMP[r],I=IMPACT()?I0:Object.assign({},I0,{sh:0,hs:0});if(now-ST.last<3000)ST.combo++;else ST.combo=1;ST.last=now;
  const S=gS();S.mbSeen=S.mbSeen||{};const isNew=!S.mbSeen[a.k+'|'+r];S.mbSeen[a.k+'|'+r]=1;ST.lad=a.k;
  const ce=cellEl(to).getBoundingClientRect(),x=ce.left+ce.width/2,y=ce.top+ce.height/2;let sd=to*97+r*13+1;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
@@ -247,9 +266,9 @@ function loop(){ST.raf=0;if(!ST.open)return;const t=performance.now(),fx=$('mbFx
  for(let i=ST.pops.length-1;i>=0;i--){const d=ST.pops[i],a=t-d._t0;busy=true;if(a>d._ms){d.remove();ST.pops.splice(i,1);}else d.style.opacity=a<150?a/150:a>d._ms-250?(d._ms-a)/250:1;}
  if(busy)kick();}
 // ── 열기·닫기 ──
-function open(){if(!on())return false;build();ST.open=true;try{srvSync();}catch(e){}ST.sell=false;ST.sel.clear();ST.ov={};ST.hold.clear();ST.ev=[];ST.flies=[];try{openM('mbd');}catch(e){$('mbd').classList.add('show');}document.body.classList.add('mb-open');layout();draw();layout();draw();fxClear();requestAnimationFrame(()=>{if(ST.open){layout();draw();slots();}});kick();return true;}
+function open(){if(!on())return false;build();ST.open=true;ST.idle=performance.now();ST.hintP=null;ST.noneSig=null;try{srvSync();}catch(e){}ST.sell=false;ST.sel.clear();ST.ov={};ST.hold.clear();ST.ev=[];ST.flies=[];try{openM('mbd');}catch(e){$('mbd').classList.add('show');}document.body.classList.add('mb-open');layout();draw();layout();draw();fxClear();requestAnimationFrame(()=>{if(ST.open){layout();draw();slots();}});kick();return true;}
 function close(){try{closeM('mbd');}catch(e){const m=$('mbd');if(m)m.classList.remove('show');}closed();}
-function closed(){if(!ST.open)return;ST.open=false;infoClose();ST.drag=null;ST.ov={};ST.hold.clear();ST.ev=[];ST.flies=[];ST.pops.forEach(d=>d.remove());ST.pops=[];document.body.classList.remove('mb-open');slots();fxClear();const fl=$('mbFly');if(fl){fl.innerHTML='';fl._h='';}const s=$('mbShk');if(s)s.style.transform='';try{save();}catch(e){}}
+function closed(){if(!ST.open)return;ST.open=false;try{const n=$('mbNone');if(n)n.remove();}catch(e){}infoClose();ST.drag=null;ST.ov={};ST.hold.clear();ST.ev=[];ST.flies=[];ST.pops.forEach(d=>d.remove());ST.pops=[];document.body.classList.remove('mb-open');slots();fxClear();const fl=$('mbFly');if(fl){fl.innerHTML='';fl._h='';}const s=$('mbShk');if(s)s.style.transform='';try{save();}catch(e){}}
 function badge(){try{if(!on())return 0;const P=pool(),b=mbS(),seen={};let n=0;b.cells.forEach(id=>{const f=id!=null&&P.get(id);if(!f||tierOf(f)>=9)return;const k=f.k+'|'+tierOf(f);seen[k]=(seen[k]|0)+1;});for(const k in seen)n+=seen[k]>>1;return left()>0?n:0;}catch(e){return 0;}}
 function onCatch(){try{if(!on())return;SRV.pf++;const d=day();if(!srvFresh())d.fish++;if(ST.open)drawCnt();}catch(e){}}
 /* v193: 후원자는 관리자 › 지급 › 💝 후원에서 서버 명단에 올려요 (이 함수는 화면만 다시 그려요) */function setSupporter(v){if(ST.open)draw();}

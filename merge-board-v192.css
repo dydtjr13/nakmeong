@@ -89,7 +89,7 @@
 #mbd .mbbb{position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;padding:10px 14px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(rgba(247,236,217,0),#f7ecd9 30%);z-index:5}
 #mbd .mbbb button{flex:1;border:0;border-radius:15px;font-weight:900;font-size:14px;padding:12px 4px;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.15);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #mbd .mbbb button:disabled{opacity:.55;cursor:default}
-#mbd .mbbb .mb1{background:#a9b8c2}
+#mbd .mbbb .mb1{background:#e0a35c}
 #mbd .mbbb .mb3{background:#8fc7c0}
 #mbd .mbbb .mb0{background:#c9b49a;flex:0 0 64px}
 #mbd .mbbb.sellm .mb3{background:#e8a24a}
@@ -144,3 +144,19 @@
 body.mb-open.mb-annT #stAnn{top:var(--mbAnnT)!important;bottom:auto!important;transform:translateX(-50%) scale(var(--mbAnnS))!important;transform-origin:50% 0!important}
 body.mb-open.mb-annB #stAnn{top:auto!important;bottom:var(--mbAnnB)!important;transform:translateX(-50%) scale(var(--mbAnnS))!important;transform-origin:50% 100%!important}
 body.mb-open.mb-tqB #tq{top:auto!important;bottom:var(--mbTqB)!important}
+/* v194: 가만히 있으면 합칠 수 있는 물고기를 살짝 흔들어 보여줘요 */
+#mbGrid .mbcell.mbhint .mbit{animation:mbNudge 1.15s ease-in-out infinite;z-index:2}
+@keyframes mbNudge{0%,100%{transform:translate(0,0) rotate(0)}30%{transform:translate(var(--hx,0),var(--hy,0)) rotate(-4deg) scale(1.06)}50%{transform:translate(0,0) rotate(3deg)}65%{transform:translate(var(--hx,0),var(--hy,0)) rotate(-2deg) scale(1.04)}}
+#mbd .mbti.mbhint{animation:mbBob .9s ease-in-out infinite}
+@keyframes mbBob{0%,100%{transform:translateY(0)}45%{transform:translateY(-6px) scale(1.06)}}
+/* v194: 합성할 게 없을 때 알림창 */
+.mbnone{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;background:rgba(60,40,20,.28);animation:mbFade .18s ease-out}
+.mbnone .mbnc{background:#fffaf2;border-radius:20px;padding:20px 22px 16px;width:min(320px,86vw);text-align:center;box-shadow:0 12px 30px rgba(60,40,20,.3);border:2px solid #efe3cf;display:flex;flex-direction:column;align-items:center;gap:8px;color:#4a3b2c}
+.mbnone .mbni{font-size:40px;line-height:1}
+.mbnone b{font-size:17px;white-space:nowrap}
+.mbnone p{margin:0;font-size:13px;line-height:1.5;color:#8a7560;white-space:nowrap}
+.mbnone button{margin-top:6px;min-width:120px;height:42px;border:0;border-radius:14px;font-weight:800;font-size:15px;color:#fff;background:#3fae9c;box-shadow:0 3px 0 #2b8577;cursor:pointer}
+@keyframes mbFade{from{opacity:0}to{opacity:1}}
+.mbret .mbit{cursor:default}
+/* v194: 별 줄이 칸 밖으로 나가지 않게 (칸 너비 기준) */
+@supports (font-size:1cqw){#mbd .mbit{container-type:inline-size}#mbd .mbit .mst{font-size:14.5cqw;letter-spacing:-.04em}}
