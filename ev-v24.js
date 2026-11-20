@@ -62,6 +62,9 @@ window.NK_UI25=(function(){const K='nk_ui25',D0={xp:'A2',tutPC:'D2',tutM:'D2',tu
  function place(){const x=$('xpF');if(!x)return;const m=innerWidth<700,P=window.NK_RT&&NK_RT.play,v=(P&&(P.xpPos==='A2'||P.xpPos==='A4')&&!document.body.classList.contains('adm'))?P.xpPos:NK_UI25.get('xp'),set=(k,val)=>x.style.setProperty(k,val,'important');const w=x.offsetWidth||120;
   if(v==='A4'){if(x.classList.contains('a2'))x.classList.remove('a2');const tops=['mMain','fishBtn','bSit','sitBtn'].map(id=>$(id)).filter(e=>e&&e.getClientRects().length&&getComputedStyle(e).visibility!=='hidden'&&e.getBoundingClientRect().height).map(e=>e.getBoundingClientRect().top).filter(t=>t>innerHeight*.4),T=tops.length?Math.min(...tops):innerHeight-92;
    if(m){set('left',(innerWidth-w-10)+'px');set('top',(T-(x.offsetHeight||26)-10)+'px');}else{set('left',((innerWidth-w)/2)+'px');set('top',(T-(x.offsetHeight||26)-10)+'px');}set('bottom','auto');set('right','auto');return;}
+  /* v201: 화면 가운데에 뜨던 경험치 알림 → 레벨 표시(경험치 바) 바로 아래에 작게 · 레벨 표시가 안 보이면 왼쪽 위 */
+  {const L=$('lvB');let r=null;if(L&&L.getClientRects().length){const q=L.getBoundingClientRect();if(q.width>4&&q.height>4&&q.bottom>0&&q.top<innerHeight*.5)r=q;}
+   const lf=r?Math.max(6,Math.min(innerWidth-w-6,Math.round(r.left))):8,tp=r?Math.round(r.bottom+6):(m?64:72);set('left',lf+'px');set('top',tp+'px');set('bottom','auto');set('right','auto');x._y=tp;if(!x.classList.contains('a2'))x.classList.add('a2');if(!x.classList.contains('xs1'))x.classList.add('xs1');return;}
   // v114: 떠 있는 동안에는 높이를 바꾸지 않아요 (토스트가 뜨고 질 때 알림이 위아래로 깜빡이던 문제)
   let y=x._y;if(!(x._y>0)||!x._keep){const t=$('toast');y=innerHeight*.26+(m?96:118);if(t){const r=t.getBoundingClientRect(),op=+getComputedStyle(t).opacity;if(op>.05&&r.height)y=r.bottom+8;}x._y=y;}
   set('left',((innerWidth-w)/2)+'px');set('top',y+'px');set('bottom','auto');set('right','auto');if(!x.classList.contains('a2'))x.classList.add('a2');}

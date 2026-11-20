@@ -79,7 +79,8 @@ function fish3D(sp){const asp=fishAsp(sp.k),W=sp.size,H=W/asp,geo=new THREE.Plan
 
 // ── 소리 (WebAudio 합성) ──
 let AC=null,AM=null;
-function ac(){if(AC)return AC;try{AC=new (window.AudioContext||window.webkitAudioContext)();AM=AC.createGain();AM.gain.value=.55;AM.connect(AC.destination);}catch(e){AC=null;}return AC;}
+/* v201: 소리 끄기·전체 소리·효과음 크기를 따라요 (예전엔 늘 같은 크기였어요) */function stG(){if(AM)try{AM.gain.value=.55*(window.NK_sfxGain?NK_sfxGain():.8);}catch(e){}}
+function ac(){if(AC){stG();return AC;}try{AC=new (window.AudioContext||window.webkitAudioContext)();AM=AC.createGain();AM.gain.value=.55;AM.connect(AC.destination);stG();}catch(e){AC=null;}return AC;}
 function osc(f1,f2,dur,type,g,dl=0,dest){const A=ac();if(!A)return;const t=A.currentTime+dl,o=A.createOscillator(),gn=A.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f1,t);if(f2!==f1)o.frequency.exponentialRampToValueAtTime(Math.max(1,f2),t+dur);gn.gain.setValueAtTime(.0001,t);gn.gain.exponentialRampToValueAtTime(g,t+.012);gn.gain.exponentialRampToValueAtTime(.0005,t+dur);o.connect(gn).connect(dest||AM);o.start(t);o.stop(t+dur+.05);}
 function noise(dur,g,dl=0,ft='lowpass',f1=800,f2=800,q=.8){const A=ac();if(!A)return;const t=A.currentTime+dl,n=Math.floor(A.sampleRate*dur),b=A.createBuffer(1,n,A.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;const s=A.createBufferSource();s.buffer=b;const fl=A.createBiquadFilter();fl.type=ft;fl.Q.value=q;fl.frequency.setValueAtTime(f1,t);fl.frequency.exponentialRampToValueAtTime(f2,t+dur);const gn=A.createGain();gn.gain.setValueAtTime(.0001,t);gn.gain.exponentialRampToValueAtTime(g,t+.03);gn.gain.exponentialRampToValueAtTime(.0005,t+dur);s.connect(fl).connect(gn).connect(AM);s.start(t);s.stop(t+dur+.05);}
 const SFX={

@@ -1000,6 +1000,10 @@ export function sanitizeXpBal(x) {
     rc: x.rc ? 1 : 0,
     rp: Math.round(n(x.rp, 0, 100, 70)),
     rmax: Math.round(n(x.rmax, 1, 99, 30)),
+    // v201 높은 레벨 필요 경험치: hs 시작 레벨 · hm 시작 배율 · hg 레벨마다 더하는 배율
+    hs: Math.round(n(x.hs, 2, 99, 90)),
+    hm: Math.round(n(x.hm, 1, 50, 3) * 100) / 100,
+    hg: Math.round(n(x.hg, 0, 10, 0.5) * 100) / 100,
     rl: lvMap(x.rl),
     bl: lvMap(x.bl),
   };

@@ -1349,3 +1349,6 @@ body.seaB #vehBtn{display:none!important}
 .ufbox .ufgrid b{white-space:nowrap}.ufbox .ufl{font-size:12px;opacity:.85;line-height:1.35}
 .ufbox .ufb{display:flex;gap:4px}.ufbox .ufb button{white-space:nowrap}
 .ufbox details{margin-top:8px}
+/* v201: 펫 알림 안 경험치 · 레벨 표시 아래 작은 경험치 알림 */
+.pp .ppx{flex:none;color:#ffcf6a;font-weight:900}
+#xpF.xs1{font-size:11px;padding:4px 10px;border-radius:10px}

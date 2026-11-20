@@ -625,6 +625,12 @@ test("v55 관리자 설정 정리", () => {
   assert.equal(g.balList.length, 1);
 });
 
+test("v201 xpBal 높은 레벨 배율", () => {
+  const v = sanitizePlay({ xpBal: { cv: "A", hs: 120, hm: 99, hg: -3 } }, null).xpBal;
+  assert.equal(v.hs, 99); assert.equal(v.hm, 50); assert.equal(v.hg, 0);
+  const d = sanitizePlay({ xpBal: { cv: "A" } }, null).xpBal;
+  assert.equal(d.hs, 90); assert.equal(d.hm, 3); assert.equal(d.hg, 0.5);
+});
 test("v58 xpBal 정리", () => {
   const v = sanitizePlay({ xpBal: { cv: "B", cm: 9, bx: [1, 2, "x"], gm: [-5], gcap: "300", rc: 1, rp: 150, rl: { carbon: 120, "bad key!": 3 } } }, null).xpBal;
   assert.equal(v.cv, "B"); assert.equal(v.cm, 5); assert.deepEqual(v.bx, [1, 2, 50, 120, 300, 800]);
