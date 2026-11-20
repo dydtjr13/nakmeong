@@ -536,7 +536,9 @@ export class LakeRoom extends DurableObject {
     if (msg.t === "gift") {
       const g = sanitizeGift(msg.gift, now);
       if (!g) return;
-      await this.fan(fromId, g.servers && g.servers.length ? g.servers : [fromId], { t: "gift", gift: g });
+      // v191: 운하(20)까지 모든 곳에 보내고, 한 사람에게 준 건 호숫가 1에 맡겨 둬서 그때 접속해 있지 않았어도 다음 접속 때 받아요
+      await this.fan(fromId, all, { t: "gift", gift: g });
+      if (g.nick !== "*") { try { if (fromId === 1) await this.giftPut(g); else await this.env.LAKE.getByName("lake-1").giftPut(g); } catch { /* ignore */ } }
       return;
     }
     if (msg.t === "prof") {
@@ -638,6 +640,31 @@ export class LakeRoom extends DurableObject {
     return c[k];
   }
   async stCounts() { return { ...(await this.opsGet("stcnt", {})) }; }
+
+  /** v191: 🎁 아직 못 받은 지급 (닉네임마다 최대 30개 · 30일) — 호숫가 1이 맡아 둬요 */
+  async giftPut(g) {
+    if (!g || !g.nick || g.nick === "*") return false;
+    const now = Date.now(), P = { ...(await this.opsGet("gpend", {})) };
+    const L = (P[g.nick] || []).filter((x) => x && x.at > now - 30 * 864e5 && x.g && x.g.id !== g.id);
+    L.push({ at: now, g });
+    P[g.nick] = L.slice(-30);
+    const keys = Object.keys(P);
+    if (keys.length > 2000) for (const k of keys.slice(0, keys.length - 2000)) delete P[k];
+    await this.opsPut("gpend", P);
+    return true;
+  }
+  async giftTake(nick) {
+    const P = await this.opsGet("gpend", {}), now = Date.now();
+    return (P[nick] || []).filter((x) => x && x.at > now - 30 * 864e5).map((x) => x.g);
+  }
+  async giftAck(nick, id) {
+    const P = { ...(await this.opsGet("gpend", {})) };
+    if (!P[nick]) return false;
+    const L = P[nick].filter((x) => x && x.g && x.g.id !== id);
+    if (L.length) P[nick] = L; else delete P[nick];
+    await this.opsPut("gpend", P);
+    return true;
+  }
 
   async occupancy() {
     const st = await this.opsGet("stage", null);
@@ -869,6 +896,13 @@ export class LakeRoom extends DurableObject {
       try { n = prev.server === 1 ? await this.stBump(st.k) : await this.env.LAKE.getByName("lake-1").stBump(st.k); } catch (e) { n = 0; }
       const a = `${prev.server}:${prev.id}:${now}`;
       await this.fan(prev.server, [...SERVERS.map((x) => x.id), 7, 20], { t: "st", a, id: prev.id, nick: prev.nick, srv: prev.server, k: st.k, cm: st.cm, n, at: now });
+      return;
+    }
+    if (msg.t === "giftAck") {
+      if (!prev.ready || !prev.nick) return;
+      const id = String(msg.id || "").replace(/[^\w.-]/g, "").slice(0, 40);
+      if (!id) return;
+      try { if (prev.server === 1) await this.giftAck(prev.nick, id); else await this.env.LAKE.getByName("lake-1").giftAck(prev.nick, id); } catch { /* ignore */ }
       return;
     }
     if (msg.t === "stc") {
@@ -1193,6 +1227,13 @@ export class LakeRoom extends DurableObject {
         game: await this.gamePublic(),
       }));
       if (next.att.admin) await this.sendReports(ws);
+      // v191: 접속하지 않았을 때 받은 🎁 지급을 지금 보내요 (게임이 받으면 giftAck 로 지워요)
+      try {
+        if (meNick) {
+          const pend = next.att.server === 1 ? await this.giftTake(meNick) : await this.env.LAKE.getByName("lake-1").giftTake(meNick);
+          for (const g of (pend || []).slice(0, 30)) ws.send(JSON.stringify({ t: "gift", gift: g }));
+        }
+      } catch { /* ignore */ }
       this.broadcast({ t: "join", n, peer: next.pub }, ws);
       this.cntPush(next.att.server);
       this.cntFill(next.att.server);
