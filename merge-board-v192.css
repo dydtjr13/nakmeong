@@ -199,3 +199,16 @@ body.mb-open #s5x{z-index:95}
 body.mb-open #confirm{z-index:96!important}
 /* v199: 데크 「꾸미기」 버튼(층 46)이 합성판·다른 창 위에 보이던 문제 */
 body.mb-open #dcBtn,body.mb-open #dcEd,body:has(.modal.show) #dcBtn{display:none!important}
+
+/* v200: 🪵 합성판 레벨 */
+#mbd .mbwood{position:relative}
+#mbd .mblvp{position:absolute;left:50%;top:-13px;transform:translateX(-50%);z-index:3;display:flex;align-items:center;gap:5px;height:24px;padding:0 11px;border-radius:999px;background:linear-gradient(180deg,#8a5a32,#6b4424);color:#ffe9c6;font-weight:900;font-size:12px;white-space:nowrap;box-shadow:0 2px 0 #4a2e16,0 0 0 2px #f3d9ad inset;cursor:pointer}
+#mbd .mblvp[hidden]{display:none}
+#mbd .mblvp span{background:#ffe9c6;color:#6b4424;border-radius:999px;padding:1px 6px;font-size:11px}
+#mbd .mblvp em{font-style:normal;font-weight:800;font-size:11px;color:#ffd38a}
+#mbInfo .milv{margin:10px 0 0}
+#mbInfo .milv h5{font-size:13px;font-weight:900;margin:0 0 6px;color:#3d3027;display:flex;justify-content:space-between;align-items:center;white-space:nowrap}
+#mbInfo .milv h5 small{font-weight:700;color:#a08a70;font-size:11.5px}
+#mbInfo .milv .mrow{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:700;color:#6b5844;padding:3px 6px;border-bottom:1px dashed #efe3cf;white-space:nowrap}
+#mbInfo .milv .mrow.mok b{color:#3fae9c}
+#mbInfo .milv .mrow.mnow{background:#fff3e2;border-radius:8px;color:#3d3027}

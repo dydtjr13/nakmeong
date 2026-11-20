@@ -2039,6 +2039,7 @@ const LAB=[
  {k:'fuseOn',n:'✨ 물고기 합성',d:'같은 물고기·같은 별 3마리 → 별 올리기 + 가끔 변이(황금·벚꽃·알비노·무지개·유령). 메뉴에 「합성」 버튼이 생겨요. 촉매는 모험에서 얻어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
  {k:'mergeBoard',n:'🪵 나무 작업대 합성판',d:'「합성」 버튼을 누르면 새 합성판이 열려요. 목록에서 물고기를 누르면 빈 칸으로 들어가고, 같은 물고기·같은 단계 2개를 겹치면 1개로 (★1~★5 → 블랙~무지개). 하루 횟수 기본 30 + 낚시 50회마다 +5 + 광고 +10 + 후원자 +100 (자정 초기화). 「예전 합성」은 3마리 별 올리기 창. 물고기 데이터는 둘 다 같아요',scope:'me',o:[['off','예전 합성 (기본)'],['on','새 합성판 (테스트)']]},
  {k:'mbInf',n:'♾️ 합성판 테스트 무제한',d:'새 합성판 테스트 중에는 하루 횟수 없이 마음껏 합성해요. 끄면 하루 횟수(기본 30회)를 세요',scope:'me',o:[['on','무제한 (테스트 중 기본)'],['off','하루 횟수 세기']]},
+ {k:'mbLv',n:'🪵 합성판 레벨',d:'누적 합성 횟수가 늘면 판이 커져요: Lv.1 5×5 → Lv.2 6×6 → Lv.3 7×7. 기준 횟수는 아래 「🪵 합성판 레벨 기준」에서 모든 유저에게 바꿔요 (기본 1,000회 · 10,000회)',scope:'all',o:[['on','켜기 (기본)'],['off','끄기 (5×5 고정)']]},
  {k:'advOn',n:'🧭 물고기 모험',d:'탐험 지도에서 물고기 3마리를 원정 보내요. 돌아오면 골드·상자·지도 조각·합성 촉매. 「빠른 테스트」는 1시간 = 1분 (관리자 확인용)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기'],['fast','빠른 테스트 (1시간=1분)']]},
  {k:'topUi',n:'📱 모바일 상단 정리',d:'휴대폰 세로 화면의 위쪽만 바꿔요 (아래 버튼은 그대로). A 알림 한 줄 · B 왼쪽 레일+오른쪽 알림 · C 상단 바가 알림으로 변신 · D 알림함+짧은 토스트. 고르면 「모바일 화면 배치」보다 먼저 적용돼요',scope:'me',o:[['old','기존 (기본)'],['A','A 알림 한 줄'],['B','B 왼쪽 레일 + 오른쪽 알림'],['C','C 상단 바가 알림으로'],['D','D 알림함 + 짧은 토스트']]},
  {k:'tankPlus',n:'⭐ 어항 조합 추가 옵션',d:'조합 칸 물고기의 별·변이로 보너스가 붙어요. 조합 안 가장 낮은 별 기준 단계당 효과 +8% (★5 ×1.32) · 변이 물고기 1마리마다 작은 옵션 (블랙 감정 · 핑크 미끼 · 레드 빠른입질 · 황금 상인 · 무지개 행운, 어항 전체 최대 3개). 옵션별 상한은 그대로',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
@@ -7017,6 +7018,18 @@ function pouchAdmHTML(){const c=pouchCfg(),G=['일반','고급','희귀','영웅
  bindLab=function(root,re){try{_b.apply(this,arguments);}catch(e){console.warn(e);}const box=root.querySelector('.pouchadm');if(!box)return;const rd=()=>{const c=pouchCfg();box.querySelectorAll('[data-pg]').forEach(i=>c.gp[+i.dataset.pg]=Math.max(0,+i.value||0));c.gl=Math.max(0,+box.querySelector('[data-pgl]').value||0);return c;};
   box.querySelectorAll('input').forEach(i=>i.onchange=()=>{S.pouchEd=rd();save();});box.querySelector('[data-pgrst]').onclick=()=>{S.pouchEd={gp:POUCH_DEF.gp.slice(),gl:POUCH_DEF.gl};save();re&&re();};
   box.querySelector('[data-pggo]').onclick=()=>{const c=rd();if(!confirm('골드 주머니 확률을 모든 유저에게 적용할까요?'))return;if(pub({pouchCfg:{gp:c.gp,gl:c.gl}},'골드 주머니 확률을')){S.pouchEd=null;save();setTimeout(()=>re&&re(),600);}};};}
+// v200 ── 🪵 합성판 레벨 기준 (모든 유저) — 누적 합성 l2회 → 6×6, l3회 → 7×7
+const MBLV_DEF={l2:1000,l3:10000};
+function mbLvCfg(){let c=null;try{c=(mvPlay()||{}).mbLvCfg;}catch(e){}const o={l2:MBLV_DEF.l2,l3:MBLV_DEF.l3};if(c&&+c.l2>0)o.l2=+c.l2;if(c&&+c.l3>0)o.l3=+c.l3;if(S.mbLvEd&&window.NK_ADM&&NK_ADM.ok())Object.assign(o,S.mbLvEd);return o;}
+window.NK_mbLvCfg=()=>mbLvCfg();
+function mbLvAdmHTML(){const c=mbLvCfg();return `<div class="labrow wpadm mblvadm" style="display:block"><b>🪵 합성판 레벨 기준</b> <span class="tg o">모든 유저</span><br><small class="muted">누적 합성 횟수가 이만큼 되면 판이 커져요 · 지금 내 누적 ${(S.mbTot|0).toLocaleString()}회</small>
+ <div class="wpg"><label><span>6×6 (Lv.2)</span><input type="number" min="1" step="100" data-ml="l2" value="${c.l2}"></label><label><span>7×7 (Lv.3)</span><input type="number" min="2" step="100" data-ml="l3" value="${c.l3}"></label><label><span>내 누적 (테스트)</span><input type="number" min="0" step="100" data-mltot value="${S.mbTot|0}"></label></div>
+ <p><button class="sm" data-mlrst>기본값으로</button> <button class="sm ok" data-mlgo>✅ 인게임 적용</button></p></div>`;}
+{const _l=labHTML,_b=bindLab;labHTML=function(){return _l.apply(this,arguments).replace(/<\/div>\s*$/,mbLvAdmHTML()+'</div>');};
+ bindLab=function(root,re){try{_b.apply(this,arguments);}catch(e){console.warn(e);}const box=root.querySelector('.mblvadm');if(!box)return;const rd=()=>{const c=mbLvCfg();box.querySelectorAll('[data-ml]').forEach(i=>c[i.dataset.ml]=Math.max(1,Math.round(+i.value||0)));if(c.l3<=c.l2)c.l3=c.l2+1;return c;};
+  box.querySelectorAll('[data-ml]').forEach(i=>i.onchange=()=>{S.mbLvEd=rd();save();});box.querySelector('[data-mltot]').onchange=e=>{S.mbTot=Math.max(0,Math.round(+e.target.value||0));save();toast(`🪵 내 누적 합성 ${S.mbTot.toLocaleString()}회 (테스트)`,1600);};
+  box.querySelector('[data-mlrst]').onclick=()=>{S.mbLvEd={l2:MBLV_DEF.l2,l3:MBLV_DEF.l3};save();re&&re();};
+  box.querySelector('[data-mlgo]').onclick=()=>{const c=rd();if(!confirm(`합성판 레벨 기준(6×6 ${c.l2.toLocaleString()}회 · 7×7 ${c.l3.toLocaleString()}회)을 모든 유저에게 적용할까요?`))return;if(pub({mbLvCfg:{l2:c.l2,l3:c.l3}},'합성판 레벨 기준을')){S.mbLvEd=null;save();setTimeout(()=>re&&re(),600);}};};}
 // v100 ── 낮은 단계 낚싯대도 10개 모으면 한 단계 위 (대나무→카본→은빛→산호→벚꽃→황금)
 try{const U0=D.GEAR.up||{};D.GEAR.up=Object.assign({bamboo:{to:'carbon',n:10,coin:100},carbon:{to:'silver',n:10,coin:500},silver:{to:'coral',n:10,coin:1500},coral:{to:'sakura',n:10,coin:3000},sakura:{to:'gold',n:10,coin:4000}},U0);}catch(e){}
 // v99 ── 🔥 요리: 데크 숯불 그릴 (A) + 효과 칩·포만감 (C) · 테스트 기능
@@ -8035,6 +8048,7 @@ window.__nkInt={charmHTML:c=>charmHTML(c)/* v195 초월 부적 연출 */,camSet:
 window.__nkMB={get S(){return S;},fzOn:()=>fzOn(),uiOpt:(k,d)=>uiOpt(k,d),pool:()=>fzPool(),remove:(ids,keep)=>fzRemove(ids,keep),FI:k=>FI(k),FZV:()=>FZV,fzVK:k=>fzVK(k),fzS:()=>fzS(),fzSP:()=>fzSP(),valueOf:(f,cm,g)=>valueOf(f,cm,g),sellP:f=>sellP(f),
  save:()=>save(),hud:()=>hud(),toast:(h,ms)=>toast(h,ms),openM:id=>openM(id),closeM:id=>closeM(id),confirmBox:(h,ok)=>confirmBox(h,ok),ilog:(...a)=>ILOG.add(...a),ms:(t,n)=>{try{if(msOn())msAdd(t,n);}catch(e){}},xbal:(n,w)=>{try{XBAL.ev(n,w);}catch(e){}},
  snd:()=>snd,coin:()=>{try{sfx.coin();}catch(e){}},tankView:()=>tankView,
+ /* v200 */mbLvCfg:()=>window.NK_mbLvCfg?NK_mbLvCfg():null,
  /* v195 */s5On:()=>!!(window.NK_s5On&&NK_s5On()),s5N:()=>window.NK_s5Api?NK_s5Api.n():0,s5Shop:()=>window.NK_s5Shop&&NK_s5Shop(),s5Shout:f=>window.NK_s5Api&&NK_s5Api.shout(f),fzGrOn:()=>window.NK_fzGrOn?NK_fzGrOn():false,GR:g=>window.NK_GR?NK_GR(g):null,setHTML:k=>window.NK_fzSetHTML?NK_fzSetHTML(k):'',setBind:R=>window.NK_fzSetBind&&NK_fzSetBind(R)};
 /* v182 🧪 관리자 › 테스트 기능 — 시안 C: 켜진 것/전체 · 분류 · 끄기/나만/모두에게 · 정식 기능으로 (세부 설정 상자와 예전 목록은 아래 접기 안에 그대로) */
 {const LC={f:'on',c:'',q:'',open:{}};
