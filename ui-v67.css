@@ -722,3 +722,4 @@ body.tourOn #xpF{display:none!important}
 #nkTip{position:fixed;z-index:100000;display:none;pointer-events:none;background:#2b2530;color:#fff;font-size:12.5px;line-height:1.5;padding:7px 10px;border-radius:9px;box-shadow:0 6px 18px rgba(0,0,0,.28);white-space:pre-line;word-break:keep-all;overflow-wrap:anywhere}
 #uWin .uw-row.uw-bt>b{display:flex;align-items:center;gap:6px;white-space:nowrap;min-width:150px;justify-content:flex-start;text-align:left}#uWin .uw-row.uw-bt>b .sico{width:24px;height:24px;object-fit:contain;flex:0 0 auto}
 .lst.warn{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:2px 9px;margin:0 3px 0 0;vertical-align:1px;background:#fde8e4;color:#b4432f;border:1px solid #f3c2b8}
+#s5x .s5fish>p{grid-column:1/-1;white-space:nowrap}
