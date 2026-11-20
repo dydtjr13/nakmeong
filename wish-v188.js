@@ -23,10 +23,12 @@ NKW.merge=(parts)=>{const THREE_=T();let n=0;const gs=parts.map(p=>{let g=p.g.in
 // 인스턴스별 값 (씨앗 · 색 · 내 것 표시 · 이름 칸)
 NKW.instAttr=(G,name,size,max)=>{const a=new (T().InstancedBufferAttribute)(new Float32Array(max*size),size);a.setUsage(T().DynamicDrawUsage);G.setAttribute(name,a);return a;};
 // 이름 칸 묶음 (40칸 캔버스 한 장) — 돛·깃발에 닉네임을 그려요
-NKW.fontReady=false;NKW.onFont=[];try{const fl=()=>{NKW.fontReady=true;NKW.onFont.forEach(f=>{try{f();}catch(e){}});};if(document.fonts&&document.fonts.load)document.fonts.load('400 40px "Jua"','낚시A').then(r=>{if(r&&r.length)fl();else document.fonts.ready.then(fl);}).catch(fl);else NKW.fontReady=true;}catch(e){NKW.fontReady=true;}
+/* 글꼴: Jua(웹 글꼴)가 그 글자까지 받아졌는지 · 아직이면 받은 뒤 다시 그려요 (캔버스는 기다려 주지 않아서) */
+NKW.fontOk=s=>{try{return !document.fonts||document.fonts.check('400 40px "Jua"',String(s||'가'));}catch(e){return true;}};
+NKW.fontWant=(s,cb)=>{try{document.fonts.load('400 40px "Jua"',String(s||'가')).then(()=>cb(),()=>{});}catch(e){}};
 NKW.nickAtlas=(cols,rows,cw,ch,draw)=>{const c=document.createElement('canvas');c.width=cols*cw;c.height=rows*ch;const x=c.getContext('2d');const t=NKW.tex(c,true);const map=new Map();let free=[...Array(cols*rows).keys()];
  const paint=(cell,l)=>{const cx=(cell%cols)*cw,cy=Math.floor(cell/cols)*ch;x.save();x.clearRect(cx,cy,cw,ch);x.beginPath();x.rect(cx,cy,cw,ch);x.clip();x.translate(cx,cy);const lay=draw(x,cw,ch,l);x.restore();t.needsUpdate=true;return lay||null;};
- const A={tex:t,cols,rows,map,get(l){const key=l.id;let e=map.get(key);if(e&&e.nick===l.nick&&e.font===NKW.fontReady)return e;const cell=e?e.cell:free.shift();if(cell==null)return null;e={cell,nick:l.nick,font:NKW.fontReady,lay:paint(cell,l)};map.set(key,e);return e;},
+ const A={tex:t,cols,rows,map,get(l){const key=l.id;let e=map.get(key);if(e&&e.nick===l.nick&&!e.stale)return e;const cell=e?e.cell:free.shift();if(cell==null)return null;const ok=NKW.fontOk(l.nick);e={cell,nick:l.nick,lay:paint(cell,l)};map.set(key,e);if(!ok){const e2=e;NKW.fontWant(l.nick,()=>{e2.stale=true;});}return e;},
   /* 화면에 없는 배의 칸은 돌려받아요 (칸이 모자라 다른 닉네임이 보이는 일 없게) */drop(keep){for(const [k,v] of map)if(!keep.has(k)){map.delete(k);free.push(v.cell);}},
   dispose(){t.dispose();map.clear();}};
  return A;};
@@ -34,7 +36,7 @@ NKW.nickAtlas=(cols,rows,cw,ch,draw)=>{const c=document.createElement('canvas');
 NKW.fitFont=(x,s,maxW,px,w)=>{let f=px;x.font=`${w||400} ${f}px ${FONT}`;while(f>10&&x.measureText(s).width>maxW){f-=2;x.font=`${w||400} ${f}px ${FONT}`;}return f;};
 // 이름표 (가까운 몇 개만 · 스프라이트) — style(x,W,H,l)로 그려요
 NKW.tags=(scene,opt)=>{const TH=T(),TAGS=new Map();let tT=0;
- function mk(l){const c=NKW.canvas(opt.W||512,opt.H||128,(x,W,H)=>opt.draw(x,W,H,l));const t=NKW.tex(c,true);const sp=new TH.Sprite(new TH.SpriteMaterial({map:t,transparent:true,depthWrite:false,fog:false}));sp.scale.set(opt.w,opt.w*(opt.H||128)/(opt.W||512),1);sp.renderOrder=6;sp.userData.key=l.nick+'|'+(l.mine?1:0);scene.add(sp);return sp;}
+ function mk(l){const c=NKW.canvas(opt.W||512,opt.H||128,(x,W,H)=>opt.draw(x,W,H,l));const t=NKW.tex(c,true);const sp=new TH.Sprite(new TH.SpriteMaterial({map:t,transparent:true,depthWrite:false,fog:false}));sp.scale.set(opt.w,opt.w*(opt.H||128)/(opt.W||512),1);sp.renderOrder=6;sp.userData.key=l.nick+'|'+(l.mine?1:0);if(!NKW.fontOk(l.nick))NKW.fontWant(l.nick,()=>{sp.userData.key='';});scene.add(sp);return sp;}
  return {map:TAGS,tick(L,cam,vis,now){if(now-tT>400){tT=now;const cp=cam.position;const sel=L.filter(l=>l.wx!=null).map(l=>[l,Math.hypot(l.wx-cp.x,l.wy-cp.y,l.wz-cp.z)]).filter(q=>q[1]<opt.far).sort((a,b)=>(b[0].mine-a[0].mine)||(a[1]-b[1])).slice(0,opt.n||12).map(q=>q[0]);
    for(const [id,sp] of TAGS)if(!sel.includes(sp.userData.l)){scene.remove(sp);sp.material.map.dispose();sp.material.dispose();TAGS.delete(id);}
    for(const l of sel){let sp=TAGS.get(l.id);if(sp&&sp.userData.key!==l.nick+'|'+(l.mine?1:0)){scene.remove(sp);sp.material.map.dispose();sp.material.dispose();TAGS.delete(l.id);sp=null;}if(!sp){sp=mk(l);TAGS.set(l.id,sp);}sp.userData.l=l;}}
@@ -154,7 +156,11 @@ function geo(k){const T=THREE,S=STY[k],P=[];const add=(g,part,col,nuvF)=>P.push(
    칸 좌표: X 0=돛대 쪽 → 1=돛 뒤끝, Y 0=돛 아래 → 1=위. 삼각돛이라 높이 Y에서 쓸 수 있는 폭은 1-SLOPE*Y */
 const NC=8,NR=4,CW=256,CH=256,SAIL={z0:.04,y0:.27,w:.51,h:.98},SLOPE=SAIL.w/SAIL.h;
 const NK_M={mast:.075,edge:.07,bot:.085};
-function nickSplit(nk){const ch=[...nk],n=ch.length,a=Math.ceil(n/2);return [ch.slice(0,a).join(''),ch.slice(a).join('')];}
+/* 두 줄 나누기: 한글은 앞줄이 하나 더 많게 (6자 3+3 · 7자 4+3 · 10자 5+5) · 영문·숫자는 단어가 바뀌는 곳(FishCozy|99, Fish|Cozy)이 가운데 근처면 거기서 */
+const ckind=c=>/[0-9]/.test(c)?'d':/[A-Z]/.test(c)?'U':/[a-z]/.test(c)?'l':/[A-Za-z]/.test(c)?'l':'k';
+function nickSplit(nk){const ch=[...nk],n=ch.length,mid=Math.ceil(n/2);let at=mid,bd=9;
+ for(let i=1;i<n;i++){const a=ckind(ch[i-1]),b=ckind(ch[i]);const brk=a!==b&&!(a==='U'&&b==='l');if(!brk)continue;const d=Math.abs(i-mid);if(d<=2&&d<bd&&i>=2&&n-i>=2){bd=d;at=i;}}
+ return [ch.slice(0,at).join(''),ch.slice(at).join('')];}
 /* 글자 크기 고르기: 줄마다 잉크 상자 오른쪽 위 모서리가 빗변 안쪽에 들어오는 가장 큰 크기 */
 function nickLayout(x,nk,W,H){const F=NKW.FONT,m=NK_M;
  const fit=(lines,fMax)=>{for(let f=fMax;f>=12;f--){x.font=`400 ${f}px ${F}`;const lh=f*1.08,N=lines.length,out=[];let ok=true;
@@ -165,8 +171,8 @@ function nickLayout(x,nk,W,H){const F=NKW.FONT,m=NK_M;
    if(ok)return {f,lines:out};}
   return null;};
  const n=[...nk].length;let L1=fit([nk],n<=2?70:n<=4?60:56),L=L1;
- if(n>=5){const L2=fit(nickSplit(nk),60);/* 한글처럼 넓은 글자는 두 줄 · 영문·숫자처럼 좁아서 한 줄로도 충분히 크면 한 줄 */
-  const narrow=L1&&L1.lines[0].w*W<n*L1.f*.72;L=(narrow&&L1&&L2&&L1.f>=L2.f*.9)||!L2?L1:L2;}
+ if(n>=5){const L2=fit(nickSplit(nk),56);/* 한글처럼 넓은 글자는 두 줄 · 영문·숫자처럼 좁은 글자는 한 줄에 읽기 좋은 크기(30px↑)로 들어가면 한 줄 */
+  const narrow=L1&&L1.lines[0].w*W<n*L1.f*.72;L=(narrow&&L1&&L1.f>=30)||!L2?L1:L2;}
  return L;}
 const heart=(x,cx,cy,r)=>{x.beginPath();x.moveTo(cx,cy+r*.9);x.bezierCurveTo(cx-r*1.35,cy-r*.1,cx-r*.75,cy-r*1.15,cx,cy-r*.45);x.bezierCurveTo(cx+r*.75,cy-r*1.15,cx+r*1.35,cy-r*.1,cx,cy+r*.9);x.fill();};
 function nickDraw(){return (x,W,H,l)=>{const nk=String(l.nick||'').trim().slice(0,10)||'낚시꾼';const L=nickLayout(x,nk,W,H);if(!L)return null;
@@ -177,6 +183,7 @@ function nickDraw(){return (x,W,H,l)=>{const nk=String(l.nick||'').trim().slice(
  /* 작은 하트: 위 줄 위 (빗변 안에 들어갈 때만) */const hr=Math.max(5,L.f*.2),hy=top.base-L.f*.95-hr*.4,hyN=(H-hy+hr)/H;if(hy-hr>H*.03&&top.cx+hr/W<1-SLOPE*hyN-NK_M.edge){x.fillStyle='rgba(232,80,74,.9)';heart(x,top.cx*W,hy,hr);}
  /* 셰이더가 쓰는 값: 위 줄 가운데 · 아래 줄 가운데 · 두 줄 나누는 높이 (뒤에서 봐도 글자가 같은 자리에 바로 보이게 줄마다 뒤집어요) */
  const split=L.lines.length>1?(top.yBot+bot.yTop)/2:2;return {f:L.f,n:L.lines.length,lines:L.lines.map(q=>q.s),lay:[top.cx,bot.cx,split]};};}
+NKW.nickPaint=(x,nk)=>nickDraw()(x,CW,CH,{nick:nk});
 NKW.nickLayout=(nk)=>{const c=document.createElement('canvas');c.width=CW;c.height=CH;const x=c.getContext('2d');const r=nickDraw()(x,CW,CH,{nick:nk});
  /* 확인용: 돛 밖(빗변·가장자리)으로 나간 잉크 픽셀 수 */const d=x.getImageData(0,0,CW,CH).data;let out=0,mir=0;
  for(let py=0;py<CH;py++)for(let px=0;px<CW;px++){const a=d[(py*CW+px)*4+3];if(a<8)continue;const X=(px+.5)/CW,Y=1-(py+.5)/CH;if(X<0.01||X>1-SLOPE*Y-.01||Y<.01)out++;
@@ -217,7 +224,7 @@ const GVS=`attribute float aSize;attribute float aSeed;uniform float uT;uniform 
 const GFS=`uniform sampler2D uG;uniform vec3 uC;varying float vA;void main(){vec4 t=texture2D(uG,gl_PointCoord);gl_FragColor=vec4(uC*t.a*vA,1.);}`;
 NKW.boatKit=(style,opt={})=>{const T=THREE,S=STY[style],MAX=opt.max||40;const G=geo(style);
  const aSeed=NKW.instAttr(G,'aSeed',1,MAX),aCell=NKW.instAttr(G,'aCell',1,MAX),aLay=NKW.instAttr(G,'aLay',3,MAX);
- const atlas=NKW.nickAtlas(NC,NR,CW,CH,nickDraw());let lastL=null;NKW.onFont.push(()=>{lastL=null;});
+ const atlas=NKW.nickAtlas(NC,NR,CW,CH,nickDraw());let lastL=null;
  const U={uNick:{value:atlas.tex},uT:{value:0},uNight:{value:0},uBelly:{value:S.belly},uSail2:{value:new T.Color(S.sail2).convertSRGBToLinear()},uLamp:{value:new T.Color(S.lampC).convertSRGBToLinear()}};
  const mat=new T.MeshStandardMaterial({vertexColors:true,roughness:.78,metalness:0,side:T.DoubleSide});mat.onBeforeCompile=PATCH(S,style,U);mat.customProgramCacheKey=()=>'nkboat'+style;
  const mesh=new T.InstancedMesh(G,mat,MAX);mesh.frustumCulled=false;mesh.count=0;mesh.castShadow=false;
