@@ -5784,7 +5784,7 @@ FHOOK.push((dt,p)=>{const C=CNL.st;if(!C)return;try{cnlState(false,p);{const wx=
 /* v188 소원 오브젝트 — 그리기는 wish-v188.js (NKWISH kit), 서버·골드·삭제·비속어는 예전 그대로
    🏮 운하 A 둥근 한지 연등 · ⛵ 호숫가 A 하얀 돛 나무배(한 번에 20척까지 · 내 배는 늘 보여요) · ⭐ 달 B 가는 십자 빛(하늘에 원래 있던 별) */
 let WTAP=0;(window.__nkPick=window.__nkPick||[]).unshift(()=>{if(!WTAP)return false;WTAP=0;return true;});/* 소원을 눌렀으면 같은 손가락으로 별자리·펫 같은 게 같이 열리지 않게 */
-function mkWish(P){const WL={rows:[],L:[],kit:null,tags:null,ft:-1e9,cd:0,off:P.needM?1:0};window[P.m==='canal'?'NK_WL':P.m==='lake'?'NK_WB':'NK_WS']=WL;WL.here=P.here;const BID=P.btn,IC=P.ic,NM=P.nm,QS=P.m==='canal'?'':'?m='+P.m,ST=P.style;
+function mkWish(P){const WL={rows:[],L:[],kit:null,tags:null,ft:-1e9,cd:0,off:P.needM?1:0};window[P.m==='canal'?'NK_WL':P.m==='lake'?'NK_WB':'NK_WS']=WL;const BID=P.btn,IC=P.ic,NM=P.nm,QS=P.m==='canal'?'':'?m='+P.m,ST=P.style;
  const on=()=>!window.NK_PREV&&String(uiOpt('wishLan','on'))==='on';
  const here=()=>on()&&P.here();
  const hh=(n,k)=>{let x=Math.sin(n*12.9898+k*78.233)*43758.5453;return x-Math.floor(x);};
