@@ -5781,80 +5781,75 @@ FHOOK.push((dt,p)=>{const C=CNL.st;if(!C)return;try{cnlState(false,p);{const wx=
  if(S.vehRide){S.vehRide=0;}});
 /* v167 🏮 소원 연등 — 운하 하늘에 내 닉네임과 소원을 적은 연등을 띄워요. 누르면(클릭) 누구의 어떤 소원인지 보여요. 10분에 1개 · 2일 동안 떠 있어요 */
 /* v182: 운하 🏮 소원 연등과 호숫가 ⛵ 소원 돛단배가 같은 틀을 써요 (서버 m=canal|lake · 맵마다 한 사람당 하나) */
-function mkWish(P){const WL={rows:[],L:[],g:null,pts:null,ft:-1e9,cd:0};if(P.m==='canal')window.NK_WL=WL;else window.NK_WB=WL;const BID=P.btn,IC=P.ic,NM=P.nm,QS=P.m==='canal'?'':'?m='+P.m;
+/* v188 소원 오브젝트 — 그리기는 wish-v188.js (NKWISH kit), 서버·골드·삭제·비속어는 예전 그대로
+   🏮 운하 A 둥근 한지 연등 · ⛵ 호숫가 A 하얀 돛 나무배(한 번에 20척까지 · 내 배는 늘 보여요) · ⭐ 달 B 가는 십자 빛(하늘에 원래 있던 별) */
+let WTAP=0;(window.__nkPick=window.__nkPick||[]).unshift(()=>{if(!WTAP)return false;WTAP=0;return true;});/* 소원을 눌렀으면 같은 손가락으로 별자리·펫 같은 게 같이 열리지 않게 */
+function mkWish(P){const WL={rows:[],L:[],kit:null,tags:null,ft:-1e9,cd:0,off:P.needM?1:0};window[P.m==='canal'?'NK_WL':P.m==='lake'?'NK_WB':'NK_WS']=WL;const BID=P.btn,IC=P.ic,NM=P.nm,QS=P.m==='canal'?'':'?m='+P.m,ST=P.style;
  const on=()=>!window.NK_PREV&&String(uiOpt('wishLan','on'))==='on';
  const here=()=>on()&&P.here();
  const hh=(n,k)=>{let x=Math.sin(n*12.9898+k*78.233)*43758.5453;return x-Math.floor(x);};
- const WMAX=40,_v=new THREE.Vector3(),_o=new THREE.Object3D();
- function build(){if(WL.g)return;const GM=P.geo();WL.g=new THREE.InstancedMesh(GM[0],GM[1],WMAX);WL.g.frustumCulled=false;WL.g.count=0;scene.add(WL.g);
-  const cv=document.createElement('canvas');cv.width=cv.height=64;const x=cv.getContext('2d'),gr=x.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,214,140,1)');gr.addColorStop(.35,'rgba(255,170,80,.55)');gr.addColorStop(1,'rgba(255,140,40,0)');x.fillStyle=gr;x.fillRect(0,0,64,64);
-  const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(new Float32Array(WMAX*3),3));pg.setDrawRange(0,0);
-  WL.pts=new THREE.Points(pg,new THREE.PointsMaterial({map:new THREE.CanvasTexture(cv),size:P.glow||4.6,sizeAttenuation:true,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,fog:false}));WL.pts.frustumCulled=false;scene.add(WL.pts);}
- const TAGS=new Map();let tagSel=[],tagT=0;
- function tagTex(l){const cv=document.createElement('canvas'),W0=512,H0=128;cv.width=W0;cv.height=H0;const x=cv.getContext('2d');const nk=String(l.nick||'').slice(0,8);x.font='400 64px Jua, "Noto Sans KR", system-ui, sans-serif';x.textAlign='center';x.textBaseline='middle';
-  x.lineJoin='round';x.lineWidth=9;x.strokeStyle='rgba(140,60,10,.55)';x.shadowColor='rgba(255,140,40,.9)';x.shadowBlur=18;x.strokeText(nk,W0/2,H0/2);x.shadowColor=l.mine?'rgba(255,150,40,1)':'rgba(255,170,70,.95)';x.shadowBlur=26;x.fillStyle=l.mine?'#ffe2a8':'#fff6d8';for(let k=0;k<2;k++)x.fillText(nk,W0/2,H0/2);x.shadowBlur=8;x.shadowColor='rgba(120,50,0,.55)';x.fillText(nk,W0/2,H0/2);
-  const t=new THREE.CanvasTexture(cv);try{t.colorSpace=THREE.SRGBColorSpace;}catch(e){}return t;}
- function tagTick(nw){if(nw-tagT>500){tagT=nw;const cp=cam.position;tagSel=WL.L.filter(l=>l.wx!=null).map(l=>[l,Math.hypot(l.wx-cp.x,l.wy-cp.y,l.wz-cp.z)]).filter(q=>q[1]<P.tagFar).sort((a,b)=>a[1]-b[1]).slice(0,12).map(q=>q[0]);
-   for(const [id,sp] of TAGS){if(!tagSel.some(l=>l.id===id)){scene.remove(sp);sp.material.map.dispose();sp.material.dispose();TAGS.delete(id);}}
-   for(const l of tagSel){let sp=TAGS.get(l.id);const key=(l.nick||'')+'|'+(l.mine?1:0);if(sp&&sp.userData.key!==key){scene.remove(sp);sp.material.map.dispose();sp.material.dispose();TAGS.delete(l.id);sp=null;}if(!sp){sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tagTex(l),transparent:true,depthWrite:false,fog:false}));sp.userData.key=key;sp.scale.set(P.tagW,P.tagW/4,1);sp.renderOrder=5;scene.add(sp);TAGS.set(l.id,sp);}}}
-  for(const l of tagSel){const sp=TAGS.get(l.id);if(sp&&l.wx!=null){sp.position.set(l.wx,l.wy+P.tagY,l.wz);sp.visible=WL.g.visible;}}}
- function sync(rows){const keep=new Map(WL.L.map(l=>[l.id,l]));WL.L=rows.slice(0,WMAX).map(r=>{const o=keep.get(r.id)||Object.assign({id:r.id,ph:hh(r.id,4)*6.28,y:null},P.spawn(r.id,hh));o.nick=r.nick;o.text=r.text;o.at=r.at;o.mine=!!r.mine;if(o.y==null)o.y=o.band;return o;});
-  for(const l of keep.values())if(l.rise&&!WL.L.includes(l)&&WL.L.length<WMAX)WL.L.unshift(l);}
- async function load(){try{const r=await fetch(SV.api()+'/wishes'+QS,{headers:{'X-Owner':SV.cid()}});const j=await r.json();if(j&&j.ok)sync(j.rows||[]);}catch(e){}}
- FHOOK.push(dt=>{const ok=here();if(!ok){if(WL.g){WL.g.visible=WL.pts.visible=false;}for(const sp of TAGS.values())sp.visible=false;const b=$(BID);if(b)b.style.display='none';return;}
-  build();WL.g.visible=WL.pts.visible=true;const nw=performance.now();if(nw-WL.ft>45e3){WL.ft=nw;load();}
-  const t=nw/1000,pa=WL.pts.geometry.attributes.position;let i=0;
-  for(const l of WL.L){P.step(l,dt,t,_o);l.wx=_o.position.x;l.wy=_o.position.y;l.wz=_o.position.z;_o.updateMatrix();WL.g.setMatrixAt(i,_o.matrix);pa.setXYZ(i,l.wx,l.wy+(P.gy||0),l.wz);i++;}
-  WL.g.count=i;WL.g.instanceMatrix.needsUpdate=true;pa.needsUpdate=true;WL.pts.geometry.setDrawRange(0,i);
-  /* v183 시안 C: 연등 위에 빛나는 닉네임 (가까운 12개 · 가운데 정렬) */if(P.tag)try{tagTick(nw);}catch(e){}
-  // 🏮 띄우기 버튼 (호숫가로 버튼 근처)
+ const WMAX=40,SHOW=P.show||WMAX,_v=new THREE.Vector3();
+ function build(){if(WL.kit||!window.NKWISH)return;WL.kit=P.kit(SHOW);for(const o of WL.kit.objs)scene.add(o);if(P.tag)WL.tags=NKWISH.tags(scene,P.tag);}
+ /* 보여줄 것: 내 것 먼저, 나머지는 최신순 (서버가 최신순으로 줘요) · 호숫가는 20척까지 */
+ function sync(rows){const keep=new Map(WL.L.map(l=>[l.id,l]));const mine=rows.filter(r=>r.mine),rest=rows.filter(r=>!r.mine);
+  let L=mine.concat(rest).slice(0,SHOW).map(r=>{const o=keep.get(r.id)||Object.assign({id:r.id,ph:hh(r.id,4)*6.28},P.spawn(r.id,hh));o.nick=r.nick;o.text=r.text;o.at=r.at;o.mine=!!r.mine;return o;});
+  for(const l of keep.values())if(l.rise&&!L.includes(l))L.unshift(l);if(L.length>SHOW)L.length=SHOW;if(P.place)P.place(L,keep);WL.L=L;}
+ /* 달은 서버가 ?m=moon을 알아야 켜져요 (예전 서버는 운하 소원을 보내서 별에 섞이지 않게) */
+ async function load(){try{const r=await fetch(SV.api()+'/wishes'+QS,{headers:{'X-Owner':SV.cid()}});const j=await r.json();if(j&&j.ok){if(P.needM&&j.m!==P.m){WL.off=1;WL.L=[];return;}WL.off=0;sync(j.rows||[]);}}catch(e){}}
+ FHOOK.push(dt=>{const ok=here()&&!WL.off;if(WL.off&&here()&&performance.now()-WL.ft>45e3){WL.ft=performance.now();load();}if(!ok){if(WL.kit)WL.kit.setVisible(false);if(WL.tags)WL.tags.tick([],cam,false,0);const b=$(BID);if(b)b.style.display='none';const c=$('wishCard2');if(c&&c.dataset.m===P.m)c.classList.remove('show');return;}
+  build();if(!WL.kit)return;WL.kit.setVisible(true);const nw=performance.now();if(nw-WL.ft>45e3){WL.ft=nw;load();}
+  const t=nw/1000;for(const l of WL.L)P.step(l,dt,t);let night=0;try{night=wU.night.value;}catch(e){}WL.kit.update(WL.L,t,cam,R,{night});
+  if(WL.tags)try{WL.tags.tick(WL.L,cam,true,nw);}catch(e){}
   let b=$(BID);if(!b){b=document.createElement('button');b.id=BID;b.className='wishBtn';b.type='button';b.textContent=IC+' '+NM;document.body.appendChild(b);b.onclick=openWish;}
-  b.style.display=anyModal()||$('wishM')?'none':'';});
- function card(l){let c=$('wishCard');if(!c){c=document.createElement('div');c.id='wishCard';document.body.appendChild(c);}
-  const adm=(()=>{try{return NK_ADM.ok();}catch(e){return false;}})(),tx=window.NK_PROF?NK_PROF.mask(l.text):l.text;
-  /* v168: 「숨기기」= 이 카드 닫기 · 「삭제」= 관리자나 띄운 사람이 연등을 지워요 (한 번 더 물어봐요) */const del=(adm||l.mine)&&l.id>0;
-  c.innerHTML=`<span class="wl">${IC}</span><div class="wt"><div class="wh"><b>${escRT(l.nick)}</b><small>님의 소원</small></div><p>“${escRT(tx)}”</p></div><div class="wb"><button type="button" class="h" data-wlhide>숨기기</button>${del?'<button type="button" class="d" data-wldel>삭제</button>':''}</div>`;c.classList.add('show');clearTimeout(c._t);c._t=setTimeout(()=>c.classList.remove('show'),6000);
+  b.style.display=anyModal()||$('wishM2')?'none':'';});
+ function card(l){const adm=(()=>{try{return NK_ADM.ok();}catch(e){return false;}})(),tx=window.NK_PROF?NK_PROF.mask(l.text):l.text;
+  /* v168: 「닫기」= 이 카드 닫기 · 「삭제」= 관리자나 띄운 사람이 지워요 (한 번 더 물어봐요) */const del=(adm||l.mine)&&l.id>0;
+  const c=NKWISH.ui.card(P.m,ST,{id:l.id,nick:l.nick,text:tx,at:l.at,mine:l.mine},{del});c.dataset.m=P.m;clearTimeout(c._t);c._t=setTimeout(()=>c.classList.remove('show'),7000);
   c.querySelector('[data-wlhide]').onclick=()=>{clearTimeout(c._t);c.classList.remove('show');};
   const db=c.querySelector('[data-wldel]');if(db)db.onclick=()=>{clearTimeout(c._t);confirmBox(`<h3>${IC} ${NM} 삭제</h3><p><b>${escRT(l.nick)}</b>님의 ${NM}${P.j[0]} 지울까요?<br><small>“${escRT(tx)}” · 지우면 되돌릴 수 없어요</small></p>`,async()=>{try{const h={'X-Owner':SV.cid()},tk=window.NK_RT&&NK_RT.adminToken;if(adm&&tk)h['X-Admin-Token']=String(tk);const r=await fetch(SV.api()+'/wishes/'+l.id+'/delete',{method:'POST',headers:h});if(!r.ok)throw 0;WL.L=WL.L.filter(x=>x!==l);c.classList.remove('show');toast(IC+' '+NM+P.j[0]+' 지웠어요',1400);}catch(e){toast('지우지 못했어요'+(adm?' (관리자 로그인 확인)':''),1800);}});};}
- // 누르기: 화면에서 가장 가까운 연등(손가락 크기 안)을 찾아요
+ // 누르기: 화면에서 가장 가까운 것(손가락 크기 안)을 찾아요 · 돛단배는 돛 가운데를 기준으로
  {const cv=R.domElement;let d0=null;cv.addEventListener('pointerdown',e=>{d0={x:e.clientX,y:e.clientY,t:performance.now()};},true);
-  cv.addEventListener('pointerup',e=>{if(!d0||!here())return;const mv=Math.hypot(e.clientX-d0.x,e.clientY-d0.y),dt=performance.now()-d0.t;d0=null;if(mv>10||dt>450)return;
-   const rc=cv.getBoundingClientRect();let best=null,bd=e.pointerType==='touch'?40:30;for(const l of WL.L){if(l.wx==null)continue;_v.set(l.wx,l.wy,l.wz).project(cam);if(_v.z>1||_v.z<-1)continue;const sx=rc.left+(_v.x+1)/2*rc.width,sy=rc.top+(1-_v.y)/2*rc.height,d=Math.hypot(sx-e.clientX,sy-e.clientY);if(d<bd){bd=d;best=l;}}
-   if(best)card(best);},true);}
- const WCOST=10000;/* v169: 연등 하나 10,000골드 · 한 사람당 하나 (새로 띄우면 예전 연등은 사라져요) */
- function openWish(){if($('wishM'))return;const m=document.createElement('div');m.id='wishM';const left=Math.max(0,WL.cd-Date.now()),had=WL.L.some(l=>l.mine),poor=(S.coins|0)<WCOST;
-  m.innerHTML=`<div class="wc"><button type="button" class="x" aria-label="닫기">✕</button><h3>${IC} ${NM} 띄우기</h3><p class="muted">${P.desc}</p><input id="wishIn" maxlength="20" placeholder="소원을 적어 주세요 (20자)" autocomplete="off"><div class="wcn"><span id="wishN">0/20</span><span>${had?'⚠️ 지금 '+P.short+P.j[1]+' 사라지고 새 '+P.short+P.j[2]+' 바뀌어요':'한 사람당 하나 · 2일 동안 떠 있어요'}</span></div><button type="button" class="go" id="wishGo" ${left||poor?'disabled':''}>${left?'잠시 뒤에 띄울 수 있어요':poor?'골드가 부족해요 (10,000)':IC+' '+P.go+' · 🪙 10,000'}</button></div>`;
-  document.body.appendChild(m);const inp=m.querySelector('#wishIn'),go=m.querySelector('#wishGo'),cl=()=>m.remove();m.querySelector('.x').onclick=cl;m.addEventListener('pointerdown',e=>{if(e.target===m)cl();});
-  inp.oninput=()=>{m.querySelector('#wishN').textContent=inp.value.length+'/20';};setTimeout(()=>inp.focus(),50);
-  inp.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();go.click();}};
+  cv.addEventListener('pointerup',e=>{if(!d0||!here()||!window.NKWISH)return;const mv=Math.hypot(e.clientX-d0.x,e.clientY-d0.y),dt=performance.now()-d0.t;d0=null;if(mv>10||dt>450)return;
+   const best=NKWISH.pick(WL.L,cam,cv,e.clientX,e.clientY,(e.pointerType==='touch'?40:30)*(P.pickK||1));if(best){WTAP=1;setTimeout(()=>{WTAP=0;},0);card(best);}},true);}
+ const WCOST=10000;/* v169: 하나 10,000골드 · 한 사람당 하나 (새로 띄우면 예전 것은 사라져요) */
+ function openWish(){if($('wishM2'))return;const left=Math.max(0,WL.cd-Date.now()),had=WL.L.some(l=>l.mine),poor=(S.coins|0)<WCOST;
+  const m=NKWISH.ui.open(P.m,ST,{nick:NICK(),had,poor,left});const inp=m.querySelector('#wishIn2'),go=m.querySelector('#wishGo2'),cl=()=>m.remove();
+  setTimeout(()=>inp.focus(),50);inp.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();go.click();}};
+  const goTxt=go.innerHTML;
   go.onclick=async()=>{let tx=inp.value.trim();if(!tx){inp.focus();return;}if((S.coins|0)<WCOST){toast('🪙 골드가 부족해요 (10,000)',1600);return;}if(window.NK_PROF)tx=NK_PROF.mask(tx);go.disabled=true;go.textContent='띄우는 중…';
    try{const r=await fetch(SV.api()+'/wishes',{method:'POST',headers:{'Content-Type':'application/json','X-Owner':SV.cid()},body:JSON.stringify({nick:NICK(),text:tx,m:P.m})});const j=await r.json().catch(()=>({}));
     if(r.status===429){WL.cd=Date.now()+(j.left||2e4);go.textContent='잠시 뒤에 띄울 수 있어요';return;}if(!j.ok)throw 0;
     S.coins=Math.max(0,(S.coins|0)-WCOST);save();try{hud();}catch(e){}WL.cd=Date.now()+2e4;cl();const id=j.id||-Date.now(),l=Object.assign({id,mine:true,nick:NICK(),text:tx,at:Date.now(),ph:hh(id,4)*6.28},P.launch(id,hh,cam.getWorldDirection(_v)));
-    WL.L=WL.L.filter(x=>x.id!==id&&!x.mine);WL.L.unshift(l);if(WL.L.length>WMAX)WL.L.length=WMAX;toast(P.sent,2000);try{sfx.coin();}catch(e){}}
-   catch(e){go.disabled=false;go.textContent=IC+' '+P.go;toast('띄우지 못했어요. 잠시 뒤 다시 해 주세요',1800);}};}
+    const L=WL.L.filter(x=>x.id!==id&&!x.mine);L.unshift(l);if(L.length>SHOW)L.length=SHOW;if(P.place)P.place(L,new Map(WL.L.map(q=>[q.id,q])));WL.L=L;toast(P.sent,2000);try{sfx.coin();}catch(e){}}
+   catch(e){go.disabled=false;go.innerHTML=goTxt;toast('띄우지 못했어요. 잠시 뒤 다시 해 주세요',1800);}};}
 }
-/* 🏮 운하: 하늘에 뜬 연등 */
-mkWish({m:'canal',tag:1,tagY:1.15,tagW:2.6,tagFar:70,j:['을','은','으로'],btn:'wishBtn',ic:'🏮',nm:'소원 연등',short:'연등',go:'하늘로 띄우기',sent:'🏮 소원 연등이 하늘로 올라가요',desc:'내 닉네임과 소원이 운하 하늘에 떠요<br>다른 사람이 연등을 누르면 볼 수 있어요',
- here:()=>SEABOOT&&started&&!!(CNL&&CNL.st),geo:()=>[new THREE.CylinderGeometry(.5,.36,.9,8,1,true),new THREE.MeshBasicMaterial({color:0xffc070,side:THREE.DoubleSide,fog:false})],
- spawn:(id,hh)=>({x:SEA_OX+(hh(id,1)-.5)*11,z:-118+hh(id,2)*128,band:4.6+hh(id,3)*4.4}),
- launch:(id,hh,fw)=>{const p=me.o.position;return {x:p.x+fw.x*4,z:p.z+fw.z*4,y:2.2,rise:1,tx:SEA_OX+(hh(id,1)-.5)*11,tz:p.z-6,band:4.6+hh(id,3)*4.4};},
- step:(l,dt,t,o)=>{if(l.rise){l.y+=dt*.9;l.x+=(l.tx-l.x)*Math.min(1,dt*.08);l.z+=(l.tz-l.z)*Math.min(1,dt*.08);if(l.y>=l.band){l.rise=0;}}else{l.z-=dt*.12;if(l.z<-122)l.z=12;}
-  const y=l.rise?l.y:l.band+Math.sin(t*.35+l.ph)*.6,x=l.x+Math.sin(t*.2+l.ph)*.8;o.position.set(x,y,l.z);o.rotation.set(Math.sin(t*.5+l.ph)*.08,t*.2+l.ph,0);o.scale.setScalar(1.5);}});
-/* v182 ⛵ 호숫가: 물 위를 천천히 맴도는 종이 돛단배 (돛 끝에 작은 촛불) */
-mkWish({m:'lake',j:['를','는','로'],btn:'wishBtnL',ic:'⛵',nm:'소원 돛단배',short:'돛단배',go:'호수에 띄우기',sent:'⛵ 소원 돛단배가 호수로 떠나요',desc:'내 닉네임과 소원을 실은 돛단배가 호수에 떠요<br>다른 사람이 돛단배를 누르면 볼 수 있어요',glow:2.6,gy:.95,
- here:()=>!SEABOOT&&started&&!(SKY&&SKY.on)&&!(CNL&&CNL.st),
- geo:()=>{const T=THREE,hull=new T.CylinderGeometry(.42,.22,.22,4,1);hull.rotateY(Math.PI/4);hull.scale(1.7,1,.7);hull.translate(0,.11,0);
-  const sv=new Float32Array([0,.24,-.05, 0,1.05,0, 0,.24,.5]),sail=new T.BufferGeometry();sail.setAttribute('position',new T.BufferAttribute(sv,3));
-  const mast=new T.CylinderGeometry(.025,.025,.85,4);mast.translate(0,.62,0);
-  const parts=[hull,sail,mast].map(g=>{g=g.index?g.toNonIndexed():g;g.deleteAttribute('normal');g.deleteAttribute('uv');return g;}),cols=[[1,.97,.9],[1,.93,.78],[.6,.42,.28]];
-  const n=parts.reduce((a,g)=>a+g.attributes.position.count,0),P2=new Float32Array(n*3),C=new Float32Array(n*3);let o=0;parts.forEach((g,k)=>{const A=g.attributes.position.array;P2.set(A,o*3);for(let q=0;q<g.attributes.position.count;q++)C.set(cols[k],(o+q)*3);o+=g.attributes.position.count;});
-  const G=new T.BufferGeometry();G.setAttribute('position',new T.BufferAttribute(P2,3));G.setAttribute('color',new T.BufferAttribute(C,3));
-  return [G,new T.MeshBasicMaterial({vertexColors:true,side:T.DoubleSide})];},
- spawn:(id,hh)=>({r:4+hh(id,1)*Math.max(2,LR-15),a:hh(id,2)*6.28,dir:hh(id,3)<.5?-1:1}),
- launch:(id,hh,fw)=>{const p=me.o.position,x=p.x+fw.x*3,z=p.z+fw.z*3,R0=Math.min(Math.hypot(x,z),LR-11);return {r:Math.max(4,R0),a:Math.atan2(z,x),dir:hh(id,3)<.5?-1:1,rise:1,y:-.6};},
- step:(l,dt,t,o)=>{const sp=.35/Math.max(3,l.r);l.a+=dt*sp*l.dir;if(l.rise){l.y+=dt*.6;if(l.y>=0)l.rise=0;}const y=(l.rise?l.y:0)+.06+Math.sin(t*1.3+l.ph)*.04,x=Math.cos(l.a)*l.r,z=Math.sin(l.a)*l.r;
-  o.position.set(x,y,z);o.rotation.set(Math.sin(t*1.1+l.ph)*.06,-l.a+(l.dir>0?Math.PI:0),Math.sin(t*.9+l.ph)*.05);o.scale.setScalar(1.1);}});
+/* 🏮 운하: 하늘에 뜬 한지 연등 (시안 A) · 연등 위에 빛나는 닉네임 (가까운 12개) */
+mkWish({m:'canal',style:'A',j:['을','은','으로'],btn:'wishBtn',ic:'🏮',nm:'소원 연등',short:'연등',go:'하늘로 띄우기',sent:'🏮 소원 연등이 하늘로 올라가요',
+ here:()=>SEABOOT&&started&&!!(CNL&&CNL.st),kit:n=>NKWISH.lanternKit('A',{max:n}),tag:{draw:(...a)=>NKWISH.lanternTag(...a),w:2.4,y:1.35,far:60,n:12},
+ spawn:(id,hh)=>({x:SEA_OX+(hh(id,1)-.5)*15,z:-118+hh(id,2)*128,band:4.4+hh(id,3)*7.5,sc:.85+hh(id,7)*.35}),
+ launch:(id,hh,fw)=>{const p=me.o.position,x=p.x+fw.x*3,z=p.z+fw.z*3;return {x,z,y:1.6,rise:1,tx:x+(hh(id,1)-.5)*3,tz:z-5,band:7.2,sc:1.1};},
+ step:(l,dt,t)=>{if(l.y==null)l.y=l.band;if(l.rise){l.y+=dt*.75;l.x+=(l.tx-l.x)*Math.min(1,dt*.1);l.z+=(l.tz-l.z)*Math.min(1,dt*.1);if(l.y>=l.band){l.rise=0;l.ph=-t*.35;}}else{l.z-=dt*.1;if(l.z<-125)l.z=14;}
+  l.wx=l.x+Math.sin(t*.2+l.ph)*.6;l.wy=l.rise?l.y:l.band+Math.sin(t*.35+l.ph)*.45;l.wz=l.z;l.rx=Math.sin(t*.55+l.ph)*.07;l.rz=Math.cos(t*.47+l.ph)*.06;l.ry=t*.18+l.ph;l.py=0;}});
+/* ⛵ 호숫가: 하얀 돛 나무배 (시안 A) — 호수에 고리 3개 · 자리 20개를 고르게 나눠 같은 속도로 천천히 돌아요 (시계 기준이라 모두에게 같은 자리) */
+{const SL=[];const slots=()=>{if(SL.length&&SL.lr===LR)return SL;SL.length=0;SL.lr=LR;const r0=6.5,r1=Math.max(r0+4,LR-12),RR=[r0,(r0+r1)/2,r1],sum=RR.reduce((a,b)=>a+b,0);let left=20;
+  RR.forEach((r,k)=>{const n=k===2?left:Math.max(3,Math.round(20*r/sum));left-=n;for(let j=0;j<n;j++)SL.push({r,a0:(j+k*.37)/n*6.2832,dir:k%2?-1:1,k});});return SL;};
+ const T0=()=>(Date.now()/1000)%1e6,slotPos=(s,t)=>{const a=s.a0+s.dir*(.32/s.r)*t;return [Math.cos(a)*s.r,Math.sin(a)*s.r,a];};
+ /* 빈 자리 고르기: 지금 떠 있는 배들과 가장 먼 자리 */
+ const place=(L)=>{const S2=slots(),t=T0(),used=new Set();for(const l of L)if(l.slot!=null&&l.slot<S2.length&&!used.has(l.slot))used.add(l.slot);else l.slot=null;
+  for(const l of L){if(l.slot!=null)continue;let best=-1,bd=-1;for(let i=0;i<S2.length;i++){if(used.has(i))continue;const [x,z]=slotPos(S2[i],t);let d=1e9;for(const j of used){const [x2,z2]=slotPos(S2[j],t);d=Math.min(d,Math.hypot(x-x2,z-z2));}if(d>bd){bd=d;best=i;}}if(best<0)best=0;l.slot=best;used.add(best);}};
+ mkWish({m:'lake',style:'A',show:20,pickK:1.2,j:['를','는','로'],btn:'wishBtnL',ic:'⛵',nm:'소원 돛단배',short:'돛단배',go:'호수에 띄우기',sent:'⛵ 소원 돛단배가 호수로 떠나요',
+  here:()=>!SEABOOT&&started&&!(SKY&&SKY.on)&&!(CNL&&CNL.st),kit:n=>NKWISH.boatKit('A',{max:n}),place,
+  spawn:()=>({}),
+  launch:(id,hh,fw)=>{const p=me.o.position;return {lx:p.x+fw.x*2.6,lz:p.z+fw.z*2.6,rise:1,k:0};},
+  step:(l,dt,t)=>{const S2=slots();if(l.slot==null)place([l]);const s=S2[l.slot]||S2[0],[x,z,a]=slotPos(s,T0());let k=1;
+   if(l.rise){l.k=Math.min(1,(l.k||0)+dt/7);k=l.k;if(k>=1)l.rise=0;}
+   if(k<1){const e=k*k*(3-2*k),nx=l.lx+(x-l.lx)*e,nz=l.lz+(z-l.lz)*e;if(l.wx!=null){const dx=nx-l.wx,dz=nz-l.wz;if(dx*dx+dz*dz>1e-6)l.ry=Math.atan2(dx,dz);}l.wx=nx;l.wz=nz;}
+   else{l.wx=x;l.wz=z;const want=-a+(s.dir>0?0:Math.PI);l.ry=l.ry==null?want:l.ry+Math.atan2(Math.sin(want-l.ry),Math.cos(want-l.ry))*Math.min(1,dt*2);}
+   const kk=Math.min(1,k*1.6);l.wy=-.03+Math.sin(t*1.25+l.ph)*.035-(1-kk)*.25;l.rx=Math.sin(t*1.1+l.ph)*.05;l.rz=Math.sin(t*.9+l.ph)*.06;l.sc=1.15*(.4+.6*kk);l.py=.6;}});}
+/* ⭐ 달: 하늘에 원래 떠 있던 별 하나가 내 소원 별 (시안 B 가는 십자 빛) — 새 별은 만들지 않아요 */
+mkWish({m:'moon',style:'B',needM:1,j:['을','은','으로'],btn:'wishBtnM',ic:'⭐',nm:'소원 별',short:'별',go:'별에 소원 걸기',sent:'⭐ 하늘의 별 하나에 소원을 걸었어요',pickK:1.1,
+ here:()=>started&&!!(SKY&&SKY.on&&SKY.g&&SKY.skyG&&SKY.skyG.parent===SKY.g),/* 달 하늘이 지금 장면에 있을 때만 (하늘섬·지상에서는 X) */kit:n=>NKWISH.starKit('B',{max:n}),
+ spawn:()=>({}),launch:()=>({}),step:()=>{}});
 
 /* v182 🧭 오른쪽 위 메뉴 정리 (시안 A 기본 · 설정에서 C 서랍으로)
    - 밖에는 ☰ 목록 버튼 하나만 (늘 맨 오른쪽) · 시간 바꾸기 버튼은 유저 설정이 아니라서 숨겨요
@@ -6396,7 +6391,7 @@ LAB.push({k:'eqWin',n:'🎒 장착 장비 창 (시안 A·B)',d:'가방 낚싯대
 LAB.push({k:'stV2',n:'✨ 새 시작 화면',d:'처음 온 사람은 간편 로그인·게스트로 바로 시작, 이 기기에 진행이 있으면 「이어서 하기」 한 번 → ① 호숫가(서버, 지금 인원/최대 인원) ② 캐릭터(레벨별로 열림) 두 단계로 들어가요. 저장 코드·QR·닉네임+비밀번호는 「저장 코드 · QR로 이어하기」에서 예전 화면으로 써요',scope:'all',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'reelSnd',n:'🎣 입질 릴 소리',d:'물고기가 걸리면 릴이 풀리는 「찌르르륵」 소리가 나요. 자동 낚시 중에는 나지 않고 직접 낚을 때만 나요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기']]});
 LAB.push({k:'seaLay',n:'🛤 운하 길 시안',d:'운하 길 모양을 바꿔 봐요 (운하에 다시 들어가면 바뀌어요). A 길 넓힘: 집을 뒤로 물려 길이 1.5배 · B 소품 줄임: 길 위 나무를 빼고 가로등은 물가 쪽으로 성기게, 노점은 집 쪽으로 · C 둘 다',scope:'all',o:[['cur','지금 그대로 (기본)'],['A','A 길 넓힘'],['B','B 소품 줄임'],['C','C 둘 다']]});
-LAB.push({k:'wishLan',n:'🏮 소원 연등',d:'운하에 「🏮 소원 연등」 버튼이 생겨요. 닉네임과 소원(20자)을 적어 하늘에 띄우면, 다른 사람이 연등을 눌러서 볼 수 있어요. 한 사람당 하나(새로 띄우면 예전 것은 사라져요) · 🪙 10,000골드 · 2일 동안 떠 있어요 · 관리자·본인은 연등을 눌러 지울 수 있어요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기']]});
+LAB.push({k:'wishLan',n:'🏮 소원 연등 · ⛵ 돛단배 · ⭐ 별',d:'운하 「🏮 소원 연등」 · 호숫가 「⛵ 소원 돛단배」 · 달 「⭐ 소원 별」 버튼이 생겨요. 닉네임과 소원(20자)을 적어 띄우면, 다른 사람이 연등·배·별을 눌러서 볼 수 있어요. 한 사람당 하나(새로 띄우면 예전 것은 사라져요) · 🪙 10,000골드 · 2일 동안 떠 있어요 · 관리자·본인은 연등을 눌러 지울 수 있어요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기']]});
 LAB.push({k:'szTk',n:'📏 크기 변화 이용권',d:'가방에 「📏 크기」 칸이 생겨요. 이용권 1장으로 캐릭터 크기를 60~150% 중에서 골라요(원래 크기로는 무료). 다른 유저에게도 같은 크기로 보여요. 끄면 모두 원래 크기로 보여요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기']]});
 LAB.push({k:'bagMob',n:'📱 폰 가방 화면',d:'폰(가로 700px 미만)에서 가방 화면 모양. B: 전체 화면 + 아래 탭바(기본) · A: 탭 2줄 + 장착 한 줄 · C: 왼쪽 세로 탭 · 예전: 한 줄 가로 탭 + 큰 장착 창',scope:'me',o:[['B','B · 전체 화면 + 아래 탭바 (기본)'],['A','A · 탭 2줄 + 장착 한 줄'],['C','C · 왼쪽 세로 탭'],['old','예전 화면']]});
 LAB.push({k:'wearFuse',n:'🧩 장비 합성',d:'가방 › 👕 장비 아래에 「장비 합성」이 생겨요. 같은 레벨 장비 4개(모자·옷·장갑·신발 섞어도 돼요, 장착 중인 건 빼요) → 다음 레벨 장비 1개(부위는 랜덤). Lv.90은 합성할 수 없어요',scope:'all',o:[['off','끄기 (기본)'],['on','켜기']]});
