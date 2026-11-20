@@ -160,3 +160,36 @@ body.mb-open.mb-tqB #tq{top:auto!important;bottom:var(--mbTqB)!important}
 .mbret .mbit{cursor:default}
 /* v194: 별 줄이 칸 밖으로 나가지 않게 (칸 너비 기준) */
 @supports (font-size:1cqw){#mbd .mbit{container-type:inline-size}#mbd .mbit .mst{font-size:14.5cqw;letter-spacing:-.04em}}
+/* v195: ⭐ 별 교환소 버튼 · 📖 변이 도감 · 칭호 */
+#mbd .mbs5{display:flex;align-items:center;gap:4px;height:32px;padding:0 10px;border-radius:999px;border:1px solid #ffc24a88;background:linear-gradient(180deg,#2a2140,#1b1430);color:#ffe08a;font-weight:800;font-size:12.5px;white-space:nowrap;cursor:pointer;flex-shrink:0;box-shadow:0 2px 0 #0002}
+#mbd .mbs5[hidden]{display:none}
+#mbd .mbs5 img{width:18px;height:18px;filter:drop-shadow(0 0 3px #9fd0ff)}
+#mbd .mbs5 b{color:#bfe0ff;font-weight:900}
+#mbd .mbhd .mbs5 span{display:none}
+#mbd .mbhd .mbs5{padding:0 9px 0 7px;height:30px}
+#mbd .mbdexb{border:1.5px solid #e6d8c2;background:#fffdf8;border-radius:999px;height:24px;padding:0 9px;font:800 11.5px/1 inherit;color:#5a4a3c;white-space:nowrap;cursor:pointer;display:inline-flex;align-items:center;gap:3px;flex-shrink:0}
+#mbd .mbdexb[hidden]{display:none}
+#mbd .mbdexb b{color:#9a6cec}
+#mbd .mbdexb.rdy{background:#f6f1ff;border-color:#c9b6ef}
+#mbd .mbdexb em{font-style:normal}
+#mbd .mdxr{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+#mbd .mdx{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:800;color:#5a4a3c;white-space:nowrap;min-width:0}
+#mbd .mdx .mbcell{--cs:44px;width:44px;height:44px}
+#mbd .mdx .mbit{cursor:default}
+#mbd .mdx .mbit .mst{display:none}
+#mbd .mdx.no .mbcell{filter:grayscale(1) brightness(1.1);opacity:.42}
+#mbd .mdx.no span{color:#b3a38c}
+#mbd .fzset{margin-top:8px;padding:7px 9px;gap:8px}
+#mbd .fzset button{border:0;border-radius:10px;padding:6px 10px;font-weight:900;white-space:nowrap;cursor:pointer}
+#mbd .mdxt{margin-top:8px}
+#mbd .mdxth{display:flex;justify-content:space-between;align-items:center;font-size:12px;white-space:nowrap;gap:6px}
+#mbd .mdxth small{color:#a08a70;font-weight:700;font-size:11px}
+#mbd .mdxtr{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-top:5px}
+#mbd .mdxtr i{font-style:normal;text-align:center;font-size:10.5px;font-weight:800;color:#b3a38c;background:#f4ece0;border-radius:8px;padding:4px 0;white-space:nowrap;letter-spacing:-.3px}
+#mbd .mdxtr i.on{background:#fff1d6;color:#c47a00;box-shadow:inset 0 0 0 1.5px #ffcf6a}
+#mbInfo .mt small{font-size:13px;color:#9a6cec}
+#mbInfo .mbdexp .mdx .mbcell{--cs:50px;width:50px;height:50px}
+#mbSide2{overflow-y:auto;scrollbar-width:none}
+#mbSide2::-webkit-scrollbar{display:none}
+body.mb-open #s5x{z-index:95}
+body.mb-open #confirm{z-index:96!important}
