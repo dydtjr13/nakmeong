@@ -250,6 +250,10 @@
       try { dispatchEvent(new CustomEvent(m.t === "st" ? "nk-rt-st" : "nk-rt-stc", { detail: m })); } catch (e) { /* ignore */ }
       return true;
     }
+    // v195: ✨ 초월 부적 획득 — 모든 서버 공지
+    if (m.t === "txc") {
+      try { dispatchEvent(new CustomEvent("nk-rt-txc", { detail: m })); } catch (e) { /* ignore */ }
+    }
     if (m.t === "s5") {
       try { dispatchEvent(new CustomEvent("nk-rt-s5", { detail: m })); } catch (e) { /* ignore */ }
       return true;
@@ -648,6 +652,7 @@
   RT.sup = function (o) { if (RT.mode === "on") { send(Object.assign({ t: "sup" }, o || {})); return true; } return false; };
   RT.supList = function () { if (RT.mode === "on") { send({ t: "supList" }); return true; } return false; };
   RT.giftAck = function (id) { if (RT.mode === "on" && id) send({ t: "giftAck", id: String(id) }); };
+  RT.txc = function (how) { if (RT.mode === "on") { send({ t: "txc", how: how === "syn" ? "syn" : "box" }); return true; } return false; };
   RT.s5 = function (k, g) { if (RT.mode === "on") send({ t: "s5", k: String(k || ""), g: g | 0 }); };
   RT.emote = function (text) { if (RT.mode === "on") send({ t: "emote", text: String(text || "").slice(0, 8) }); };
   function opsSend(obj) {

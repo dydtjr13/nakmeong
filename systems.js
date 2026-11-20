@@ -18,11 +18,16 @@ SYS.gearStats=(D,g)=>{const r=D.RODS.find(x=>x.k===(g?g.k:'bamboo')),m=g?(D.GEAR
 SYS.enhBonus=(D,lv)=>{const o={size:0,luck:0,coin:0,box:0};((D.ENH&&D.ENH.bt)||[]).forEach(b=>{if(lv>=b.lv)for(const k in o)o[k]+=b[k]||0;});return o;};
 SYS.charmSum=(D,S,noPassive)=>{const o={};for(const k in D.CHARM.opts)o[k]=0;(S.equip||[]).forEach(id=>{const c=(S.charms||[]).find(x=>x.id===id);if(c)c.opts.forEach(p=>o[p.k]+=p.v);});
   const g=SYS.gearOf(S);if(g){g.extra.forEach(e=>o[e.k]+=e.v);const fx=(D.RODS.find(r=>r.k===g.k)||{}).fixed;if(fx)for(const k in fx)o[k]+=fx[k];}
-  for(const k in o)o[k]=R1(Math.min(o[k],D.CHARM.opts[k].total));
+  /* v195 초월 부적: 공명(1개마다 모든 옵션 +합산상한×res) · 상한 돌파(1개마다 합산 상한 +cb) */const n6=SYS.txN(S),TX=D.CHARM.tx;if(n6&&TX)for(const k in o)o[k]+=R1(D.CHARM.opts[k].total*TX.res)*n6;
+  for(const k in o)o[k]=R1(Math.min(o[k],SYS.charmCap(D,S,k)));
   if(D.PASSIVE&&!noPassive){const P=SYS.passives(D,S).sum;for(const k in o)o[k]=R1(o[k]+P[k]);}return o;};
+// v195 초월 부적(tier 6) 도우미: 장착 수 · 옵션별 합산 상한(상한 돌파 포함) · 진행 보조 합계
+SYS.txN=S=>{let n=0;(S.equip||[]).forEach(id=>{const c=(S.charms||[]).find(x=>x.id===id);if(c&&c.tier===6)n++;});return n;};
+SYS.charmCap=(D,S,k)=>{const o=D.CHARM.opts[k],TX=D.CHARM.tx;if(!o)return 0;const n=TX?SYS.txN(S):0;return R1(o.total*(1+(n?TX.cb*n:0)));};
+SYS.pxSum=(D,S)=>{const TX=D.CHARM.tx,o={};if(!TX)return o;for(const k in TX.px)o[k]=0;(S.equip||[]).forEach(id=>{const c=(S.charms||[]).find(x=>x.id===id);if(c&&Array.isArray(c.px))c.px.forEach(p=>{if(o[p.k]!=null)o[p.k]+=+p.v||0;});});for(const k in o)o[k]=R1(Math.min(o[k],TX.px[k].cap));return o;};
 SYS.makeCharm=(D,tier,id,rnd=Math.random)=>{const C=D.CHARM,keys=Object.keys(C.opts),n=C.tierOpts[tier],opts=[];const pool=keys.slice();
   for(let i=0;i<n;i++){const k=pool.splice(Math.floor(rnd()*pool.length),1)[0];if(C.band){const b=C.band[tier];opts.push({k,v:R1(C.opts[k].cap*(b[0]+(b[1]-b[0])*rnd()))});}else{const mx=C.opts[k].cap*C.tierMul[tier];const lo=tier===5?.75:C.rollMin;opts.push({k,v:R1(mx*(lo+(1-lo)*rnd()))});}}
-  return {id,tier,opts,lock:false};};
+  const c={id,tier,opts,lock:false};if(tier===6&&C.tx){c.px=Object.entries(C.tx.px).map(([k,p])=>({k,v:R1(p.r[0]+(p.r[1]-p.r[0])*rnd())}));c.lock=true;}return c;};
 SYS.rollTier=(D,masterPct=0,rnd=Math.random)=>{const ws=D.BOX.tiers.map((t,i)=>t.w*(i>=2?1+masterPct/100:1));let s=rnd()*ws.reduce((a,b)=>a+b,0);for(let i=0;i<ws.length;i++){s-=ws[i];if(s<0)return i;}return 0;};
 SYS.boxChance=(D,ch)=>D.BOX.base*(1+ch.treasure/100);
 SYS.openBox=(D,S,rnd=Math.random,src)=>{const ch=SYS.charmSum(D,S),tier=src==='streak'&&D.BOX.streakTiers?SYS.rollTier({BOX:{tiers:D.BOX.streakTiers.map(w=>({w}))}},ch.master,rnd):Math.max(typeof src==='string'&&src.slice(0,2)==='lv'?+src.slice(2):0,SYS.rollTier(D,ch.master,rnd)),out=[],RW=src==='streak'&&D.BOX.streakReward||D.BOX.reward;
@@ -40,6 +45,8 @@ SYS.openBox=(D,S,rnd=Math.random,src)=>{const ch=SYS.charmSum(D,S),tier=src==='s
   one();if(rnd()<ch.appraise/100){one();out[out.length-1].bonus=true;}
   // v27: 초월 낚싯대(천룡·화룡)는 상자 등급과 상관없이 상자 1개마다 각각 1/10,000 따로 굴림
   if(D.BOX.txRod){const x=rnd();if(x<D.BOX.txRod*2){const k=x<D.BOX.txRod?'heaven':'fire',g=SYS.makeGear(D,k,S.nid++,rnd,5);S.gear.push(g);out.push({type:'rod',g,tx:true});}}
+  // v195: 초월 부적도 상자 등급과 상관없이 상자 1개마다 따로 굴림 (D.CHARM.tx.box)
+  if(D.CHARM.tx&&D.CHARM.tx.box&&rnd()<D.CHARM.tx.box){const c=SYS.makeCharm(D,6,S.nid++,rnd);S.charms.push(c);out.push({type:'charm',c,tx:true});}
   return {tier,out};};
 SYS.enhLv=S=>{const g=SYS.gearOf(S);return g?g.enh:0;};
 SYS.enhTry=(D,S,rnd=Math.random)=>{const g=SYS.gearOf(S);if(!g)return {r:'none'};const lv=g.enh,E=D.ENH;if(lv>=E.max)return {r:'max'};const st=E.stone(lv),co=E.coin(lv);
@@ -56,7 +63,7 @@ SYS.dismantle=(D,S,maxTier)=>{const L=S.charms.filter(c=>c.tier<=maxTier&&!c.loc
   if(typeof ILOG_HOOK==='function')L.forEach(c=>ILOG_HOOK('dis','charm',c,D.CHARM.dismantle.coin[c.tier],{st:D.CHARM.dismantle.stone[c.tier]}));S.charms=S.charms.filter(c=>!L.includes(c));S.coins+=co;S.stones+=st;return {n:L.length,co,st};};
 SYS.mods=(D,S,rod,bait)=>{const ch=SYS.charmSum(D,S),lv=rod.enh||0,W=SYS.wearMods?SYS.wearMods(D,S):{};
   return {ch,W,size:rod.size*bait.size*(1+lv*D.ENH.size)*(1+ch.big/100)*(1+(W.big||0)/100),wait:bait.speed*rod.speed*(1-lv*D.ENH.speed)*(1-(ch.quick+(W.quickW||0))/100),
-   sell:D.SHOP_SELL_RATE*(1+(ch.merchant+(W.sell||0))/100)*(1+(rod.coin||0))*(1+(W.coin||0)/100),box:SYS.boxChance(D,ch)*(1+(rod.box||0)),xp:1+(W.xp||0)/100,shop:1-(W.shop||0)/100};};
+   sell:D.SHOP_SELL_RATE*(1+(ch.merchant+(W.sell||0))/100)*(1+(rod.coin||0))*(1+(W.coin||0)/100),box:SYS.boxChance(D,ch)*(1+(rod.box||0))*(1+((SYS.pxSum(D,S).boxp||0)/100)*(S.autoFish?.5:1)),xp:1+(W.xp||0)/100,shop:1-(W.shop||0)/100};};
 SYS.progress=(D,S,rod)=>{const G=D.GATE;if(!G)return 1;const ri=Math.max(0,D.RODS.findIndex(r=>r.k===rod.k)),rr=Math.min(1,ri/Math.max(1,D.RODS.findIndex(r=>r.k==='dragon')))/* v26: 용왕 이후 낚싯대가 늘어도 진행도 기준 유지 */;return Math.min(1,G.wRod*rr+G.wEnh*Math.min(1,(rod.enh||0)/10)+G.wCaught*Math.min(1,(S.caught||0)/G.caughtMax));};
 SYS.gateMul=(D,f,P)=>{const G=D.GATE;if(!G||!G.on)return 1;const fb=f.gb!=null?f.gb:f.base,e=fb>=G.hi.base?G.hi.e:fb>=G.mid.base?G.mid.e:1;return e+(1-e)*P;};
 SYS.weights=(D,S,rod,bait,night=0)=>{const ch=SYS.charmSum(D,S),N=night>.5,bb=bait.nightOnly&&!N?{}:bait.boost,P=SYS.progress(D,S,rod);return D.FISH.map(f=>{if(f.nightOnly&&!N)return 0;if(f.wx&&(S.__wx!==f.wx||(f.season&&S.__season!==f.season)))return 0;return SYS.gateMul(D,f,P)*f.w*(bb[f.k]||1)*(f.rare?(1+rod.luck*10)*(1+ch.luck/100):1)*(f.expert?1+ch.expert/100:1)*(N&&f.night?f.night:1);});};
@@ -76,7 +83,7 @@ SYS.passives=(D,S)=>{const sum={};for(const k in D.CHARM.opts)sum[k]=0;S.stats=S
 SYS.synthPool=(D,S,tier)=>S.charms.filter(c=>c.tier===tier&&!c.lock&&!S.equip.includes(c.id)&&!(S.presets||[]).some(p=>p.includes(c.id))).sort((a,b)=>a.opts.reduce((x,o)=>x+o.v/D.CHARM.opts[o.k].cap,0)-b.opts.reduce((x,o)=>x+o.v/D.CHARM.opts[o.k].cap,0));
 SYS.charmSynth=(D,S,tier,rnd=Math.random)=>{const need=tier>=5?D.CHARM.synth.mythNeed:D.CHARM.synth.need,pool=SYS.synthPool(D,S,tier),cost=D.CHARM.synth.coin[tier];
   if(pool.length<need)return {r:'lack',need,have:pool.length};if(S.coins<cost)return {r:'coin',cost};const used=pool.slice(0,need);S.coins-=cost;S.charms=S.charms.filter(c=>!used.includes(c));
-  const nt=Math.min(5,tier+1),c=SYS.makeCharm(D,nt,S.nid++,rnd);S.charms.push(c);return {r:'ok',used,c,from:tier};};
+  let nt=Math.min(5,tier+1);/* v195: 신화 3개 합성은 synP 확률로 초월 */if(tier===5&&D.CHARM.tx&&rnd()<D.CHARM.tx.synP)nt=6;const c=SYS.makeCharm(D,nt,S.nid++,rnd);S.charms.push(c);return {r:'ok',used,c,from:tier,tx:nt===6};};
 
 // v10 크기 굴림: 신화 구간(f.soft 이상)은 최대치로 '점근'하도록 압축 → 최대치 고착(clamp) 질량 제거, 신화 기준 상향이 실제로 작동
 SYS.sizeRoll=(D,f,size,rnd=Math.random)=>{let cm=f.min-Math.log(1-rnd())*f.scale*size;const s0=f.soft;if(s0!=null&&cm>s0){const M=f.max-s0;cm=s0+M*(1-Math.exp(-(cm-s0)/M));}if(f.mythP!=null&&f.mythP<1&&cm>=f.g[3]&&rnd()>=f.mythP)cm=f.g[3]-.1-rnd()*.15*(f.g[3]-(f.soft||f.min));return Math.min(f.max,cm);};
