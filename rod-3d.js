@@ -88,10 +88,10 @@ function batch(base,vs,fs,map,add,order){const G=new T.InstancedBufferGeometry()
 let B=null;const E=new Map();
 function mkB(){const pl=new T.PlaneGeometry(1,1),fl=new T.PlaneGeometry(1,1).rotateX(-Math.PI/2),cy=new T.CylinderGeometry(.75,.9,1.5,16,1,true).translate(0,.75,0);
  B={glow:batch(pl,VS_B,FS_T,tGlow(),1,3),ring:batch(pl,VS_B,FS_T,tRing(),0,3),rays:batch(pl,VS_B,FS_T,tRays(),1,3),foot:batch(fl,VS_F,FS_T,tFoot(),1,2),fring:batch(fl,VS_F,FS_T,tRing(),0,2),col:batch(cy,VS_F,FS_C,null,1,2)};
- const hk=new T.Mesh(new T.BufferGeometry(),new T.MeshBasicMaterial());hk.frustumCulled=false;hk.onBeforeRender=(r,sc,cam)=>upd(r,cam);B.hook=hk;B.list=[hk,B.glow,B.ring,B.rays,B.foot,B.fring,B.col];}
+ const hk=new T.Mesh(new T.BufferGeometry(),new T.MeshBasicMaterial());hk.frustumCulled=false;hk.onBeforeRender=(r,sc,cam)=>{if(SCH!==sc)upd(r,cam);};B.hook=hk;B.list=[hk,B.glow,B.ring,B.rays,B.foot,B.fring,B.col];}
 // 게임이 알려주는 것: 내 캐릭터, 낚싯줄, 찌, 낚시 상태
 let CTX=null;FX.ctx=o=>{CTX=o;};
-FX.attach=function(c,g){if(!g||!g.userData.fxT||!c||!c.o){E.delete(c);return;}if(!B)mkB();const sc=c.o.parent;if(sc&&B.hook.parent!==sc)B.list.forEach(m=>sc.add(m));
+FX.attach=function(c,g){if(!g||!g.userData.fxT||!c||!c.o){E.delete(c);return;}if(!B)mkB();const sc=c.o.parent;if(sc&&B.hook.parent!==sc)B.list.forEach(m=>sc.add(m));sceneHook(sc);
  const k=g.userData.fxK,t=g.userData.fxT;E.set(c,{c,g,t,C:PAL[k],S:SC[t],col:{glow:new T.Color(PAL[k].glow),ring:new T.Color(PAL[k].glow),foot:new T.Color(PAL[k].glow).lerp(new T.Color('#ffffff'),.35),metal:new T.Color(PAL[k].metal)},b:0,fade:1,me:null});};
 FX.bench=(r,cam,N)=>{const t0=new Date().getTime();for(let i=0;i<N;i++)upd(r,cam,1);return (new Date().getTime()-t0)/N;};
 FX.info=()=>{const o=[];for(const [c,e] of E)o.push({name:c.name,t:e.t,fade:+e.fade.toFixed(2),rank:e.rank==null?-1:e.rank,me:!!e.me});return o;};
@@ -107,6 +107,8 @@ let LINE0=null;function lineTint(col){const ln=CTX&&CTX.line&&CTX.line();if(!ln)
 // 화면 위 버튼(소원 돛단배 등) 뒤로 광륜이 지나가면 흐리게
 let UIR=[],uiT=-1;const UISEL='[id^="wishBtn"],#hudTop,.hudTop';function uiRects(now){if(now-uiT<400)return UIR;uiT=now;UIR=[];try{document.querySelectorAll(UISEL).forEach(el=>{if(!el.offsetParent&&getComputedStyle(el).position!=='fixed')return;const r=el.getBoundingClientRect();if(r.width>0&&r.height>0)UIR.push(r);});}catch(_){}return UIR;}
 const RK=[],v1=new T.Vector3(),v2=new T.Vector3(),fr=new T.Frustum(),pm=new T.Matrix4(),sph=new T.Sphere(),WHITE=new T.Color('#ffffff');let lastF=-1,lastT=-1;
+/* 광륜 위치는 장면을 그리기 직전(scene.onBeforeRender)에 계산해요. 그리는 도중(hk)에 하면 버퍼가 이미 올라간 뒤라 한 프레임 늦어서, 던질 때 광륜이 대 끝에서 떨어져 보여요 */
+let SCH=null;function sceneHook(o){let s=o;while(s&&s.parent)s=s.parent;if(!s||!s.isScene||SCH===s)return;const prev=s.onBeforeRender;s.onBeforeRender=function(r,sc,cam,rt){try{if(prev)prev.call(this,r,sc,cam,rt);}catch(e){}if(cam&&cam.isCamera)upd(r,cam);};SCH=s;}
 function wvis(o){for(let p=o;p;p=p.parent){if(!p.visible)return false;if(p.isScene)return true;}return false;}
 function upd(r,cam,force){const f=r.info.render.frame;if(f===lastF&&!force)return;lastF=f;const a1=FX.clock?FX.clock():0;const a0=performance.now(),tm=a0/1000,dt=lastT<0?.016:Math.min(.1,Math.max(0,tm-lastT));lastT=tm;
  pm.multiplyMatrices(cam.projectionMatrix,cam.matrixWorldInverse);fr.setFromProjectionMatrix(pm);const meC=CTX&&CTX.me&&CTX.me(),fs=CTX&&CTX.fishing&&CTX.fishing();
