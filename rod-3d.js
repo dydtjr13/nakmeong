@@ -94,6 +94,7 @@ let CTX=null;FX.ctx=o=>{CTX=o;};
 FX.attach=function(c,g){if(!g||!g.userData.fxT||!c||!c.o){E.delete(c);return;}if(!B)mkB();const sc=c.o.parent;if(sc&&B.hook.parent!==sc)B.list.forEach(m=>sc.add(m));
  const k=g.userData.fxK,t=g.userData.fxT;E.set(c,{c,g,t,C:PAL[k],S:SC[t],col:{glow:new T.Color(PAL[k].glow),ring:new T.Color(PAL[k].glow),foot:new T.Color(PAL[k].glow).lerp(new T.Color('#ffffff'),.35),metal:new T.Color(PAL[k].metal)},b:0,fade:1,me:null});};
 FX.bench=(r,cam,N)=>{const t0=new Date().getTime();for(let i=0;i<N;i++)upd(r,cam,1);return (new Date().getTime()-t0)/N;};
+FX.info=()=>{const o=[];for(const [c,e] of E)o.push({name:c.name,t:e.t,fade:+e.fade.toFixed(2),rank:e.rank==null?-1:e.rank,me:!!e.me});return o;};
 FX.detach=c=>{const e=E.get(c);if(e&&e.me)e.me.dispose();E.delete(c);};
 // 내 낚싯대 전용 효과 (대 주변 입자 · 줄 반짝임 · 찌 꼬리)
 function mine(e){const t=e.t,C=e.C,g=e.g,L=(P[g.userData.fxK]||P.bamboo).len,sc=e.c.o.parent;const o={};
