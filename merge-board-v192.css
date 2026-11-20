@@ -197,3 +197,5 @@ body.mb-open.mb-tqB #tq{top:auto!important;bottom:var(--mbTqB)!important}
 #mbSide2::-webkit-scrollbar{display:none}
 body.mb-open #s5x{z-index:95}
 body.mb-open #confirm{z-index:96!important}
+/* v199: 데크 「꾸미기」 버튼(층 46)이 합성판·다른 창 위에 보이던 문제 */
+body.mb-open #dcBtn,body.mb-open #dcEd,body:has(.modal.show) #dcBtn{display:none!important}
