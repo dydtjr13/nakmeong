@@ -84,16 +84,16 @@ function noiseBuf(c){if(c._mbnb)return c._mbnb;const b=c.createBuffer(1,c.sample
 function tn(c,o,t,f0,f1,du,ty,vo,at=.004){const os=c.createOscillator(),g=c.createGain();os.type=ty;os.frequency.setValueAtTime(f0,t);if(f1)os.frequency.exponentialRampToValueAtTime(f1,t+du);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vo,t+at);g.gain.exponentialRampToValueAtTime(.0001,t+du);os.connect(g);g.connect(o);os.start(t);os.stop(t+du+.05);}
 function nz(c,o,t,du,vo,fq,q=1,ty='bandpass'){const s=c.createBufferSource();s.buffer=noiseBuf(c);const f=c.createBiquadFilter();f.type=ty;f.frequency.value=fq;f.Q.value=q;const g=c.createGain();g.gain.setValueAtTime(vo,t);g.gain.exponentialRampToValueAtTime(.0001,t+du);s.connect(f);f.connect(g);g.connect(o);s.start(t);s.stop(t+du+.05);}
 const NOTE=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.5,1567.98,1760];
-function play(kind,r=0,cb=0){const a=AC();if(!a)return;const [c,m]=a;let o=c._mbOut;if(!o||o._m!==m){o=c.createGain();o.gain.value=.55;o.connect(m);o._m=m;c._mbOut=o;}const t=c.currentTime+.005,st=2**(cb/12);try{
- if(kind==='squish'){tn(c,o,t,180,360,.09,'sine',.35);nz(c,o,t,.06,.12,900,2);return;}
- if(kind==='place'){tn(c,o,t,620,880,.11,'sine',.22);tn(c,o,t+.06,880,1180,.1,'triangle',.12);return;}
- if(kind==='deny'){tn(c,o,t,220,140,.14,'sine',.28);nz(c,o,t,.08,.08,300,1,'lowpass');return;}
- if(kind==='whoosh'){nz(c,o,t,.18,.14,1200,.8);return;}
- const f=NOTE[Math.min(r,9)]*st;tn(c,o,t,f*1.5,f,.16,'sine',.5);nz(c,o,t,.08+r*.012,.25+r*.03,1800+r*250,1.2);
- if(r>=2)tn(c,o,t+.02,f*2,0,.22,'triangle',.18);if(r>=3)[1,1.25,1.5].forEach((q,i)=>tn(c,o,t+.05+i*.05,f*2*q,0,.25,'triangle',.12));
- if(r>=5){tn(c,o,t,110,38,.5+r*.04,'sine',.75,.003);nz(c,o,t,.35,.35,180,.8,'lowpass');}if(r>=6)[0,4,7].forEach(s=>tn(c,o,t+.03,f*.5*2**(s/12),0,.6,'sawtooth',.045,.02));
- if(r>=7)nz(c,o,t+.02,.6,.18,4200,.7,'highpass');if(r>=8)for(let i=0;i<10;i++)tn(c,o,t+.1+i*.045,2000+((i*733)%1400),0,.14,'sine',.07);
- if(r>=9){[0,4,7,12,16,19,24].forEach((s,i)=>tn(c,o,t+.12+i*.075,523*2**(s/12),0,.5,'triangle',.16));tn(c,o,t,70,30,1.1,'sine',.85,.003);}}catch(e){}}
+function play(kind,r=0,cb=0){const a=AC();if(!a)return;const [c,m]=a;let o=c._mbOut;if(!o||o._m!==m){o=c.createGain();o.gain.value=.55;o.connect(m);o._m=m;c._mbOut=o;}const t=c.currentTime+.005,st=2**(cb/12);try{/* v201: 소리 크기를 재서 맞췄어요 — 합성(★1~★5)은 낚음 소리만큼, 놓기·실패는 작은 효과음만큼 */const O=c.createGain();O.gain.value=kind==='pop'?(r<5?2.5:1):({squish:3,place:3.4,deny:2.7,whoosh:5.5})[kind]||1;O.connect(o);setTimeout(()=>{try{O.disconnect();}catch(_){}},3000);
+ if(kind==='squish'){tn(c,O,t,180,360,.09,'sine',.35);nz(c,O,t,.06,.12,900,2);return;}
+ if(kind==='place'){tn(c,O,t,620,880,.11,'sine',.22);tn(c,O,t+.06,880,1180,.1,'triangle',.12);return;}
+ if(kind==='deny'){tn(c,O,t,220,140,.14,'sine',.28);nz(c,O,t,.08,.08,300,1,'lowpass');return;}
+ if(kind==='whoosh'){nz(c,O,t,.18,.14,1200,.8);return;}
+ const f=NOTE[Math.min(r,9)]*st;tn(c,O,t,f*1.5,f,.16,'sine',.5);nz(c,O,t,.08+r*.012,.25+r*.03,1800+r*250,1.2);
+ if(r>=2)tn(c,O,t+.02,f*2,0,.22,'triangle',.18);if(r>=3)[1,1.25,1.5].forEach((q,i)=>tn(c,O,t+.05+i*.05,f*2*q,0,.25,'triangle',.12));
+ if(r>=5){tn(c,O,t,110,38,.5+r*.04,'sine',.75,.003);nz(c,O,t,.35,.35,180,.8,'lowpass');}if(r>=6)[0,4,7].forEach(s=>tn(c,O,t+.03,f*.5*2**(s/12),0,.6,'sawtooth',.045,.02));
+ if(r>=7)nz(c,O,t+.02,.6,.18,4200,.7,'highpass');if(r>=8)for(let i=0;i<10;i++)tn(c,O,t+.1+i*.045,2000+((i*733)%1400),0,.14,'sine',.07);
+ if(r>=9){[0,4,7,12,16,19,24].forEach((s,i)=>tn(c,O,t+.12+i*.075,523*2**(s/12),0,.5,'triangle',.16));tn(c,O,t,70,30,1.1,'sine',.85,.003);}}catch(e){}}
 // ── 화면 ──
 function build(){let m=$('mbd');if(m)return m;m=document.createElement('div');m.id='mbd';m.className='modal';
  m.innerHTML=`<div id="mbShk">
@@ -113,7 +113,7 @@ function build(){let m=$('mbd');if(m)return m;m=document.createElement('div');m.
  addEventListener('keydown',e=>{if(!ST.open||e.key!=='Escape')return;if(ST.info)infoClose();else close();});
  addEventListener('resize',()=>{if(ST.open){layout();draw();requestAnimationFrame(slots);}});
  new MutationObserver(()=>{const sh=m.classList.contains('show');if(!sh&&ST.open)closed();}).observe(m,{attributes:true,attributeFilter:['class']});
- new MutationObserver(ms=>{if(!ST.open)return;for(const x of ms)for(const n of x.addedNodes)if(ANN.includes(n.id)||n.id==='tq'){requestAnimationFrame(slots);return;}}).observe(document.body,{childList:true});
+ new MutationObserver(ms=>{if(!ST.open)return;for(const x of ms)for(const n of x.addedNodes){if(n.classList&&n.classList.contains('boxget')){boxSlot(n);continue;}if(ANN.includes(n.id)||n.id==='tq'){requestAnimationFrame(slots);return;}}}).observe(document.body,{childList:true});
  return m;}
 function layout(){const N=mbS().n,pc=PCL(),gap=pc?(N>=7?6:8):(N>=7?4:N>=6?5:6);let W;
  if(pc){W=Math.min(500,innerWidth-300*2-18*4-16,innerHeight-36-84-12-56-20);}/* 84 = 위쪽 공지 띠 자리 */
@@ -128,12 +128,13 @@ function layout(){const N=mbS().n,pc=PCL(),gap=pc?(N>=7?6:8):(N>=7?4:N>=6?5:6);l
 const ANN=['stAnn','s5ban','annBar'];
 function natH(el){let t=1e9,bt=-1e9;const sc=parseFloat(el.style.getPropertyValue('--mbS'))||1;[el,...el.querySelectorAll('*')].forEach(c=>{const r=c.getBoundingClientRect();if(r.height>4&&r.width>4){t=Math.min(t,r.top);bt=Math.max(bt,r.bottom);}});if(bt<t)return el.offsetHeight||60;return Math.max(24,Math.min(220,(bt-t)/(document.body.classList.contains('mb-ann')?sc:1)));}
 function slots(){const B0=document.body,st=B0.style;const hs={};ANN.forEach(id=>{const e=$(id);if(e)hs[id]=natH(e);});
- const ALL=['mb-ann','mb-annT','mb-annB','mb-tqB','mb-tqT'],want=new Set(),fin=()=>ALL.forEach(c=>B0.classList.toggle(c,want.has(c)));/* 지웠다 다시 붙이면 띠가 매번 처음부터 움직여요 → 바뀐 것만 */
+ const ALL=['mb-ann','mb-annT','mb-annB','mb-tqB','mb-tqT','mb-miniT'],want=new Set(),fin=()=>ALL.forEach(c=>B0.classList.toggle(c,want.has(c)));/* 지웠다 다시 붙이면 띠가 매번 처음부터 움직여요 → 바뀐 것만 */
  if(!ST.open){fin();return;}
  let top=null,bot=null,room;
  if(PCL()){const w=$('mbWood').getBoundingClientRect();top=6;room=w.top-12;}
  else{const q=$('mbMain').querySelector('.mbq.mob').getBoundingClientRect(),bt=$('mbBB').querySelector('button'),bb=bt?bt.getBoundingClientRect().top:innerHeight-60,gap=bb-q.bottom;
   if(gap>=30){bot=Math.round(innerHeight-bb+4);room=gap-8;}else{const hd=$('mbMain').querySelector('.mbhd').getBoundingClientRect();top=Math.max(2,hd.top+2);room=Math.max(30,hd.height-4);}
+  /* v201: 작은 알림(#miniT, 창이 열려 있을 때 낚은 물고기)도 아래 버튼을 가리지 않게 맨 위 제목 줄로 */{const hd=$('mbMain').querySelector('.mbhd').getBoundingClientRect();st.setProperty('--mbMiniT',Math.round(Math.max(2,hd.top+(hd.height-38)/2))+'px');want.add('mb-miniT');}
   if(gap>=44){st.setProperty('--mbTqB',Math.round(innerHeight-bb+4)+'px');want.add('mb-tqB');}else{st.setProperty('--mbTqT',Math.round(Math.max(2,$('mbMain').querySelector('.mbhd').getBoundingClientRect().top+2))+'px');want.add('mb-tqT');}}
  /* 동시에 여러 개면 위아래로 나란히 (자리에 다 들어가게 함께 줄여요) */
  const vis=ANN.filter(id=>{const e=$(id);if(!e||!e.children.length)return false;const c=getComputedStyle(e);return c.display!=='none'&&c.visibility!=='hidden'&&!(id==='s5ban'&&!e.classList.contains('on'));});
@@ -141,6 +142,12 @@ function slots(){const B0=document.body,st=B0.style;const hs={};ANN.forEach(id=>
  (top!=null?vis:vis.slice().reverse()).forEach(id=>{const e=$(id);e.style.setProperty('--mbS',sc.toFixed(3));e.style.setProperty('--mbO',Math.round(off)+'px');off+=(hs[id]||60)*sc+4;});
  ANN.filter(id=>!vis.includes(id)).forEach(id=>{const e=$(id);if(e){e.style.setProperty('--mbS',Math.max(.35,Math.min(.85,room/(hs[id]||60))).toFixed(3));e.style.setProperty('--mbO','0px');}});
  if(top!=null){st.setProperty('--mbAnnT',top+'px');want.add('mb-ann');want.add('mb-annT');}else{st.setProperty('--mbAnnB',bot+'px');want.add('mb-ann');want.add('mb-annB');}fin();}
+/* v201: 🎁 행운 상자 획득 알림도 판·목록·버튼을 가리지 않는 빈 자리로 — PC: 왼쪽 보유 물고기 아래 · 모바일: 목록과 아래 버튼 사이(좁으면 맨 위 제목 줄, 작게) */
+function boxSlot(el){if(!ST.open||!el)return;const set=(k,v)=>el.style.setProperty(k,v,'important');el.classList.add('mbbx');
+ if(PCL()){const sd=$('mbSide'),secs=[...sd.querySelectorAll('.mbsec')].filter(e=>e.offsetParent),r=sd.getBoundingClientRect(),lb=(secs[secs.length-1]||sd).getBoundingClientRect(),sc=Math.max(.6,Math.min(.9,(r.width-6)/Math.max(200,el.offsetWidth||330)));
+  set('left',Math.round(r.left+r.width/2)+'px');set('top',Math.round(Math.min(lb.bottom+14,innerHeight-110))+'px');set('bottom','auto');set('scale',sc.toFixed(3));return;}
+ el.classList.add('mbbxS');const q=$('mbMain').querySelector('.mbq.mob').getBoundingClientRect(),bt=$('mbBB').querySelector('button'),bb=bt?bt.getBoundingClientRect().top:innerHeight-60,gap=bb-q.bottom,h=el.offsetHeight||44;set('left','50%');
+ if(gap>=h+8){set('top','auto');set('bottom',Math.round(innerHeight-bb+4)+'px');}else{const hd=$('mbMain').querySelector('.mbhd').getBoundingClientRect();set('top',Math.round(hd.bottom+4)+'px');set('bottom','auto');}}
 function fxClear(){const fx=$('mbFx');if(fx){const g2=fx.getContext('2d');g2.setTransform(1,0,0,1,0,0);g2.clearRect(0,0,fx.width,fx.height);}}
 function cellEl(i){return $('mbGrid').children[i];}
 function draw(){if(!ST.open)return;if(lvGrow())return;const P=pool();if(sync(P))try{save();}catch(e){}ST.P=P;const b=mbS();

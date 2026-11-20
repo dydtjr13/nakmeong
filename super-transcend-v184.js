@@ -79,7 +79,8 @@ function fish3D(sp){const asp=fishAsp(sp.k),W=sp.size,H=W/asp,geo=new THREE.Plan
 
 // ── 소리 (WebAudio 합성) ──
 let AC=null,AM=null;
-function ac(){if(AC)return AC;try{AC=new (window.AudioContext||window.webkitAudioContext)();AM=AC.createGain();AM.gain.value=.55;AM.connect(AC.destination);}catch(e){AC=null;}return AC;}
+/* v201: 소리 끄기·전체 소리·효과음 크기를 따라요 (예전엔 늘 같은 크기였어요) */function stG(){if(AM)try{AM.gain.value=.55*(window.NK_sfxGain?NK_sfxGain():.8);}catch(e){}}
+function ac(){if(AC){stG();return AC;}try{AC=new (window.AudioContext||window.webkitAudioContext)();AM=AC.createGain();AM.gain.value=.55;AM.connect(AC.destination);stG();}catch(e){AC=null;}return AC;}
 function osc(f1,f2,dur,type,g,dl=0,dest){const A=ac();if(!A)return;const t=A.currentTime+dl,o=A.createOscillator(),gn=A.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f1,t);if(f2!==f1)o.frequency.exponentialRampToValueAtTime(Math.max(1,f2),t+dur);gn.gain.setValueAtTime(.0001,t);gn.gain.exponentialRampToValueAtTime(g,t+.012);gn.gain.exponentialRampToValueAtTime(.0005,t+dur);o.connect(gn).connect(dest||AM);o.start(t);o.stop(t+dur+.05);}
 function noise(dur,g,dl=0,ft='lowpass',f1=800,f2=800,q=.8){const A=ac();if(!A)return;const t=A.currentTime+dl,n=Math.floor(A.sampleRate*dur),b=A.createBuffer(1,n,A.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;const s=A.createBufferSource();s.buffer=b;const fl=A.createBiquadFilter();fl.type=ft;fl.Q.value=q;fl.frequency.setValueAtTime(f1,t);fl.frequency.exponentialRampToValueAtTime(f2,t+dur);const gn=A.createGain();gn.gain.setValueAtTime(.0001,t);gn.gain.exponentialRampToValueAtTime(g,t+.03);gn.gain.exponentialRampToValueAtTime(.0005,t+dur);s.connect(fl).connect(gn).connect(AM);s.start(t);s.stop(t+dur+.05);}
 const SFX={
@@ -89,10 +90,10 @@ const SFX={
  warn(){for(let i=0;i<3;i++){osc(740,740,.16,'square',.07,i*.34);osc(988,988,.16,'square',.07,i*.34+.17);}osc(60,45,1.2,'sine',.4,0);},
  hook(){noise(.35,.5,0,'highpass',600,3000);osc(1200,300,.3,'sawtooth',.08);},
  pillar(){noise(1.6,.35,0,'bandpass',300,5000,1.4);osc(70,30,1.8,'sine',1);osc(140,50,.9,'triangle',.3);[523,659,784,1047,1319,1568,2093].forEach((f,i)=>osc(f,f,1.8,'triangle',.07,.15+i*.06));noise(2.2,.08,.3,'highpass',6000,9000);},
- splash(){noise(.9,.4,0,'lowpass',2600,300);noise(.5,.2,.05,'bandpass',3000,900,1.5);},
+ splash(){noise(.9,.8,0,'lowpass',2600,300);noise(.5,.4,.05,'bandpass',3000,900,1.5);},
  fanfare(){const C=[[523,659,784],[587,740,880],[659,831,988],[784,988,1175,1568]];C.forEach((ch,i)=>ch.forEach(f=>{osc(f,f,i===3?1.8:.42,'sawtooth',.035,i*.22);osc(f,f,i===3?1.9:.45,'triangle',.06,i*.22);}));osc(65,40,1.4,'sine',.6,.66);[2093,2637,3136,4186].forEach((f,i)=>osc(f,f,.5,'sine',.04,.7+i*.08));},
- notice(){osc(988,988,.5,'sine',.12);osc(1319,1319,.8,'sine',.12,.18);osc(1976,1976,.6,'sine',.04,.18);},
- cheer(){for(let i=0;i<6;i++)osc(1400+i*180,1400+i*180,.12,'sine',.03,i*.09);}};
+ notice(){osc(988,988,.5,'sine',.24);osc(1319,1319,.8,'sine',.24,.18);osc(1976,1976,.6,'sine',.08,.18);},
+ cheer(){for(let i=0;i<6;i++)osc(1400+i*180,1400+i*180,.12,'sine',.12,i*.09);}};/* v201: 물보라·알림·환호가 다른 소리에 묻혀서 크게 */
 NKST.SFX=SFX;
 
 // ── 3D 효과 ──

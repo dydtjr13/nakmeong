@@ -212,3 +212,13 @@ body.mb-open #dcBtn,body.mb-open #dcEd,body:has(.modal.show) #dcBtn{display:none
 #mbInfo .milv .mrow{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;font-weight:700;color:#6b5844;padding:3px 6px;border-bottom:1px dashed #efe3cf;white-space:nowrap}
 #mbInfo .milv .mrow.mok b{color:#3fae9c}
 #mbInfo .milv .mrow.mnow{background:#fff3e2;border-radius:8px;color:#3d3027}
+/* v201: 합성판에서는 맵 이동 버튼(운하로·호숫가로·지구로)과 가운데 경험치 알림을 숨겨요 · 행운 상자 알림은 빈 자리로 */
+body.mb-open :is(#seaBtn,#skyBack,#xpF){display:none!important}
+body.mb-open .boxget.mbbx{transform-origin:50% 0}
+.boxget.mbbxS{gap:8px;padding:5px 14px 5px 6px;border-radius:16px}
+.boxget.mbbxS img{width:34px;height:34px}
+.boxget.mbbxS .bg-rays,.boxget.mbbxS .bg-t>small{display:none}
+.boxget.mbbxS b{font-size:14px;white-space:nowrap}
+.boxget.mbbxS b small{font-size:10px}
+body.mb-open.mb-miniT #miniT{top:var(--mbMiniT,8px);bottom:auto;left:50%;right:auto;transform:translateX(-50%);align-items:center;width:max-content;max-width:calc(100vw - 16px)}
+body.mb-open.mb-miniT #miniT .mt{white-space:nowrap;font-size:12px;padding:7px 12px;max-width:calc(100vw - 16px);overflow:hidden;text-overflow:ellipsis}
