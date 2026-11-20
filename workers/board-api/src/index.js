@@ -47,6 +47,10 @@ function id(prefix) {
   return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
+// v188: 소원 맵 — 모르는 값은 예전처럼 운하로
+function wishMap(m) {
+  return m === 'lake' || m === 'moon' ? m : 'canal';
+}
 function cleanNick(n) {
   return String(n || '낚시꾼').replace(/[\u0000-\u001f<>"'`&\\]/g, '').trim().slice(0, 10) || '낚시꾼';
 }
@@ -494,17 +498,18 @@ export default {
         await db.prepare('DELETE FROM qlink WHERE tok=?').bind(tok).run();
         return json({ ok: true, code: row.code }, 200, origin);
       }
-      // ─ v167: 🏮 소원 연등 ─
+      // ─ v167: 🏮 소원 연등 · v182 ⛵ 호숫가 돛단배 · v188 ⭐ 달 소원 별 ─
       if (path === '/wishes' && request.method === 'GET') {
-        const wm = url.searchParams.get('m') === 'lake' ? 'lake' : 'canal';
+        const wm = wishMap(url.searchParams.get('m'));
         const rows = (await db.prepare("SELECT id, owner, nick, text, at FROM wishes WHERE hid=0 AND at>? AND COALESCE(m,'canal')=? ORDER BY at DESC LIMIT 40").bind(Date.now() - 2 * 864e5, wm).all()).results || [];
         // v168: 주인은 빼고 보내되 내 연등이면 mine:1 (내 연등은 내가 지울 수 있어요)
-        return json({ ok: true, rows: rows.map((r) => ({ id: r.id, nick: r.nick, text: r.text, at: r.at, ...(me && r.owner === me ? { mine: 1 } : {}) })) }, 200, origin);
+        // v188: m = 실제로 고른 맵 (예전 서버는 달을 몰라서 운하로 바꿔 보냈어요 → 게임이 이걸 보고 달 소원 별을 켜요)
+        return json({ ok: true, m: wm, rows: rows.map((r) => ({ id: r.id, nick: r.nick, text: r.text, at: r.at, ...(me && r.owner === me ? { mine: 1 } : {}) })) }, 200, origin);
       }
       if (path === '/wishes' && request.method === 'POST') {
         if (!me) return bad('owner required', 400, origin);
         const body = await request.json().catch(() => ({}));
-        const text = cleanText(body.text, 24), nick = cleanNick(body.nick), wm = body.m === 'lake' ? 'lake' : 'canal';
+        const text = cleanText(body.text, 24), nick = cleanNick(body.nick), wm = wishMap(body.m);
         if (!text || !nick) return bad('empty', 400, origin);
         // v169: 한 사람당 연등 하나 — 새로 띄우면 내 예전 연등은 사라져요 (연달아 누르기만 20초 막아요)
         const now = Date.now(), last = await db.prepare("SELECT at FROM wishes WHERE owner=? AND COALESCE(m,'canal')=? ORDER BY at DESC LIMIT 1").bind(me, wm).first();
