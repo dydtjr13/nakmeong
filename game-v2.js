@@ -146,12 +146,41 @@ function afExpire(){if(afOK()){_afNote=0;return false;}if(!S.autoFish)return fal
 /* v155: 다시 접속하면 자동 낚시는 꺼진 채로 시작해요 */if(S.autoFish)S.autoFish=false;
 function lvBaitOK(k){return myLv()>=(LV.baits[k]||1)||lvK().baits.includes(k);}
 function lvCharReq(i){if(typeof KINDS==='undefined')return 1;const K=KINDS[i];return (K&&K.lv)||1;}
-function lvCharOK(i){const K=typeof KINDS!=='undefined'&&KINDS[i];if(K&&K.tk)return chTkUsed(K.tk)||String(uiOpt('mythChar','off'))==='on';return myLv()>=lvCharReq(i)||lvK().chars.includes(i);}
+function lvCharOK(i){const K=typeof KINDS!=='undefined'&&KINDS[i];if(K&&K.xev)return xmOwn(K.xev);if(K&&K.tk)return chTkUsed(K.tk)||String(uiOpt('mythChar','off'))==='on';return myLv()>=lvCharReq(i)||lvK().chars.includes(i);}
 /* v172: 🎫 캐릭터 이용권 (로봇) — 신화 상자에서 드물게 한 번만 나오고, 사용하면 그 캐릭터가 열려요 */
 const chTk=()=>(S.ctk&&typeof S.ctk==='object')?S.ctk:(S.ctk={}),chTkUsed=k=>!!(chTk()[k]&&chTk()[k].used),chTkHave=k=>!!(chTk()[k]&&chTk()[k].got&&!chTk()[k].used);
-function lvCharLk(i){const K=typeof KINDS!=='undefined'&&KINDS[i];if(K&&K.tk)return chTkHave(K.tk)?'🎫 이용권 사용':'🎫 이용권';return 'Lv.'+lvCharReq(i);}
-function lvCharWhy(i){const K=KINDS[i];if(K&&K.tk)return chTkHave(K.tk)?`🎫 「${K.n}」 이용권이 있어요`:`🎫 「${K.n}」은(는) 신화 상자에서 드물게 나오는 이용권으로 열려요`;return `🔒 「${K.n}」은(는) Lv.${lvCharReq(i)}에 열려요`;}
-function chTkUse(i,done){const K=KINDS[i];if(!K||!K.tk||!chTkHave(K.tk))return false;confirmBox(`<h3>🎫 ${K.n} 캐릭터 이용권</h3><p>이용권을 사용하면 <b>${K.n}</b> 캐릭터가 열려요.<br>지금 사용할까요?</p>`,()=>{chTk()[K.tk].used=Date.now();save();toast(`🎉 ${K.n} 캐릭터가 열렸어요!`,2200);done&&done();});return true;}
+function lvCharLk(i){const K=typeof KINDS!=='undefined'&&KINDS[i];if(K&&K.xev)return xmLk(K);if(K&&K.tk)return chTkHave(K.tk)?'🎫 이용권 사용':'🎫 이용권';return 'Lv.'+lvCharReq(i);}
+function lvCharWhy(i){const K=KINDS[i];if(K&&K.xev)return xmWhy(K);if(K&&K.tk)return chTkHave(K.tk)?`🎫 「${K.n}」 이용권이 있어요`:`🎫 「${K.n}」은(는) 신화 상자에서 드물게 나오는 이용권으로 열려요`;return `🔒 「${K.n}」은(는) Lv.${lvCharReq(i)}에 열려요`;}
+/* v201: 🎄 크리스마스 한정 캐릭터 (xmas-chars-v201.js) — 12/1~12/31(한국 시간)에만 얻고, 얻은 캐릭터는 이벤트가 끝나도 계속 써요
+   ⛄ 눈송이 눈사람: 출석 7일 · 🦌 반짝코 루돌프: ❄️ 300 교환 · 🎅 선물자루 산타: 12/24~25 물고기 100마리 또는 ❄️ 800 교환
+   ❄️ 눈송이: 물고기 1마리당 1개(하루 60개까지) + 그날 첫 접속 10개 · 관리자 🧪: xmasEv 자동/켜기/끄기 */
+const XMV={snow:7,rud:300,san:800,eve:100,cap:60,att:10};
+const xmS=()=>{let o=S.xm;if(!o||typeof o!=='object')o=S.xm={};if(!Array.isArray(o.days))o.days=[];if(!o.own||typeof o.own!=='object')o.own={};o.sf=Math.max(0,+o.sf|0);return o;};
+const xmDay=()=>new Date(afNow()+9*36e5).toISOString().slice(0,10);/* 한국 날짜 YYYY-MM-DD */
+function xmOn(){const m=String(uiOpt('xmasEv','auto'));if(m==='on')return true;if(m==='off')return false;return xmDay().slice(5,7)==='12';}
+const xmEve=()=>{const d=xmDay().slice(5);return d==='12-24'||d==='12-25';};
+const xmOwn=id=>!!xmS().own[id],xmAtt=()=>{const y=xmDay().slice(0,4);return xmS().days.filter(d=>String(d).slice(0,4)===y).length;};
+const xmEveN=()=>{const o=xmS();return o.eveY===xmDay().slice(0,4)?(o.eve|0):0;};
+const xmDL=()=>{const d=+xmDay().slice(8,10);return xmDay().slice(5,7)==='12'?Math.max(0,31-d):0;};
+const xmVis=i=>{const K=KINDS[i];return !(K&&K.xev)||xmOn()||xmOwn(K.xev);};
+function xmGive(id){const o=xmS();if(o.own[id])return false;o.own[id]=Date.now();try{save();}catch(e){}const K=KINDS.find(k=>k.xev===id);setTimeout(()=>{try{toast(`🎉 크리스마스 한정 <b>${K?K.n:''}</b> 캐릭터를 얻었어요!<br><small>캐릭터 고르기 🎄 한정 탭에서 바꿀 수 있어요</small>`,3200);}catch(e){}},400);return true;}
+function xmTick(){if(!xmOn())return;const o=xmS(),d=xmDay();if(o.days.includes(d))return;o.days.push(d);o.days=o.days.slice(-40);o.sf+=XMV.att;const n=xmAtt();try{save();}catch(e){}
+ try{toast(`🎄 크리스마스 출석 <b>${Math.min(n,XMV.snow)}/${XMV.snow}일</b> · ❄️ 눈송이 +${XMV.att}<br><small>지금 ❄️ ${o.sf}개 · 물고기를 낚으면 더 모여요</small>`,3000);}catch(e){}if(n>=XMV.snow)xmGive('xm-snow');}
+function xmCatch(){if(!xmOn())return;const o=xmS(),d=xmDay();if(o.sfD!==d){o.sfD=d;o.sfN=0;}const b=o.sf;if((o.sfN|0)<XMV.cap){o.sfN=(o.sfN|0)+1;o.sf++;}
+ if(xmEve()){const y=d.slice(0,4);if(o.eveY!==y){o.eveY=y;o.eve=0;}o.eve=(o.eve|0)+1;if(o.eve>=XMV.eve)xmGive('xm-san');}
+ [['xm-rud',XMV.rud],['xm-san',XMV.san]].forEach(([id,n])=>{if(b<n&&o.sf>=n&&!xmOwn(id)){const K=KINDS.find(k=>k.xev===id);try{miniToast(`❄️ 눈송이 ${n}개! ${K?K.n:''} 교환할 수 있어요`);}catch(e){}}});}
+function xmLk(K){if(!xmOn())return '기간 종료';const o=xmS();if(K.xev==='xm-snow')return `출석 ${Math.min(xmAtt(),XMV.snow)}/${XMV.snow}`;if(K.xev==='xm-rud')return o.sf>=XMV.rud?'❄️ 교환':`❄️ ${o.sf}/${XMV.rud}`;if(K.xev==='xm-san')return xmEve()&&o.sf<XMV.san?`🐟 ${xmEveN()}/${XMV.eve}`:o.sf>=XMV.san?'❄️ 교환':`❄️ ${o.sf}/${XMV.san}`;return '';}
+function xmWhy(K){if(!xmOn())return `🎄 「${K.n}」은(는) 12월 크리스마스 이벤트에만 얻을 수 있어요`;const o=xmS();
+ if(K.xev==='xm-snow')return `「${K.n}」은(는) 12월에 <b>7일 출석</b>하면 열려요 <span>(지금 ${Math.min(xmAtt(),XMV.snow)}일)</span>`;
+ if(K.xev==='xm-rud')return `「${K.n}」은(는) ❄️ 눈송이 <b>${XMV.rud}개</b>로 교환해요 <span>(지금 ${o.sf}개)</span><br><small>물고기 1마리 = ❄️1 (하루 ${XMV.cap}개까지) · 출석 하루 ❄️${XMV.att}</small>`;
+ return `「${K.n}」은(는) <b>12월 24~25일</b>에 물고기 ${XMV.eve}마리를 낚거나 ❄️ 눈송이 <b>${XMV.san}개</b>로 교환해요 <span>(지금 ❄️ ${o.sf}개${xmEve()?` · 이틀 동안 ${xmEveN()}/${XMV.eve}마리`:''})</span>`;}
+function xmUse(i,done){const K=KINDS[i];if(!K||!K.xev||xmOwn(K.xev)||!xmOn())return false;const need=K.xev==='xm-rud'?XMV.rud:K.xev==='xm-san'?XMV.san:0,o=xmS();if(!need||o.sf<need)return false;
+ confirmBox(`<h3>❄️ ${K.n} 교환</h3><p>눈송이 <b>${need}개</b>를 내고 <b>${K.n}</b> 캐릭터를 열까요?<br><small>지금 ❄️ ${o.sf}개 → 교환 후 ${o.sf-need}개</small></p>`,()=>{const q=xmS();if(q.sf<need||q.own[K.xev])return;q.sf-=need;xmGive(K.xev);done&&done();});return true;}
+function xmBan(tab){if(tab!=='x')return ['',''];const on=xmOn(),o=xmS(),dl=xmDL();
+ return [on?`<div class="xmBan"><b>🎄 크리스마스 한정</b><span>12/1 ~ 12/31 · ❄️ ${o.sf}개</span><em>${dl>0?'종료 D-'+dl:'오늘 종료'}</em></div>`:`<div class="xmBan xmEnd"><b>🎄 크리스마스 한정</b><span>이벤트가 끝났어요</span></div>`,
+  `<div class="xmNote">${on?'<span>눈사람: 출석 7일</span> · <span>루돌프: ❄️300</span> · <span>산타: ❄️800 또는 12/24~25 물고기 100마리</span><br>':''}이벤트가 끝나도 얻은 캐릭터는 계속 쓸 수 있어요</div>`];}
+function xmBtn(i,k){const own=xmOwn(k.xev),lk=xmLk(k),ex=/교환/.test(lk);return `<button data-ch="${i}" class="xm ${S.char===i?'sel':''} ${own?'':'xmLk'}" title="${k.n}${own?'':' · '+lk}"><mark class="xmRib">한정</mark><img src="img/chars/${k.th}.jpg" alt=""><span>${k.n}</span>${own?'<mark class="xmOwn">보유</mark>':`<mark class="xmPr ${ex?'xmEx':''}">${lk}</mark>`}</button>`;}
+function chTkUse(i,done){const K=KINDS[i];if(K&&K.xev)return xmUse(i,done);if(!K||!K.tk||!chTkHave(K.tk))return false;confirmBox(`<h3>🎫 ${K.n} 캐릭터 이용권</h3><p>이용권을 사용하면 <b>${K.n}</b> 캐릭터가 열려요.<br>지금 사용할까요?</p>`,()=>{chTk()[K.tk].used=Date.now();save();toast(`🎉 ${K.n} 캐릭터가 열렸어요!`,2200);done&&done();});return true;}
 
 // ═════════ v24: 관리자 🧪 테스트 탭 추가 항목 (토스트 시간 · 레벨 · AI 행동 · 이벤트/게시판 스타일) ═════════
 function lvSet(L,pay){L=Math.max(1,Math.min(LV.max,L|0));const L0=myLv();if(L===L0)return;if(L>L0&&pay){addXP(LV.cum[L]-(S.xp||0)+1,'레벨 테스트');}else{S.xp=LV.cum[L]+(L>1?1:0);if(L>L0)lvMarkClaimed(L);try{lvHud(0,'레벨 테스트');}catch(e){}}save();hud();try{updAutoBtn();}catch(e){}}
@@ -946,7 +975,7 @@ const KOLD=KINDS.map(k=>k.th||null);{const by={};KINDS.forEach(k=>{if(k.th&&!by[
  KINDS.push({k:'character-male-a',n:'로봇',s:1,oid:'myth-robot',th:'myth-robot',lv:1,grp:'m',myth:'robot',tk:'robot'});KINDS.push({k:'character-female-c',n:'유령',s:1,oid:'myth-ghost',th:'myth-ghost',lv:85,grp:'m',myth:'ghost'});
  /* v172: 새 캐릭터 6종 (Kenney 미니 캐릭터) — 번호가 밀리지 않게 맨 뒤에 붙이고, 고르는 화면에서 레벨 순서로 보여줘요 · 유령 Lv.85 · 로봇은 🎫 이용권 */
  [['k-fe','character-female-e','흰 가운 박사',15],['k-fd','character-female-d','정장 치마 기자',20],['k-ff','character-female-f','검정 조끼 여행자',25],['k-mf','character-male-f','초록 셔츠 청년',33],['k-mc','character-male-c','경찰 아저씨',43],['k-md','character-male-d','넥타이 사장님',53]].forEach(([id,k,n,lv])=>KINDS.push({k,n,s:1,oid:id,th:id,lv,grp:'h',nw:172}));// v104 신화 캐릭터 (🧪 테스트에서 켜면 고를 수 있어요)
- if(!KINDS[S.char])S.char=0;}
+ /* v201: 🎄 크리스마스 한정 3종은 맨 뒤에 (번호 25·26·27) */try{window.NK_XMAS&&NK_XMAS.kinds(KINDS);}catch(e){console.warn(e);}if(KINDS[S.char]&&KINDS[S.char].xev&&!xmOwn(KINDS[S.char].xev))S.char=0;if(!KINDS[S.char])S.char=0;}
 /* v172: 🎫 로봇 캐릭터 이용권 — 신화 상자(이상)에서 드물게 · 한 번 나오면 다시 안 나와요 (확률은 관리자 테스트 기능에서) */
 {const ob=SYS.openBox;SYS.openBox=function(){const r=ob.apply(this,arguments);try{if(r&&(r.tier|0)>=5&&!chTk().robot){const p=Math.max(0,Math.min(100,+uiOpt('robotTkP','1')||0));if(Math.random()*100<p){chTk().robot={got:Date.now()};r.ctk='robot';try{save();}catch(e){}setTimeout(()=>{try{const i=KINDS.findIndex(k=>k.tk==='robot');confirmBox(`<h3>🎫 로봇 캐릭터 이용권!</h3><p>신화 상자에서 아주 드문 <b>로봇 캐릭터 이용권</b>이 나왔어요.<br>지금 사용하면 로봇 캐릭터가 열려요. (나중에 캐릭터 고르기에서 써도 돼요)</p>`,()=>{chTk().robot.used=Date.now();save();toast('🎉 로봇 캐릭터가 열렸어요! 캐릭터 고르기에서 바꿀 수 있어요',2600);});}catch(e){}},2600);}}}catch(e){console.warn(e);}return r;};}
 const chars=[];
@@ -999,7 +1028,7 @@ function makeChar(ki,name){const K=KINDS[ki]||KINDS[0],src=K.animal?{scene:null,
   rodM.position.set(ROD_POSE.p[0],ROD_POSE.p[1],ROD_POSE.p[2]);rodM.rotation.x=ROD_POSE.rx;rodM.visible=false;o.add(rodM);
   const tip=new THREE.Object3D();tip.position.y=.95;rodM.add(tip);rc.visible=reel.visible=false;
   const tag=makeTag(name);scene.add(tag);const bub=makeBub();scene.add(bub);
-  o.userData.fitK=K.oid||K.k||String(ki);const c={o,mixer,acts,cur:null,rod:rodM,arm,reelT:0,tip,tag,bub,head:o.getObjectByName('head'),name,h:1.9*K.s,dir:0};c.play=n=>{if(c.cur===n||!acts[n])return;const a=acts[n];a.reset().fadeIn(.2).play();if(c.cur&&acts[c.cur])acts[c.cur].fadeOut(.2);c.cur=n;};if(K.animal){c.rig=o.userData.rig;c.legs=[];c.rig.traverse(m=>{if(m.name==='leg')c.legs.push(m);});c.play=n=>{c.cur=n;};}
+  o.userData.fitK=K.oid||K.k||String(ki);const c={o,mixer,acts,cur:null,rod:rodM,arm,reelT:0,tip,tag,bub,head:o.getObjectByName('head'),name,h:(K.hx||1.9)*K.s,dir:0};c.play=n=>{if(c.cur===n||!acts[n])return;const a=acts[n];a.reset().fadeIn(.2).play();if(c.cur&&acts[c.cur])acts[c.cur].fadeOut(.2);c.cur=n;};if(K.animal){c.rig=o.userData.rig;c.legs=[];c.rig.traverse(m=>{if(m.name==='leg')c.legs.push(m);});c.play=n=>{c.cur=n;};}
   else if(acts['holding-right']&&arm){try{const a=acts['holding-right'];a.play();mixer.update(.5);c.holdQ=arm.quaternion.clone();a.stop();}catch(e){}}/* v182: 배 위에서 낚시 안 할 땐 팔을 내려요 — 기본 서 있기 팔 자세를 기억해 둬요 */if(!K.animal&&acts.idle&&arm)try{const a=acts.idle,al=o.getObjectByName('arm-left');a.play();mixer.update(.5);c.idleQ=[arm.quaternion.clone(),al?al.quaternion.clone():null,al];a.stop();}catch(e){}c.play('idle');chars.push(c);setCharRod(c,'bamboo',0);if(!K.animal&&!K.myth&&!LTNS())try{skinMergeHead(o);}catch(e){}return c;}
 // v106: 몸·머리 두 덩어리를 한 덩어리로 (같은 뼈대 · 같은 그림) → 캐릭터마다 드로우콜 1개 줄어요
 function skinMergeHead(o){const b=o.getObjectByName('body-mesh'),h=o.getObjectByName('head-mesh');if(!b||!h||!b.isSkinnedMesh||!h.isSkinnedMesh||b.parent!==h.parent||!h.visible)return;if(b.skeleton.bones.length!==h.skeleton.bones.length||b.skeleton.bones.some((x,i)=>x!==h.skeleton.bones[i]))return;if(b.material.map!==h.material.map){if(!b.material.map||!h.material.map||b.material.map.image===h.material.map.image)return;/* 몸만 색을 바꾼 캐릭터: 머리 칸은 그대로라 몸 그림을 같이 써요 */}
@@ -1360,7 +1389,7 @@ let duckChk=0;function duckBob(dt){if(String(uiOpt('duckCatch','off'))!=='on'||!
  if(R.cat){const ks=['black','pink','red','gold','rainbow'],k=ks[Math.random()*ks.length|0],z=fzS();z.cat[k]=(z.cat[k]|0)+1;got.push(`✨ ${(FZV[k]||{n:k}).n} 촉매`);}
  S.duckDay.n++;S.duckN=(S.duckN||0)+1;endFish();try{sfx.coin();V14.catchSfx(Math.min(4,L+1));}catch(e){}save();hud();try{updBagBadge();}catch(e){}
  duckGotCard(L,got,g);say('시스템',`🦆 ${L?'Lv.'+(L+1)+' ':''}오리를 낚았어요 · ${got.join(', ')}`);}
-function catchFish(){const f=rollFish(),F=FI(f.k),G0=GR(f.g);S.caught++;try{window.NK_MB&&NK_MB.onCatch(f);}catch(e){}/* v191: 합성판 하루 낚시 보너스 */const _td=new Date().toDateString();if(S.gDay!==_td){S.gDay=_td;S.gN=0;}let streakBox=false;if(!(D.BOX.dailyCap&&S.gN>=D.BOX.dailyCap)){S.streak=(S.streak||0)+1;if(D.BOX.streakEvery&&S.streak>=D.BOX.streakEvery){S.streak=0;S.gN=(S.gN||0)+1;S.boxes.push(-Date.now());streakBox=true;}}f.t=Date.now();const dx=S.dex[f.k]||(S.dex[f.k]={n:0,max:0,gr:[0,0,0,0,0]});const isNew=!dx.n,newG=!dx.gr[f.g],rec=f.cm>dx.max;dx.n++;dx.gr[f.g]=1;dx.max=Math.max(dx.max,f.cm);wkRec(f);S.stats=S.stats||{g:[0,0,0,0,0]};S.stats.g[f.g]=(S.stats.g[f.g]||0)+1;
+function catchFish(){const f=rollFish(),F=FI(f.k),G0=GR(f.g);S.caught++;try{xmCatch();}catch(e){}/* v201 ❄️ */try{window.NK_MB&&NK_MB.onCatch(f);}catch(e){}/* v191: 합성판 하루 낚시 보너스 */const _td=new Date().toDateString();if(S.gDay!==_td){S.gDay=_td;S.gN=0;}let streakBox=false;if(!(D.BOX.dailyCap&&S.gN>=D.BOX.dailyCap)){S.streak=(S.streak||0)+1;if(D.BOX.streakEvery&&S.streak>=D.BOX.streakEvery){S.streak=0;S.gN=(S.gN||0)+1;S.boxes.push(-Date.now());streakBox=true;}}f.t=Date.now();const dx=S.dex[f.k]||(S.dex[f.k]={n:0,max:0,gr:[0,0,0,0,0]});const isNew=!dx.n,newG=!dx.gr[f.g],rec=f.cm>dx.max;dx.n++;dx.gr[f.g]=1;dx.max=Math.max(dx.max,f.cm);wkRec(f);S.stats=S.stats||{g:[0,0,0,0,0]};S.stats.g[f.g]=(S.stats.g[f.g]||0)+1;
   let where;const AU=S.auto;cslotInit();if(comboKs().includes(f.k)&&!S.cslot[f.k]){S.cslot[f.k]=f;where='🧩 조합 보관함에 보관했어요 (어항 칸 차지 안 함)';}
   else if(AU.on&&f.v<AU.th&&!(AU.keepNew&&isNew)){const p=sellP(f);S.coins+=p;S.earned+=p;where=`⚙ 자동판매`;}
   else if(window.NK_tkPut&&(where=NK_tkPut(f))){where=`🐠 ${where}에 넣었어요`;}/* v188: 어항 3개 — 규칙에 맞는 어항, 없으면 빈 칸 있는 어항에 바로 넣어요 (대표 어항이 가득 차도 다른 어항에 자리가 있으면 팔지 않아요) */
@@ -3024,10 +3053,10 @@ addEventListener('nk-rt-chat',e=>{const m=e.detail;if(!m)return;/* v141: 달 ↔
 addEventListener('nk-rt-emote',e=>{const m=e.detail;if(!m)return;emote(m.nick,m.text,false,{real:true,bub:'rt:'+m.id,adm:!!m.adm});});
 addEventListener('nk-rt-seat',e=>{const m=e.detail;if(!m||m.ok!==false||!mySeat)return;standUp();toast('그 자리는 다른 낚시꾼이 먼저 앉았어요',1600);});
 // ───────── 시작 화면 ─────────
-{const grp=i=>KINDS[i].grp||'b',tabs=[['b','기본'],['h','사람'],['a','동물'],['m','✨ 특별']];const byLv=(a,b)=>(a[1].tk?999:lvCharReq(a[0]))-(b[1].tk?999:lvCharReq(b[0]))||a[0]-b[0];let tab=grp(S.char||0);
- const drawCP=()=>{$('charPick').innerHTML=`<div class="cpt">${tabs.map(([k,n])=>`<span data-cpt="${k}" class="${tab===k?'on':''}">${n} ${KINDS.filter((x,i)=>grp(i)===k).length}</span>`).join('')}</div><div class="cpg">${KINDS.map((k,i)=>[i,k]).filter(([i,k])=>grp(i)===tab).sort(byLv).map(([i,k])=>`<button data-ch="${i}" class="${S.char===i?'sel':''} ${lvCharOK(i)?'':'lk'}" ${lvCharOK(i)?'':`data-lk="${k.tk?'':'🔒 '}${lvCharLk(i)}"`} title="${k.n}${lvCharOK(i)?'':' · '+lvCharLk(i)}">${k.th?`<img src="img/chars/${k.th}.jpg" alt="">`:`<i>${['🧔','👩','👦','👧'][i]||'🙂'}</i>`}<span>${k.n}</span></button>`).join('')}</div>`;
+{const grp=i=>xmVis(i)?(KINDS[i].grp||'b'):'-',tabs0=[['b','기본'],['h','사람'],['a','동물'],['m','✨ 특별'],['x','🎄 한정']];let tabs=tabs0;const byLv=(a,b)=>(a[1].tk?999:lvCharReq(a[0]))-(b[1].tk?999:lvCharReq(b[0]))||a[0]-b[0];let tab=grp(S.char||0);
+ const drawCP=()=>{tabs=tabs0.filter(([k])=>k!=='x'||KINDS.some((x,i)=>grp(i)==='x'));if(!tabs.some(t=>t[0]===tab))tab='b';const xb=xmBan(tab);$('charPick').classList.toggle('xmTab',tab==='x');$('charPick').innerHTML=`<div class="cpt">${tabs.map(([k,n])=>`<span data-cpt="${k}" class="${tab===k?'on':''}">${n} ${KINDS.filter((x,i)=>grp(i)===k).length}</span>`).join('')}</div>${xb[0]}<div class="cpg">${KINDS.map((k,i)=>[i,k]).filter(([i,k])=>grp(i)===tab).sort(byLv).map(([i,k])=>k.xev?xmBtn(i,k):`<button data-ch="${i}" class="${S.char===i?'sel':''} ${lvCharOK(i)?'':'lk'}" ${lvCharOK(i)?'':`data-lk="${k.tk?'':'🔒 '}${lvCharLk(i)}"`} title="${k.n}${lvCharOK(i)?'':' · '+lvCharLk(i)}">${k.th?`<img src="img/chars/${k.th}.jpg" alt="">`:`<i>${['🧔','👩','👦','👧'][i]||'🙂'}</i>`}<span>${k.n}</span></button>`).join('')}</div>${xb[1]}`;
   $('charPick').querySelectorAll('[data-cpt]').forEach(b=>b.onclick=()=>{tab=b.dataset.cpt;drawCP();});
-  $('charPick').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(!lvCharOK(+b.dataset.ch)){if(chTkUse(+b.dataset.ch,()=>drawCP()))return;toast(lvCharWhy(+b.dataset.ch),2200);return;}S.char=+b.dataset.ch;save();$('charPick').querySelectorAll('button').forEach(x=>x.classList.toggle('sel',x===b));stUpd();});};drawCP();
+  $('charPick').querySelectorAll('button').forEach(b=>b.onclick=()=>{if(!lvCharOK(+b.dataset.ch)){if(chTkUse(+b.dataset.ch,()=>drawCP()))return;{const K=KINDS[+b.dataset.ch],nt=$('charPick').querySelector('.xmNote');if(K&&K.xev&&nt){nt.innerHTML=lvCharWhy(+b.dataset.ch);nt.classList.add('on');$('charPick').querySelectorAll('.cpg button.xm').forEach(x=>x.classList.toggle('xmFoc',x===b));return;}}toast(lvCharWhy(+b.dataset.ch),2200);return;}S.char=+b.dataset.ch;save();{const nt=$('charPick').querySelector('.xmNote.on');if(nt){nt.classList.remove('on');nt.innerHTML=xmBan('x')[1].replace(/^<div class="xmNote">|<\/div>$/g,'');}$('charPick').querySelectorAll('.xmFoc').forEach(x=>x.classList.remove('xmFoc'));}$('charPick').querySelectorAll('button').forEach(x=>x.classList.toggle('sel',x===b));stUpd();});};drawCP();
 
  // v19: 시작 화면 B(데스크톱) / D(모바일 단계형). 닉네임·서버·캐릭터는 localStorage에 기억
  // 접속 서버 목록. 실시간 인원 API가 붙으면 lobbyCounts의 players/source만 바꾸면 됨. 봇은 세지 않음.
@@ -3173,7 +3202,7 @@ loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyV
     if(deckReload){location.reload();return;}
     try{window.NK_FULL&&NK_FULL.auto(S);}catch(e){}me=makeChar(S.char,NICK());const dSpawn=quietDeck();let x=dSpawn.entry.x,z=dSpawn.entry.z;
     if(online){const a=Math.random()*6.283,rad=1.1+Math.random()*1.7,tx=x+Math.cos(a)*rad,tz=z+Math.sin(a)*rad;if(walk(tx,tz)){x=tx;z=tz;}}
-    window.__nkStartAt=performance.now();me.o.position.set(x,.4,z);me.dir=dSpawn.a+Math.PI;yaw=Math.atan2(Math.cos(dSpawn.a),Math.sin(dSpawn.a));try{window.__nkResume&&__nkResume(id,online);}catch(e){console.warn(e);}started=true;$('start').classList.remove('show');startAudio();hud();try{applyMx();}catch(e){}setTimeout(()=>{try{featBtns();}catch(e){}},1200);if(window.NK_STMK)setTimeout(()=>NK_STMK(),1500);
+    window.__nkStartAt=performance.now();me.o.position.set(x,.4,z);me.dir=dSpawn.a+Math.PI;yaw=Math.atan2(Math.cos(dSpawn.a),Math.sin(dSpawn.a));try{window.__nkResume&&__nkResume(id,online);}catch(e){console.warn(e);}started=true;/* v201 🎄 출석 */setTimeout(()=>{try{xmTick();}catch(e){}},2500);if(!window.__xmIv)window.__xmIv=setInterval(()=>{try{started&&xmTick();}catch(e){}},60000);$('start').classList.remove('show');startAudio();hud();try{applyMx();}catch(e){}setTimeout(()=>{try{featBtns();}catch(e){}},1200);if(window.NK_STMK)setTimeout(()=>NK_STMK(),1500);
     say('시스템',online?`Welcome to FISH COZY! ${SRVN(id)}에 들어왔어요. 같은 서버의 낚시꾼이 보여요.`:'Welcome to FISH COZY! 피쉬코지에 오신 걸 환영해요. 실시간 서버가 없으면 혼자(봇과) 플레이해요.');
   }finally{$('go')._busy=0;if($('start').classList.contains('show'))$('go').textContent=prev;}};
   hud();requestAnimationFrame(frame);setTimeout(()=>{try{calcRK3();}catch(e){}},1500);setInterval(()=>{try{calcRK3();}catch(e){}},30000);updBagBadge();
@@ -4097,7 +4126,7 @@ function slotMk(){const mb=$('stMkB');if(!mb)return;let nt=$('stMkNew');const ne
    if(me){v=me==='on';ls('nk_st2me',me);}else if(ls('nk_st2me')){v=ls('nk_st2me')==='on';}else{v=String(uiOpt('stV2','off'))==='on';}
    if(ON==null||v)ON=v;return ON;}catch(e){return false;}};
   const st=$('start'),E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const kinds=()=>KINDS.map((k,i)=>[i,k]).sort((a,b)=>(a[1].tk?999:lvCharReq(a[0]))-(b[1].tk?999:lvCharReq(b[0]))||a[0]-b[0]);
+  const kinds=()=>KINDS.map((k,i)=>[i,k]).filter(([i])=>xmVis(i)).sort((a,b)=>(a[1].xev?1e3:a[1].tk?999:lvCharReq(a[0]))-(b[1].xev?1e3:b[1].tk?999:lvCharReq(b[0]))||a[0]-b[0]);
   const ago=t=>{if(!t)return '';const m=Math.round((Date.now()-t)/60000);if(m<2)return '방금 전';if(m<60)return m+'분 전';const h=Math.round(m/60);if(h<24)return h+'시간 전';const d=Math.round(h/24);return d<30?d+'일 전':'오래전';};
   const socOK=()=>{try{return AUTHX.on()&&(AUTHX.CFG.g||AUTHX.CFG.k||AUTHX.CFG.n);}catch(e){return false;}};
   const say=(c,h)=>{const m=document.querySelector('#stV2 .sx2msg');if(m){m.className='sx2msg '+(c||'');m.textContent=h;}};
@@ -6878,7 +6907,7 @@ LAB.push({k:'tankHide',n:'🐠 데크 어항 끄기 (드로우콜 확인)',d:'�
 {let thPrev='';FHOOK.push(()=>{const m=opt('tankHide','off');const on=m!=='all';const pon=m==='off';
  try{for(const x of PTK.values())if(x.g)x.g.visible=pon;}catch(e){}try{if(myTankX)myTankX.visible=on;}catch(e){}
  if(m===thPrev)return;thPrev=m;try{if(DTANK.stand)DTANK.stand.visible=on;if(DTANK.glass)DTANK.glass.visible=on;}catch(e){}try{for(const k in TANKX){const t=TANKX[k];if(t.S)t.S.visible=on;if(t.G)t.G.visible=on;}}catch(e){}try{TWT.forEach(t=>{if(t&&t.S)t.S.visible=on;if(t&&t.G)t.G.visible=on;});}catch(e){}try{if(myTankX)myTankX.visible=on;}catch(e){}});}
-LAB.push({k:'mythChar',n:'✨ 로봇 캐릭터 바로 열기 (관리자 확인용)',d:'v172부터 유령은 Lv.85에 열리고, 로봇은 신화 상자에서 드물게 나오는 🎫 이용권으로 열려요. 이걸 켜면 내 화면에서만 이용권 없이 로봇을 고를 수 있어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},{k:'robotTkP',n:'🎫 로봇 이용권 확률 (신화 상자)',d:'신화 상자(이상)를 열 때 로봇 캐릭터 이용권이 나올 확률이에요. 한 사람에게 한 번만 나와요. 기본 1%',scope:'all',o:[['1','1% (기본)'],['0.3','0.3%'],['0.5','0.5%'],['2','2%'],['5','5%'],['0','안 나옴']]});
+LAB.push({k:'xmasEv',n:'🎄 크리스마스 한정 캐릭터 이벤트 (관리자 확인용)',d:'v201: 평소에는 한국 시간 12월 1일~31일에만 자동으로 열려요. 「지금 켜기」는 내 화면에서만 지금 이벤트를 켜서 출석·❄️ 눈송이·교환을 확인해요',scope:'me',o:[['auto','자동 · 12월만 (기본)'],['on','지금 켜기 (내 화면)'],['off','끄기 (내 화면)']]});LAB.push({k:'mythChar',n:'✨ 로봇 캐릭터 바로 열기 (관리자 확인용)',d:'v172부터 유령은 Lv.85에 열리고, 로봇은 신화 상자에서 드물게 나오는 🎫 이용권으로 열려요. 이걸 켜면 내 화면에서만 이용권 없이 로봇을 고를 수 있어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},{k:'robotTkP',n:'🎫 로봇 이용권 확률 (신화 상자)',d:'신화 상자(이상)를 열 때 로봇 캐릭터 이용권이 나올 확률이에요. 한 사람에게 한 번만 나와요. 기본 1%',scope:'all',o:[['1','1% (기본)'],['0.3','0.3%'],['0.5','0.5%'],['2','2%'],['5','5%'],['0','안 나옴']]});
 LAB.push({k:'tankGrp',n:'🐠 어항 분류 (어종·별자리·별 수·등급·변이)',d:'내 어항 › 물고기 탭에 「어종 · 별자리 · 별 수 · 등급 · 변이」 보기 버튼이 생겨요. 고른 기준으로 물고기를 묶어서 보여주고, 묶음을 누르면 접었다 펼쳐요 (어항 화면 A안에서 보여요)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'tank3',n:'🐠 어항 3개 · 규칙 정리',d:'가진 어항 중 3개까지 같이 써요. 어항 창 위에 어항 3칸이 생기고, 어항마다 「넣을 물고기」(등급·변이·크기·종류)를 골라 두면 새로 낚은 물고기가 규칙대로 들어가요. 데크에는 가장 큰 어항이 보여요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 const tk3On=()=>!PREV&&opt('tank3','off')==='on';window.NK_tk3On=tk3On;

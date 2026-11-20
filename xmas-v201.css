@@ -1,0 +1,26 @@
+/* v201: 🎄 캐릭터 고르기 — 크리스마스 한정 탭 (기존 #charPick 스타일 위에 덧씌움) */
+#charPick .cpt span[data-cpt="x"]{background:linear-gradient(135deg,#d8332e,#b8222a);color:#fff;box-shadow:0 2px 0 #8a1a20}
+#charPick .cpt span[data-cpt="x"].on{background:linear-gradient(135deg,#2f8a4e,#1f6a3a);box-shadow:0 2px 0 #14482a}
+#charPick .xmBan{display:flex;align-items:center;gap:8px;margin:0 2px 8px;padding:7px 12px;border-radius:12px;background:linear-gradient(90deg,#fff4ee,#eef7ef);border:1.5px dashed #e3a3a0;font-size:12.5px;color:#5a3a3a}
+#charPick .xmBan b{color:#c2282a;font-weight:900}#charPick .xmBan span{opacity:.8}#charPick .xmBan em{margin-left:auto;font-style:normal;font-weight:900;background:#2f8a4e;color:#fff;border-radius:999px;padding:2px 9px;font-size:11.5px}
+#charPick .cpg button.xm{position:relative;background:linear-gradient(180deg,#fff,#fff8f2);border-color:#f1dcd2}
+#charPick .cpg button.xm.sel{border-color:#d8332e;background:#fff1ec!important;box-shadow:0 0 0 3px #d8332e22}
+#charPick .cpg button.xm img{background:#efe6d7}
+#charPick .cpg button.xm .xmRib{display:block;line-height:1.3;position:absolute;top:2px;left:2px;z-index:2;font-style:normal;font-size:9.5px;font-weight:900;color:#fff;background:#d8332e;border-radius:7px 3px 7px 3px;padding:1px 5px;box-shadow:0 1px 0 #8a1a20}
+#charPick .cpg button.xm mark{display:inline-block;line-height:1.35}#charPick .cpg button.xm mark img{width:1.1em!important;height:1.1em!important;vertical-align:-2px;margin:0!important}#charPick .cpg button.xm .xmPr,#charPick .cpg button.xm .xmOwn{font-style:normal;font-size:10px;font-weight:800;border-radius:999px;padding:1px 7px;white-space:nowrap}
+#charPick .cpg button.xm .xmPr{background:#3b3346;color:#ffe9a0}#charPick .cpg button.xm .xmOwn{background:#2f8a4e;color:#fff}
+#charPick .cpg button.xm.xmLk img{filter:saturate(.75) brightness(.97)}
+#charPick .xmNote{margin:6px 2px 0;font-size:11.5px;color:#7a6a60;text-align:center}
+/* 탭이 5개가 되면 모바일에서 줄바꿈돼요 → 한 줄 고정 + 살짝 좁게 */
+#charPick .cpt{flex-wrap:nowrap}#charPick .cpt span{white-space:nowrap;flex:none}
+@media (max-width:699px){#charPick .cpt{gap:4px;justify-content:space-between}#charPick .cpt span{padding:5px 8px;font-size:12.5px}}
+
+#charPick .xmBan.xmEnd{background:#f4f0ec;border-color:#d8cfc6}
+#charPick .cpg button.xm .xmPr.xmEx{background:#2f6fd8;color:#fff}
+#charPick .xmNote{line-height:1.5}
+#charPick .xmNote.on{background:#fff6ef;border:1.5px solid #f1dcd2;border-radius:10px;padding:6px 10px;color:#5a3a3a}
+#charPick .xmNote.on small{display:block;color:#8a7a70}
+#charPick .cpg button.xm.xmFoc{border-color:#e3a3a0;box-shadow:0 0 0 3px #d8332e1a}
+#charPick .xmBan b,#charPick .xmBan em,#charPick .xmBan span{white-space:nowrap}
+@media (max-width:699px){#charPick .xmBan{gap:6px;padding:6px 9px;font-size:11.5px}#charPick .xmBan em{font-size:10.5px;padding:2px 7px}}
+#charPick .xmNote span{white-space:nowrap}
