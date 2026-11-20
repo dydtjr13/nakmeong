@@ -55,7 +55,18 @@ setInterval(()=>{try{if(!RTon())return;const S=gS();const due=!SRV.st||SRV.st.d!
 // ── 물고기 ↔ 단계 ──
 function tierOf(f){if(!f||f.sx)return -1;const vr=f.vr?fzVK(f.vr):'';if(vr){const i=VK.indexOf(vr);return i>=0&&(f.st|0)>=4?5+i:-1;}const s=f.st|0;return s>=0&&s<=4?s:-1;}
 function pool(){const M=new Map();try{fzPool().forEach(f=>{if(f&&!f.sx&&FI(f.k)&&tierOf(f)>=0)M.set(f.id,f);});}catch(e){}return M;}
-function mbS(){const S=gS();S.mb=S.mb||{};const b=S.mb;if(!Array.isArray(b.cells)||b.cells.length!==MB_CFG.N*MB_CFG.N)b.cells=Array(MB_CFG.N*MB_CFG.N).fill(null);return b;}
+/* v200: 🪵 합성판 레벨 — 누적 합성 횟수가 늘면 판이 커져요 (Lv.1 5×5 → Lv.2 6×6 → Lv.3 7×7)
+   기준 횟수는 관리자 › 테스트 기능 「🪵 합성판 레벨 기준」에서 모든 유저에게 (기본 1,000회 · 10,000회) · 켜고 끄기: LAB mbLv */
+const LVDEF={l2:1000,l3:10000};
+function lvCfg(){let c=null;try{c=B().mbLvCfg();}catch(e){}const l2=c&&+c.l2>0?+c.l2:LVDEF.l2,l3=c&&+c.l3>0?+c.l3:LVDEF.l3;return {l2,l3:Math.max(l2+1,l3)};}
+const lvOn=()=>opt('mbLv','on')!=='off';
+function tot(){const S=gS();return S?(S.mbTot|0):0;}
+function lvl(){if(!lvOn())return 1;const c=lvCfg(),t=tot();return t>=c.l3?3:t>=c.l2?2:1;}
+const NN=()=>4+lvl();
+/* 판 크기 바꾸기: 물고기는 같은 줄·칸 자리 그대로 (판이 작아지면 남는 물고기는 빈 칸으로, 그래도 넘치면 보유 물고기로) · 연출 중에는 기다려요 */
+function mbResize(b,N){const on=b.n||Math.round(Math.sqrt(b.cells.length))||N,old=b.cells,nw=Array(N*N).fill(null),extra=[];old.forEach((id,i)=>{if(id==null)return;const r=Math.floor(i/on),c=i%on;if(r<N&&c<N)nw[r*N+c]=id;else extra.push(id);});extra.forEach(id=>{const j=nw.indexOf(null);if(j>=0)nw[j]=id;});b.cells=nw;b.n=N;}
+function mbS(){const S=gS();S.mb=S.mb||{};const b=S.mb;if(!Array.isArray(b.cells)){b.cells=Array(NN()*NN()).fill(null);b.n=NN();}if(!b.n)b.n=Math.round(Math.sqrt(b.cells.length))||5;if(b.cells.length!==b.n*b.n)mbResize(b,b.n);return b;}
+function lvGrow(){const b=mbS(),N=NN();if(b.n===N)return false;if(ST.open&&(ST.ev.length||ST.flies.length||ST.drag||ST.hold.size))return false;const up=N>b.n;mbResize(b,N);try{save();}catch(e){}if(ST.open){ST.ov={};ST.hintP=null;layout();requestAnimationFrame(()=>{if(ST.open){layout();draw();slots();}});if(up){bubble(`🎉 합성판이 <b>${N}×${N}</b>로 커졌어요!`,2600);play('pop',6);}}return true;}
 function sync(P){const b=mbS(),seen=new Set();let ch=0;b.cells=b.cells.map(id=>{if(id==null)return null;if(!P.has(id)||seen.has(id)){ch=1;return null;}seen.add(id);return id;});return ch;}
 function trayList(P){const b=mbS(),onB=new Set(b.cells.filter(x=>x!=null)),g={};for(const f of P.values()){if(onB.has(f.id))continue;const t=tierOf(f);if(!MB_CFG.trayStars&&t!==0)continue;const key=f.k+'|'+t;(g[key]=g[key]||{k:f.k,t,list:[]}).list.push(f);}
  /* v193: 판에 이미 있는 물고기 종류가 먼저, 그다음 많은 순 */
@@ -88,7 +99,7 @@ function build(){let m=$('mbd');if(m)return m;m=document.createElement('div');m.
  m.innerHTML=`<div id="mbShk">
 <div id="mbSide"><div class="mbttl">🐟 물고기 합성판</div><div class="mbcnt" id="mbCntP"></div><div class="mbsec mbq"><h4><span>🐟 보유 물고기</span><small>많은 순 · 누르면 빈 칸으로</small></h4><div class="mbtw"><button class="mbarr" id="mbArrL" type="button" aria-label="앞 물고기">‹</button><div class="mbtray" id="mbQP"></div><button class="mbarr" id="mbArrR" type="button" aria-label="다음 물고기">›</button></div><div class="mbdots" id="mbDotsP"></div></div></div>
 <div id="mbMain"><div class="mbhd"><button type="button" class="mbback" data-mbx aria-label="닫기">←</button><div class="mbttl">🐟 물고기 합성판</div><button type="button" class="mbs5" hidden></button><div class="mbpill"><img src="img/feat/coins-gold.png" alt=""><span class="mbcoin"></span></div></div>
-<div class="mbcnt mob" id="mbCntM"></div><div class="mbwood" id="mbWood"><div class="mbgrid" id="mbGrid"></div></div>
+<div class="mbcnt mob" id="mbCntM"></div><div class="mbwood" id="mbWood"><div class="mblvp" id="mbLvP"></div><div class="mbgrid" id="mbGrid"></div></div>
 <div class="mbsec mbq mob"><h4><span>🐟 보유 물고기</span><button type="button" class="mbdexb" id="mbDexB" hidden></button></h4><div class="mbtw"><div class="mbtray" id="mbQM"></div></div><div class="mbdots" id="mbDotsM"></div></div>
 <div class="mbbb" id="mbBB"></div></div>
 <div id="mbSide2"><div class="mbtop2"><button type="button" class="mbs5" hidden></button><div class="mbpill"><img src="img/feat/coins-gold.png" alt=""><span class="mbcoin"></span></div><button type="button" class="mbx" data-mbx aria-label="닫기">✕</button></div><div class="mbsec" id="mbLadW"><h4 id="mbLadH"></h4><div class="mblad" id="mbLad"></div></div><div class="mbsec mbdexw" id="mbDexW"><h4 id="mbDexH"></h4><div id="mbDex"></div></div></div>
@@ -104,10 +115,10 @@ function build(){let m=$('mbd');if(m)return m;m=document.createElement('div');m.
  new MutationObserver(()=>{const sh=m.classList.contains('show');if(!sh&&ST.open)closed();}).observe(m,{attributes:true,attributeFilter:['class']});
  new MutationObserver(ms=>{if(!ST.open)return;for(const x of ms)for(const n of x.addedNodes)if(ANN.includes(n.id)||n.id==='tq'){requestAnimationFrame(slots);return;}}).observe(document.body,{childList:true});
  return m;}
-function layout(){const N=MB_CFG.N,pc=PCL(),gap=pc?8:6;let W;
+function layout(){const N=mbS().n,pc=PCL(),gap=pc?(N>=7?6:8):(N>=7?4:N>=6?5:6);let W;
  if(pc){W=Math.min(500,innerWidth-300*2-18*4-16,innerHeight-36-84-12-56-20);}/* 84 = 위쪽 공지 띠 자리 */
  else{const hd=$('mbMain').querySelector('.mbhd'),c=$('mbCntM'),q=$('mbMain').querySelector('.mbq.mob'),bb=$('mbBB');const used=(hd?hd.offsetHeight:50)+(c?c.offsetHeight+12:150)+(q?q.offsetHeight+8:120)+(bb?bb.offsetHeight:70)+24;W=Math.min(348,innerWidth-32,innerHeight-used);}
- W=Math.max(N*40+12+gap*(N-1),W);const cs=Math.floor((W-12-gap*(N-1))/N);ST.cs=cs;const g=$('mbGrid');g.style.gridTemplateColumns=`repeat(${N},${cs}px)`;g.style.setProperty('--cs',cs+'px');g.style.gap=gap+'px';
+ /* v200: 판이 커지면(6×6·7×7) 칸을 작게 해서 화면 안에 들어가게 · 가장 작은 칸 28px */W=Math.max(N*28+12+gap*(N-1),W);const cs=Math.floor((W-12-gap*(N-1))/N);ST.cs=cs;const g=$('mbGrid');g.style.gridTemplateColumns=`repeat(${N},${cs}px)`;g.style.setProperty('--cs',cs+'px');g.style.gap=gap+'px';
  if(g.children.length!==N*N){g.innerHTML='';for(let i=0;i<N*N;i++){const d=document.createElement('div');d.className='mbcell';d.dataset.i=i;g.appendChild(d);}}
  [...g.children].forEach(d=>{d.style.width=d.style.height=cs+'px';});const fx=$('mbFx'),dp=Math.min(2,devicePixelRatio||1);fx.width=innerWidth*dp;fx.height=innerHeight*dp;}
 /* 판이 열려 있는 동안 공지 띠(#stAnn)·알림(#tq)이 판·목록·버튼을 가리지 않게 빈 자리로 옮겨요
@@ -132,9 +143,9 @@ function slots(){const B0=document.body,st=B0.style;const hs={};ANN.forEach(id=>
  if(top!=null){st.setProperty('--mbAnnT',top+'px');want.add('mb-ann');want.add('mb-annT');}else{st.setProperty('--mbAnnB',bot+'px');want.add('mb-ann');want.add('mb-annB');}fin();}
 function fxClear(){const fx=$('mbFx');if(fx){const g2=fx.getContext('2d');g2.setTransform(1,0,0,1,0,0);g2.clearRect(0,0,fx.width,fx.height);}}
 function cellEl(i){return $('mbGrid').children[i];}
-function draw(){if(!ST.open)return;const P=pool();if(sync(P))try{save();}catch(e){}ST.P=P;const b=mbS();
+function draw(){if(!ST.open)return;if(lvGrow())return;const P=pool();if(sync(P))try{save();}catch(e){}ST.P=P;const b=mbS();
  b.cells.forEach((id,i)=>{const e=cellEl(i);if(!e)return;const f=id!=null?P.get(id):null,ov=ST.ov[i],hold=ST.hold.has(i);const h=hold?'':ov?itemHTML(ov.k,ov.t):f?itemHTML(f.k,tierOf(f))+(f.lock&&!f.alk?'':(f.alk?'<span class="mblk" title="자동 잠금(변이)">🔒</span>':'')):'';if(e._h!==h){e.innerHTML=h;e._h=h;}e.className='mbcell'+(hold?' mwait':(!f&&!ov?' mempty':''))+(ST.sell&&f&&ST.sel.has(id)?' msel':'')+(ST.hintP&&ST.hintP.includes(i)&&f?' mbhint':'');});
- drawCnt();drawTray(P);drawLad(P);drawDex(P);drawS5();drawBB();
+ drawCnt();drawTray(P);drawLad(P);drawDex(P);drawS5();drawLv();drawBB();
  document.querySelectorAll('#mbd .mbcoin').forEach(e=>{const S=gS(),n=S?S.coins|0:0;/* v195: 모바일 위 줄은 좁아서 900만처럼 줄여요 */e.textContent=!PCL()&&s5On()?shortN(n):n.toLocaleString();});}
 function drawCnt(){const d=day(),fb=fishB(d.fish),cap=MB_CFG.fishMax/MB_CFG.fishAmt*MB_CFG.fishStep,nxt=d.fish>=cap?null:MB_CFG.fishStep-d.fish%MB_CFG.fishStep,pc=PCL();
  const nxtT=nxt?`다음 <b>+${MB_CFG.fishAmt}회</b>까지 ${nxt}마리`:'낚시 보너스 최대';const ticks=pc?[400,800]:[200,400,600,800];
@@ -167,6 +178,8 @@ function drawDex(P){const k=dexK(P),W=$('mbDexW'),bt=$('mbDexB');if(!k){W.style.
  const bh=`📖 ${esc(fnm(k))} 도감 <b>${n}/5</b>${ready?' <em>🎁</em>':''}`;bt.hidden=false;if(bt._h!==bh){bt.innerHTML=bh;bt._h=bh;}bt.classList.toggle('rdy',ready);ST.dexK=k;if(ST.info==='dex')dexBody();}
 function dexBody(){const k=ST.dexK;if(!k)return;const {n}=dexN(k),h=`<div class="minfohd"><div class="mt">📖 ${esc(fnm(k))} 변이 도감 <small>${n}/5</small></div><button class="miclose" type="button">닫기</button></div><div class="mbdexp">${dexHTML(k)}</div>`;const I=$('mbInfo');if(I._dh===h)return;I._dh=h;I.innerHTML=h;I.querySelector('.miclose').onclick=()=>infoClose();dexBind(I);}
 function dexOpen(){ST.info='dex';$('mbInfo')._dh='';dexBody();$('mbDim').classList.add('mon');$('mbInfo').classList.add('mon');}
+function drawLv(){const e=$('mbLvP');if(!e)return;if(!lvOn()){e.hidden=true;return;}e.hidden=false;const L=lvl(),c=lvCfg(),t=tot(),N=4+L,nx=L===1?c.l2:L===2?c.l3:0;
+ const h=`🪵 판 Lv.${L} <span>${N}×${N}</span>${nx?`<em>${(N+1)}×${(N+1)}까지 ${Math.max(0,nx-t).toLocaleString()}회</em>`:'<em>최대</em>'}`;if(e._h!==h){e.innerHTML=h;e._h=h;}e.onclick=()=>infoOpen();}
 function drawBB(){const bb=$('mbBB');let h;if(ST.sell){const n=ST.sel.size,P=ST.P||pool();let co=0;ST.sel.forEach(id=>{const f=P.get(id);if(f&&!f.lock)try{co+=sellP(f);}catch(e){}});
   h=`<button type="button" class="mb1" data-bb="back">↩ 판에서 빼기${n?' '+n:''}</button><button type="button" class="mb3" data-bb="sellgo" ${n?'':'disabled'}>💰 ${n?n+'마리 팔기 · '+co.toLocaleString():'고르면 팔기'}</button><button type="button" class="mb0" data-bb="done">닫기</button>`;}
  else h=`${tidyOn()?'<button type="button" class="mb1" data-bb="tidy">🧺 정리</button>':''}<button type="button" class="mb3" data-bb="sell">💰 판매·방생</button>`;
@@ -178,7 +191,7 @@ function infoBody(){const d=day(),fb=fishB(d.fish),ab=adB(d.ads),sp=isSup()?MB_C
 <div class="mistep"><div class="mic">✋</div><p>물고기를 누르면 합성판의 <b>다음 빈 칸</b>으로 들어가요. 왼쪽 위부터 한 줄씩 채워져요.</p></div>
 <div class="mistep"><div class="mic">🧩</div><p><b>같은 물고기 · 같은 단계</b>를 끌어서 겹치면 하나로 합쳐져요 (2개 → 1개).</p></div>
 <div class="mistep" style="border-bottom:0"><div class="mic">✨</div><p>운 좋으면 한 단계 더 올라가요 <b>(${Math.round(MB_CFG.luck*100)}%)</b>.<br>한 번 합칠 때 쓰는 횟수는 <b>1회</b>예요.</p></div>
-<div class="mireset">🌙 매일 자정(한국 시간)에 초기화돼요.<br>남은 횟수는 다음 날로 넘어가지 않아요.</div>
+${lvOn()?(()=>{const c=lvCfg(),t=tot(),L=lvl();return `<div class="milv"><h5><span>🪵 합성판 레벨</span><small>지금까지 합성 ${t.toLocaleString()}회</small></h5>${[[1,5,0],[2,6,c.l2],[3,7,c.l3]].map(([l,n,need])=>`<div class="mrow ${L===l?'mnow':''} ${t>=need?'mok':''}"><span>Lv.${l} · ${n}×${n}</span><b>${need?'누적 '+need.toLocaleString()+'회':'처음'}</b></div>`).join('')}</div>`;})():''}<div class="mireset">🌙 매일 자정(한국 시간)에 초기화돼요.<br>남은 횟수는 다음 날로 넘어가지 않아요.</div>
 <div class="mibrk"><h5>오늘 받은 횟수</h5><div class="mrow"><span>기본</span><b>+${MB_CFG.base}</b></div><div class="mrow"><span>낚시 보너스 (${d.fish}회)</span><b>+${fb}</b></div><div class="mrow"><span>광고 보기 (${d.ads}회)</span><b>+${ab}</b></div><div class="mrow"><span>후원자 혜택 (3천원 이상)</span><b>+${sp}</b></div>
 <div class="mrow mtot"><span>오늘 총량</span><b>${tt}</b></div><div class="mrow"><span>사용한 횟수</span><b>${Math.min(d.used,tt)}</b></div><div class="mrow mtot"><span>남은 횟수</span><b>${left()}</b></div></div>
 ${adOk()?`<button type="button" class="miad" ${d.ads*MB_CFG.adAmt>=MB_CFG.adMax?'disabled':''}>▶ 광고 보고 +${MB_CFG.adAmt}회 <small>(오늘 ${Math.min(d.ads,MB_CFG.adMax/MB_CFG.adAmt)}/${MB_CFG.adMax/MB_CFG.adAmt})</small></button>`:''}`;
@@ -234,11 +247,11 @@ setInterval(()=>{try{if(!ST.open||ST.drag||ST.info||ST.sell||ST.flies.length||ST
   if(idle>5000&&!ST.hintP){if(pr){ST.hintP=pr;const a=cellEl(pr[0]),c=cellEl(pr[1]);if(a&&c){const ra=a.getBoundingClientRect(),rc=c.getBoundingClientRect(),dx=rc.left-ra.left,dy=rc.top-ra.top,L=Math.hypot(dx,dy)||1,m=Math.min(10,ST.cs*.16);a.style.setProperty('--hx',(dx/L*m)+'px');a.style.setProperty('--hy',(dy/L*m)+'px');c.style.setProperty('--hx',(-dx/L*m)+'px');c.style.setProperty('--hy',(-dy/L*m)+'px');a.classList.add('mbhint');c.classList.add('mbhint');}}
    else if(tc){ST.hintP=[];document.querySelectorAll(`#mbd .mbti[data-key="${tc.k}|${tc.t}"]`).forEach(e=>e.classList.add('mbhint'));}}}}catch(e){}},500);
 addEventListener('pointerdown',()=>{if(ST.open)poke();},true);
-/* v197: 알림이 새로 뜨거나 내용이 바뀌어도 자리를 다시 맞춰요 */setInterval(()=>{try{if(ST.open)slots();}catch(e){}},400);addEventListener('keydown',()=>{if(ST.open)poke();},true);
+/* v197: 알림이 새로 뜨거나 내용이 바뀌어도 자리를 다시 맞춰요 */setInterval(()=>{try{if(ST.open){slots();/* v200: 연출이 끝나면 판 크기 바꾸기 */if(mbS().n!==NN())draw();}}catch(e){}},400);addEventListener('keydown',()=>{if(ST.open)poke();},true);
 // ── 합성 (데이터는 바로 바꾸고, 그림만 0.1~0.3초 늦게 보여요) ──
 function merge(from,to){if(left()<=0){bubble('오늘 합성 횟수를 다 썼어요');play('deny');return false;}
  const b=mbS(),P=ST.P||pool(),a=P.get(b.cells[from]),c=P.get(b.cells[to]);if(!a||!c)return false;const t0=tierOf(a);let r=t0+1;if(r<9&&Math.random()<MB_CFG.luck)r++;
- const nf=makeFish(a,c,r);if(!nf)return false;if(!infOn()){day().used++;if(srvFresh())srvSync({use:1});else offRec(1);}b.cells[from]=null;b.cells[to]=nf.id;try{save();hud();}catch(e){}
+ const nf=makeFish(a,c,r);if(!nf)return false;{const S0=gS();S0.mbTot=(S0.mbTot|0)+1;}if(!infOn()){day().used++;if(srvFresh())srvSync({use:1});else offRec(1);}b.cells[from]=null;b.cells[to]=nf.id;try{save();hud();}catch(e){}
  const now=performance.now(),I0=IMP[r],I=IMPACT()?I0:Object.assign({},I0,{sh:0,hs:0});if(now-ST.last<3000)ST.combo++;else ST.combo=1;ST.last=now;
  const S=gS();S.mbSeen=S.mbSeen||{};const isNew=!S.mbSeen[a.k+'|'+r];S.mbSeen[a.k+'|'+r]=1;ST.lad=a.k;
  const ce=cellEl(to).getBoundingClientRect(),x=ce.left+ce.width/2,y=ce.top+ce.height/2;let sd=to*97+r*13+1;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
@@ -310,5 +323,5 @@ function measure(){if(!$('mbd'))return null;const bx=el=>{if(!el)return null;con
  const pc=PCL(),vw=innerWidth,vh=innerHeight,mid=vw/2,wood=bx($('mbWood')),bb=bx($('mbBB')),tray=bx((pc?$('mbQP'):$('mbQM')).closest('.mbsec')),cnt=bx(pc?$('mbCntP'):$('mbCntM')),info=ST.info?bx($('mbInfo')):null,main=bx($('mbMain'));
  const ov=(a,b)=>!!(a&&b&&!(a.x+a.w<=b.x||b.x+b.w<=a.x||a.y+a.h<=b.y||b.y+b.h<=a.y));const ins=a=>a&&({l:a.x,r:+(vw-a.x-a.w).toFixed(1),t:a.y,b:+(vh-a.y-a.h).toFixed(1)});
  return {vw,vh,pc,impact:IMPACT(),wood,bb,tray,cnt,info,off:{wood:wood&&+(wood.cx-mid).toFixed(1),bb:bb&&+(bb.cx-mid).toFixed(1),tray:pc?null:tray&&+(tray.cx-mid).toFixed(1),cnt:pc?null:cnt&&+(cnt.cx-mid).toFixed(1),info:info&&+(info.cx-mid).toFixed(1)},edge:{wood:ins(wood),bb:ins(bb),tray:ins(tray),cnt:ins(cnt),info:ins(info)},ovl:{info_bb:ov(info,bb),wood_bb:ov(wood,bb),wood_tray:ov(wood,tray),tray_bb:ov(tray,bb),cnt_wood:ov(cnt,wood)}};}
-window.NK_MB={on,open,close,isOpen:()=>ST.open,badge,onCatch,adWatched,setSupporter,isSup,left,total,day:()=>Object.assign({},day()),cfg:MB_CFG,tierOf,measure,draw:()=>draw()};
+window.NK_MB={lvl,tot,lvCfg,on,open,close,isOpen:()=>ST.open,badge,onCatch,adWatched,setSupporter,isSup,left,total,day:()=>Object.assign({},day()),cfg:MB_CFG,tierOf,measure,draw:()=>draw()};
 })();
