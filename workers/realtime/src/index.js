@@ -938,7 +938,7 @@ export class LakeRoom extends DurableObject {
     if (msg.t === "who") {
       if (!prev.ready) return;
       const rooms = {};
-      for (const id of [...SERVERS.map((x) => x.id), 7, 8]) {
+      for (const id of [...SERVERS.map((x) => x.id), 7, 8, 20]) {
         if (id === prev.server) { rooms[id] = await this.roster(); continue; }
         if (id === 8 && !prev.admin) continue;
         try { rooms[id] = await this.env.LAKE.getByName(`lake-${id}`).roster(); } catch { rooms[id] = null; }
@@ -1408,13 +1408,15 @@ export default {
       }
       if (path === "/servers" && request.method === "GET") {
         // v146: 서버 인원 = 그 서버 호숫가 + 그 서버에서 달로 간 유저
-        let moonHomes = {};
+        // v188: ⛵ 운하(lake-20)로 간 유저도 그 서버 인원에 더해요
+        let moonHomes = {}, seaHomes = {};
         try { const mo = await env.LAKE.getByName("lake-7").occupancy(); moonHomes = (mo && mo.homes) || {}; } catch { /* ignore */ }
+        try { const so = await env.LAKE.getByName("lake-20").occupancy(); seaHomes = (so && so.homes) || {}; } catch { /* ignore */ }
         const servers = await Promise.all(SERVERS.map(async (s) => {
           const stub = env.LAKE.getByName(`lake-${s.id}`);
           const occ = await stub.occupancy();
-          const moon = moonHomes[s.id] | 0;
-          return { id: s.id, name: s.name, n: occ.n + moon, lake: occ.n, moon, cap: occ.cap || CAP, stage: occ.stage || null, play: occ.play || null };
+          const moon = moonHomes[s.id] | 0, sea = seaHomes[s.id] | 0;
+          return { id: s.id, name: s.name, n: occ.n + moon + sea, lake: occ.n, moon, sea, cap: occ.cap || CAP, stage: occ.stage || null, play: occ.play || null };
         }));
         // v73: 관리자 설정(맵 등)을 접속 전에 미리 알려 줘서 첫 화면부터 맞는 맵이 보이게
         const play = (servers.find((r) => r.play) || {}).play || null;
