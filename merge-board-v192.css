@@ -1,4 +1,4 @@
-/* v191 🪵 나무 작업대 합성판 (merge-board-v191.js) — 모든 규칙은 #mbd 안에서만 */
+/* v192 🪵 나무 작업대 합성판 (merge-board-v192.js) — 모든 규칙은 #mbd 안에서만 */
 #mbd.modal{background:linear-gradient(#cfe9ef,#f7ecd9 40%);backdrop-filter:none;display:none;align-items:stretch;justify-content:stretch;z-index:40;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none;color:#3d3027;font-family:'Pretendard','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif}
 #mbd.modal.show{display:block}
 #mbd *{box-sizing:border-box}
@@ -140,7 +140,7 @@
  #mbd .mbcnt .mnum{font-size:26px}
  #mbInfo{top:70px;transform:translate(-50%,0);max-height:calc(100% - 70px - 132px)}
 }
-/* 판이 열려 있을 때 공지 띠·알림 자리 (merge-board-v191.js slots()) */
+/* 판이 열려 있을 때 공지 띠·알림 자리 (merge-board-v192.js slots()) */
 body.mb-open.mb-annT #stAnn{top:var(--mbAnnT)!important;bottom:auto!important;transform:translateX(-50%) scale(var(--mbAnnS))!important;transform-origin:50% 0!important}
 body.mb-open.mb-annB #stAnn{top:auto!important;bottom:var(--mbAnnB)!important;transform:translateX(-50%) scale(var(--mbAnnS))!important;transform-origin:50% 100%!important}
 body.mb-open.mb-tqB #tq{top:auto!important;bottom:var(--mbTqB)!important}

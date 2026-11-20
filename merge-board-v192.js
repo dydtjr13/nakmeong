@@ -1,12 +1,12 @@
 // ─────────────────────────────────────────────────────────────
-// v191 🪵 나무 작업대 합성판 (합성 시안 v3 → 인게임)
+// v192 🪵 나무 작업대 합성판 (합성 시안 v3 → 인게임)
 //  · 아래(PC는 왼쪽) 목록의 물고기를 누르면 합성판의 다음 빈 칸(왼쪽 위부터)에 들어가요. 끌어서 넣지 않아요
 //  · 판 안에서 같은 물고기 · 같은 단계를 끌어 겹치면 2개 → 1개 (★1~★5 → 블랙 → 핑크 → 레드 → 황금 → 무지개)
 //  · 하루 합성 횟수: 기본 30 + 낚시 50회마다 +5(최대 +80) + 광고 1회 +10(최대 +100) + 후원자 +100 · 이월 없음 · 최대 310 · 자정(한국 시간) 초기화
 //  · ⓘ 정보 창: 합성 방법 · 자정 초기화 · 오늘 받은 횟수 내역
 //  · PC는 화면 흔들림·멈칫(히트스톱)·줌이 없어요. 팝·파티클·효과음은 그대로. 터치 기기(모바일)는 흔들림·멈칫·진동 유지
 //  · 물고기 데이터는 기존 그대로(S.tank 의 f.st 0~4 = ★1~★5, f.vr = 변이). 판에는 물고기 id만 적어 둬요 (S.mb.cells)
-//  · 켜고 끄기: 관리자 › 테스트 기능 「🪵 나무 작업대 합성판」(mergeBoard: on 기본 / off 예전 3마리 합성)
+//  · 켜고 끄기: 관리자 › 테스트 기능 「🪵 나무 작업대 합성판」(mergeBoard: v192부터 off 기본(예전 3마리 합성) / on 새 합성판 — 정식 적용 때 기본값만 on 으로)
 //              「🧺 합성판 정리 버튼」(mbTidy: on 기본 / off) — 정리 버튼은 이 한 곳에서 빼요
 //  · 연결 지점: NK_MB.adWatched() 광고 1회 끝 · NK_MB.setSupporter(true|false) 후원자 판정 · NK_MB.onCatch() 낚시 1회
 // ─────────────────────────────────────────────────────────────
@@ -27,7 +27,7 @@ function FI(k){return B().FI(k);}function fzVK(k){return B().fzVK(k);}function f
 function save(){B().save();}function hud(){B().hud();}function toast(h,ms){B().toast(h,ms);}function openM(id){B().openM(id);}function closeM(id){B().closeM(id);}function confirmBox(h,ok){B().confirmBox(h,ok);}
 const FZV=new Proxy({},{get:(_,k)=>B().FZV()[k]});
 const opt=(k,d)=>{try{return String(uiOpt(k,d));}catch(e){return d;}};
-const on=()=>{try{return !!B()&&fzOn()&&opt('mergeBoard','on')!=='off';}catch(e){return false;}};
+const on=()=>{try{return !!B()&&fzOn()&&opt('mergeBoard','off')==='on';}catch(e){return false;}};
 const tidyOn=()=>opt('mbTidy','on')!=='off';
 const PCL=()=>innerWidth>=900;/* 3단 PC 배치 */
 const IMPACT=()=>{try{return matchMedia('(pointer:coarse)').matches;}catch(e){return false;}};/* 모바일(터치)만 흔들림·멈칫·진동 */
