@@ -220,3 +220,5 @@ body.mb-open .boxget.mbbx{transform-origin:50% 0}
 .boxget.mbbxS .bg-rays,.boxget.mbbxS .bg-t>small{display:none}
 .boxget.mbbxS b{font-size:14px;white-space:nowrap}
 .boxget.mbbxS b small{font-size:10px}
+body.mb-open.mb-miniT #miniT{top:var(--mbMiniT,8px);bottom:auto;left:50%;right:auto;transform:translateX(-50%);align-items:center;width:max-content;max-width:calc(100vw - 16px)}
+body.mb-open.mb-miniT #miniT .mt{white-space:nowrap;font-size:12px;padding:7px 12px;max-width:calc(100vw - 16px);overflow:hidden;text-overflow:ellipsis}

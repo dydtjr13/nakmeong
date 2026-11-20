@@ -90,10 +90,10 @@ const SFX={
  warn(){for(let i=0;i<3;i++){osc(740,740,.16,'square',.07,i*.34);osc(988,988,.16,'square',.07,i*.34+.17);}osc(60,45,1.2,'sine',.4,0);},
  hook(){noise(.35,.5,0,'highpass',600,3000);osc(1200,300,.3,'sawtooth',.08);},
  pillar(){noise(1.6,.35,0,'bandpass',300,5000,1.4);osc(70,30,1.8,'sine',1);osc(140,50,.9,'triangle',.3);[523,659,784,1047,1319,1568,2093].forEach((f,i)=>osc(f,f,1.8,'triangle',.07,.15+i*.06));noise(2.2,.08,.3,'highpass',6000,9000);},
- splash(){noise(.9,.4,0,'lowpass',2600,300);noise(.5,.2,.05,'bandpass',3000,900,1.5);},
+ splash(){noise(.9,.8,0,'lowpass',2600,300);noise(.5,.4,.05,'bandpass',3000,900,1.5);},
  fanfare(){const C=[[523,659,784],[587,740,880],[659,831,988],[784,988,1175,1568]];C.forEach((ch,i)=>ch.forEach(f=>{osc(f,f,i===3?1.8:.42,'sawtooth',.035,i*.22);osc(f,f,i===3?1.9:.45,'triangle',.06,i*.22);}));osc(65,40,1.4,'sine',.6,.66);[2093,2637,3136,4186].forEach((f,i)=>osc(f,f,.5,'sine',.04,.7+i*.08));},
- notice(){osc(988,988,.5,'sine',.12);osc(1319,1319,.8,'sine',.12,.18);osc(1976,1976,.6,'sine',.04,.18);},
- cheer(){for(let i=0;i<6;i++)osc(1400+i*180,1400+i*180,.12,'sine',.03,i*.09);}};
+ notice(){osc(988,988,.5,'sine',.24);osc(1319,1319,.8,'sine',.24,.18);osc(1976,1976,.6,'sine',.08,.18);},
+ cheer(){for(let i=0;i<6;i++)osc(1400+i*180,1400+i*180,.12,'sine',.12,i*.09);}};/* v201: 물보라·알림·환호가 다른 소리에 묻혀서 크게 */
 NKST.SFX=SFX;
 
 // ── 3D 효과 ──

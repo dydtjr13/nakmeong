@@ -128,12 +128,13 @@ function layout(){const N=mbS().n,pc=PCL(),gap=pc?(N>=7?6:8):(N>=7?4:N>=6?5:6);l
 const ANN=['stAnn','s5ban','annBar'];
 function natH(el){let t=1e9,bt=-1e9;const sc=parseFloat(el.style.getPropertyValue('--mbS'))||1;[el,...el.querySelectorAll('*')].forEach(c=>{const r=c.getBoundingClientRect();if(r.height>4&&r.width>4){t=Math.min(t,r.top);bt=Math.max(bt,r.bottom);}});if(bt<t)return el.offsetHeight||60;return Math.max(24,Math.min(220,(bt-t)/(document.body.classList.contains('mb-ann')?sc:1)));}
 function slots(){const B0=document.body,st=B0.style;const hs={};ANN.forEach(id=>{const e=$(id);if(e)hs[id]=natH(e);});
- const ALL=['mb-ann','mb-annT','mb-annB','mb-tqB','mb-tqT'],want=new Set(),fin=()=>ALL.forEach(c=>B0.classList.toggle(c,want.has(c)));/* 지웠다 다시 붙이면 띠가 매번 처음부터 움직여요 → 바뀐 것만 */
+ const ALL=['mb-ann','mb-annT','mb-annB','mb-tqB','mb-tqT','mb-miniT'],want=new Set(),fin=()=>ALL.forEach(c=>B0.classList.toggle(c,want.has(c)));/* 지웠다 다시 붙이면 띠가 매번 처음부터 움직여요 → 바뀐 것만 */
  if(!ST.open){fin();return;}
  let top=null,bot=null,room;
  if(PCL()){const w=$('mbWood').getBoundingClientRect();top=6;room=w.top-12;}
  else{const q=$('mbMain').querySelector('.mbq.mob').getBoundingClientRect(),bt=$('mbBB').querySelector('button'),bb=bt?bt.getBoundingClientRect().top:innerHeight-60,gap=bb-q.bottom;
   if(gap>=30){bot=Math.round(innerHeight-bb+4);room=gap-8;}else{const hd=$('mbMain').querySelector('.mbhd').getBoundingClientRect();top=Math.max(2,hd.top+2);room=Math.max(30,hd.height-4);}
+  /* v201: 작은 알림(#miniT, 창이 열려 있을 때 낚은 물고기)도 아래 버튼을 가리지 않게 맨 위 제목 줄로 */{const hd=$('mbMain').querySelector('.mbhd').getBoundingClientRect();st.setProperty('--mbMiniT',Math.round(Math.max(2,hd.top+(hd.height-38)/2))+'px');want.add('mb-miniT');}
   if(gap>=44){st.setProperty('--mbTqB',Math.round(innerHeight-bb+4)+'px');want.add('mb-tqB');}else{st.setProperty('--mbTqT',Math.round(Math.max(2,$('mbMain').querySelector('.mbhd').getBoundingClientRect().top+2))+'px');want.add('mb-tqT');}}
  /* 동시에 여러 개면 위아래로 나란히 (자리에 다 들어가게 함께 줄여요) */
  const vis=ANN.filter(id=>{const e=$(id);if(!e||!e.children.length)return false;const c=getComputedStyle(e);return c.display!=='none'&&c.visibility!=='hidden'&&!(id==='s5ban'&&!e.classList.contains('on'));});
@@ -146,7 +147,7 @@ function boxSlot(el){if(!ST.open||!el)return;const set=(k,v)=>el.style.setProper
  if(PCL()){const sd=$('mbSide'),secs=[...sd.querySelectorAll('.mbsec')].filter(e=>e.offsetParent),r=sd.getBoundingClientRect(),lb=(secs[secs.length-1]||sd).getBoundingClientRect(),sc=Math.max(.6,Math.min(.9,(r.width-6)/Math.max(200,el.offsetWidth||330)));
   set('left',Math.round(r.left+r.width/2)+'px');set('top',Math.round(Math.min(lb.bottom+14,innerHeight-110))+'px');set('bottom','auto');set('scale',sc.toFixed(3));return;}
  el.classList.add('mbbxS');const q=$('mbMain').querySelector('.mbq.mob').getBoundingClientRect(),bt=$('mbBB').querySelector('button'),bb=bt?bt.getBoundingClientRect().top:innerHeight-60,gap=bb-q.bottom,h=el.offsetHeight||44;set('left','50%');
- if(gap>=h+8){set('top','auto');set('bottom',Math.round(innerHeight-bb+4)+'px');}else{const hd=$('mbMain').querySelector('.mbhd').getBoundingClientRect();set('top',Math.round(Math.max(2,hd.top+(hd.height-h)/2))+'px');set('bottom','auto');}}
+ if(gap>=h+8){set('top','auto');set('bottom',Math.round(innerHeight-bb+4)+'px');}else{const hd=$('mbMain').querySelector('.mbhd').getBoundingClientRect();set('top',Math.round(hd.bottom+4)+'px');set('bottom','auto');}}
 function fxClear(){const fx=$('mbFx');if(fx){const g2=fx.getContext('2d');g2.setTransform(1,0,0,1,0,0);g2.clearRect(0,0,fx.width,fx.height);}}
 function cellEl(i){return $('mbGrid').children[i];}
 function draw(){if(!ST.open)return;if(lvGrow())return;const P=pool();if(sync(P))try{save();}catch(e){}ST.P=P;const b=mbS();

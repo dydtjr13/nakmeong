@@ -5276,7 +5276,7 @@ function mslBoom(p){const g=new THREE.Group();g.position.copy(p);const a=new THR
 function mslFire(g,tx,ty,tz,mine){if(!g||!scene)return;mslInit();g.updateMatrixWorld(true);MSL.side=-MSL.side;const sc=g.userData.sc||1.6;const o=new THREE.Vector3(MSL.side*.95,-.2,0).applyMatrix4(g.matrixWorld);const fw=new THREE.Vector3();g.getWorldDirection(fw);
  const m=mslMesh();m.position.copy(o);m.scale.setScalar(sc*.9);const T=new THREE.Vector3(tx,ty,tz);m.lookAt(o.clone().add(fw));scene.add(m);const dir=T.clone().sub(o);const D=dir.length();dir.normalize();
  MSL.L.push({m,t:0,v:fw.clone().multiplyScalar(14),dir,T,D,trav:0,pt:0});if(MSL.L.length>8){const x=MSL.L.shift();scene.remove(x.m);}
- try{const d=cam.position.distanceTo(o),k=Math.max(.15,1-d/80);tone(260,900,.35,'triangle',.035*k);tone(1200,300,.5,'sawtooth',.012*k,.08);}catch(e){}}
+ try{const d=cam.position.distanceTo(o),k=Math.max(.15,1-d/80);tone(260,900,.35,'triangle',.07*k);tone(1200,300,.5,'sawtooth',.024*k,.08);}catch(e){}}
 FHOOK.push(dt=>{if(!MSL.tr)return;dt=Math.min(dt,.05);
  for(let i=MSL.L.length-1;i>=0;i--){const M=MSL.L[i],m=M.m;M.t+=dt;if(M.t<.18){M.v.y-=9*dt;}else{m.userData.fl.visible=true;const k=.8+Math.random()*.5;m.userData.fl.scale.set(k,k*1.4,k);const sp=Math.min(70,14+(M.t-.18)*140);M.v.lerp(MSL.q.copy(M.dir).multiplyScalar(sp),Math.min(1,dt*7));}
   const st=M.v.length()*dt;m.position.addScaledVector(M.v,dt);M.trav+=st;MSL.v.copy(m.position).add(M.v);m.lookAt(MSL.v);
