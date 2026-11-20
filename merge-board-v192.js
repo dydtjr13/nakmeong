@@ -31,23 +31,35 @@ const on=()=>{try{return !!B()&&fzOn()&&opt('mergeBoard','off')==='on';}catch(e)
 const tidyOn=()=>opt('mbTidy','on')!=='off';
 const PCL=()=>innerWidth>=900;/* 3단 PC 배치 */
 const IMPACT=()=>{try{return matchMedia('(pointer:coarse)').matches;}catch(e){return false;}};/* 모바일(터치)만 흔들림·멈칫·진동 */
-const kst=()=>new Date(Date.now()+9*3600e3).toISOString().slice(0,10);
+/* v193: 서버 연결이 있으면 서버 시각으로 한국 날짜를 정해요 (기기 시계를 바꿔도 하루가 바뀌지 않아요) · 연결이 없으면 마지막으로 서버에서 받은 날짜를 그대로 써요 */
+const RTon=()=>{try{return !!(window.NK_RT&&NK_RT.mode==='on'&&typeof NK_RT.clockSkew==='number');}catch(e){return false;}};
+const kst=()=>{if(RTon())return new Date(Date.now()-NK_RT.clockSkew+9*3600e3).toISOString().slice(0,10);const S=gS();if(S&&S.mbSrvD)return S.mbSrvD;return new Date(Date.now()+9*3600e3).toISOString().slice(0,10);};
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const say=(h,ms)=>{try{toast(h,ms);}catch(e){}};
 // ── 하루 횟수 ──
 function day(){const S=gS();if(!S)return {d:kst(),used:0,fish:0,ads:0};if(!S.mbd||S.mbd.d!==kst())S.mbd={d:kst(),used:0,fish:0,ads:0};return S.mbd;}
 const fishB=n=>Math.min(MB_CFG.fishMax,Math.floor(n/MB_CFG.fishStep)*MB_CFG.fishAmt);
 const adB=n=>Math.min(MB_CFG.adMax,n*MB_CFG.adAmt);
-function isSup(){const S=gS();return !!(S&&(S.mbSup===true||S.sup===true));}
-function total(){const d=day();return MB_CFG.base+fishB(d.fish)+adB(d.ads)+(isSup()?MB_CFG.supAmt:0);}
+/* v193: 후원자는 서버 명단으로만 (기기에 저장된 표시는 안 믿어요) · 서버 연결이 없으면 하루 기본 30회만 */
+const SRV={st:null,pf:0,pa:0,t:0,rid:0};
+function srvFresh(){return RTon()&&SRV.st&&SRV.st.d===kst();}
+function isSup(){return !!(srvFresh()&&SRV.st.sup);}
+function total(){const d=day();if(!srvFresh())return MB_CFG.base;return MB_CFG.base+fishB(d.fish)+adB(d.ads)+(isSup()?MB_CFG.supAmt:0);}
 function left(){return Math.max(0,total()-day().used);}
+function offRec(n){const S=gS();if(!S)return;const d=kst();if(!S.mbOff||S.mbOff.d!==d)S.mbOff={d,n:0};S.mbOff.n+=n;}
+function srvSync(op){if(!RTon())return false;op=op||{};const S=gS();if(SRV.pf){op.fish=(op.fish|0)+SRV.pf;SRV.pf=0;}if(SRV.pa){op.ad=(op.ad|0)+SRV.pa;SRV.pa=0;}if(S&&S.mbOff&&S.mbOff.n>0){op.off={d:S.mbOff.d,n:S.mbOff.n};S.mbOff=null;}SRV.t=Date.now();op.rid=String(++SRV.rid);try{return NK_RT.mbSync(op);}catch(e){return false;}}
+addEventListener('nk-rt-mb',e=>{const m=e.detail||{};if(!m.d)return;SRV.st=m;const S=gS();if(!S)return;S.mbSrvD=m.d;S.mbd={d:m.d,used:m.used|0,fish:m.fish|0,ads:m.ads|0};S.mbSup=!!m.sup;try{save();}catch(_){}if(m.ok===false)bubble('오늘 합성 횟수를 다 썼어요');if(ST.open){try{drawCnt();}catch(_){}}});
+/* 접속하면 바로 한 번, 그 뒤로 1분마다 (보낼 게 있거나 합성판이 열려 있을 때) */
+setInterval(()=>{try{if(!RTon())return;const S=gS();const due=!SRV.st||SRV.st.d!==kst()||SRV.pf||SRV.pa||(S&&S.mbOff&&S.mbOff.n>0)||(ST.open&&Date.now()-SRV.t>60e3);if(due&&Date.now()-SRV.t>4000)srvSync();}catch(e){}},2000);
 // ── 물고기 ↔ 단계 ──
 function tierOf(f){if(!f||f.sx)return -1;const vr=f.vr?fzVK(f.vr):'';if(vr){const i=VK.indexOf(vr);return i>=0&&(f.st|0)>=4?5+i:-1;}const s=f.st|0;return s>=0&&s<=4?s:-1;}
 function pool(){const M=new Map();try{fzPool().forEach(f=>{if(f&&!f.sx&&FI(f.k)&&tierOf(f)>=0)M.set(f.id,f);});}catch(e){}return M;}
 function mbS(){const S=gS();S.mb=S.mb||{};const b=S.mb;if(!Array.isArray(b.cells)||b.cells.length!==MB_CFG.N*MB_CFG.N)b.cells=Array(MB_CFG.N*MB_CFG.N).fill(null);return b;}
 function sync(P){const b=mbS(),seen=new Set();let ch=0;b.cells=b.cells.map(id=>{if(id==null)return null;if(!P.has(id)||seen.has(id)){ch=1;return null;}seen.add(id);return id;});return ch;}
 function trayList(P){const b=mbS(),onB=new Set(b.cells.filter(x=>x!=null)),g={};for(const f of P.values()){if(onB.has(f.id))continue;const t=tierOf(f);if(!MB_CFG.trayStars&&t!==0)continue;const key=f.k+'|'+t;(g[key]=g[key]||{k:f.k,t,list:[]}).list.push(f);}
- return Object.values(g).sort((a,b)=>b.list.length-a.list.length||a.t-b.t||fnm(a.k).localeCompare(fnm(b.k),'ko'));}
+ /* v193: 판에 이미 있는 물고기 종류가 먼저, 그다음 많은 순 */
+ const kOn=new Set();for(const id of onB){const f=P.get(id);if(f)kOn.add(f.k);}
+ return Object.values(g).sort((a,b)=>(kOn.has(b.k)?1:0)-(kOn.has(a.k)?1:0)||b.list.length-a.list.length||a.t-b.t||fnm(a.k).localeCompare(fnm(b.k),'ko'));}
 const fnm=k=>{const F=FI(k);return F?F.n:k;};
 const fimg=k=>{const F=FI(k);return (F&&F.img)||('img/fish/'+k+'.png');};
 function itemHTML(k,t,n){const v=t>=5?FZV[VK[t-5]]:null,vk=t>=5?VK[t-5]:'';const s=t>=5?5:t+1;
@@ -149,15 +161,17 @@ function adPlay(){const d=day();if(d.ads*MB_CFG.adAmt>=MB_CFG.adMax)return say('
  const bar=m.querySelector('.adbar i'),lb=m.querySelector('#adLeft'),sk=m.querySelector('#adSkip');sk.disabled=true;const t0=Date.now();
  const iv=setInterval(()=>{const e=(Date.now()-t0)/1000,l=Math.max(0,Math.ceil(T-e));bar.style.width=Math.min(100,e/T*100)+'%';lb.textContent=l?l+'초':'완료';if(l<=0){clearInterval(iv);sk.disabled=false;sk.textContent=`합성 +${MB_CFG.adAmt}회 받기`;sk.onclick=()=>{m.classList.remove('on');m.style.zIndex='';adWatched();};}},250);
  m.onclick=e=>{if(e.target===m&&sk.disabled)say('광고를 끝까지 보면 보상을 받아요',1400);};}
-function adWatched(){const d=day();if(d.ads*MB_CFG.adAmt>=MB_CFG.adMax)return false;d.ads++;try{save();}catch(e){}if(ST.open){drawCnt();bubble(`광고 보상 · 합성 +${MB_CFG.adAmt}회`);}else say(`🪵 합성 +${MB_CFG.adAmt}회를 받았어요`,2000);return true;}
+function adWatched(){const d=day();if(d.ads*MB_CFG.adAmt>=MB_CFG.adMax)return false;d.ads++;if(RTon())SRV.pa++;try{save();}catch(e){}if(ST.open){drawCnt();bubble(`광고 보상 · 합성 +${MB_CFG.adAmt}회`);}else say(`🪵 합성 +${MB_CFG.adAmt}회를 받았어요`,2000);return true;}
 // ── 판 안 알림 ──
 function bubble(msg,ms=1400){const w=$('mbWood');if(!w)return;const r=w.getBoundingClientRect(),d=document.createElement('div');d.className='mbtoast';d.innerHTML=msg;d.style.left=(r.left+r.width/2)+'px';d.style.top=(r.top+Math.min(64,r.height*.18))+'px';$('mbd').appendChild(d);d._t0=performance.now();d._ms=ms;ST.pops.push(d);kick();}
 // ── 트레이 → 빈 칸 ──
 function place(key,fromEl){if(ST.sell){bubble('판매 모드를 닫고 넣어 주세요');return;}const P=ST.P||pool(),G0=(ST.tray||[]).find(g=>g.k+'|'+g.t===key);if(!G0||!G0.list.length)return;const b=mbS(),i=b.cells.findIndex(x=>x==null);
  const it=fromEl&&fromEl.closest('.mbti');if(i<0){if(it){it.classList.remove('mbshake');void it.offsetWidth;it.classList.add('mbshake');}bubble('빈 칸이 없어요');play('deny');return;}
- const f=G0.list.slice().sort((a,c)=>(a.v||0)-(c.v||0))[0];b.cells[i]=f.id;ST.lad=f.k;try{save();}catch(e){}
- const r=fromEl?fromEl.getBoundingClientRect():{left:innerWidth/2-27,top:innerHeight-120,width:54,height:54},c=cellEl(i).getBoundingClientRect();
- ST.hold.add(i);ST.flies.push({k:f.k,t:tierOf(f),x0:r.left+r.width/2,y0:r.top+r.height/2,x1:c.left+c.width/2,y1:c.top+c.height/2,t0:performance.now(),dur:320,to:i});play('whoosh');draw();kick();}
+ /* v193: 한 번 누르면 그 물고기를 모두 판에 넣어요 (빈 칸만큼) */
+ const fs=G0.list.slice().sort((a,c)=>(a.v||0)-(c.v||0)),emp=[];b.cells.forEach((x,j)=>{if(x==null)emp.push(j);});const n=Math.min(fs.length,emp.length);
+ const r=fromEl?fromEl.getBoundingClientRect():{left:innerWidth/2-27,top:innerHeight-120,width:54,height:54},now=performance.now(),gap=Math.max(28,Math.min(70,700/n));
+ for(let q=0;q<n;q++){const f=fs[q],j=emp[q];b.cells[j]=f.id;const c=cellEl(j).getBoundingClientRect();ST.hold.add(j);ST.flies.push({k:f.k,t:tierOf(f),x0:r.left+r.width/2,y0:r.top+r.height/2,x1:c.left+c.width/2,y1:c.top+c.height/2,t0:now+q*gap,dur:320,to:j});}
+ ST.lad=fs[0].k;try{save();}catch(e){}if(n<fs.length)bubble(`빈 칸이 모자라서 ${n}마리만 넣었어요`);play('whoosh');draw();kick();}
 // ── 판 끌기 ──
 function gDown(e){if(ST.info||!ST.open)return;const c=e.target.closest('.mbcell');if(!c||c.parentNode!==$('mbGrid'))return;const i=+c.dataset.i,b=mbS(),id=b.cells[i];if(id==null||ST.hold.has(i)||ST.ov[i])return;e.preventDefault();
  ST.drag={from:i,id,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,moved:false,pid:e.pointerId};}
@@ -175,7 +189,7 @@ function hint(from,onn){const b=mbS(),P=ST.P||pool(),a=P.get(b.cells[from]);[...
 // ── 합성 (데이터는 바로 바꾸고, 그림만 0.1~0.3초 늦게 보여요) ──
 function merge(from,to){if(left()<=0){bubble('오늘 합성 횟수를 다 썼어요');play('deny');return false;}
  const b=mbS(),P=ST.P||pool(),a=P.get(b.cells[from]),c=P.get(b.cells[to]);if(!a||!c)return false;const t0=tierOf(a);let r=t0+1;if(r<9&&Math.random()<MB_CFG.luck)r++;
- const nf=makeFish(a,c,r);if(!nf)return false;day().used++;b.cells[from]=null;b.cells[to]=nf.id;try{save();hud();}catch(e){}
+ const nf=makeFish(a,c,r);if(!nf)return false;day().used++;if(srvFresh())srvSync({use:1});else offRec(1);b.cells[from]=null;b.cells[to]=nf.id;try{save();hud();}catch(e){}
  const now=performance.now(),I0=IMP[r],I=IMPACT()?I0:Object.assign({},I0,{sh:0,hs:0});if(now-ST.last<3000)ST.combo++;else ST.combo=1;ST.last=now;
  const S=gS();S.mbSeen=S.mbSeen||{};const isNew=!S.mbSeen[a.k+'|'+r];S.mbSeen[a.k+'|'+r]=1;ST.lad=a.k;
  const ce=cellEl(to).getBoundingClientRect(),x=ce.left+ce.width/2,y=ce.top+ce.height/2;let sd=to*97+r*13+1;const rnd=()=>{sd=(sd*16807)%2147483647;return sd/2147483647;};
@@ -223,7 +237,7 @@ function loop(){ST.raf=0;if(!ST.open)return;const t=performance.now(),fx=$('mbFx
    if(e.combo>=2){const w=$('mbWood').getBoundingClientRect();g2.font=`900 ${22+Math.min(e.combo,8)*2}px ${FF}`;g2.save();g2.translate(w.left+w.width/2,Math.max(30,w.top-18));g2.rotate(-.06);g2.scale(sc2,sc2);g2.strokeStyle='#d9542a';g2.lineWidth=6;g2.fillStyle='#fff';g2.strokeText(`콤보 ×${e.combo}!`,0,0);g2.fillText(`콤보 ×${e.combo}!`,0,0);g2.restore();}
    g2.globalAlpha=1;}}
  for(let i=ST.ev.length-1;i>=0;i--)if(t-ST.ev[i].tb>1300){const el=cellEl(ST.ev[i].to)&&cellEl(ST.ev[i].to).querySelector('.mbit');if(el){el.style.transform='';el.style.filter='';}ST.ev.splice(i,1);}
- let fh='';for(const f of ST.flies){busy=true;const dt=t-f.t0,p=Math.min(1,dt/f.dur),e=p<.5?2*p*p:1-(-2*p+2)**2/2;
+ let fh='';for(const f of ST.flies){busy=true;const dt=t-f.t0;if(dt<0)continue;const p=Math.min(1,dt/f.dur),e=p<.5?2*p*p:1-(-2*p+2)**2/2;
   if(!f.landed&&p>=1){f.landed=true;f.bt=t;ST.hold.delete(f.to);draw();play('place');}
   if(!f.landed){const x=f.x0+(f.x1-f.x0)*e,y=f.y0+(f.y1-f.y0)*e-Math.sin(p*Math.PI)*56,sc=1.08+Math.sin(p*Math.PI)*.18,rot=-8+p*14;fh+=`<div class="mbcell" style="width:${cs}px;height:${cs}px;--cs:${cs}px;transform:translate(${x-cs/2}px,${y-cs/2}px) rotate(${rot}deg) scale(${sc})">${itemHTML(f.k,f.t)}</div>`;}
   else if(t-f.bt<240){const q=(t-f.bt)/240,sc=q<.45?(.62+q/.45*.72):(1.34-(q-.45)/.55*.34),el=cellEl(f.to).querySelector('.mbit');if(el)el.style.transform=`scale(${sc})`;}
@@ -233,12 +247,12 @@ function loop(){ST.raf=0;if(!ST.open)return;const t=performance.now(),fx=$('mbFx
  for(let i=ST.pops.length-1;i>=0;i--){const d=ST.pops[i],a=t-d._t0;busy=true;if(a>d._ms){d.remove();ST.pops.splice(i,1);}else d.style.opacity=a<150?a/150:a>d._ms-250?(d._ms-a)/250:1;}
  if(busy)kick();}
 // ── 열기·닫기 ──
-function open(){if(!on())return false;build();ST.open=true;ST.sell=false;ST.sel.clear();ST.ov={};ST.hold.clear();ST.ev=[];ST.flies=[];try{openM('mbd');}catch(e){$('mbd').classList.add('show');}document.body.classList.add('mb-open');layout();draw();layout();draw();fxClear();requestAnimationFrame(()=>{if(ST.open){layout();draw();slots();}});kick();return true;}
+function open(){if(!on())return false;build();ST.open=true;try{srvSync();}catch(e){}ST.sell=false;ST.sel.clear();ST.ov={};ST.hold.clear();ST.ev=[];ST.flies=[];try{openM('mbd');}catch(e){$('mbd').classList.add('show');}document.body.classList.add('mb-open');layout();draw();layout();draw();fxClear();requestAnimationFrame(()=>{if(ST.open){layout();draw();slots();}});kick();return true;}
 function close(){try{closeM('mbd');}catch(e){const m=$('mbd');if(m)m.classList.remove('show');}closed();}
 function closed(){if(!ST.open)return;ST.open=false;infoClose();ST.drag=null;ST.ov={};ST.hold.clear();ST.ev=[];ST.flies=[];ST.pops.forEach(d=>d.remove());ST.pops=[];document.body.classList.remove('mb-open');slots();fxClear();const fl=$('mbFly');if(fl){fl.innerHTML='';fl._h='';}const s=$('mbShk');if(s)s.style.transform='';try{save();}catch(e){}}
 function badge(){try{if(!on())return 0;const P=pool(),b=mbS(),seen={};let n=0;b.cells.forEach(id=>{const f=id!=null&&P.get(id);if(!f||tierOf(f)>=9)return;const k=f.k+'|'+tierOf(f);seen[k]=(seen[k]|0)+1;});for(const k in seen)n+=seen[k]>>1;return left()>0?n:0;}catch(e){return 0;}}
-function onCatch(){try{const d=day();d.fish++;if(ST.open)drawCnt();}catch(e){}}
-function setSupporter(v){const S=gS();if(!S)return;S.mbSup=!!v;try{save();}catch(e){}if(ST.open)draw();}
+function onCatch(){try{if(!on())return;SRV.pf++;const d=day();if(!srvFresh())d.fish++;if(ST.open)drawCnt();}catch(e){}}
+/* v193: 후원자는 관리자 › 지급 › 💝 후원에서 서버 명단에 올려요 (이 함수는 화면만 다시 그려요) */function setSupporter(v){if(ST.open)draw();}
 /* 측정용(읽기 전용): 정렬·겹침 숫자 */
 function measure(){if(!$('mbd'))return null;const bx=el=>{if(!el)return null;const r=el.getBoundingClientRect();if(!r.width&&!r.height)return null;return {x:+r.x.toFixed(1),y:+r.y.toFixed(1),w:+r.width.toFixed(1),h:+r.height.toFixed(1),cx:+(r.x+r.width/2).toFixed(1),cy:+(r.y+r.height/2).toFixed(1),b:+(r.y+r.height).toFixed(1)};};
  const pc=PCL(),vw=innerWidth,vh=innerHeight,mid=vw/2,wood=bx($('mbWood')),bb=bx($('mbBB')),tray=bx((pc?$('mbQP'):$('mbQM')).closest('.mbsec')),cnt=bx(pc?$('mbCntP'):$('mbCntM')),info=ST.info?bx($('mbInfo')):null,main=bx($('mbMain'));

@@ -244,6 +244,8 @@
       return true;
     }
     // v184: 👑 슈퍼 초월급 전체 서버 공지 · 축하
+    // v193: 🪵 합성판 하루 횟수 · 💝 후원자 목록
+    if (m.t === "mb" || m.t === "sups") { try { dispatchEvent(new CustomEvent(m.t === "mb" ? "nk-rt-mb" : "nk-rt-sups", { detail: m })); } catch (e) { /* ignore */ } return true; }
     if (m.t === "st" || m.t === "stc") {
       try { dispatchEvent(new CustomEvent(m.t === "st" ? "nk-rt-st" : "nk-rt-stc", { detail: m })); } catch (e) { /* ignore */ }
       return true;
@@ -639,9 +641,12 @@
   // v93: 프로필·어항 엿보기
   RT.peek = function (to, k) { if (RT.mode === "on" && to) send({ t: "pk", to: String(to), k: k || "prof" }); };
   RT.peekAns = function (to, k, d) { if (RT.mode === "on" && to) send({ t: "pka", to: String(to), k, d }); };
-  RT.st = function (k, cm) { if (RT.mode === "on") { send({ t: "st", k: String(k || ""), cm: +cm || 0 }); return true; } return false; };
+  RT.st = function (k, cm, test) { if (RT.mode === "on") { send(Object.assign({ t: "st", k: String(k || ""), cm: +cm || 0 }, test ? { test: 1 } : {})); return true; } return false; };
   RT.stc = function (a) { if (RT.mode === "on" && a) send({ t: "stc", a: String(a) }); };
   // v191: 🎁 지급을 받았다고 알려서 서버에 맡겨 둔 것을 지워요
+  RT.mbSync = function (op) { if (RT.mode === "on") { send(Object.assign({ t: "mbSync" }, op || {})); return true; } return false; };
+  RT.sup = function (o) { if (RT.mode === "on") { send(Object.assign({ t: "sup" }, o || {})); return true; } return false; };
+  RT.supList = function () { if (RT.mode === "on") { send({ t: "supList" }); return true; } return false; };
   RT.giftAck = function (id) { if (RT.mode === "on" && id) send({ t: "giftAck", id: String(id) }); };
   RT.s5 = function (k, g) { if (RT.mode === "on") send({ t: "s5", k: String(k || ""), g: g | 0 }); };
   RT.emote = function (text) { if (RT.mode === "on") send({ t: "emote", text: String(text || "").slice(0, 8) }); };

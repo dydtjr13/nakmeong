@@ -270,7 +270,7 @@ export class LakeRoom extends DurableObject {
     // v184: 👑 슈퍼 초월급 — 전체 서버 공지(st)와 축하(stc)를 모든 방에 그대로 전달
     if (msg.t === "st") {
       const st = sanitizeSt(msg);
-      if (st) this.broadcast({ t: "st", a: String(msg.a || "").slice(0, 48), id: String(msg.id || "").slice(0, 40), nick: String(msg.nick || "").slice(0, 24), srv: msg.srv | 0, k: st.k, cm: st.cm, n: Math.max(1, Math.min(1e7, msg.n | 0)), at: +msg.at || Date.now() });
+      if (st) this.broadcast({ t: "st", a: String(msg.a || "").slice(0, 48), id: String(msg.id || "").slice(0, 40), nick: String(msg.nick || "").slice(0, 24), srv: msg.srv | 0, k: st.k, cm: st.cm, n: msg.test ? 0 : Math.max(1, Math.min(1e7, msg.n | 0)), at: +msg.at || Date.now(), ...(msg.test ? { test: 1 } : {}) });
       return;
     }
     if (msg.t === "stc") {
@@ -641,6 +641,55 @@ export class LakeRoom extends DurableObject {
   }
   async stCounts() { return { ...(await this.opsGet("stcnt", {})) }; }
 
+  /** v193: 🪵 합성판 하루 횟수 · 💝 후원자 — 호숫가 1이 서버 시각(한국 날짜)으로 세요 */
+  static mbCfg() { return { base: 30, fishStep: 50, fishAmt: 5, fishMax: 80, adAmt: 10, adMax: 100, supAmt: 100 }; }
+  static kstDay(t) { return new Date((t || Date.now()) + 9 * 3600e3).toISOString().slice(0, 10); }
+  async supAll() {
+    const now = Date.now(), M = { ...(await this.opsGet("sups", {})) };
+    for (const k of Object.keys(M)) if (M[k] && M[k].until && M[k].until < now) delete M[k];
+    return M;
+  }
+  async supSet(nick, o) {
+    nick = String(nick || "").slice(0, 24);
+    if (!nick) return null;
+    const M = { ...(await this.opsGet("sups", {})) }, now = Date.now();
+    if (!o || o.revoke) delete M[nick];
+    else {
+      const days = Math.max(0, Math.min(3650, Math.round(Number(o.days) || 0)));
+      const cur = M[nick] && M[nick].until > now ? M[nick].until : now;
+      M[nick] = { until: days ? cur + days * 864e5 : 0, how: ["pay", "bank", "etc"].includes(o.how) ? o.how : "etc", note: String(o.note || "").slice(0, 60), at: now };
+    }
+    await this.opsPut("sups", M);
+    return M[nick] || null;
+  }
+  async mbOp(nick, op) {
+    nick = String(nick || "").slice(0, 24);
+    const C = LakeRoom.mbCfg(), now = Date.now(), d = LakeRoom.kstDay(now);
+    let B = await this.opsGet("mbd", null);
+    if (!B || B.d !== d) B = { d, u: {} };
+    else B = { d, u: { ...B.u } };
+    const r = { ...(B.u[nick] || { used: 0, fish: 0, ads: 0 }) };
+    const sups = await this.supAll(), sup = !!sups[nick];
+    const fishB = (n) => Math.min(C.fishMax, Math.floor(n / C.fishStep) * C.fishAmt);
+    const total = () => C.base + fishB(r.fish) + Math.min(C.adMax, r.ads * C.adAmt) + (sup ? C.supAmt : 0);
+    let ok = true;
+    if (op && typeof op === "object") {
+      const fi = Math.max(0, Math.min(500, Math.round(Number(op.fish) || 0)));
+      r.fish = Math.min(C.fishMax / C.fishAmt * C.fishStep, r.fish + fi);
+      const ad = Math.max(0, Math.min(3, Math.round(Number(op.ad) || 0)));
+      if (ad) r.ads = Math.min(C.adMax / C.adAmt, r.ads + ad);
+      // 서버 연결 없이 쓴 횟수(같은 날만) — 기본 30회 안에서 쓴 걸 나중에 알려줘요
+      if (op.off && op.off.d === d) r.used = Math.min(total(), r.used + Math.max(0, Math.min(C.base, Math.round(Number(op.off.n) || 0))));
+      const use = Math.max(0, Math.min(50, Math.round(Number(op.use) || 0)));
+      if (use) { if (r.used + use > total()) { ok = false; r.used = total(); } else r.used += use; }
+    }
+    B.u[nick] = r;
+    const keys = Object.keys(B.u);
+    if (keys.length > 5000) for (const k of keys.slice(0, keys.length - 5000)) delete B.u[k];
+    await this.opsPut("mbd", B);
+    return { d, used: r.used, fish: r.fish, ads: r.ads, sup, supUntil: sup ? (sups[nick].until || 0) : 0, total: total(), ok, now };
+  }
+
   /** v191: 🎁 아직 못 받은 지급 (닉네임마다 최대 30개 · 30일) — 호숫가 1이 맡아 둬요 */
   async giftPut(g) {
     if (!g || !g.nick || g.nick === "*") return false;
@@ -889,13 +938,38 @@ export class LakeRoom extends DurableObject {
       const st = sanitizeSt(msg);
       if (!st) return;
       const now = Date.now();
-      if (now - (prev.lastSt || 0) < 60000) return;
+      // v193: 관리자·운영자 테스트 낚시는 순위를 세지 않고 공지만 (축하 버튼 시험용) · 10초에 한 번
+      const test = !!msg.test && !!(prev.admin || prev.op);
+      if (msg.test && !test) return;
+      if (now - (prev.lastSt || 0) < (test ? 10000 : 60000)) return;
       prev.lastSt = now;
       try { ws.serializeAttachment(prev); } catch { /* ignore */ }
       let n = 0;
-      try { n = prev.server === 1 ? await this.stBump(st.k) : await this.env.LAKE.getByName("lake-1").stBump(st.k); } catch (e) { n = 0; }
+      if (!test) { try { n = prev.server === 1 ? await this.stBump(st.k) : await this.env.LAKE.getByName("lake-1").stBump(st.k); } catch (e) { n = 0; } }
       const a = `${prev.server}:${prev.id}:${now}`;
-      await this.fan(prev.server, [...SERVERS.map((x) => x.id), 7, 20], { t: "st", a, id: prev.id, nick: prev.nick, srv: prev.server, k: st.k, cm: st.cm, n, at: now });
+      await this.fan(prev.server, [...SERVERS.map((x) => x.id), 7, 20], { t: "st", a, id: prev.id, nick: prev.nick, srv: prev.server, k: st.k, cm: st.cm, n, at: now, ...(test ? { test: 1 } : {}) });
+      return;
+    }
+    // v193: 🪵 합성판 하루 횟수 (사용·낚시·광고·오프라인 사용) → 호숫가 1이 세고 결과를 돌려줘요
+    if (msg.t === "mbSync") {
+      if (!prev.ready || !prev.nick) return;
+      const now = Date.now();
+      if (now - (prev.lastMb || 0) < 150) return;
+      prev.lastMb = now;
+      let st = null;
+      try { st = prev.server === 1 ? await this.mbOp(prev.nick, msg) : await this.env.LAKE.getByName("lake-1").mbOp(prev.nick, msg); } catch { st = null; }
+      if (st) try { ws.send(JSON.stringify({ t: "mb", ...st, rid: String(msg.rid || "").slice(0, 20) })); } catch { /* ignore */ }
+      return;
+    }
+    // v193: 💝 후원자 등록·해제·목록 (관리자)
+    if (msg.t === "sup" || msg.t === "supList") {
+      if (!prev.ready || !prev.admin) return;
+      const L1 = prev.server === 1 ? this : this.env.LAKE.getByName("lake-1");
+      try {
+        if (msg.t === "sup") await L1.supSet(msg.nick, msg);
+        const all = await L1.supAll();
+        ws.send(JSON.stringify({ t: "sups", sups: all }));
+      } catch { /* ignore */ }
       return;
     }
     if (msg.t === "giftAck") {
