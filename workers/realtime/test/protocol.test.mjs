@@ -887,3 +887,17 @@ test("v185 gift: rod/wear/charm/bait items", () => {
   assert.deepEqual(g.it[2], { t: "charm", k: "c", n: 3, g: 5 });
   assert.equal(g.it[3].n, 100);
 });
+
+// v195: ✨ 초월 부적 (등급 6 · 진행 보조 px) — 기록·복구·지급·공지
+import { sanitizeItem as _si6, sanitizeGift as _sg6, parseClient as _pc6 } from "../src/protocol.js";
+test("v195 초월 부적: tier 6 · px 보존 · 지급 g 6 · txc 메시지", () => {
+  const c = _si6("charm", { id: 3, tier: 6, opts: [{ k: "luck", v: 30.1 }], px: [{ k: "xp", v: 11.2 }, { k: "boxp", v: 6.4 }, { k: "evil", v: 99 }] });
+  assert.equal(c.tier, 6);
+  assert.deepEqual(c.px.map((p) => p.k), ["xp", "boxp"]);
+  assert.equal(_si6("charm", { id: 3, tier: 9, opts: [] }).tier, 6);
+  assert.equal(_si6("charm", { id: 3, tier: 5, opts: [] }).px, undefined);
+  const g = _sg6({ id: "g6", nick: "달빛", it: [{ t: "charm", k: "c", g: 6, n: 1 }] }, Date.now());
+  assert.equal(g.it[0].g, 6);
+  assert.deepEqual(_pc6(JSON.stringify({ t: "txc", how: "syn" })), { t: "txc", how: "syn" });
+  assert.equal(_pc6(JSON.stringify({ t: "txc", how: "x" })).how, "box");
+});

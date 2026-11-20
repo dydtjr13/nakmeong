@@ -278,6 +278,11 @@ export class LakeRoom extends DurableObject {
       if (a) this.broadcast({ t: "stc", a, nick: String(msg.nick || "").slice(0, 24), id: String(msg.id || "").slice(0, 40) });
       return;
     }
+    // v195: ✨ 초월 부적 획득 공지 — 모든 방에 그대로 전달
+    if (msg.t === "txc") {
+      this.broadcast({ t: "txc", nick: String(msg.nick || "").slice(0, 24), id: String(msg.id || "").slice(0, 40), srv: msg.srv | 0, how: msg.how === "syn" ? "syn" : "box", at: +msg.at || Date.now() });
+      return;
+    }
     if (msg.t === "s5") {
       this.broadcast({ t: "s5", nick: String(msg.nick || "").slice(0, 24), id: String(msg.id || "").slice(0, 40), srv: msg.srv | 0, k: String(msg.k || "").slice(0, 20), g: msg.g | 0 });
       return;
@@ -988,6 +993,16 @@ export class LakeRoom extends DurableObject {
       prev.stcSeen = [...prev.stcSeen.slice(-9), a];
       try { ws.serializeAttachment(prev); } catch { /* ignore */ }
       await this.fan(prev.server, [...SERVERS.map((x) => x.id), 7, 20], { t: "stc", a, id: prev.id, nick: prev.nick });
+      return;
+    }
+    // v195: ✨ 초월 부적 획득 — 모든 서버(1~4 · 7 · 20)에 공지 · 한 사람당 30초에 한 번
+    if (msg.t === "txc") {
+      if (!prev.ready) return;
+      const now = Date.now();
+      if (now - (prev.lastTxc || 0) < 30000) return;
+      prev.lastTxc = now;
+      try { ws.serializeAttachment(prev); } catch { /* ignore */ }
+      await this.fan(prev.server, [...SERVERS.map((x) => x.id), 7, 20], { t: "txc", nick: prev.nick, id: prev.id, srv: prev.server, how: msg.how === "syn" ? "syn" : "box", at: now });
       return;
     }
     // v128: ⭐ 5성 완성 알림 — 서버 전체(1~4 · 7)로 · 한 사람당 8초에 한 번

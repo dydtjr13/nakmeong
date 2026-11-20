@@ -854,7 +854,7 @@ export function sanitizeGift(input, now) {
     const cl = (v, lo, hi) => Math.max(lo, Math.min(hi, Math.round(Number(v) || 0)));
     if (ty === "szt") r.n = Math.max(1, Math.min(50, Math.round(Number(o.n) || 1))); // v167: 📏 크기 변화 이용권
     if (ty === "rod") { r.n = cl(o.n, 1, 10); r.g = cl(o.g, 0, 5); r.st = cl(o.st, 0, 5); }
-    if (ty === "charm") { r.n = cl(o.n, 1, 20); r.g = cl(o.g, 0, 5); }
+    if (ty === "charm") { r.n = cl(o.n, 1, 20); r.g = cl(o.g, 0, 6); } // v195: 6 = ✨초월 부적
     if (ty === "bait") r.n = cl(o.n, 1, 9999);
     if (ty === "veh" && o.c) r.c = String(o.c).replace(/[^\w-]/g, "").slice(0, 16);
     return r;
@@ -1386,12 +1386,16 @@ export function sanitizeItem(cat, obj) {
       extra: optRows(obj.extra),
     };
   }
-  return {
+  // v195: 부적 등급 6 = ✨초월 · 진행 보조 2줄(px: 경험치·상자 행운)도 같이 기록/복구해요
+  const tier = Math.max(0, Math.min(6, Math.round(finite(obj.tier, 0))));
+  const row = {
     id: id == null ? 1 : id,
-    tier: Math.max(0, Math.min(5, Math.round(finite(obj.tier, 0)))),
+    tier,
     opts: optRows(obj.opts),
     lock: false,
   };
+  if (tier === 6) row.px = optRows(obj.px).filter((p) => p.k === "xp" || p.k === "boxp").slice(0, 2);
+  return row;
 }
 
 export function sanitizeRecover(input, now) {
@@ -1517,6 +1521,8 @@ export function parseClient(raw) {
     if (!msg.world || typeof msg.world !== "object" || Array.isArray(msg.world)) return null;
     return { t: "world", world: msg.world };
   }
+  // v195: ✨ 초월 부적 획득 공지 (how: box | syn)
+  if (msg.t === "txc") return { t: "txc", how: msg.how === "syn" ? "syn" : "box" };
   if (msg.t === "s5") { const k = String(msg.k == null ? "" : msg.k).replace(/[^\w-]/g, "").slice(0, 20); return k ? { t: "s5", k, g: Math.max(0, Math.min(9, msg.g | 0)) } : null; }
   if (msg.t === "notice") return { t: "notice", notice: msg.notice == null ? null : msg.notice };
   if (msg.t === "event") return { t: "event", event: msg.event == null ? null : msg.event };
