@@ -3090,9 +3090,9 @@ let _frameErrAt=-1e9,FRAMEAT=0;function frame(now){if(++_bmC%10===0){_bmOn=BIGM.
 // 웹 워커 타이머(숨긴 탭에서도 잘 안 느려짐)로 0.25초마다 깨워서 게임 시간을 0.05초씩 나눠 진행해요. 이때는 화면을 그리지 않아요.
 let BGRUN=false,BGERR='';const nextF=()=>{if(!BGRUN)requestAnimationFrame(frame);};
 {let wk=null;const bgOn=()=>!!(document.hidden&&started&&(S.autoFish||window.__nkPipOn));
- const tick=()=>{if(!BGRUN)return;if(!bgOn()){return;}const target=performance.now(),step=Math.max(50,S.fpsCap?1000/S.fpsCap:0);let n=0;if(target-last>60000)last=target-60000;
+ let wkMs=0;const tick=()=>{if(!BGRUN)return;if(!bgOn()){return;}/* v197: 작은 창이 떠 있으면 1초에 60번 (게임도 1/60초씩 진행) · 없으면 0.25초마다 */const wantMs=window.__nkPipOn?16:250;if(wkMs!==wantMs&&wk){wkMs=wantMs;try{wk.postMessage(wantMs);}catch(e){}}const target=performance.now(),step=window.__nkPipOn?1000/60:Math.max(50,S.fpsCap?1000/S.fpsCap:0);let n=0;if(target-last>60000)last=target-60000;
   while(last<target-step&&n<400){n++;try{frameBody(Math.min(target,last+step));}catch(e){last+=step;}}try{window.__nkPipBg&&window.__nkPipBg();}catch(e){}};
- const start=()=>{if(BGRUN)return;BGRUN=true;try{if(!wk){const src='let h=0;onmessage=e=>{clearInterval(h);if(e.data)h=setInterval(()=>postMessage(0),e.data);};';wk=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));wk.onmessage=tick;}wk.postMessage(window.__nkPipOn?33:250);/* v179: 작은 창이 떠 있으면 1초에 8번 */}catch(e){BGRUN=false;BGERR=String(e&&e.message||e);}};
+ const start=()=>{if(BGRUN)return;BGRUN=true;try{if(!wk){const src='let h=0;onmessage=e=>{clearInterval(h);if(e.data)h=setInterval(()=>postMessage(0),e.data);};';wk=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})));wk.onmessage=tick;}wkMs=window.__nkPipOn?16:250;wk.postMessage(wkMs);/* v179: 작은 창이 떠 있으면 1초에 8번 */}catch(e){BGRUN=false;BGERR=String(e&&e.message||e);}};
  const stop=()=>{if(!BGRUN)return;BGRUN=false;try{wk&&wk.postMessage(0);}catch(e){}const t0=performance.now();last=t0;setTimeout(()=>{if(FRAMEAT<t0)requestAnimationFrame(frame);},250);};
  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(started&&(S.autoFish||window.__nkPipOn))start();}else stop();});
  setInterval(()=>{if(document.hidden&&started&&(S.autoFish||window.__nkPipOn)&&!BGRUN)start();},5000);
@@ -7926,7 +7926,7 @@ LAB.push({k:'pipOn',n:'🖼 작은 창 (PiP)',d:'메뉴에 「작은 창」이 �
 /* v177: 아이폰 사파리는 webkitSetPresentationMode 로도 열 수 있어요 */
 const wkPip=()=>{try{const v=document.createElement('video');return typeof v.webkitSetPresentationMode==='function'&&(!v.webkitSupportsPresentationMode||v.webkitSupportsPresentationMode('picture-in-picture'));}catch(e){return false;}};
 const canPip=()=>!!document.pictureInPictureEnabled||wkPip();
-const on=()=>!PREV&&String(uiOpt('pipOn','off'))==='on'&&canPip();
+const on=()=>!PREV&&String(uiOpt('pipOn','off'))==='on'&&(canPip()||(()=>{try{return !!window.documentPictureInPicture;}catch(e){return false;}})());
 let selfPause=0,inflight=0;
 const W=480,H=270;let cv=null,cx=null,vid=null,act=false,blink=0;const IMG={};
 const im=src=>{if(!IMG[src]){const i=new Image();i.src=src;IMG[src]=i;}return IMG[src].complete&&IMG[src].naturalWidth?IMG[src]:null;};
@@ -7968,18 +7968,27 @@ window.__nkPipPost=dt=>{if(!act||!cx||document.hidden)return;draw(true);};/* v18
 /* v179: 창을 내린 동안은 작은 해상도로 그려서 가볍게 (v181: 1초에 30번) · 돌아오면 원래대로 */
 let lowPR=0;function lowRes(on){try{if(on&&!lowPR){lowPR=R.getPixelRatio();const k=Math.max(.35,Math.min(lowPR,(W*1.25)/Math.max(1,innerWidth)));if(k<lowPR)R.setPixelRatio(k);else lowPR=0;}else if(!on&&lowPR){R.setPixelRatio(lowPR);lowPR=0;}}catch(e){}}
 /* v179: 게임 화면으로 돌아오면 작은 창을 닫아요 (전체 화면인데 작은 창이 남아 있던 문제) */
-let wasHid=false;document.addEventListener('visibilitychange',()=>{if(document.hidden){wasHid=true;return;}lowRes(false);if(wasHid&&act){wasHid=false;setTimeout(()=>{if(!document.hidden)closePip();},250);}wasHid=false;});
+let wasHid=false;document.addEventListener('visibilitychange',()=>{if(document.hidden){wasHid=true;return;}lowRes(false);if(wasHid&&act&&!dpw){wasHid=false;setTimeout(()=>{if(!document.hidden)closePip();},250);}wasHid=false;});
 window.__nkPipBg=()=>{if(act){lowRes(true);draw();}};
 /* v177: 버튼을 누른 그 순간(사용자 동작)에 바로 열어야 해요 — 영상 재생을 기다리느라 늦어지면 휴대폰이 막아요.
    그래서 작은 창 기능이 켜져 있으면 숨은 영상을 미리 재생해 두고, 누르면 곧바로 엽니다 */
 function prime(){if(!on()||!started)return;ensure();if(vid.paused||vid.readyState<1){draw();vid.play().catch(()=>{});}}
 function pipErr(e){const m=String((e&&(e.name||e.message))||'');return /NotAllowed|gesture|activation/i.test(m)?'휴대폰이 막았어요 · 화면을 한 번 누른 뒤 다시 눌러 주세요':/metadata|InvalidState/i.test(m)?'준비 중이에요 · 1초 뒤에 다시 눌러 주세요':'작은 창을 열지 못했어요';}
-function openPip(){if(!on()){toast('이 브라우저는 작은 창을 지원하지 않아요',2200);return;}ensure();if(vid._used&&!inflight&&!act)makeVid();draw();try{vid.play().catch(()=>{});}catch(e){}
+/* v197: PC 크롬·엣지는 「새 창」 작은 창 (Document Picture-in-Picture) — 다른 창 위에 떠 있고, 자유롭게 옮기고 크기를 바꿀 수 있어요 · 화면을 누르면 챔질 */
+const dpOk=()=>{try{return !!window.documentPictureInPicture&&!matchMedia('(pointer:coarse)').matches;}catch(e){return false;}};let dpw=null;
+async function openDocPip(){ensure();try{const w=await documentPictureInPicture.requestWindow({width:640,height:360});dpw=w;const d=w.document;
+  d.title='피쉬코지 작은 창';d.body.style.cssText='margin:0;background:#1d1a22;overflow:hidden;cursor:pointer;user-select:none';
+  cv.width=W*2;cv.height=H*2;cx.setTransform(2,0,0,2,0,0);cv.style.cssText='width:100vw;height:100vh;object-fit:contain;display:block';d.body.appendChild(cv);
+  const tip=d.createElement('div');tip.textContent='입질 때 화면을 누르면 챔질';tip.style.cssText='position:fixed;right:8px;bottom:6px;font:700 11px system-ui,sans-serif;color:#fff;opacity:.55;pointer-events:none;white-space:nowrap';d.body.appendChild(tip);
+  d.body.addEventListener('click',()=>reel());act=true;window.__nkPipOn=1;draw();
+  const end=()=>{if(dpw!==w)return;dpw=null;act=false;window.__nkPipOn=0;clearInterval(iv);try{cv.remove();cv.style.cssText='';cv.width=W;cv.height=H;cx.setTransform(1,0,0,1,0,0);}catch(e){}};w.addEventListener('pagehide',end);const iv=setInterval(()=>{if(w.closed)end();},500);return true;}catch(e){dpw=null;return false;}}
+function openPip(){if(!on()&&!dpOk()){toast('이 브라우저는 작은 창을 지원하지 않아요',2200);return;}if(dpw)return;if(dpOk()&&P().win!==false){openDocPip().then(ok=>{if(!ok&&on())vidPip();});return;}vidPip();}
+function vidPip(){ensure();if(vid._used&&!inflight&&!act)makeVid();draw();try{vid.play().catch(()=>{});}catch(e){}
  const go=()=>{try{if(document.pictureInPictureEnabled&&vid.requestPictureInPicture)return vid.requestPictureInPicture();vid.webkitSetPresentationMode('picture-in-picture');return Promise.resolve();}catch(e){return Promise.reject(e);}};
  /* v180: 막 닫힌 직후엔 브라우저가 「아직 준비 안 됨」으로 거절할 때가 있어요 → 0.3초 뒤 3번까지 다시 (버튼 누른 직후라 허락 시간 안이에요) */
  const run=(n=0)=>{if(act||(inflight&&!n))return;inflight=1;go().then(()=>{inflight=0;},e=>{const nm=String(e&&e.name);if(nm==='InvalidStateError'&&n<3){setTimeout(()=>{try{draw();vid.play().catch(()=>{});}catch(x){}run(n+1);},300);return;}inflight=0;toast(pipErr(e),2600);});};
  if(vid.readyState>=1)run();else{let done=0;const f=()=>{if(done)return;done=1;run();};vid.addEventListener('loadedmetadata',f,{once:true});vid.addEventListener('loadeddata',f,{once:true});setTimeout(f,2500);}}
-function closePip(){try{if(document.pictureInPictureElement)document.exitPictureInPicture();else if(vid&&vid.webkitPresentationMode==='picture-in-picture')vid.webkitSetPresentationMode('inline');}catch(e){}}
+function closePip(){if(dpw){try{dpw.close();}catch(e){}return;}try{if(document.pictureInPictureElement)document.exitPictureInPicture();else if(vid&&vid.webkitPresentationMode==='picture-in-picture')vid.webkitSetPresentationMode('inline');}catch(e){}}
 // 창 내리면 자동: 미리 작은 동영상을 재생해 두고(아이폰 사파리 autopictureinpicture), 크롬은 숨겨질 때 열어 봐요
 function armAuto(){if(!on()||!started){if(vid&&!act){vid.autoPictureInPicture=false;stopVid();}return;}prime();const a=!!P().auto;vid.autoPictureInPicture=a;if(a)vid.setAttribute('autopictureinpicture','');else vid.removeAttribute('autopictureinpicture');}
 setInterval(armAuto,3000);
@@ -7993,10 +8002,10 @@ function dlg(){let m=$('pipDlg');if(!m){m=document.createElement('div');m.id='pi
  m.innerHTML=`<div class="card pipc"><button type="button" class="x" data-x aria-label="닫기">×</button><h3>작은 창 (PiP)</h3><button type="button" class="acc pipgo" data-go>${act?'작은 창 닫기':'지금 작은 창으로 보기'}</button>
  <div class="pipl"><div class="pipr"><div><b>창 내리면 자동으로 작은 창</b><small>휴대폰이 허락할 때만 (아래 안내)</small></div><button type="button" class="tg ${p.auto?'on':''}" data-t="auto" aria-label="창 내리면 자동"><i></i></button></div>
  <div class="pipr col"><b>작은 창에 보일 것</b><div class="pipm"><button type="button" class="${p.mode==='game'?'on':''}" data-m="game">게임 화면</button><button type="button" class="${p.mode==='card'?'on':''}" data-m="card">상태 카드 (배터리 절약)</button></div></div>
- <div class="pipr"><div><b>입질 때 작은 창 반짝이기</b><small>손으로 낚시할 때 · 작은 창 가운데 버튼 = 챔질</small></div><button type="button" class="tg ${p.bite?'on':''}" data-t="bite" aria-label="입질 반짝이기"><i></i></button></div></div>
- <div class="pipn"><b>휴대폰마다 달라요</b><span>안드로이드 크롬: 창 내리기 <b>전에</b> 위 버튼을 눌러 주세요 (자동은 크롬이 막는 경우가 많아요)</span><span>아이폰 사파리: 위 버튼을 한 번 눌러야 떠요</span><span>PC 크롬·엣지: 다른 창 위에 떠 있어요</span></div></div>`;
+ ${dpOk()?`<div class="pipr"><div><b>PC: 새 창으로 띄우기</b><small>자유롭게 옮기고 크기를 바꿔요 · 화면을 누르면 챔질</small></div><button type="button" class="tg ${p.win!==false?'on':''}" data-t="win" aria-label="새 창으로"><i></i></button></div>`:''}<div class="pipr"><div><b>입질 때 작은 창 반짝이기</b><small>손으로 낚시할 때 · 작은 창 가운데 버튼 = 챔질</small></div><button type="button" class="tg ${p.bite?'on':''}" data-t="bite" aria-label="입질 반짝이기"><i></i></button></div></div>
+ <div class="pipn"><b>휴대폰마다 달라요</b><span>안드로이드 크롬: 창 내리기 <b>전에</b> 위 버튼을 눌러 주세요 (자동은 크롬이 막는 경우가 많아요)</span><span>아이폰 사파리: 위 버튼을 한 번 눌러야 떠요</span><span>PC 크롬·엣지: 새 창으로 떠서 다른 창 위에 있어요 · 끌어서 옮기고 모서리로 크기 조절</span><span>휴대폰: 작은 창을 손가락으로 끌어서 옮길 수 있어요</span></div></div>`;
  m.querySelector('[data-x]').onclick=()=>closeM('pipDlg');m.querySelector('[data-go]').onclick=()=>{if(act)closePip();else{closeM('pipDlg');openPip();}};
- m.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{p[b.dataset.t]=!p[b.dataset.t];save();dlg();});m.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{p.mode=b.dataset.m;save();dlg();});if(!m.classList.contains('show'))openM('pipDlg');}
+ m.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const k=b.dataset.t;p[k]=k==='win'?(p.win===false):!p[k];save();dlg();});m.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{p.mode=b.dataset.m;save();dlg();});if(!m.classList.contains('show'))openM('pipDlg');}
 function btn(){const sy=$('mSys');if(!sy)return;let b=$('bPip');if(!on()){if(b)b.remove();return;}if(!b){const tpl=$('bTime')||$('bBoard');b=document.createElement('button');b.id='bPip';b.type='button';b.innerHTML='<b class="mi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="7" height="6" rx="1" fill="currentColor"/></svg></b><small class="ml">작은 창</small>';b.onclick=e=>{e.stopPropagation();document.body.classList.remove('menu-open');dlg();};if(tpl)b.className=tpl.className.replace(/\bon\b/,'');}if(!sy.contains(b))sy.appendChild(b);}
 setInterval(btn,1500);addEventListener('nk-rt-play',()=>setTimeout(btn,90));
 window.NK_PIP={open:openPip,close:closePip,dlg,draw:()=>{ensure();draw();return cv;}};

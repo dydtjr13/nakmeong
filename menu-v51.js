@@ -13,6 +13,7 @@
 #bMenu51.on{background:#ffeede}
 #mDrop51{position:absolute;top:calc(100% + 8px);right:0;z-index:60;display:none;flex-direction:column;gap:2px;min-width:168px;padding:6px;background:#fffaf3;border-radius:16px;box-shadow:0 12px 32px rgba(40,30,50,.22)}
 #mDrop51.open{display:flex}
+/* v197: 메뉴가 열려 있는 동안은 알림·떠 있는 버튼보다 위에 (메뉴가 들어 있는 #hud 층을 맨 위로) */#hud:has(#mDrop51.open),body.m51o #hud,body.menu-open #hud{z-index:100000!important}#hud:has(#mDrop51.open) #mSys,body.m51o #mSys,body.menu-open #mSys{z-index:1000!important}
 #mDrop51>button{display:flex!important;align-items:center;gap:10px;width:100%;height:auto!important;min-height:42px;padding:8px 12px!important;border-radius:12px;background:transparent!important;box-shadow:none!important;justify-content:flex-start;margin:0!important}
 #mDrop51>button:hover{background:#ffeede!important}
 #mDrop51>button .mi{font-size:18px;width:22px;text-align:center}
@@ -64,6 +65,7 @@ body.don-off #bDon{display:none!important}
     if ($("bOpM")) sy.insertBefore($("bOpM"), sy.firstChild);
     document.body.classList.toggle("don-off", donOff());
   }
+  /* v197: 메뉴 열림 상태를 그대로 따라가요 (어떤 방법으로 닫혀도 층이 원래대로) */setInterval(() => { const d = $("mDrop51"); document.body.classList.toggle("m51o", !!(d && d.classList.contains("open"))); }, 150);
   document.addEventListener("pointerdown", (e) => { if (!e.target.closest("#mDrop51,#bMenu51")) close(); });
   addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
   addEventListener("nk-rt-play", () => document.body.classList.toggle("don-off", donOff()));

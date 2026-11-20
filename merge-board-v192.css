@@ -141,8 +141,12 @@
  #mbInfo{top:70px;transform:translate(-50%,0);max-height:calc(100% - 70px - 132px)}
 }
 /* 판이 열려 있을 때 공지 띠·알림 자리 (merge-board-v192.js slots()) */
-body.mb-open.mb-annT #stAnn{top:var(--mbAnnT)!important;bottom:auto!important;transform:translateX(-50%) scale(var(--mbAnnS))!important;transform-origin:50% 0!important}
-body.mb-open.mb-annB #stAnn{top:auto!important;bottom:var(--mbAnnB)!important;transform:translateX(-50%) scale(var(--mbAnnS))!important;transform-origin:50% 100%!important}
+body.mb-open.mb-annT :is(#stAnn,#s5ban,#annBar){top:calc(var(--mbAnnT) + var(--mbO,0px))!important;bottom:auto!important;transform:translateX(-50%) scale(var(--mbS,.8))!important;transform-origin:50% 0!important;z-index:60!important}
+body.mb-open.mb-annB :is(#stAnn,#s5ban,#annBar){top:auto!important;bottom:calc(var(--mbAnnB) + var(--mbO,0px))!important;transform:translateX(-50%) scale(var(--mbS,.8))!important;transform-origin:50% 100%!important;z-index:60!important}
+body.mb-open.mb-ann :is(#stAnn,#s5ban,#annBar){left:50%!important;right:auto!important;pointer-events:none!important}
+body.mb-open.mb-ann #annBar{width:max-content!important;max-width:calc((100vw - 16px)/var(--mbS,.8))!important}
+body.mb-open.mb-tqT #tq{top:var(--mbTqT)!important;bottom:auto!important;transform:scale(.85);transform-origin:50% 0}
+body.mb-open #tq25{display:none!important}
 body.mb-open.mb-tqB #tq{top:auto!important;bottom:var(--mbTqB)!important}
 /* v194: 가만히 있으면 합칠 수 있는 물고기를 살짝 흔들어 보여줘요 */
 #mbGrid .mbcell.mbhint .mbit{animation:mbNudge 1.15s ease-in-out infinite;z-index:2}
