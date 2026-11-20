@@ -301,7 +301,7 @@ const ICON={
 const ESC=t=>String(t==null?'':t).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 NKW.ui={STYLE:{canal:'A',lake:'A',moon:'B'},THEME:{canal:{ic:'🏮',nm:'소원 연등',go:'하늘로 띄우기',j:['을','은','으로'],short:'연등',desc:'내 닉네임과 소원을 적은 연등이 운하 하늘에 떠요',desc2:'다른 사람이 연등을 누르면 내 소원을 볼 수 있어요'},
   lake:{ic:'⛵',nm:'소원 돛단배',go:'호수에 띄우기',j:['를','는','로'],short:'돛단배',desc:'내 닉네임을 돛에 단 작은 배가 호수를 천천히 흘러가요',desc2:'다른 사람이 배를 누르면 내 소원을 볼 수 있어요'},
-  moon:{ic:'⭐',nm:'소원 별',go:'별에 소원 걸기',j:['을','은','으로'],short:'별',desc:'달 하늘의 별 하나가 내 별이 되어 은은하게 반짝여요',desc2:'다른 사람이 그 별을 누르면 내 소원을 볼 수 있어요'}},
+  moon:{ic:'⭐',nm:'소원 별',go:'별에 소원 걸기',j:['을','은','로'],short:'별',desc:'달 하늘의 별 하나가 내 별이 되어 은은하게 반짝여요',desc2:'다른 사람이 그 별을 누르면 내 소원을 볼 수 있어요'}},
  icon(map,style,px){const i='nkw'+(++uid);return `<svg class="nkwi" viewBox="0 0 64 64" width="${px||56}" height="${px||56}" aria-hidden="true"><defs>${ICON[map][style](i)}</svg>`;},
  css(){if(document.getElementById('nkwCss'))return;const s=document.createElement('style');s.id='nkwCss';s.textContent=CSS;document.head.appendChild(s);},
  card(map,style,l,o={}){NKW.ui.css();let c=document.getElementById('wishCard2');if(!c){c=document.createElement('div');c.id='wishCard2';document.body.appendChild(c);}const TH=NKW.ui.THEME[map];const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));

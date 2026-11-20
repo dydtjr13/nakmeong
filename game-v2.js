@@ -5784,7 +5784,7 @@ FHOOK.push((dt,p)=>{const C=CNL.st;if(!C)return;try{cnlState(false,p);{const wx=
 /* v188 소원 오브젝트 — 그리기는 wish-v188.js (NKWISH kit), 서버·골드·삭제·비속어는 예전 그대로
    🏮 운하 A 둥근 한지 연등 · ⛵ 호숫가 A 하얀 돛 나무배(한 번에 20척까지 · 내 배는 늘 보여요) · ⭐ 달 B 가는 십자 빛(하늘에 원래 있던 별) */
 let WTAP=0;(window.__nkPick=window.__nkPick||[]).unshift(()=>{if(!WTAP)return false;WTAP=0;return true;});/* 소원을 눌렀으면 같은 손가락으로 별자리·펫 같은 게 같이 열리지 않게 */
-function mkWish(P){const WL={rows:[],L:[],kit:null,tags:null,ft:-1e9,cd:0,off:P.needM?1:0};window[P.m==='canal'?'NK_WL':P.m==='lake'?'NK_WB':'NK_WS']=WL;const BID=P.btn,IC=P.ic,NM=P.nm,QS=P.m==='canal'?'':'?m='+P.m,ST=P.style;
+function mkWish(P){const WL={rows:[],L:[],kit:null,tags:null,ft:-1e9,cd:0,off:P.needM?1:0};window[P.m==='canal'?'NK_WL':P.m==='lake'?'NK_WB':'NK_WS']=WL;WL.here=P.here;const BID=P.btn,IC=P.ic,NM=P.nm,QS=P.m==='canal'?'':'?m='+P.m,ST=P.style;
  const on=()=>!window.NK_PREV&&String(uiOpt('wishLan','on'))==='on';
  const here=()=>on()&&P.here();
  const hh=(n,k)=>{let x=Math.sin(n*12.9898+k*78.233)*43758.5453;return x-Math.floor(x);};
@@ -5848,7 +5848,7 @@ mkWish({m:'canal',style:'A',j:['을','은','으로'],btn:'wishBtn',ic:'🏮',nm:
    const kk=Math.min(1,k*1.6);l.wy=-.03+Math.sin(t*1.25+l.ph)*.035-(1-kk)*.25;l.rx=Math.sin(t*1.1+l.ph)*.05;l.rz=Math.sin(t*.9+l.ph)*.06;l.sc=1.15*(.4+.6*kk);l.py=.6;}});}
 /* ⭐ 달: 하늘에 원래 떠 있던 별 하나가 내 소원 별 (시안 B 가는 십자 빛) — 새 별은 만들지 않아요 */
 mkWish({m:'moon',style:'B',needM:1,j:['을','은','으로'],btn:'wishBtnM',ic:'⭐',nm:'소원 별',short:'별',go:'별에 소원 걸기',sent:'⭐ 하늘의 별 하나에 소원을 걸었어요',pickK:1.1,
- here:()=>started&&!!(SKY&&SKY.on&&SKY.g&&SKY.skyG),kit:n=>NKWISH.starKit('B',{max:n}),
+ here:()=>started&&!!(SKY&&SKY.on&&SKY.g&&SKY.skyG&&SKY.skyG.parent===SKY.g),/* 달 하늘이 지금 장면에 있을 때만 (하늘섬·지상에서는 X) */kit:n=>NKWISH.starKit('B',{max:n}),
  spawn:()=>({}),launch:()=>({}),step:()=>{}});
 
 /* v182 🧭 오른쪽 위 메뉴 정리 (시안 A 기본 · 설정에서 C 서랍으로)
