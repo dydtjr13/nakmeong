@@ -408,4 +408,6 @@ const CSS=`
 @media (hover:hover) and (pointer:fine){#wishBtnM{bottom:auto;top:calc(136px + env(safe-area-inset-top));left:50%;transform:translateX(-50%)}}
 @media (max-width:420px){#wishCard2{grid-template-columns:56px 1fr;gap:10px;padding:12px 13px 12px 10px}#wishCard2 .nkwc-ic{width:56px;height:56px}#wishCard2 .nkwc-ic svg{width:50px;height:50px}#wishM2 .nkwm-sc{height:118px}}
 `;
+/* v190: 달 ⭐ 소원 별 버튼 스타일이 카드·창을 처음 열 때만 들어가서, 그 전에는 버튼이 화면 왼쪽 위 구석에 깔려 있었어요 → 처음부터 넣어요 */
+try{if(document.head)NKW.ui.css();else addEventListener('DOMContentLoaded',()=>NKW.ui.css());}catch(e){}
 })();
