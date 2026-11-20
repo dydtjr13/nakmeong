@@ -844,7 +844,8 @@ export function sanitizeGift(input, now) {
   const x = Math.round(nonNeg(input.x, 1e8));
   // v136: 탈것·펫도 지급 (최대 6개)
   // v185: 낚싯대(rod)·장비(wear)·부적(charm)·미끼(bait)도 지급 (한 번에 14가지까지)
-  const GIFT_T = ["veh", "pet", "szt", "rod", "wear", "charm", "bait"];
+  // v202: 🧑 캐릭터(chr) — 크리스마스 한정·이용권 캐릭터
+  const GIFT_T = ["veh", "pet", "szt", "rod", "wear", "charm", "bait", "chr"];
   const it = Array.isArray(input.it) ? input.it.slice(0, 14).map((o) => {
     if (!o || typeof o !== "object") return null;
     const ty = GIFT_T.includes(o.t) ? o.t : null;
@@ -1148,6 +1149,7 @@ export function sanitizePlay(input, prev, opt) {
   // v194: ♾️ 합성판 테스트 무제한
   if ("mbInf" in input) out.mbInf = pickOf(input.mbInf, ["on", "off"]);
   if ("mbLv" in input) out.mbLv = pickOf(input.mbLv, ["on", "off"]);
+  if ("xmasEv" in input) out.xmasEv = pickOf(input.xmasEv, ["auto", "on", "off"]); // v202 🎄 크리스마스 한정 캐릭터 이벤트
   /* v200: 합성판 레벨 기준 (누적 합성 l2회 → 6×6, l3회 → 7×7) */
   if ("mbLvCfg" in input) { const v = input.mbLvCfg, o = {}; if (v && typeof v === "object") { const a = Math.round(Number(v.l2)), b = Math.round(Number(v.l3)); if (Number.isFinite(a) && a >= 1) o.l2 = Math.min(1e7, a); if (Number.isFinite(b) && b >= 1) o.l3 = Math.min(1e7, b); if (o.l2 && o.l3 && o.l3 <= o.l2) o.l3 = Math.min(1e7, o.l2 + 1); } out.mbLvCfg = o; }
   if ("stRate" in input) { const n = Math.round(Number(input.stRate)); out.stRate = Number.isFinite(n) ? Math.max(10000, Math.min(100000000, n)) : 300000; }

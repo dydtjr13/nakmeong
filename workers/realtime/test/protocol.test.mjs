@@ -625,6 +625,12 @@ test("v55 관리자 설정 정리", () => {
   assert.equal(g.balList.length, 1);
 });
 
+test("v202 xmasEv · 캐릭터 지급", () => {
+  assert.equal(sanitizePlay({ xmasEv: "on" }, null).xmasEv, "on");
+  assert.equal(sanitizePlay({ xmasEv: "zz" }, null).xmasEv, "auto");
+  const g = sanitizeGift({ id: "g9", nick: "달빛", it: [{ t: "chr", k: "xm-rud" }, { t: "zzz", k: "a" }] }, Date.now());
+  assert.deepEqual(g.it, [{ t: "chr", k: "xm-rud" }]);
+});
 test("v201 xpBal 높은 레벨 배율", () => {
   const v = sanitizePlay({ xpBal: { cv: "A", hs: 120, hm: 99, hg: -3 } }, null).xpBal;
   assert.equal(v.hs, 99); assert.equal(v.hm, 50); assert.equal(v.hg, 0);
