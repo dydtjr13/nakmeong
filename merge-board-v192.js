@@ -102,7 +102,7 @@ function build(){let m=$('mbd');if(m)return m;m=document.createElement('div');m.
  addEventListener('keydown',e=>{if(!ST.open||e.key!=='Escape')return;if(ST.info)infoClose();else close();});
  addEventListener('resize',()=>{if(ST.open){layout();draw();requestAnimationFrame(slots);}});
  new MutationObserver(()=>{const sh=m.classList.contains('show');if(!sh&&ST.open)closed();}).observe(m,{attributes:true,attributeFilter:['class']});
- new MutationObserver(ms=>{if(!ST.open)return;for(const x of ms)for(const n of x.addedNodes)if(n.id==='stAnn'){requestAnimationFrame(slots);return;}}).observe(document.body,{childList:true});
+ new MutationObserver(ms=>{if(!ST.open)return;for(const x of ms)for(const n of x.addedNodes)if(ANN.includes(n.id)||n.id==='tq'){requestAnimationFrame(slots);return;}}).observe(document.body,{childList:true});
  return m;}
 function layout(){const N=MB_CFG.N,pc=PCL(),gap=pc?8:6;let W;
  if(pc){W=Math.min(500,innerWidth-300*2-18*4-16,innerHeight-36-84-12-56-20);}/* 84 = 위쪽 공지 띠 자리 */
@@ -112,12 +112,24 @@ function layout(){const N=MB_CFG.N,pc=PCL(),gap=pc?8:6;let W;
  [...g.children].forEach(d=>{d.style.width=d.style.height=cs+'px';});const fx=$('mbFx'),dp=Math.min(2,devicePixelRatio||1);fx.width=innerWidth*dp;fx.height=innerHeight*dp;}
 /* 판이 열려 있는 동안 공지 띠(#stAnn)·알림(#tq)이 판·목록·버튼을 가리지 않게 빈 자리로 옮겨요
    PC: 판 위쪽 띠(작게) · 모바일: 목록과 아래 버튼 사이(작게). 자리가 너무 좁으면 원래 자리 그대로 */
-function annH(){const a=$('stAnn');if(!a)return 124;let t=1e9,bt=-1e9;a.querySelectorAll('*').forEach(c=>{const r=c.getBoundingClientRect();if(r.height>4){t=Math.min(t,r.top);bt=Math.max(bt,r.bottom);}});if(bt<t)return 124;const sc=parseFloat(getComputedStyle(document.body).getPropertyValue('--mbAnnS'))||1,on=document.body.classList.contains('mb-annT')||document.body.classList.contains('mb-annB');return Math.max(60,Math.min(200,(bt-t)/(on?sc:1)));}
-function slots(){const B0=document.body,st=B0.style;const AH=annH();B0.classList.remove('mb-annT','mb-annB','mb-tqB');if(!ST.open)return;
- if(PCL()){const w=$('mbWood').getBoundingClientRect(),sc=Math.min(.8,(w.top-6-6)/AH);if(sc>=.42){st.setProperty('--mbAnnT','6px');st.setProperty('--mbAnnS',sc.toFixed(3));B0.classList.add('mb-annT');}return;}
- const q=$('mbMain').querySelector('.mbq.mob').getBoundingClientRect(),bt=$('mbBB').querySelector('button'),bb=bt?bt.getBoundingClientRect().top:innerHeight-60,gap=bb-q.bottom,sc=Math.min(.8,(gap-8)/AH);
- if(sc>=.42){st.setProperty('--mbAnnB',Math.round(innerHeight-bb+4)+'px');st.setProperty('--mbAnnS',sc.toFixed(3));B0.classList.add('mb-annB');}
- if(gap>=44){st.setProperty('--mbTqB',Math.round(innerHeight-bb+4)+'px');B0.classList.add('mb-tqB');}}
+/* v197: 공지 띠(#stAnn) · ★5 띠(#s5ban) · 운영자 공지(#annBar) · 작은 알림(#tq) 모두 판·목록·버튼을 가리지 않는 자리로
+   PC: 판 위쪽 빈 띠 · 모바일: 목록과 아래 버튼 사이, 좁으면 맨 위 제목 줄(누르기는 통과) · 크기는 자리에 맞게 줄여요 */
+const ANN=['stAnn','s5ban','annBar'];
+function natH(el){let t=1e9,bt=-1e9;const sc=parseFloat(el.style.getPropertyValue('--mbS'))||1;[el,...el.querySelectorAll('*')].forEach(c=>{const r=c.getBoundingClientRect();if(r.height>4&&r.width>4){t=Math.min(t,r.top);bt=Math.max(bt,r.bottom);}});if(bt<t)return el.offsetHeight||60;return Math.max(24,Math.min(220,(bt-t)/(document.body.classList.contains('mb-ann')?sc:1)));}
+function slots(){const B0=document.body,st=B0.style;const hs={};ANN.forEach(id=>{const e=$(id);if(e)hs[id]=natH(e);});
+ const ALL=['mb-ann','mb-annT','mb-annB','mb-tqB','mb-tqT'],want=new Set(),fin=()=>ALL.forEach(c=>B0.classList.toggle(c,want.has(c)));/* 지웠다 다시 붙이면 띠가 매번 처음부터 움직여요 → 바뀐 것만 */
+ if(!ST.open){fin();return;}
+ let top=null,bot=null,room;
+ if(PCL()){const w=$('mbWood').getBoundingClientRect();top=6;room=w.top-12;}
+ else{const q=$('mbMain').querySelector('.mbq.mob').getBoundingClientRect(),bt=$('mbBB').querySelector('button'),bb=bt?bt.getBoundingClientRect().top:innerHeight-60,gap=bb-q.bottom;
+  if(gap>=30){bot=Math.round(innerHeight-bb+4);room=gap-8;}else{const hd=$('mbMain').querySelector('.mbhd').getBoundingClientRect();top=Math.max(2,hd.top+2);room=Math.max(30,hd.height-4);}
+  if(gap>=44){st.setProperty('--mbTqB',Math.round(innerHeight-bb+4)+'px');want.add('mb-tqB');}else{st.setProperty('--mbTqT',Math.round(Math.max(2,$('mbMain').querySelector('.mbhd').getBoundingClientRect().top+2))+'px');want.add('mb-tqT');}}
+ /* 동시에 여러 개면 위아래로 나란히 (자리에 다 들어가게 함께 줄여요) */
+ const vis=ANN.filter(id=>{const e=$(id);if(!e||!e.children.length)return false;const c=getComputedStyle(e);return c.display!=='none'&&c.visibility!=='hidden'&&!(id==='s5ban'&&!e.classList.contains('on'));});
+ const sum=vis.reduce((a,id)=>a+(hs[id]||60),0)+Math.max(0,vis.length-1)*4,sc=Math.max(.35,Math.min(.85,room/(sum||60)));let off=0;
+ (top!=null?vis:vis.slice().reverse()).forEach(id=>{const e=$(id);e.style.setProperty('--mbS',sc.toFixed(3));e.style.setProperty('--mbO',Math.round(off)+'px');off+=(hs[id]||60)*sc+4;});
+ ANN.filter(id=>!vis.includes(id)).forEach(id=>{const e=$(id);if(e){e.style.setProperty('--mbS',Math.max(.35,Math.min(.85,room/(hs[id]||60))).toFixed(3));e.style.setProperty('--mbO','0px');}});
+ if(top!=null){st.setProperty('--mbAnnT',top+'px');want.add('mb-ann');want.add('mb-annT');}else{st.setProperty('--mbAnnB',bot+'px');want.add('mb-ann');want.add('mb-annB');}fin();}
 function fxClear(){const fx=$('mbFx');if(fx){const g2=fx.getContext('2d');g2.setTransform(1,0,0,1,0,0);g2.clearRect(0,0,fx.width,fx.height);}}
 function cellEl(i){return $('mbGrid').children[i];}
 function draw(){if(!ST.open)return;const P=pool();if(sync(P))try{save();}catch(e){}ST.P=P;const b=mbS();
@@ -221,7 +233,8 @@ setInterval(()=>{try{if(!ST.open||ST.drag||ST.info||ST.sell||ST.flies.length||ST
   if(!pr&&!tc){if(ST.noneSig!==sig){ST.noneSig=sig;noneAlert(!mbS().cells.some(x=>x==null));}return;}ST.noneSig=null;
   if(idle>5000&&!ST.hintP){if(pr){ST.hintP=pr;const a=cellEl(pr[0]),c=cellEl(pr[1]);if(a&&c){const ra=a.getBoundingClientRect(),rc=c.getBoundingClientRect(),dx=rc.left-ra.left,dy=rc.top-ra.top,L=Math.hypot(dx,dy)||1,m=Math.min(10,ST.cs*.16);a.style.setProperty('--hx',(dx/L*m)+'px');a.style.setProperty('--hy',(dy/L*m)+'px');c.style.setProperty('--hx',(-dx/L*m)+'px');c.style.setProperty('--hy',(-dy/L*m)+'px');a.classList.add('mbhint');c.classList.add('mbhint');}}
    else if(tc){ST.hintP=[];document.querySelectorAll(`#mbd .mbti[data-key="${tc.k}|${tc.t}"]`).forEach(e=>e.classList.add('mbhint'));}}}}catch(e){}},500);
-addEventListener('pointerdown',()=>{if(ST.open)poke();},true);addEventListener('keydown',()=>{if(ST.open)poke();},true);
+addEventListener('pointerdown',()=>{if(ST.open)poke();},true);
+/* v197: 알림이 새로 뜨거나 내용이 바뀌어도 자리를 다시 맞춰요 */setInterval(()=>{try{if(ST.open)slots();}catch(e){}},400);addEventListener('keydown',()=>{if(ST.open)poke();},true);
 // ── 합성 (데이터는 바로 바꾸고, 그림만 0.1~0.3초 늦게 보여요) ──
 function merge(from,to){if(left()<=0){bubble('오늘 합성 횟수를 다 썼어요');play('deny');return false;}
  const b=mbS(),P=ST.P||pool(),a=P.get(b.cells[from]),c=P.get(b.cells[to]);if(!a||!c)return false;const t0=tierOf(a);let r=t0+1;if(r<9&&Math.random()<MB_CFG.luck)r++;
