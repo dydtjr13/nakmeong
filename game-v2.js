@@ -2441,7 +2441,7 @@ function fzGroups(){const g={};fzPool().forEach(f=>{if(f.sx)return;/* v184: 슈�
 function fzPick(G){return G.list.slice().sort((a,b)=>a.v-b.v).slice(0,3);}
 /* v174: 합성 등급 보상 (테스트 기능 fzGrade, 기본 켜짐) — 재료 물고기 등급(일반~초월)에 따라
    ① 성공하면 물고기 정수 추가 ② 변이 확률 보정 ④ 비용 차등 ⑤ 등급별 첫 5성 칭호 · ③ 별 조각 차등은 5성 교환소에 이미 있어요 */
-const fzGrOn=()=>String(uiOpt('fzGrade','on'))!=='off';
+const fzGrOn=()=>String(uiOpt('fzGrade','on'))!=='off';window.NK_fzGrOn=fzGrOn;window.NK_GR=g=>GR(g);
 /* v180: 정수 밸런스 — 성공 정수가 너무 많았어요 (1·2·3·5·8·12 → 일반·고급 0 · 희귀 1 · 전설 2 · 신화 3 · 초월 5). 실패하면 +1 은 그대로 */const FZG_ESS=[0,0,1,2,3,5],FZG_VAR=[1,1,1.2,1.2,1.5,1.5],FZG_COST=[0,0,.25,.5,1,1.5];
 function fzGr(mats){return Math.max(0,Math.min(5,...(mats||[]).map(f=>f&&f.g|0)));}
 function fzCost(st,mats){const g=fzGrOn()&&mats&&mats.length?fzGr(mats):0;return Math.round(300*(st+1)*(1+FZG_COST[g])/10)*10;}
@@ -5641,7 +5641,7 @@ function s5Shop(){if(!s5On())return;let m=$('s5x');if(!m){m=document.createEleme
   else if(k==='box'){/* v189: 50개 · 횟수 제한 없음 */z.sh-=cost;z.box=s5Wk();S.boxes.push('lv5');S.newBox=(S.newBox||0)+1;save();hud();toast('🎁 신화 행운 상자를 받았어요! 상자에서 열어요',2200);}
   else if(k==='whale'){if(z.whale||petOwn().whale)return;z.sh-=cost;z.whale=1;save();if(!petGet('whale','star'))toast('🐋 별 고래를 받았어요!',2200);}
   s5Shop();});m.classList.add('show');}
-window.NK_s5Shop=s5Shop;
+window.NK_s5Shop=s5Shop;/* v195: 합성판에서 써요 */window.NK_s5Api={n:()=>s5Z().sh,shout:f=>s5Shout(f)};
 // 합성 창 위 「⭐ 교환소」
 setInterval(()=>{try{if(!s5On())return;const fz=$('fuse');if(!fz||!fz.classList.contains('show'))return;const h=fz.querySelector('.fzh');if(!h)return;let b=h.querySelector('.s5open');const t=`<img class="s5g" src="img/feat/shard.png" alt=""> 교환소 <b>${s5Z().sh}</b>`;if(!b){b=document.createElement('button');b.type='button';b.className='s5open';b.onclick=()=>s5Shop();const x=h.querySelector('.fzx0,[data-close]');h.insertBefore(b,x||null);}if(b._t!==t){b._t=t;b.innerHTML=t;}}catch(e){}},400);
 // 같은 호숫가 알림: 「OO님이 X 5성을 완성했어요!」 (pose ex s5 = 순번_물고기)
@@ -8012,7 +8012,8 @@ window.__nkInt={camSet:(y,p,d)=>{if(y!=null)yaw=y;if(p!=null)pitch=p;if(d!=null)
 /* v191: 🪵 합성판(merge-board-v192.js)이 쓰는 다리 — 게임 안쪽 함수·데이터를 그대로 빌려줘요 (새 규칙·숫자는 merge-board 쪽에) */
 window.__nkMB={get S(){return S;},fzOn:()=>fzOn(),uiOpt:(k,d)=>uiOpt(k,d),pool:()=>fzPool(),remove:(ids,keep)=>fzRemove(ids,keep),FI:k=>FI(k),FZV:()=>FZV,fzVK:k=>fzVK(k),fzS:()=>fzS(),fzSP:()=>fzSP(),valueOf:(f,cm,g)=>valueOf(f,cm,g),sellP:f=>sellP(f),
  save:()=>save(),hud:()=>hud(),toast:(h,ms)=>toast(h,ms),openM:id=>openM(id),closeM:id=>closeM(id),confirmBox:(h,ok)=>confirmBox(h,ok),ilog:(...a)=>ILOG.add(...a),ms:(t,n)=>{try{if(msOn())msAdd(t,n);}catch(e){}},xbal:(n,w)=>{try{XBAL.ev(n,w);}catch(e){}},
- snd:()=>snd,coin:()=>{try{sfx.coin();}catch(e){}},tankView:()=>tankView};
+ snd:()=>snd,coin:()=>{try{sfx.coin();}catch(e){}},tankView:()=>tankView,
+ /* v195 */s5On:()=>!!(window.NK_s5On&&NK_s5On()),s5N:()=>window.NK_s5Api?NK_s5Api.n():0,s5Shop:()=>window.NK_s5Shop&&NK_s5Shop(),s5Shout:f=>window.NK_s5Api&&NK_s5Api.shout(f),fzGrOn:()=>window.NK_fzGrOn?NK_fzGrOn():false,GR:g=>window.NK_GR?NK_GR(g):null,setHTML:k=>window.NK_fzSetHTML?NK_fzSetHTML(k):'',setBind:R=>window.NK_fzSetBind&&NK_fzSetBind(R)};
 /* v182 🧪 관리자 › 테스트 기능 — 시안 C: 켜진 것/전체 · 분류 · 끄기/나만/모두에게 · 정식 기능으로 (세부 설정 상자와 예전 목록은 아래 접기 안에 그대로) */
 {const LC={f:'on',c:'',q:'',open:{}};
  const CATS=[['first','처음 유저','#5b3fa6',/처음|가이드|튜토|tut|guide|wel|할아버지/i],['veh','탈것 · 펫','#2e7a46',/탈것|펫|veh|pet|turtle|거북|boats|배 |요트|ufo/i],['tank','어항 · 합성 · 요리','#8a6510',/어항|합성|요리|음식|tank|fuse|정수|cook/i],['map','맵 · 날씨','#2f7a8a',/맵|날씨|운하|달 |하늘|map|wx|sea|moon|sky|눈|비 |오로라|연등/i],['fish','낚시','#b5532a',/낚시|미끼|낚싯대|rod|bait|입질|챔질|reel/i],['ui','화면 · 메뉴','#2f5b9a',/화면|메뉴|ui|hud|버튼|창|채팅|카드|lay/i]];
