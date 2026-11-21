@@ -212,7 +212,7 @@ function drawLv(){const e=$('mbLvP');if(!e)return;if(!lvOn()){e.hidden=true;retu
  const h=`🪵 판 Lv.${L} <span>${N}×${N}</span>${nx?`<em>${(N+1)}×${(N+1)}까지 ${Math.max(0,nx-t).toLocaleString()}회</em>`:'<em>최대</em>'}`;if(e._h!==h){e.innerHTML=h;e._h=h;}e.onclick=()=>infoOpen();}
 function drawBB(){const bb=$('mbBB');let h;if(ST.sell){const n=ST.sel.size,P=ST.P||pool();let co=0;ST.sel.forEach(id=>{const f=P.get(id);if(f&&!f.lock)try{co+=sellP(f);}catch(e){}});
   /* v214: 팔기 버튼은 잠기지 않은 물고기만 세요 (확인 창과 같은 숫자) · 팔 수 있는 게 0마리면 꺼져요 · 판에서 빼기는 잠긴 물고기도 그대로 */let ok=0,lk=0;ST.sel.forEach(id=>{const f=P.get(id);if(!f)return;if(f.lock)lk++;else ok++;});
-  const sl=ok?`💰 ${ok}마리 팔기 · ${co.toLocaleString()}`:(lk?'🔒 잠긴 물고기는 못 팔아요':'💰 고르면 팔기');
+  const sl=ok?`💰 ${ok}마리 팔기 · ${co.toLocaleString()}`:(lk?'🔒 팔 수 없어요':'💰 고르면 팔기');
   h=`<button type="button" class="mb1" data-bb="back">↩ 판에서 빼기${n?' '+n:''}</button><button type="button" class="mb3" data-bb="sellgo" ${ok?'':'disabled'}>${sl}</button><button type="button" class="mb0" data-bb="done">닫기</button>`;}
  else{/* v210: 「모두 빼기」 판의 물고기를 한 번에 보유 목록으로 (빈 판이면 꺼져요) */const any=mbS().cells.some(x=>x!=null);h=`${tidyOn()?'<button type="button" class="mb1" data-bb="tidy">🧺 정리</button>':''}<button type="button" class="mb2" data-bb="clear" ${any?'':'disabled'}>↩ 모두 빼기</button><button type="button" class="mb3" data-bb="sell">💰 판매</button>`;/* v212: 방생은 빼고 판매만 (버튼 이름 「💰 판매」) */}
  if(bb._h!==h){bb.innerHTML=h;bb._h=h;bb.querySelectorAll('[data-bb]').forEach(x=>x.onclick=()=>bbAct(x.dataset.bb));}bb.classList.toggle('sellm',ST.sell);}
