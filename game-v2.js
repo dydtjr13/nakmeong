@@ -2608,7 +2608,15 @@ const advPct=x=>Math.round(x*100)+'%';
 const advRew=r=>{const o=[['coins-gold',`${r.coin[0].toLocaleString()}~${r.coin[1].toLocaleString()}`,'골드']];if(r.piece)o.push(['piece',advPct(r.piece),'지도 조각']);
  o.push(['chest',r.boxN?`${r.boxN}개 확정`:advPct(r.box),'행운 상자']);if(r.cat&&FZV[r.cat[0]])o.push(['potion',advPct(r.cat[1]),FZV[r.cat[0]].n+' 촉매',r.cat[0]]);return o;};
 const advRi=(i,cat)=>`<img class="fmri ${cat?'cat-'+cat:''}" src="img/feat/${i}.png" alt="">`;
-const advPool=()=>(S.tank||[]).filter(f=>!f.lock&&!f.away).slice().sort((x,y)=>advPow(y)-advPow(x));
+/* v212: 잠금 물고기(변이 자동 잠금 포함)도 모험에 보낼 수 있어요 — 잠금은 판매·방생·합성 보호용이라 원정 중에도, 돌아와도 그대로예요 */
+const advPool=()=>(S.tank||[]).filter(f=>!f.away).slice().sort((x,y)=>advPow(y)-advPow(x));
+/* v212: 원정 시간 = 기본(지금×1.5) × (1 − 단축). 단축 = 3마리 속도 점수 합 × 1% (최대 33% → 가장 빨라도 예전 시간). 출발할 때 정해져서 이미 떠난 원정은 그대로 */
+const ADV_TMUL=1.5,ADV_TCAP=1/3,ADV_SGP=[0,1,2,3,4,8,12];
+const advSpd=f=>(ADV_SGP[f.g|0]||0)+(f.st|0)*1.5+(f.vr&&FZV[fzVK(f.vr)]?FZV[fzVK(f.vr)].t*1.2:0);
+const advCut=fish=>Math.min(ADV_TCAP,fish.reduce((a,f)=>a+advSpd(f),0)/100);
+const advBaseH=R=>R.h*ADV_TMUL,advDurH=(R,fish)=>advBaseH(R)*(1-advCut(fish));
+const advCutPct=fish=>Math.round(advCut(fish)*100),advSpdPct=f=>Math.round(Math.min(ADV_TCAP*100,advSpd(f)));
+const advLk=f=>f.lock?'<i class="fmlk" title="잠금 · 원정 다녀와도 잠금 그대로">🔒</i>':'';
 const advFishPlus=(R,f)=>Math.round(advPow(f)*4+(R.bonus&&R.bonus.includes(f.k)?8:0));
 const advBest=k=>{const R=advR(k),b=f=>advPow(f)+(R.bonus&&R.bonus.includes(f.k)?2:0);return advPool().sort((x,y)=>b(y)-b(x)).slice(0,3);};
 const advPz=(n,need=6)=>`<span class="fmpz">${Array.from({length:need},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</span>`;
@@ -2619,17 +2627,18 @@ function advTeamRow(t){if(!advR(t.r))return '';const r=advR(t.r),now=Date.now(),
 const advTeamEmpty=()=>`<div class="fmtm emp"><div class="fmtm-i"><img src="img/feat/boat.png" alt=""></div><div class="fmtm-m"><b>빈 배</b><small><span class="lgx">갈 곳을 골라 물고기를 보내요</span><span class="shx">목적지를 골라요</span></small></div></div>`;
 function advDock(){const a=advS(),now=Date.now(),T=a.teams.slice().sort((x,y)=>(now>=y.t0+y.dur)-(now>=x.t0+x.dur));return T.map(advTeamRow).join('')+Array.from({length:Math.max(0,3-T.length)},advTeamEmpty).join('');}
 function advPicker(s){const R=s.r,k=s.k;if(ADV.partyK!==k){ADV.party=advBest(k).map(f=>f.id);ADV.partyK=k;}
- ADV.party=ADV.party.filter(id=>(S.tank||[]).some(f=>f.id===id&&!f.lock&&!f.away));
+ ADV.party=ADV.party.filter(id=>(S.tank||[]).some(f=>f.id===id&&!f.away));
  const P=ADV.party.map(id=>S.tank.find(f=>f.id===id)).filter(Boolean),p=advProb(R,P),a=advS(),full=a.teams.length>=3,pc=p>=.75?'hi':p>=.55?'mid':'lo';
  const bn=R.bonus?R.bonus.filter(b=>!P.some(f=>f.k===b)).map(b=>FI(b)&&FI(b).n).filter(Boolean):[];
  const none=!advPool().length;
  return `<div class="fmpk"><div class="fmpk-h"><b>① 물고기 3마리 고르기</b><button type="button" class="fmbtn sm ln" data-advauto ${none?'disabled':''}>✨ 추천 편성</button></div>
-  <div class="fmslots">${[0,1,2].map(i=>P[i]?`<button type="button" class="fmslot on" data-advpick>${fzImg(P[i])}<span>${sxH(fzName(P[i]))}</span><em>+${advFishPlus(R,P[i])}%</em></button>`:`<button type="button" class="fmslot e" data-advpick ${none?'disabled':''}><i>+</i><span>${none?'물고기 없음':'물고기 넣기'}</span></button>`).join('')}</div>
+  <div class="fmslots">${[0,1,2].map(i=>P[i]?`<button type="button" class="fmslot on" data-advpick>${advLk(P[i])}${fzImg(P[i])}<span>${sxH(fzName(P[i]))}</span><em>+${advFishPlus(R,P[i])}%</em>${advSpd(P[i])>0?`<em class="tm">⏱−${advSpdPct(P[i])}%</em>`:''}</button>`:`<button type="button" class="fmslot e" data-advpick ${none?'disabled':''}><i>+</i><span>${none?'물고기 없음':'물고기 넣기'}</span></button>`).join('')}</div>
   <div class="fmmeter ${P.length?pc:'lo'}"><span>② 성공 확률</span><div class="fmbar big"><i style="width:${P.length?p*100:0}%"></i></div><b>${P.length?advPct(p):'-'}</b></div>
+  <div class="fmtime"><span>⏱ 원정 시간</span>${P.length&&advCut(P)>0?`<s>${advH(advBaseH(R))}</s><b>${advH(advDurH(R,P))}</b><em>−${advCutPct(P)}%</em>`:`<b>${advH(advBaseH(R))}</b><small>좋은 물고기를 넣으면 최대 33% 빨라져요</small>`}</div>
   <small class="fmtip">${none?'어항에 보낼 물고기가 없어요 · 물고기를 낚아 오면 보낼 수 있어요':bn.length?`💡 ${bn.map(sxH).join('·')}를 넣으면 +8% 더 올라요`:'칸을 눌러 물고기를 바꿔요 · 실패해도 물고기는 돌아와요'}</small>
-  <button type="button" class="fmbtn go" data-advgo="${k}" ${full||!P.length?'disabled':''}>${full?'원정대는 3팀까지 보낼 수 있어요':`③ <img class="fmgoi" src="img/feat/boat.png" alt=""> ${R.n}(으)로 출발 · ${advH(R.h)}`}</button></div>`;}
+  <button type="button" class="fmbtn go" data-advgo="${k}" ${full||!P.length?'disabled':''}>${full?'원정대는 3팀까지 보낼 수 있어요':`③ <img class="fmgoi" src="img/feat/boat.png" alt=""> ${R.n}(으)로 출발 · ${advH(advDurH(R,P))}`}</button></div>`;}
 function advDetail(k){const s=advSt(k),r=s.r;return `<div class="fmdt">
-  <div class="fmdt-h"><img class="fmdt-a" src="img/adv/isl-${k}.png" alt=""><div><span class="fmstg">${k==='treasure'?'★ 보물':s.stage+'단계'}</span>${s.clr?`<span class="fmstp">✓ ${s.clr}번 성공</span>`:''}<b>${r.n}</b><small>${r.desc} · ${advH(r.h)} · 난이도 ${'●'.repeat(r.d)}${'○'.repeat(Math.max(0,4-r.d))}</small></div></div>
+  <div class="fmdt-h"><img class="fmdt-a" src="img/adv/isl-${k}.png" alt=""><div><span class="fmstg">${k==='treasure'?'★ 보물':s.stage+'단계'}</span>${s.clr?`<span class="fmstp">✓ ${s.clr}번 성공</span>`:''}<b>${r.n}</b><small>${r.desc} · 기본 ${advH(advBaseH(r))} · 난이도 ${'●'.repeat(r.d)}${'○'.repeat(Math.max(0,4-r.d))}</small></div></div>
   <div class="fmrts">${advRew(r).map(([i,v,l,c])=>`<div class="fmrt">${advRi(i,c)}<span><b>${v}</b><small>${l}</small></span></div>`).join('')}</div>${s.lock?`<div class="fmlock"><b>🔒 ${s.lock}</b><div class="fmbar"><i style="width:${Math.min(1,s.lockP)*100}%"></i></div><small>${s.lockT}</small></div>`:s.t?`<div class="fmlock busy"><b><img class="fmgoi sm" src="img/feat/boat.png" alt=""> ${s.done?'돌아왔어요 · 보상을 받아요':'원정 중'}</b><small>${s.done?'위 원정대 칸에서 「보상 받기」를 눌러요':'이 장소는 원정대가 돌아오면 다시 보낼 수 있어요'}</small></div>`:advPicker(s)}</div>`;}
 function advRoute(){const pts=['start',...ADV_ORD.slice(0,4)].map(k=>ADV_ISL[k]),seg=[];
  for(let i=0;i<pts.length-1;i++){const [x0,y0]=pts[i],[x1,y1]=pts[i+1],ax=x0*1000,ay=y0*625,bx=x1*1000,by=y1*625,dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,r=95;
@@ -2638,15 +2647,15 @@ function advRoute(){const pts=['start',...ADV_ORD.slice(0,4)].map(k=>ADV_ISL[k])
 function advMarker(k,nx){const s=advSt(k),[x,y]=ADV_ISL[k],tr=k==='treasure',a=advS(),isN=k===nx;
  const c=s.lock?'lk':s.t?(s.done?'rt':'bz'):isN?'nx':s.clr?'cl':'op';
  const ic=s.t&&!s.done?`<img class="fmam-bt" src="img/feat/boat.png" alt="">${fzImg(s.t.fish[0]||{k:'carp'},'fmam-bf')}`:s.lock?'🔒':tr?'★':s.clr?'✓':s.stage;
- const sub=s.lock?s.lock:s.t?(s.done?'돌아왔어요!':`<span data-advtm="${s.t.id}">${advFmtM(s.t.t0+s.t.dur-Date.now())} 남음</span>`):(s.clr?`${s.clr}번 성공 · `:'')+advH(s.r.h);
+ const sub=s.lock?s.lock:s.t?(s.done?'돌아왔어요!':`<span data-advtm="${s.t.id}">${advFmtM(s.t.t0+s.t.dur-Date.now())} 남음</span>`):(s.clr?`${s.clr}번 성공 · `:'')+advH(advBaseH(s.r));
  return `<button type="button" class="fmam ${c} ${isN&&s.clr?'cl':''} ${tr?'tr':''} ${ADV.sel===k?'sel':''}" data-advn="${k}" style="left:${x*100}%;top:${(y+(tr?.115:.135))*100}%">${isN&&!ADV.sel?'<span class="fmam-nx">다음 추천!</span>':''}<i class="fmam-c">${ic}</i><span class="fmam-t"><b>${s.r.n}</b><small>${sub}</small>${tr?advPz(a.pieces):''}</span></button>`;}
 function advBoats(){const a=advS(),now=Date.now(),[hx,hy]=ADV_ISL.start;return a.teams.filter(t=>now>=t.t0+t.dur).slice(0,1).map(t=>`<span class="fmab done" style="left:${(hx+.10)*100}%;top:${(hy-.01)*100}%"><img src="img/feat/boat.png" alt="">${t.fish[0]?fzImg(t.fish[0],'ab'):''}<em>🎁 보상!</em></span>`).join('');}
 function advSheet(k){const R=advR(k),L=advPool();return `<div class="fmsheet ${ADV._sp?'still':''}" data-advsheet><div class="fmsheet-c"><div class="fmsheet-h"><b>물고기 고르기 <small>${ADV.party.length}/3</small></b><button type="button" class="fmx sm" data-advpickx aria-label="닫기">✕</button></div>
-  <small class="fmtip">${R.n}에 보낼 물고기를 3마리까지 골라요 · 숫자는 성공 확률이 오르는 만큼이에요</small>
-  <div class="fmpool fmpoolx">${L.map(f=>`<button type="button" class="fmpf ${ADV.party.includes(f.id)?'on':''}" data-advp="${f.id}">${fzImg(f)}<span>${sxH(fzName(f))}<small>${f.cm}cm</small></span><em>+${advFishPlus(R,f)}%</em></button>`).join('')||'<p class="muted small">어항에 보낼 물고기가 없어요</p>'}</div>
+  <small class="fmtip">${R.n}에 보낼 물고기를 3마리까지 골라요 · +%는 성공 확률, ⏱는 줄어드는 시간이에요 · 🔒 잠금 물고기도 보낼 수 있어요</small>
+  <div class="fmpool fmpoolx">${L.map(f=>`<button type="button" class="fmpf ${ADV.party.includes(f.id)?'on':''}" data-advp="${f.id}">${advLk(f)}${fzImg(f)}<span>${sxH(fzName(f))}<small>${f.cm}cm${advSpd(f)>0?` · ⏱−${advSpdPct(f)}%`:''}</small></span><em>+${advFishPlus(R,f)}%</em></button>`).join('')||'<p class="muted small">어항에 보낼 물고기가 없어요</p>'}</div>
   <button type="button" class="fmbtn go" data-advpickx>고르기 끝 (${ADV.party.length}/3)</button></div></div>`;}
 function advEvPop(){const a=advS(),t=a.teams.find(x=>x.id===ADV.evo);if(!t||!t.ev||t.ev.pick){ADV.evo=null;return '';}const r=advR(t.r);
- return `<div class="fmsheet fmevp ${ADV._ep?'still':''}"><div class="fmsheet-c"><div class="fmsheet-h"><b>⚡ ${r.n} 원정대 · 도중 이벤트</b><button type="button" class="fmx sm" data-adveox aria-label="닫기">✕</button></div><p class="fmevq">${sxH(t.ev.q)}</p><div class="fmevb"><button type="button" class="fmbtn go" data-adve="${t.id}|a">${sxH(t.ev.a)}</button><button type="button" class="fmbtn" data-adve="${t.id}|b">${sxH(t.ev.b)}</button></div><small class="fmtip">고르지 않으면 돌아올 때 아래쪽(안전하게)으로 정해져요</small></div></div>`;}
+ return `<div class="fmsheet fmevp ${ADV._ep?'still':''}"><div class="fmsheet-c"><div class="fmsheet-h"><b>⚡ ${r.n} 원정대 · 도중 이벤트</b><button type="button" class="fmx sm" data-adveox aria-label="닫기">✕</button></div><p class="fmevq">${sxH(t.ev.q)}</p><div class="fmevb"><button type="button" class="fmbtn go" data-adve="${t.id}|a">${sxH(advEvTxt(t.ev,'a'))}</button><button type="button" class="fmbtn" data-adve="${t.id}|b">${sxH(advEvTxt(t.ev,'b'))}</button></div><small class="fmtip">고르지 않으면 돌아올 때 아래쪽(안전하게)으로 정해져요</small></div></div>`;}
 function renderAdv(){const M=$('adv');if(!M)return;const a=advS();if(ADV.sel&&!advR(ADV.sel))ADV.sel=null;const nx=advNext(),k=ADV.sel||nx||'canyon',nxS=nx?advSt(nx).stage:1;
  const keep=M.querySelector('.fmpoolx'),sT=keep?keep.scrollTop:0,keepR=M.querySelector('.fmA-r'),rT=keepR?keepR.scrollTop:0,keepC=M.querySelector('.fmc'),cT=keepC?keepC.scrollTop:0;
  M.classList.add('fmon');
@@ -2672,9 +2681,11 @@ function renderAdv(){const M=$('adv');if(!M)return;const a=advS();if(ADV.sel&&!a
  on('[data-adve]',b=>{const [id,c]=b.dataset.adve.split('|'),t=a.teams.find(x=>x.id==id);ADV.evo=null;if(t&&t.ev&&!t.ev.pick){t.ev.pick=c;save();toast(c==='a'?'과감하게 가 보기로 했어요':'안전하게 가기로 했어요');}renderAdv();});
  on('[data-advgo]',b=>{const R=advR(b.dataset.advgo),n0=a.teams.length,f0=ADV.party.map(id=>S.tank.find(f=>f.id===id)).filter(Boolean)[0];advSend(R);
   if(advS().teams.length>n0){ADV.partyK=null;const c=$('adv').querySelector('.fmc');if(c){const fx=document.createElement('div');fx.className='fmfly';fx.innerHTML=`<img src="img/feat/boat.png" alt="">${f0?fzImg(f0,'ff'):''}<b>${R.n}(으)로 출발!</b>`;c.appendChild(fx);setTimeout(()=>fx.remove(),1700);}}});}
-const ADV_EV=[{q:'꽃잎 사이로 오래된 두루마리가 떠내려와요. 물살이 조금 세요.',a:'건져 본다 (70% 지도 조각 +1)',b:'꽃잎만 모아 간다 (촉매 +1 확정)'},{q:'반짝이는 조개 무리를 발견했어요.',a:'깊이 들어가 본다 (60% 상자 +1)',b:'근처만 둘러본다 (골드 +120 확정)'},{q:'길 잃은 아기 물고기를 만났어요.',a:'집까지 데려다 준다 (시간 +20%, 지도 조각 +1)',b:'길만 알려 준다 (골드 +80 확정)'}];
+const ADV_EV=[{q:'꽃잎 사이로 오래된 두루마리가 떠내려와요. 물살이 조금 세요.',a:'건져 본다 (70% 지도 조각 +1)',b:'꽃잎만 모아 간다 (촉매 +1 확정)'},{q:'반짝이는 조개 무리를 발견했어요.',a:'깊이 들어가 본다 (60% 상자 +1)',b:'근처만 둘러본다 (골드 +120 확정)'},{q:'길 잃은 아기 물고기를 만났어요.',a:'집까지 데려다 준다 (지도 조각 +1 확정)',b:'길만 알려 준다 (골드 +80 확정)'}];
+/* v212: 이미 떠난 원정대에는 예전 문구가 저장돼 있어서, 질문이 같으면 지금 문구로 보여 줘요 */
+const advEvTxt=(ev,c)=>{const e=ADV_EV.find(x=>x.q===ev.q);return (e&&e[c])||ev[c]||'';};
 function advSend(R){const a=advS();if(!R||advLocked(R)||a.teams.length>=3||a.teams.some(t=>t.r===R.k))return;const fish=ADV.party.map(id=>S.tank.find(f=>f.id===id)).filter(Boolean);if(!fish.length)return;
- const dur=R.h*advHour(),t0=Date.now(),e=ADV_EV[Math.random()*ADV_EV.length|0],id=(a.nid=(a.nid|0)+1);
+ const dur=advDurH(R,fish)*advHour(),t0=Date.now(),e=ADV_EV[Math.random()*ADV_EV.length|0],id=(a.nid=(a.nid|0)+1);
  S.tank=S.tank.filter(f=>!fish.includes(f));const team={id,r:R.k,fish,t0,dur,p:advProb(R,fish),ev:Object.assign({at:t0+dur*.45,pick:null},e)};a.teams.push(team);ADV.party=[];ADV.sel=null;save();hud();toast(`🧭 ${R.n}(으)로 원정대가 떠났어요`);renderAdv();}
 function advClaim(id){const a=advS(),t=a.teams.find(x=>x.id===id);if(!t||Date.now()<t.t0+t.dur)return;const R=advR(t.r),z=fzS(),ok=Math.random()<t.p,got=[];const rnd=(x,y)=>Math.round(x+Math.random()*(y-x));
  if(ok){const c=rnd(...R.coin);S.coins+=c;got.push(['coins',`골드 ${c.toLocaleString()}`]);if(R.piece&&Math.random()<R.piece&&a.pieces<6){a.pieces++;got.push(['piece','지도 조각 +1']);}
@@ -4329,7 +4340,7 @@ function adnA(done){let c=$('advA');if(c&&c._got)return;const t=done[0];if(c&&c.
   c._got=1;c.innerHTML=`<button type="button" class="adnx" aria-label="닫기">×</button><div class="adnt">${boat}<div><small class="${ok?'ok':'bad'}">🧭 ${ok?'원정 성공!':'원정 실패'}</small><b>${esc(R.n)}에서 돌아왔어요</b><small class="muted">물고기 ${t.fish.length}마리는 어항으로 돌아왔어요</small></div></div><div class="adng">${got}</div><div class="adnbt"><button type="button" class="acc" data-ok>확인</button>${adnDone().length?'<button type="button" data-next>다음 원정대</button>':''}</div>`;
   const off=()=>{clearTimeout(c._tm);c.remove();adnTick();};c.querySelector('.adnx').onclick=off;c.querySelector('[data-ok]').onclick=off;const nx=c.querySelector('[data-next]');if(nx)nx.onclick=off;c._tm=setTimeout(off,9000);};}
 function adnB(t,n){const R=advR(t.r);if(!R)return;let m=$('advB');if(!m){m=document.createElement('div');m.id='advB';m.className='modal adnB';document.body.appendChild(m);}
- m.innerHTML=`<div class="adnw"><div class="adns">${boat}<span class="adnk">🧭 원정대 귀환</span><i></i></div><div class="adnc"><h2>${esc(R.n)} 원정대가 돌아왔어요!</h2><p class="muted">성공 확률 ${Math.round((t.p||0)*100)}%${t.ev&&t.ev.pick?' · 도중 선택: '+esc((t.ev.pick==='a'?t.ev.a:t.ev.b)||''):''}${n>1?` · 돌아온 원정대 ${n}팀`:''}</p><div class="adnf">${t.fish.map(f=>fzImg(f)).join('')}</div><button type="button" class="acc big" data-get>보상 받기</button><button type="button" class="ghost" data-later>나중에 받기</button></div></div>`;
+ m.innerHTML=`<div class="adnw"><div class="adns">${boat}<span class="adnk">🧭 원정대 귀환</span><i></i></div><div class="adnc"><h2>${esc(R.n)} 원정대가 돌아왔어요!</h2><p class="muted">성공 확률 ${Math.round((t.p||0)*100)}%${t.ev&&t.ev.pick?' · 도중 선택: '+esc(advEvTxt(t.ev,t.ev.pick)||''):''}${n>1?` · 돌아온 원정대 ${n}팀`:''}</p><div class="adnf">${t.fish.map(f=>fzImg(f)).join('')}</div><button type="button" class="acc big" data-get>보상 받기</button><button type="button" class="ghost" data-later>나중에 받기</button></div></div>`;
  m.classList.add('show');m.querySelector('[data-get]').onclick=()=>{m.classList.remove('show');advClaim2(t.id);};m.querySelector('[data-later]').onclick=()=>m.classList.remove('show');}
 setInterval(adnTick,1000);
 
