@@ -3256,6 +3256,7 @@ let BGRUN=false,BGERR='';const nextF=()=>{if(!BGRUN)requestAnimationFrame(frame)
  const stop=()=>{if(!BGRUN)return;BGRUN=false;try{wk&&wk.postMessage(0);}catch(e){}const t0=performance.now();last=t0;setTimeout(()=>{if(FRAMEAT<t0)requestAnimationFrame(frame);},250);};
  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(started&&(S.autoFish||window.__nkPipOn))start();}else stop();});
  setInterval(()=>{if(document.hidden&&started&&(S.autoFish||window.__nkPipOn)&&!BGRUN)start();},5000);
+ /* v212: 탭을 숨긴 뒤에 작은 창이 열리면(크롬 자동) 5초 기다리지 않고 바로 이어서 진행 */window.__nkBgKick=()=>{try{if(document.hidden&&started&&(S.autoFish||window.__nkPipOn)&&!BGRUN)start();}catch(e){}};
  window.NK_BG={on:()=>BGRUN,tick,dbg:()=>({started,auto:!!S.autoFish,hidden:document.hidden,err:BGERR})};}
 // v61: 관리자 접속 시 성능 정보 (FPS · 드로우콜 · 삼각형 · 해상도) — 모바일 포함, 눌러서 접기/펴기
 let perfT=0,perfMin=999,perfAdm=0;
@@ -8101,10 +8102,16 @@ window.NK_GUIDE={start,stop,bookShow,listShow,cutShow,steps:()=>steps().map(s=>s
 //  입질 때는 작은 창이 주황색으로 반짝이고, 작은 창의 ⏸ 버튼을 누르면 챔질돼요 (작은 창은 버튼 말고는 누를 수 없어요)
 (function(){
 const PREV=window.NK_PREV||'';
+/* v212: 기기·브라우저 구분 — 휴대폰은 창을 내릴 때 자동으로 작은 창을 띄울 수 없어요(브라우저가 막음) */
+const UA=navigator.userAgent||'';const IOS=/iP(hone|ad|od)/.test(UA)||(/Macintosh/.test(UA)&&navigator.maxTouchPoints>1);const AND=/Android/i.test(UA);
+const MOB=IOS||AND||/Mobi/i.test(UA)||(()=>{try{return matchMedia('(pointer:coarse)').matches&&!matchMedia('(any-pointer:fine)').matches;}catch(e){return false;}})();
+/* 앱 안 브라우저(카톡·네이버·인스타 등): 아이폰에서는 작은 창 대신 전체 화면 영상이 뜰 수 있어서 쓰지 않아요 */
+const INAPP=/KAKAOTALK|NAVER\(inapp|DaumApps|Instagram|FBAN|FBAV|Line\/|everytimeApp|; wv\)/i.test(UA);
+const plog=t=>{try{const A=window.__nkPipLog=window.__nkPipLog||[];A.push(Math.round(performance.now())+' '+t);if(A.length>40)A.shift();}catch(e){}};
 LAB.push({k:'pipOn',n:'🖼 작은 창 (PiP)',d:'메뉴에 「작은 창」이 생겨요. 게임 화면이나 상태 카드를 다른 앱 위에 작게 띄워요. 창을 내려도 낚시가 이어지고, 입질 때 작은 창이 반짝여요 (작은 창의 ⏸ 버튼 = 챔질). 창 내리기 전에 「작은 창」 버튼을 눌러 주세요 (창 내릴 때 자동은 휴대폰·브라우저가 허락할 때만)',scope:'all',o:[['off','끄기 (기본)'],['on','켜기']]});
 /* v177: 아이폰 사파리는 webkitSetPresentationMode 로도 열 수 있어요 */
 const wkPip=()=>{try{const v=document.createElement('video');return typeof v.webkitSetPresentationMode==='function'&&(!v.webkitSupportsPresentationMode||v.webkitSupportsPresentationMode('picture-in-picture'));}catch(e){return false;}};
-const canPip=()=>!!document.pictureInPictureEnabled||wkPip();
+const canPip=()=>!(IOS&&INAPP)&&(!!document.pictureInPictureEnabled||wkPip());
 const on=()=>!PREV&&String(uiOpt('pipOn','off'))==='on'&&(canPip()||(()=>{try{return !!window.documentPictureInPicture;}catch(e){return false;}})());
 let selfPause=0,inflight=0;
 const W=480,H=270;let cv=null,cx=null,vid=null,act=false,blink=0;const IMG={};
@@ -8114,14 +8121,22 @@ const P=()=>{S.pip=S.pip||{mode:'game',auto:true,bite:true};return S.pip;};
 function ensure(){if(cv)return;cv=document.createElement('canvas');cv.width=W;cv.height=H;cx=cv.getContext('2d');makeVid();}
 /* v180: 작은 창이 한 번 닫히면 브라우저(특히 삼성 인터넷)에 따라 영상이 이상한 상태로 남아서 다음에 안 열렸어요 → 닫힐 때마다 새 영상으로 바꿔 끼워요 */
 function makeVid(){if(vid){try{selfPause=1;vid.pause();selfPause=0;vid.srcObject=null;vid.remove();}catch(e){selfPause=0;}}
- vid=document.createElement('video');vid.muted=true;vid.playsInline=true;vid.setAttribute('playsinline','');vid.id='pipVid';vid.srcObject=cv.captureStream();document.body.appendChild(vid);
- vid.addEventListener('enterpictureinpicture',()=>{act=true;window.__nkPipOn=1;inflight=0;});const me0=vid;vid.addEventListener('leavepictureinpicture',()=>{act=false;window.__nkPipOn=0;me0._used=1;
+ vid=document.createElement('video');vid.muted=true;vid.playsInline=true;vid.setAttribute('playsinline','');vid.id='pipVid';/* v212: 숨은 영상이 브라우저 판단으로 따로 작은 창·전체 화면이 되지 않게 — 우리가 열 때만 잠깐 풀어요 */try{vid.disablePictureInPicture=true;vid.setAttribute('disablepictureinpicture','');}catch(e){}vid.srcObject=cv.captureStream();document.body.appendChild(vid);
+ vid.addEventListener('enterpictureinpicture',()=>{act=true;window.__nkPipOn=1;inflight=0;plog('enter video');try{window.__nkBgKick&&__nkBgKick();}catch(e){}});const me0=vid;vid.addEventListener('leavepictureinpicture',()=>{act=false;window.__nkPipOn=0;me0._used=1;
   /* 닫힘 신호가 늦게 올 때가 있어요 → 그 사이 새로 여는 중이면 영상을 바꾸지 않아요 (열리는 중인 영상을 지워서 실패하던 문제) */
   setTimeout(()=>{if(inflight||act||me0!==vid)return;makeVid();if(on()&&started){draw();vid.play().catch(()=>{});armAuto();}},120);});
  vid.addEventListener('webkitpresentationmodechanged',()=>{const a=vid.webkitPresentationMode==='picture-in-picture';act=a;window.__nkPipOn=a?1:0;if(!a&&!P().auto)stopVid();});
  /* v177: 소리 없는 영상은 크롬이 mediaSession 버튼을 안 보내요 → 작은 창의 ⏸ 를 누르면 영상이 멈추는 걸 보고 챔질한 뒤 다시 재생해요 */
  vid.addEventListener('pause',()=>{const v=vid;if(selfPause||!act||(document.pictureInPictureElement!==v&&v.webkitPresentationMode!=='picture-in-picture'))return;reel();setTimeout(()=>{try{vid.play().catch(()=>{});}catch(e){}},60);});
- try{if('mediaSession' in navigator){navigator.mediaSession.setActionHandler('pause',()=>{reel();setTimeout(()=>{try{vid.play();}catch(e){}},50);});navigator.mediaSession.setActionHandler('play',()=>{reel();try{vid.play();}catch(e){}});try{navigator.mediaSession.setActionHandler('enterpictureinpicture',()=>openPip());}catch(e){}}}catch(e){}}
+ msInit();}
+/* v212: 크롬·엣지(PC)는 소리가 나는 동안 다른 탭으로 옮기면 브라우저가 이 함수를 불러 줘요 — 이때만 사용자 동작 없이 작은 창을 열 수 있어요.
+   예전엔 창을 숨긴 「뒤에」 직접 열어 봤는데, 안드로이드는 이때 전체 화면 영상 창(이상한 창)을 먼저 띄워서 한 번 더 내려야 작은 창이 됐어요 → 그 시도를 없앴어요 */
+let msOk=null,autoHit=0;
+function msInit(){if(msOk!==null)return msOk;msOk=false;try{if(!('mediaSession' in navigator))return false;const ms=navigator.mediaSession;
+  ms.setActionHandler('pause',()=>{reel();setTimeout(()=>{try{vid&&vid.play();}catch(e){}},50);});ms.setActionHandler('play',()=>{reel();try{vid&&vid.play();}catch(e){}});
+  try{ms.setActionHandler('enterpictureinpicture',d=>{const r=(d&&d.reason)||'';plog('auto ask '+r);if(!on()||!started||act||dpw)return;if(r!=='useraction'&&!P().auto){plog('auto off');return;}autoHit=1;openPip();});msOk=true;}catch(e){msOk=false;}}catch(e){}return msOk;}
+/* 창을 내려도 자동으로 열리는 곳: PC 크롬·엣지 (다른 탭으로 옮길 때) */
+const autoKind=()=>MOB?'mob':(msInit()&&(window.documentPictureInPicture||document.pictureInPictureEnabled))?'pc':'none';
 function stopVid(){try{if(vid){selfPause=1;vid.pause();selfPause=0;}}catch(e){selfPause=0;}}
 function reel(){try{if(typeof fishing!=='undefined'&&fishing&&fishing.state==='bite')fishAction();}catch(e){}}
 function rr(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath();}
@@ -8159,30 +8174,31 @@ async function openDocPip(){ensure();try{const w=await documentPictureInPicture.
   d.title='피쉬코지 작은 창';d.body.style.cssText='margin:0;background:#1d1a22;overflow:hidden;cursor:pointer;user-select:none';
   cv.width=W*2;cv.height=H*2;cx.setTransform(2,0,0,2,0,0);cv.style.cssText='width:100vw;height:100vh;object-fit:contain;display:block';d.body.appendChild(cv);
   const tip=d.createElement('div');tip.textContent='입질 때 화면을 누르면 챔질';tip.style.cssText='position:fixed;right:8px;bottom:6px;font:700 11px system-ui,sans-serif;color:#fff;opacity:.55;pointer-events:none;white-space:nowrap';d.body.appendChild(tip);
-  d.body.addEventListener('click',()=>reel());act=true;window.__nkPipOn=1;draw();
-  const end=()=>{if(dpw!==w)return;dpw=null;act=false;window.__nkPipOn=0;clearInterval(iv);try{cv.remove();cv.style.cssText='';cv.width=W;cv.height=H;cx.setTransform(1,0,0,1,0,0);}catch(e){}};w.addEventListener('pagehide',end);const iv=setInterval(()=>{if(w.closed)end();},500);return true;}catch(e){dpw=null;return false;}}
+  d.body.addEventListener('click',()=>reel());act=true;window.__nkPipOn=1;draw();plog('open doc');try{window.__nkBgKick&&__nkBgKick();}catch(e){}
+  const end=()=>{if(dpw!==w)return;dpw=null;act=false;window.__nkPipOn=0;clearInterval(iv);try{cv.remove();cv.style.cssText='';cv.width=W;cv.height=H;cx.setTransform(1,0,0,1,0,0);}catch(e){}};w.addEventListener('pagehide',end);const iv=setInterval(()=>{if(w.closed)end();},500);return true;}catch(e){dpw=null;plog('doc fail '+(e&&e.name));return false;}}
 function openPip(){if(!on()&&!dpOk()){toast('이 브라우저는 작은 창을 지원하지 않아요',2200);return;}if(dpw)return;if(dpOk()&&P().win!==false){openDocPip().then(ok=>{if(!ok&&on())vidPip();});return;}vidPip();}
 function vidPip(){ensure();if(vid._used&&!inflight&&!act)makeVid();draw();try{vid.play().catch(()=>{});}catch(e){}
- const go=()=>{try{if(document.pictureInPictureEnabled&&vid.requestPictureInPicture)return vid.requestPictureInPicture();vid.webkitSetPresentationMode('picture-in-picture');return Promise.resolve();}catch(e){return Promise.reject(e);}};
+ const go=()=>{try{try{vid.disablePictureInPicture=false;vid.removeAttribute('disablepictureinpicture');}catch(_d){}plog('open video');if(document.pictureInPictureEnabled&&vid.requestPictureInPicture)return vid.requestPictureInPicture();vid.webkitSetPresentationMode('picture-in-picture');return Promise.resolve();}catch(e){return Promise.reject(e);}};
  /* v180: 막 닫힌 직후엔 브라우저가 「아직 준비 안 됨」으로 거절할 때가 있어요 → 0.3초 뒤 3번까지 다시 (버튼 누른 직후라 허락 시간 안이에요) */
  const run=(n=0)=>{if(act||(inflight&&!n))return;inflight=1;go().then(()=>{inflight=0;},e=>{const nm=String(e&&e.name);if(nm==='InvalidStateError'&&n<3){setTimeout(()=>{try{draw();vid.play().catch(()=>{});}catch(x){}run(n+1);},300);return;}inflight=0;toast(pipErr(e),2600);});};
  if(vid.readyState>=1)run();else{let done=0;const f=()=>{if(done)return;done=1;run();};vid.addEventListener('loadedmetadata',f,{once:true});vid.addEventListener('loadeddata',f,{once:true});setTimeout(f,2500);}}
 function closePip(){if(dpw){try{dpw.close();}catch(e){}return;}try{if(document.pictureInPictureElement)document.exitPictureInPicture();else if(vid&&vid.webkitPresentationMode==='picture-in-picture')vid.webkitSetPresentationMode('inline');}catch(e){}}
 // 창 내리면 자동: 미리 작은 동영상을 재생해 두고(아이폰 사파리 autopictureinpicture), 크롬은 숨겨질 때 열어 봐요
-function armAuto(){if(!on()||!started){if(vid&&!act){vid.autoPictureInPicture=false;stopVid();}return;}prime();const a=!!P().auto;vid.autoPictureInPicture=a;if(a)vid.setAttribute('autopictureinpicture','');else vid.removeAttribute('autopictureinpicture');}
+function armAuto(){if(!on()||!started){if(vid&&!act){vid.autoPictureInPicture=false;stopVid();}return;}prime();msInit();}
 setInterval(armAuto,3000);
-/* 창을 내릴 때 자동으로 열어 봐요. 안드로이드 크롬은 사용자 동작 없이 여는 걸 막아서 대부분 실패해요 →
-   돌아왔을 때 한 번만 「창 내리기 전에 작은 창 버튼」을 안내해요 */
-/* v180: 한 번만 시도해요 (두 번 겹쳐 열리면 삼성 인터넷에서 빈 화면이 먼저 뜨던 문제) */
-let autoMiss=0;document.addEventListener('visibilitychange',()=>{if(document.hidden){if(on()&&started&&P().auto&&vid&&!act&&!inflight&&!document.pictureInPictureElement&&vid.readyState>=1){draw();inflight=1;try{const p=vid.requestPictureInPicture?vid.requestPictureInPicture():null;if(p)p.then(()=>{inflight=0;},()=>{inflight=0;autoMiss=1;});else inflight=0;}catch(e){inflight=0;autoMiss=1;}}}
- else if(autoMiss&&!act){autoMiss=0;if(!S.pipMissTip){S.pipMissTip=1;save();toast('🖼 이 휴대폰은 창을 내릴 때 작은 창이 자동으로 안 떠요 · 내리기 전에 메뉴의 「작은 창」을 눌러 주세요',4200);}}});
+/* v212: 창을 숨긴 뒤에 직접 열지 않아요 (안드로이드: 이상한 전체 화면 창 → 한 번 더 내려야 작은 창이 되던 원인).
+   자동은 PC 크롬·엣지가 불러 줄 때만(위 msInit). 자동이 안 됐으면 돌아왔을 때 기기별 안내를 한 번만 보여요 */
+let hidAt=0;document.addEventListener('visibilitychange',()=>{if(document.hidden){hidAt=Date.now();autoHit=0;if(on()&&started&&!act)plog('hidden');return;}
+ const away=hidAt?Date.now()-hidAt:0;hidAt=0;if(!on()||!started||autoHit||act||away<1500||!P().auto)return;const k=autoKind(),key='pipTip_'+k;if(S[key])return;
+ const T={mob:'🖼 휴대폰 브라우저는 창을 내릴 때 작은 창을 자동으로 못 띄워요 · 내리기 전에 메뉴 › 「작은 창」을 눌러 주세요',pc:'🖼 PC 크롬·엣지는 소리가 켜진 채로 다른 탭으로 옮길 때 자동으로 떠요 (처음엔 주소창의 「허용」) · 창을 최소화할 때는 미리 「작은 창」을 눌러 주세요',none:'🖼 이 브라우저는 작은 창을 자동으로 못 띄워요 · 메뉴 › 「작은 창」 버튼을 눌러 주세요'};
+ S[key]=1;try{save();}catch(e){}setTimeout(()=>toast(T[k],5200),600);});
 // 설정 창
 function dlg(){let m=$('pipDlg');if(!m){m=document.createElement('div');m.id='pipDlg';m.className='modal';document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)closeM('pipDlg');});}const p=P();
  m.innerHTML=`<div class="card pipc"><button type="button" class="x" data-x aria-label="닫기">×</button><h3>작은 창 (PiP)</h3><button type="button" class="acc pipgo" data-go>${act?'작은 창 닫기':'지금 작은 창으로 보기'}</button>
- <div class="pipl"><div class="pipr"><div><b>창 내리면 자동으로 작은 창</b><small>휴대폰이 허락할 때만 (아래 안내)</small></div><button type="button" class="tg ${p.auto?'on':''}" data-t="auto" aria-label="창 내리면 자동"><i></i></button></div>
+ <div class="pipl">${autoKind()==='pc'?`<div class="pipr"><div><b>다른 탭으로 옮기면 자동으로 작은 창</b><small>PC 크롬·엣지 · 소리가 켜져 있을 때 · 처음 한 번 「허용」</small></div><button type="button" class="tg ${p.auto?'on':''}" data-t="auto" aria-label="다른 탭으로 옮기면 자동"><i></i></button></div>`:''}
  <div class="pipr col"><b>작은 창에 보일 것</b><div class="pipm"><button type="button" class="${p.mode==='game'?'on':''}" data-m="game">게임 화면</button><button type="button" class="${p.mode==='card'?'on':''}" data-m="card">상태 카드 (배터리 절약)</button></div></div>
  ${dpOk()?`<div class="pipr"><div><b>PC: 새 창으로 띄우기</b><small>자유롭게 옮기고 크기를 바꿔요 · 화면을 누르면 챔질</small></div><button type="button" class="tg ${p.win!==false?'on':''}" data-t="win" aria-label="새 창으로"><i></i></button></div>`:''}<div class="pipr"><div><b>입질 때 작은 창 반짝이기</b><small>손으로 낚시할 때 · 작은 창 가운데 버튼 = 챔질</small></div><button type="button" class="tg ${p.bite?'on':''}" data-t="bite" aria-label="입질 반짝이기"><i></i></button></div></div>
- <div class="pipn"><b>휴대폰마다 달라요</b><span>안드로이드 크롬: 창 내리기 <b>전에</b> 위 버튼을 눌러 주세요 (자동은 크롬이 막는 경우가 많아요)</span><span>아이폰 사파리: 위 버튼을 한 번 눌러야 떠요</span><span>PC 크롬·엣지: 새 창으로 떠서 다른 창 위에 있어요 · 끌어서 옮기고 모서리로 크기 조절</span><span>휴대폰: 작은 창을 손가락으로 끌어서 옮길 수 있어요</span></div></div>`;
+ <div class="pipn"><b>브라우저마다 달라요</b>${MOB?`<span>휴대폰: 창을 내리기 <b>전에</b> 위 버튼을 눌러 주세요 · 버튼을 누르면 바로 작은 창이 되고, 그대로 홈으로 나가면 돼요 (휴대폰 브라우저는 창을 내릴 때 자동으로 못 띄워요)</span><span>작은 창은 손가락으로 끌어서 옮길 수 있어요</span><span>카카오톡·네이버 앱 안에서는 안 될 수 있어요 · 크롬·사파리·삼성 인터넷으로 열어 주세요</span>`:`<span>PC 크롬·엣지: 새 창으로 떠서 다른 창 위에 있어요 · 끌어서 옮기고 모서리로 크기 조절</span><span>창을 최소화하거나 다른 프로그램으로 옮길 때는 자동으로 안 떠요 · 미리 위 버튼을 눌러 두면 계속 떠 있어요</span><span>사파리: 위 버튼으로 열 수 있어요 · 파이어폭스는 지원하지 않아요</span>`}</div></div>`;
  m.querySelector('[data-x]').onclick=()=>closeM('pipDlg');m.querySelector('[data-go]').onclick=()=>{if(act)closePip();else{closeM('pipDlg');openPip();}};
  m.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const k=b.dataset.t;p[k]=k==='win'?(p.win===false):!p[k];save();dlg();});m.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{p.mode=b.dataset.m;save();dlg();});if(!m.classList.contains('show'))openM('pipDlg');}
 function btn(){const sy=$('mSys');if(!sy)return;let b=$('bPip');if(!on()){if(b)b.remove();return;}if(!b){const tpl=$('bTime')||$('bBoard');b=document.createElement('button');b.id='bPip';b.type='button';b.innerHTML='<b class="mi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="7" height="6" rx="1" fill="currentColor"/></svg></b><small class="ml">작은 창</small>';b.onclick=e=>{e.stopPropagation();document.body.classList.remove('menu-open');dlg();};if(tpl)b.className=tpl.className.replace(/\bon\b/,'');}if(!sy.contains(b))sy.appendChild(b);}
