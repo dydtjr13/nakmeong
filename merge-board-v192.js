@@ -11,6 +11,7 @@
 //  · 켜고 끄기: 관리자 › 테스트 기능 「🪵 나무 작업대 합성판」(mergeBoard: v192부터 off 기본(예전 3마리 합성) / on 새 합성판 — 정식 적용 때 기본값만 on 으로)
 //              「🧺 합성판 정리 버튼」(mbTidy: on 기본 / off) — 정리 버튼은 이 한 곳에서 빼요
 //  · v210: 아래 버튼 줄에 「↩ 모두 빼기」 — 판의 물고기를 한 번에 보유 목록으로 (clearAll · 빈 판이면 꺼짐)
+//  · v212: 「💰 판매·방생」 → 「💰 판매」 (합성판에서는 방생 없음 · 판매 모드는 [판에서 빼기][팔기][닫기])
 //  · 연결 지점: NK_MB.adWatched() 광고 1회 끝 · NK_MB.setSupporter(true|false) 후원자 판정 · NK_MB.onCatch() 낚시 1회
 // ─────────────────────────────────────────────────────────────
 (function(){'use strict';
@@ -210,7 +211,7 @@ function drawLv(){const e=$('mbLvP');if(!e)return;if(!lvOn()){e.hidden=true;retu
  const h=`🪵 판 Lv.${L} <span>${N}×${N}</span>${nx?`<em>${(N+1)}×${(N+1)}까지 ${Math.max(0,nx-t).toLocaleString()}회</em>`:'<em>최대</em>'}`;if(e._h!==h){e.innerHTML=h;e._h=h;}e.onclick=()=>infoOpen();}
 function drawBB(){const bb=$('mbBB');let h;if(ST.sell){const n=ST.sel.size,P=ST.P||pool();let co=0;ST.sel.forEach(id=>{const f=P.get(id);if(f&&!f.lock)try{co+=sellP(f);}catch(e){}});
   h=`<button type="button" class="mb1" data-bb="back">↩ 판에서 빼기${n?' '+n:''}</button><button type="button" class="mb3" data-bb="sellgo" ${n?'':'disabled'}>💰 ${n?n+'마리 팔기 · '+co.toLocaleString():'고르면 팔기'}</button><button type="button" class="mb0" data-bb="done">닫기</button>`;}
- else{/* v210: 「모두 빼기」 판의 물고기를 한 번에 보유 목록으로 (빈 판이면 꺼져요) */const any=mbS().cells.some(x=>x!=null);h=`${tidyOn()?'<button type="button" class="mb1" data-bb="tidy">🧺 정리</button>':''}<button type="button" class="mb2" data-bb="clear" ${any?'':'disabled'}>↩ 모두 빼기</button><button type="button" class="mb3" data-bb="sell">💰 판매·방생</button>`;}
+ else{/* v210: 「모두 빼기」 판의 물고기를 한 번에 보유 목록으로 (빈 판이면 꺼져요) */const any=mbS().cells.some(x=>x!=null);h=`${tidyOn()?'<button type="button" class="mb1" data-bb="tidy">🧺 정리</button>':''}<button type="button" class="mb2" data-bb="clear" ${any?'':'disabled'}>↩ 모두 빼기</button><button type="button" class="mb3" data-bb="sell">💰 판매</button>`;/* v212: 방생은 빼고 판매만 (버튼 이름 「💰 판매」) */}
  if(bb._h!==h){bb.innerHTML=h;bb._h=h;bb.querySelectorAll('[data-bb]').forEach(x=>x.onclick=()=>bbAct(x.dataset.bb));}bb.classList.toggle('sellm',ST.sell);}
 // ── 정보 창 ──
 function adOk(){return opt('afPay','off')!=='off';}/* 광고는 아직 시험 화면이라, 자동 낚시 광고 창(afPay)을 켠 경우에만 보여요 */
