@@ -10,6 +10,7 @@
 //  · 물고기 데이터는 기존 그대로(S.tank 의 f.st 0~4 = ★1~★5, f.vr = 변이). 판에는 물고기 id만 적어 둬요 (S.mb.cells)
 //  · 켜고 끄기: 관리자 › 테스트 기능 「🪵 나무 작업대 합성판」(mergeBoard: v192부터 off 기본(예전 3마리 합성) / on 새 합성판 — 정식 적용 때 기본값만 on 으로)
 //              「🧺 합성판 정리 버튼」(mbTidy: on 기본 / off) — 정리 버튼은 이 한 곳에서 빼요
+//  · v210: 아래 버튼 줄에 「↩ 모두 빼기」 — 판의 물고기를 한 번에 보유 목록으로 (clearAll · 빈 판이면 꺼짐)
 //  · 연결 지점: NK_MB.adWatched() 광고 1회 끝 · NK_MB.setSupporter(true|false) 후원자 판정 · NK_MB.onCatch() 낚시 1회
 // ─────────────────────────────────────────────────────────────
 (function(){'use strict';
@@ -209,7 +210,7 @@ function drawLv(){const e=$('mbLvP');if(!e)return;if(!lvOn()){e.hidden=true;retu
  const h=`🪵 판 Lv.${L} <span>${N}×${N}</span>${nx?`<em>${(N+1)}×${(N+1)}까지 ${Math.max(0,nx-t).toLocaleString()}회</em>`:'<em>최대</em>'}`;if(e._h!==h){e.innerHTML=h;e._h=h;}e.onclick=()=>infoOpen();}
 function drawBB(){const bb=$('mbBB');let h;if(ST.sell){const n=ST.sel.size,P=ST.P||pool();let co=0;ST.sel.forEach(id=>{const f=P.get(id);if(f&&!f.lock)try{co+=sellP(f);}catch(e){}});
   h=`<button type="button" class="mb1" data-bb="back">↩ 판에서 빼기${n?' '+n:''}</button><button type="button" class="mb3" data-bb="sellgo" ${n?'':'disabled'}>💰 ${n?n+'마리 팔기 · '+co.toLocaleString():'고르면 팔기'}</button><button type="button" class="mb0" data-bb="done">닫기</button>`;}
- else h=`${tidyOn()?'<button type="button" class="mb1" data-bb="tidy">🧺 정리</button>':''}<button type="button" class="mb3" data-bb="sell">💰 판매·방생</button>`;
+ else{/* v210: 「모두 빼기」 판의 물고기를 한 번에 보유 목록으로 (빈 판이면 꺼져요) */const any=mbS().cells.some(x=>x!=null);h=`${tidyOn()?'<button type="button" class="mb1" data-bb="tidy">🧺 정리</button>':''}<button type="button" class="mb2" data-bb="clear" ${any?'':'disabled'}>↩ 모두 빼기</button><button type="button" class="mb3" data-bb="sell">💰 판매·방생</button>`;}
  if(bb._h!==h){bb.innerHTML=h;bb._h=h;bb.querySelectorAll('[data-bb]').forEach(x=>x.onclick=()=>bbAct(x.dataset.bb));}bb.classList.toggle('sellm',ST.sell);}
 // ── 정보 창 ──
 function adOk(){return opt('afPay','off')!=='off';}/* 광고는 아직 시험 화면이라, 자동 낚시 광고 창(afPay)을 켠 경우에만 보여요 */
@@ -267,7 +268,7 @@ const jo=w=>{const c=String(w||'').charCodeAt(String(w||'').length-1)-0xAC00;ret
 function pairOnBoard(){const b=mbS(),P=ST.P||pool(),m={};for(let i=0;i<b.cells.length;i++){const id=b.cells[i];if(id==null||ST.hold.has(i)||ST.ov[i])continue;const f=P.get(id);if(!f)continue;const t=tierOf(f);if(t<0||t>=9)continue;const k=f.k+'|'+t;if(m[k]!=null)return [m[k],i];m[k]=i;}return null;}
 function trayCan(){/* v195: 판이 꽉 차면 보유 물고기는 넣을 수 없으니 합칠 수 있는 걸로 치지 않아요 */if(!mbS().cells.some(x=>x==null))return null;const L=ST.trayA||ST.tray||[];if(L.some(g=>g.list.length>=2))return L.find(g=>g.list.length>=2);const b=mbS(),P=ST.P||pool(),on=new Set();b.cells.forEach(id=>{const f=id!=null&&P.get(id);if(f)on.add(f.k+'|'+tierOf(f));});return L.find(g=>on.has(g.k+'|'+g.t))||null;}
 function poke(){ST.idle=performance.now();if(ST.hintP){ST.hintP.forEach(i=>{const e=cellEl(i);if(e)e.classList.remove('mbhint');});ST.hintP=null;}document.querySelectorAll('#mbd .mbti.mbhint').forEach(e=>e.classList.remove('mbhint'));}
-function noneAlert(full){if($('mbNone'))return;const d=document.createElement('div');d.id='mbNone';d.className='mbnone';const tip=IMPACT()?'물고기를 꾹 누르면':'물고기를 오른쪽 클릭하면';const body=full?`<div class="mbni">🧺</div><b>판이 가득 차서 합칠 게 없어요</b><p>${tip} 보유 물고기로 돌아가요<br>판매·방생으로 자리를 비워도 돼요</p>`:`<div class="mbni">🎣</div><b>지금은 합성할 물고기가 없어요</b><p>같은 물고기·같은 별 2마리가 있어야 합성돼요<br>낚시로 물고기를 더 모아 와요</p>`;d.innerHTML=`<div class="mbnc">${body}<button type="button" class="mb3">확인</button></div>`;d.addEventListener('pointerdown',e=>{e.stopPropagation();});d.querySelector('button').onclick=()=>{d.remove();poke();};$('mbd').appendChild(d);play('deny');}
+function noneAlert(full){if($('mbNone'))return;const d=document.createElement('div');d.id='mbNone';d.className='mbnone';const tip=IMPACT()?'물고기를 꾹 누르면':'물고기를 오른쪽 클릭하면';const body=full?`<div class="mbni">🧺</div><b>판이 가득 차서 합칠 게 없어요</b><p>${tip} 보유 물고기로 돌아가요<br>「모두 빼기」로 판을 비워도 돼요</p>`:`<div class="mbni">🎣</div><b>지금은 합성할 물고기가 없어요</b><p>같은 물고기·같은 별 2마리가 있어야 합성돼요<br>낚시로 물고기를 더 모아 와요</p>`;d.innerHTML=`<div class="mbnc">${body}<button type="button" class="mb3">확인</button></div>`;d.addEventListener('pointerdown',e=>{e.stopPropagation();});d.querySelector('button').onclick=()=>{d.remove();poke();};$('mbd').appendChild(d);play('deny');}
 setInterval(()=>{try{if(!ST.open||ST.drag||ST.info||ST.sell||ST.flies.length||ST.ev.length||$('mbNone'))return;const idle=performance.now()-(ST.idle||0);
  if(idle>1200){const pr=pairOnBoard(),tc=pr?null:trayCan(),sig=mbS().cells.join(',')+'#'+(ST.trayA||ST.tray||[]).map(g=>g.k+g.t+'x'+g.list.length).join(',');
   if(!pr&&!tc){if(ST.noneSig!==sig){ST.noneSig=sig;noneAlert(!mbS().cells.some(x=>x==null));}return;}ST.noneSig=null;
@@ -316,6 +317,7 @@ function bbAct(k){const b=mbS(),P=ST.P||pool();
   const cnt={},top={};ids.forEach(id=>{const f=P.get(id);cnt[f.k]=(cnt[f.k]|0)+1;top[f.k]=Math.max(top[f.k]|0,tierOf(f));});
   ids.sort((x,y)=>{const a=P.get(x),c=P.get(y);return top[c.k]-top[a.k]||cnt[c.k]-cnt[a.k]||fnm(a.k).localeCompare(fnm(c.k),'ko')||tierOf(c)-tierOf(a);});
   b.cells=b.cells.map((_,i)=>ids[i]!=null?ids[i]:null);try{save();}catch(e){}play('place');draw();bubble('같은 물고기·단계끼리 모았어요');return;}
+ if(k==='clear'){clearAll();return;}
  if(k==='sell'){ST.sell=true;ST.sel.clear();draw();bubble('팔거나 뺄 물고기를 눌러 골라요',1800);return;}
  if(k==='done'){ST.sell=false;ST.sel.clear();draw();return;}
  if(k==='back'){if(!ST.sel.size){bubble('뺄 물고기를 눌러 골라요');return;}b.cells=b.cells.map(id=>ST.sel.has(id)?null:id);const n=ST.sel.size;ST.sel.clear();try{save();}catch(e){}draw();bubble(`${n}마리를 보유 목록으로 돌려놨어요`);return;}
@@ -324,6 +326,16 @@ function bbAct(k){const b=mbS(),P=ST.P||pool();
   const go=()=>{const S=gS();let tot=0;ok.forEach(f=>{let pz=0;try{pz=sellP(f);}catch(e){}tot+=pz;S.coins+=pz;S.earned=(S.earned||0)+pz;try{B().ilog('sell','fish',f,pz);}catch(e){}});try{fzRemove(ok.map(f=>f.id),null);}catch(e){}try{const tv=gT();ok.forEach(f=>tv&&tv.removeFish&&tv.removeFish(f.id));}catch(e){}
    B().ms('sell',ok.length);ST.sel.clear();try{save();hud();}catch(e){}B().coin();draw();bubble(`🪙 ${ok.length}마리 팔아서 ${tot.toLocaleString()}골드${lk.length?` · 잠긴 ${lk.length}마리는 남겼어요`:''}`,2000);};
   try{confirmBox(`<h3>💰 물고기 팔기</h3><p>${ok.length}마리를 <b>🪙 ${co.toLocaleString()}</b>골드에 팔아요.${lk.length?`<br><small>잠긴 ${lk.length}마리는 팔지 않아요</small>`:''}</p>`,go);const cf=$('confirm');if(cf)cf.style.zIndex=95;}catch(e){go();}return;}}
+/* v210: 「모두 빼기」 — 판의 물고기를 모두 보유 목록으로 돌려놔요. 물고기는 원래 어항(어항 3개)에 그대로 있고 판에 적힌 id만 지워요 (방생·판매 없음)
+   합성 연출 중(ST.ov)·날아가는 중(ST.flies/hold)·끄는 중(ST.drag)이어도 먼저 연출을 끝낸 다음 비워요 */
+function clearAll(){if(ST.sell)return;const b=mbS();
+ Object.keys(ST.ov).forEach(i=>{try{settle(+i);}catch(e){}});ST.ov={};
+ if(ST.drag){clearTimeout(ST.lp);const d=ST.drag;ST.drag=null;const D=$('mbDrag');if(D)D.style.display='none';const fe=cellEl(d.from);if(fe)fe.style.opacity='';try{hint(d.from,false);}catch(e){}}
+ ST.flies=[];ST.hold.clear();const fl=$('mbFly');if(fl){fl.innerHTML='';fl._h='';}
+ const P=ST.P||pool(),idx=[];b.cells.forEach((id,i)=>{if(id!=null)idx.push(i);});if(!idx.length){bubble('판에 물고기가 없어요');draw();return;}
+ const t=document.querySelector('#mbd .mbstrip')||$('mbBB'),q=t&&t.getBoundingClientRect(),cs=ST.cs,gap=Math.max(8,Math.min(30,360/idx.length));
+ if(q)idx.forEach((i,n)=>{const f=P.get(b.cells[i]),c=cellEl(i);if(!f||!c)return;const r=c.getBoundingClientRect(),el=document.createElement('div');el.className='mbcell mbret';el.style.cssText=`position:fixed;left:0;top:0;width:${cs}px;height:${cs}px;--cs:${cs}px;z-index:60;pointer-events:none;transform:translate(${r.left}px,${r.top}px);transition:transform .34s cubic-bezier(.5,0,.6,1) ${n*gap}ms,opacity .34s ${n*gap}ms`;el.innerHTML=itemHTML(f.k,tierOf(f));$('mbd').appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(()=>{el.style.transform=`translate(${q.left+q.width/2-cs/2}px,${q.top+q.height/2-cs/2}px) scale(.55)`;el.style.opacity='.2';}));setTimeout(()=>el.remove(),400+n*gap);});
+ const n=idx.length;b.cells=b.cells.map(()=>null);poke();try{save();}catch(e){}play('whoosh');draw();bubble(`${n}마리를 모두 보유 목록으로 돌려놨어요`,1500);}
 // ── 연출 루프 ──
 function evDone(e){if(e.done)return;e.done=true;delete ST.ov[e.to];draw();play('pop',e.r,Math.min(e.combo-1,7));if(IMPACT()&&navigator.vibrate)try{navigator.vibrate(e.I.vib);}catch(_){}if(!IMPACT())pcHit(e);}
 /* v205: PC 타격감 — 화면 전체는 흔들지 않아요(예전 요청). 대신 ① 나무판만 짧게 흔들림 ② 둘레 8칸이 바깥으로 튕겼다 돌아옴 ③ 판 테두리 번쩍 ④ 낮은 「쿵」 소리 (단계가 높을수록 세게) */
