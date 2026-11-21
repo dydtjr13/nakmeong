@@ -925,3 +925,14 @@ test("v205 합성판 무지개 공지: mbr 메시지", () => {
   assert.equal(_pc6(JSON.stringify({ t: "mbr", k: "" })), null);
   assert.equal(_pc6(JSON.stringify({ t: "mbr" })), null);
 });
+
+// v206: 👑 슈퍼 초월급 공지(st)·축하(stc) — parseClient 가 걸러서 아무에게도 안 뜨던 문제
+test("v206 슈퍼 초월급 공지·축하: st / stc 메시지가 서버까지 가요", () => {
+  assert.deepEqual(_pc6(JSON.stringify({ t: "st", k: "st_whale", cm: 812.34 })), { t: "st", k: "st_whale", cm: 812.3 });
+  assert.deepEqual(_pc6(JSON.stringify({ t: "st", k: "st_carp", cm: 120, test: 1 })), { t: "st", k: "st_carp", cm: 120, test: 1 });
+  assert.equal(_pc6(JSON.stringify({ t: "st", k: "carp", cm: 30 })), null);
+  assert.equal(_pc6(JSON.stringify({ t: "st", k: "st_ray", cm: 0 })), null);
+  assert.deepEqual(_pc6(JSON.stringify({ t: "stc", a: "9:abc-123:1700000000000" })), { t: "stc", a: "9:abc-123:1700000000000" });
+  assert.equal(_pc6(JSON.stringify({ t: "stc", a: "<b>" })).a, "b");
+  assert.equal(_pc6(JSON.stringify({ t: "stc", a: "" })), null);
+});

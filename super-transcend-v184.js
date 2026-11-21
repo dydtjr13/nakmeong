@@ -206,9 +206,11 @@ NKST.onCatch=function(f,info){const sp=SPK(f.k),L=layer();NKST._bite=null;docume
  // 슬로모션 (게임 시간 0.25배)
  document.body.classList.add('stCine');setTimeout(()=>{window.__nkTS=.25;L.classList.add('slow');},380);setTimeout(()=>{window.__nkTS=1;L.classList.remove('slow');},2780);setTimeout(()=>document.body.classList.remove('stCine'),2900);
  /* v184: 진짜 기록 — 테스트는 내 화면에만, 아니면 서버가 전체 서버 몇 번째인지 세서 모든 서버에 공지해요 */
- /* v193: 테스트 낚시도 (순위·횟수 없이) 모든 서버에 공지를 보내서 다른 사람이 축하 버튼을 눌러 볼 수 있어요 */const test=!!f.sxTest,sent=rtOn()&&!!(window.NK_RT.st&&NK_RT.st(f.k,f.cm,test));NKST._mine={k:f.k,cm:f.cm,t:Date.now(),sent,test};
+ /* v193: 테스트 낚시도 (순위·횟수 없이) 모든 서버에 공지를 보내서 다른 사람이 축하 버튼을 눌러 볼 수 있어요 */const test=!!f.sxTest,sent=rtOn()&&!!(window.NK_RT.st&&NK_RT.st(f.k,f.cm,test));const t0=Date.now();NKST._mine={k:f.k,cm:f.cm,t:t0,sent,test};
  setTimeout(()=>{SFX.fanfare();card(f,sp,info,test?'test':sent?'wait':'solo');},2900);
- if(!sent)setTimeout(()=>notice({nick:I().NICK(),k:f.k,cm:f.cm,n:0,a:'',local:1,test}),3700);};
+ if(!sent)setTimeout(()=>notice({nick:I().NICK(),k:f.k,cm:f.cm,n:0,a:'',local:1,test}),3700);
+ /* v206: 보냈는데 서버 공지가 7초 안에 안 돌아오면 (연결 끊김 등) 내 화면에라도 공지 창을 띄워요 */
+ else setTimeout(()=>{const m=NKST._mine;if(m&&m.t===t0&&!m.echo)notice({nick:I().NICK(),k:f.k,cm:f.cm,n:0,a:'',local:1,test,noEcho:1});},7000);};
 /* 서버에서 돌아온 내 기록(전체 서버 n번째) — 승리 카드 칩 · 도감 순위에 넣어요 */
 function rankChip(kind,n){return kind==='test'?'<span class="rk">🧪 테스트 낚시 · 공지·순위에 안 올라가요</span>':kind==='solo'?'<span class="rk">🌙 혼자 플레이 기록</span>':n>0?`<span class="rk">🏆 전체 서버 ${n.toLocaleString()}번째</span>`:'<span class="rk wait">🏆 전체 서버 순위 확인 중…</span>';}
 function card(f,sp,info,kind){const L=layer();L.classList.add('stcon');const el=document.createElement('div');el.className='stcard';const n0=(NKST._mine&&NKST._mine.n)||0;el.innerHTML=`<div class="strays"></div><div class="stcw"><div class="stcin">
@@ -226,13 +228,13 @@ function notice(ev){const sp=SPK(ev.k);if(!sp)return;SFX.notice();let box=$('stA
  const el=document.createElement('div');el.className='stann th-'+sp.theme;
  el.innerHTML=`<div class="sa-shine"></div><div class="sa-stars"><i></i><i></i><i></i><i></i><i></i><i></i></div>
  <div class="sa-fish"><span class="sa-rays"></span><img src="img/fish/${sp.k}.png" alt=""></div>
- <div class="sa-mid"><div class="sa-top">${badge()}<span class="sa-meta">${ev.test?(ev.a?'🧪 테스트 공지 · 순위에 안 들어가요':'🧪 테스트 · 내 화면에만'):ev.local?'🌙 혼자 플레이':'📢 전체 서버 공지'}<span class="sa-t"> · ${ev.n>0&&!ev.test?'전체 '+ev.n.toLocaleString()+'번째':'방금 전'}${srvNm?' · '+esc(srvNm):''}</span></span></div>
+ <div class="sa-mid"><div class="sa-top">${badge()}<span class="sa-meta">${ev.noEcho?'📶 서버 연결 확인 중 · 내 화면에만':ev.test?(ev.a?'🧪 테스트 공지 · 순위에 안 들어가요':'🧪 테스트 · 내 화면에만'):ev.local?'🌙 혼자 플레이':'📢 전체 서버 공지'}<span class="sa-t"> · ${ev.n>0&&!ev.test?'전체 '+ev.n.toLocaleString()+'번째':'방금 전'}${srvNm?' · '+esc(srvNm):''}</span></span></div>
   <div class="sa-msg"><b class="sa-who">${who}</b>님이 ${sp.mapN}에서 <b class="sa-fn">${sp.n} ${fmtCm(ev.cm)}</b>를 낚았어요!</div>
   <div class="sa-ch"><span class="sa-av"></span><span class="sa-ct"></span></div></div>
  <button type="button" class="sa-btn" ${ev.a?'':'disabled'}><span class="sa-ico">🎉</span><span class="sa-lb">${mine?'축하 받는 중':'축하하기'}</span><span class="sa-n"><b>0</b>명</span></button>`;
  box.appendChild(el);
  const nb=el.querySelector('.sa-n b'),avs=el.querySelector('.sa-av'),ct=el.querySelector('.sa-ct'),seen=new Set(),shown=[];
- const upd=()=>{const n=seen.size;nb.textContent=n;const nm=shown.slice(-2).map(x=>'<b>'+esc(x)+'</b>').join('·');ct.innerHTML=n?`${nm}${n>Math.min(2,shown.length)?` 외 <b class="sa-k">${n-Math.min(2,shown.length)}</b>명`:''}이 축하하고 있어요`:(ev.a?'첫 번째로 축하해 주세요!':ev.test?'테스트라 다른 사람에게는 보이지 않아요':'혼자 플레이 중이라 공지가 나가지 않았어요');};
+ const upd=()=>{const n=seen.size;nb.textContent=n;const nm=shown.slice(-2).map(x=>'<b>'+esc(x)+'</b>').join('·');ct.innerHTML=n?`${nm}${n>Math.min(2,shown.length)?` 외 <b class="sa-k">${n-Math.min(2,shown.length)}</b>명`:''}이 축하하고 있어요`:(ev.a?'첫 번째로 축하해 주세요!':ev.noEcho?'서버에 공지가 닿지 않아 다른 사람에게는 안 보여요':ev.test?'테스트라 다른 사람에게는 보이지 않아요':'혼자 플레이 중이라 공지가 나가지 않았어요');};
  const add=(key,nm,me)=>{if(seen.has(key))return;seen.add(key);const i=document.createElement('i');i.style.background=avCol(nm);i.textContent=String(nm||'?').slice(0,1);if(me)i.className='me';avs.prepend(i);while(avs.children.length>5)avs.lastChild.remove();shown.push(nm);upd();};
  upd();
  const btn=el.querySelector('.sa-btn');
@@ -245,7 +247,7 @@ function notice(ev){const sp=SPK(ev.k);if(!sp)return;SFX.notice();let box=$('stA
 NKST.notice=notice;
 /* 서버 공지 받기 (나 포함 모든 서버) */
 addEventListener('nk-rt-st',e=>{const d=e.detail||{};if(!SPK(d.k))return;const mine=d.id&&d.id===myId();
- if(mine){const S=window.NKV2&&NKV2.S;if(S&&d.n>0&&!d.test){S.stN=S.stN||{};if(!S.stN[d.k])S.stN[d.k]=d.n;try{I().save();}catch(_){}}if(NKST._mine&&NKST._mine.k===d.k&&!d.test)NKST._mine.n=d.n;const c=NKST._card;if(c&&!d.test){const ch=c.querySelector('.stcchip .rk');if(ch){ch.outerHTML=rankChip('srv',d.n);}}
+ if(mine){const S=window.NKV2&&NKV2.S;if(S&&d.n>0&&!d.test){S.stN=S.stN||{};if(!S.stN[d.k])S.stN[d.k]=d.n;try{I().save();}catch(_){}}if(NKST._mine&&NKST._mine.k===d.k){NKST._mine.echo=1;if(!d.test)NKST._mine.n=d.n;}const c=NKST._card;if(c&&!d.test){const ch=c.querySelector('.stcchip .rk');if(ch){ch.outerHTML=rankChip('srv',d.n);}}
   const wait=NKST._mine&&Date.now()-NKST._mine.t<3700?3700-(Date.now()-NKST._mine.t):0;setTimeout(()=>notice(d),wait);return;}
  notice(d);});
 // ── 도감: 슈퍼 초월 칸 + 상세 ──
