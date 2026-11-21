@@ -130,8 +130,8 @@ function layout(){const N=mbS().n,pc=PCL(),gap=pc?(N>=7?6:8):(N>=7?4:N>=6?5:6);l
   const main=$('mbMain'),bb=$('mbBB'),oh=e=>{if(!e||!e.offsetParent)return 0;const c=getComputedStyle(e);return e.offsetHeight+parseFloat(c.marginTop)+parseFloat(c.marginBottom);};
   const fit=()=>{let u=0;for(const ch of main.children){if(ch===wd||ch===bb)continue;u+=oh(ch);}const sh=$('mbShk'),pt=parseFloat(getComputedStyle(sh).paddingTop)||0;return innerHeight-pt-u-(bb?bb.offsetHeight:0)-24-20;};/* 24 = 판 위(판 Lv 띠 16) · 아래(8) · 20 = 나무 테두리 (W는 테두리 안쪽 크기) */
   const want=Math.min(540,innerWidth-44);/* 나무판 바깥 너비 = 화면 − 24 */md.classList.remove('mbcmp');ST.cmp=false;drawCnt();let H=fit();
-  if(H<want){md.classList.add('mbcmp');ST.cmp=true;drawCnt();H=fit();}
-  W=Math.min(want,H);const ex=Math.max(0,H-W);wd.style.margin=`${Math.round(16+ex/2)}px auto ${Math.floor(8+ex/2)}px`;main.style.paddingBottom=(bb?bb.offsetHeight:0)+'px';}
+  if(H<want-8){md.classList.add('mbcmp');ST.cmp=true;drawCnt();H=fit();}/* 8px 안쪽 차이는 보통 배치 그대로 */
+  H-=2;/* 반올림 여유 (목록이 아래 버튼에 0.x px 닿지 않게) */W=Math.min(want,H);const ex=Math.max(0,H-W);wd.style.margin=`${Math.round(16+ex/2)}px auto ${Math.floor(8+ex/2)}px`;main.style.paddingBottom=(bb?bb.offsetHeight:0)+'px';}
  /* v200: 판이 커지면(6×6·7×7) 칸을 작게 해서 화면 안에 들어가게 · 가장 작은 칸 28px */W=Math.max(N*28+12+gap*(N-1),W);const cs=Math.floor((W-12-gap*(N-1))/N);ST.cs=cs;const g=$('mbGrid');g.style.gridTemplateColumns=`repeat(${N},${cs}px)`;g.style.setProperty('--cs',cs+'px');g.style.setProperty('--mbBk',Math.max(.5,Math.min(.9,cs/100)).toFixed(3));g.style.gap=gap+'px';
  if(g.children.length!==N*N){g.innerHTML='';for(let i=0;i<N*N;i++){const d=document.createElement('div');d.className='mbcell';d.dataset.i=i;g.appendChild(d);}}
  [...g.children].forEach(d=>{d.style.width=d.style.height=cs+'px';});const fx=$('mbFx'),dp=Math.min(2,devicePixelRatio||1);fx.width=innerWidth*dp;fx.height=innerHeight*dp;}
