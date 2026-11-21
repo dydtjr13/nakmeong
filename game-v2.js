@@ -2645,7 +2645,7 @@ function renderAdv(){const M=$('adv');if(!M)return;const a=advS();if(ADV.sel&&!a
    <span class="fmam home" style="left:${ADV_ISL.start[0]*100}%;top:${(ADV_ISL.start[1]+.135)*100}%"><i class="fmam-c">🏠</i><span class="fmam-t"><b>우리 섬</b><small>출발·귀환</small></span></span>
    ${ADV_ORD.map(x=>advMarker(x,nx)).join('')}${advBoats()}</div></div>
   <div class="fmA-lg"><span><i class="lg cl">✓</i>성공한 곳</span><span><i class="lg nx">${nxS}</i>다음 추천</span><span><i class="lg op">${Math.min(4,nxS+1)}</i>갈 수 있음</span><span><i class="lg lk">🔒</i>잠김</span><span><img src="img/feat/boat.png" alt="">원정 중</span></div></div>
-  <div class="fmA-r"><div class="fmsec"><h4>내 원정대 <b>${a.teams.length}/3</b></h4>${advDock()}</div><div class="fmsec grow"><h4>${ADV.sel?'고른 곳':nx?'다음 추천 목적지':'첫 장소'}</h4>${advDetail(k)}</div></div>
+  <div class="fmA-r"><div class="fmsec"><h4>내 원정대 <b>${a.teams.length}/3</b></h4>${advDock()}</div><div class="fmsec grow"><h4>${ADV.sel?'고른 곳':nx?'다음 추천 목적지':'원정 중인 곳'}</h4>${advDetail(k)}</div></div>
   ${ADV.pick&&ADV.pick===k&&!advSt(k).lock&&!advSt(k).t?advSheet(k):''}${ADV.evo?advEvPop():''}</div>`;
  ADV._sp=!!(ADV.pick&&M.querySelector('[data-advsheet]'));ADV._ep=!!M.querySelector('.fmevp');if(!ADV._sp)ADV.pick=null;
  {const p=M.querySelector('.fmpoolx');if(p&&sT)p.scrollTop=sT;const r=M.querySelector('.fmA-r');if(r&&rT)r.scrollTop=rT;const c=M.querySelector('.fmc');if(c&&cT)c.scrollTop=cT;}
