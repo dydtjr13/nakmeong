@@ -1383,23 +1383,26 @@ body.m3 #mSys>*,body.m3 #mSys #mDrop51>*{flex-shrink:0!important}
 body:has(.modal.show) #toast:has(.cc){z-index:auto}
 
 /* v213: 운영자 보상 수령 창 A안 — 아이템 카드 그리드 */
-#confirm .card.giftA{width:min(580px,92vw);max-height:92vh;overflow:auto;text-align:center;padding:22px 22px 18px;word-break:keep-all;overflow-wrap:break-word}
+#confirm .card.giftA{width:min(580px,92vw);max-height:min(92vh,calc(100vh - 16px));overflow:hidden;text-align:center;padding:22px 22px 16px;word-break:keep-all;overflow-wrap:break-word;display:flex;flex-direction:column}
 #confirm .card.giftA::-webkit-scrollbar{width:0;height:0}
+.giftA-grid::-webkit-scrollbar{width:6px}
+.giftA-grid::-webkit-scrollbar-thumb{background:#e8d5c0;border-radius:4px}
+.giftA-kicker,.giftA-msg,#confirm .card.giftA h3{flex:none}
 .giftA-kicker{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:#c56a3a;background:#ffe8d4;border-radius:999px;padding:4px 10px}
 .giftA-kicker img{width:16px;height:16px;object-fit:contain}
 #confirm .card.giftA h3{font-size:24px;font-weight:800;margin:8px 0 0;letter-spacing:-.02em;color:#3a3048}
 .giftA-msg{margin:12px 0 16px;background:#fff6ea;border:1px solid #f0dfc6;border-radius:14px;padding:10px 14px;font-size:13.5px;line-height:1.55;color:#5a4a40;text-align:left}
 .giftA-msg b{display:block;font-size:11px;font-weight:800;color:#c56a3a;margin-bottom:2px}
 .giftA-msg p{margin:0;font-weight:700;color:#3a3048}
-.giftA-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 0 16px}
+.giftA-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 0 12px;overflow-y:auto;flex:1 1 auto;min-height:0;max-height:calc(100vh - 280px);-webkit-overflow-scrolling:touch}
 .giftA-it{flex:0 0 calc(25% - 6px);width:calc(25% - 6px);background:#fff;border-radius:16px;padding:12px 8px 10px;box-shadow:0 2px 8px rgba(0,0,0,.05);border:1px solid #f0e6d8;min-height:118px;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .giftA-ico{width:58px;height:58px;object-fit:contain;display:block;filter:drop-shadow(0 3px 4px rgba(60,40,20,.12))}
 .giftA-fb{font-size:40px;line-height:58px;height:58px}
 .giftA-name{font-weight:800;font-size:13px;color:#3a3048;margin-top:6px;line-height:1.25}
 .giftA-qty{font-weight:800;color:#d9813f;font-size:15px;letter-spacing:-.02em;margin-top:2px}
-.giftA-btns{margin:4px 0 0}
+.giftA-btns{margin:4px 0 0;flex:none}
 .giftA-btns .acc{min-width:200px;padding:13px 28px;font-size:16px;font-weight:800;border-radius:16px}
-.giftA-hint{margin-top:10px;font-size:11.5px;color:#9a8b7c;font-weight:700}
+.giftA-hint{margin-top:8px;font-size:11.5px;color:#9a8b7c;font-weight:700;flex:none}
 @media(max-width:500px){
   #confirm .card.giftA{padding:16px 14px 14px}
   #confirm .card.giftA h3{font-size:20px}
@@ -1417,4 +1420,18 @@ body:has(.modal.show) #toast:has(.cc){z-index:auto}
   .giftA-ico,.giftA-fb{width:46px;height:46px;line-height:46px;font-size:32px}
   .giftA-msg{margin:8px 0 10px;padding:8px 11px}
   #confirm .card.giftA h3{font-size:20px;margin-top:6px}
+}
+
+@media(max-width:500px) and (max-height:680px){
+  #confirm .card.giftA{padding:10px 10px 8px}
+  #confirm .card.giftA h3{font-size:18px;margin-top:4px}
+  .giftA-kicker{font-size:11px;padding:3px 8px}
+  .giftA-msg{margin:6px 0 8px;padding:7px 10px;font-size:12.5px}
+  .giftA-it{min-height:78px;padding:6px 4px}
+  .giftA-ico,.giftA-fb{width:40px;height:40px;line-height:40px;font-size:28px}
+  .giftA-name{font-size:11.5px;margin-top:4px}
+  .giftA-qty{font-size:13px}
+  .giftA-hint{margin-top:6px;font-size:11px}
+  .giftA-btns .acc{padding:11px 14px}
+  .giftA-grid{margin-bottom:8px;gap:6px}
 }
