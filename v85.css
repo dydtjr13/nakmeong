@@ -1368,3 +1368,13 @@ body.menu-open #bMore.hasN::after,#bMenu51.on.hasN::after{display:none}
 #tk3Dlg .ch.rr{white-space:nowrap}#tk3Dlg .ch.rr.on{background:#7a4fd6;border-color:#7a4fd6;color:#fff}
 /* v206: 폰에서 어항 규칙 탭 — 고른 개수 숫자를 탭 모서리에 붙여서 글자가 밀려 넘치지 않게 */
 @media (max-width:480px){.tkR .tkR-tabs button{position:relative;overflow:visible;letter-spacing:-.02em}.tkR .tkR-tabs i{position:absolute;top:-5px;right:-1px;margin:0;font-size:9.5px;line-height:14px;padding:0 4px;z-index:1}.tkR .tkR-tabs img.emj{width:12px;height:12px;margin-right:1px}}
+/* v207: 폰 ☰ 목록이 화면보다 길 때 — 줄 간격을 줄이고 저장·설정은 목록 아래에 늘 보이게 */
+body.m3.mnTight #mSys>button,body.m3.mnTight #mSys #mDrop51>button{min-height:38px!important;padding:5px 12px!important}
+body.m3.mnTight #mSys #mDrop51>.mh{padding:5px 12px 0}
+body.m3.mnTight #mSys #bSave,body.m3.mnTight #mSys #bSet{position:sticky!important;z-index:3;background:var(--bg,#fffaf3)!important;border-radius:0!important}
+body.m3.mnTight #mSys #bSet{bottom:-8px}
+body.m3.mnTight #mSys #bSave{bottom:30px;border-top:1px solid #eadfce!important}
+/* v207: 폰 ☰ 목록이 화면 높이를 넘으면 (맵 이동 뒤 위쪽 줄이 늘거나 버튼이 많을 때) 메뉴 B의 줄바꿈 때문에 설정·후원이
+   오른쪽 화면 밖 두 번째 칸으로 넘어가 사라졌어요 → 한 줄로 두고 목록 안에서 스크롤 */
+body.m3 #mSys{flex-wrap:nowrap!important;justify-content:flex-start!important}
+body.m3 #mSys>*,body.m3 #mSys #mDrop51>*{flex-shrink:0!important}

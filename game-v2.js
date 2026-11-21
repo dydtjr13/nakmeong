@@ -2734,7 +2734,7 @@ function keepAll(){try{if(window.NK_UIEDIT&&NK_UIEDIT.on())return;}catch(e){}if(
 setInterval(keepAll,400);addEventListener('resize',()=>setTimeout(keepAll,60));document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#tq25'))[30,120,300].forEach(t=>setTimeout(()=>keepIn($('tq25')),t));});
 // v72: 메뉴 버튼을 옮겼으면 메뉴는 버튼 옆에서 펼쳐요 — 버튼이 아래쪽이면 위로, 위쪽이면 아래로. 화면에 다 안 들어가면 스크롤
 function menuAnchor(){const m=$('mSys'),b=$('bMore'),B=document.body,ST=['top','bottom','left','right','max-height','overflow-y','translate','scale'];if(!m)return;if(!m.classList.contains('show')&&document.querySelector('.modal.show'))return;
- const clr=()=>{if(m._anc){ST.forEach(k=>m.style.removeProperty(k));m._anc=0;}};
+ const clr=()=>{if(m._anc){ST.forEach(k=>m.style.removeProperty(k));m._anc=0;}if(B.classList.contains('mnTight'))B.classList.remove('mnTight');};
  if(!B.classList.contains('m3')||!B.classList.contains('menu-open')||!b||!txVis(b)){clr();return;}
  const moved=!!(b.style.translate||b.style.scale);const set=(k,v)=>m.style.setProperty(k,v,'important');
  if(moved){const r=b.getBoundingClientRect(),G=8,up=(r.top+r.bottom)/2>innerHeight/2,left=(r.left+r.right)/2<innerWidth/2;
@@ -2743,7 +2743,9 @@ function menuAnchor(){const m=$('mSys'),b=$('bMore'),B=document.body,ST=['top','
   else{set('bottom','auto');set('top',Math.max(8,r.bottom+G)+'px');set('max-height',Math.max(120,innerHeight-r.bottom-G-8)+'px');}
   if(left){set('right','auto');set('left',Math.max(8,r.left)+'px');}else{set('left','auto');set('right',Math.max(8,innerWidth-r.right)+'px');}
   set('overflow-y','auto');m._anc=1;}
- else{const r=m.getBoundingClientRect();if(r.height&&r.bottom>innerHeight-8){set('max-height',Math.max(120,innerHeight-8-r.top)+'px');set('overflow-y','auto');m._anc=1;}}}
+ else{const r=m.getBoundingClientRect();if(r.height&&r.bottom>innerHeight-8){set('max-height',Math.max(120,innerHeight-8-r.top)+'px');set('overflow-y','auto');m._anc=1;}}
+ /* v207: 목록이 화면보다 길면(관리자 버튼이 많거나 위쪽 줄이 늘었을 때) 줄 간격을 줄이고, 그래도 넘치면 저장·설정을 목록 아래에 늘 보이게 붙여요 — 아래로 밀려서 저장·설정이 사라진 것처럼 보였어요 */
+ try{const on=B.classList.contains('mnTight'),nb=[...m.querySelectorAll('button')].filter(x=>x.offsetHeight).length;/* 줄이기 전 원래 높이를 기억해 두고 (버튼 수가 바뀌면 다시 재요) 그 높이가 넘칠 때만 유지 */if(!on||m._nb!==nb){if(on){m._nb=nb;B.classList.remove('mnTight');return;}m._nat=m.scrollHeight;m._nb=nb;}const want=!!m._anc&&m._nat>m.clientHeight+2;if(want!==B.classList.contains('mnTight'))B.classList.toggle('mnTight',want);/* 같은 값이면 안 건드려요 (몸통 class 감시가 다시 불러서 무한 반복) */}catch(e){}}
 new MutationObserver(()=>menuAnchor()).observe(document.body,{attributes:true,attributeFilter:['class']});setInterval(menuAnchor,500);addEventListener('resize',()=>setTimeout(menuAnchor,60));
 // v75: 🧪 접속 부하 테스트 (관리자) — ① 가상 유저 N명을 '테스트 방'(실제 유저에게 안 보이는 9번 방)에 접속시켜 서버·네트워크 부하를 재요
 // ② 내 화면에 N명을 그려 그래픽 부하(FPS·드로우콜)를 재요. 두 가지를 따로 또는 같이 켤 수 있어요
