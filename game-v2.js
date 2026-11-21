@@ -2592,7 +2592,7 @@ function advSt(k){const r=advR(k),a=advS(),lv=myLv(),t=a.teams.find(x=>x.r===k),
  else if(lv<r.lv){lock=`Lv.${r.lv}부터`;lockP=lv/r.lv;lockT=`지금 Lv.${lv} · ${r.lv-lv}레벨 더 올리면 열려요`;}
  const done=!!t&&now>=t.t0+t.dur,p=t?Math.min(1,(now-t.t0)/t.dur):0;return {k,r,lock,lockP,lockT,t,done,p,clr:c,stage:ADV_ORD.indexOf(k)+1};}
 /* 다음 추천 = 지금 갈 수 있는(잠김·원정 중 아님) 곳 중 가장 높은 단계 · 없으면 첫 장소 */
-const advNext=()=>ADV_ORD.slice().reverse().find(k=>{const s=advSt(k);return !s.lock&&!s.t;})||'canyon';
+const advNext=()=>ADV_ORD.slice().reverse().find(k=>{const s=advSt(k);return !s.lock&&!s.t;})||null;
 const advFmtM=ms=>{const m=Math.max(1,Math.ceil(Math.max(0,ms)/60000)),h=m/60|0;return advFast()&&ms<60e3?advFmt(ms):h?`${h}시간${m%60?' '+m%60+'분':''}`:`${m}분`;};
 const advPct=x=>Math.round(x*100)+'%';
 const advRew=r=>{const o=[['coins-gold',`${r.coin[0].toLocaleString()}~${r.coin[1].toLocaleString()}`,'골드']];if(r.piece)o.push(['piece',advPct(r.piece),'지도 조각']);
@@ -2637,15 +2637,15 @@ function advSheet(k){const R=advR(k),L=advPool();return `<div class="fmsheet ${A
   <button type="button" class="fmbtn go" data-advpickx>고르기 끝 (${ADV.party.length}/3)</button></div></div>`;}
 function advEvPop(){const a=advS(),t=a.teams.find(x=>x.id===ADV.evo);if(!t||!t.ev||t.ev.pick){ADV.evo=null;return '';}const r=advR(t.r);
  return `<div class="fmsheet fmevp ${ADV._ep?'still':''}"><div class="fmsheet-c"><div class="fmsheet-h"><b>⚡ ${r.n} 원정대 · 도중 이벤트</b><button type="button" class="fmx sm" data-adveox aria-label="닫기">✕</button></div><p class="fmevq">${sxH(t.ev.q)}</p><div class="fmevb"><button type="button" class="fmbtn go" data-adve="${t.id}|a">${sxH(t.ev.a)}</button><button type="button" class="fmbtn" data-adve="${t.id}|b">${sxH(t.ev.b)}</button></div><small class="fmtip">고르지 않으면 돌아올 때 아래쪽(안전하게)으로 정해져요</small></div></div>`;}
-function renderAdv(){const M=$('adv');if(!M)return;const a=advS();if(ADV.sel&&!advR(ADV.sel))ADV.sel=null;const nx=advNext(),k=ADV.sel||nx;
+function renderAdv(){const M=$('adv');if(!M)return;const a=advS();if(ADV.sel&&!advR(ADV.sel))ADV.sel=null;const nx=advNext(),k=ADV.sel||nx||'canyon',nxS=nx?advSt(nx).stage:1;
  const keep=M.querySelector('.fmpoolx'),sT=keep?keep.scrollTop:0,keepR=M.querySelector('.fmA-r'),rT=keepR?keepR.scrollTop:0,keepC=M.querySelector('.fmc'),cT=keepC?keepC.scrollTop:0;
  M.classList.add('fmon');
  M.innerHTML=`<div class="fmc fmA"><div class="fmA-l"><div class="fmhd">${ADVX}<div class="fmtl"><b>물고기 모험</b><small>${advFast()?'빠른 테스트: 1시간 = 1분':'섬을 하나씩 열어 보물섬까지 가 봐요'}</small></div><div class="fmpc" title="보물섬 열쇠"><img src="img/feat/piece.png" alt=""><span><b>지도 조각 ${a.pieces}/6</b>${advPz(a.pieces)}</span></div></div>
   <div class="fmA-map"><div class="fmA-mi"><img src="img/adv/map.jpg" alt="" class="fmA-img"><svg viewBox="0 0 1000 625" preserveAspectRatio="none" aria-hidden="true">${advRoute()}</svg>
    <span class="fmam home" style="left:${ADV_ISL.start[0]*100}%;top:${(ADV_ISL.start[1]+.135)*100}%"><i class="fmam-c">🏠</i><span class="fmam-t"><b>우리 섬</b><small>출발·귀환</small></span></span>
    ${ADV_ORD.map(x=>advMarker(x,nx)).join('')}${advBoats()}</div></div>
-  <div class="fmA-lg"><span><i class="lg cl">✓</i>성공한 곳</span><span><i class="lg nx">${advSt(nx).stage}</i>다음 추천</span><span><i class="lg op">${Math.min(4,advSt(nx).stage+1)}</i>갈 수 있음</span><span><i class="lg lk">🔒</i>잠김</span><span><img src="img/feat/boat.png" alt="">원정 중</span></div></div>
-  <div class="fmA-r"><div class="fmsec"><h4>내 원정대 <b>${a.teams.length}/3</b></h4>${advDock()}</div><div class="fmsec grow"><h4>${ADV.sel?'고른 곳':'다음 추천 목적지'}</h4>${advDetail(k)}</div></div>
+  <div class="fmA-lg"><span><i class="lg cl">✓</i>성공한 곳</span><span><i class="lg nx">${nxS}</i>다음 추천</span><span><i class="lg op">${Math.min(4,nxS+1)}</i>갈 수 있음</span><span><i class="lg lk">🔒</i>잠김</span><span><img src="img/feat/boat.png" alt="">원정 중</span></div></div>
+  <div class="fmA-r"><div class="fmsec"><h4>내 원정대 <b>${a.teams.length}/3</b></h4>${advDock()}</div><div class="fmsec grow"><h4>${ADV.sel?'고른 곳':nx?'다음 추천 목적지':'첫 장소'}</h4>${advDetail(k)}</div></div>
   ${ADV.pick&&ADV.pick===k&&!advSt(k).lock&&!advSt(k).t?advSheet(k):''}${ADV.evo?advEvPop():''}</div>`;
  ADV._sp=!!(ADV.pick&&M.querySelector('[data-advsheet]'));ADV._ep=!!M.querySelector('.fmevp');if(!ADV._sp)ADV.pick=null;
  {const p=M.querySelector('.fmpoolx');if(p&&sT)p.scrollTop=sT;const r=M.querySelector('.fmA-r');if(r&&rT)r.scrollTop=rT;const c=M.querySelector('.fmc');if(c&&cT)c.scrollTop=cT;}
