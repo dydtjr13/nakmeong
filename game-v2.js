@@ -18,8 +18,8 @@ const CFG=Object.assign({lay:'a',bots:9},JSON.parse(localStorage.getItem('nk_cfg
    · 마지막 맵은 기기(localStorage nk_lastMap · 계정 칸마다 따로)에 남겨요 · 이 탭에서 이미 정한 맵(nk_mapTab)이 있으면 그대로 써요
    · 숨김 시험방(9)·미리보기·관전은 남기지도, 되살리지도 않아요 · 입장 조건이 안 맞으면 시작할 때 호숫가로 (mapFallback) */
 function NK_LASTMAP(m,from){try{if(window.NK_PREV)return;const o={m:m==='moon'||m==='canal'?m:'lake',t:Date.now()};if(o.m!=='lake')o.from=Math.max(1,Math.min(4,+from||1));localStorage.setItem('nk_lastMap',JSON.stringify(o));}catch(e){}}
-function mapBlock(){try{if(SKYBOOT){if(!skyOn())return '달 맵이 지금은 닫혀 있어요';if(myLv()<50)return '달은 Lv.50부터 갈 수 있어요';}else if(SEABOOT){if(!seaTownOn())return '운하가 지금은 닫혀 있어요';}}catch(e){}return '';}
-function mapLeave(ch,msg,pg){try{const SS=sessionStorage;const f=Math.max(1,Math.min(4,+ch||+SS.getItem(SKYBOOT?'nk_skyFrom':'nk_seaFrom')||+CFG.ch||1));SS.removeItem('nk_sky');SS.removeItem('nk_sea');SS.setItem('nk_mapTab','1');CFG.ch=f;try{localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},JSON.parse(localStorage.getItem('nk_cfg')||'{}'),{ch:f})));}catch(_){}NK_LASTMAP('lake');if(pg)SS.setItem('nk_sx2pg',pg);else{SS.setItem('nk_autogo',String(Date.now()));SS.setItem('nk_autoTxt','🏞 호숫가로 가요…');}}catch(e){}if(msg)try{toast(msg,1800);}catch(e){}setTimeout(()=>location.reload(),msg?1200:60);}
+function mapBlock(){try{if(SKYBOOT){if(myLv()<50)return '달은 Lv.50부터 갈 수 있어요';}const f=window.__nkMapOpen;if(f&&(SKYBOOT||SEABOOT)&&!f(SKYBOOT?'moon':'canal'))return SKYBOOT?'달 맵이 지금은 닫혀 있어요':'운하가 지금은 닫혀 있어요';}catch(e){window.__nkMapErr=String(e);}return '';}
+function mapLeave(ch,msg,pg){try{const SS=sessionStorage;const f=Math.max(1,Math.min(4,+ch||+SS.getItem(SKYBOOT?'nk_skyFrom':'nk_seaFrom')||+CFG.ch||1));SS.removeItem('nk_sky');SS.removeItem('nk_sea');SS.setItem('nk_mapTab','1');CFG.ch=f;try{localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},JSON.parse(localStorage.getItem('nk_cfg')||'{}'),{ch:f})));}catch(_){}NK_LASTMAP('lake');if(pg){SS.setItem('nk_sx2pg',pg);SS.setItem('nk_svMan','1');}else{SS.setItem('nk_autogo',String(Date.now()));SS.setItem('nk_autoTxt','🏞 호숫가로 가요…');}}catch(e){}if(msg)try{toast(msg,1800);}catch(e){}setTimeout(()=>location.reload(),msg?1200:60);}
 function mapFallback(why){mapLeave(0,why+' · 원래 호숫가로 가요');}
 const MAPRES=(()=>{try{if(window.NK_PREV)return '';const SS=sessionStorage;if(SS.getItem('nk_mapTab'))return '';SS.setItem('nk_mapTab','1');if(SS.getItem('nk_sky')==='1'||SS.getItem('nk_sea')==='1')return '';const L=JSON.parse(localStorage.getItem('nk_lastMap')||'null');if(!L||(L.m!=='moon'&&L.m!=='canal'))return '';const f=String(Math.max(1,Math.min(4,+L.from||1)));if(L.m==='moon'){SS.setItem('nk_sky','1');SS.setItem('nk_skyFrom',f);}else{SS.removeItem('nk_sky');SS.setItem('nk_sea','1');SS.setItem('nk_seaFrom',f);}return L.m;}catch(e){return '';}})();
 const SKYBOOT=(()=>{try{return sessionStorage.getItem('nk_sky')==='1';}catch(e){return false;}})();
@@ -4633,7 +4633,7 @@ setInterval(()=>{try{peerTanks();}catch(e){console.warn(e);}},700);
 
 // ───────── ⑤ 사람 있는 호숫가로 ─────────
 let svMan=false;document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#stSrv [data-sv]'))svMan=true;},true);
-function svAuto(){if(opt('srvAuto','off')!=='on'||svMan||!startOn()||!window.__lobbyCounts)return;const rows=__lobbyCounts().filter(s=>s.players!=null);if(rows.length<2)return;
+function svAuto(){if(opt('srvAuto','off')!=='on'||svMan||(()=>{try{return sessionStorage.getItem('nk_svMan')==='1';}catch(e){return false;}})()/* v210: 달·운하 시작 화면에서 직접 고른 호숫가는 그대로 */||!startOn()||!window.__lobbyCounts)return;const rows=__lobbyCounts().filter(s=>s.players!=null);if(rows.length<2)return;
  const cur=+(V14&&V14.CH&&V14.CH.me)||+CFG.ch||1,mine=rows.find(s=>s.id===cur);if(!mine||mine.players>=3)return;const best=rows.filter(s=>s.players<s.cap).sort((a,b)=>b.players-a.players||a.id-b.id)[0];if(!best||best.players<=mine.players||best.id===cur)return;
  CFG.ch=best.id;if(V14&&V14.CH)V14.CH.me=best.id;try{localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},LS('nk_cfg',{}),{ch:best.id})));}catch(e){}dispatchEvent(new Event('nk-rt-servers'));
  if(!svAuto.told){svAuto.told=1;toast(`👥 사람이 있는 ${SRVN(best.id)}(으)로 골라 뒀어요 (${best.players}명)`,2400);}}
@@ -6389,7 +6389,7 @@ function moonProps(g,rnd){const T=THREE,X={has:()=>true};SKY.props={};SKY.block=
   S2.visible=false;}
 }
 
-window.__nkSkyFish=()=>skyFishAdd();window.NK89.sky={SKY,skySwitch,skyApply,skyAsk,skyBuild};try{window.NK89.sea={seaSwitch,mapBlock};}catch(e){}
+window.__nkSkyFish=()=>skyFishAdd();window.NK89.sky={SKY,skySwitch,skyApply,skyAsk,skyBuild};try{window.NK89.sea={seaSwitch,mapBlock};}catch(e){}/* v210: 맵이 열려 있는지 (skyOn·seaTownOn 은 이 블록 안에서만 보여요) */window.__nkMapOpen=m=>{try{return m==='moon'?skyOn():m==='canal'?seaTownOn():true;}catch(e){window.__nkMapErr=String(e);return true;}};
 // v122 ── 🦘 점프 (이동 중 Space)
 const jumpOn=()=>!PREV&&opt('jump','off')==='on';const JP={h:0,v:0,out:0};
 const movingKeys=()=>!!(keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||keys.ArrowUp||keys.ArrowDown||keys.ArrowLeft||keys.ArrowRight||(typeof joy!=='undefined'&&(Math.abs(joy.x)>.3||Math.abs(joy.y)>.3)));
