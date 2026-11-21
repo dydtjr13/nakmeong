@@ -1530,6 +1530,9 @@ export function parseClient(raw) {
     if (!msg.world || typeof msg.world !== "object" || Array.isArray(msg.world)) return null;
     return { t: "world", world: msg.world };
   }
+  // v206: 👑 슈퍼 초월급 공지(st)·축하(stc) — v184 부터 서버 처리 코드는 있었지만 여기서 걸러져 버려서 아무에게도 안 떴어요
+  if (msg.t === "st") { const st = sanitizeSt(msg); return st ? { t: "st", k: st.k, cm: st.cm, ...(msg.test ? { test: 1 } : {}) } : null; }
+  if (msg.t === "stc") { const a = String(msg.a == null ? "" : msg.a).replace(/[^\w:.-]/g, "").slice(0, 48); return a ? { t: "stc", a } : null; }
   // v195: ✨ 초월 부적 획득 공지 (how: box | syn)
   if (msg.t === "txc") return { t: "txc", how: msg.how === "syn" ? "syn" : "box" };
   // v205: 🌈 합성판 무지개 물고기 완성 공지 (k: 물고기 키)

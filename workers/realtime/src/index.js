@@ -949,15 +949,18 @@ export class LakeRoom extends DurableObject {
       if (!st) return;
       const now = Date.now();
       // v193: 관리자·운영자 테스트 낚시는 순위를 세지 않고 공지만 (축하 버튼 시험용) · 10초에 한 번
-      const test = !!msg.test && !!(prev.admin || prev.op);
+      // v206: 9번(숨김 관리자 시험방)에서 낚은 건 9번 방에만 · 순위도 안 세요 (실제 유저 방에 시험 공지가 안 가게)
+      //       9번 방 안에서는 관리자 로그인 없이도 시험 공지를 보낼 수 있어요 (다른 방으로는 절대 안 나가요)
+      const room9 = prev.server === 9;
+      const test = !!msg.test && !!(prev.admin || prev.op || room9);
       if (msg.test && !test) return;
       if (now - (prev.lastSt || 0) < (test ? 10000 : 60000)) return;
       prev.lastSt = now;
       try { ws.serializeAttachment(prev); } catch { /* ignore */ }
       let n = 0;
-      if (!test) { try { n = prev.server === 1 ? await this.stBump(st.k) : await this.env.LAKE.getByName("lake-1").stBump(st.k); } catch (e) { n = 0; } }
+      if (!test && !room9) { try { n = prev.server === 1 ? await this.stBump(st.k) : await this.env.LAKE.getByName("lake-1").stBump(st.k); } catch (e) { n = 0; } }
       const a = `${prev.server}:${prev.id}:${now}`;
-      await this.fan(prev.server, [...SERVERS.map((x) => x.id), 7, 20], { t: "st", a, id: prev.id, nick: prev.nick, srv: prev.server, k: st.k, cm: st.cm, n, at: now, ...(test ? { test: 1 } : {}) });
+      await this.fan(prev.server, room9 ? [9] : [...SERVERS.map((x) => x.id), 7, 20], { t: "st", a, id: prev.id, nick: prev.nick, srv: prev.server, k: st.k, cm: st.cm, n, at: now, ...(test || room9 ? { test: 1 } : {}) });
       return;
     }
     // v193: 🪵 합성판 하루 횟수 (사용·낚시·광고·오프라인 사용) → 호숫가 1이 세고 결과를 돌려줘요
@@ -997,7 +1000,7 @@ export class LakeRoom extends DurableObject {
       if (prev.stcSeen.includes(a)) return;
       prev.stcSeen = [...prev.stcSeen.slice(-9), a];
       try { ws.serializeAttachment(prev); } catch { /* ignore */ }
-      await this.fan(prev.server, [...SERVERS.map((x) => x.id), 7, 20], { t: "stc", a, id: prev.id, nick: prev.nick });
+      await this.fan(prev.server, prev.server === 9 ? [9] : [...SERVERS.map((x) => x.id), 7, 20], { t: "stc", a, id: prev.id, nick: prev.nick });
       return;
     }
     // v195: ✨ 초월 부적 획득 — 모든 서버(1~4 · 7 · 20)에 공지 · 한 사람당 30초에 한 번
