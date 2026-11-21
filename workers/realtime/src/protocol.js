@@ -1,7 +1,7 @@
 /** 피쉬코지 실시간 프로토콜. Durable Object와 단위 테스트가 같이 씁니다. */
 
-/** v184: 👑 슈퍼 초월급 물고기 4종 */
-export const ST_KEYS = ["st_carp", "st_whale", "st_ray", "st_stur"];
+/** v184: 👑 슈퍼 초월급 물고기 + v213 부산 부캉이 */
+export const ST_KEYS = ["st_carp", "st_whale", "st_bukang", "st_ray", "st_stur"];
 export function sanitizeSt(m) {
   if (!m || typeof m !== "object") return null;
   const k = String(m.k || "");

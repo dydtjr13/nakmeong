@@ -6417,7 +6417,7 @@ $('fishBtn').addEventListener('click',e=>{const m=$('fishBtn').dataset.m;if(!m&&
 PHOOK.push(dt=>{if(!me||JP.h<=0)return;JP.v-=(JP.moon?(Math.abs(JP.v)<1.2?4.5:6.5):21)*dt;/* 달: 꼭대기에서 조금 더 머물러요 */JP.h=Math.max(0,JP.h+JP.v*dt);me.o.position.y+=JP.h;if(onGroundVeh())VW.me.position.y+=JP.h;if(JP.h<=0){JP.v=0;try{tone(180,120,.08,'sine',.03);}catch(_){}}});
 {const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};if(JP.h>.02)o.jp=Math.round(JP.h*10);return Object.keys(o).length?o:null;};}
 // v184 👑 슈퍼 초월급 물고기 (super-transcend-v184.js) — 켜기/끄기 · 확률은 관리자 › 테스트 기능의 「👑 슈퍼 초월급」 상자에서
-LAB.push({k:'stOn',n:'👑 슈퍼 초월급 물고기',d:'맵마다 한 종씩 아주 드물게 나오는 슈퍼 초월급 물고기(천년 금빛잉어 · 등불 혹등고래 · 성운 철갑상어 · 구름 가오리는 하늘섬이 생기면). 확률·테스트 낚시는 아래 「👑 슈퍼 초월급」 상자에서',scope:'all',o:[['on','켜기 (기본)'],['off','끄기']]});
+LAB.push({k:'stOn',n:'👑 슈퍼 초월급 물고기',d:'아주 드물게 나오는 슈퍼 초월급 물고기(호숫가 천년 금빛잉어 · 운하 등불 혹등고래·부산 부캉이 · 달 성운 철갑상어 · 구름 가오리는 하늘섬이 생기면). 확률·테스트 낚시는 아래 「👑 슈퍼 초월급」 상자에서',scope:'all',o:[['on','켜기 (기본)'],['off','끄기']]});
 // ───────── v183 🕺 캐릭터 이모션 9가지 (테스트 기능 emoteOn · 기본 켜짐) ─────────
 LAB.push({k:'emoteOn',n:'🕺 캐릭터 이모션',d:'채팅창 옆 이모티콘 줄의 「🕺」를 누르면 춤추기·웃기·울기·박수·손 흔들기·만세·인사·졸기·낚싯대 자랑 9가지를 해요. 다른 유저에게도 똑같이 보여요. 의자·탈것 위에서는 윗몸만 움직여요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기']]});
 {const emoOn=()=>!PREV&&String(uiOpt('emoteOn','on'))!=='off';
@@ -6991,7 +6991,7 @@ LAB.push({k:'tankGrp',n:'🐠 어항 분류 (어종·별자리·별 수·등급�
 LAB.push({k:'tank3',n:'🐠 어항 3개 · 규칙 정리',d:'가진 어항 중 3개까지 같이 써요. 어항 창 위에 어항 3칸이 생기고, 어항마다 「넣을 물고기」(등급·변이·크기·종류)를 골라 두면 새로 낚은 물고기가 규칙대로 들어가요. 데크에는 가장 큰 어항이 보여요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 const tk3On=()=>!PREV&&opt('tank3','off')==='on';window.NK_tk3On=tk3On;
 /* v206: 등급에 ✨초월 · 👑슈퍼 초월급까지 (슈퍼 초월 데이터는 game-v2 뒤에 들어와서 그때그때 읽어요) */const TK3G=j=>j===6?(D.STX?D.STX.n:'슈퍼 초월급'):j===5?(D.TX?D.TX.n:'초월'):((D.GRADES||[])[j]||{}).n||'',
-/* v206: 어종 희귀도 — 귀한 어종(드물게 나오는 물고기) · 매우 귀한 어종(슈퍼 초월급 4종) */TK3RR=[['r','💎 귀한 어종',F=>!!F&&!F.sky&&!F.stNo&&!F.limited&&(F.w||0)<6],['vr','👑 매우 귀한 어종',F=>!!F&&!!F.stNo]],TK3SZ=[[0,'아무 크기'],[50,'50cm 이상'],[80,'80cm 이상'],['p90','최대 크기 90% 이상']];
+/* v206: 어종 희귀도 — 귀한 어종(드물게 나오는 물고기) · 매우 귀한 어종(슈퍼 초월급) */TK3RR=[['r','💎 귀한 어종',F=>!!F&&!F.sky&&!F.stNo&&!F.limited&&(F.w||0)<6],['vr','👑 매우 귀한 어종',F=>!!F&&!!F.stNo]],TK3SZ=[[0,'아무 크기'],[50,'50cm 이상'],[80,'80cm 이상'],['p90','최대 크기 90% 이상']];
 function tk3S(){const z=S.tk3&&typeof S.tk3==='object'?S.tk3:(S.tk3={sl:[],main:{},sw:0,last:(S.nid||1)-1});z.sl=(z.sl||[]).filter(x=>x&&x.k&&D.TANKS.find(t=>t.k===x.k)).slice(0,2);z.sl.forEach(x=>{x.fish=Array.isArray(x.fish)?x.fish:[];x.rule=x.rule||{};});z.main=z.main||{};return z;}
 const tkCap=k=>{const t=D.TANKS.find(x=>x.k===k);return (t?t.cap:20)+lvTankBonus();};
 const tkName=k=>{const t=D.TANKS.find(x=>x.k===k);return t?t.n:k;};

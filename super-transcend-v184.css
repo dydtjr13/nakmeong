@@ -1,12 +1,13 @@
 /* v182 슈퍼 초월급 연출 */
 .stb{display:inline-flex;align-items:center;gap:4px;font-weight:900;color:#fff;padding:3px 13px 3px;border-radius:999px;background:linear-gradient(90deg,#ff5f8f,#ffae3d,#ffe24d,#5fe0a0,#4dbdff,#a46bff);border:2.5px solid #fff4c2;box-shadow:0 0 0 2px #c98a00,0 3px 12px rgba(255,190,60,.7);text-shadow:0 1px 2px rgba(0,0,0,.55);white-space:nowrap;font-size:15px;letter-spacing:.5px}
 .stb.sm{font-size:11.5px;padding:1px 8px;border-width:1.5px;box-shadow:0 0 0 1.5px #c98a00}
-.th-gold{--a:#ffe27a;--b:#ff9f2e;--g:#ffd34d}.th-lantern{--a:#ffc36b;--b:#3a64c8;--g:#ffb347}.th-rainbow{--a:#ffffff;--b:#8fd0ff;--g:#c8ecff}.th-nebula{--a:#c9a8ff;--b:#5ad8ff;--g:#b48cff}
+.th-gold{--a:#ffe27a;--b:#ff9f2e;--g:#ffd34d}.th-lantern{--a:#ffc36b;--b:#3a64c8;--g:#ffb347}.th-harbor{--a:#ffc36b;--b:#1c2a4a;--g:#ffb347}.th-rainbow{--a:#ffffff;--b:#8fd0ff;--g:#c8ecff}.th-nebula{--a:#c9a8ff;--b:#5ad8ff;--g:#b48cff}
 #stFx{position:fixed;inset:0;z-index:128;pointer-events:none;display:none;--bx:50%;--by:50%}
 #stFx.on{display:block}
 #stFx .stdim{position:absolute;inset:0;background:radial-gradient(ellipse at var(--bx) var(--by),transparent 0,transparent 12%,rgba(10,6,30,.45) 38%,rgba(5,3,18,.82) 100%);animation:stIn .5s ease-out both}
 #stFx.th-gold .stdim{background:radial-gradient(ellipse at var(--bx) var(--by),rgba(255,200,80,.18) 0,transparent 14%,rgba(30,16,4,.5) 40%,rgba(12,6,0,.84) 100%)}
 #stFx.th-lantern .stdim{background:radial-gradient(ellipse at var(--bx) var(--by),rgba(255,170,70,.16) 0,transparent 14%,rgba(6,10,34,.55) 40%,rgba(2,4,18,.86) 100%)}
+#stFx.th-harbor .stdim{background:radial-gradient(ellipse at var(--bx) var(--by),rgba(255,170,70,.16) 0,transparent 14%,rgba(6,10,34,.55) 40%,rgba(2,4,18,.86) 100%)}
 #stFx.th-rainbow .stdim{background:radial-gradient(ellipse at var(--bx) var(--by),rgba(255,255,255,.22) 0,transparent 15%,rgba(20,40,80,.4) 42%,rgba(10,20,50,.78) 100%)}
 @keyframes stIn{from{opacity:0}to{opacity:1}}
 #stFx .stbob{position:absolute;left:var(--bx);top:var(--by);width:0;height:0}
@@ -47,6 +48,7 @@
 #stFx .stcart,#stDexD .stdhero{position:relative;width:100%;height:190px;border-radius:18px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:radial-gradient(circle at 50% 55%,var(--g) 0,transparent 62%),linear-gradient(180deg,#2a1840,#4a2a6a)}
 #stFx .th-gold .stcart,#stFx.th-gold .stcart{background:radial-gradient(circle at 50% 55%,#fff3b0 0,#ffcc4d 30%,transparent 66%),linear-gradient(180deg,#7a4a10,#c98a20)}
 #stFx.th-lantern .stcart{background:radial-gradient(circle at 50% 55%,#ffd28a 0,#ff9f3a 22%,transparent 62%),linear-gradient(180deg,#0e1a40,#24407a)}
+#stFx.th-harbor .stcart{background:radial-gradient(circle at 50% 55%,#ffd28a 0,#ff9f3a 22%,transparent 62%),linear-gradient(180deg,#0a1428,#1a3060)}
 #stFx.th-rainbow .stcart{background:radial-gradient(circle at 50% 55%,#fff 0,#dff3ff 30%,transparent 66%),linear-gradient(180deg,#7fc4ff,#c7b2ff)}
 #stFx.th-nebula .stcart{background:radial-gradient(circle at 50% 55%,#e6d2ff 0,#a07bff 26%,transparent 64%),linear-gradient(180deg,#120a30,#3a1f6a)}
 #stFx .stcart img{max-width:92%;max-height:170px;filter:drop-shadow(0 0 14px #fff) drop-shadow(0 6px 8px #0005);animation:stBob 2.4s ease-in-out infinite}
@@ -70,7 +72,7 @@
 /* 도감 */
 .stdex{margin:10px 0 14px;padding:12px;border-radius:20px;background:linear-gradient(135deg,#2a1840,#3d2160 55%,#2a1840);position:relative;box-shadow:0 0 0 3px #ffd77a,0 0 20px #ffcf5a66}
 .stdh{display:flex;align-items:center;gap:10px;color:#fff;flex-wrap:wrap;margin-bottom:10px}.stdh b{font-size:18px}.stdh span{font-weight:900;color:#ffe27a}.stdh small{opacity:.75;font-size:12px;margin-left:auto}
-.stdg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stdg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
 .stdc{position:relative;border-radius:16px;padding:10px 10px 10px;background:linear-gradient(180deg,#fffaf0,#fff0d6);text-align:center;cursor:pointer;overflow:hidden;border:3px solid #d8cbb4}
 .stdc.got{border:3px solid transparent;background:linear-gradient(180deg,#fffaf0,#fff0d6) padding-box,conic-gradient(from 0deg,#ff5f8f,#ffae3d,#ffe24d,#5fe0a0,#4dbdff,#a46bff,#ff5f8f) border-box;box-shadow:0 0 16px var(--g)}
 .stdc .no{position:absolute;right:10px;top:7px;font-size:11px;font-weight:900;color:#a08a70}.stdc .mp{position:absolute;left:10px;top:7px;font-size:11px;font-weight:800;color:#a08a70}
@@ -85,6 +87,7 @@
 #stDexD .stdhero{height:230px;border-radius:26px 26px 0 0}
 #stDexD.th-gold .stdhero{background:radial-gradient(circle at 50% 55%,#fff3b0 0,#ffcc4d 30%,transparent 66%),linear-gradient(180deg,#7a4a10,#c98a20)}
 #stDexD.th-lantern .stdhero{background:radial-gradient(circle at 50% 55%,#ffd28a 0,#ff9f3a 22%,transparent 62%),linear-gradient(180deg,#0e1a40,#24407a)}
+#stDexD.th-harbor .stdhero{background:radial-gradient(circle at 50% 55%,#ffd28a 0,#ff9f3a 22%,transparent 62%),linear-gradient(180deg,#0a1428,#1a3060)}
 #stDexD.th-rainbow .stdhero{background:radial-gradient(circle at 50% 55%,#fff 0,#dff3ff 30%,transparent 66%),linear-gradient(180deg,#7fc4ff,#c7b2ff)}
 #stDexD.th-nebula .stdhero{background:radial-gradient(circle at 50% 55%,#e6d2ff 0,#a07bff 26%,transparent 64%),linear-gradient(180deg,#120a30,#3a1f6a)}
 #stDexD .stdhero img{position:relative;max-width:86%;max-height:190px;filter:drop-shadow(0 0 16px #fff) drop-shadow(0 6px 8px #0005)}
