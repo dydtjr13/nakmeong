@@ -5,6 +5,8 @@
 //  · 하루 합성 횟수: 기본 30 + 낚시 50회마다 +5(최대 +80) + 광고 1회 +10(최대 +100) + 후원자 +100 · 이월 없음 · 최대 310 · 자정(한국 시간) 초기화
 //  · ⓘ 정보 창: 합성 방법 · 자정 초기화 · 오늘 받은 횟수 내역
 //  · PC는 화면 흔들림·멈칫(히트스톱)·줌이 없어요. 팝·파티클·효과음은 그대로. 터치 기기(모바일)는 흔들림·멈칫·진동 유지
+//  · v205: PC는 화면 대신 나무판만 짧게 흔들리고 둘레 8칸이 튕기고 판 테두리가 번쩍, 낮은 「쿵」 소리 (pcHit/thud)
+//  · v205: 모바일은 판이 화면을 꽉 채워요 (높이가 모자라면 #mbd.mbcmp 작은 배치) · 물고기 크기는 단계와 상관없이 고정 · 🌈 무지개 완성은 전체 서버 공지(mbr)
 //  · 물고기 데이터는 기존 그대로(S.tank 의 f.st 0~4 = ★1~★5, f.vr = 변이). 판에는 물고기 id만 적어 둬요 (S.mb.cells)
 //  · 켜고 끄기: 관리자 › 테스트 기능 「🪵 나무 작업대 합성판」(mergeBoard: v192부터 off 기본(예전 3마리 합성) / on 새 합성판 — 정식 적용 때 기본값만 on 으로)
 //              「🧺 합성판 정리 버튼」(mbTidy: on 기본 / off) — 정리 버튼은 이 한 곳에서 빼요
@@ -288,12 +290,12 @@ function merge(from,to){if(left()<=0){bubble('오늘 합성 횟수를 다 썼어
 const myRtId=()=>{try{return String(window.NK_RT&&NK_RT.id||'');}catch(e){return '';}};
 const myNick=()=>{try{const V=window.__nkInt;return (V&&V.NICK&&V.NICK())||(gS()&&gS().nick)||'나';}catch(e){return '나';}};
 function rbSay(t){try{const V=window.__nkInt;V&&V.say&&V.say('시스템',t);}catch(e){}}
-function rbShout(f){let sent=false;try{sent=!!(window.NK_RT&&NK_RT.mbr&&NK_RT.mbr(f.k));}catch(e){}rbBand({nick:myNick(),k:f.k,me:1,local:sent?0:1});rbSay(`📢 [합성] ${myNick()}님이 🌈 무지개 ${fnm(f.k)}를 만들었어요!`);}
+function rbShout(f){let sent=false;try{sent=!!(window.NK_RT&&NK_RT.mbr&&NK_RT.mbr(f.k));}catch(e){}rbBand({nick:myNick(),k:f.k,me:1,local:sent?0:1});rbSay(`📢 [합성] ${myNick()}님이 합성으로 ${fnm(f.k)}를 🌈 무지개까지 올렸어요!`);}
 function rbBand(ev){if(!ev||!FI(ev.k))return;let box=$('stAnn');if(!box){box=document.createElement('div');box.id='stAnn';document.body.appendChild(box);}box.innerHTML='';
  const srv=(()=>{try{return ev.srv&&window.SRVN?SRVN(ev.srv):'';}catch(e){return '';}})(),el=document.createElement('div');el.className='txann mbrann';
- el.innerHTML=`<span class="mbri"><img src="${esc(fimg(ev.k))}" alt="" style="filter:${esc((FZV.rainbow||{}).fx||'')}"></span><div class="ta-m"><small>${ev.local?'🌙 혼자 플레이 · 내 화면에만':'📢 전체 서버 공지'}${srv?' · '+esc(srv):''}</small><b>${esc(ev.nick||'누군가')}</b>님이 합성으로 <b class="mbrt">🌈 무지개 ${esc(fnm(ev.k))}</b>를 만들었어요!</div>`;
+ el.innerHTML=`<span class="mbri"><img src="${esc(fimg(ev.k))}" alt="" style="filter:${esc((FZV.rainbow||{}).fx||'')}"></span><div class="ta-m"><small>${ev.local?'🌙 혼자 플레이 · 내 화면에만':'📢 전체 서버 공지'}${srv?' · '+esc(srv):''}</small><b>${esc(ev.nick||'누군가')}</b>님이 합성으로 <b>${esc(fnm(ev.k))}</b>를 <b class="mbrt">🌈 무지개</b>까지 올렸어요!</div>`;
  box.appendChild(el);const dur=ev.me?9000:document.querySelector('.modal.show')?7000:15000;setTimeout(()=>el.classList.add('out'),dur);setTimeout(()=>el.remove(),dur+700);if(ST.open)requestAnimationFrame(slots);}
-addEventListener('nk-rt-mbr',e=>{try{const d=e.detail||{};if(d.id&&String(d.id)===myRtId())return;if(!d.k||!FI(d.k))return;rbBand(d);rbSay(`📢 [합성] ${d.nick||'누군가'}님이 🌈 무지개 ${fnm(d.k)}를 만들었어요!`);}catch(err){}});
+addEventListener('nk-rt-mbr',e=>{try{const d=e.detail||{};if(d.id&&String(d.id)===myRtId())return;if(!d.k||!FI(d.k))return;rbBand(d);rbSay(`📢 [합성] ${d.nick||'누군가'}님이 합성으로 ${fnm(d.k)}를 🌈 무지개까지 올렸어요!`);}catch(err){}});
 function makeFish(a,c,r){const F=FI(a.k);if(!F)return null;const cm=Math.max(+a.cm||0,+c.cm||0),g=Math.max(a.g|0,c.g|0),st=r>=5?4:r,vr=r>=5?VK[r-5]:null;
  let v=0;try{v=Math.round(valueOf(F,cm,g)*(1+.5*st)*(vr?FZV[vr].m:1));}catch(e){v=Math.max(a.v|0,c.v|0)*2;}
  const S=gS(),nf={id:S.nid++,k:a.k,cm,g,v,price:Math.round(v*1.3),sale:false,st,t:Date.now(),mb:1};if(vr){nf.vr=vr;if(S.vrLock!==false){nf.lock=true;nf.alk=1;}}
