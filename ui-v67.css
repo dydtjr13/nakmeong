@@ -739,3 +739,5 @@ body.bgmA #bag .doll28 .dn,body.bgmB #bag .doll28 .dn,body.bgmC #bag .doll28 .dn
 /* v193: 💝 후원 탭 */
 #uWin .uw-q button.on{border-color:#e0607e;background:#ffe8ee;color:#b84560;font-weight:700}
 #uWin .uw-row #uwSupN{flex:1;min-width:0}
+/* v217: 달·운하 「마지막에 있던 곳」 칸이 붙은 시작 화면 — 낮은 폰(360×640 등)에서도 「다음」 버튼이 화면 안에 들어오게 줄 간격만 조금 줄여요 */
+@media (max-height:700px){#stV2 .sx2mp{gap:8px}#stV2 .sx2mp .sx2list{gap:5px}#stV2 .sx2mp .sx2sv{padding:7px 14px}}
