@@ -12,7 +12,7 @@
 //              「🧺 합성판 정리 버튼」(mbTidy: on 기본 / off) — 정리 버튼은 이 한 곳에서 빼요
 //  · v210: 아래 버튼 줄에 「↩ 모두 빼기」 — 판의 물고기를 한 번에 보유 목록으로 (clearAll · 빈 판이면 꺼짐)
 //  · v212: 「💰 판매·방생」 → 「💰 판매」 (합성판에서는 방생 없음 · 판매 모드는 [판에서 빼기][팔기][닫기])
-//  · v214: 판매 모드 팔기 버튼은 잠기지 않은 물고기만 세요 (확인 창과 같은 숫자) · 0마리면 꺼짐 · 고른 잠금 물고기는 회색 테두리 + 🚫 「판매 안 됨」
+//  · v215: 판매 모드 팔기 버튼은 잠기지 않은 물고기만 세요 (확인 창과 같은 숫자) · 0마리면 꺼짐 · 고른 잠금 물고기는 회색 테두리 + 🚫 「판매 안 됨」
 //  · 연결 지점: NK_MB.adWatched() 광고 1회 끝 · NK_MB.setSupporter(true|false) 후원자 판정 · NK_MB.onCatch() 낚시 1회
 // ─────────────────────────────────────────────────────────────
 (function(){'use strict';
@@ -168,7 +168,7 @@ function boxSlot(el){if(!ST.open||!el)return;const set=(k,v)=>el.style.setProper
 function fxClear(){const fx=$('mbFx');if(fx){const g2=fx.getContext('2d');g2.setTransform(1,0,0,1,0,0);g2.clearRect(0,0,fx.width,fx.height);}}
 function cellEl(i){return $('mbGrid').children[i];}
 function draw(){if(!ST.open)return;if(lvGrow())return;const P=pool();if(sync(P))try{save();}catch(e){}ST.P=P;const b=mbS();
- b.cells.forEach((id,i)=>{const e=cellEl(i);if(!e)return;const f=id!=null?P.get(id):null,ov=ST.ov[i],hold=ST.hold.has(i);const h=hold?'':ov?itemHTML(ov.k,ov.t):f?itemHTML(f.k,tierOf(f))+(f.lock&&!f.alk?(ST.sell?'<span class="mblk" title="잠금">🔒</span>':''):(f.alk?'<span class="mblk" title="자동 잠금(변이)">🔒</span>':'')):'';if(e._h!==h){e.innerHTML=h;e._h=h;}e.className='mbcell'+(hold?' mwait':(!f&&!ov?' mempty':''))+(ST.sell&&f&&ST.sel.has(id)?(f.lock?' msel mslk':' msel'):'')/* v214: 고른 잠금 물고기 = 회색 테두리 + 🚫 (팔지 않아요) */+(ST.hintP&&ST.hintP.includes(i)&&f?' mbhint':'');});
+ b.cells.forEach((id,i)=>{const e=cellEl(i);if(!e)return;const f=id!=null?P.get(id):null,ov=ST.ov[i],hold=ST.hold.has(i);const h=hold?'':ov?itemHTML(ov.k,ov.t):f?itemHTML(f.k,tierOf(f))+(f.lock&&!f.alk?(ST.sell?'<span class="mblk" title="잠금">🔒</span>':''):(f.alk?'<span class="mblk" title="자동 잠금(변이)">🔒</span>':'')):'';if(e._h!==h){e.innerHTML=h;e._h=h;}e.className='mbcell'+(hold?' mwait':(!f&&!ov?' mempty':''))+(ST.sell&&f&&ST.sel.has(id)?(f.lock?' msel mslk':' msel'):'')/* v215: 고른 잠금 물고기 = 회색 테두리 + 🚫 (팔지 않아요) */+(ST.hintP&&ST.hintP.includes(i)&&f?' mbhint':'');});
  drawCnt();drawTray(P);drawLad(P);drawDex(P);drawS5();drawLv();drawBB();
  document.querySelectorAll('#mbd .mbcoin').forEach(e=>{const S=gS(),n=S?S.coins|0:0;/* v195: 모바일 위 줄은 좁아서 900만처럼 줄여요 */e.textContent=!PCL()&&s5On()?shortN(n):n.toLocaleString();});}
 function drawCnt(){const d=day(),fb=fishB(d.fish),cap=MB_CFG.fishMax/MB_CFG.fishAmt*MB_CFG.fishStep,nxt=d.fish>=cap?null:MB_CFG.fishStep-d.fish%MB_CFG.fishStep,pc=PCL();
@@ -211,7 +211,7 @@ function dexOpen(){ST.info='dex';$('mbInfo')._dh='';dexBody();$('mbDim').classLi
 function drawLv(){const e=$('mbLvP');if(!e)return;if(!lvOn()){e.hidden=true;return;}e.hidden=false;const L=lvl(),c=lvCfg(),t=tot(),N=4+L,nx=L===1?c.l2:L===2?c.l3:0;
  const h=`🪵 판 Lv.${L} <span>${N}×${N}</span>${nx?`<em>${(N+1)}×${(N+1)}까지 ${Math.max(0,nx-t).toLocaleString()}회</em>`:'<em>최대</em>'}`;if(e._h!==h){e.innerHTML=h;e._h=h;}e.onclick=()=>infoOpen();}
 function drawBB(){const bb=$('mbBB');let h;if(ST.sell){const n=ST.sel.size,P=ST.P||pool();let co=0;ST.sel.forEach(id=>{const f=P.get(id);if(f&&!f.lock)try{co+=sellP(f);}catch(e){}});
-  /* v214: 팔기 버튼은 잠기지 않은 물고기만 세요 (확인 창과 같은 숫자) · 팔 수 있는 게 0마리면 꺼져요 · 판에서 빼기는 잠긴 물고기도 그대로 */let ok=0,lk=0;ST.sel.forEach(id=>{const f=P.get(id);if(!f)return;if(f.lock)lk++;else ok++;});
+  /* v215: 팔기 버튼은 잠기지 않은 물고기만 세요 (확인 창과 같은 숫자) · 팔 수 있는 게 0마리면 꺼져요 · 판에서 빼기는 잠긴 물고기도 그대로 */let ok=0,lk=0;ST.sel.forEach(id=>{const f=P.get(id);if(!f)return;if(f.lock)lk++;else ok++;});
   const sl=ok?`💰 ${ok}마리 팔기 · ${co.toLocaleString()}`:(lk?'🔒 팔 수 없어요':'💰 고르면 팔기');
   h=`<button type="button" class="mb1" data-bb="back">↩ 판에서 빼기${n?' '+n:''}</button><button type="button" class="mb3" data-bb="sellgo" ${ok?'':'disabled'}>${sl}</button><button type="button" class="mb0" data-bb="done">닫기</button>`;}
  else{/* v210: 「모두 빼기」 판의 물고기를 한 번에 보유 목록으로 (빈 판이면 꺼져요) */const any=mbS().cells.some(x=>x!=null);h=`${tidyOn()?'<button type="button" class="mb1" data-bb="tidy">🧺 정리</button>':''}<button type="button" class="mb2" data-bb="clear" ${any?'':'disabled'}>↩ 모두 빼기</button><button type="button" class="mb3" data-bb="sell">💰 판매</button>`;/* v212: 방생은 빼고 판매만 (버튼 이름 「💰 판매」) */}
