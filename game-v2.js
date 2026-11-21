@@ -2582,7 +2582,7 @@ function advProb(R,fish){let pw=0;fish.forEach(f=>{pw+=advPow(f);if(R.bonus&&R.b
 const advR=k=>ADVR.find(r=>r.k===k);
 const advFmt=ms=>{ms=Math.max(0,ms);const s=Math.ceil(ms/1000),h=s/3600|0,m=(s%3600)/60|0,ss=s%60;return h?`${h}시간 ${m}분`:m?`${m}분 ${ss}초`:`${ss}초`;};
 function advLocked(R){const a=advS();if(R.need&&a.pieces<R.need)return `지도 조각 ${a.pieces}/${R.need}`;if(myLv()<R.lv)return `Lv.${R.lv}부터`;return '';}
-/* v208: 🧭 물고기 모험 — A 보물 항로 (시안 /workspace/fishmap-mock/v1 A안). 섬 지도 위 단계 항로(1→4) + 다음 추천 + 성공 도장 + 오른쪽 원정대 3칸·상세.
+/* v209: 🧭 물고기 모험 — A 보물 항로 (시안 /workspace/fishmap-mock/v1 A안). 섬 지도 위 단계 항로(1→4) + 다음 추천 + 성공 도장 + 오른쪽 원정대 3칸·상세.
    보내기·받기·도중 이벤트는 예전 advSend·advClaim·ev 그대로 써요(저장 데이터 구조 그대로 · 새 값은 S.adv.clr 성공 도장 하나). 폰(≤860px)은 지도 위 · 원정대 3칸 · 상세 순서로 세로 */
 const ADV_ORD=['canyon','fall','sakura','ice','treasure'];
 const ADV_ISL={start:[.13,.74],canyon:[.33,.47],fall:[.506,.78],sakura:[.668,.49],ice:[.899,.71],treasure:[.515,.27]};
@@ -2670,7 +2670,7 @@ function advClaim(id){const a=advS(),t=a.teams.find(x=>x.id===id);if(!t||Date.no
  if(ok){const c=rnd(...R.coin);S.coins+=c;got.push(['coins',`골드 ${c.toLocaleString()}`]);if(R.piece&&Math.random()<R.piece&&a.pieces<6){a.pieces++;got.push(['piece','지도 조각 +1']);}
   const bn=R.boxN||((Math.random()<R.box)?1:0);for(let i=0;i<bn;i++)S.boxes.push(Date.now()+i);if(bn)got.push(['chest',`상자 ${bn}개`]);
   if(R.cat&&Math.random()<R.cat[1]){z.cat[R.cat[0]]=(z.cat[R.cat[0]]|0)+1;got.push(['potion',`${FZV[R.cat[0]].n} 촉매 +1`]);}
-  if(R.k==='treasure'){a.pieces=0;a.treasure=(a.treasure|0)+1;}/* v208: 성공 도장(장소별 성공 횟수) */const C=advClr();C[R.k]=(C[R.k]|0)+1;got.push(['stamp',`✓ 성공 도장 ${C[R.k]}개째`]);}
+  if(R.k==='treasure'){a.pieces=0;a.treasure=(a.treasure|0)+1;}/* v209: 성공 도장(장소별 성공 횟수) */const C=advClr();C[R.k]=(C[R.k]|0)+1;got.push(['stamp',`✓ 성공 도장 ${C[R.k]}개째`]);}
  else{const c=Math.round(R.coin[0]*.3);S.coins+=c;got.push(['coins',`골드 ${c} (위로금)`]);}
  if(t.ev){const pk=t.ev.pick||'b',ix=ADV_EV.findIndex(e=>e.q===t.ev.q);if(pk==='b'){if(ix===0){const k=(R.cat&&R.cat[0])||'pink';z.cat[k]=(z.cat[k]|0)+1;got.push(['potion',`${FZV[k].n} 촉매 +1 (도중 선택)`]);}else{const c=ix===1?120:80;S.coins+=c;got.push(['coins',`골드 +${c} (도중 선택)`]);}}
   else{const luck=Math.random()<(ix===1?.6:ix===2?1:.7);if(luck){if(ix===1){S.boxes.push(Date.now()+9);got.push(['chest','상자 +1 (도중 선택)']);}else if(a.pieces<6){a.pieces++;got.push(['piece','지도 조각 +1 (도중 선택)']);}}else got.push(['bag','도중 선택은 아쉽게 빈손']);}}
