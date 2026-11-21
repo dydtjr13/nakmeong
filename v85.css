@@ -1352,3 +1352,19 @@ body.seaB #vehBtn{display:none!important}
 /* v201: 펫 알림 안 경험치 · 레벨 표시 아래 작은 경험치 알림 */
 .pp .ppx{flex:none;color:#ffcf6a;font-weight:900}
 #xpF.xs1{font-size:11px;padding:4px 10px;border-radius:10px}
+/* v206: ☰ 목록 안 숫자(합성·모험·미션) — 줄 오른쪽 끝 모서리 대신 글자 옆 가운데에 · 닫힌 ☰ 버튼엔 빨간 점 */
+#mDrop51>button .msn,body.m3 #mSys>button .msn{position:static!important;margin-left:auto!important;flex:none;align-self:center;transform:none!important;right:auto!important;top:auto!important}
+#mDrop51>button{position:relative}
+
+#bMenu51.hasN{position:relative}
+#bMenu51.hasN::after,#bMore.hasN::after{content:'';position:absolute;top:3px;right:3px;width:9px;height:9px;border-radius:50%;background:#e8584a;box-shadow:0 0 0 2px #fffaf3;pointer-events:none}
+body.menu-open #bMore.hasN::after,#bMenu51.on.hasN::after{display:none}
+/* v206: 목록이 화면보다 길면(가로 화면 폰 등) 아래 저장·설정이 잘려 안 보이던 문제 → 화면 안에서 스크롤 */
+#mDrop51.open{max-height:calc(100vh - 64px);max-height:calc(100dvh - 64px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+@media (max-height:520px){#mDrop51>button,body.m3 #mSys>button,body.m3 #mSys #mDrop51>button{min-height:34px!important;padding:5px 12px!important}#mDrop51>.mh{padding:4px 12px 1px}}
+/* v206: 어항 규칙 — ✨초월 · 👑슈퍼 초월급 등급, 귀한 · 매우 귀한 어종 */
+#tk3Dlg .ch.gx5{border-color:#ffb3d3;color:#c41d6c;background:#fff0f6}#tk3Dlg .ch.gx5.on{background:#ff2d8a;border-color:#ff2d8a;color:#fff}
+#tk3Dlg .ch.gx6{border-color:#ffc995;color:#b35a00;background:#fff5ea}#tk3Dlg .ch.gx6.on{background:linear-gradient(90deg,#ff9a3c,#ff5fa2,#9b6bff);border-color:#ff9a3c;color:#fff}
+#tk3Dlg .ch.rr{white-space:nowrap}#tk3Dlg .ch.rr.on{background:#7a4fd6;border-color:#7a4fd6;color:#fff}
+/* v206: 폰에서 어항 규칙 탭 — 고른 개수 숫자를 탭 모서리에 붙여서 글자가 밀려 넘치지 않게 */
+@media (max-width:480px){.tkR .tkR-tabs button{position:relative;overflow:visible;letter-spacing:-.02em}.tkR .tkR-tabs i{position:absolute;top:-5px;right:-1px;margin:0;font-size:9.5px;line-height:14px;padding:0 4px;z-index:1}.tkR .tkR-tabs img.emj{width:12px;height:12px;margin-right:1px}}
