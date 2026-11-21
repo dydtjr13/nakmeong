@@ -90,6 +90,7 @@
 #mbd .mbbb button{flex:1;border:0;border-radius:15px;font-weight:900;font-size:14px;padding:12px 4px;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.15);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #mbd .mbbb button:disabled{opacity:.55;cursor:default}
 #mbd .mbbb .mb1{background:#e0a35c}
+#mbd .mbbb .mb2{background:#b49cd6}
 #mbd .mbbb .mb3{background:#8fc7c0}
 #mbd .mbbb .mb0{background:#c9b49a;flex:0 0 64px}
 #mbd .mbbb.sellm .mb3{background:#e8a24a}
