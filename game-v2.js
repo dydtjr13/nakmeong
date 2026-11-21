@@ -2608,9 +2608,9 @@ const advPct=x=>Math.round(x*100)+'%';
 const advRew=r=>{const o=[['coins-gold',`${r.coin[0].toLocaleString()}~${r.coin[1].toLocaleString()}`,'골드']];if(r.piece)o.push(['piece',advPct(r.piece),'지도 조각']);
  o.push(['chest',r.boxN?`${r.boxN}개 확정`:advPct(r.box),'행운 상자']);if(r.cat&&FZV[r.cat[0]])o.push(['potion',advPct(r.cat[1]),FZV[r.cat[0]].n+' 촉매',r.cat[0]]);return o;};
 const advRi=(i,cat)=>`<img class="fmri ${cat?'cat-'+cat:''}" src="img/feat/${i}.png" alt="">`;
-/* v212: 잠금 물고기(변이 자동 잠금 포함)도 모험에 보낼 수 있어요 — 잠금은 판매·방생·합성 보호용이라 원정 중에도, 돌아와도 그대로예요 */
+/* v214: 잠금 물고기(변이 자동 잠금 포함)도 모험에 보낼 수 있어요 — 잠금은 판매·방생·합성 보호용이라 원정 중에도, 돌아와도 그대로예요 */
 const advPool=()=>(S.tank||[]).filter(f=>!f.away).slice().sort((x,y)=>advPow(y)-advPow(x));
-/* v212: 원정 시간 = 기본(지금×1.5) × (1 − 단축). 단축 = 3마리 속도 점수 합 × 1% (최대 33% → 가장 빨라도 예전 시간). 출발할 때 정해져서 이미 떠난 원정은 그대로 */
+/* v214: 원정 시간 = 기본(지금×1.5) × (1 − 단축). 단축 = 3마리 속도 점수 합 × 1% (최대 33% → 가장 빨라도 예전 시간). 출발할 때 정해져서 이미 떠난 원정은 그대로 */
 const ADV_TMUL=1.5,ADV_TCAP=1/3,ADV_SGP=[0,1,2,3,4,8,12];
 const advSpd=f=>(ADV_SGP[f.g|0]||0)+(f.st|0)*1.5+(f.vr&&FZV[fzVK(f.vr)]?FZV[fzVK(f.vr)].t*1.2:0);
 const advCut=fish=>Math.min(ADV_TCAP,fish.reduce((a,f)=>a+advSpd(f),0)/100);
@@ -2682,7 +2682,7 @@ function renderAdv(){const M=$('adv');if(!M)return;const a=advS();if(ADV.sel&&!a
  on('[data-advgo]',b=>{const R=advR(b.dataset.advgo),n0=a.teams.length,f0=ADV.party.map(id=>S.tank.find(f=>f.id===id)).filter(Boolean)[0];advSend(R);
   if(advS().teams.length>n0){ADV.partyK=null;const c=$('adv').querySelector('.fmc');if(c){const fx=document.createElement('div');fx.className='fmfly';fx.innerHTML=`<img src="img/feat/boat.png" alt="">${f0?fzImg(f0,'ff'):''}<b>${R.n}(으)로 출발!</b>`;c.appendChild(fx);setTimeout(()=>fx.remove(),1700);}}});}
 const ADV_EV=[{q:'꽃잎 사이로 오래된 두루마리가 떠내려와요. 물살이 조금 세요.',a:'건져 본다 (70% 지도 조각 +1)',b:'꽃잎만 모아 간다 (촉매 +1 확정)'},{q:'반짝이는 조개 무리를 발견했어요.',a:'깊이 들어가 본다 (60% 상자 +1)',b:'근처만 둘러본다 (골드 +120 확정)'},{q:'길 잃은 아기 물고기를 만났어요.',a:'집까지 데려다 준다 (지도 조각 +1 확정)',b:'길만 알려 준다 (골드 +80 확정)'}];
-/* v212: 이미 떠난 원정대에는 예전 문구가 저장돼 있어서, 질문이 같으면 지금 문구로 보여 줘요 */
+/* v214: 이미 떠난 원정대에는 예전 문구가 저장돼 있어서, 질문이 같으면 지금 문구로 보여 줘요 */
 const advEvTxt=(ev,c)=>{const e=ADV_EV.find(x=>x.q===ev.q);return (e&&e[c])||ev[c]||'';};
 function advSend(R){const a=advS();if(!R||advLocked(R)||a.teams.length>=3||a.teams.some(t=>t.r===R.k))return;const fish=ADV.party.map(id=>S.tank.find(f=>f.id===id)).filter(Boolean);if(!fish.length)return;
  const dur=advDurH(R,fish)*advHour(),t0=Date.now(),e=ADV_EV[Math.random()*ADV_EV.length|0],id=(a.nid=(a.nid|0)+1);

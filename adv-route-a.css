@@ -255,7 +255,7 @@
 @media(max-width:860px){#adv.fmon .fmA-r .fmtm.ev small{display:none}}
 @media(max-width:860px){#adv.fmon .fmA-r .fmtm-m small{max-width:100%}#adv.fmon .fmA-r .fmtm .evs{display:none}}
 @media(max-width:860px){#adv.fmon .fmab{margin-top:4px}}
-/* v212: 원정 시간 줄(예전 안내 줄 자리) · 시간 단축 칩 · 잠금 표시 */
+/* v214: 원정 시간 줄(예전 안내 줄 자리) · 시간 단축 칩 · 잠금 표시 */
 #adv.fmon .fmtime{display:flex;align-items:baseline;gap:6px;font-size:12px;line-height:1.2;color:var(--ink);min-width:0}
 #adv.fmon .fmtime>span{font-weight:700;white-space:nowrap}
 #adv.fmon .fmtime s{color:var(--mut);white-space:nowrap}
