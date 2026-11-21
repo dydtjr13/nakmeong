@@ -15,7 +15,8 @@ FISH COZY 변경을 main 에 머지(= 배포)할 때는 아래 3가지를 같이
   ```js
   { v: 'vNNN', d: '11월 22일', t: '이모지 짧은 제목', s: ['유저가 보는 변화 한 줄', '두 번째 줄'] },
   ```
-  - `s` 는 유저 말투(…해요)로, 개발 용어 없이. 글자만 보여요(HTML·이미지 칸 없음, `esc()` 처리).
+  - `s` 는 유저 말투(…해요)로, 개발 용어 없이. 글자만 보여요(HTML 안 됨, `esc()` 처리).
+  - 그림이 있으면 이해가 쉬운 변화는 `img: 'img/파일.jpg'` 를 더해요 (v213부터 지원 · `guide-site/public/img/` 에 넣기 · 화면에 최대 420×160px). 예: `img/upd-v215-sell.jpg`
 - `guide-site/public/index.html` 의 `site.js?vNNN` 번호도 올려요 (캐시).
 - `guide-site/**` 가 main 에 들어가면 GitHub Actions `deploy-guide.yml` 이 guide.fishcozy.com 에 자동으로 올려요.
 - 확인: guide.fishcozy.com 「업데이트」 칸(`#updList`)에 새 항목이 보이는지.
