@@ -192,3 +192,5 @@ body.stCine>*:not(#world):not(#stFx):not(#stAnn):not(script):not(style){opacity:
 /* v184: 이모지 그림(emoji.js)이 물고기 그림 규칙을 받아 커지지 않게 */
 .stadm img.emj,.stdex img.emj,#stDexD img.emj,#stAnn img.emj,#stFx img.emj,.stcard img.emj{width:1.1em!important;height:1.1em!important;max-width:none!important;display:inline-block!important;position:static!important;vertical-align:-.18em!important;margin:0 .05em!important;transform:none!important;filter:none!important;animation:none!important;object-fit:contain}
 .stadm .sacell button{display:inline-flex;align-items:center;justify-content:center;gap:2px}
+/* v206: 슈퍼 초월급 공지가 떠 있으면 '새 업데이트'·'다른 탭' 알림 띠를 공지 아래로 */
+body.stAnnOn #updPill,body.stAnnOn #tabStale{top:calc(var(--stAnnB,164px) + env(safe-area-inset-top))!important}
