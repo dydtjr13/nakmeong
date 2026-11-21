@@ -2039,6 +2039,45 @@ function legendAlert(who,f,mine,info){if(f.g<3)return;const F=FI(f.k),G0=GR(f.g)
   say('시스템',`📢 ${who}님이 ${G0.n} ${F.n}${f.cm!=null?' '+f.cm+'cm':''}를 낚았어요!`);}}
 let botLT=rand(...D.ALERT.botTick);
 function giftBanner(title,detail){const el=document.createElement('div');el.className='giftBan';el.innerHTML=`<div class="em">🎁</div><div><b>${title}</b><div class="d">${detail}</div><small>운영자 보상 · 가방에서 확인해요</small></div><span class="x">×</span>`;document.body.appendChild(el);const kill=()=>{el.classList.add('out');setTimeout(()=>el.remove(),280);};el.querySelector('.x').onclick=kill;el.onclick=e=>{if(e.target===el)kill();};setTimeout(kill,5200);}
+/* v213: 운영자 보상 수령 창 A안 — 아이콘·이름·수량 카드 그리드 */
+function giftEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function giftIco(src,fb){const f=giftEsc(fb||'🎁');if(!src)return `<span class="giftA-fb">${f}</span>`;return `<img class="giftA-ico" src="${giftEsc(src)}" alt="" onerror="this.style.display='none';var n=this.nextElementSibling;if(n)n.hidden=false"><span class="giftA-fb" hidden>${f}</span>`;}
+function giftGrade(i){i=i|0;try{if(i===6)return '초월';if(typeof TIER==='function'){const t=TIER(i);if(t&&t.n)return t.n;}if(window.SYS&&SYS.GRADES&&SYS.GRADES[i])return SYS.GRADES[i][0]||'';}catch(e){}return '';}
+function giftVehImg(k,c){try{const VX=window.__nkVEH||{};if(VX.FLY&&VX.FLY[k]){const col=c||(VX.FLY[k].cols&&VX.FLY[k].cols[0]&&VX.FLY[k].cols[0][0])||'';return col?('img/veh/fly-'+k+'-'+col+'.png'):('img/veh/'+k+'.png');}}catch(e){}try{if(typeof vehImgOf==='function'){const u=vehImgOf(k);if(u)return u;}}catch(e){}return k?('img/veh/'+k+'.png'):'';}
+function giftItemsOf(g){const L=[];if(!g||typeof g!=='object')return L;
+ try{const c=+g.c||0,s=+g.s||0,b=+g.b||0,x=+g.x||0;
+  if(c)L.push({ico:'img/feat/coins-gold.png',fb:'🪙',name:'골드',qty:c.toLocaleString()});
+  if(s)L.push({ico:'icons/emoji-png/1f48e.png',fb:'💎',name:'강화석',qty:s.toLocaleString()});
+  if(b){const bt=g.bt,tn=(bt!=null&&bt!=='')?giftGrade(+bt):'';L.push({ico:(bt!=null&&bt!=='')?('img/box/t'+(+bt)+'.png'):'img/feat/chest.png',fb:'🎁',name:(tn?tn+' 행운 상자':'행운 상자'),qty:'×'+b});}
+  if(x)L.push({ico:'icons/emoji-png/2b50.png',fb:'⭐',name:'경험치',qty:x.toLocaleString()});
+  const it=Array.isArray(g.it)?g.it:(Array.isArray(g.items)?g.items:[]);
+  for(const o of it){if(!o||typeof o!=='object'){L.push({ico:'icons/emoji-png/1f381.png',fb:'🎁',name:'보상',qty:''});continue;}
+   try{const t=String(o.t||o.type||'');
+    if(t==='veh'){const VX=window.__nkVEH||{VEHS:[],FLY:{}};let n='',col='';const F=VX.FLY&&VX.FLY[o.k];if(F){n=F.n||o.k;const cc=o.c&&F.cols&&F.cols.some(z=>z[0]===o.c)?o.c:(F.cols&&F.cols[0]&&F.cols[0][0]);col=((F.cols||[]).find(z=>z[0]===cc)||[])[1]||'';}else{const v=(VX.VEHS||[]).find(z=>z.k===o.k);n=v?v.n:(o.k||'탈것');}L.push({ico:giftVehImg(o.k,o.c),fb:'🚗',name:n+(col?(' · '+col):''),qty:'×1'});}
+    else if(t==='pet'){const PX=window.__nkPET||{PETS:[]};const p=(PX.PETS||[]).find(z=>z.k===o.k);L.push({ico:'img/pets/'+(o.k||'cat')+'.png',fb:'🐾',name:p&&p.n?p.n:(o.k||'펫'),qty:'×1'});}
+    else if(t==='szt'||t==='z'){const n=Math.max(1,Math.min(50,o.n|0||o.v|0||1));L.push({ico:'icons/emoji-png/1f4cf.png',fb:'📏',name:'크기 변화 이용권',qty:'×'+n});}
+    else if(t==='szh'){const n=Math.max(1,o.n|0||o.v|0||1);L.push({ico:'icons/emoji-png/1f4cf.png',fb:'📏',name:'크기 변화 이용권 (1시간)',qty:'×'+n});}
+    else if(t==='rod'){const r=(typeof D!=='undefined'&&D.RODS||[]).find(z=>z.k===o.k);const n=Math.max(1,o.n|0||o.v|0||1),st=o.st|0,gn=giftGrade(o.g);L.push({ico:o.k?('img/rods/'+o.k+'.png'):'',fb:'🎣',name:(r?r.n:(o.k||'낚싯대'))+(gn?(' · '+gn):'')+(st?(' ★'+st):''),qty:n>1?('×'+n):'×1'});}
+    else if(t==='wear'){const w=(typeof D!=='undefined'&&D.WEAR&&D.WEAR.byK||{})[o.k];L.push({ico:(w&&w.img)||(o.k?('img/eq/'+o.k+'.png'):''),fb:'👕',name:w&&w.n?w.n:(o.k||'장비'),qty:'×1'});}
+    else if(t==='charm'){const n=Math.max(1,o.n|0||o.v|0||1),gt=Math.max(0,Math.min(6,o.g|0)),tn=giftGrade(gt)||'부적';L.push({ico:'img/charms/t'+gt+'.png',fb:'🧿',name:tn+' 부적',qty:'×'+n});}
+    else if(t==='chr'){const K=(typeof KINDS!=='undefined'?KINDS:[]).find(z=>z.xev===o.k||z.tk===o.k||z.k===o.k||z.oid===o.k||z.th===o.k||z.animal===o.k);L.push({ico:K&&K.th?('img/chars/'+K.th+'.jpg'):(K&&K.img||''),fb:'🧑',name:(K&&K.n?K.n:(o.k||'캐릭터'))+' 캐릭터',qty:'×1'});}
+    else if(t==='bait'){const b=(typeof D!=='undefined'&&D.BAITS||[]).find(z=>z.k===o.k);const n=Math.max(1,o.n|0||o.v|0||1);L.push({ico:o.k?('img/baits/'+o.k+'.png'):'',fb:'🪱',name:b&&b.n?b.n:(o.k||'미끼'),qty:(b&&b.qty===0)?'무제한':('×'+n)});}
+    else if(t==='tt'||t==='title'){L.push({ico:'icons/emoji-png/1f451.png',fb:'🏷',name:'칭호 「'+(o.n||o.k||'특별')+'」',qty:''});}
+    else if(t==='fish'||t==='fz'){const F=(typeof FI==='function'?FI(o.k):null)||{};const n=Math.max(1,o.n|0||o.v|0||1);const gn=(typeof GR==='function'&&o.g!=null&&GR(o.g)||{}).n||'';L.push({ico:F.img||'',fb:'🐟',name:(F.n||o.name||o.k||'물고기')+(gn?(' · '+gn):''),qty:o.cm?(o.cm+'cm'):(n>1?('×'+n):'×1')});}
+    else{const qtyNum=(typeof o.n==='number'||(typeof o.n==='string'&&/^\d+$/.test(o.n)))?+o.n:(o.v|0);const nm=o.name||(typeof o.n==='string'&&!/^\d+$/.test(o.n)?o.n:null)||o.k||t||'보상';L.push({ico:o.ico||o.img||'icons/emoji-png/1f381.png',fb:'🎁',name:String(nm),qty:qtyNum?('×'+qtyNum):'×1'});}
+   }catch(e){L.push({ico:'icons/emoji-png/1f381.png',fb:'🎁',name:String((o&&(o.name||o.n||o.k||o.t))||'보상'),qty:''});}}
+ }catch(e){try{console.warn('[giftItemsOf]',e);}catch(_){}}
+ if(!L.length)L.push({ico:'icons/emoji-png/1f381.png',fb:'🎁',name:'보상',qty:''});
+ return L;}
+function giftAlert(items,msg,title){const m=$('confirm');if(!m)throw new Error('no confirm');
+ const list=Array.isArray(items)&&items.length?items:[{ico:'icons/emoji-png/1f381.png',fb:'🎁',name:'보상이 도착했어요',qty:''}];
+ const grid=list.map(it=>`<div class="giftA-it">${giftIco(it.ico,it.fb)}<div class="giftA-name">${giftEsc(it.name)}</div><div class="giftA-qty">${giftEsc(it.qty||'')}</div></div>`).join('');
+ const msgH=msg?`<div class="giftA-msg"><b>운영자가 보낸 말</b><p>${giftEsc(msg)}</p></div>`:'';
+ m.innerHTML=`<div class="card center giftA"><span class="giftA-kicker"><img src="icons/emoji-png/1f381.png" alt="">운영자 보상</span><h3>${giftEsc(title||'보상이 도착했어요')}</h3>${msgH}<div class="giftA-grid">${grid}</div><p class="giftA-btns"><button class="acc" id="cfYes" type="button">모두 받기</button></p><div class="giftA-hint">받은 아이템은 가방에서 다시 확인할 수 있어요</div></div>`;
+ m.classList.add('show');
+ const b=$('cfYes');if(b)b.onclick=()=>m.classList.remove('show');}
+try{window.__nkGiftItems=giftItemsOf;window.__nkGiftAlert=giftAlert;}catch(e){}
+
 function boxAlert(who,tier,mine){const t=TIER(tier),M=tier>=5,cls=M?'M':'L';
  if(mine){const el=document.createElement('div');el.className='cutin box '+cls;el.title='클릭하면 닫혀요';el.onclick=()=>{el.classList.add('out');setTimeout(()=>el.remove(),250);};el.innerHTML=`<div class="band">${BOXIMG(tier,'bximg')}<div><div class="t">${M?'✦ 신화 상자 개봉 ✦':'★ 전설 상자 개봉 ★'}</div><div class="sub">${who} · ${t.n} 행운 상자</div></div></div>`;document.body.appendChild(el);setTimeout(()=>el.classList.add('out'),2800);setTimeout(()=>el.remove(),3400);}
  else{const box=$('ribbons'),el=document.createElement('div');el.className='ribbon '+cls;el.innerHTML=`${BOXIMG(tier,'bximg')}<div><div class="big"><span class="w">🎁 <b>${who}</b>님이</span> <span class="f"><span class="gb">${t.n}</span> <b>행운 상자</b>를 열었어요!</span></div><small>방금 전 · 같은 서버</small></div>`;box.appendChild(el);setTimeout(()=>el.classList.add('out'),4800);setTimeout(()=>el.remove(),5400);}
@@ -3376,8 +3415,8 @@ V14=(()=>{
    else if(o.t==='charm'){const n=Math.max(1,Math.min(20,o.n|0||1)),gt=Math.max(0,Math.min(6,o.g|0));for(let i=0;i<n;i++)S.charms.push(SYS.makeCharm(D,gt,S.nid++));itN.push(`🧿 ${TIER(gt).n} 부적 ×${n}`);}
    else if(o.t==='chr'){/* v202: 🧑 한정·특별 캐릭터 지급 (크리스마스 캐릭터는 기간과 상관없이 바로 열려요) */const K=KINDS.find(z=>z.xev===o.k||z.tk===o.k);if(K){if(K.xev)xmGive(K.xev,1);else if(K.tk){const t=chTk();t[K.tk]=Object.assign({got:Date.now()},t[K.tk]||{},{used:Date.now()});}itN.push('🧑 '+K.n+' 캐릭터');}}
    else if(o.t==='bait'){const b=D.BAITS.find(z=>z.k===o.k);if(b){const n=Math.max(1,Math.min(9999,o.n|0||1));S.baits[b.k]=b.qty?(Math.max(0,S.baits[b.k]|0)+n):-1;itN.push(`🪱 ${b.n}${b.qty?' ×'+n:''}`);}}}catch(e){console.warn('[gift]',e);}}
-  const txt=[c&&'골드 '+c.toLocaleString(),s&&'강화석 '+s,b&&`상자 ${b}개`,x&&'XP '+x,...itN].filter(Boolean).join(' · ');
-  save();hud();updBagBadge();toast(`🎁 운영자 보상 도착! ${txt}`,3200);try{giftBanner(g.msg||'운영자 보상',txt);}catch(e){}alertBox('<h3>🎁 운영자 보상</h3><p>'+(txt||'보상이 도착했어요.')+(g.msg?'<br><small>'+g.msg+'</small>':'')+'</p>');}
+  const items=giftItemsOf(g);const txt=items.map(it=>[it.name,it.qty].filter(Boolean).join(' ')).join(' · ');
+  save();hud();updBagBadge();toast(`🎁 운영자 보상 도착! ${txt}`,3200);try{giftAlert(items,g.msg);}catch(e){try{giftBanner(g.msg||'운영자 보상',txt);}catch(_){}alertBox('<h3>🎁 운영자 보상</h3><p>'+(txt||'보상이 도착했어요.')+(g.msg?'<br><small>'+g.msg+'</small>':'')+'</p>');}}
  function publishGift(g){g.id=g.id||(Date.now().toString(36)+Math.random().toString(36).slice(2,6));if(!g.servers)g.servers=[1,2,3,4,7,20];/* v135: 다른 호숫가·달에 있는 유저도 받게 */if(rtOn()&&NK_RT.setGift)return !!NK_RT.setGift(g);applyGift(g);toast('실시간 서버에 연결되어 있지 않아 이 화면에만 지급돼요',1800);return false;}
  function banWall(){let el=$('banWall');const until=+S.rtBanUntil||0;if(!(until>Date.now())){if(el)el.remove();return;}if(!el){el=document.createElement('div');el.id='banWall';document.body.appendChild(el);}el.innerHTML=`<div><b>⛔ 정지 중이에요</b><p>${left(until)} 뒤에 다시 들어올 수 있어요.</p></div>`;}
  function applySanc(map){const now=Date.now(),next={};if(map&&typeof map==='object')for(const k in map){const row=map[k]||{};const mute=+row.mute||0,ban=+row.ban||0;if(mute>now||ban>now)next[nickKey(k)]={mute,ban,why:row.why||''};}
@@ -3444,7 +3483,7 @@ V14=(()=>{
  if(window.NK_RT&&NK_RT.grants)try{applyGrants(NK_RT.grants);}catch(e){}
  addEventListener('nk-rt-sanc',e=>applySanc(e.detail));
  addEventListener('nk-rt-gift',e=>applyGift(e.detail));
- /* v191: 운영자가 준 특별 칭호가 오면 알려줘요 (전에는 칭호 목록에만 조용히 생겨서 못 받은 줄 알았어요) */addEventListener('nk-rt-titles',()=>{try{const mine=spTitles(NICK()).map(t=>t.n);S.spSeen=Array.isArray(S.spSeen)?S.spSeen:null;if(S.spSeen==null){S.spSeen=mine;save();return;}const nw=mine.filter(n=>!S.spSeen.includes(n));if(nw.length){S.spSeen=mine;save();toast(`🏷 새 칭호 「${nw.map(n=>String(n).replace(/[<>&"]/g,'')).join('」·「')}」를 받았어요<br><small>칭호에서 골라 달 수 있어요</small>`,3200);try{giftBanner('운영자 보상','🏷 칭호 '+nw.join(', '));}catch(_){}}}catch(e){}});
+ /* v191: 운영자가 준 특별 칭호가 오면 알려줘요 (전에는 칭호 목록에만 조용히 생겨서 못 받은 줄 알았어요) */addEventListener('nk-rt-titles',()=>{try{const mine=spTitles(NICK()).map(t=>t.n);S.spSeen=Array.isArray(S.spSeen)?S.spSeen:null;if(S.spSeen==null){S.spSeen=mine;save();return;}const nw=mine.filter(n=>!S.spSeen.includes(n));if(nw.length){S.spSeen=mine;save();toast(`🏷 새 칭호 「${nw.map(n=>String(n).replace(/[<>&"]/g,'')).join('」·「')}」를 받았어요<br><small>칭호에서 골라 달 수 있어요</small>`,3200);try{giftAlert(nw.map(n=>({ico:'icons/emoji-png/1f451.png',fb:'🏷',name:'칭호 「'+n+'」',qty:''})),'칭호에서 골라 달 수 있어요','새 칭호가 도착했어요');}catch(_){try{giftBanner('운영자 보상','🏷 칭호 '+nw.join(', '));}catch(__){}}}}catch(e){}});
  addEventListener('nk-rt-prof',e=>{if(window.NK_PROF&&NK_PROF.replace)NK_PROF.replace(e.detail);});
  addEventListener('nk-rt-banned',e=>{S.rtBanUntil=e.detail&&e.detail.until||Date.now()+60000;banWall();});
  addEventListener('nk-rt-stage',e=>applyStage(e.detail));
