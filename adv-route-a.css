@@ -255,16 +255,16 @@
 @media(max-width:860px){#adv.fmon .fmA-r .fmtm.ev small{display:none}}
 @media(max-width:860px){#adv.fmon .fmA-r .fmtm-m small{max-width:100%}#adv.fmon .fmA-r .fmtm .evs{display:none}}
 @media(max-width:860px){#adv.fmon .fmab{margin-top:4px}}
-/* v212: 원정 시간 줄 · 시간 단축 칩 · 잠금 표시 */
-#adv.fmon .fmtime{display:flex;align-items:center;gap:8px;background:#f2f8ff;border-radius:12px;padding:6px 10px;font-size:12.5px;min-height:34px}
+/* v212: 원정 시간 줄(예전 안내 줄 자리) · 시간 단축 칩 · 잠금 표시 */
+#adv.fmon .fmtime{display:flex;align-items:baseline;gap:6px;font-size:12px;line-height:1.2;color:var(--ink);min-width:0}
 #adv.fmon .fmtime>span{font-weight:700;white-space:nowrap}
-#adv.fmon .fmtime s{color:var(--mut);margin-left:auto;white-space:nowrap}
-#adv.fmon .fmtime b{font-size:15px;color:#2f6fa8;white-space:nowrap}
-#adv.fmon .fmtime>b:nth-child(2){margin-left:auto}
-#adv.fmon .fmtime em{font-style:normal;font-weight:800;color:#fff;background:#3f8fd0;border-radius:8px;padding:1px 7px;white-space:nowrap}
-#adv.fmon .fmtime small{color:var(--mut);font-size:11px;margin-left:auto;text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#adv.fmon .fmtime s{color:var(--mut);white-space:nowrap}
+#adv.fmon .fmtime i{font-style:normal;color:var(--mut)}
+#adv.fmon .fmtime b{font-size:13.5px;color:#2f6fa8;white-space:nowrap}
+#adv.fmon .fmtime em{font-style:normal;font-weight:800;font-size:11px;color:#fff;background:#3f8fd0;border-radius:7px;padding:1px 6px;white-space:nowrap}
+#adv.fmon .fmtime small{color:var(--mut);font-size:11px;margin-left:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #adv.fmon .fmslot em.tm{left:4px;right:auto;color:#2f6fa8;background:#e6f1fb}
 #adv.fmon .fmslot .fmlk{position:absolute;left:4px;bottom:3px;font-style:normal;font-size:11px;line-height:1}
 #adv.fmon .fmslot .fmlk img.emj,#adv.fmon .fmpf .fmlk img.emj{width:12px!important;height:12px!important}
 #adv.fmon .fmpf .fmlk{position:absolute;left:3px;top:2px;font-style:normal;font-size:10px;line-height:1}
-@media(max-width:860px){#adv.fmon .fmtime small{font-size:10px}}
+@media(max-width:420px){#adv.fmon .fmtime em+small{display:none}}
