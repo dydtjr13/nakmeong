@@ -258,6 +258,11 @@
       try { dispatchEvent(new CustomEvent("nk-rt-s5", { detail: m })); } catch (e) { /* ignore */ }
       return true;
     }
+    // v205: 🌈 합성판에서 무지개 물고기 완성 — 모든 서버 공지
+    if (m.t === "mbr") {
+      try { dispatchEvent(new CustomEvent("nk-rt-mbr", { detail: m })); } catch (e) { /* ignore */ }
+      return true;
+    }
     if (m.t === "spam" || m.t === "reportRes" || m.t === "staffAddRes") {
       try { dispatchEvent(new CustomEvent("nk-rt-" + m.t.toLowerCase(), { detail: m })); } catch (e) { /* ignore */ }
       return true;
@@ -653,6 +658,7 @@
   RT.supList = function () { if (RT.mode === "on") { send({ t: "supList" }); return true; } return false; };
   RT.giftAck = function (id) { if (RT.mode === "on" && id) send({ t: "giftAck", id: String(id) }); };
   RT.txc = function (how) { if (RT.mode === "on") { send({ t: "txc", how: how === "syn" ? "syn" : "box" }); return true; } return false; };
+  RT.mbr = function (k) { if (RT.mode === "on") { send({ t: "mbr", k: String(k || "") }); return true; } return false; };
   RT.s5 = function (k, g) { if (RT.mode === "on") send({ t: "s5", k: String(k || ""), g: g | 0 }); };
   RT.emote = function (text) { if (RT.mode === "on") send({ t: "emote", text: String(text || "").slice(0, 8) }); };
   function opsSend(obj) {

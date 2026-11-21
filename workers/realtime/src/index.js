@@ -283,6 +283,11 @@ export class LakeRoom extends DurableObject {
       this.broadcast({ t: "txc", nick: String(msg.nick || "").slice(0, 24), id: String(msg.id || "").slice(0, 40), srv: msg.srv | 0, how: msg.how === "syn" ? "syn" : "box", at: +msg.at || Date.now() });
       return;
     }
+    // v205: 🌈 합성판 무지개 완성 공지 — 모든 방에 그대로 전달
+    if (msg.t === "mbr") {
+      this.broadcast({ t: "mbr", nick: String(msg.nick || "").slice(0, 24), id: String(msg.id || "").slice(0, 40), srv: msg.srv | 0, k: String(msg.k || "").slice(0, 20), at: +msg.at || Date.now() });
+      return;
+    }
     if (msg.t === "s5") {
       this.broadcast({ t: "s5", nick: String(msg.nick || "").slice(0, 24), id: String(msg.id || "").slice(0, 40), srv: msg.srv | 0, k: String(msg.k || "").slice(0, 20), g: msg.g | 0 });
       return;
@@ -1003,6 +1008,18 @@ export class LakeRoom extends DurableObject {
       prev.lastTxc = now;
       try { ws.serializeAttachment(prev); } catch { /* ignore */ }
       await this.fan(prev.server, [...SERVERS.map((x) => x.id), 7, 20], { t: "txc", nick: prev.nick, id: prev.id, srv: prev.server, how: msg.how === "syn" ? "syn" : "box", at: now });
+      return;
+    }
+    // v205: 🌈 합성판 무지개 완성 — 모든 서버(1~4 · 7 · 20)에 공지 · 한 사람당 10초에 한 번
+    //        9번(관리자 부하 테스트 방)에서 보내면 9번 안에서만 (실제 유저에게 테스트 공지가 가지 않게)
+    if (msg.t === "mbr") {
+      if (!prev.ready) return;
+      const now = Date.now();
+      if (now - (prev.lastMbr || 0) < 10000) return;
+      prev.lastMbr = now;
+      try { ws.serializeAttachment(prev); } catch { /* ignore */ }
+      const to = prev.server === 9 ? [9] : [...SERVERS.map((x) => x.id), 7, 20];
+      await this.fan(prev.server, to, { t: "mbr", nick: prev.nick, id: prev.id, srv: prev.server, k: msg.k, at: now });
       return;
     }
     // v128: ⭐ 5성 완성 알림 — 서버 전체(1~4 · 7)로 · 한 사람당 8초에 한 번

@@ -5,6 +5,8 @@
 //  · 하루 합성 횟수: 기본 30 + 낚시 50회마다 +5(최대 +80) + 광고 1회 +10(최대 +100) + 후원자 +100 · 이월 없음 · 최대 310 · 자정(한국 시간) 초기화
 //  · ⓘ 정보 창: 합성 방법 · 자정 초기화 · 오늘 받은 횟수 내역
 //  · PC는 화면 흔들림·멈칫(히트스톱)·줌이 없어요. 팝·파티클·효과음은 그대로. 터치 기기(모바일)는 흔들림·멈칫·진동 유지
+//  · v205: PC는 화면 대신 나무판만 짧게 흔들리고 둘레 8칸이 튕기고 판 테두리가 번쩍, 낮은 「쿵」 소리 (pcHit/thud)
+//  · v205: 모바일은 판이 화면을 꽉 채워요 (높이가 모자라면 #mbd.mbcmp 작은 배치) · 물고기 크기는 단계와 상관없이 고정 · 🌈 무지개 완성은 전체 서버 공지(mbr)
 //  · 물고기 데이터는 기존 그대로(S.tank 의 f.st 0~4 = ★1~★5, f.vr = 변이). 판에는 물고기 id만 적어 둬요 (S.mb.cells)
 //  · 켜고 끄기: 관리자 › 테스트 기능 「🪵 나무 작업대 합성판」(mergeBoard: v192부터 off 기본(예전 3마리 합성) / on 새 합성판 — 정식 적용 때 기본값만 on 으로)
 //              「🧺 합성판 정리 버튼」(mbTidy: on 기본 / off) — 정리 버튼은 이 한 곳에서 빼요
@@ -13,7 +15,7 @@
 (function(){'use strict';
 if(window.NK_PREV)return;
 const $=id=>document.getElementById(id);
-const MB_CFG={N:5,base:30,fishStep:50,fishAmt:5,fishMax:80,adAmt:10,adMax:100,supAmt:100,luck:.01,luckMaxT:4,adSec:30};/* v204: 2단계 상승은 ★1~★5에서만 1% 고정 · 변이(블랙~)부터는 한 단계씩 */
+const MB_CFG={N:5,base:30,fishStep:50,fishAmt:5,fishMax:80,adAmt:10,adMax:100,supAmt:100,luck:.01,luckMaxT:3,adSec:30};/* v205: 2단계 상승은 ★1~★4에서만 1% 고정 · ★5와 변이(블랙~)부터는 한 단계씩 */
 const LV=['★1','★2','★3','★4','★5','블랙','핑크','레드','황금','무지개'];
 const VK=['black','pink','red','gold','rainbow'];
 const IMP=[null,{sh:0,hs:0,pn:10,fl:0,rg:1,vib:[10]},{sh:1.5,hs:20,pn:14,fl:0,rg:1,vib:[12]},{sh:2.5,hs:35,pn:18,fl:.12,rg:1,vib:[15]},{sh:4,hs:55,pn:28,fl:.2,rg:2,vib:[20,30,20]},{sh:6,hs:75,pn:40,fl:.32,rg:2,vib:[30,40,60]},{sh:7,hs:85,pn:48,fl:.38,rg:2,vib:[30,30,30,30,60]},{sh:9,hs:105,pn:60,fl:.48,rg:3,vib:[40,30,80]},{sh:11,hs:135,pn:76,fl:.62,rg:3,vib:[50,30,50,30,120],ray:1},{sh:15,hs:190,pn:110,fl:.85,rg:4,vib:[60,40,60,40,60,40,200],ray:1,rb:1}];
@@ -121,9 +123,16 @@ function build(){let m=$('mbd');if(m)return m;m=document.createElement('div');m.
  new MutationObserver(ms=>{if(!ST.open)return;for(const x of ms)for(const n of x.addedNodes){if(n.classList&&n.classList.contains('boxget')){boxSlot(n);continue;}if(ANN.includes(n.id)||n.id==='tq'){requestAnimationFrame(slots);return;}}}).observe(document.body,{childList:true});
  return m;}
 function layout(){const N=mbS().n,pc=PCL(),gap=pc?(N>=7?6:8):(N>=7?4:N>=6?5:6);let W;
- if(pc){W=Math.min(500,innerWidth-300*2-18*4-16,innerHeight-36-84-12-56-20);}/* 84 = 위쪽 공지 띠 자리 */
- else{const hd=$('mbMain').querySelector('.mbhd'),c=$('mbCntM'),q=$('mbMain').querySelector('.mbq.mob'),bb=$('mbBB');const used=(hd?hd.offsetHeight:50)+(c?c.offsetHeight+12:150)+(q?q.offsetHeight+8:120)+(bb?bb.offsetHeight:70)+24;W=Math.min(348,innerWidth-32,innerHeight-used);}
- /* v200: 판이 커지면(6×6·7×7) 칸을 작게 해서 화면 안에 들어가게 · 가장 작은 칸 28px */W=Math.max(N*28+12+gap*(N-1),W);const cs=Math.floor((W-12-gap*(N-1))/N);ST.cs=cs;const g=$('mbGrid');g.style.gridTemplateColumns=`repeat(${N},${cs}px)`;g.style.setProperty('--cs',cs+'px');g.style.gap=gap+'px';
+ const md=$('mbd'),wd=$('mbWood');
+ if(pc){md.classList.remove('mbcmp');ST.cmp=false;wd.style.margin='';$('mbMain').style.paddingBottom='';W=Math.min(640,innerWidth-300*2-18*4-16,innerHeight-36-84-12-56-20);}/* 84 = 위쪽 공지 띠 자리 · v205: 큰 화면은 640까지 */
+ else{/* v205: 모바일은 판이 화면을 꽉 채우게 — 먼저 보통 배치로 재 보고, 판이 화면 너비만큼 못 커지면 「작은 배치」(횟수 한 줄·목록 낮게·버튼 낮게)로 바꿔서 다시 재요
+   판 = min(화면 너비 − 24, 남는 높이) · 남는 높이는 판 위아래로 나눠서 가운데에 · 스크롤이 생기지 않게 */
+  const main=$('mbMain'),bb=$('mbBB'),oh=e=>{if(!e||!e.offsetParent)return 0;const c=getComputedStyle(e);return e.offsetHeight+parseFloat(c.marginTop)+parseFloat(c.marginBottom);};
+  const fit=()=>{let u=0;for(const ch of main.children){if(ch===wd||ch===bb)continue;u+=oh(ch);}const sh=$('mbShk'),pt=parseFloat(getComputedStyle(sh).paddingTop)||0;return innerHeight-pt-u-(bb?bb.offsetHeight:0)-24-20;};/* 24 = 판 위(판 Lv 띠 16) · 아래(8) · 20 = 나무 테두리 (W는 테두리 안쪽 크기) */
+  const want=Math.min(540,innerWidth-44);/* 나무판 바깥 너비 = 화면 − 24 */md.classList.remove('mbcmp');ST.cmp=false;drawCnt();let H=fit();
+  if(H<want-8){md.classList.add('mbcmp');ST.cmp=true;drawCnt();H=fit();}/* 8px 안쪽 차이는 보통 배치 그대로 */
+  H-=2;/* 반올림 여유 (목록이 아래 버튼에 0.x px 닿지 않게) */W=Math.min(want,H);const ex=Math.max(0,H-W);wd.style.margin=`${Math.round(16+ex/2)}px auto ${Math.floor(8+ex/2)}px`;main.style.paddingBottom=(bb?bb.offsetHeight:0)+'px';}
+ /* v200: 판이 커지면(6×6·7×7) 칸을 작게 해서 화면 안에 들어가게 · 가장 작은 칸 28px */W=Math.max(N*28+12+gap*(N-1),W);const cs=Math.floor((W-12-gap*(N-1))/N);ST.cs=cs;const g=$('mbGrid');g.style.gridTemplateColumns=`repeat(${N},${cs}px)`;g.style.setProperty('--cs',cs+'px');g.style.setProperty('--mbBk',Math.max(.5,Math.min(.9,cs/100)).toFixed(3));g.style.gap=gap+'px';
  if(g.children.length!==N*N){g.innerHTML='';for(let i=0;i<N*N;i++){const d=document.createElement('div');d.className='mbcell';d.dataset.i=i;g.appendChild(d);}}
  [...g.children].forEach(d=>{d.style.width=d.style.height=cs+'px';});const fx=$('mbFx'),dp=Math.min(2,devicePixelRatio||1);fx.width=innerWidth*dp;fx.height=innerHeight*dp;}
 /* 판이 열려 있는 동안 공지 띠(#stAnn)·알림(#tq)이 판·목록·버튼을 가리지 않게 빈 자리로 옮겨요
@@ -163,8 +172,10 @@ function drawCnt(){const d=day(),fb=fishB(d.fish),cap=MB_CFG.fishMax/MB_CFG.fish
  const nxtT=nxt?`다음 <b>+${MB_CFG.fishAmt}회</b>까지 ${nxt}마리`:'낚시 보너스 최대';const ticks=pc?[400,800]:[200,400,600,800];
  const mid=`<div class="mr1"><div class="mic">⚒</div><div><div class="mlb">오늘 남은 합성</div><div class="mnum">${infOn()?'∞<small> 테스트 무제한</small>':`${left()}<small> / ${total()}</small>`}</div></div><button class="mbibtn" type="button" aria-label="합성 정보">i</button></div>`;
  const bar=`<div class="mfbar"><i style="width:${Math.min(100,d.fish/cap*100)}%"></i>${ticks.map(m=>`<s class="${d.fish>=m?'mok':''}" style="left:calc(${m/cap*100}% - 2px)"></s>`).join('')}</div><div class="mticks">${ticks.map(m=>`<span style="left:${m/cap*100}%;${m===cap?'transform:translateX(-80%)':m===200?'transform:translateX(-30%)':''}">${m}회${pc?'':'<br><b>+'+(m/MB_CFG.fishStep*MB_CFG.fishAmt)+'</b>'}</span>`).join('')}</div>`;
- const h=pc?`${mid}<div class="mfps"><span>🎣 낚시 ${d.fish}회</span><span>보너스 ${fb}/${MB_CFG.fishMax}</span></div><div class="mfp"><span>${nxtT}</span></div>${bar}`:`${mid}<div class="mfp"><span>🎣 오늘 낚시 ${d.fish}회 · 보너스 ${fb}/${MB_CFG.fishMax}</span><span>${nxtT}</span></div>${bar}`;
- ['mbCntM','mbCntP'].forEach(id=>{const e=$(id);if(e&&e._h!==h){e.innerHTML=h;e._h=h;e.querySelector('.mbibtn').onclick=()=>infoOpen();}});if(ST.info===true)infoBody();}
+ const cmp=!pc&&ST.cmp,barC=`<div class="mfbar"><i style="width:${Math.min(100,d.fish/cap*100)}%"></i>${(pc?[400,800]:[200,400,600,800]).map(m=>`<s class="${d.fish>=m?'mok':''}" style="left:calc(${m/cap*100}% - 1.5px)"></s>`).join('')}</div>`;
+ /* v205: 작은 배치 — 남은 횟수·낚시 보너스를 한 줄로 */const midC=`<div class="mr1"><div class="mic">⚒</div><div class="mcm"><div class="mlb">오늘 남은 합성</div><div class="mnum">${infOn()?'∞<small> 무제한</small>':`${left()}<small> / ${total()}</small>`}</div></div><div class="mcf"><span>🎣 ${d.fish}회 · 보너스 <b>${fb}</b>/${MB_CFG.fishMax}</span><span>${nxt?`다음 <b>+${MB_CFG.fishAmt}</b>까지 ${nxt}마리`:'보너스 최대'}</span></div><button class="mbibtn" type="button" aria-label="합성 정보">i</button></div>`;
+ const h=cmp?`${midC}${barC}`:pc?`${mid}<div class="mfps"><span>🎣 낚시 ${d.fish}회</span><span>보너스 ${fb}/${MB_CFG.fishMax}</span></div><div class="mfp"><span>${nxtT}</span></div>${bar}`:`${mid}<div class="mfp"><span>🎣 오늘 낚시 ${d.fish}회 · 보너스 ${fb}/${MB_CFG.fishMax}</span><span>${nxtT}</span></div>${bar}`;
+ ['mbCntM','mbCntP'].forEach(id=>{const e=$(id);if(cmp&&id==='mbCntP')return;if(e&&e._h!==h){e.innerHTML=h;e._h=h;e.querySelector('.mbibtn').onclick=()=>infoOpen();}});if(ST.info===true)infoBody();}
 function trayEl(){return PCL()?$('mbQP'):$('mbQM');}
 function tfCounts(P){const b=mbS(),onB=new Set(b.cells.filter(x=>x!=null)),c={all:0,v:0};for(const f of P.values()){if(onB.has(f.id))continue;const t=tierOf(f);if(t<0||t>=9)continue;c.all++;if(t>=5)c.v++;else c[t]=(c[t]|0)+1;}return c;}
 function drawTf(P){const c=tfCounts(P),cur=tfCur();const h=TF.map(([k,n])=>{const v=c[k]|0;return `<button type="button" class="mtf ${k===cur?'on':''} ${v?'':'zero'}" data-tf="${k}" aria-pressed="${k===cur}"><span>${n}</span><b>${v>999?'999+':v}</b></button>`;}).join('');document.querySelectorAll('#mbd .mbtf').forEach(e=>{if(e._h!==h){e.innerHTML=h;e._h=h;}});}
@@ -206,7 +217,7 @@ function infoBody(){const d=day(),fb=fishB(d.fish),ab=adB(d.ads),sp=isSup()?MB_C
  $('mbInfo').innerHTML=`<div class="minfohd"><div class="mt">ⓘ 합성 안내</div><button class="miclose" type="button">닫기</button></div>
 <div class="mistep"><div class="mic">✋</div><p>물고기를 누르면 합성판의 <b>다음 빈 칸</b>으로 들어가요. 왼쪽 위부터 한 줄씩 채워져요.</p></div>
 <div class="mistep"><div class="mic">🧩</div><p><b>같은 물고기 · 같은 단계</b>를 끌어서 겹치면 하나로 합쳐져요 (2개 → 1개).</p></div>
-<div class="mistep" style="border-bottom:0"><div class="mic">✨</div><p>★1~★5는 운 좋으면 한 단계 더 올라가요 <b>(${Math.round(MB_CFG.luck*100)}%)</b>.<br>블랙부터는 한 단계씩만 올라가요.<br>한 번 합칠 때 쓰는 횟수는 <b>1회</b>예요.</p></div>
+<div class="mistep" style="border-bottom:0"><div class="mic">✨</div><p>★1~★4는 운 좋으면 한 단계 더 올라가요 <b>(${Math.round(MB_CFG.luck*100)}%)</b>.<br>★5부터는 한 단계씩만 올라가요.<br>한 번 합칠 때 쓰는 횟수는 <b>1회</b>예요.</p></div>
 ${lvOn()?(()=>{const c=lvCfg(),t=tot(),L=lvl();return `<div class="milv"><h5><span>🪵 합성판 레벨</span><small>지금까지 합성 ${t.toLocaleString()}회</small></h5>${[[1,5,0],[2,6,c.l2],[3,7,c.l3]].map(([l,n,need])=>`<div class="mrow ${L===l?'mnow':''} ${t>=need?'mok':''}"><span>Lv.${l} · ${n}×${n}</span><b>${need?'누적 '+need.toLocaleString()+'회':'처음'}</b></div>`).join('')}</div>`;})():''}<div class="mireset">🌙 매일 자정(한국 시간)에 초기화돼요.<br>남은 횟수는 다음 날로 넘어가지 않아요.</div>
 <div class="mibrk"><h5>오늘 받은 횟수</h5><div class="mrow"><span>기본</span><b>+${MB_CFG.base}</b></div><div class="mrow"><span>낚시 보너스 (${d.fish}회)</span><b>+${fb}</b></div><div class="mrow"><span>광고 보기 (${d.ads}회)</span><b>+${ab}</b></div><div class="mrow"><span>후원자 혜택 (3천원 이상)</span><b>+${sp}</b></div>
 <div class="mrow mtot"><span>오늘 총량</span><b>${tt}</b></div><div class="mrow"><span>사용한 횟수</span><b>${Math.min(d.used,tt)}</b></div><div class="mrow mtot"><span>남은 횟수</span><b>${left()}</b></div></div>
@@ -275,14 +286,28 @@ function merge(from,to){if(left()<=0){bubble('오늘 합성 횟수를 다 썼어
  ST.ov[to]={k:a.k,t:t0};ST.ev.push({to,k:a.k,r,t0:now,tb:now+110+I.hs,x,y,I,parts,isNew,combo:ST.combo,done:false});play('squish',r);draw();kick();
  B().ms('fuse',1);B().xbal(15,'합성');
  return true;}
+/* v205: 🌈 무지개 완성 — 모든 서버 공지 (초월 부적 공지와 같은 띠 자리 #stAnn · 실시간 서버 mbr 메시지) · 혼자 플레이면 내 화면에만 */
+const myRtId=()=>{try{return String(window.NK_RT&&NK_RT.id||'');}catch(e){return '';}};
+const myNick=()=>{try{const V=window.__nkInt;return (V&&V.NICK&&V.NICK())||(gS()&&gS().nick)||'나';}catch(e){return '나';}};
+function rbSay(t){try{const V=window.__nkInt;V&&V.say&&V.say('시스템',t);}catch(e){}}
+function rbShout(f){let sent=false;try{sent=!!(window.NK_RT&&NK_RT.mbr&&NK_RT.mbr(f.k));}catch(e){}rbBand({nick:myNick(),k:f.k,me:1,local:sent?0:1});rbSay(`📢 [합성] ${myNick()}님이 합성으로 ${fnm(f.k)}를 🌈 무지개까지 올렸어요!`);}
+function rbBand(ev){if(!ev||!FI(ev.k))return;let box=$('stAnn');if(!box){box=document.createElement('div');box.id='stAnn';document.body.appendChild(box);}box.innerHTML='';
+ const srv=(()=>{try{return ev.srv&&window.SRVN?SRVN(ev.srv):'';}catch(e){return '';}})(),el=document.createElement('div');el.className='txann mbrann';
+ el.innerHTML=`<span class="mbri"><img src="${esc(fimg(ev.k))}" alt="" style="filter:${esc((FZV.rainbow||{}).fx||'')}"></span><div class="ta-m"><small>${ev.local?'🌙 혼자 플레이 · 내 화면에만':'📢 전체 서버 공지'}${srv?' · '+esc(srv):''}</small><b>${esc(ev.nick||'누군가')}</b>님이 합성으로 <b>${esc(fnm(ev.k))}</b>를 <b class="mbrt">🌈 무지개</b>까지 올렸어요!</div>`;
+ box.appendChild(el);const dur=ev.me?9000:document.querySelector('.modal.show')?7000:15000;setTimeout(()=>el.classList.add('out'),dur);setTimeout(()=>el.remove(),dur+700);if(ST.open)requestAnimationFrame(slots);}
+addEventListener('nk-rt-mbr',e=>{try{const d=e.detail||{};if(d.id&&String(d.id)===myRtId())return;if(!d.k||!FI(d.k))return;rbBand(d);rbSay(`📢 [합성] ${d.nick||'누군가'}님이 합성으로 ${fnm(d.k)}를 🌈 무지개까지 올렸어요!`);}catch(err){}});
 function makeFish(a,c,r){const F=FI(a.k);if(!F)return null;const cm=Math.max(+a.cm||0,+c.cm||0),g=Math.max(a.g|0,c.g|0),st=r>=5?4:r,vr=r>=5?VK[r-5]:null;
  let v=0;try{v=Math.round(valueOf(F,cm,g)*(1+.5*st)*(vr?FZV[vr].m:1));}catch(e){v=Math.max(a.v|0,c.v|0)*2;}
  const S=gS(),nf={id:S.nid++,k:a.k,cm,g,v,price:Math.round(v*1.3),sale:false,st,t:Date.now(),mb:1};if(vr){nf.vr=vr;if(S.vrLock!==false){nf.lock=true;nf.alk=1;}}
- try{fzRemove([a.id,c.id],null);}catch(e){S.tank=S.tank.filter(f=>f.id!==a.id&&f.id!==c.id);}S.tank.push(nf);
+ /* v205: 어항 3개 — 새 물고기는 겹친 자리 물고기(c)가 있던 어항에 넣어요 (늘 지금 어항에 넣으면 그 어항이 넘쳐요) · c가 빠진 자리라 칸은 늘 있어요 */
+ let li=0;try{const L0=B().lists();li=Math.max(0,L0.findIndex(L=>L.some(f=>f.id===c.id)));}catch(e){li=0;}
+ try{fzRemove([a.id,c.id],null);}catch(e){S.tank=S.tank.filter(f=>f.id!==a.id&&f.id!==c.id);}
+ {let L1=null;try{L1=B().lists()[li];}catch(e){}(Array.isArray(L1)?L1:S.tank).push(nf);}
  try{const z=fzS();z.star=z.star||{};z.star[a.k]=Math.max(z.star[a.k]|0,st);if(vr){const dx=z.dex[a.k]=z.dex[a.k]||{};dx[vr]=1;try{const sp=fzSP();(sp[a.k]=sp[a.k]||{})[vr]=1;}catch(e){}}}catch(e){}
  try{const tv=gT();if(tv&&tv.removeFish){tv.removeFish(a.id);tv.removeFish(c.id);}}catch(e){}
- /* v195: ★5를 만들면 같은 호숫가에 알려요 · 등급마다 처음 ★5 → 칭호 「등급 별 장인」 */
- if(tierOf(a)<4&&r>=4){try{if(s5On())setTimeout(()=>{try{B().s5Shout(nf);}catch(e){}},700);}catch(e){}
+ /* v205: 모두에게 알리는 건 ★5가 아니라 🌈 무지개를 만들었을 때예요 (★5 알림은 뺐어요) · 등급마다 처음 ★5 → 칭호 「등급 별 장인」은 그대로 */
+ if(r===9)setTimeout(()=>{try{rbShout(nf);}catch(e){}},900);
+ if(tierOf(a)<4&&r>=4){
   try{if(B().fzGrOn()){const z=fzS(),gq=nf.g|0;z.g5=z.g5||{};if(!z.g5[gq]){z.g5[gq]=Date.now();const tn=(B().GR(gq)?B().GR(gq).n:'')+' 별 장인';S.myTitles=S.myTitles||[];if(!S.myTitles.some(x=>x.n===tn))S.myTitles.push({n:tn,c:'⭐ 등급 5성',t:Date.now()});setTimeout(()=>bubble(`🏅 새 칭호 「${esc(tn)}」<br><small>설정 › 프로필 › 칭호에서 골라요</small>`,2600),900);}}}catch(e){}}
  return nf;}
 // ── 아래 버튼 ──
@@ -300,7 +325,15 @@ function bbAct(k){const b=mbS(),P=ST.P||pool();
    B().ms('sell',ok.length);ST.sel.clear();try{save();hud();}catch(e){}B().coin();draw();bubble(`🪙 ${ok.length}마리 팔아서 ${tot.toLocaleString()}골드${lk.length?` · 잠긴 ${lk.length}마리는 남겼어요`:''}`,2000);};
   try{confirmBox(`<h3>💰 물고기 팔기</h3><p>${ok.length}마리를 <b>🪙 ${co.toLocaleString()}</b>골드에 팔아요.${lk.length?`<br><small>잠긴 ${lk.length}마리는 팔지 않아요</small>`:''}</p>`,go);const cf=$('confirm');if(cf)cf.style.zIndex=95;}catch(e){go();}return;}}
 // ── 연출 루프 ──
-function evDone(e){if(e.done)return;e.done=true;delete ST.ov[e.to];draw();play('pop',e.r,Math.min(e.combo-1,7));if(IMPACT()&&navigator.vibrate)try{navigator.vibrate(e.I.vib);}catch(_){}}
+function evDone(e){if(e.done)return;e.done=true;delete ST.ov[e.to];draw();play('pop',e.r,Math.min(e.combo-1,7));if(IMPACT()&&navigator.vibrate)try{navigator.vibrate(e.I.vib);}catch(_){}if(!IMPACT())pcHit(e);}
+/* v205: PC 타격감 — 화면 전체는 흔들지 않아요(예전 요청). 대신 ① 나무판만 짧게 흔들림 ② 둘레 8칸이 바깥으로 튕겼다 돌아옴 ③ 판 테두리 번쩍 ④ 낮은 「쿵」 소리 (단계가 높을수록 세게) */
+function pcHit(e){try{const r=e.r|0,N=mbS().n,row=Math.floor(e.to/N),col=e.to%N,cs=ST.cs,w=$('mbWood');
+ const A=Math.min(7,2.2+r*.55),du=230+r*22;if(w&&w.animate){const k=[0,1,2,3,4,5].map(i=>{const q=1-i/5,sx=(i%2?-1:1)*A*q,sy=(i%3===1?1:-1)*A*.45*q;return {transform:`translate(${sx.toFixed(2)}px,${sy.toFixed(2)}px)`};});k.push({transform:'none'});w.animate(k,{duration:du,easing:'ease-out'});
+  w.animate([{boxShadow:getComputedStyle(w).boxShadow+`,0 0 0 ${2+Math.min(r,6)}px ${r===9?'rgba(190,140,255,.75)':r>=5?'rgba(255,214,110,.75)':'rgba(255,240,200,.8)'}`},{boxShadow:getComputedStyle(w).boxShadow}],{duration:260+r*20,easing:'ease-out'});}
+ const P=cs*(.07+Math.min(r,9)*.012);for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){if(!dr&&!dc)continue;const rr=row+dr,cc=col+dc;if(rr<0||cc<0||rr>=N||cc>=N)continue;const c=cellEl(rr*N+cc),it=c&&c.querySelector('.mbit');if(!it||!it.animate)continue;const l=Math.hypot(dr,dc),dx=dc/l*P,dy=dr/l*P;
+  it.animate([{transform:'none'},{transform:`translate(${dx.toFixed(1)}px,${dy.toFixed(1)}px) scale(.94)`,offset:.28},{transform:`translate(${(-dx*.18).toFixed(1)}px,${(-dy*.18).toFixed(1)}px)`,offset:.65},{transform:'none'}],{duration:300+r*15,easing:'ease-out'});}
+ thud(r);}catch(err){}}
+function thud(r){const a=AC();if(!a)return;const [c,m]=a;let o=c._mbOut;if(!o)return;const t=c.currentTime+.004;try{const O=c.createGain();O.gain.value=2.2;O.connect(o);setTimeout(()=>{try{O.disconnect();}catch(_){}},1500);tn(c,O,t,150+Math.min(r,4)*8,48,.2+Math.min(r,9)*.015,'sine',.55,.003);nz(c,O,t,.07,.2,260,1,'lowpass');}catch(e){}}
 /* v204: 방금 합성된 칸을 바로 누르거나 끌거나 겹치면 연출 대기(늘어나는 0.1~0.3초 + 느린 기기에서는 더 길게)를 기다리지 않고 바로 끝내요 — 데이터는 이미 바뀌어 있어요 */
 function settle(i){if(!ST.ov[i])return;const now=performance.now();for(const e of ST.ev)if(e.to===i&&!e.done){if(e.tb>now)e.tb=now;evDone(e);}delete ST.ov[i];}
 function kick(){if(!ST.raf&&ST.open)ST.raf=requestAnimationFrame(loop);}

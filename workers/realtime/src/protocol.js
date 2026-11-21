@@ -1532,6 +1532,8 @@ export function parseClient(raw) {
   }
   // v195: ✨ 초월 부적 획득 공지 (how: box | syn)
   if (msg.t === "txc") return { t: "txc", how: msg.how === "syn" ? "syn" : "box" };
+  // v205: 🌈 합성판 무지개 물고기 완성 공지 (k: 물고기 키)
+  if (msg.t === "mbr") { const k = String(msg.k == null ? "" : msg.k).replace(/[^\w-]/g, "").slice(0, 20); return k ? { t: "mbr", k } : null; }
   if (msg.t === "s5") { const k = String(msg.k == null ? "" : msg.k).replace(/[^\w-]/g, "").slice(0, 20); return k ? { t: "s5", k, g: Math.max(0, Math.min(9, msg.g | 0)) } : null; }
   if (msg.t === "notice") return { t: "notice", notice: msg.notice == null ? null : msg.notice };
   if (msg.t === "event") return { t: "event", event: msg.event == null ? null : msg.event };
