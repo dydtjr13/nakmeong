@@ -3256,7 +3256,7 @@ let BGRUN=false,BGERR='';const nextF=()=>{if(!BGRUN)requestAnimationFrame(frame)
  const stop=()=>{if(!BGRUN)return;BGRUN=false;try{wk&&wk.postMessage(0);}catch(e){}const t0=performance.now();last=t0;setTimeout(()=>{if(FRAMEAT<t0)requestAnimationFrame(frame);},250);};
  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(started&&(S.autoFish||window.__nkPipOn))start();}else stop();});
  setInterval(()=>{if(document.hidden&&started&&(S.autoFish||window.__nkPipOn)&&!BGRUN)start();},5000);
- /* v212: 탭을 숨긴 뒤에 작은 창이 열리면(크롬 자동) 5초 기다리지 않고 바로 이어서 진행 */window.__nkBgKick=()=>{try{if(document.hidden&&started&&(S.autoFish||window.__nkPipOn)&&!BGRUN)start();}catch(e){}};
+ /* v218: 탭을 숨긴 뒤에 작은 창이 열리면(크롬 자동) 5초 기다리지 않고 바로 이어서 진행 */window.__nkBgKick=()=>{try{if(document.hidden&&started&&(S.autoFish||window.__nkPipOn)&&!BGRUN)start();}catch(e){}};
  window.NK_BG={on:()=>BGRUN,tick,dbg:()=>({started,auto:!!S.autoFish,hidden:document.hidden,err:BGERR})};}
 // v61: 관리자 접속 시 성능 정보 (FPS · 드로우콜 · 삼각형 · 해상도) — 모바일 포함, 눌러서 접기/펴기
 let perfT=0,perfMin=999,perfAdm=0;
@@ -8102,7 +8102,7 @@ window.NK_GUIDE={start,stop,bookShow,listShow,cutShow,steps:()=>steps().map(s=>s
 //  입질 때는 작은 창이 주황색으로 반짝이고, 작은 창의 ⏸ 버튼을 누르면 챔질돼요 (작은 창은 버튼 말고는 누를 수 없어요)
 (function(){
 const PREV=window.NK_PREV||'';
-/* v212: 기기·브라우저 구분 — 휴대폰은 창을 내릴 때 자동으로 작은 창을 띄울 수 없어요(브라우저가 막음) */
+/* v218: 기기·브라우저 구분 — 휴대폰은 창을 내릴 때 자동으로 작은 창을 띄울 수 없어요(브라우저가 막음) */
 const UA=navigator.userAgent||'';const IOS=/iP(hone|ad|od)/.test(UA)||(/Macintosh/.test(UA)&&navigator.maxTouchPoints>1);const AND=/Android/i.test(UA);
 const MOB=IOS||AND||/Mobi/i.test(UA)||(()=>{try{return matchMedia('(pointer:coarse)').matches&&!matchMedia('(any-pointer:fine)').matches;}catch(e){return false;}})();
 /* 앱 안 브라우저(카톡·네이버·인스타 등): 아이폰에서는 작은 창 대신 전체 화면 영상이 뜰 수 있어서 쓰지 않아요 */
@@ -8121,7 +8121,7 @@ const P=()=>{S.pip=S.pip||{mode:'game',auto:true,bite:true};return S.pip;};
 function ensure(){if(cv)return;cv=document.createElement('canvas');cv.width=W;cv.height=H;cx=cv.getContext('2d');makeVid();}
 /* v180: 작은 창이 한 번 닫히면 브라우저(특히 삼성 인터넷)에 따라 영상이 이상한 상태로 남아서 다음에 안 열렸어요 → 닫힐 때마다 새 영상으로 바꿔 끼워요 */
 function makeVid(){if(vid){try{selfPause=1;vid.pause();selfPause=0;vid.srcObject=null;vid.remove();}catch(e){selfPause=0;}}
- vid=document.createElement('video');vid.muted=true;vid.playsInline=true;vid.setAttribute('playsinline','');vid.id='pipVid';/* v212: 숨은 영상이 브라우저 판단으로 따로 작은 창·전체 화면이 되지 않게 — 우리가 열 때만 잠깐 풀어요 */try{vid.disablePictureInPicture=true;vid.setAttribute('disablepictureinpicture','');}catch(e){}vid.srcObject=cv.captureStream();document.body.appendChild(vid);
+ vid=document.createElement('video');vid.muted=true;vid.playsInline=true;vid.setAttribute('playsinline','');vid.id='pipVid';/* v218: 숨은 영상이 브라우저 판단으로 따로 작은 창·전체 화면이 되지 않게 — 우리가 열 때만 잠깐 풀어요 */try{vid.disablePictureInPicture=true;vid.setAttribute('disablepictureinpicture','');}catch(e){}vid.srcObject=cv.captureStream();document.body.appendChild(vid);
  vid.addEventListener('enterpictureinpicture',()=>{act=true;window.__nkPipOn=1;inflight=0;plog('enter video');try{window.__nkBgKick&&__nkBgKick();}catch(e){}});const me0=vid;vid.addEventListener('leavepictureinpicture',()=>{act=false;window.__nkPipOn=0;me0._used=1;
   /* 닫힘 신호가 늦게 올 때가 있어요 → 그 사이 새로 여는 중이면 영상을 바꾸지 않아요 (열리는 중인 영상을 지워서 실패하던 문제) */
   setTimeout(()=>{if(inflight||act||me0!==vid)return;makeVid();if(on()&&started){draw();vid.play().catch(()=>{});armAuto();}},120);});
@@ -8129,7 +8129,7 @@ function makeVid(){if(vid){try{selfPause=1;vid.pause();selfPause=0;vid.srcObject
  /* v177: 소리 없는 영상은 크롬이 mediaSession 버튼을 안 보내요 → 작은 창의 ⏸ 를 누르면 영상이 멈추는 걸 보고 챔질한 뒤 다시 재생해요 */
  vid.addEventListener('pause',()=>{const v=vid;if(selfPause||!act||(document.pictureInPictureElement!==v&&v.webkitPresentationMode!=='picture-in-picture'))return;reel();setTimeout(()=>{try{vid.play().catch(()=>{});}catch(e){}},60);});
  msInit();}
-/* v212: 크롬·엣지(PC)는 소리가 나는 동안 다른 탭으로 옮기면 브라우저가 이 함수를 불러 줘요 — 이때만 사용자 동작 없이 작은 창을 열 수 있어요.
+/* v218: 크롬·엣지(PC)는 소리가 나는 동안 다른 탭으로 옮기면 브라우저가 이 함수를 불러 줘요 — 이때만 사용자 동작 없이 작은 창을 열 수 있어요.
    예전엔 창을 숨긴 「뒤에」 직접 열어 봤는데, 안드로이드는 이때 전체 화면 영상 창(이상한 창)을 먼저 띄워서 한 번 더 내려야 작은 창이 됐어요 → 그 시도를 없앴어요 */
 let msOk=null,autoHit=0;
 function msInit(){if(msOk!==null)return msOk;msOk=false;try{if(!('mediaSession' in navigator))return false;const ms=navigator.mediaSession;
@@ -8186,7 +8186,7 @@ function closePip(){if(dpw){try{dpw.close();}catch(e){}return;}try{if(document.p
 // 창 내리면 자동: 미리 작은 동영상을 재생해 두고(아이폰 사파리 autopictureinpicture), 크롬은 숨겨질 때 열어 봐요
 function armAuto(){if(!on()||!started){if(vid&&!act){vid.autoPictureInPicture=false;stopVid();}return;}prime();msInit();}
 setInterval(armAuto,3000);
-/* v212: 창을 숨긴 뒤에 직접 열지 않아요 (안드로이드: 이상한 전체 화면 창 → 한 번 더 내려야 작은 창이 되던 원인).
+/* v218: 창을 숨긴 뒤에 직접 열지 않아요 (안드로이드: 이상한 전체 화면 창 → 한 번 더 내려야 작은 창이 되던 원인).
    자동은 PC 크롬·엣지가 불러 줄 때만(위 msInit). 자동이 안 됐으면 돌아왔을 때 기기별 안내를 한 번만 보여요 */
 let hidAt=0;document.addEventListener('visibilitychange',()=>{if(document.hidden){hidAt=Date.now();autoHit=0;if(on()&&started&&!act)plog('hidden');return;}
  const away=hidAt?Date.now()-hidAt:0;hidAt=0;if(!on()||!started||autoHit||act||away<1500||!P().auto)return;const k=autoKind(),key='pipTip_'+k;if(S[key])return;
@@ -8198,7 +8198,7 @@ function dlg(){let m=$('pipDlg');if(!m){m=document.createElement('div');m.id='pi
  <div class="pipl">${autoKind()==='pc'?`<div class="pipr"><div><b>다른 탭으로 옮기면 자동으로 작은 창</b><small>PC 크롬·엣지 · 소리가 켜져 있을 때 · 처음 한 번 「허용」</small></div><button type="button" class="tg ${p.auto?'on':''}" data-t="auto" aria-label="다른 탭으로 옮기면 자동"><i></i></button></div>`:''}
  <div class="pipr col"><b>작은 창에 보일 것</b><div class="pipm"><button type="button" class="${p.mode==='game'?'on':''}" data-m="game">게임 화면</button><button type="button" class="${p.mode==='card'?'on':''}" data-m="card">상태 카드 (배터리 절약)</button></div></div>
  ${dpOk()?`<div class="pipr"><div><b>PC: 새 창으로 띄우기</b><small>자유롭게 옮기고 크기를 바꿔요 · 화면을 누르면 챔질</small></div><button type="button" class="tg ${p.win!==false?'on':''}" data-t="win" aria-label="새 창으로"><i></i></button></div>`:''}<div class="pipr"><div><b>입질 때 작은 창 반짝이기</b><small>손으로 낚시할 때 · 작은 창 가운데 버튼 = 챔질</small></div><button type="button" class="tg ${p.bite?'on':''}" data-t="bite" aria-label="입질 반짝이기"><i></i></button></div></div>
- <div class="pipn"><b>브라우저마다 달라요</b>${MOB?`<span>휴대폰: 창을 내리기 <b>전에</b> 위 버튼을 눌러 주세요 · 버튼을 누르면 바로 작은 창이 되고, 그대로 홈으로 나가면 돼요 (휴대폰 브라우저는 창을 내릴 때 자동으로 못 띄워요)</span><span>작은 창은 손가락으로 끌어서 옮길 수 있어요</span><span>카카오톡·네이버 앱 안에서는 안 될 수 있어요 · 크롬·사파리·삼성 인터넷으로 열어 주세요</span>`:`<span>PC 크롬·엣지: 새 창으로 떠서 다른 창 위에 있어요 · 끌어서 옮기고 모서리로 크기 조절</span><span>창을 최소화하거나 다른 프로그램으로 옮길 때는 자동으로 안 떠요 · 미리 위 버튼을 눌러 두면 계속 떠 있어요</span><span>사파리: 위 버튼으로 열 수 있어요 · 파이어폭스는 지원하지 않아요</span>`}</div></div>`;
+ <div class="pipn"><b>브라우저마다 달라요</b>${MOB?`<span>휴대폰: 창을 내리기 <b>전에</b> 위 버튼을 눌러 주세요 · 버튼을 누르면 바로 작은 창이 되고, 그대로 홈으로 나가면 돼요 (휴대폰 브라우저는 창을 내릴 때 자동으로 못 띄워요)</span><span>작은 창은 손가락으로 끌어서 옮길 수 있어요</span><span>카카오톡·네이버 앱 안에서는 안 될 수 있어요 · 크롬·사파리·삼성 인터넷으로 열어 주세요</span>`:`<span>PC 크롬·엣지: 새 창으로 떠서 다른 창 위에 있어요 · 끌어서 옮기고 모서리로 크기 조절</span><span>창을 최소화하거나 다른 프로그램으로 옮길 때는 자동으로 안 떠요 · 미리 위 버튼을 눌러 두면 계속 떠 있어요</span><span>사파리·파이어폭스: 위 버튼으로 열 수 있어요 (다른 탭으로 옮길 때 자동은 크롬·엣지만)</span>`}</div></div>`;
  m.querySelector('[data-x]').onclick=()=>closeM('pipDlg');m.querySelector('[data-go]').onclick=()=>{if(act)closePip();else{closeM('pipDlg');openPip();}};
  m.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const k=b.dataset.t;p[k]=k==='win'?(p.win===false):!p[k];save();dlg();});m.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{p.mode=b.dataset.m;save();dlg();});if(!m.classList.contains('show'))openM('pipDlg');}
 function btn(){const sy=$('mSys');if(!sy)return;let b=$('bPip');if(!on()){if(b)b.remove();return;}if(!b){const tpl=$('bTime')||$('bBoard');b=document.createElement('button');b.id='bPip';b.type='button';b.innerHTML='<b class="mi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="7" height="6" rx="1" fill="currentColor"/></svg></b><small class="ml">작은 창</small>';b.onclick=e=>{e.stopPropagation();document.body.classList.remove('menu-open');dlg();};if(tpl)b.className=tpl.className.replace(/\bon\b/,'');}if(!sy.contains(b))sy.appendChild(b);}
