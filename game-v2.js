@@ -2582,32 +2582,86 @@ function advProb(R,fish){let pw=0;fish.forEach(f=>{pw+=advPow(f);if(R.bonus&&R.b
 const advR=k=>ADVR.find(r=>r.k===k);
 const advFmt=ms=>{ms=Math.max(0,ms);const s=Math.ceil(ms/1000),h=s/3600|0,m=(s%3600)/60|0,ss=s%60;return h?`${h}시간 ${m}분`:m?`${m}분 ${ss}초`:`${ss}초`;};
 function advLocked(R){const a=advS();if(R.need&&a.pieces<R.need)return `지도 조각 ${a.pieces}/${R.need}`;if(myLv()<R.lv)return `Lv.${R.lv}부터`;return '';}
-function renderAdv(){const a=advS(),now=Date.now(),R=ADV.sel&&advR(ADV.sel);
- const node=r=>{const lk=advLocked(r),busy=a.teams.some(t=>t.r===r.k);return `<span class="advhit" data-advn="${r.k}" style="left:${r.x*100}%;top:${(r.y+.06)*100}%" aria-hidden="true"></span><button type="button" class="advn ${ADV.sel===r.k?'on':''} ${lk?'lk':''} ${r.k==='treasure'?'tr':''}" style="left:${r.x*100}%;top:${r.y*100}%" data-advn="${r.k}"><b>${r.n}</b><small>${lk||(busy?'원정 중':advH(r.h))}</small></button>`;};
- const lines=a.teams.map(t=>{const r=advR(t.r);return `<path d="M${ADV_START.x*1000} ${ADV_START.y*625} L${r.x*1000} ${r.y*625}" class="advl"/>`;}).join('')+(R?`<path d="M${ADV_START.x*1000} ${ADV_START.y*625} L${R.x*1000} ${R.y*625}" class="advl sel"/>`:'');
- const movers=a.teams.map(t=>{const r=advR(t.r),p=Math.min(1,(now-t.t0)/t.dur),q=p<.5?p*2:2-p*2;return `<span class="advm ${p>=1?'done':''}" data-advm="${t.id}" style="left:${(ADV_START.x+(r.x-ADV_START.x)*q)*100}%;top:${(ADV_START.y+(r.y-ADV_START.y)*q)*100}%">${t.fish[0]?fzImg(t.fish[0],'sm'):''}</span>`;}).join('');
- const teamCard=t=>{const r=advR(t.r),left=t.t0+t.dur-now,done=left<=0,p=Math.min(1,(now-t.t0)/t.dur),evOn=t.ev&&!t.ev.pick&&now>=t.ev.at&&!done;
-  return `<div class="advt ${done?'done':''}"><div class="advth"><b>${r.n}</b><span class="advpp">성공 ${Math.round(t.p*100)}%</span></div><div class="advtf">${t.fish.map(f=>fzImg(f,'sm')).join('')}</div><div class="advbar"><i style="width:${p*100}%" data-advbar="${t.id}"></i></div><div class="advtt"><span data-advt="${t.id}">${done?'돌아왔어요!':advFmt(left)+' 남음'}</span>${done?`<button type="button" class="acc" data-advc="${t.id}">보상 받기</button>`:''}</div>
-   ${evOn?`<div class="advev"><b>도중 이벤트</b><p>${sxH(t.ev.q)}</p><button type="button" data-adve="${t.id}|a">${sxH(t.ev.a)}</button><button type="button" data-adve="${t.id}|b">${sxH(t.ev.b)}</button></div>`:t.ev&&t.ev.pick?`<small class="muted">도중 선택: ${t.ev.pick==='a'?sxH(t.ev.a):sxH(t.ev.b)}</small>`:''}</div>`;};
- let side='';if(R){const lk=advLocked(R),pool=S.tank.filter(f=>!f.lock&&!f.away).sort((x,y)=>advPow(y)-advPow(x)).slice(0,24),party=ADV.party.map(id=>S.tank.find(f=>f.id===id)).filter(Boolean),p=advProb(R,party),busy=a.teams.some(t=>t.r===R.k),full=a.teams.length>=3;
-  side=`<div class="advd"><div class="advdh"><div><b>${R.n}</b><small>${R.desc}</small></div><span class="advpp">${party.length?'성공 '+Math.round(p*100)+'%':''}</span></div>
-   <div class="advrw"><span>보상</span><img src="img/feat/coins-gold.png" alt="골드" title="골드"><img src="img/feat/piece.png" alt="지도 조각" title="지도 조각"><img src="img/feat/chest.png" alt="상자" title="상자">${R.cat?`<span class="advcat" style="--vc:${FZV[R.cat[0]].c};--vb:${FZV[R.cat[0]].bg}">${FZV[R.cat[0]].n} 촉매</span>`:''}<small>${advH(R.h)}${advFast()?' (빠른 테스트)':''}</small></div>
-   <div class="advparty">${[0,1,2].map(i=>party[i]?`<button type="button" class="advps" data-advx="${party[i].id}">${fzImg(party[i])}<span>${sxH(fzName(party[i]))}</span></button>`:`<span class="advps e">빈 자리</span>`).join('')}</div>
-   ${R.bonus?`<small class="muted">${R.bonus.map(k=>FI(k)?FI(k).n:'').filter(Boolean).join('·')} 보내면 성공 +</small>`:''}
-   <div class="advpool">${pool.map(f=>`<button type="button" class="advpf ${ADV.party.includes(f.id)?'on':''}" data-advp="${f.id}">${fzImg(f,'sm')}<span>${sxH(fzName(f))}<small>${f.cm}cm · 힘 ${advPow(f).toFixed(1)}</small></span></button>`).join('')||'<p class="muted small">어항에 보낼 물고기가 없어요</p>'}</div>
-   <button type="button" class="acc advgo" id="advGo" ${lk||busy||full||!party.length?'disabled':''}>${lk?lk:busy?'이미 원정 중':full?'원정대는 3팀까지':'출발'}</button><small class="muted">보낸 물고기는 원정 동안 어항에서 빠져요 · 실패해도 돌아와요</small></div>`;}
- else side=`<div class="advd e"><b>지도에서 갈 곳을 골라요</b><p class="muted small">물고기를 3마리까지 보내면 골드·상자·지도 조각·합성 촉매를 가져와요.</p></div>`;
- $('adv').innerHTML=`<div class="card advc0"><div class="advmap"><div class="advmi"><img src="img/adv/map.jpg" alt="" class="advimg"><svg viewBox="0 0 1000 625" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>
-   <span class="advstart" style="left:${ADV_START.x*100}%;top:${ADV_START.y*100}%">출발</span>${ADVR.map(node).join('')}${movers}</div>
-   <div class="advtop"><button type="button" class="advx" data-close="adv" aria-label="닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="advtl"><b>물고기 탐험 지도 <span class="fzt">테스트</span></b><small>${advFast()?'빠른 테스트: 1시간 = 1분':'게임을 꺼 둬도 원정은 계속돼요'}</small></div><div class="advpc"><img src="img/feat/piece.png" alt=""><b>지도 조각 ${a.pieces}/6</b></div></div></div>
-  <div class="advside">${side}<div class="advts"><b>원정대 ${a.teams.length}/3</b>${a.teams.map(teamCard).join('')||'<p class="muted small">아직 떠난 원정대가 없어요</p>'}</div></div></div>`;
- const M=$('adv');M.querySelector('[data-close]').onclick=()=>closeM('adv');
- M.querySelectorAll('[data-advn]').forEach(b=>b.onclick=()=>{ADV.sel=ADV.sel===b.dataset.advn?null:b.dataset.advn;renderAdv();});
- M.querySelectorAll('[data-advp]').forEach(b=>b.onclick=()=>{const id=+b.dataset.advp;if(ADV.party.includes(id))ADV.party=ADV.party.filter(x=>x!==id);else if(ADV.party.length<3)ADV.party.push(id);else toast('3마리까지 보낼 수 있어요');renderAdv();});
- M.querySelectorAll('[data-advx]').forEach(b=>b.onclick=()=>{ADV.party=ADV.party.filter(x=>x!==+b.dataset.advx);renderAdv();});
- M.querySelectorAll('[data-advc]').forEach(b=>b.onclick=()=>advClaim(+b.dataset.advc));
- M.querySelectorAll('[data-adve]').forEach(b=>b.onclick=()=>{const [id,c]=b.dataset.adve.split('|'),t=a.teams.find(x=>x.id==id);if(t&&t.ev){t.ev.pick=c;save();toast(c==='a'?'과감하게 가 보기로 했어요':'안전하게 가기로 했어요');renderAdv();}});
- const go=$('advGo');if(go)go.onclick=()=>advSend(R);}
+/* v208: 🧭 물고기 모험 — A 보물 항로 (시안 /workspace/fishmap-mock/v1 A안). 섬 지도 위 단계 항로(1→4) + 다음 추천 + 성공 도장 + 오른쪽 원정대 3칸·상세.
+   보내기·받기·도중 이벤트는 예전 advSend·advClaim·ev 그대로 써요(저장 데이터 구조 그대로 · 새 값은 S.adv.clr 성공 도장 하나). 폰(≤860px)은 지도 위 · 원정대 3칸 · 상세 순서로 세로 */
+const ADV_ORD=['canyon','fall','sakura','ice','treasure'];
+const ADV_ISL={start:[.13,.74],canyon:[.33,.47],fall:[.506,.78],sakura:[.668,.49],ice:[.899,.71],treasure:[.515,.27]};
+const advClr=()=>{const a=advS();a.clr=a.clr&&typeof a.clr==='object'?a.clr:{};return a.clr;};
+function advSt(k){const r=advR(k),a=advS(),lv=myLv(),t=a.teams.find(x=>x.r===k),c=advClr()[k]|0,now=Date.now();let lock='',lockP=0,lockT='';
+ if(r.need&&a.pieces<r.need){lock=`지도 조각 ${a.pieces}/${r.need}`;lockP=a.pieces/r.need;lockT=`조각 ${r.need-a.pieces}개 더 모으면 열려요`;}
+ else if(lv<r.lv){lock=`Lv.${r.lv}부터`;lockP=lv/r.lv;lockT=`지금 Lv.${lv} · ${r.lv-lv}레벨 더 올리면 열려요`;}
+ const done=!!t&&now>=t.t0+t.dur,p=t?Math.min(1,(now-t.t0)/t.dur):0;return {k,r,lock,lockP,lockT,t,done,p,clr:c,stage:ADV_ORD.indexOf(k)+1};}
+/* 다음 추천 = 지금 갈 수 있는(잠김·원정 중 아님) 곳 중 가장 높은 단계 · 없으면 첫 장소 */
+const advNext=()=>ADV_ORD.slice().reverse().find(k=>{const s=advSt(k);return !s.lock&&!s.t;})||'canyon';
+const advFmtM=ms=>{const m=Math.max(1,Math.ceil(Math.max(0,ms)/60000)),h=m/60|0;return advFast()&&ms<60e3?advFmt(ms):h?`${h}시간${m%60?' '+m%60+'분':''}`:`${m}분`;};
+const advPct=x=>Math.round(x*100)+'%';
+const advRew=r=>{const o=[['coins-gold',`${r.coin[0].toLocaleString()}~${r.coin[1].toLocaleString()}`,'골드']];if(r.piece)o.push(['piece',advPct(r.piece),'지도 조각']);
+ o.push(['chest',r.boxN?`${r.boxN}개 확정`:advPct(r.box),'행운 상자']);if(r.cat&&FZV[r.cat[0]])o.push(['potion',advPct(r.cat[1]),FZV[r.cat[0]].n+' 촉매',r.cat[0]]);return o;};
+const advRi=(i,cat)=>`<img class="fmri ${cat?'cat-'+cat:''}" src="img/feat/${i}.png" alt="">`;
+const advPool=()=>(S.tank||[]).filter(f=>!f.lock&&!f.away).slice().sort((x,y)=>advPow(y)-advPow(x));
+const advFishPlus=(R,f)=>Math.round(advPow(f)*4+(R.bonus&&R.bonus.includes(f.k)?8:0));
+const advBest=k=>{const R=advR(k),b=f=>advPow(f)+(R.bonus&&R.bonus.includes(f.k)?2:0);return advPool().sort((x,y)=>b(y)-b(x)).slice(0,3);};
+const advPz=(n,need=6)=>`<span class="fmpz">${Array.from({length:need},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')}</span>`;
+const ADVX=`<button type="button" class="fmx" data-fmclose aria-label="닫기"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+function advTeamRow(t){const r=advR(t.r),now=Date.now(),done=now>=t.t0+t.dur,p=Math.min(1,(now-t.t0)/t.dur),evOn=t.ev&&!t.ev.pick&&now>=t.ev.at&&!done,evSoon=t.ev&&!t.ev.pick&&now<t.ev.at;
+ if(done)return `<div class="fmtm done"><div class="fmtm-i"><img src="img/feat/boat.png" alt=""><span class="fmtm-b">🎁</span></div><div class="fmtm-m"><b>${r.n}에서 돌아왔어요!</b><small>${t.fish.map(f=>sxH(fzName(f))).join(' · ')}</small></div><button type="button" class="fmbtn gr" data-advc="${t.id}">보상 받기</button></div>`;
+ return `<div class="fmtm go ${evOn?'ev':''}"><div class="fmtm-i"><img src="img/feat/boat.png" alt="">${t.fish[0]?fzImg(t.fish[0],'tm'):''}</div><div class="fmtm-m"><b>${r.n} 원정 중</b><div class="fmbar"><i style="width:${p*100}%" data-advbar="${t.id}"></i></div><small><span data-advtm="${t.id}">${advFmtM(t.t0+t.dur-now)} 남음</span>${evSoon?'<span class="evs"> · <em>곧 도중 이벤트</em></span>':''}</small></div>${evOn?`<button type="button" class="fmbtn go sm" data-adveo="${t.id}">도중 이벤트!</button>`:''}</div>`;}
+const advTeamEmpty=()=>`<div class="fmtm emp"><div class="fmtm-i"><img src="img/feat/boat.png" alt=""></div><div class="fmtm-m"><b>빈 배</b><small><span class="lgx">갈 곳을 골라 물고기를 보내요</span><span class="shx">목적지를 골라요</span></small></div></div>`;
+function advDock(){const a=advS(),now=Date.now(),T=a.teams.slice().sort((x,y)=>(now>=y.t0+y.dur)-(now>=x.t0+x.dur));return T.map(advTeamRow).join('')+Array.from({length:Math.max(0,3-T.length)},advTeamEmpty).join('');}
+function advPicker(s){const R=s.r,k=s.k;if(ADV.partyK!==k){ADV.party=advBest(k).map(f=>f.id);ADV.partyK=k;}
+ ADV.party=ADV.party.filter(id=>(S.tank||[]).some(f=>f.id===id&&!f.lock&&!f.away));
+ const P=ADV.party.map(id=>S.tank.find(f=>f.id===id)).filter(Boolean),p=advProb(R,P),a=advS(),full=a.teams.length>=3,pc=p>=.75?'hi':p>=.55?'mid':'lo';
+ const bn=R.bonus?R.bonus.filter(b=>!P.some(f=>f.k===b)).map(b=>FI(b)&&FI(b).n).filter(Boolean):[];
+ const none=!advPool().length;
+ return `<div class="fmpk"><div class="fmpk-h"><b>① 물고기 3마리 고르기</b><button type="button" class="fmbtn sm ln" data-advauto ${none?'disabled':''}>✨ 추천 편성</button></div>
+  <div class="fmslots">${[0,1,2].map(i=>P[i]?`<button type="button" class="fmslot on" data-advpick>${fzImg(P[i])}<span>${sxH(fzName(P[i]))}</span><em>+${advFishPlus(R,P[i])}%</em></button>`:`<button type="button" class="fmslot e" data-advpick ${none?'disabled':''}><i>+</i><span>${none?'물고기 없음':'물고기 넣기'}</span></button>`).join('')}</div>
+  <div class="fmmeter ${P.length?pc:'lo'}"><span>② 성공 확률</span><div class="fmbar big"><i style="width:${P.length?p*100:0}%"></i></div><b>${P.length?advPct(p):'-'}</b></div>
+  <small class="fmtip">${none?'어항에 보낼 물고기가 없어요 · 물고기를 낚아 오면 보낼 수 있어요':bn.length?`💡 ${bn.map(sxH).join('·')}를 넣으면 +8% 더 올라요`:'칸을 눌러 물고기를 바꿔요 · 실패해도 물고기는 돌아와요'}</small>
+  <button type="button" class="fmbtn go" data-advgo="${k}" ${full||!P.length?'disabled':''}>${full?'원정대는 3팀까지 보낼 수 있어요':`③ <img class="fmgoi" src="img/feat/boat.png" alt=""> ${R.n}(으)로 출발 · ${advH(R.h)}`}</button></div>`;}
+function advDetail(k){const s=advSt(k),r=s.r;return `<div class="fmdt">
+  <div class="fmdt-h"><img class="fmdt-a" src="img/adv/isl-${k}.png" alt=""><div><span class="fmstg">${k==='treasure'?'★ 보물':s.stage+'단계'}</span>${s.clr?`<span class="fmstp">✓ ${s.clr}번 성공</span>`:''}<b>${r.n}</b><small>${r.desc} · ${advH(r.h)} · 난이도 ${'●'.repeat(r.d)}${'○'.repeat(Math.max(0,4-r.d))}</small></div></div>
+  <div class="fmrts">${advRew(r).map(([i,v,l,c])=>`<div class="fmrt">${advRi(i,c)}<span><b>${v}</b><small>${l}</small></span></div>`).join('')}</div>${s.lock?`<div class="fmlock"><b>🔒 ${s.lock}</b><div class="fmbar"><i style="width:${Math.min(1,s.lockP)*100}%"></i></div><small>${s.lockT}</small></div>`:s.t?`<div class="fmlock busy"><b><img class="fmgoi sm" src="img/feat/boat.png" alt=""> ${s.done?'돌아왔어요 · 보상을 받아요':'원정 중'}</b><small>${s.done?'위 원정대 칸에서 「보상 받기」를 눌러요':'이 장소는 원정대가 돌아오면 다시 보낼 수 있어요'}</small></div>`:advPicker(s)}</div>`;}
+function advRoute(){const pts=['start',...ADV_ORD.slice(0,4)].map(k=>ADV_ISL[k]),seg=[];
+ for(let i=0;i<pts.length-1;i++){const [x0,y0]=pts[i],[x1,y1]=pts[i+1],ax=x0*1000,ay=y0*625,bx=x1*1000,by=y1*625,dx=bx-ax,dy=by-ay,L=Math.hypot(dx,dy),ux=dx/L,uy=dy/L,r=95;
+  const sx=ax+ux*r,sy=ay+uy*r*.8,ex=bx-ux*r,ey=by-uy*r*.8,mx=(sx+ex)/2-uy*30,my=(sy+ey)/2+ux*30,s=advSt(ADV_ORD[i]);seg.push(`<path class="fmrte ${s.lock?'lk':s.clr?'dn':'op'}" d="M${sx} ${sy} Q${mx} ${my} ${ex} ${ey}"/>`);}
+ return seg.join('');}
+function advMarker(k,nx){const s=advSt(k),[x,y]=ADV_ISL[k],tr=k==='treasure',a=advS(),isN=k===nx;
+ const c=s.lock?'lk':s.t?(s.done?'rt':'bz'):isN?'nx':s.clr?'cl':'op';
+ const ic=s.t&&!s.done?`<img class="fmam-bt" src="img/feat/boat.png" alt="">${fzImg(s.t.fish[0]||{k:'carp'},'fmam-bf')}`:s.lock?'🔒':tr?'★':s.clr?'✓':s.stage;
+ const sub=s.lock?s.lock:s.t?(s.done?'돌아왔어요!':`<span data-advtm="${s.t.id}">${advFmtM(s.t.t0+s.t.dur-Date.now())} 남음</span>`):(s.clr?`${s.clr}번 성공 · `:'')+advH(s.r.h);
+ return `<button type="button" class="fmam ${c} ${isN&&s.clr?'cl':''} ${tr?'tr':''} ${ADV.sel===k?'sel':''}" data-advn="${k}" style="left:${x*100}%;top:${(y+(tr?.115:.135))*100}%">${isN&&!ADV.sel?'<span class="fmam-nx">다음 추천!</span>':''}<i class="fmam-c">${ic}</i><span class="fmam-t"><b>${s.r.n}</b><small>${sub}</small>${tr?advPz(a.pieces):''}</span></button>`;}
+function advBoats(){const a=advS(),now=Date.now(),[hx,hy]=ADV_ISL.start;return a.teams.filter(t=>now>=t.t0+t.dur).slice(0,1).map(t=>`<span class="fmab done" style="left:${(hx+.10)*100}%;top:${(hy-.01)*100}%"><img src="img/feat/boat.png" alt="">${t.fish[0]?fzImg(t.fish[0],'ab'):''}<em>🎁 보상!</em></span>`).join('');}
+function advSheet(k){const R=advR(k),L=advPool();return `<div class="fmsheet ${ADV._sp?'still':''}" data-advsheet><div class="fmsheet-c"><div class="fmsheet-h"><b>물고기 고르기 <small>${ADV.party.length}/3</small></b><button type="button" class="fmx sm" data-advpickx aria-label="닫기">✕</button></div>
+  <small class="fmtip">${R.n}에 보낼 물고기를 3마리까지 골라요 · 숫자는 성공 확률이 오르는 만큼이에요</small>
+  <div class="fmpool fmpoolx">${L.map(f=>`<button type="button" class="fmpf ${ADV.party.includes(f.id)?'on':''}" data-advp="${f.id}">${fzImg(f)}<span>${sxH(fzName(f))}<small>${f.cm}cm</small></span><em>+${advFishPlus(R,f)}%</em></button>`).join('')||'<p class="muted small">어항에 보낼 물고기가 없어요</p>'}</div>
+  <button type="button" class="fmbtn go" data-advpickx>고르기 끝 (${ADV.party.length}/3)</button></div></div>`;}
+function advEvPop(){const a=advS(),t=a.teams.find(x=>x.id===ADV.evo);if(!t||!t.ev||t.ev.pick){ADV.evo=null;return '';}const r=advR(t.r);
+ return `<div class="fmsheet fmevp ${ADV._ep?'still':''}"><div class="fmsheet-c"><div class="fmsheet-h"><b>⚡ ${r.n} 원정대 · 도중 이벤트</b><button type="button" class="fmx sm" data-adveox aria-label="닫기">✕</button></div><p class="fmevq">${sxH(t.ev.q)}</p><div class="fmevb"><button type="button" class="fmbtn go" data-adve="${t.id}|a">${sxH(t.ev.a)}</button><button type="button" class="fmbtn" data-adve="${t.id}|b">${sxH(t.ev.b)}</button></div><small class="fmtip">고르지 않으면 돌아올 때 아래쪽(안전하게)으로 정해져요</small></div></div>`;}
+function renderAdv(){const M=$('adv');if(!M)return;const a=advS();if(ADV.sel&&!advR(ADV.sel))ADV.sel=null;const nx=advNext(),k=ADV.sel||nx;
+ const keep=M.querySelector('.fmpoolx'),sT=keep?keep.scrollTop:0,keepR=M.querySelector('.fmA-r'),rT=keepR?keepR.scrollTop:0,keepC=M.querySelector('.fmc'),cT=keepC?keepC.scrollTop:0;
+ M.classList.add('fmon');
+ M.innerHTML=`<div class="fmc fmA"><div class="fmA-l"><div class="fmhd">${ADVX}<div class="fmtl"><b>물고기 모험</b><small>${advFast()?'빠른 테스트: 1시간 = 1분':'섬을 하나씩 열어 보물섬까지 가 봐요'}</small></div><div class="fmpc" title="보물섬 열쇠"><img src="img/feat/piece.png" alt=""><span><b>지도 조각 ${a.pieces}/6</b>${advPz(a.pieces)}</span></div></div>
+  <div class="fmA-map"><div class="fmA-mi"><img src="img/adv/map.jpg" alt="" class="fmA-img"><svg viewBox="0 0 1000 625" preserveAspectRatio="none" aria-hidden="true">${advRoute()}</svg>
+   <span class="fmam home" style="left:${ADV_ISL.start[0]*100}%;top:${(ADV_ISL.start[1]+.135)*100}%"><i class="fmam-c">🏠</i><span class="fmam-t"><b>우리 섬</b><small>출발·귀환</small></span></span>
+   ${ADV_ORD.map(x=>advMarker(x,nx)).join('')}${advBoats()}</div></div>
+  <div class="fmA-lg"><span><i class="lg cl">✓</i>성공한 곳</span><span><i class="lg nx">${advSt(nx).stage}</i>다음 추천</span><span><i class="lg op">${Math.min(4,advSt(nx).stage+1)}</i>갈 수 있음</span><span><i class="lg lk">🔒</i>잠김</span><span><img src="img/feat/boat.png" alt="">원정 중</span></div></div>
+  <div class="fmA-r"><div class="fmsec"><h4>내 원정대 <b>${a.teams.length}/3</b></h4>${advDock()}</div><div class="fmsec grow"><h4>${ADV.sel?'고른 곳':'다음 추천 목적지'}</h4>${advDetail(k)}</div></div>
+  ${ADV.pick&&ADV.pick===k&&!advSt(k).lock&&!advSt(k).t?advSheet(k):''}${ADV.evo?advEvPop():''}</div>`;
+ ADV._sp=!!(ADV.pick&&M.querySelector('[data-advsheet]'));ADV._ep=!!M.querySelector('.fmevp');if(!ADV._sp)ADV.pick=null;
+ {const p=M.querySelector('.fmpoolx');if(p&&sT)p.scrollTop=sT;const r=M.querySelector('.fmA-r');if(r&&rT)r.scrollTop=rT;const c=M.querySelector('.fmc');if(c&&cT)c.scrollTop=cT;}
+ const on=(q,f)=>M.querySelectorAll(q).forEach(b=>b.onclick=ev=>{ev.stopPropagation();f(b,ev);});
+ on('[data-fmclose]',()=>closeM('adv'));
+ on('[data-advn]',b=>{const n=b.dataset.advn;ADV.sel=ADV.sel===n?null:n;ADV.pick=null;renderAdv();});
+ on('[data-advauto]',()=>{ADV.party=advBest(k).map(f=>f.id);ADV.partyK=k;renderAdv();const e=$('adv').querySelector('.fmslots');if(e){e.classList.remove('fmfl');void e.offsetWidth;e.classList.add('fmfl');}});
+ on('[data-advpick]',()=>{ADV.pick=k;renderAdv();});
+ on('[data-advpickx]',()=>{ADV.pick=null;renderAdv();});
+ on('[data-advp]',b=>{const id=+b.dataset.advp;if(ADV.party.includes(id))ADV.party=ADV.party.filter(x=>x!==id);else if(ADV.party.length<3)ADV.party.push(id);else{toast('3마리까지 보낼 수 있어요');return;}renderAdv();});
+ on('[data-advc]',b=>advClaim(+b.dataset.advc));
+ on('[data-adveo]',b=>{ADV.evo=+b.dataset.adveo;renderAdv();});
+ on('[data-adveox]',()=>{ADV.evo=null;renderAdv();});
+ on('[data-adve]',b=>{const [id,c]=b.dataset.adve.split('|'),t=a.teams.find(x=>x.id==id);ADV.evo=null;if(t&&t.ev&&!t.ev.pick){t.ev.pick=c;save();toast(c==='a'?'과감하게 가 보기로 했어요':'안전하게 가기로 했어요');}renderAdv();});
+ on('[data-advgo]',b=>{const R=advR(b.dataset.advgo),n0=a.teams.length,f0=ADV.party.map(id=>S.tank.find(f=>f.id===id)).filter(Boolean)[0];advSend(R);
+  if(advS().teams.length>n0){ADV.partyK=null;const c=$('adv').querySelector('.fmc');if(c){const fx=document.createElement('div');fx.className='fmfly';fx.innerHTML=`<img src="img/feat/boat.png" alt="">${f0?fzImg(f0,'ff'):''}<b>${R.n}(으)로 출발!</b>`;c.appendChild(fx);setTimeout(()=>fx.remove(),1700);}}});}
 const ADV_EV=[{q:'꽃잎 사이로 오래된 두루마리가 떠내려와요. 물살이 조금 세요.',a:'건져 본다 (70% 지도 조각 +1)',b:'꽃잎만 모아 간다 (촉매 +1 확정)'},{q:'반짝이는 조개 무리를 발견했어요.',a:'깊이 들어가 본다 (60% 상자 +1)',b:'근처만 둘러본다 (골드 +120 확정)'},{q:'길 잃은 아기 물고기를 만났어요.',a:'집까지 데려다 준다 (시간 +20%, 지도 조각 +1)',b:'길만 알려 준다 (골드 +80 확정)'}];
 function advSend(R){const a=advS();if(!R||advLocked(R)||a.teams.length>=3||a.teams.some(t=>t.r===R.k))return;const fish=ADV.party.map(id=>S.tank.find(f=>f.id===id)).filter(Boolean);if(!fish.length)return;
  const dur=R.h*advHour(),t0=Date.now(),e=ADV_EV[Math.random()*ADV_EV.length|0],id=(a.nid=(a.nid|0)+1);
@@ -2616,18 +2670,18 @@ function advClaim(id){const a=advS(),t=a.teams.find(x=>x.id===id);if(!t||Date.no
  if(ok){const c=rnd(...R.coin);S.coins+=c;got.push(['coins',`골드 ${c.toLocaleString()}`]);if(R.piece&&Math.random()<R.piece&&a.pieces<6){a.pieces++;got.push(['piece','지도 조각 +1']);}
   const bn=R.boxN||((Math.random()<R.box)?1:0);for(let i=0;i<bn;i++)S.boxes.push(Date.now()+i);if(bn)got.push(['chest',`상자 ${bn}개`]);
   if(R.cat&&Math.random()<R.cat[1]){z.cat[R.cat[0]]=(z.cat[R.cat[0]]|0)+1;got.push(['potion',`${FZV[R.cat[0]].n} 촉매 +1`]);}
-  if(R.k==='treasure'){a.pieces=0;a.treasure=(a.treasure|0)+1;}}
+  if(R.k==='treasure'){a.pieces=0;a.treasure=(a.treasure|0)+1;}/* v208: 성공 도장(장소별 성공 횟수) */const C=advClr();C[R.k]=(C[R.k]|0)+1;got.push(['stamp',`✓ 성공 도장 ${C[R.k]}개째`]);}
  else{const c=Math.round(R.coin[0]*.3);S.coins+=c;got.push(['coins',`골드 ${c} (위로금)`]);}
  if(t.ev){const pk=t.ev.pick||'b',ix=ADV_EV.findIndex(e=>e.q===t.ev.q);if(pk==='b'){if(ix===0){const k=(R.cat&&R.cat[0])||'pink';z.cat[k]=(z.cat[k]|0)+1;got.push(['potion',`${FZV[k].n} 촉매 +1 (도중 선택)`]);}else{const c=ix===1?120:80;S.coins+=c;got.push(['coins',`골드 +${c} (도중 선택)`]);}}
   else{const luck=Math.random()<(ix===1?.6:ix===2?1:.7);if(luck){if(ix===1){S.boxes.push(Date.now()+9);got.push(['chest','상자 +1 (도중 선택)']);}else if(a.pieces<6){a.pieces++;got.push(['piece','지도 조각 +1 (도중 선택)']);}}else got.push(['bag','도중 선택은 아쉽게 빈손']);}}
  t.fish.forEach(f=>S.tank.push(f));a.teams=a.teams.filter(x=>x!==t);try{XBAL.ev(25,'모험');}catch(e){}save();hud();try{updBagBadge();}catch(e){}
  let m=$('fzr');if(!m){m=document.createElement('div');m.id='fzr';m.className='modal';document.body.appendChild(m);}
- m.innerHTML=`<div class="fzrw adv ${ok?'':'fail'}"><div class="fzrc"><span class="fzrk">${ok?'원정 성공':'원정 실패'}</span><h2>${R.n}에서 돌아왔어요</h2><div class="advback">${t.fish.map(f=>fzImg(f)).join('')}</div><div class="advgot">${got.map(([i,s])=>`<span><img src="img/feat/${i==="coins"?"coins-gold":i}.png" alt="">${s}</span>`).join('')}</div><div class="fzrb"><button type="button" class="acc" data-ok>모두 받기</button></div></div></div>`;
+ m.innerHTML=`<div class="fzrw adv ${ok?'':'fail'}"><div class="fzrc"><span class="fzrk">${ok?'원정 성공':'원정 실패'}</span><h2>${R.n}에서 돌아왔어요</h2><div class="advback">${t.fish.map(f=>fzImg(f)).join('')}</div><div class="advgot">${got.map(([i,s])=>i==='stamp'?`<span class="stp">${s}</span>`:`<span><img src="img/feat/${i==="coins"?"coins-gold":i}.png" alt="">${s}</span>`).join('')}</div><div class="fzrb"><button type="button" class="acc" data-ok>모두 받기</button></div></div></div>`;
  m.querySelector('[data-ok]').onclick=()=>m.classList.remove('show');m.classList.add('show');renderAdv();}
 function openAdv(){if(!$('adv')){const d=document.createElement('div');d.id='adv';d.className='modal';document.body.appendChild(d);}renderAdv();openM('adv');}
 setInterval(()=>{if(!S||!S.adv||!S.adv.teams)return;const now=Date.now(),open=$('adv')&&$('adv').classList.contains('show');let rer=false;
  S.adv.teams.forEach(t=>{const left=t.t0+t.dur-now;if(left<=0&&!t.told){t.told=1;save();if(advOn())toast(`🧭 ${advR(t.r).n} 원정대가 돌아왔어요! 탐험 지도에서 보상을 받아요`,3200);rer=true;}if(t.ev&&!t.ev.pick&&!t.ev.told&&now>=t.ev.at&&left>0){t.ev.told=1;if(advOn())toast('🧭 원정대에 도중 이벤트가 생겼어요',2400);rer=true;}
-  if(open){const el=document.querySelector(`[data-advt="${t.id}"]`);if(el&&left>0)el.textContent=advFmt(left)+' 남음';const br=document.querySelector(`[data-advbar="${t.id}"]`);if(br)br.style.width=Math.min(100,(now-t.t0)/t.dur*100)+'%';const mv=document.querySelector(`[data-advm="${t.id}"]`);if(mv){const r=advR(t.r),p=Math.min(1,(now-t.t0)/t.dur),q=p<.5?p*2:2-p*2;mv.style.left=(ADV_START.x+(r.x-ADV_START.x)*q)*100+'%';mv.style.top=(ADV_START.y+(r.y-ADV_START.y)*q)*100+'%';}}});
+  if(open){if(left>0)document.querySelectorAll(`[data-advt="${t.id}"]`).forEach(el=>el.textContent=advFmt(left)+' 남음');if(left>0)document.querySelectorAll(`[data-advtm="${t.id}"]`).forEach(el=>el.textContent=advFmtM(left)+' 남음');document.querySelectorAll(`[data-advbar="${t.id}"]`).forEach(br=>br.style.width=Math.min(100,(now-t.t0)/t.dur*100)+'%');const mv=document.querySelector(`[data-advm="${t.id}"]`);if(mv){const r=advR(t.r),p=Math.min(1,(now-t.t0)/t.dur),q=p<.5?p*2:2-p*2;mv.style.left=(ADV_START.x+(r.x-ADV_START.x)*q)*100+'%';mv.style.top=(ADV_START.y+(r.y-ADV_START.y)*q)*100+'%';}}});
  if(rer&&open)renderAdv();},1000);
 function featBtns(){const sy=$('mSys');if(!sy)return;const tpl=$('bTime')||$('bBoard');const mk=(id,icon,lab,fn)=>{let b=$(id);if(!b){b=document.createElement('button');b.id=id;b.type='button';b.innerHTML=`<b class="mi"><img src="${icon}" alt="" class="fti"></b><small class="ml">${lab}</small>`;b.onclick=e=>{e.stopPropagation();document.body.classList.remove('menu-open');fn();};}if(tpl)b.className=tpl.className.replace(/\bon\b/,'');return b;};
  const want=[[fzOn(),'bFuse','img/feat/cauldron.png','합성',openFuse],[advOn(),'bAdv','img/feat/piece.png','모험',openAdv]];
