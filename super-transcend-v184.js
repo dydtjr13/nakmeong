@@ -242,7 +242,9 @@ function notice(ev){const sp=SPK(ev.k);if(!sp)return;SFX.notice();let box=$('stA
  btn.onclick=e=>{e.stopPropagation();if(!ev.a||mine||btn.classList.contains('done'))return;btn.classList.add('done');el.querySelector('.sa-lb').textContent='축하했어요';try{NK_RT.stc(ev.a);}catch(_){}add(myId()||'me',I().NICK(),1);fx();};
  const onC=e=>{const d=e.detail||{};if(d.a!==ev.a)return;add(d.id||d.nick,d.nick,d.id===myId());if(mine)fx();};
  if(ev.a)addEventListener('nk-rt-stc',onC);
- /* v193: 다른 사람이 낚은 공지는 30초 동안 (축하할 시간) · 내 공지는 14초 */const _dur=mine?14000:30000;NKST._ann=el;setTimeout(()=>el.classList.add('out'),_dur);setTimeout(()=>{el.remove();removeEventListener('nk-rt-stc',onC);},_dur+700);
+ /* v193: 다른 사람이 낚은 공지는 30초 동안 (축하할 시간) · v206: 내 공지도 30초 (다른 사람이 누르는 동안 축하 인원을 볼 수 있게, 서버 공지가 없으면 14초) */const _dur=mine&&!ev.a?14000:30000;NKST._ann=el;
+ /* v206: 공지가 떠 있는 동안 '새 업데이트' 알림 같은 위쪽 띠를 공지 아래로 내려요 (겹쳐서 글이 가려지던 문제) */const pos=()=>{try{if(!el.isConnected)return;const b=el.getBoundingClientRect().bottom;document.body.style.setProperty('--stAnnB',Math.round(b+8)+'px');document.body.classList.add('stAnnOn');}catch(_){}};requestAnimationFrame(pos);setTimeout(pos,700);
+ setTimeout(()=>el.classList.add('out'),_dur);setTimeout(()=>{el.remove();removeEventListener('nk-rt-stc',onC);if(!box.querySelector('.stann'))document.body.classList.remove('stAnnOn');},_dur+700);
  if(!ev.test)try{I().say('시스템',`📢 [슈퍼 초월급] ${ev.nick}님이 ${sp.mapN}에서 ${sp.n} ${fmtCm(ev.cm)}를 낚았어요!${ev.n>0?` (전체 서버 ${ev.n}번째)`:''}`);}catch(_){}}
 NKST.notice=notice;
 /* 서버 공지 받기 (나 포함 모든 서버) */
