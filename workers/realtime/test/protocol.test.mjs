@@ -890,6 +890,7 @@ test("v184 super transcend: sanitizeSt and play stOn/stRate", () => {
   assert.deepEqual(sanitizeSt({ k: "st_carp", cm: 249.57 }), { k: "st_carp", cm: 249.6 });
   assert.equal(sanitizeSt({ k: "carp", cm: 30 }), null);
   assert.equal(sanitizeSt({ k: "st_whale", cm: -1 }), null);
+  assert.deepEqual(sanitizeSt({ k: "st_bukang", cm: 310.14 }), { k: "st_bukang", cm: 310.1 });
   const p = sanitizePlay({ stOn: "off", stRate: 50 }, null, { bump: true, now: 1 });
   assert.equal(p.stOn, "off");
   assert.equal(p.stRate, 10000);

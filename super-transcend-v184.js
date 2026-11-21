@@ -1,8 +1,8 @@
 // ─────────────────────────────────────────────────────────────
-// v184 슈퍼 초월급 물고기 4종 (v182 시안 핸드오프 → 인게임 정식 적용)
-//  · 호숫가 천년 금빛잉어 · 운하 등불 혹등고래 · 하늘섬 구름 가오리 · 달 성운 철갑상어
+// v184 슈퍼 초월급 물고기 + v213 부산 부캉이
+//  · 호숫가 천년 금빛잉어 · 운하 등불 혹등고래 · 운하 부산 부캉이 · 하늘섬 구름 가오리 · 달 성운 철갑상어
 //  · 입질(어둠·찌 쿵·맵별 효과·⚠ 경고·지금 챔질!) → 낚기(빛기둥·점프·슬로모션·무지개 카드·서버 공지)
-//  · 어항(오라·반짝이) · 도감(슈퍼 초월 칸 S01~S04 + 상세)
+//  · 어항(오라·반짝이) · 도감(슈퍼 초월 칸 S01~S05 + 상세)
 //  · game-v2.js 의 훅: NKST.roll / onCast / onBite / onMiss / onCatch / dexSection, 등급 6 = D.STX
 //  · 테스트: 관리자 › 테스트 기능 › 「👑 슈퍼 초월급」 상자에서 「다음 입질」 (관리자·운영자만 · 공지·순위에 안 올라가요)
 //  · 확률: 기본 1/300,000 번 던질 때 (일반 초월보다 약 20배 드물게) · 관리자가 바꿀 수 있어요 (play.stRate) · 자동 낚시에서는 안 나와요
@@ -18,6 +18,9 @@ const SP=[
  {k:'st_whale',no:'S02',n:'등불 혹등고래',map:'canal',mapN:'운하',  min:1100,max:1520,base:90000,col:'#24407a',glow:'#ffb347',a:'#ffc36b',b:'#3a64c8',theme:'lantern',icon:'🏮',
   eff:'어항에 있으면 경험치 +5%',when:'운하에서 낚시할 때 (자동 낚시 제외)',rate:25000,size:9,
   flav:'등에 붙은 따개비가 등불처럼 빛나는 고래예요. 운하의 밤길을 밝혀 준다는 이야기가 있어요.'},
+ {k:'st_bukang',no:'S05',n:'부산 부캉이',map:'canal',mapN:'운하', min:280,max:360,base:90000,col:'#1c2a4a',glow:'#ffb347',a:'#ffc36b',b:'#24407a',theme:'harbor',icon:'🦈',src:'v213 슈퍼 초월',
+  eff:'어항에 있으면 골드 +5%',when:'운하에서 낚시할 때 (자동 낚시 제외)',rate:25000,size:6.2,
+  flav:'북항의 밤빛을 비늘에 담은 흑상어예요. 항구의 불빛이 몸에 송송 떠 있고, 등줄기 융기선이 따뜻하게 빛나요.'},
  {k:'st_ray',  no:'S03',n:'구름 가오리',  map:'sky',  mapN:'하늘섬',min:500,max:720,base:80000,col:'#9fd8ff',glow:'#c8ecff',a:'#ffffff',b:'#9fd0ff',theme:'rainbow',icon:'☁️',
   eff:'어항에 있으면 행운 상자 +5%',when:'하늘섬이 열리면 만날 수 있어요',rate:22000,soon:1,size:6,
   flav:'구름 속을 헤엄치는 가오리예요. 날개 끝을 따라 무지개 띠가 흐르고, 지나간 자리에 작은 구름이 남아요.'},
@@ -26,15 +29,15 @@ const SP=[
   flav:'몸에 성운을 품은 철갑상어예요. 등의 갑판이 별처럼 빛나고, 비늘 사이로 별자리 선이 이어져 있어요.'}];
 const SPK=k=>SP.find(s=>s.k===k);
 /* v184: 어항 효과 — 어항에 있는 동안만 (같은 종 여러 마리여도 한 번만) */
-const EFF={gold:{st_carp:.05,st_stur:.03},xp:{st_whale:.05,st_stur:.03},box:{st_ray:.05}};
+const EFF={gold:{st_carp:.05,st_stur:.03,st_bukang:.05},xp:{st_whale:.05,st_stur:.03},box:{st_ray:.05}};
 D.STX={id:6,n:'슈퍼 초월급',c:'#ff9a3c',m:300};
-for(const s of SP){if(D.FISH.some(f=>f.k===s.k))continue;D.FISH.push({k:s.k,n:s.n,min:s.min,max:s.max,g:[s.min,s.min,s.min,s.min],scale:30,w:0,base:s.base,col:s.col,img:'img/fish/'+s.k+'.png',sx:1,limited:1,stNo:s.no,stMap:s.map,src:'v184 슈퍼 초월급'});}
+for(const s of SP){if(D.FISH.some(f=>f.k===s.k))continue;D.FISH.push({k:s.k,n:s.n,min:s.min,max:s.max,g:[s.min,s.min,s.min,s.min],scale:30,w:0,base:s.base,col:s.col,img:'img/fish/'+s.k+'.png',sx:1,limited:1,stNo:s.no,stMap:s.map,src:s.src||'v184 슈퍼 초월급'});}
 /* v184: 관리자·운영자만 테스트 · 켜기/확률은 모든 유저 같은 값(play) */
 const staff=()=>{try{if(window.NK_ADMSET&&NK_ADMSET.staff)return !!NK_ADMSET.staff();return !!((window.NK_ADM&&NK_ADM.ok())||(window.NK_RT&&NK_RT.op));}catch(e){return false;}};
 const opt=(k,d)=>{try{return window.NKV2&&NKV2.uiOpt?NKV2.uiOpt(k,d):d;}catch(e){return d;}};
 const stOn=()=>!window.NK_PREV&&String(opt('stOn','on'))!=='off';
 const RATE0=300000,baseN=()=>{const n=Math.round(+opt('stRate',RATE0));return Number.isFinite(n)&&n>=10000?n:RATE0;};
-const rateOf=sp=>Math.round(baseN()*sp.rate/20000);/* 잉어 = 1/N · 고래 ×1.25 · 가오리 ×1.1 · 철갑상어 ×1.5 */
+const rateOf=sp=>Math.round(baseN()*sp.rate/20000);/* 잉어 = 1/N · 고래·부캉이 ×1.25 · 가오리 ×1.1 · 철갑상어 ×1.5 */
 const skyOpen=()=>!!window.__nkSkyIsland;/* 하늘섬 맵이 생기면 그 맵에서 true 로 */
 const NKST=window.NKST={SP,SPK,tankEff(kind){const E=EFF[kind];if(!E)return 1;let m=1;try{const T=(window.NKV2&&NKV2.S&&NKV2.S.tank)||[];for(const k in E)if(T.some(f=>f.k===k))m+=E[k];}catch(e){}return m;},forced:null,ts:1,rateOf,baseN,staff,stOn,skyOpen,
  force(k){if(!staff()){try{I().toast('관리자·운영자만 테스트할 수 있어요',1500);}catch(e){}return null;}const kk=k&&k.startsWith('st_')?k:'st_'+(k||'carp');if(!SPK(kk))return null;this.forced=kk;return kk;},
@@ -54,7 +57,7 @@ const lanternTex=()=>cvTex('lant',128,128,(g)=>{const r=g.createRadialGradient(6
 const petalTex=()=>cvTex('petal',128,128,(g)=>{g.translate(64,64);g.rotate(.6);const r=g.createRadialGradient(0,0,0,0,0,50);r.addColorStop(0,'rgba(255,250,210,1)');r.addColorStop(.6,'rgba(255,214,90,.95)');r.addColorStop(1,'rgba(255,180,40,0)');g.fillStyle=r;g.beginPath();g.ellipse(0,0,46,22,0,0,7);g.fill();});
 const cloudTex=()=>cvTex('cloud',128,128,(g)=>{g.fillStyle='rgba(255,255,255,.95)';for(const [x,y,r] of [[44,72,26],[70,62,32],[94,74,22],[60,82,24]]){const rg=g.createRadialGradient(x,y,0,x,y,r);rg.addColorStop(0,'rgba(255,255,255,1)');rg.addColorStop(.8,'rgba(255,255,255,.85)');rg.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=rg;g.beginPath();g.arc(x,y,r,0,7);g.fill();}});
 /* v182.1: 원본 그림 비율 그대로 붙여요 (예전엔 정사각 캔버스에 넣어 세로로 눌렸어요) */
-const ASP0={st_carp:1.62,st_whale:2.18,st_ray:1.07,st_stur:2.77};
+const ASP0={st_carp:1.62,st_whale:2.18,st_bukang:2.09,st_ray:1.07,st_stur:2.77};
 const fishTex=(k,lin)=>{const key='fishT_'+k+(lin?'_l':'');if(TEX[key])return TEX[key];const im=img('img/fish/'+k+'@2x.png');const t=new THREE.Texture(im);t.encoding=lin?THREE.LinearEncoding:THREE.sRGBEncoding;t.anisotropy=4;const up=()=>{t.needsUpdate=true;};if(im.complete&&im.naturalWidth)up();else im.addEventListener('load',up);return TEX[key]=t;};
 const fishAsp=k=>{const im=img('img/fish/'+k+'@2x.png');return im.naturalWidth?im.naturalWidth/im.naturalHeight:(ASP0[k]||2);};
 /* 입체 물고기: 앞면(조명 셰이더) + 두께 슬라이스 + 빛 테두리. 크기는 항상 균일(비율 유지) */
@@ -86,7 +89,7 @@ function noise(dur,g,dl=0,ft='lowpass',f1=800,f2=800,q=.8){const A=ac();if(!A)re
 const SFX={
  omen(){osc(55,38,2.2,'sine',.5);noise(2.0,.12,0,'lowpass',300,90);osc(110,82,1.6,'triangle',.08,.1);},
  thud(){osc(90,32,.7,'sine',.9);osc(180,60,.25,'triangle',.25);noise(.5,.35,0,'lowpass',1400,200);noise(.9,.18,.05,'bandpass',2500,600,1.2);},
- theme(th){const N={gold:[784,988,1175,1568],lantern:[523,659,784,1047],rainbow:[880,1109,1319,1760],nebula:[659,831,988,1319]}[th]||[784,988,1175,1568];N.forEach((f,i)=>{osc(f,f,1.4,'sine',.09,i*.11);osc(f*2,f*2,.9,'sine',.03,i*.11+.02);});},
+ theme(th){const N={gold:[784,988,1175,1568],lantern:[523,659,784,1047],harbor:[523,659,784,1047],rainbow:[880,1109,1319,1760],nebula:[659,831,988,1319]}[th]||[784,988,1175,1568];N.forEach((f,i)=>{osc(f,f,1.4,'sine',.09,i*.11);osc(f*2,f*2,.9,'sine',.03,i*.11+.02);});},
  warn(){for(let i=0;i<3;i++){osc(740,740,.16,'square',.07,i*.34);osc(988,988,.16,'square',.07,i*.34+.17);}osc(60,45,1.2,'sine',.4,0);},
  hook(){noise(.35,.5,0,'highpass',600,3000);osc(1200,300,.3,'sawtooth',.08);},
  pillar(){noise(1.6,.35,0,'bandpass',300,5000,1.4);osc(70,30,1.8,'sine',1);osc(140,50,.9,'triangle',.3);[523,659,784,1047,1319,1568,2093].forEach((f,i)=>osc(f,f,1.8,'triangle',.07,.15+i*.06));noise(2.2,.08,.3,'highpass',6000,9000);},
@@ -110,15 +113,15 @@ function bobPos(){const it=I();const b=it.bob;return b?b.position.clone():new TH
 function biteFx(sp){const p=bobPos(),wy=p.y+.04;const G=new THREE.Group();G.position.set(p.x,wy,p.z);
  const disc=new THREE.Mesh(new THREE.PlaneGeometry(1,1),addMat(discTex(),sp.glow,0));disc.rotation.x=-Math.PI/2;G.add(disc);
  const rings=[0,1,2].map(i=>{const r=new THREE.Mesh(new THREE.PlaneGeometry(1,1),addMat(ringTex(),sp.a,0));r.rotation.x=-Math.PI/2;r.position.y=.02;G.add(r);return r;});
- const th=sp.theme,tex=th==='lantern'?lanternTex():th==='gold'?petalTex():th==='rainbow'?cloudTex():starTex();
- const N=th==='lantern'?34:th==='rainbow'?26:60;const pts=points(N,tex,th==='lantern'?'#ffffff':th==='rainbow'?'#ffffff':sp.a,th==='lantern'?1.3:th==='rainbow'?2.2:.55,()=>({r:2+rnd()*7,a:rnd()*6.28,y:(th==='lantern'?.3:0)+rnd()*(th==='rainbow'?3:2.5),v:.2+rnd()*.5,ph:rnd()*6}));G.add(pts);
+ const th=sp.theme,tex=(th==='lantern'||th==='harbor')?lanternTex():th==='gold'?petalTex():th==='rainbow'?cloudTex():starTex();
+ const N=(th==='lantern'||th==='harbor')?34:th==='rainbow'?26:60;const pts=points(N,tex,(th==='lantern'||th==='harbor'||th==='rainbow')?'#ffffff':sp.a,(th==='lantern'||th==='harbor')?1.3:th==='rainbow'?2.2:.55,()=>({r:2+rnd()*7,a:rnd()*6.28,y:((th==='lantern'||th==='harbor')?0.3:0)+rnd()*(th==='rainbow'?3:2.5),v:.2+rnd()*.5,ph:rnd()*6}));G.add(pts);
  let rb=null;if(th==='rainbow'){rb=new THREE.Mesh(new THREE.TorusGeometry(9,.55,8,64,Math.PI),new THREE.MeshBasicMaterial({vertexColors:false,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending,color:'#ffffff',map:cvTex('rbw',256,8,(g)=>{const l=g.createLinearGradient(0,0,256,0);['#ff6b8a','#ffb347','#ffe066','#6be28a','#59c3ff','#9a7bff'].forEach((c,i)=>l.addColorStop(i/5,c));g.fillStyle=l;g.fillRect(0,0,256,8);})}));rb.position.set(0,0,-4);G.add(rb);}
  let lines=null;if(th==='nebula'){const v=[];for(let i=0;i<9;i++){v.push((rnd()-.5)*12,1+rnd()*5,(rnd()-.5)*8);}const lg=new THREE.BufferGeometry().setAttribute('position',new THREE.Float32BufferAttribute(v,3));lines=new THREE.Line(lg,new THREE.LineBasicMaterial({color:'#e8d48a',transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));G.add(lines);}
  NKST._bite=G;
  addFx(G,(e)=>{if(NKST._bite!==G){/* 끝 */G.userData.fade=(G.userData.fade||0)+.05;if(G.userData.fade>1)return false;}const f=1-(G.userData.fade||0),k=Math.min(1,e/0.8)*f;
   const s=6+Math.sin(e*3)*.6;disc.scale.set(s*1.6,s*1.6,1);disc.material.opacity=(.55+.25*Math.sin(e*5))*k;
   rings.forEach((r,i)=>{const q=((e*.55+i/3)%1);r.scale.setScalar(1+q*11);r.material.opacity=(1-q)*.85*k;});
-  const P=pts.geometry.attributes.position.array;pts.userData.S.forEach((s,i)=>{const a=s.a+e*.12*(i%2?1:-1),y=th==='lantern'?s.y+((e*s.v*.6)%5):th==='gold'?s.y+Math.sin(e*s.v+s.ph)*.4+.3:s.y+Math.sin(e*.8+s.ph)*.3;P[i*3]=Math.cos(a)*s.r;P[i*3+1]=y;P[i*3+2]=Math.sin(a)*s.r;});pts.geometry.attributes.position.needsUpdate=true;pts.material.opacity=k;
+  const P=pts.geometry.attributes.position.array;pts.userData.S.forEach((s,i)=>{const a=s.a+e*.12*(i%2?1:-1),y=(th==='lantern'||th==='harbor')?s.y+((e*s.v*.6)%5):th==='gold'?s.y+Math.sin(e*s.v+s.ph)*.4+.3:s.y+Math.sin(e*.8+s.ph)*.3;P[i*3]=Math.cos(a)*s.r;P[i*3+1]=y;P[i*3+2]=Math.sin(a)*s.r;});pts.geometry.attributes.position.needsUpdate=true;pts.material.opacity=k;
   if(rb){rb.material.opacity=.6*k;rb.lookAt(NKV2.cam.position.x,rb.getWorldPosition(new THREE.Vector3()).y,NKV2.cam.position.z);}
   if(lines)lines.material.opacity=.7*k*(.6+.4*Math.sin(e*4));},60);}
 // 낚기: 빛기둥 · 물기둥 · 입체 물고기 점프(카메라 줌인) · 물방울 · 수면 그림자
@@ -185,7 +188,7 @@ let rafOn=false;function loop(){fxTick();const L=$('stFx');if(L&&L._bob){const p
 function start(){if(rafOn)return;rafOn=true;requestAnimationFrame(loop);try{I().PH().push(bobHook);}catch(e){}}
 const mob=()=>innerWidth<760;
 function badge(t){return `<span class="stb">👑 ${t||'슈퍼 초월급'}</span>`;}
-NKST.onCast=function(fs,spot){start();const map=this.mapNow(spot);let k=null,test=false;if(this.forced&&staff()){k=this.forced;this.forced=null;test=true;}else if(stOn()&&!(window.NKV2&&NKV2.S&&NKV2.S.autoFish)){const s=SP.find(x=>x.map===map&&(!x.soon||skyOpen()));if(s&&Math.random()<1/rateOf(s))k=s.k;}
+NKST.onCast=function(fs,spot){start();const map=this.mapNow(spot);let k=null,test=false;if(this.forced&&staff()){k=this.forced;this.forced=null;test=true;}else if(stOn()&&!(window.NKV2&&NKV2.S&&NKV2.S.autoFish)){const cands=SP.filter(x=>x.map===map&&(!x.soon||skyOpen()));const hits=cands.filter(s=>Math.random()<1/rateOf(s));if(hits.length)k=hits[Math.floor(Math.random()*hits.length)].k;}
  if(k){fs.st=k;fs.stTest=test;if(test)fs.bite=Math.min(fs.bite,this.demo||2.2);else if(this.demo)fs.bite=this.demo;fs.fakes=[Math.min(1.0,fs.bite*.4)];}};
 NKST.onBite=function(fs){const sp=SPK(fs.st);fs.stT=performance.now();const L=layer();L.className='on bite th-'+sp.theme;L._bob=1;document.body.classList.add('stBite');
  L.innerHTML=`<div class="stdim"></div><div class="stbob"><i></i><i></i><i></i><b class="stthud">쿵!</b></div>
@@ -254,7 +257,7 @@ addEventListener('nk-rt-st',e=>{const d=e.detail||{};if(!SPK(d.k))return;const m
  notice(d);});
 // ── 도감: 슈퍼 초월 칸 + 상세 ──
 NKST.dexSection=function(){const S=NKV2.S,got=SP.filter(s=>S.dex[s.k]).length;
- return `<div class="stdex"><div class="stdh">${badge()}<b>슈퍼 초월급 물고기</b><span>${got}/${SP.length} 발견</span><small>맵마다 딱 한 종 · 약 ${baseN().toLocaleString()}번 던질 때 한 번 · 자동 낚시 제외</small></div><div class="stdg">${SP.map(s=>{const d=S.dex[s.k];return `<div class="stdc ${d?'got':'unk'} th-${s.theme}" data-stk="${s.k}"><div class="no">No.${s.no}</div><div class="mp">${s.icon} ${s.mapN}</div><img src="img/fish/${s.k}${d?'':'_sil'}.png" alt=""><div class="nm">${d?s.n:'???'}</div><div class="small">${d?`최대 <b>${fmtCm(d.max)}</b> · ${d.n}마리`:s.soon&&!skyOpen()?'🔒 하늘섬이 열리면 만나요':'아직 만나지 못한 물고기'}</div>${d?'<i class="sp1">✦</i><i class="sp2">✦</i>':''}</div>`;}).join('')}</div></div>`;};
+ return `<div class="stdex"><div class="stdh">${badge()}<b>슈퍼 초월급 물고기</b><span>${got}/${SP.length} 발견</span><small>운하에는 두 종 · 다른 맵은 한 종 · 약 ${baseN().toLocaleString()}번 던질 때 한 번 · 자동 낚시 제외</small></div><div class="stdg">${SP.map(s=>{const d=S.dex[s.k];return `<div class="stdc ${d?'got':'unk'} th-${s.theme}" data-stk="${s.k}"><div class="no">No.${s.no}</div><div class="mp">${s.icon} ${s.mapN}</div><img src="img/fish/${s.k}${d?'':'_sil'}.png" alt=""><div class="nm">${d?s.n:'???'}</div><div class="small">${d?`최대 <b>${fmtCm(d.max)}</b> · ${d.n}마리`:s.soon&&!skyOpen()?'🔒 하늘섬이 열리면 만나요':'아직 만나지 못한 물고기'}</div>${d?'<i class="sp1">✦</i><i class="sp2">✦</i>':''}</div>`;}).join('')}</div></div>`;};
 new MutationObserver(()=>{const dx=$('dex');if(!dx)return;dx.querySelectorAll('[data-stk]:not([data-b])').forEach(e=>{e.dataset.b=1;e.onclick=ev=>{ev.stopPropagation();NKST.detail(e.dataset.stk);};});}).observe(document.body,{childList:true,subtree:true});
 NKST.detail=function(k){const s=SPK(k),S=NKV2.S,d=S.dex[k];let m=$('stDexD');if(!m){m=document.createElement('div');m.id='stDexD';document.body.appendChild(m);}
  const first=d&&d.t0?new Date(d.t0):new Date();const sz=d?d.max:0,pct=d?Math.round((sz-s.min)/(s.max-s.min)*100):0;
@@ -274,7 +277,7 @@ function tankPatch(){const tv=I()&&I().tankView&&I().tankView();if(!tv||tv._st)r
  requestAnimationFrame(function tk(){try{if(tv.on&&tv.fish)tv.fish.forEach(x=>{const u=x.o&&x.o.userData.st;if(!u)return;const bx=x.stBox;if(bx){const cl=(v,a,b)=>Math.max(a,Math.min(b,v));for(const P of [x.o.position,x.t])if(P){P.x=cl(P.x,-bx.hx,bx.hx);P.z=cl(P.z,-bx.hz,bx.hz);P.y=cl(P.y,Math.min(bx.y0,bx.y1),Math.max(bx.y0,bx.y1));}}const t=performance.now()/1000;const cam=tv.cam;x.o.updateMatrixWorld();const pq=new THREE.Quaternion();x.o.getWorldQuaternion(pq);u.bb.quaternion.copy(pq.invert().multiply(cam.quaternion));const dir=new THREE.Vector3(Math.sin(x.yaw||0),0,Math.cos(x.yaw||0)).applyQuaternion(cam.quaternion.clone().invert());u.fish.scale.x=(x.v&&x.v.x<0?-1:1)*Math.abs(u.fish.scale.x)*(1);u.halo.material.opacity=.75+.2*Math.sin(t*2.2);u.halo.scale.setScalar(1+.06*Math.sin(t*1.7));const P=u.spk.geometry.attributes.position.array;u.spk.userData.S.forEach((s,i)=>{const a=s.a+t*s.v;P[i*3]=Math.cos(a)*s.r;P[i*3+1]=Math.sin(t*s.v*1.3+s.a)*s.r*.5;P[i*3+2]=Math.sin(a)*s.r*.4;});u.spk.geometry.attributes.position.needsUpdate=true;u.spk.material.opacity=.6+.4*Math.sin(t*3);});}catch(e){}requestAnimationFrame(tk);});}
 /* v184: 어항 유리 밖으로 나가지 않게 — 어항 안쪽 크기에 맞춰 줄이고, 여러 마리면 높이를 나눠 헤엄쳐요 */
 function decorate(tv){const B=tv.box||{W:2.1,H:2.4,D:2.1},SX=(tv.fish||[]).filter(x=>SPK(x.f&&x.f.k));(tv.fish||[]).forEach(x=>{const sp=SPK(x.f&&x.f.k);if(!sp||!x.o)return;const o=x.o;o.traverse(m=>{if(m.isMesh)m.visible=false;});
- const big=sp.k==='st_whale'?3.3:sp.k==='st_ray'?2.7:sp.k==='st_stur'?2.8:2.3;const asp=fishAsp(sp.k),lanes=Math.max(1,SX.length),wW=Math.min(big,B.W*.6,(B.H*.78/Math.min(lanes,4))*asp,B.H*.42*asp),wH=wW/asp,W=wW/(o.scale.x||1),H=W/asp*(o.scale.x/o.scale.y);
+ const big=sp.k==='st_whale'?3.3:sp.k==='st_bukang'?3.0:sp.k==='st_ray'?2.7:sp.k==='st_stur'?2.8:2.3;const asp=fishAsp(sp.k),lanes=Math.max(1,SX.length),wW=Math.min(big,B.W*.6,(B.H*.78/Math.min(lanes,4))*asp,B.H*.42*asp),wH=wW/asp,W=wW/(o.scale.x||1),H=W/asp*(o.scale.x/o.scale.y);
  const li=SX.indexOf(x),nl=Math.min(lanes,4),ly=nl>1?(B.H*.1+wH/2+(B.H*.8-wH)*(li%nl)/(nl-1)):B.H*.5;x.stBox={hx:Math.max(.05,B.W/2-wW/2-.06),hz:Math.max(.05,(B.D||B.W)/2-wW*.25),y0:Math.max(wH/2+.06,ly-.12),y1:Math.min(B.H-wH/2-.06,ly+.12)};
  const bb=new THREE.Group();const fish=new THREE.Mesh(new THREE.PlaneGeometry(W,H),new THREE.MeshBasicMaterial({map:fishTex(sp.k),transparent:true,alphaTest:.03,side:THREE.DoubleSide,depthWrite:false}));fish.renderOrder=3;
  const halo=new THREE.Mesh(new THREE.PlaneGeometry(W*1.7,W*1.7*(o.scale.x/o.scale.y)),addMat(glowTex(),sp.glow,.85));halo.renderOrder=2;
