@@ -1378,3 +1378,6 @@ body.m3.mnTight #mSys #bSave{bottom:30px;border-top:1px solid #eadfce!important}
    오른쪽 화면 밖 두 번째 칸으로 넘어가 사라졌어요 → 한 줄로 두고 목록 안에서 스크롤 */
 body.m3 #mSys{flex-wrap:nowrap!important;justify-content:flex-start!important}
 body.m3 #mSys>*,body.m3 #mSys #mDrop51>*{flex-shrink:0!important}
+/* v208: 낚시 카드는 할아버지 목표 창(z 47)보다 위에 · 창(모달)이 열리면 원래대로 */
+#toast:has(.cc){z-index:48}
+body:has(.modal.show) #toast:has(.cc){z-index:auto}
