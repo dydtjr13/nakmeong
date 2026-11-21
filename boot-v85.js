@@ -23,7 +23,7 @@
     try { navigator.sendBeacon = function () { return true; }; } catch (e) {}
     return;
   }
-  var PER = ['nakmeong_solo', 'nakmeong_v2', 'nk_cid', 'nk_save_code', 'nk_code_at', 'nk_recover_seen', 'nk_autofish', 'nk_sptitle'];
+  var PER = ['nakmeong_solo', 'nakmeong_v2', 'nk_cid', 'nk_save_code', 'nk_code_at', 'nk_recover_seen', 'nk_autofish', 'nk_sptitle', 'nk_lastMap']; // v211: 마지막 맵도 계정 칸마다 따로
   var KS = 'nk_slots';
   function rd() { try { var o = JSON.parse(LS.getItem(KS) || 'null'); if (o && Array.isArray(o.list)) return o; } catch (e) {} return { cur: '', list: [] }; }
   function wr(o) { try { LS.setItem(KS, JSON.stringify(o)); } catch (e) {} }
