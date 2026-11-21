@@ -130,7 +130,7 @@ function layout(){const N=mbS().n,pc=PCL(),gap=pc?(N>=7?6:8):(N>=7?4:N>=6?5:6);l
   const want=Math.min(540,innerWidth-44);/* 나무판 바깥 너비 = 화면 − 24 */md.classList.remove('mbcmp');ST.cmp=false;drawCnt();let H=fit();
   if(H<want){md.classList.add('mbcmp');ST.cmp=true;drawCnt();H=fit();}
   W=Math.min(want,H);const ex=Math.max(0,H-W);wd.style.margin=`${Math.round(16+ex/2)}px auto ${Math.floor(8+ex/2)}px`;main.style.paddingBottom=(bb?bb.offsetHeight:0)+'px';}
- /* v200: 판이 커지면(6×6·7×7) 칸을 작게 해서 화면 안에 들어가게 · 가장 작은 칸 28px */W=Math.max(N*28+12+gap*(N-1),W);const cs=Math.floor((W-12-gap*(N-1))/N);ST.cs=cs;const g=$('mbGrid');g.style.gridTemplateColumns=`repeat(${N},${cs}px)`;g.style.setProperty('--cs',cs+'px');g.style.gap=gap+'px';
+ /* v200: 판이 커지면(6×6·7×7) 칸을 작게 해서 화면 안에 들어가게 · 가장 작은 칸 28px */W=Math.max(N*28+12+gap*(N-1),W);const cs=Math.floor((W-12-gap*(N-1))/N);ST.cs=cs;const g=$('mbGrid');g.style.gridTemplateColumns=`repeat(${N},${cs}px)`;g.style.setProperty('--cs',cs+'px');g.style.setProperty('--mbBk',Math.max(.5,Math.min(.9,cs/100)).toFixed(3));g.style.gap=gap+'px';
  if(g.children.length!==N*N){g.innerHTML='';for(let i=0;i<N*N;i++){const d=document.createElement('div');d.className='mbcell';d.dataset.i=i;g.appendChild(d);}}
  [...g.children].forEach(d=>{d.style.width=d.style.height=cs+'px';});const fx=$('mbFx'),dp=Math.min(2,devicePixelRatio||1);fx.width=innerWidth*dp;fx.height=innerHeight*dp;}
 /* 판이 열려 있는 동안 공지 띠(#stAnn)·알림(#tq)이 판·목록·버튼을 가리지 않게 빈 자리로 옮겨요
