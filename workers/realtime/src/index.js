@@ -949,10 +949,11 @@ export class LakeRoom extends DurableObject {
       if (!st) return;
       const now = Date.now();
       // v193: 관리자·운영자 테스트 낚시는 순위를 세지 않고 공지만 (축하 버튼 시험용) · 10초에 한 번
-      const test = !!msg.test && !!(prev.admin || prev.op);
-      if (msg.test && !test) return;
       // v206: 9번(숨김 관리자 시험방)에서 낚은 건 9번 방에만 · 순위도 안 세요 (실제 유저 방에 시험 공지가 안 가게)
+      //       9번 방 안에서는 관리자 로그인 없이도 시험 공지를 보낼 수 있어요 (다른 방으로는 절대 안 나가요)
       const room9 = prev.server === 9;
+      const test = !!msg.test && !!(prev.admin || prev.op || room9);
+      if (msg.test && !test) return;
       if (now - (prev.lastSt || 0) < (test ? 10000 : 60000)) return;
       prev.lastSt = now;
       try { ws.serializeAttachment(prev); } catch { /* ignore */ }
