@@ -14,7 +14,7 @@ D.RODS.forEach(r=>{if(r.desc)r.desc=r.desc.replace(/\s*\(옵션 \d+슬롯\)/,"")
 // v12 시안용 숨김 파라미터: ?mock30&decks=30&lr=32&lay=ring|alt|bay (기본 게임은 20데크·LR 24 그대로)
 const CFG=Object.assign({lay:'a',bots:9},JSON.parse(localStorage.getItem('nk_cfg')||'{}'));const LAYS={a:['ring',32],b:['alt',26],c:['bay',29],o:['ring',24]};
 // v121: 🌙 하늘섬 채널은 따로 된 작은 섬 맵으로 불러와요 (탭에 「하늘섬」 표시가 있을 때만 · 원래 설정은 그대로 저장)
-/* v210: 재접속하면 마지막 맵(🌙 달 7 · ⛵ 운하 20)에서 다시 시작해요 — 예전엔 맵 정보가 이 탭(sessionStorage)에만 있어서 창을 닫고 다시 열면 늘 호숫가였어요.
+/* v211: 재접속하면 마지막 맵(🌙 달 7 · ⛵ 운하 20)에서 다시 시작해요 — 예전엔 맵 정보가 이 탭(sessionStorage)에만 있어서 창을 닫고 다시 열면 늘 호숫가였어요.
    · 마지막 맵은 기기(localStorage nk_lastMap · 계정 칸마다 따로)에 남겨요 · 이 탭에서 이미 정한 맵(nk_mapTab)이 있으면 그대로 써요
    · 숨김 시험방(9)·미리보기·관전은 남기지도, 되살리지도 않아요 · 입장 조건이 안 맞으면 시작할 때 호숫가로 (mapFallback) */
 function NK_LASTMAP(m,from){try{if(window.NK_PREV)return;const o={m:m==='moon'||m==='canal'?m:'lake',t:Date.now()};if(o.m!=='lake')o.from=Math.max(1,Math.min(4,+from||1));localStorage.setItem('nk_lastMap',JSON.stringify(o));}catch(e){}}
@@ -3267,7 +3267,7 @@ loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyV
   $('go').onclick=async()=>{if($('go')._busy)return;$('go')._busy=1;const prev=$('go').textContent;try{
     /* v172: 닉네임 없이 시작하면 '나' 대신 겹치지 않는 번호 닉네임 (나1, 나2 …) */if(!String(S.nick||'').trim()&&!window.NK_PREV){$('go').textContent='닉네임 정하는 중…';let gn='';try{const ac=new AbortController();const tm=setTimeout(()=>ac.abort(),2500);const r=await fetch(SV.api()+'/guest/nick',{method:'POST',headers:{'X-Owner':SV.cid()},signal:ac.signal});clearTimeout(tm);const j=await r.json();if(j&&j.ok&&/^나\d{1,8}$/.test(j.nick))gn=j.nick;}catch(e){}if(!gn)gn='나'+(10000+Math.floor(Math.random()*89999));S.nick=gn;try{$('stNick').value=gn;save();}catch(e){}}
     let id=SKYBOOT?7:SEABOOT?20:(+CFG.ch===8&&nickBad(NICK())==='reserved')?8:Math.max(1,Math.min(4,+(V14&&V14.CH&&V14.CH.me)||+(CFG.ch)||1));let online=false,res=null;
-    /* v210: 달·운하로 이어서 들어가기 전에 입장 조건 확인 — 안 맞으면 원래 호숫가로 */if((SKYBOOT||SEABOOT)&&!window.NK_PREV){const why=mapBlock();if(why){mapFallback(why);return;}}
+    /* v211: 달·운하로 이어서 들어가기 전에 입장 조건 확인 — 안 맞으면 원래 호숫가로 */if((SKYBOOT||SEABOOT)&&!window.NK_PREV){const why=mapBlock();if(why){mapFallback(why);return;}}
     /* v177: 라이브 관전 — 호숫가는 사람이 가장 많은 서버를 봐요 */if(window.NK_PREV==='watch'&&!SKYBOOT&&!SEABOOT){try{const rows=((window.NK_RT&&NK_RT.servers)||[]).filter(r=>r&&r.id>=1&&r.id<=4);if(rows.length){rows.sort((a,b)=>(b.lake|0)-(a.lake|0));id=rows[0].id;}}catch(e){}}
     if(nickBad(NICK())==='reserved'){if(!window.NK_RT||NK_RT.mode==='off'){alertBox('<h3>관리자 닉네임</h3><p>관리자 닉네임은 실시간 서버에 접속할 때만 쓸 수 있어요.</p>');return;}if(NK_RT.hasAdminKeep&&NK_RT.hasAdminKeep())NK_RT.setAdminCred(null);else{const cr=await NK_ADM.askCred(NICK());if(!cr){return;}NK_RT.setAdminCred(cr.id,cr.pw);}}else if(window.NK_RT&&NK_RT.setAdminCred)NK_RT.setAdminCred(null);
     if(window.NK_RT){$('go').textContent='서버 들어가는 중…';res=await NK_RT.connect(id,{home:(id===7||id===20)?Math.max(1,Math.min(4,+(()=>{try{return sessionStorage.getItem(id===20?'nk_seaFrom':'nk_skyFrom');}catch(e){return 0;}})()||+CFG.ch||1)):id,nick:NICK(),ki:S.char|0,lv:myLv(),x:d0.entry.x,z:d0.entry.z,y:.4,d:d0.a+Math.PI,fish:'off',anim:'idle',seat:null});
@@ -3278,7 +3278,7 @@ loadAll().then(()=>{buildTerrain();buildWater();buildDecks();buildWorld();applyV
     if(deckReload){location.reload();return;}
     try{window.NK_FULL&&NK_FULL.auto(S);}catch(e){}me=makeChar(S.char,NICK());const dSpawn=quietDeck();let x=dSpawn.entry.x,z=dSpawn.entry.z;
     if(online){const a=Math.random()*6.283,rad=1.1+Math.random()*1.7,tx=x+Math.cos(a)*rad,tz=z+Math.sin(a)*rad;if(walk(tx,tz)){x=tx;z=tz;}}
-    window.__nkStartAt=performance.now();/* v210: 지금 맵을 마지막 맵으로 */try{const sid=+(online&&NK_RT.serverId&&NK_RT.serverId())||id;if(!window.NK_PREV&&sid!==9)NK_LASTMAP(SKYBOOT?'moon':SEABOOT?'canal':'lake',SKYBOOT||SEABOOT?sessionStorage.getItem(SKYBOOT?'nk_skyFrom':'nk_seaFrom'):0);}catch(e){}me.o.position.set(x,.4,z);me.dir=dSpawn.a+Math.PI;yaw=Math.atan2(Math.cos(dSpawn.a),Math.sin(dSpawn.a));try{window.__nkResume&&__nkResume(id,online);}catch(e){console.warn(e);}started=true;/* v201 🎄 출석 */setTimeout(()=>{try{xmTick();}catch(e){}},2500);if(!window.__xmIv)window.__xmIv=setInterval(()=>{try{started&&xmTick();}catch(e){}},60000);$('start').classList.remove('show');startAudio();hud();try{applyMx();}catch(e){}setTimeout(()=>{try{featBtns();}catch(e){}},1200);if(window.NK_STMK)setTimeout(()=>NK_STMK(),1500);
+    window.__nkStartAt=performance.now();/* v211: 지금 맵을 마지막 맵으로 */try{const sid=+(online&&NK_RT.serverId&&NK_RT.serverId())||id;if(!window.NK_PREV&&sid!==9)NK_LASTMAP(SKYBOOT?'moon':SEABOOT?'canal':'lake',SKYBOOT||SEABOOT?sessionStorage.getItem(SKYBOOT?'nk_skyFrom':'nk_seaFrom'):0);}catch(e){}me.o.position.set(x,.4,z);me.dir=dSpawn.a+Math.PI;yaw=Math.atan2(Math.cos(dSpawn.a),Math.sin(dSpawn.a));try{window.__nkResume&&__nkResume(id,online);}catch(e){console.warn(e);}started=true;/* v201 🎄 출석 */setTimeout(()=>{try{xmTick();}catch(e){}},2500);if(!window.__xmIv)window.__xmIv=setInterval(()=>{try{started&&xmTick();}catch(e){}},60000);$('start').classList.remove('show');startAudio();hud();try{applyMx();}catch(e){}setTimeout(()=>{try{featBtns();}catch(e){}},1200);if(window.NK_STMK)setTimeout(()=>NK_STMK(),1500);
     say('시스템',online?`Welcome to FISH COZY! ${SRVN(id)}에 들어왔어요. 같은 서버의 낚시꾼이 보여요.`:'Welcome to FISH COZY! 피쉬코지에 오신 걸 환영해요. 실시간 서버가 없으면 혼자(봇과) 플레이해요.');
   }finally{$('go')._busy=0;if($('start').classList.contains('show'))$('go').textContent=prev;}};
   hud();requestAnimationFrame(frame);setTimeout(()=>{try{calcRK3();}catch(e){}},1500);setInterval(()=>{try{calcRK3();}catch(e){}},30000);updBagBadge();
@@ -4196,7 +4196,7 @@ function slotMk(){const mb=$('stMkB');if(!mb)return;let nt=$('stMkNew');const ne
  const mm=$('stMkMsg');if(mm){mm.className='muted';mm.textContent='';}}
  /* v170 ✨ 새 시작 화면 — 처음 온 사람(간편 로그인·게스트) / 이 기기에 진행이 있는 사람(이어서 하기) → ① 서버 ② 캐릭터
     기존 시작 화면(닉네임·서버·캐릭터·이어하기·계정 칸)은 그대로 두고, 그 기능을 버튼으로 이어 받아요 · 🧪 실험실 「새 시작 화면」 */
- {const X={pg:'home',pend:0},CX=()=>window.__nkSt2Ctx();window.NK_ST2=X;/* v210: 달·운하에서 호숫가를 고르면 다시 열린 뒤 캐릭터 고르기로 */try{const p=sessionStorage.getItem('nk_sx2pg');if(p){sessionStorage.removeItem('nk_sx2pg');if(p==='ch'||p==='srv')X.pg=p;}}catch(e){}
+ {const X={pg:'home',pend:0},CX=()=>window.__nkSt2Ctx();window.NK_ST2=X;/* v211: 달·운하에서 호숫가를 고르면 다시 열린 뒤 캐릭터 고르기로 */try{const p=sessionStorage.getItem('nk_sx2pg');if(p){sessionStorage.removeItem('nk_sx2pg');if(p==='ch'||p==='srv')X.pg=p;}}catch(e){}
   /* v171: 한 번 켜진 새 시작 화면은 계정 칸을 바꾸거나(새로 시작) 서버 설정이 늦게 와도 이 기기에서 그대로 유지 */
   const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);}catch(e){return null;}};
   let ON=null;const known=()=>{try{if(/[?&]st2=1/.test(location.search))return true;if(S.stV2!=null&&S.stV2!=='')return true;if(ls('nk_st2me'))return true;const RT=window.NK_RT;if(RT&&RT.status&&RT.status()==='on')return true;return !!PLAYC;}catch(e){return true;}};
@@ -4633,7 +4633,7 @@ setInterval(()=>{try{peerTanks();}catch(e){console.warn(e);}},700);
 
 // ───────── ⑤ 사람 있는 호숫가로 ─────────
 let svMan=false;document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#stSrv [data-sv]'))svMan=true;},true);
-function svAuto(){if(opt('srvAuto','off')!=='on'||svMan||(()=>{try{return sessionStorage.getItem('nk_svMan')==='1';}catch(e){return false;}})()/* v210: 달·운하 시작 화면에서 직접 고른 호숫가는 그대로 */||!startOn()||!window.__lobbyCounts)return;const rows=__lobbyCounts().filter(s=>s.players!=null);if(rows.length<2)return;
+function svAuto(){if(opt('srvAuto','off')!=='on'||svMan||(()=>{try{return sessionStorage.getItem('nk_svMan')==='1';}catch(e){return false;}})()/* v211: 달·운하 시작 화면에서 직접 고른 호숫가는 그대로 */||!startOn()||!window.__lobbyCounts)return;const rows=__lobbyCounts().filter(s=>s.players!=null);if(rows.length<2)return;
  const cur=+(V14&&V14.CH&&V14.CH.me)||+CFG.ch||1,mine=rows.find(s=>s.id===cur);if(!mine||mine.players>=3)return;const best=rows.filter(s=>s.players<s.cap).sort((a,b)=>b.players-a.players||a.id-b.id)[0];if(!best||best.players<=mine.players||best.id===cur)return;
  CFG.ch=best.id;if(V14&&V14.CH)V14.CH.me=best.id;try{localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},LS('nk_cfg',{}),{ch:best.id})));}catch(e){}dispatchEvent(new Event('nk-rt-servers'));
  if(!svAuto.told){svAuto.told=1;toast(`👥 사람이 있는 ${SRVN(best.id)}(으)로 골라 뒀어요 (${best.players}명)`,2400);}}
@@ -6389,7 +6389,7 @@ function moonProps(g,rnd){const T=THREE,X={has:()=>true};SKY.props={};SKY.block=
   S2.visible=false;}
 }
 
-window.__nkSkyFish=()=>skyFishAdd();window.NK89.sky={SKY,skySwitch,skyApply,skyAsk,skyBuild};try{window.NK89.sea={seaSwitch,mapBlock};}catch(e){}/* v210: 맵이 열려 있는지 (skyOn·seaTownOn 은 이 블록 안에서만 보여요) */window.__nkMapOpen=m=>{try{return m==='moon'?skyOn():m==='canal'?seaTownOn():true;}catch(e){window.__nkMapErr=String(e);return true;}};
+window.__nkSkyFish=()=>skyFishAdd();window.NK89.sky={SKY,skySwitch,skyApply,skyAsk,skyBuild};try{window.NK89.sea={seaSwitch,mapBlock};}catch(e){}/* v211: 맵이 열려 있는지 (skyOn·seaTownOn 은 이 블록 안에서만 보여요) */window.__nkMapOpen=m=>{try{return m==='moon'?skyOn():m==='canal'?seaTownOn():true;}catch(e){window.__nkMapErr=String(e);return true;}};
 // v122 ── 🦘 점프 (이동 중 Space)
 const jumpOn=()=>!PREV&&opt('jump','off')==='on';const JP={h:0,v:0,out:0};
 const movingKeys=()=>!!(keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD||keys.ArrowUp||keys.ArrowDown||keys.ArrowLeft||keys.ArrowRight||(typeof joy!=='undefined'&&(Math.abs(joy.x)>.3||Math.abs(joy.y)>.3)));
