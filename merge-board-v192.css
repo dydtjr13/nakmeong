@@ -235,11 +235,8 @@ body.mb-open.mb-miniT #miniT .mt{white-space:nowrap;font-size:12px;padding:7px 1
 /* 키가 작은 폰: 한 줄로 낮게 (판이 덜 줄어들게) */
 @media (max-height:700px) and (max-width:899px){#mbd .mbtf{margin:0 0 4px}#mbd .mbtf .mtf{height:24px;flex-direction:row;gap:2px;font-size:11px}#mbd .mbtf .mtf b{font-size:9px}}
 /* v204: 별 단계 D안 — 별이 오를수록 물고기가 커지고(★1 56% → ★5 90%) 테두리가 별 색(흰→초록→파랑→보라→주황) · 왼쪽 위 작은 ★N 표 (★1은 표 없음) · 변이는 모습 그대로, 크기만 ★5 */
-#mbd .mbit.mt1 img{width:56%;height:41%;margin-top:-11%}
-#mbd .mbit.mt2 img{width:64%;height:46%;margin-top:-12%}
-#mbd .mbit.mt3 img{width:73%;height:53%;margin-top:-13%}
-#mbd .mbit.mt4 img{width:82%;height:59%;margin-top:-12%}
-#mbd .mbit.mt5 img,#mbd .mbit.mtv img{width:90%;height:65%;margin-top:-11%}
+/* v205: 물고기 크기는 별 단계와 상관없이 하나로 고정 (예전 ★5 크기 90% · 칸 안에서 크게) — 단계는 색 테두리·★N 표·별 줄로 구분 */
+#mbd .mbit.mt1 img,#mbd .mbit.mt2 img,#mbd .mbit.mt3 img,#mbd .mbit.mt4 img,#mbd .mbit.mt5 img,#mbd .mbit.mtv img{width:90%;height:65%;margin-top:-11%}
 #mbd .mbit.mt2,#mbd .mbit.mt3,#mbd .mbit.mt4,#mbd .mbit.mt5{border-width:3px}
 #mbd .mbit.mt2{border-color:#8fd47e}
 #mbd .mbit.mt3{border-color:#5aaaf2;background:linear-gradient(#fff 55%,#eef7ff)}
@@ -251,3 +248,44 @@ body.mb-open.mb-miniT #miniT .mt{white-space:nowrap;font-size:12px;padding:7px 1
 #mbd .mbti .mbit .mtb,#mbd .mblad .mbit .mtb,#mbd .mdx .mbit .mtb,.mbret .mbit .mtb{display:none}
 /* ★5는 물고기가 커서 표가 지느러미에 닿지 않게 그림을 조금 아래로(위 -11%) · 칸이 아주 작으면(44px 미만, 작은 폰 6×6·7×7) 표는 숨기고 색 테두리·별로만 보여요 */
 @container (max-width:44px){#mbd .mbit .mtb{display:none}}
+
+/* v205: 📱 모바일 판이 화면을 꽉 채우게 — 높이가 모자라면 「작은 배치」(#mbd.mbcmp): 횟수 한 줄 · 목록·거르기·버튼 낮게 (merge-board-v192.js layout()) */
+@media (max-width:899px){
+ #mbd .mbwood{flex-shrink:0}
+ #mbd .mbcnt .mcm{min-width:0}
+ #mbd .mbcnt .mcf{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;font-size:10.5px;font-weight:800;color:#5a4a3c;white-space:nowrap;line-height:1.4;min-width:0}
+ #mbd .mbcnt .mcf b{color:#e8784a}
+ #mbd.mbcmp .mbhd{padding:8px 12px 3px}
+ #mbd.mbcmp .mbhd .mbttl{font-size:18px}
+ #mbd.mbcmp .mbback{width:32px;height:32px;font-size:18px;border-radius:10px}
+ #mbd.mbcmp .mbcnt.mob{margin:3px 10px 0;padding:6px 10px 7px;border-radius:14px}
+ #mbd.mbcmp .mbcnt .mr1{gap:8px}
+ #mbd.mbcmp .mbcnt .mic{width:30px;height:30px;font-size:16px;border-radius:9px;box-shadow:0 2px 0 #b85a2a}
+ #mbd.mbcmp .mbcnt .mlb{font-size:10.5px;line-height:1.2}
+ #mbd.mbcmp .mbcnt .mnum{font-size:20px}
+ #mbd.mbcmp .mbcnt .mnum small{font-size:11.5px}
+ #mbd.mbcmp .mbcnt .mbibtn{margin-left:0;width:30px;height:30px;font-size:15px}
+ #mbd.mbcmp .mbcnt .mfbar{height:7px;margin-top:6px}
+ #mbd.mbcmp .mbcnt .mfbar s{top:-2px;width:3px;height:11px}
+ #mbd.mbcmp .mbsec{margin:0 10px;padding:6px 8px 5px;border-radius:14px}
+ #mbd.mbcmp .mbsec h4{margin:0 0 4px;font-size:12px}
+ #mbd.mbcmp .mbdexb{height:22px;font-size:11px}
+ #mbd.mbcmp .mbtf{margin:0 0 2px}
+ #mbd.mbcmp .mbtf .mtf{height:24px;flex-direction:row;gap:2px;font-size:11px;border-radius:8px}
+ #mbd.mbcmp .mbtf .mtf b{font-size:9px}
+ #mbd.mbcmp .mbtray{padding:5px 2px 0}
+ #mbd.mbcmp .mbti{width:52px}
+ #mbd.mbcmp .mbti .mbcell{--cs:46px;width:46px;height:46px}
+ #mbd.mbcmp .mbti .mnm{font-size:10px;margin-top:2px;max-width:52px}
+ #mbd.mbcmp .mbti .mbit .msc{font-size:10px}
+ #mbd.mbcmp .mbdots{margin-top:3px;min-height:5px;gap:4px}
+ #mbd.mbcmp .mbdots i{width:5px;height:5px}
+ #mbd.mbcmp .mbdots i.mon{width:12px}
+ #mbd.mbcmp .mbbb{padding:6px 10px calc(8px + env(safe-area-inset-bottom,0px));gap:6px}
+ #mbd.mbcmp .mbbb button{padding:10px 4px;font-size:13.5px;border-radius:13px}
+}
+/* v205: 🌈 합성판 무지개 완성 — 전체 서버 공지 띠 (초월 부적 띠 .txann 모양 위에 무지개 테두리) */
+.txann.mbrann{background:linear-gradient(160deg,#2d2350,#1d1a3c 60%,#2a2550) padding-box,linear-gradient(90deg,#ff6b6b,#ffb84d,#ffe94d,#6be07a,#4dc3ff,#7a6bff,#e06bff,#ff6b6b) border-box;background-size:100% 100%,200% 100%;box-shadow:0 6px 22px rgba(20,10,60,.45),0 0 18px rgba(255,160,220,.45)}
+.txann.mbrann .mbri{width:50px;height:50px;flex:none;border-radius:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(#fff,#fff) padding-box,conic-gradient(from 0deg,#ff6b6b,#ffb84d,#ffe94d,#6be07a,#4dc3ff,#7a6bff,#e06bff,#ff6b6b) border-box;border:3px solid transparent}
+.txann.mbrann .mbri img{width:40px;height:30px;object-fit:contain}
+.txann.mbrann .mbrt{background:linear-gradient(90deg,#ff8a8a,#ffd36b,#8ef09a,#7fd4ff,#c79bff);-webkit-background-clip:text;background-clip:text;color:transparent}

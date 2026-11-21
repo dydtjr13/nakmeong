@@ -917,3 +917,11 @@ test("v195 초월 부적: tier 6 · px 보존 · 지급 g 6 · txc 메시지", (
   assert.deepEqual(_pc6(JSON.stringify({ t: "txc", how: "syn" })), { t: "txc", how: "syn" });
   assert.equal(_pc6(JSON.stringify({ t: "txc", how: "x" })).how, "box");
 });
+
+// v205: 🌈 합성판 무지개 완성 공지 (mbr)
+test("v205 합성판 무지개 공지: mbr 메시지", () => {
+  assert.deepEqual(_pc6(JSON.stringify({ t: "mbr", k: "carp" })), { t: "mbr", k: "carp" });
+  assert.equal(_pc6(JSON.stringify({ t: "mbr", k: "<b>x</b>" })).k, "bxb");
+  assert.equal(_pc6(JSON.stringify({ t: "mbr", k: "" })), null);
+  assert.equal(_pc6(JSON.stringify({ t: "mbr" })), null);
+});
