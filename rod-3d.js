@@ -17,6 +17,7 @@ window.NK_ROD3D=function(k,star){const o=P[k]||P.bamboo,g=new THREE.Group(),n=5,
  const tip=new THREE.Object3D();tip.position.y=o.len;g.add(tip);g.userData.tip=tip;g.scale.setScalar(1/2.2);return g;};
 window.NK_ROD3D_P=P;})();
 // v195: 용왕 이상 낚싯대 꾸밈 (안3) — 굵은 대·마디 고리·감긴 용·용머리·여의주 + 광륜 + 발밑 오라
+// v226: 의자에 앉으면 발밑 오라는 캐릭터 높이가 아니라 데크·땅 바닥에 붙어요 (CTX.footY)
 // · 장식(불투명)은 게임의 mergeStatic이 낚싯대마다 2덩어리로 합쳐요.
 // · 광륜·발밑 오라는 모든 캐릭터를 묶어 한 번에 그려요(인스턴싱) → 사람 수가 늘어도 그리기 호출이 늘지 않아요.
 // · 내 낚싯대만: 대 주변 입자, 등급 색 낚싯줄 + 줄 위 반짝임, 던질 때 찌 꼬리.
@@ -124,7 +125,7 @@ function upd(r,cam,force){const f=r.info.render.frame;if(f===lastF&&!force)retur
   let fade=1;if(inH&&UI.length){v2.copy(v1).project(cam);const sx=(v2.x+1)/2*W,sy=(1-v2.y)/2*H,rp=e.S.haloW*.5/(d*ty)*H/2;for(const q of UI){const cx=Math.max(q.left,Math.min(sx,q.right)),cy=Math.max(q.top,Math.min(sy,q.bottom));if(Math.hypot(sx-cx,sy-cy)<rp*.85){fade=.22;break;}}}
   e.fade+=(fade-e.fade)*Math.min(1,dt*10);const F=e.fade,lite=!isMe,nearO=lite&&e.rank<FX.nearN,hw=e.S.haloW*(isMe?1:nearO?.72:.5);
   if(inH){B.glow.userData.put(v1,hw*(1+.06*p+b*.35)*(.75+.25*F),0,(.7+.2*p+b*.3)*.9*F,e.col.glow);if(!lite||nearO)B.ring.userData.put(v1,hw*(e.t===1?.55:.62)*(.8+.2*F),tm*.4,(e.t===1?.7:.95)*F,e.col.ring);if(e.t>=3&&!lite)B.rays.userData.put(v1,hw*1.15*(.7+.3*F),-tm*.25,(.55+.25*p+b*.2)*.75*F,e.col.glow);}
-  if(inF&&(!lite||nearO)){c.o.getWorldPosition(v2);v2.y+=.03;B.foot.userData.put(v2,e.S.foot*(lite?.8:1),tm*.3,Math.min(1,(.8+.2*Math.sin(tm*1.6))*(1+b*.3)),e.col.foot);v2.y+=.015;if(!lite)B.fring.userData.put(v2,e.S.ring,-tm*.2,.8,e.col.metal);if(e.t>=3&&!lite){v2.y-=.015;B.col.userData.put(v2,1,0,1,e.col.glow,1);}}
+  if(inF&&(!lite||nearO)){c.o.getWorldPosition(v2);const fy=CTX&&CTX.footY&&CTX.footY(c,v2);if(fy!=null)v2.y=fy;else v2.y+=.03;B.foot.userData.put(v2,e.S.foot*(lite?.8:1),tm*.3,Math.min(1,(.8+.2*Math.sin(tm*1.6))*(1+b*.3)),e.col.foot);if(isMe)FX.lastFoot={x:v2.x,y:v2.y,z:v2.z,t:e.t,k:g.userData.fxK};v2.y+=.015;if(!lite)B.fring.userData.put(v2,e.S.ring,-tm*.2,.8,e.col.metal);if(e.t>=3&&!lite){v2.y-=.015;B.col.userData.put(v2,1,0,1,e.col.glow,1);}}
   if(isMe){if(!e.me)e.me=mine(e);const o=e.me;
    if(o.pts){const pa=o.pts.geometry.attributes.position.array;o.pd.forEach((q,i)=>{q.y+=dt*q.v*(1+b);if(q.y>o.L+.3){q.y=o.L*.2;q.a=Math.random()*6.28;}q.a+=dt*.8;pa[i*3]=Math.cos(q.a)*q.r;pa[i*3+1]=q.y;pa[i*3+2]=Math.sin(q.a)*q.r;});o.pts.geometry.attributes.position.needsUpdate=true;}
    const ln=CTX&&CTX.line&&CTX.line();if(ln&&ln.visible){const P2=ln.geometry.attributes.position,a=o.lp.geometry.attributes.position.array,m=a.length/3,ax=P2.getX(0),ay=P2.getY(0),az=P2.getZ(0),bx=P2.getX(1)-ax,by=P2.getY(1)-ay,bz=P2.getZ(1)-az;o.lp.visible=true;for(let i=0;i<m;i++){const q=(tm*.4+i/m)%1;a[i*3]=ax+bx*q;a[i*3+1]=ay+by*q;a[i*3+2]=az+bz*q;}o.lp.geometry.attributes.position.needsUpdate=true;}else o.lp.visible=false;
