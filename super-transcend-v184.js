@@ -229,7 +229,7 @@ const avCol=nm=>{let h=0;for(const ch of String(nm))h=(h*31+ch.charCodeAt(0))|0;
 const stcBuf=Object.create(null);NKST._stcBuf=stcBuf;
 addEventListener('nk-rt-stc',e=>{const d=e.detail||{},a=String(d.a||'');if(!a)return;const key=d.id||d.nick||'';if(!key)return;const arr=stcBuf[a]||(stcBuf[a]=[]);if(arr.some(x=>(x.id||x.nick)===key))return;arr.push({id:d.id,nick:d.nick,t:Date.now()});const now=Date.now();for(const k of Object.keys(stcBuf)){stcBuf[k]=stcBuf[k].filter(x=>now-x.t<45000);if(!stcBuf[k].length)delete stcBuf[k];}});
 /* 공지 띠: 모든 서버 사람에게 똑같이 떠요 · 축하 인원은 실제로 누른 사람 수 */
-function notice(ev){const sp=SPK(ev.k);if(!sp)return;SFX.notice();let box=$('stAnn');if(!box){box=document.createElement('div');box.id='stAnn';document.body.appendChild(box);}box.innerHTML='';
+function notice(ev){const sp=SPK(ev.k);if(!sp)return;SFX.notice();if(NKST._annOff){try{NKST._annOff();}catch(_){}}let box=$('stAnn');if(!box){box=document.createElement('div');box.id='stAnn';document.body.appendChild(box);}box.innerHTML='';
  const mine=ev.local||(ev.id&&ev.id===myId()),who=esc(ev.nick||'누군가'),srvNm=(()=>{try{return ev.srv&&window.SRVN?SRVN(ev.srv):'';}catch(e){return '';}})();
  const el=document.createElement('div');el.className='stann th-'+sp.theme;
  el.innerHTML=`<div class="sa-shine"></div><div class="sa-stars"><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -237,7 +237,7 @@ function notice(ev){const sp=SPK(ev.k);if(!sp)return;SFX.notice();let box=$('stA
  <div class="sa-mid"><div class="sa-top">${badge()}<span class="sa-meta">${ev.noEcho?'📶 서버 연결 확인 중 · 내 화면에만':ev.test?(ev.a?'🧪 테스트 공지 · 순위에 안 들어가요':'🧪 테스트 · 내 화면에만'):ev.local?'🌙 혼자 플레이':'📢 전체 서버 공지'}<span class="sa-t"> · ${ev.n>0&&!ev.test?'전체 '+ev.n.toLocaleString()+'번째':'방금 전'}${srvNm?' · '+esc(srvNm):''}</span></span></div>
   <div class="sa-msg"><b class="sa-who">${who}</b>님이 ${sp.mapN}에서 <b class="sa-fn">${sp.n} ${fmtCm(ev.cm)}</b>를 낚았어요!</div>
   <div class="sa-ch"><span class="sa-av"></span><span class="sa-ct"></span></div></div>
- <button type="button" class="sa-btn" ${ev.a?'':'disabled'}><span class="sa-ico">🎉</span><span class="sa-lb">${mine?'축하 받는 중':'축하하기'}</span><span class="sa-n"><b>0</b>명</span></button>`;
+ <div class="sa-act"><button type="button" class="sa-btn" ${ev.a?'':'disabled'}><span class="sa-ico">🎉</span><span class="sa-lb">${mine?'축하 받는 중':'축하하기'}</span><span class="sa-n"><b>0</b>명</span></button><button type="button" class="sa-x" aria-label="닫기">닫기</button></div>`;
  box.appendChild(el);
  const nb=el.querySelector('.sa-n b'),avs=el.querySelector('.sa-av'),ct=el.querySelector('.sa-ct'),seen=new Set(),shown=[];
  const upd=()=>{const n=seen.size;nb.textContent=n;const nm=shown.slice(-2).map(x=>'<b>'+esc(x)+'</b>').join('·');ct.innerHTML=n?`${nm}${n>Math.min(2,shown.length)?` 외 <b class="sa-k">${n-Math.min(2,shown.length)}</b>명`:''}이 축하하고 있어요`:(ev.a?'첫 번째로 축하해 주세요!':ev.noEcho?'서버에 공지가 닿지 않아 다른 사람에게는 안 보여요':ev.test?'테스트라 다른 사람에게는 보이지 않아요':'혼자 플레이 중이라 공지가 나가지 않았어요');};
@@ -250,9 +250,11 @@ function notice(ev){const sp=SPK(ev.k);if(!sp)return;SFX.notice();let box=$('stA
  if(ev.a)addEventListener('nk-rt-stc',onC);
  /* v221: 공지 띠가 뜨기 전에 도착한 축하도 반영 */
  if(ev.a&&stcBuf[ev.a]){for(const x of stcBuf[ev.a])add(x.id||x.nick,x.nick,x.id===myId());if(mine&&seen.size)fx();}
- /* v193: 다른 사람이 낚은 공지는 30초 동안 (축하할 시간) · v206: 내 공지도 30초 (다른 사람이 누르는 동안 축하 인원을 볼 수 있게, 서버 공지가 없으면 14초) */const _dur=mine&&!ev.a?14000:30000;NKST._ann=el;
+ /* 슈퍼 초월 컷인 창은 닫기 버튼을 누를 때까지 유지 (자동 닫힘 없음) */NKST._ann=el;
  /* v206: 공지가 떠 있는 동안 '새 업데이트' 알림 같은 위쪽 띠를 공지 아래로 내려요 (겹쳐서 글이 가려지던 문제) */const pos=()=>{try{if(!el.isConnected)return;const b=box.getBoundingClientRect().top+el.offsetTop+el.offsetHeight;/* 들어오는 움직임(transform) 중에도 자리 기준으로 재요 */document.body.style.setProperty('--stAnnB',Math.round(b+8)+'px');document.body.classList.add('stAnnOn');}catch(_){}};pos();requestAnimationFrame(pos);setTimeout(pos,700);
- setTimeout(()=>el.classList.add('out'),_dur);setTimeout(()=>{el.remove();removeEventListener('nk-rt-stc',onC);if(!box.querySelector('.stann'))document.body.classList.remove('stAnnOn');},_dur+700);
+ const off=()=>{removeEventListener('nk-rt-stc',onC);if(NKST._annOff===off)NKST._annOff=null;};NKST._annOff=off;
+ const dismiss=()=>{if(!el.isConnected||el.classList.contains('out'))return;el.classList.add('out');off();setTimeout(()=>{el.remove();if(!box.querySelector('.stann'))document.body.classList.remove('stAnnOn');},700);};
+ const xb=el.querySelector('.sa-x');if(xb)xb.onclick=e=>{e.stopPropagation();dismiss();};
  if(!ev.test)try{I().say('시스템',`📢 [슈퍼 초월급] ${ev.nick}님이 ${sp.mapN}에서 ${sp.n} ${fmtCm(ev.cm)}를 낚았어요!${ev.n>0?` (전체 서버 ${ev.n}번째)`:''}`);}catch(_){}}
 NKST.notice=notice;
 /* 서버 공지 받기 (나 포함 모든 서버) */
