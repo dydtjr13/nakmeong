@@ -8187,7 +8187,88 @@ function dlg(){let m=$('pipDlg');if(!m){m=document.createElement('div');m.id='pi
  m.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const k=b.dataset.t;p[k]=k==='win'?(p.win===false):!p[k];save();dlg();});m.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{p.mode=b.dataset.m;save();dlg();});if(!m.classList.contains('show'))openM('pipDlg');}
 function btn(){const sy=$('mSys');if(!sy)return;let b=$('bPip');if(!on()){if(b)b.remove();return;}if(!b){const tpl=$('bTime')||$('bBoard');b=document.createElement('button');b.id='bPip';b.type='button';b.innerHTML='<b class="mi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="7" height="6" rx="1" fill="currentColor"/></svg></b><small class="ml">작은 창</small>';b.onclick=e=>{e.stopPropagation();document.body.classList.remove('menu-open');dlg();};if(tpl)b.className=tpl.className.replace(/\bon\b/,'');}if(!sy.contains(b))sy.appendChild(b);}
 setInterval(btn,1500);addEventListener('nk-rt-play',()=>setTimeout(btn,90));
-window.NK_PIP={open:openPip,close:closePip,dlg,draw:()=>{ensure();draw();return cv;}};
+window.NK_PIP={open:openPip,close:closePip,dlg,draw:()=>{ensure();draw();return cv;},ok:on,act:()=>act};
+})();
+// ───────── v220 🖥 화면 설정 (메뉴 ≡ 왼쪽 아이콘 버튼 → 전체화면 / 작은 창 고르기) ─────────
+//  버튼 모양은 메뉴 버튼과 같아요. 지금 모드에 따라 아이콘이 바뀌어요 (보통: 모니터 · 전체화면: 네 모서리 · 작은 창: 작은 창 그림, 켜져 있으면 주황 점).
+//  '작은 창'은 기존 작은 창(PiP) 진입(NK_PIP.open)을 그대로 불러요. '전체화면'은 Fullscreen API(NK_FULL.go), 안 되는 브라우저는 안내만 해요.
+(function(){if(window.NK_PREV)return;
+const IC={
+ scr:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="13" rx="2.2"/><path d="M9 21h6M12 17.5V21"/></svg>',
+ full:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+ pip:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.2"/><rect x="12" y="11" width="7" height="6" rx="1.2" fill="currentColor"/></svg>'};
+const CSS=`#ssBtn{position:fixed;z-index:19;display:none;align-items:center;justify-content:center;border:0;cursor:pointer;color:var(--ink,#4a4058);background:var(--bg,rgba(255,250,244,.92));box-shadow:0 4px 14px #0002;border-radius:14px;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+#ssBtn.show{display:inline-flex}
+/* 좁은 휴대폰(400px 미만): 위쪽 정보 줄 간격만 조금 줄여서 화면 설정 버튼 자리를 만들어요 */
+body.ssTight #hud #mStat{gap:3px!important}body.ssTight #hud #mStat>.pill{padding-left:6px!important;padding-right:6px!important}#ssBtn:active{transform:scale(.94)}#ssBtn.cur{color:#e0834e}#ssBtn.cur::after{content:'';position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;background:#f29e6b;box-shadow:0 0 0 2px #fffaf3}
+#ssDim{position:fixed;inset:0;z-index:72;background:rgba(60,45,70,.35);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
+#ssDim .ssCard{background:var(--bg,rgba(255,250,244,.97));border-radius:22px;box-shadow:0 20px 60px #0003;color:var(--ink,#4a4058);position:relative;box-sizing:border-box;width:min(560px,calc(100vw - 24px));max-height:calc(100% - 0px);overflow:auto;padding:20px}
+#ssDim h3{margin:0;font-size:19px;font-weight:900;padding-right:40px}#ssDim .ssSub{font-size:12.5px;color:#8a7f86;font-weight:600;margin-top:2px}
+#ssDim .ssX{position:absolute;right:12px;top:12px;width:34px;height:34px;border-radius:11px;border:0;background:#f3e9dd;font-size:18px;color:#6e6470;cursor:pointer;line-height:34px;padding:0}
+#ssDim .ssP{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+#ssDim .ssPv{position:relative;border:0;border-radius:18px;background:#fff;box-shadow:0 2px 8px #0001,inset 0 0 0 1.5px #efe3d6;padding:8px 8px 10px;cursor:pointer;color:inherit;font-family:inherit;display:flex;flex-direction:column;gap:8px;align-items:stretch;-webkit-tap-highlight-color:transparent}
+#ssDim .ssPv b{font-size:15px;font-weight:900;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px}
+#ssDim .ssPv small{word-break:keep-all;font-size:11.5px;color:#8a7f86;font-weight:600;text-align:center;line-height:1.35;margin-top:-4px}
+#ssDim .ssPv.ssOn{box-shadow:0 0 0 3px #f29e6b,0 6px 18px #f29e6b40;background:#fff4ea}
+#ssDim .ssPv[disabled]{opacity:.55;cursor:default}
+#ssDim .ssChk{z-index:3;position:absolute;top:14px;left:14px;width:22px;height:22px;border-radius:50%;background:#f29e6b;color:#fff;font:900 13px/22px system-ui,sans-serif;text-align:center;display:none}#ssDim .ssPv.ssOn .ssChk{display:block}
+#ssDim .ssNow{z-index:3;position:absolute;top:14px;right:14px;font:800 11px/1 system-ui,sans-serif;color:#fff;background:#4a4058cc;border-radius:8px;padding:4px 7px}
+#ssDim .ssIll{position:relative;width:100%;border-radius:10px;background:#3b3445;padding:4px;box-sizing:border-box;box-shadow:inset 0 0 0 2px #0002}
+#ssDim .ssShot{width:100%;height:100%;border-radius:7px;background:#9fc3d8 center/cover no-repeat}
+#ssDim .ssDesk{width:100%;height:100%;border-radius:7px;position:relative;overflow:hidden;background:linear-gradient(160deg,#cfe6f5,#e9f1f7);padding-top:2px;box-sizing:border-box}
+#ssDim .ssDesk i{display:block;height:6px;border-radius:3px;background:#fff;margin:6px 8px 0;opacity:.9}#ssDim .ssDesk i:nth-child(2){width:55%}#ssDim .ssDesk i:nth-child(3){width:70%}
+#ssDim .ssMini{position:absolute;right:7px;bottom:7px;width:46%;height:46%;border-radius:6px;background:#9fc3d8 center/cover no-repeat;box-shadow:0 4px 10px #0004,0 0 0 2px #fff}
+#ssDim .ssGo{margin-top:14px;width:100%;border:0;border-radius:14px;background:#f29e6b;color:#fff;font:900 16px system-ui,sans-serif;padding:13px;box-shadow:0 6px 16px #f29e6b55;cursor:pointer}
+#ssDim .ssGo:active{transform:scale(.98)}
+#ssDim .ssFoot{word-break:keep-all;margin-top:10px;font-size:11.5px;color:#9a8f96;text-align:center;line-height:1.4}#ssDim .ssFoot a{color:#c9743f;font-weight:800;text-decoration:underline;cursor:pointer}`;
+const st=document.createElement('style');st.id='ssStyle';st.textContent=CSS;document.head.appendChild(st);
+const F=()=>window.NK_FULL,P=()=>window.NK_PIP;
+const isFull=()=>{try{return !!(document.fullscreenElement||document.webkitFullscreenElement);}catch(e){return false;}};
+const pipOk=()=>{try{return !!(P()&&P().ok&&P().ok());}catch(e){return false;}};
+const pipAct=()=>{try{return !!(P()&&P().act&&P().act());}catch(e){return false;}};
+const fullOk=()=>{try{return !!(F()&&F().can());}catch(e){return false;}};
+const mode=()=>pipAct()?'pip':isFull()?'full':'';
+let bt=null,dimEl=null,sel='full';
+function anchor(){for(const id of ['bMore','bMenu51','mSys']){const e=$(id);if(e&&e.offsetParent!==null){const r=e.getBoundingClientRect();if(r.width>4&&r.height>4&&r.top>=0&&r.top<120&&r.right>innerWidth-160)return e;}}return null;}
+function place(){if(!bt){bt=document.createElement('button');bt.id='ssBtn';bt.type='button';bt.setAttribute('aria-label','화면 설정');bt.title='화면 설정 (전체화면 · 작은 창)';bt.onclick=ev=>{ev.stopPropagation();open();};document.body.appendChild(bt);}
+ const a=anchor(),ms=$('mStat');let showB=!!(a&&started&&!anyModal()&&!dimEl&&!document.body.classList.contains('menu-open'));
+ const m=mode(),ic=m==='pip'?IC.pip:m==='full'?IC.full:IC.scr;if(bt.dataset.m!==m){bt.dataset.m=m;bt.innerHTML=ic;bt.classList.toggle('cur',!!m);bt.setAttribute('aria-label','화면 설정'+(m==='pip'?' (지금 작은 창)':m==='full'?' (지금 전체화면)':''));}
+ if(a){const r=a.getBoundingClientRect(),H=Math.round(r.height),Wd=Math.round(r.width);bt.style.height=H+'px';bt.style.width=Wd+'px';bt.style.borderRadius=getComputedStyle(a).borderRadius||'14px';bt.style.top=Math.round(r.top)+'px';bt.style.left=Math.round(r.left-6-Wd)+'px';
+  if(ms&&ms.offsetParent!==null){const L=ms.getBoundingClientRect().left;const mw=Math.floor(r.left-6-Wd-8-L);if(mw>120){if(ms.dataset.ssMw!==String(mw)){ms.dataset.ssMw=mw;ms.style.setProperty('max-width',mw+'px','important');}}}}
+ bt.classList.toggle('show',showB);document.body.classList.toggle('ssTight',showB&&innerWidth<400);}
+setInterval(place,400);addEventListener('resize',()=>setTimeout(place,60));document.addEventListener('fullscreenchange',()=>setTimeout(place,60));document.addEventListener('webkitfullscreenchange',()=>setTimeout(place,60));
+/* 미리보기: 지금 게임 화면을 한 장 찍어서 작게 */
+function shot(){try{if(typeof R==='undefined'||!R||!R.domElement)return '';R.render(scene,cam);const src=R.domElement,c=document.createElement('canvas');const w=480,h=Math.max(1,Math.round(w*src.height/Math.max(1,src.width)));c.width=w;c.height=h;c.getContext('2d').drawImage(src,0,0,w,h);return c.toDataURL('image/jpeg',.72);}catch(e){return '';}}
+function close(){if(dimEl){dimEl.remove();dimEl=null;}removeEventListener('keydown',esc,true);place();}
+function esc(e){if(e.key==='Escape'&&dimEl){e.stopPropagation();e.preventDefault();close();}}
+function goLabel(){const m=mode();if(sel==='full')return m==='full'?'전체화면 끄기':(m==='pip'?'작은 창 닫고 전체화면으로':'전체화면으로 보기');return m==='pip'?'작은 창 닫기':(m==='full'?'전체화면 끄고 작은 창으로':'작은 창 띄우기');}
+function paint(){if(!dimEl)return;dimEl.querySelectorAll('.ssPv').forEach(b=>b.classList.toggle('ssOn',b.dataset.k===sel));dimEl.querySelector('.ssGo').textContent=goLabel();}
+function open(){if(dimEl)return;const T=shot(),m=mode(),mob=innerWidth<=700||matchMedia('(pointer:coarse)').matches;sel=m||'full';if(sel==='pip'&&!pipOk())sel='full';
+ const ar=mob?'4/3':'16/10',bg=T?`background-image:url(${T})`:'';
+ const fullNote=fullOk()?'게임을 화면 가득 크게 봐요':(F()?F().note():'이 브라우저는 전체화면을 지원하지 않아요');
+ const pipNote=pipOk()?'다른 창 위에 작게 띄워 두고 낚시해요':'이 브라우저·기기에서는 작은 창을 쓸 수 없어요';
+ const d=document.createElement('div');d.id='ssDim';d.innerHTML=`<div class="ssCard" role="dialog" aria-modal="true" aria-label="화면 설정"><button type="button" class="ssX" aria-label="닫기">×</button><h3>화면 설정</h3><div class="ssSub">미리 보고 골라요</div><div class="ssP">
+  <button type="button" class="ssPv" data-k="full"><span class="ssChk">✓</span>${m==='full'?'<span class="ssNow">지금</span>':''}<div class="ssIll" style="aspect-ratio:${ar}"><div class="ssShot" style="${bg}"></div></div><b>${IC.full}전체화면</b><small>${fullNote}</small></button>
+  <button type="button" class="ssPv" data-k="pip"${pipOk()?'':' disabled'}><span class="ssChk">✓</span>${m==='pip'?'<span class="ssNow">지금</span>':''}<div class="ssIll" style="aspect-ratio:${ar}"><div class="ssDesk"><i></i><i></i><i></i><div class="ssMini" style="${bg}"></div></div></div><b>${IC.pip}작은 창</b><small>${pipNote}</small></button></div>
+  <button type="button" class="ssGo"></button>${pipOk()?'<div class="ssFoot"><a data-pset>작은 창 설정</a> (자동으로 켜기 · 보여 줄 화면)</div>':''}</div>`;
+ document.body.appendChild(d);dimEl=d;place();
+ d.onclick=e=>{if(e.target===d)close();};d.querySelector('.ssX').onclick=close;
+ d.querySelectorAll('.ssPv').forEach(b=>b.onclick=()=>{if(b.disabled)return;sel=b.dataset.k;paint();});
+ const ps=d.querySelector('[data-pset]');if(ps)ps.onclick=()=>{close();try{P().dlg();}catch(e){}};
+ d.querySelector('.ssGo').onclick=apply;addEventListener('keydown',esc,true);paint();}
+function apply(){const m=mode();
+ if(sel==='full'){
+  if(m==='full'){try{(document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}close();return;}
+  if(!fullOk()){toast(F()?F().note():'이 브라우저는 전체화면을 지원하지 않아요',3200);return;}
+  if(m==='pip'){try{P().close();}catch(e){}}
+  const ok=F().go();close();if(!ok)toast(F().note(),3200);return;}
+ if(m==='pip'){try{P().close();}catch(e){}close();return;}
+ if(!pipOk()){toast('이 브라우저·기기에서는 작은 창을 쓸 수 없어요',3000);return;}
+ close();
+ /* 전체화면 중이면 먼저 빠져나와요 (전체화면 위에는 작은 창이 안 떠요) — 작은 창은 기존 경로 그대로 */
+ if(m==='full'){try{const p=(document.exitFullscreen||document.webkitExitFullscreen).call(document);if(p&&p.then){p.then(()=>{try{P().open();}catch(e){}}).catch(()=>{try{P().open();}catch(e){}});return;}}catch(e){}}
+ try{P().open();}catch(e){toast('작은 창을 열지 못했어요',2400);}}
+window.NK_SS={open,close,place};
 })();
 // ───────── v177 📖 메뉴 › 가이드 홈페이지 (guide.fishcozy.com 새 탭) ─────────
 (function(){if(window.NK_PREV)return;function btn(){const sy=$('mSys');if(!sy)return;let b=$('bSite');if(!b){const tpl=$('bTime')||$('bBoard');b=document.createElement('button');b.id='bSite';b.type='button';b.setAttribute('aria-label','가이드 홈페이지 (새 탭)');b.innerHTML='<b class="mi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/><path d="M9 8h6M9 12h5"/></svg></b><small class="ml">홈페이지</small>';b.onclick=e=>{e.stopPropagation();document.body.classList.remove('menu-open');/* noopener 를 주면 window.open 이 늘 null 이라서, 연 뒤에 opener 를 끊어요 */const w=window.open('https://guide.fishcozy.com/','_blank');if(w){try{w.opener=null;}catch(e){}}else toast('팝업이 막혔어요 · guide.fishcozy.com 으로 들어가 주세요',3000);};if(tpl)b.className=tpl.className.replace(/\bon\b/,'');}if(!sy.contains(b))sy.appendChild(b);}
