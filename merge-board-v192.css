@@ -103,6 +103,7 @@
 #mbFly .mbcell,#mbDrag .mbcell{position:absolute;left:0;top:0;filter:drop-shadow(0 10px 10px rgba(0,0,0,.28))}
 #mbDrag{display:none}
 #mbd .mbtoast{position:fixed;transform:translate(-50%,-50%);z-index:60;background:rgba(61,48,39,.92);color:#fff;font-weight:800;font-size:14px;padding:9px 16px;border-radius:14px;white-space:nowrap;pointer-events:none;max-width:calc(100vw - 24px);overflow:hidden;text-overflow:ellipsis}
+#mbd .mbtoast.mbwrap{white-space:normal;text-align:center;line-height:1.35}
 #mbDim{display:none;position:fixed;inset:0;background:rgba(40,28,18,.45);z-index:70}
 #mbInfo{display:none;position:fixed;left:50%;top:44%;transform:translate(-50%,-50%);z-index:80;width:min(360px,calc(100% - 28px));background:#fffaf3;border-radius:22px;padding:14px 16px 12px;box-shadow:0 18px 40px rgba(40,20,10,.35),0 0 0 1px #ead9bf;max-height:calc(100% - 150px);overflow:auto}
 #mbDim.mon,#mbInfo.mon{display:block}
