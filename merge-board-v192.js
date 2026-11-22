@@ -13,6 +13,7 @@
 //  · v210: 아래 버튼 줄에 「↩ 모두 빼기」 — 판의 물고기를 한 번에 보유 목록으로 (clearAll · 빈 판이면 꺼짐)
 //  · v212: 「💰 판매·방생」 → 「💰 판매」 (합성판에서는 방생 없음 · 판매 모드는 [판에서 빼기][팔기][닫기])
 //  · v215: 판매 모드 팔기 버튼은 잠기지 않은 물고기만 세요 (확인 창과 같은 숫자) · 0마리면 꺼짐 · 고른 잠금 물고기는 회색 테두리 + 🚫 「판매 안 됨」
+//  · 합성 알림: 방금 합친 종(예: 향어)을 판+보유에서 더 합칠 수 없으면 토스트 「더 합성할 향어가 없어요」 · 같은 상태에서는 한 번만
 //  · 연결 지점: NK_MB.adWatched() 광고 1회 끝 · NK_MB.setSupporter(true|false) 후원자 판정 · NK_MB.onCatch() 낚시 1회
 // ─────────────────────────────────────────────────────────────
 (function(){'use strict';
@@ -238,7 +239,7 @@ function adPlay(){const d=day();if(d.ads*MB_CFG.adAmt>=MB_CFG.adMax)return say('
  m.onclick=e=>{if(e.target===m&&sk.disabled)say('광고를 끝까지 보면 보상을 받아요',1400);};}
 function adWatched(){const d=day();if(d.ads*MB_CFG.adAmt>=MB_CFG.adMax)return false;d.ads++;if(RTon())SRV.pa++;try{save();}catch(e){}if(ST.open){drawCnt();bubble(`광고 보상 · 합성 +${MB_CFG.adAmt}회`);}else say(`🪵 합성 +${MB_CFG.adAmt}회를 받았어요`,2000);return true;}
 // ── 판 안 알림 ──
-function bubble(msg,ms=1400){const w=$('mbWood');if(!w)return;const r=w.getBoundingClientRect(),d=document.createElement('div');d.className='mbtoast';d.innerHTML=msg;d.style.left=(r.left+r.width/2)+'px';d.style.top=(r.top+Math.min(64,r.height*.18))+'px';$('mbd').appendChild(d);d._t0=performance.now();d._ms=ms;ST.pops.push(d);kick();}
+function bubble(msg,ms=1400,wrap){const w=$('mbWood');if(!w)return;const r=w.getBoundingClientRect(),d=document.createElement('div');d.className='mbtoast'+(wrap?' mbwrap':'');d.innerHTML=msg;d.style.left=(r.left+r.width/2)+'px';d.style.top=(r.top+Math.min(64,r.height*.18))+'px';d.style.transition='opacity .15s linear';$('mbd').appendChild(d);const fade=()=>{if(!d.parentNode)return;d.style.opacity='0';d._tm2=setTimeout(()=>d.remove(),260);};d._tm=setTimeout(fade,Math.max(260,(ms||1400)-260));}
 // ── 트레이 → 빈 칸 ──
 function place(key,fromEl){if(ST.sell){bubble('판매 모드를 닫고 넣어 주세요');return;}const P=ST.P||pool(),G0=(ST.tray||[]).find(g=>g.k+'|'+g.t===key);if(!G0||!G0.list.length)return;const b=mbS(),i=b.cells.findIndex(x=>x==null);
  const it=fromEl&&fromEl.closest('.mbti');if(i<0){if(it){it.classList.remove('mbshake');void it.offsetWidth;it.classList.add('mbshake');}bubble('빈 칸이 없어요');play('deny');return;}
@@ -269,6 +270,22 @@ function gUp(e){clearTimeout(ST.lp);const d=ST.drag;if(!d||(e.pointerId!==d.pid)
 function hint(from,onn){const b=mbS(),P=ST.P||pool(),a=P.get(b.cells[from]);[...$('mbGrid').children].forEach((e,i)=>{e.classList.remove('mok','mdim');if(!onn||i===from||!a)return;const c=b.cells[i]!=null?P.get(b.cells[i]):null;if(!c)return;e.classList.add(c.k===a.k&&tierOf(c)===tierOf(a)&&tierOf(a)<9?'mok':'mdim');});}
 // ── v194: 5초 동안 가만히 보고만 있으면 합칠 수 있는 물고기를 살짝 흔들어 보여줘요 · 합칠 게 하나도 없으면 알림창 ──
 const jo=w=>{const c=String(w||'').charCodeAt(String(w||'').length-1)-0xAC00;return c>=0&&c<11172&&c%28?'을':'를';};
+const joga=w=>{const c=String(w||'').charCodeAt(String(w||'').length-1)-0xAC00;return c>=0&&c<11172&&c%28?'이':'가';};
+/* 방금 합친 종을 판+보유(잠금·모험 중·무지개 제외, 합성 목록과 같음)에서 같은 단계 2마리가 더 있는지 */
+function spCan(k){if(!k)return false;const P=ST.P||pool(),b=mbS(),onB=new Set(b.cells.filter(x=>x!=null)),cnt={};
+ for(const id of onB){const f=P.get(id);if(!f||f.k!==k)continue;const t=tierOf(f);if(t<0||t>=9)continue;cnt[t]=(cnt[t]|0)+1;}
+ for(const f of P.values()){if(onB.has(f.id)||f.k!==k)continue;const t=tierOf(f);if(t<0||t>=9)continue;cnt[t]=(cnt[t]|0)+1;}
+ return Object.keys(cnt).some(t=>(cnt[t]|0)>=2);}
+function spSig(k){const P=ST.P||pool(),b=mbS(),onB=new Set(b.cells.filter(x=>x!=null)),cnt={};
+ for(const id of onB){const f=P.get(id);if(!f||f.k!==k)continue;const t=tierOf(f);if(t<0||t>=9)continue;cnt['b'+t]=(cnt['b'+t]|0)+1;}
+ for(const f of P.values()){if(onB.has(f.id)||f.k!==k)continue;const t=tierOf(f);if(t<0||t>=9)continue;cnt['t'+t]=(cnt['t'+t]|0)+1;}
+ return k+'#'+Object.keys(cnt).sort().map(x=>x+cnt[x]).join(',');}
+function spGone(k){if(!ST.open||ST.sell||!k)return;if(spCan(k)){if(ST.goneSig&&String(ST.goneSig).startsWith(k+'#'))ST.goneSig=null;return;}
+ const sig=spSig(k);if(ST.goneSig===sig)return;ST.goneSig=sig;
+ const nm=fnm(k);bubble(`더 합성할 <b>${esc(nm)}</b>${joga(nm)} 없어요`,2200,1);
+ /* 이 종을 끝으로 합칠 게 하나도 없으면, 잠깐 뒤 뜨는 기존 알림창은 같은 상태에서 한 번 더 안 띄워요 */
+ if(!pairOnBoard()&&!trayCan()){ST.noneSig=mbS().cells.join(',')+'#'+(ST.trayA||ST.tray||[]).map(g=>g.k+g.t+'x'+g.list.length).join(',');}}
+
 function pairOnBoard(){const b=mbS(),P=ST.P||pool(),m={};for(let i=0;i<b.cells.length;i++){const id=b.cells[i];if(id==null||ST.hold.has(i)||ST.ov[i])continue;const f=P.get(id);if(!f)continue;const t=tierOf(f);if(t<0||t>=9)continue;const k=f.k+'|'+t;if(m[k]!=null)return [m[k],i];m[k]=i;}return null;}
 function trayCan(){/* v195: 판이 꽉 차면 보유 물고기는 넣을 수 없으니 합칠 수 있는 걸로 치지 않아요 */if(!mbS().cells.some(x=>x==null))return null;const L=ST.trayA||ST.tray||[];if(L.some(g=>g.list.length>=2))return L.find(g=>g.list.length>=2);const b=mbS(),P=ST.P||pool(),on=new Set();b.cells.forEach(id=>{const f=id!=null&&P.get(id);if(f)on.add(f.k+'|'+tierOf(f));});return L.find(g=>on.has(g.k+'|'+g.t))||null;}
 function poke(){ST.idle=performance.now();if(ST.hintP){ST.hintP.forEach(i=>{const e=cellEl(i);if(e)e.classList.remove('mbhint');});ST.hintP=null;}document.querySelectorAll('#mbd .mbti.mbhint').forEach(e=>e.classList.remove('mbhint'));}
@@ -341,7 +358,7 @@ function clearAll(){if(ST.sell)return;const b=mbS();
  if(q)idx.forEach((i,n)=>{const f=P.get(b.cells[i]),c=cellEl(i);if(!f||!c)return;const r=c.getBoundingClientRect(),el=document.createElement('div');el.className='mbcell mbret';el.style.cssText=`position:fixed;left:0;top:0;width:${cs}px;height:${cs}px;--cs:${cs}px;z-index:60;pointer-events:none;transform:translate(${r.left}px,${r.top}px);transition:transform .34s cubic-bezier(.5,0,.6,1) ${n*gap}ms,opacity .34s ${n*gap}ms`;el.innerHTML=itemHTML(f.k,tierOf(f));$('mbd').appendChild(el);requestAnimationFrame(()=>requestAnimationFrame(()=>{el.style.transform=`translate(${q.left+q.width/2-cs/2}px,${q.top+q.height/2-cs/2}px) scale(.55)`;el.style.opacity='.2';}));setTimeout(()=>el.remove(),400+n*gap);});
  const n=idx.length;b.cells=b.cells.map(()=>null);poke();try{save();}catch(e){}play('whoosh');draw();bubble(`${n}마리를 모두 보유 목록으로 돌려놨어요`,1500);}
 // ── 연출 루프 ──
-function evDone(e){if(e.done)return;e.done=true;delete ST.ov[e.to];draw();play('pop',e.r,Math.min(e.combo-1,7));if(IMPACT()&&navigator.vibrate)try{navigator.vibrate(e.I.vib);}catch(_){}if(!IMPACT())pcHit(e);}
+function evDone(e){if(e.done)return;e.done=true;delete ST.ov[e.to];draw();try{spGone(e.k);}catch(_){}try{play('pop',e.r,Math.min(e.combo-1,7));}catch(_){}if(IMPACT()&&navigator.vibrate)try{navigator.vibrate(e.I.vib);}catch(_){}if(!IMPACT())pcHit(e);}
 /* v205: PC 타격감 — 화면 전체는 흔들지 않아요(예전 요청). 대신 ① 나무판만 짧게 흔들림 ② 둘레 8칸이 바깥으로 튕겼다 돌아옴 ③ 판 테두리 번쩍 ④ 낮은 「쿵」 소리 (단계가 높을수록 세게) */
 function pcHit(e){try{const r=e.r|0,N=mbS().n,row=Math.floor(e.to/N),col=e.to%N,cs=ST.cs,w=$('mbWood');
  const A=Math.min(7,2.2+r*.55),du=230+r*22;if(w&&w.animate){const k=[0,1,2,3,4,5].map(i=>{const q=1-i/5,sx=(i%2?-1:1)*A*q,sy=(i%3===1?1:-1)*A*.45*q;return {transform:`translate(${sx.toFixed(2)}px,${sy.toFixed(2)}px)`};});k.push({transform:'none'});w.animate(k,{duration:du,easing:'ease-out'});
@@ -377,19 +394,19 @@ function loop(){ST.raf=0;if(!ST.open)return;const t=performance.now(),fx=$('mbFx
   else{const el=cellEl(f.to).querySelector('.mbit');if(el&&!ST.ev.some(v=>v.to===f.to))el.style.transform='';}}
  const fl=$('mbFly');if(fl._h!==fh){fl.innerHTML=fh;fl._h=fh;}for(let i=ST.flies.length-1;i>=0;i--)if(ST.flies[i].landed&&t-ST.flies[i].bt>260)ST.flies.splice(i,1);
  const shk=$('mbShk');if(shake>0){shk.style.transform=`translate(${Math.sin(t*.09)*shake}px,${Math.cos(t*.113)*shake*.8}px)`;busy=true;}else if(shk.style.transform)shk.style.transform='';
- for(let i=ST.pops.length-1;i>=0;i--){const d=ST.pops[i],a=t-d._t0;busy=true;if(a>d._ms){d.remove();ST.pops.splice(i,1);}else d.style.opacity=a<150?a/150:a>d._ms-250?(d._ms-a)/250:1;}
+ for(let i=ST.pops.length-1;i>=0;i--){const d=ST.pops[i],a=Math.max(0,t-d._t0);busy=true;if(a>d._ms){d.remove();ST.pops.splice(i,1);}else d.style.opacity=a<150?a/150:a>d._ms-250?(d._ms-a)/250:1;}
  if(busy)kick();}
 // ── 열기·닫기 ──
-function open(){if(!on())return false;build();ST.open=true;ST.idle=performance.now();ST.hintP=null;ST.noneSig=null;try{srvSync();}catch(e){}ST.sell=false;ST.sel.clear();ST.ov={};ST.hold.clear();ST.ev=[];ST.flies=[];try{openM('mbd');}catch(e){$('mbd').classList.add('show');}document.body.classList.add('mb-open');layout();draw();layout();draw();fxClear();requestAnimationFrame(()=>{if(ST.open){layout();draw();slots();}});kick();return true;}
+function open(){if(!on())return false;build();ST.open=true;ST.idle=performance.now();ST.hintP=null;ST.noneSig=null;ST.goneSig=null;try{srvSync();}catch(e){}ST.sell=false;ST.sel.clear();ST.ov={};ST.hold.clear();ST.ev=[];ST.flies=[];try{openM('mbd');}catch(e){$('mbd').classList.add('show');}document.body.classList.add('mb-open');layout();draw();layout();draw();fxClear();requestAnimationFrame(()=>{if(ST.open){layout();draw();slots();}});kick();return true;}
 function close(){try{closeM('mbd');}catch(e){const m=$('mbd');if(m)m.classList.remove('show');}closed();}
-function closed(){if(!ST.open)return;try{const m=$('s5x');if(m)m.style.zIndex='';}catch(e){}ST.open=false;try{const n=$('mbNone');if(n)n.remove();}catch(e){}infoClose();ST.drag=null;ST.ov={};ST.hold.clear();ST.ev=[];ST.flies=[];ST.pops.forEach(d=>d.remove());ST.pops=[];document.body.classList.remove('mb-open');slots();fxClear();const fl=$('mbFly');if(fl){fl.innerHTML='';fl._h='';}const s=$('mbShk');if(s)s.style.transform='';try{save();}catch(e){}}
+function closed(){if(!ST.open)return;try{const m=$('s5x');if(m)m.style.zIndex='';}catch(e){}ST.open=false;try{const n=$('mbNone');if(n)n.remove();}catch(e){}infoClose();ST.drag=null;ST.ov={};ST.hold.clear();ST.ev=[];ST.flies=[];document.querySelectorAll('#mbd .mbtoast').forEach(d=>{clearTimeout(d._tm);clearTimeout(d._tm2);d.remove();});ST.pops.forEach(d=>d.remove());ST.pops=[];document.body.classList.remove('mb-open');slots();fxClear();const fl=$('mbFly');if(fl){fl.innerHTML='';fl._h='';}const s=$('mbShk');if(s)s.style.transform='';try{save();}catch(e){}}
 function badge(){try{if(!on())return 0;const P=pool(),b=mbS(),seen={};let n=0;b.cells.forEach(id=>{const f=id!=null&&P.get(id);if(!f||tierOf(f)>=9)return;const k=f.k+'|'+tierOf(f);seen[k]=(seen[k]|0)+1;});for(const k in seen)n+=seen[k]>>1;return left()>0?n:0;}catch(e){return 0;}}
 function onCatch(){try{if(!on())return;SRV.pf++;const d=day();if(!srvFresh())d.fish++;if(ST.open)drawCnt();}catch(e){}}
 /* v193: 후원자는 관리자 › 지급 › 💝 후원에서 서버 명단에 올려요 (이 함수는 화면만 다시 그려요) */function setSupporter(v){if(ST.open)draw();}
 /* 측정용(읽기 전용): 정렬·겹침 숫자 */
 function measure(){if(!$('mbd'))return null;const bx=el=>{if(!el)return null;const r=el.getBoundingClientRect();if(!r.width&&!r.height)return null;return {x:+r.x.toFixed(1),y:+r.y.toFixed(1),w:+r.width.toFixed(1),h:+r.height.toFixed(1),cx:+(r.x+r.width/2).toFixed(1),cy:+(r.y+r.height/2).toFixed(1),b:+(r.y+r.height).toFixed(1)};};
- const pc=PCL(),vw=innerWidth,vh=innerHeight,mid=vw/2,wood=bx($('mbWood')),bb=bx($('mbBB')),tray=bx((pc?$('mbQP'):$('mbQM')).closest('.mbsec')),cnt=bx(pc?$('mbCntP'):$('mbCntM')),info=ST.info?bx($('mbInfo')):null,main=bx($('mbMain'));
+ const pc=PCL(),vw=innerWidth,vh=innerHeight,mid=vw/2,wood=bx($('mbWood')),bb=bx($('mbBB')),tray=bx((pc?$('mbQP'):$('mbQM')).closest('.mbsec')),cnt=bx(pc?$('mbCntP'):$('mbCntM')),info=ST.info?bx($('mbInfo')):null,toast=bx(document.querySelector('#mbd .mbtoast')),main=bx($('mbMain'));
  const ov=(a,b)=>!!(a&&b&&!(a.x+a.w<=b.x||b.x+b.w<=a.x||a.y+a.h<=b.y||b.y+b.h<=a.y));const ins=a=>a&&({l:a.x,r:+(vw-a.x-a.w).toFixed(1),t:a.y,b:+(vh-a.y-a.h).toFixed(1)});
- return {vw,vh,pc,impact:IMPACT(),wood,bb,tray,cnt,info,off:{wood:wood&&+(wood.cx-mid).toFixed(1),bb:bb&&+(bb.cx-mid).toFixed(1),tray:pc?null:tray&&+(tray.cx-mid).toFixed(1),cnt:pc?null:cnt&&+(cnt.cx-mid).toFixed(1),info:info&&+(info.cx-mid).toFixed(1)},edge:{wood:ins(wood),bb:ins(bb),tray:ins(tray),cnt:ins(cnt),info:ins(info)},ovl:{info_bb:ov(info,bb),wood_bb:ov(wood,bb),wood_tray:ov(wood,tray),tray_bb:ov(tray,bb),cnt_wood:ov(cnt,wood)}};}
+ return {vw,vh,pc,impact:IMPACT(),wood,bb,tray,cnt,info,toast,off:{wood:wood&&+(wood.cx-mid).toFixed(1),bb:bb&&+(bb.cx-mid).toFixed(1),tray:pc?null:tray&&+(tray.cx-mid).toFixed(1),cnt:pc?null:cnt&&+(cnt.cx-mid).toFixed(1),info:info&&+(info.cx-mid).toFixed(1),toast:toast&&+(toast.cx-mid).toFixed(1)},edge:{wood:ins(wood),bb:ins(bb),tray:ins(tray),cnt:ins(cnt),info:ins(info),toast:ins(toast)},ovl:{info_bb:ov(info,bb),wood_bb:ov(wood,bb),wood_tray:ov(wood,tray),tray_bb:ov(tray,bb),cnt_wood:ov(cnt,wood),toast_bb:ov(toast,bb),toast_tray:ov(toast,tray),toast_cnt:ov(toast,cnt)}};}
 window.NK_MB={lvl,tot,lvCfg,on,open,close,isOpen:()=>ST.open,badge,onCatch,adWatched,setSupporter,isSup,left,total,day:()=>Object.assign({},day()),cfg:MB_CFG,tierOf,measure,draw:()=>draw()};
 })();
