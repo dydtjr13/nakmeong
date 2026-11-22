@@ -225,6 +225,9 @@ function card(f,sp,info,kind){const L=layer();L.classList.add('stcon');const el=
  function close(){L.className='';L.innerHTML='';NKST._card=null;}NKST.closeCard=close;}
 const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const avCol=nm=>{let h=0;for(const ch of String(nm))h=(h*31+ch.charCodeAt(0))|0;return ['#ffb347','#ff7aa8','#6cc28a','#7ab8ff','#a98bff','#ffd23a','#5fd0c0'][Math.abs(h)%7];};
+/* v221: 공지 띠를 아직 안 띄운 동안에도 축하(stc)를 받아 두어요. 내가 낚으면 컷인·카드 때문에 띠가 3.7초 뒤에 떠서, 그동안 다른 사람이 누른 축하가 사라졌어요. */
+const stcBuf=Object.create(null);NKST._stcBuf=stcBuf;
+addEventListener('nk-rt-stc',e=>{const d=e.detail||{},a=String(d.a||'');if(!a)return;const key=d.id||d.nick||'';if(!key)return;const arr=stcBuf[a]||(stcBuf[a]=[]);if(arr.some(x=>(x.id||x.nick)===key))return;arr.push({id:d.id,nick:d.nick,t:Date.now()});const now=Date.now();for(const k of Object.keys(stcBuf)){stcBuf[k]=stcBuf[k].filter(x=>now-x.t<45000);if(!stcBuf[k].length)delete stcBuf[k];}});
 /* 공지 띠: 모든 서버 사람에게 똑같이 떠요 · 축하 인원은 실제로 누른 사람 수 */
 function notice(ev){const sp=SPK(ev.k);if(!sp)return;SFX.notice();let box=$('stAnn');if(!box){box=document.createElement('div');box.id='stAnn';document.body.appendChild(box);}box.innerHTML='';
  const mine=ev.local||(ev.id&&ev.id===myId()),who=esc(ev.nick||'누군가'),srvNm=(()=>{try{return ev.srv&&window.SRVN?SRVN(ev.srv):'';}catch(e){return '';}})();
@@ -245,6 +248,8 @@ function notice(ev){const sp=SPK(ev.k);if(!sp)return;SFX.notice();let box=$('stA
  btn.onclick=e=>{e.stopPropagation();if(!ev.a||mine||btn.classList.contains('done'))return;btn.classList.add('done');el.querySelector('.sa-lb').textContent='축하했어요';try{NK_RT.stc(ev.a);}catch(_){}add(myId()||'me',I().NICK(),1);fx();};
  const onC=e=>{const d=e.detail||{};if(d.a!==ev.a)return;add(d.id||d.nick,d.nick,d.id===myId());if(mine)fx();};
  if(ev.a)addEventListener('nk-rt-stc',onC);
+ /* v221: 공지 띠가 뜨기 전에 도착한 축하도 반영 */
+ if(ev.a&&stcBuf[ev.a]){for(const x of stcBuf[ev.a])add(x.id||x.nick,x.nick,x.id===myId());if(mine&&seen.size)fx();}
  /* v193: 다른 사람이 낚은 공지는 30초 동안 (축하할 시간) · v206: 내 공지도 30초 (다른 사람이 누르는 동안 축하 인원을 볼 수 있게, 서버 공지가 없으면 14초) */const _dur=mine&&!ev.a?14000:30000;NKST._ann=el;
  /* v206: 공지가 떠 있는 동안 '새 업데이트' 알림 같은 위쪽 띠를 공지 아래로 내려요 (겹쳐서 글이 가려지던 문제) */const pos=()=>{try{if(!el.isConnected)return;const b=box.getBoundingClientRect().top+el.offsetTop+el.offsetHeight;/* 들어오는 움직임(transform) 중에도 자리 기준으로 재요 */document.body.style.setProperty('--stAnnB',Math.round(b+8)+'px');document.body.classList.add('stAnnOn');}catch(_){}};pos();requestAnimationFrame(pos);setTimeout(pos,700);
  setTimeout(()=>el.classList.add('out'),_dur);setTimeout(()=>{el.remove();removeEventListener('nk-rt-stc',onC);if(!box.querySelector('.stann'))document.body.classList.remove('stAnnOn');},_dur+700);
