@@ -8110,7 +8110,9 @@ LAB.push({k:'pipOn',n:'🖼 작은 창 (PiP)',d:'메뉴에 「작은 창」이 �
 /* v177: 아이폰 사파리는 webkitSetPresentationMode 로도 열 수 있어요 */
 const wkPip=()=>{try{const v=document.createElement('video');return typeof v.webkitSetPresentationMode==='function'&&(!v.webkitSupportsPresentationMode||v.webkitSupportsPresentationMode('picture-in-picture'));}catch(e){return false;}};
 const canPip=()=>!!document.pictureInPictureEnabled||wkPip();
-const on=()=>!PREV&&String(uiOpt('pipOn','off'))==='on'&&(canPip()||(()=>{try{return !!window.documentPictureInPicture;}catch(e){return false;}})());
+/* v228: 브라우저가 작은 창을 지원하는지만 봐요. 메뉴의 「작은 창」버튼(pipOn)과 따로 두어, 화면 설정에서 기존 PiP를 바로 열 수 있게 해요 */
+const can=()=>!PREV&&(canPip()||(()=>{try{return !!window.documentPictureInPicture;}catch(e){return false;}})());
+const on=()=>can()&&String(uiOpt('pipOn','off'))==='on';
 let selfPause=0,inflight=0;
 const W=480,H=270;let cv=null,cx=null,vid=null,act=false,blink=0;const IMG={};
 const im=src=>{if(!IMG[src]){const i=new Image();i.src=src;IMG[src]=i;}return IMG[src].complete&&IMG[src].naturalWidth?IMG[src]:null;};
@@ -8166,7 +8168,7 @@ async function openDocPip(){ensure();try{const w=await documentPictureInPicture.
   const tip=d.createElement('div');tip.textContent='입질 때 화면을 누르면 챔질';tip.style.cssText='position:fixed;right:8px;bottom:6px;font:700 11px system-ui,sans-serif;color:#fff;opacity:.55;pointer-events:none;white-space:nowrap';d.body.appendChild(tip);
   d.body.addEventListener('click',()=>reel());act=true;window.__nkPipOn=1;draw();
   const end=()=>{if(dpw!==w)return;dpw=null;act=false;window.__nkPipOn=0;clearInterval(iv);try{cv.remove();cv.style.cssText='';cv.width=W;cv.height=H;cx.setTransform(1,0,0,1,0,0);}catch(e){}};w.addEventListener('pagehide',end);const iv=setInterval(()=>{if(w.closed)end();},500);return true;}catch(e){dpw=null;return false;}}
-function openPip(){if(!on()&&!dpOk()){toast('이 브라우저는 작은 창을 지원하지 않아요',2200);return;}if(dpw)return;if(dpOk()&&P().win!==false){openDocPip().then(ok=>{if(!ok&&on())vidPip();});return;}vidPip();}
+function openPip(){if(!can()){toast('이 브라우저는 작은 창을 지원하지 않아요',2200);return;}if(dpw)return;if(dpOk()&&P().win!==false){openDocPip().then(ok=>{if(!ok&&can())vidPip();});return;}vidPip();}
 function vidPip(){ensure();if(vid._used&&!inflight&&!act)makeVid();draw();try{vid.play().catch(()=>{});}catch(e){}
  const go=()=>{try{if(document.pictureInPictureEnabled&&vid.requestPictureInPicture)return vid.requestPictureInPicture();vid.webkitSetPresentationMode('picture-in-picture');return Promise.resolve();}catch(e){return Promise.reject(e);}};
  /* v180: 막 닫힌 직후엔 브라우저가 「아직 준비 안 됨」으로 거절할 때가 있어요 → 0.3초 뒤 3번까지 다시 (버튼 누른 직후라 허락 시간 안이에요) */
@@ -8192,11 +8194,12 @@ function dlg(){let m=$('pipDlg');if(!m){m=document.createElement('div');m.id='pi
  m.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{const k=b.dataset.t;p[k]=k==='win'?(p.win===false):!p[k];save();dlg();});m.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{p.mode=b.dataset.m;save();dlg();});if(!m.classList.contains('show'))openM('pipDlg');}
 function btn(){const sy=$('mSys');if(!sy)return;let b=$('bPip');if(!on()){if(b)b.remove();return;}if(!b){const tpl=$('bTime')||$('bBoard');b=document.createElement('button');b.id='bPip';b.type='button';b.innerHTML='<b class="mi"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><rect x="12" y="11" width="7" height="6" rx="1" fill="currentColor"/></svg></b><small class="ml">작은 창</small>';b.onclick=e=>{e.stopPropagation();document.body.classList.remove('menu-open');dlg();};if(tpl)b.className=tpl.className.replace(/\bon\b/,'');}if(!sy.contains(b))sy.appendChild(b);}
 setInterval(btn,1500);addEventListener('nk-rt-play',()=>setTimeout(btn,90));
-window.NK_PIP={open:openPip,close:closePip,dlg,draw:()=>{ensure();draw();return cv;},ok:on,act:()=>act};
+window.NK_PIP={open:openPip,close:closePip,dlg,draw:()=>{ensure();draw();return cv;},ok:can,act:()=>act};
 })();
 // ───────── v220 🖥 화면 설정 (메뉴 ≡ 왼쪽 아이콘 버튼 → 전체화면 / 작은 창 고르기) ─────────
 //  버튼 모양은 메뉴 버튼과 같아요. 지금 모드에 따라 아이콘이 바뀌어요 (보통: 모니터 · 전체화면: 네 모서리 · 작은 창: 작은 창 그림, 켜져 있으면 주황 점).
 //  '작은 창'은 기존 작은 창(PiP) 진입(NK_PIP.open)을 그대로 불러요. '전체화면'은 Fullscreen API(NK_FULL.go), 안 되는 브라우저는 안내만 해요.
+//  v228: 작은 창 가능 여부는 브라우저 지원(NK_PIP.ok=can)만 봐요. pipOn(메뉴 버튼)이 꺼져 있어도 「작은 창 띄우기」로 기존 PiP가 열려요.
 (function(){if(window.NK_PREV)return;
 const IC={
  scr:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="13" rx="2.2"/><path d="M9 21h6M12 17.5V21"/></svg>',
@@ -8269,10 +8272,10 @@ function apply(){const m=mode();
   const ok=F().go();close();if(!ok)toast(F().note(),3200);return;}
  if(m==='pip'){try{P().close();}catch(e){}close();return;}
  if(!pipOk()){toast('이 브라우저·기기에서는 작은 창을 쓸 수 없어요',3000);return;}
- close();
- /* 전체화면 중이면 먼저 빠져나와요 (전체화면 위에는 작은 창이 안 떠요) — 작은 창은 기존 경로 그대로 */
- if(m==='full'){try{const p=(document.exitFullscreen||document.webkitExitFullscreen).call(document);if(p&&p.then){p.then(()=>{try{P().open();}catch(e){}}).catch(()=>{try{P().open();}catch(e){}});return;}}catch(e){}}
- try{P().open();}catch(e){toast('작은 창을 열지 못했어요',2400);}}
+ /* v228: 전체화면은 같은 클릭에서 바로 끄고, 기존 PiP 진입(NK_PIP.open)을 바로 불러요. 전체화면 종료를 기다리면 브라우저가 '방금 누른 동작'을 잊어 작은 창이 안 열릴 수 있어요 */
+ if(m==='full'){try{(document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){}}
+ try{P().open();}catch(e){toast('작은 창을 열지 못했어요',2400);}
+ close();}
 window.NK_SS={open,close,place};
 })();
 // ───────── v177 📖 메뉴 › 가이드 홈페이지 (guide.fishcozy.com 새 탭) ─────────
