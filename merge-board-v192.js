@@ -21,13 +21,16 @@
 if(window.NK_PREV)return;
 const $=id=>document.getElementById(id);
 const MB_CFG={N:5,base:30,fishStep:50,fishAmt:5,fishMax:80,adAmt:10,adMax:100,supAmt:100,luck:.01,luckMaxT:3,adSec:30};/* v205: 2단계 상승은 ★1~★4에서만 1% 고정 · ★5와 변이(블랙~)부터는 한 단계씩 */
-/* v229: 합성 골드 비용. 가중치 = 일반0 고급1 희귀2 전설6 신화20 초월80 슈퍼160, 비용 = (두 가중치의 합)×100.
-   일반+일반=0(지금과 같음) · 일반+신화=2,000 · 신화+신화=4,000 · 일반+초월=8,000 · 초월+초월=16,000.
-   표시(끌어다 겹칠 때 칸의 금액)와 실제 차감이 이 함수 하나예요. 골드(S.coins)는 상점·장비 합성처럼 클라이언트 저장이에요. 하루 횟수만 서버가 세요. */
+/* v229·v231: 합성 골드 비용. 가중치 = 일반0 고급1 희귀2 전설6 신화20 초월80 슈퍼160.
+   기본 비용 = (두 가중치의 합)×100. 일반+일반=0 · 일반+신화=2,000 · 신화+신화=4,000 · 초월+초월=16,000(기본).
+   v231: 초월(또는 슈퍼)이 끼고, 합성 후 판매가가 재료 판매 합보다 커지면, 그 이득의 1.1배를 1천 골드 단위로 올려 받아요(기본 표보다 클 때만).
+   단순 가중치만 올리면 값이 작은 물고기의 초월+초월이 과하게 비싸져서, 이득이 나는 합성(주로 일반+초월)만 비용을 올려요.
+   표시와 실제 차감이 mergeCost() 하나예요. 골드는 상점처럼 클라이언트 저장, 하루 횟수만 서버가 세요. */
 const MB_GW=[0,1,2,6,20,80,160];
+const MB_TX_GAIN=1.1;
 function gradeW(g){g=Math.max(0,g|0);return MB_GW[Math.min(g,MB_GW.length-1)];}
-function mergeCost(a,c){return (gradeW(a&&a.g)+gradeW(c&&c.g))*100;}
-function costN(n){if(n>=10000){const m=n/10000;return (m===Math.floor(m)?m:Math.round(m*10)/10)+'만';}if(n>=1000&&n%1000===0)return (n/1000)+'천';return n.toLocaleString();}
+function tableCost(a,c){return (gradeW(a&&a.g)+gradeW(c&&c.g))*100;}
+function costN(n){n=n|0;if(n>=10000){const m=n/10000;if(m===Math.floor(m))return m+'만';const r=Math.round(m*10)/10;if(Math.abs(r*10000-n)<.5)return r+'만';}if(n>=1000&&n%1000===0)return (n/1000)+'천';return n.toLocaleString();}
 const LV=['★1','★2','★3','★4','★5','블랙','핑크','레드','황금','무지개'];
 const VK=['black','pink','red','gold','rainbow'];
 const IMP=[null,{sh:0,hs:0,pn:10,fl:0,rg:1,vib:[10]},{sh:1.5,hs:20,pn:14,fl:0,rg:1,vib:[12]},{sh:2.5,hs:35,pn:18,fl:.12,rg:1,vib:[15]},{sh:4,hs:55,pn:28,fl:.2,rg:2,vib:[20,30,20]},{sh:6,hs:75,pn:40,fl:.32,rg:2,vib:[30,40,60]},{sh:7,hs:85,pn:48,fl:.38,rg:2,vib:[30,30,30,30,60]},{sh:9,hs:105,pn:60,fl:.48,rg:3,vib:[40,30,80]},{sh:11,hs:135,pn:76,fl:.62,rg:3,vib:[50,30,50,30,120],ray:1},{sh:15,hs:190,pn:110,fl:.85,rg:4,vib:[60,40,60,40,60,40,200],ray:1,rb:1}];
@@ -68,6 +71,11 @@ addEventListener('nk-rt-mb',e=>{const m=e.detail||{};if(!m.d)return;SRV.st=m;con
 setInterval(()=>{try{if(!RTon())return;const S=gS();const due=!SRV.st||SRV.st.d!==kst()||SRV.pf||SRV.pa||(S&&S.mbOff&&S.mbOff.n>0)||(ST.open&&Date.now()-SRV.t>60e3);if(due&&Date.now()-SRV.t>4000)srvSync();}catch(e){}},2000);
 // ── 물고기 ↔ 단계 ──
 function tierOf(f){if(!f||f.sx)return -1;const vr=f.vr?fzVK(f.vr):'';if(vr){const i=VK.indexOf(vr);return i>=0&&(f.st|0)>=4?5+i:-1;}const s=f.st|0;return s>=0&&s<=4?s:-1;}
+function sellEst(f){if(!f)return 0;try{const p=sellP(f);if(p>=0)return p|0;}catch(e){}return Math.round((f.v|0)*0.6);}
+function resultGhost(a,c){if(!a||!c)return null;const t=tierOf(a);if(t<0||t>=9||tierOf(c)!==t)return null;const r=t+1,F=FI(a.k);if(!F)return null;const cm=Math.max(+a.cm||0,+c.cm||0),g=Math.max(a.g|0,c.g|0),st=r>=5?4:r,vr=r>=5?VK[r-5]:null;let v=0;try{v=Math.round(valueOf(F,cm,g)*(1+.5*st)*(vr?FZV[vr].m:1));}catch(e){v=Math.max(a.v|0,c.v|0)*2;}const nf={k:a.k,cm,g,v,st};if(vr)nf.vr=vr;return nf;}
+function mergeGain(a,c){const nf=resultGhost(a,c);if(!nf)return 0;return sellEst(nf)-sellEst(a)-sellEst(c);}
+function mergeCost(a,c){const table=tableCost(a,c);if(Math.max((a&&a.g)|0,(c&&c.g)|0)<5)return table;try{const nf=resultGhost(a,c);if(!nf)return table;const gain=sellEst(nf)-sellEst(a)-sellEst(c);if(!(gain>0))return table;return Math.max(table,Math.ceil(gain*MB_TX_GAIN/1000)*1000);}catch(e){return table;}}
+
 function pool(){const M=new Map();try{fzPool().forEach(f=>{if(f&&!f.sx&&FI(f.k)&&tierOf(f)>=0)M.set(f.id,f);});}catch(e){}return M;}
 /* v200: 🪵 합성판 레벨 — 누적 합성 횟수가 늘면 판이 커져요 (Lv.1 5×5 → Lv.2 6×6 → Lv.3 7×7)
    기준 횟수는 관리자 › 테스트 기능 「🪵 합성판 레벨 기준」에서 모든 유저에게 (기본 1,000회 · 10,000회) · 켜고 끄기: LAB mbLv */
@@ -231,7 +239,7 @@ function infoBody(){const d=day(),fb=fishB(d.fish),ab=adB(d.ads),sp=isSup()?MB_C
  $('mbInfo').innerHTML=`<div class="minfohd"><div class="mt">ⓘ 합성 안내</div><button class="miclose" type="button">닫기</button></div>
 <div class="mistep"><div class="mic">✋</div><p>물고기를 누르면 합성판의 <b>다음 빈 칸</b>으로 들어가요. 왼쪽 위부터 한 줄씩 채워져요.</p></div>
 <div class="mistep"><div class="mic">🧩</div><p><b>같은 물고기 · 같은 단계</b>를 끌어서 겹치면 하나로 합쳐져요 (2개 → 1개).</p></div>
-<div class="mistep" style="border-bottom:0"><div class="mic">✨</div><p>★1~★4는 운 좋으면 한 단계 더 올라가요 <b>(${Math.round(MB_CFG.luck*100)}%)</b>. ★5부터는 한 단계씩만 올라가요. 한 번 합칠 때 쓰는 횟수는 <b>1회</b>예요.<br>가장 흔한 물고기끼리 합성은 지금처럼 골드가 안 들고, <b>더 좋은 물고기끼리일수록</b> 더 들어요. 모자라면 합쳐지지 않아요.</p></div>
+<div class="mistep" style="border-bottom:0"><div class="mic">✨</div><p>★1~★4는 운 좋으면 한 단계 더 올라가요 <b>(${Math.round(MB_CFG.luck*100)}%)</b>. ★5부터는 한 단계씩만 올라가요. 한 번 합칠 때 쓰는 횟수는 <b>1회</b>예요.<br>가장 흔한 물고기끼리 합성은 지금처럼 골드가 안 들고, <b>더 좋은 물고기끼리·합성해서 얻는 가치가 클수록</b> 더 들어요. 모자라면 합쳐지지 않아요.</p></div>
 ${lvOn()?(()=>{const c=lvCfg(),t=tot(),L=lvl();return `<div class="milv"><h5><span>🪵 합성판 레벨</span><small>지금까지 합성 ${t.toLocaleString()}회</small></h5>${[[1,5,0],[2,6,c.l2],[3,7,c.l3]].map(([l,n,need])=>`<div class="mrow ${L===l?'mnow':''} ${t>=need?'mok':''}"><span>Lv.${l} · ${n}×${n}</span><b>${need?'누적 '+need.toLocaleString()+'회':'처음'}</b></div>`).join('')}</div>`;})():''}<div class="mireset">🌙 매일 자정(한국 시간)에 초기화돼요.<br>남은 횟수는 다음 날로 넘어가지 않아요.</div>
 <div class="mibrk"><h5>오늘 받은 횟수</h5><div class="mrow"><span>기본</span><b>+${MB_CFG.base}</b></div><div class="mrow"><span>낚시 보너스 (${d.fish}회)</span><b>+${fb}</b></div><div class="mrow"><span>광고 보기 (${d.ads}회)</span><b>+${ab}</b></div><div class="mrow"><span>후원자 혜택 (3천원 이상)</span><b>+${sp}</b></div>
 <div class="mrow mtot"><span>오늘 총량</span><b>${tt}</b></div><div class="mrow"><span>사용한 횟수</span><b>${Math.min(d.used,tt)}</b></div><div class="mrow mtot"><span>남은 횟수</span><b>${left()}</b></div></div>
@@ -275,7 +283,7 @@ function gUp(e){clearTimeout(ST.lp);const d=ST.drag;if(!d||(e.pointerId!==d.pid)
  else if(!c&&!ST.hold.has(to)){b.cells[to]=b.cells[d.from];b.cells[d.from]=null;try{save();}catch(e){}draw();}
  else if(c&&c.k===a.k&&tierOf(a)>=9){bubble('무지개는 가장 높은 단계예요');play('deny');}
  else if(c){const t=b.cells[to];b.cells[to]=b.cells[d.from];b.cells[d.from]=t;try{save();}catch(e){}draw();}}
-function hint(from,onn){const b=mbS(),P=ST.P||pool(),a=P.get(b.cells[from]),have=((gS()||{}).coins|0);[...$('mbGrid').children].forEach((e,i)=>{e.classList.remove('mok','mdim','mneed');e.querySelectorAll('.mbcost').forEach(x=>x.remove());if(!onn||i===from||!a)return;const c=b.cells[i]!=null?P.get(b.cells[i]):null;if(!c)return;const ok=c.k===a.k&&tierOf(c)===tierOf(a)&&tierOf(a)<9;e.classList.add(ok?'mok':'mdim');if(!ok)return;const cost=mergeCost(a,c);if(cost>0){const poor=have<cost;if(poor)e.classList.add('mneed');const sp=document.createElement('span');sp.className='mbcost'+(poor?' mpoor':'');sp.innerHTML='<img src="img/feat/coins-gold.png" alt="">'+costN(cost);e.appendChild(sp);}});}/* v229: 합칠 수 있는 칸에 골드 비용을 보여 줘요. 0원이면 안 보여요(지금과 같음). 모자라면 빨간 표 */
+function hint(from,onn){const b=mbS(),P=ST.P||pool(),a=P.get(b.cells[from]),have=((gS()||{}).coins|0);[...$('mbGrid').children].forEach((e,i)=>{e.classList.remove('mok','mdim','mneed');e.querySelectorAll('.mbcost').forEach(x=>x.remove());if(!onn||i===from||!a)return;const c=b.cells[i]!=null?P.get(b.cells[i]):null;if(!c)return;const ok=c.k===a.k&&tierOf(c)===tierOf(a)&&tierOf(a)<9;e.classList.add(ok?'mok':'mdim');if(!ok)return;const cost=mergeCost(a,c);if(cost>0){const poor=have<cost;if(poor)e.classList.add('mneed');const sp=document.createElement('span');sp.className='mbcost'+(poor?' mpoor':'');sp.innerHTML='<img src="img/feat/coins-gold.png" alt="">'+costN(cost);e.appendChild(sp);}});}/* v229·v231: 합칠 수 있는 칸에 골드 비용을 보여 줘요. 0원이면 안 보여요. 모자라면 빨간 표. 표시=차감(mergeCost). */
 // ── v194: 5초 동안 가만히 보고만 있으면 합칠 수 있는 물고기를 살짝 흔들어 보여줘요 · 합칠 게 하나도 없으면 알림창 ──
 const jo=w=>{const c=String(w||'').charCodeAt(String(w||'').length-1)-0xAC00;return c>=0&&c<11172&&c%28?'을':'를';};
 const joga=w=>{const c=String(w||'').charCodeAt(String(w||'').length-1)-0xAC00;return c>=0&&c<11172&&c%28?'이':'가';};
@@ -418,5 +426,5 @@ function measure(){if(!$('mbd'))return null;const bx=el=>{if(!el)return null;con
  const pc=PCL(),vw=innerWidth,vh=innerHeight,mid=vw/2,wood=bx($('mbWood')),bb=bx($('mbBB')),tray=bx((pc?$('mbQP'):$('mbQM')).closest('.mbsec')),cnt=bx(pc?$('mbCntP'):$('mbCntM')),info=ST.info?bx($('mbInfo')):null,toast=bx(document.querySelector('#mbd .mbtoast')),main=bx($('mbMain'));
  const ov=(a,b)=>!!(a&&b&&!(a.x+a.w<=b.x||b.x+b.w<=a.x||a.y+a.h<=b.y||b.y+b.h<=a.y));const ins=a=>a&&({l:a.x,r:+(vw-a.x-a.w).toFixed(1),t:a.y,b:+(vh-a.y-a.h).toFixed(1)});
  return {vw,vh,pc,impact:IMPACT(),wood,bb,tray,cnt,info,toast,off:{wood:wood&&+(wood.cx-mid).toFixed(1),bb:bb&&+(bb.cx-mid).toFixed(1),tray:pc?null:tray&&+(tray.cx-mid).toFixed(1),cnt:pc?null:cnt&&+(cnt.cx-mid).toFixed(1),info:info&&+(info.cx-mid).toFixed(1),toast:toast&&+(toast.cx-mid).toFixed(1)},edge:{wood:ins(wood),bb:ins(bb),tray:ins(tray),cnt:ins(cnt),info:ins(info),toast:ins(toast)},ovl:{info_bb:ov(info,bb),wood_bb:ov(wood,bb),wood_tray:ov(wood,tray),tray_bb:ov(tray,bb),cnt_wood:ov(cnt,wood),toast_bb:ov(toast,bb),toast_tray:ov(toast,tray),toast_cnt:ov(toast,cnt)}};}
-window.NK_MB={lvl,tot,lvCfg,on,open,close,isOpen:()=>ST.open,badge,onCatch,adWatched,setSupporter,isSup,left,total,day:()=>Object.assign({},day()),cfg:MB_CFG,tierOf,measure,draw:()=>draw(),mergeCost,gradeW,costN,MB_GW};
+window.NK_MB={lvl,tot,lvCfg,on,open,close,isOpen:()=>ST.open,badge,onCatch,adWatched,setSupporter,isSup,left,total,day:()=>Object.assign({},day()),cfg:MB_CFG,tierOf,measure,draw:()=>draw(),mergeCost,gradeW,costN,MB_GW,tableCost,mergeGain,resultGhost,MB_TX_GAIN};
 })();
