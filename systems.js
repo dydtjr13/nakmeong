@@ -49,12 +49,16 @@ SYS.openBox=(D,S,rnd=Math.random,src)=>{const ch=SYS.charmSum(D,S),tier=src==='s
   if(D.CHARM.tx&&D.CHARM.tx.box&&rnd()<D.CHARM.tx.box){const c=SYS.makeCharm(D,6,S.nid++,rnd);S.charms.push(c);out.push({type:'charm',c,tx:true});}
   return {tier,out};};
 SYS.enhLv=S=>{const g=SYS.gearOf(S);return g?g.enh:0;};
-SYS.enhTry=(D,S,rnd=Math.random)=>{const g=SYS.gearOf(S);if(!g)return {r:'none'};const lv=g.enh,E=D.ENH;if(lv>=E.max)return {r:'max'};const st=E.stone(lv),co=E.coin(lv);
+SYS.enhTry=(D,S,rnd=Math.random)=>{const g=SYS.gearOf(S);if(!g)return {r:'none'};const lv=g.enh,E=D.ENH;if(lv>=E.max)return {r:'max'};const {st,co}=SYS.enhCost(D,g,lv);
   if((S.stones||0)<st||S.coins<co)return {r:'lack',st,co};S.stones-=st;S.coins-=co;
   if(rnd()*100<E.rate[lv]){g.enh=lv+1;return {r:'ok',lv:lv+1};}
   const F=E.fail?E.fail(lv):{p:lv>=E.dropFrom?E.dropChance:0,floor:0};if(F.p>0&&lv-1>=F.floor&&rnd()<F.p){g.enh=lv-1;return {r:'drop',lv:lv-1};}return {r:'fail',lv};};
 // 합성: 같은 종류 낚싯대 2개 → 대상 ★+1, 품질 상승, 추가옵션 강화/슬롯 해금. 재료의 강화(+)는 대상에 높은 쪽 유지
-SYS.synthCost=(D,g)=>D.GEAR.synthCoin(D.RODS.findIndex(r=>r.k===g.k),g.star);
+/* v230: 낚싯대 등급(D.ROD_TIER)이 높을수록 강화·합성 비용이 커져요 */
+SYS.rodTier=(D,k)=>{const T=D.ROD_TIER||{};if(T[k]!=null)return T[k];const i=Math.max(0,D.RODS.findIndex(r=>r.k===k));return Math.min(6,Math.floor(i/2));};
+SYS.enhCost=(D,g,lv)=>{const E=D.ENH,M=E.tierMul,t=SYS.rodTier(D,g?g.k:'bamboo'),sm=M?(M.st[t]||1):1,cm=M?(M.co[t]||1):1;return {st:Math.ceil(E.stone(lv)*sm-1e-9),co:Math.round(E.coin(lv)*cm/10)*10};};
+SYS.synthCost=(D,g)=>{const B=D.GEAR.synB;if(!B)return D.GEAR.synthCoin(D.RODS.findIndex(r=>r.k===g.k),g.star);const t=SYS.rodTier(D,g.k),s=Math.min(B.coM.length-1,g.star|0);return Math.round(B.co[t]*B.coM[s]/10)*10;};
+SYS.synthShard=(D,g)=>{const B=D.GEAR.synB;if(!B)return 0;const t=SYS.rodTier(D,g.k),s=Math.min(B.shM.length-1,g.star|0);return Math.max(1,Math.round(B.sh[t]*B.shM[s]));};
 SYS.synth=(D,S,tid,mid,rnd=Math.random)=>{const t=S.gear.find(g=>g.id===tid),m=S.gear.find(g=>g.id===mid),G=D.GEAR;
   if(!t||!m||t===m||t.k!==m.k)return {r:'bad'};if(m.lock||m.id===S.rodId)return {r:'matlock'};if(t.star>=G.starMax)return {r:'max'};const cost=SYS.synthCost(D,t);if(S.coins<cost)return {r:'lack',cost};
   S.coins-=cost;S.gear=S.gear.filter(g=>g!==m);const before=SYS.slotCount(D,t);t.star++;t.q=Math.min(1.15,Math.round((Math.max(t.q,m.q)+.02)*1000)/1000);t.enh=Math.max(t.enh,m.enh);
