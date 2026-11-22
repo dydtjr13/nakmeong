@@ -35,6 +35,11 @@
 #mbd .mbgrid .mbcell.mempty{border-radius:22%;background:rgba(255,255,255,.28);box-shadow:inset 0 0 0 2px rgba(214,190,150,.45)}
 #mbd .mbgrid .mbcell.mwait{border-radius:22%;background:rgba(255,236,190,.55);border:2px dashed #e8b25a;box-shadow:0 0 10px rgba(255,180,60,.35)}
 #mbd .mbcell.mok .mbit{box-shadow:0 0 0 3px #fff,0 0 0 6px #ffb02e,0 0 16px 4px rgba(255,176,46,.8)}
+#mbd .mbcell.mok.mneed .mbit{box-shadow:0 0 0 3px #fff,0 0 0 6px #e07060,0 0 16px 4px rgba(200,70,50,.55)}
+#mbd .mbcell .mbcost{position:absolute;left:50%;bottom:3%;transform:translateX(-50%) scale(var(--mbBk,.85));transform-origin:50% 100%;z-index:4;background:#7a5418;color:#ffe9a8;font-weight:900;font-size:11px;line-height:1.15;padding:2px 5px;border-radius:7px;white-space:nowrap;pointer-events:none;border:1.5px solid #fff6d0;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+#mbd .mbcell .mbcost.mpoor{background:#9a3a32;color:#fff;border-color:#ffd0c8}
+#mbd .mbcell .mbcost img{width:11px;height:11px;vertical-align:-2px;margin-right:2px}
+@container (max-width:44px){#mbd .mbcell .mbcost{font-size:9px;padding:1px 3px}}
 #mbd .mbcell.mdim{opacity:.45}
 #mbd .mbcell.msel .mbit{box-shadow:0 0 0 3px #fff,0 0 0 6px #3fae9c,0 0 14px 3px rgba(63,174,156,.7)}
 #mbd .mbcell.msel::after{content:'✓';position:absolute;left:-4%;top:-6%;width:34%;height:34%;border-radius:50%;background:#3fae9c;color:#fff;font-weight:900;font-size:calc(var(--cs)*.2);display:flex;align-items:center;justify-content:center;border:2px solid #fff;z-index:3}
