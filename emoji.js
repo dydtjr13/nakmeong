@@ -5,10 +5,11 @@ const code=e=>{let c=[...e].map(x=>x.codePointAt(0));if(!c.includes(0x200D))c=c.
 const url=e=>(window.NK_EMOJI_BASE||'icons/emoji/')+code(e)+'.svg';
 const TXT=new Set(['★','☆','✦','✧','■','□','▲','▼','◆','●','○','▶','◀','✓','✕','✗','▸','▾','◐','◑','▴','⌘','◂','▿','▵','◇','▪','▫','◻','◼']);// 한글 기본 폰트(맑은 고딕 등)에 있는 기호는 텍스트 유지
 const SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,INPUT:1,OPTION:1,TITLE:1};
+const FAIL=new Set();// v224: 그림이 없는 이모지는 한 번만 시도하고 글자로 남겨요 (다시 그림으로 바꾸려다 창이 흔들리던 문제)
 // v86: SVG가 없으면 PNG, 그것도 없으면 글자 그대로 (깨진 그림 대신)
-function emjErr(){const im=this;if(!im._p){im._p=1;im.src=(window.NK_EMOJI_BASE||'icons/emoji/').replace(/emoji\/$/,'emoji-png/')+code(im.alt)+'.png';}else{im.onerror=null;try{im.replaceWith(document.createTextNode(im.alt));}catch(e){}}}
-function conv(node){const t=node.nodeValue;const ms=t.match(RX);if(!ms||ms.every(x=>TXT.has(x)))return;RX.lastIndex=0;const f=document.createDocumentFragment();let i=0,m;
- while((m=RX.exec(t))){if(TXT.has(m[0]))continue;if(m.index>i)f.appendChild(document.createTextNode(t.slice(i,m.index)));const im=document.createElement('img');im.className='emj';im.alt=m[0];im.draggable=false;im.onerror=emjErr;im.src=url(m[0]);f.appendChild(im);i=m.index+m[0].length;}
+function emjErr(){const im=this;if(!im._p){im._p=1;im.src=(window.NK_EMOJI_BASE||'icons/emoji/').replace(/emoji\/$/,'emoji-png/')+code(im.alt)+'.png';}else{im.onerror=null;if(im.alt)FAIL.add(im.alt);try{im.replaceWith(document.createTextNode(im.alt));}catch(e){}}}
+function conv(node){const t=node.nodeValue;const ms=t.match(RX);if(!ms||ms.every(x=>TXT.has(x)||FAIL.has(x)))return;RX.lastIndex=0;const f=document.createDocumentFragment();let i=0,m;
+ while((m=RX.exec(t))){if(TXT.has(m[0])||FAIL.has(m[0]))continue;if(m.index>i)f.appendChild(document.createTextNode(t.slice(i,m.index)));const im=document.createElement('img');im.className='emj';im.alt=m[0];im.draggable=false;im.onerror=emjErr;im.src=url(m[0]);f.appendChild(im);i=m.index+m[0].length;}
  if(i<t.length)f.appendChild(document.createTextNode(t.slice(i)));node.parentNode.replaceChild(f,node);}
 function walk(root){if(root.nodeType===3){if(root.parentNode&&!SKIP[root.parentNode.nodeName])conv(root);return;}if(root.nodeType!==1||SKIP[root.nodeName])return;
  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),L=[];let n;while((n=w.nextNode()))if(!SKIP[n.parentNode.nodeName])L.push(n);L.forEach(conv);}
