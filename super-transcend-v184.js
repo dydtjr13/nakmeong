@@ -5,7 +5,7 @@
 //  · 어항(오라·반짝이) · 도감(슈퍼 초월 칸 S01~S05 + 상세)
 //  · game-v2.js 의 훅: NKST.roll / onCast / onBite / onMiss / onCatch / dexSection, 등급 6 = D.STX
 //  · 테스트: 관리자 › 테스트 기능 › 「👑 슈퍼 초월급」 상자에서 「다음 입질」 (관리자·운영자만 · 공지·순위에 안 올라가요)
-//  · 확률: 기본 1/300,000 번 던질 때 (일반 초월보다 약 20배 드물게) · 관리자가 바꿀 수 있어요 (play.stRate) · 자동 낚시에서는 안 나와요
+//  · 확률: 기본 1/300,000 번 던질 때 (일반 초월보다 약 20배 드물게) · 관리자가 바꿀 수 있어요 (play.stRate) · v234부터 자동 낚시에서도 같은 확률
 // ─────────────────────────────────────────────────────────────
 (function(){'use strict';
 const D=window.NK_DATA;if(!D)return;
@@ -13,19 +13,19 @@ const I=()=>window.__nkInt;
 const $=id=>document.getElementById(id);
 const SP=[
  {k:'st_carp', no:'S01',n:'천년 금빛잉어', map:'lake', mapN:'호숫가',min:180,max:260,base:60000,col:'#e9b832',glow:'#ffd34d',a:'#ffe27a',b:'#ff9f2e',theme:'gold',  icon:'🌟',
-  eff:'어항에 있으면 골드 +5%',when:'호숫가에서 낚시할 때 (자동 낚시 제외)',rate:20000,size:3.4,
+  eff:'어항에 있으면 골드 +5%',when:'호숫가에서 낚시할 때',rate:20000,size:3.4,
   flav:'천 년 동안 호숫가를 지켜 온 잉어예요. 비늘마다 구름 무늬가 새겨져 있고, 지느러미는 비단처럼 흩날려요.'},
  {k:'st_whale',no:'S02',n:'등불 혹등고래',map:'canal',mapN:'운하',  min:1100,max:1520,base:90000,col:'#24407a',glow:'#ffb347',a:'#ffc36b',b:'#3a64c8',theme:'lantern',icon:'🏮',
-  eff:'어항에 있으면 경험치 +5%',when:'운하에서 낚시할 때 (자동 낚시 제외)',rate:25000,size:9,
+  eff:'어항에 있으면 경험치 +5%',when:'운하에서 낚시할 때',rate:25000,size:9,
   flav:'등에 붙은 따개비가 등불처럼 빛나는 고래예요. 운하의 밤길을 밝혀 준다는 이야기가 있어요.'},
  {k:'st_bukang',no:'S05',n:'부산 부캉이',map:'canal',mapN:'운하', min:280,max:360,base:90000,col:'#1c2a4a',glow:'#ffb347',a:'#ffc36b',b:'#24407a',theme:'harbor',icon:'🦈',src:'v213 슈퍼 초월',
-  eff:'어항에 있으면 골드 +5%',when:'운하에서 낚시할 때 (자동 낚시 제외)',rate:25000,size:6.2,
+  eff:'어항에 있으면 골드 +5%',when:'운하에서 낚시할 때',rate:25000,size:6.2,
   flav:'북항의 밤빛을 비늘에 담은 흑상어예요. 항구의 불빛이 몸에 송송 떠 있고, 등줄기 융기선이 따뜻하게 빛나요.'},
  {k:'st_ray',  no:'S03',n:'구름 가오리',  map:'sky',  mapN:'하늘섬',min:500,max:720,base:80000,col:'#9fd8ff',glow:'#c8ecff',a:'#ffffff',b:'#9fd0ff',theme:'rainbow',icon:'☁️',
   eff:'어항에 있으면 행운 상자 +5%',when:'하늘섬이 열리면 만날 수 있어요',rate:22000,soon:1,size:6,
   flav:'구름 속을 헤엄치는 가오리예요. 날개 끝을 따라 무지개 띠가 흐르고, 지나간 자리에 작은 구름이 남아요.'},
  {k:'st_stur', no:'S04',n:'성운 철갑상어',map:'moon', mapN:'달',    min:400,max:560,base:100000,col:'#5b3fa8',glow:'#b48cff',a:'#c9a8ff',b:'#5ad8ff',theme:'nebula',icon:'🌙',
-  eff:'어항에 있으면 골드·경험치 +3%',when:'달에서 낚시할 때 (자동 낚시 제외)',rate:30000,size:6.5,
+  eff:'어항에 있으면 골드·경험치 +3%',when:'달에서 낚시할 때',rate:30000,size:6.5,
   flav:'몸에 성운을 품은 철갑상어예요. 등의 갑판이 별처럼 빛나고, 비늘 사이로 별자리 선이 이어져 있어요.'}];
 const SPK=k=>SP.find(s=>s.k===k);
 /* v184: 어항 효과 — 어항에 있는 동안만 (같은 종 여러 마리여도 한 번만) */
@@ -188,7 +188,7 @@ let rafOn=false;function loop(){fxTick();const L=$('stFx');if(L&&L._bob){const p
 function start(){if(rafOn)return;rafOn=true;requestAnimationFrame(loop);try{I().PH().push(bobHook);}catch(e){}}
 const mob=()=>innerWidth<760;
 function badge(t){return `<span class="stb">👑 ${t||'슈퍼 초월급'}</span>`;}
-NKST.onCast=function(fs,spot){start();const map=this.mapNow(spot);let k=null,test=false;if(this.forced&&staff()){k=this.forced;this.forced=null;test=true;}else if(stOn()&&!(window.NKV2&&NKV2.S&&NKV2.S.autoFish)){const cands=SP.filter(x=>x.map===map&&(!x.soon||skyOpen()));const hits=cands.filter(s=>Math.random()<1/rateOf(s));if(hits.length)k=hits[Math.floor(Math.random()*hits.length)].k;}
+NKST.onCast=function(fs,spot){start();const map=this.mapNow(spot);let k=null,test=false;if(this.forced&&staff()){k=this.forced;this.forced=null;test=true;}else if(stOn()){/* v234: 자동 낚시에서도 같은 확률로 나와요 */const cands=SP.filter(x=>x.map===map&&(!x.soon||skyOpen()));const hits=cands.filter(s=>Math.random()<1/rateOf(s));if(hits.length)k=hits[Math.floor(Math.random()*hits.length)].k;}
  if(k){fs.st=k;fs.stTest=test;if(test)fs.bite=Math.min(fs.bite,this.demo||2.2);else if(this.demo)fs.bite=this.demo;fs.fakes=[Math.min(1.0,fs.bite*.4)];}};
 NKST.onBite=function(fs){const sp=SPK(fs.st);fs.stT=performance.now();const L=layer();L.className='on bite th-'+sp.theme;L._bob=1;document.body.classList.add('stBite');
  L.innerHTML=`<div class="stdim"></div><div class="stbob"><i></i><i></i><i></i><b class="stthud">쿵!</b></div>
@@ -264,7 +264,7 @@ addEventListener('nk-rt-st',e=>{const d=e.detail||{};if(!SPK(d.k))return;const m
  notice(d);});
 // ── 도감: 슈퍼 초월 칸 + 상세 ──
 NKST.dexSection=function(){const S=NKV2.S,got=SP.filter(s=>S.dex[s.k]).length;
- return `<div class="stdex"><div class="stdh">${badge()}<b>슈퍼 초월급 물고기</b><span>${got}/${SP.length} 발견</span><small>운하에는 두 종 · 다른 맵은 한 종 · 약 ${baseN().toLocaleString()}번 던질 때 한 번 · 자동 낚시 제외</small></div><div class="stdg">${SP.map(s=>{const d=S.dex[s.k];return `<div class="stdc ${d?'got':'unk'} th-${s.theme}" data-stk="${s.k}"><div class="no">No.${s.no}</div><div class="mp">${s.icon} ${s.mapN}</div><img src="img/fish/${s.k}${d?'':'_sil'}.png" alt=""><div class="nm">${d?s.n:'???'}</div><div class="small">${d?`최대 <b>${fmtCm(d.max)}</b> · ${d.n}마리`:s.soon&&!skyOpen()?'🔒 하늘섬이 열리면 만나요':'아직 만나지 못한 물고기'}</div>${d?'<i class="sp1">✦</i><i class="sp2">✦</i>':''}</div>`;}).join('')}</div></div>`;};
+ return `<div class="stdex"><div class="stdh">${badge()}<b>슈퍼 초월급 물고기</b><span>${got}/${SP.length} 발견</span><small>운하에는 두 종 · 다른 맵은 한 종 · 약 ${baseN().toLocaleString()}번 던질 때 한 번</small></div><div class="stdg">${SP.map(s=>{const d=S.dex[s.k];return `<div class="stdc ${d?'got':'unk'} th-${s.theme}" data-stk="${s.k}"><div class="no">No.${s.no}</div><div class="mp">${s.icon} ${s.mapN}</div><img src="img/fish/${s.k}${d?'':'_sil'}.png" alt=""><div class="nm">${d?s.n:'???'}</div><div class="small">${d?`최대 <b>${fmtCm(d.max)}</b> · ${d.n}마리`:s.soon&&!skyOpen()?'🔒 하늘섬이 열리면 만나요':'아직 만나지 못한 물고기'}</div>${d?'<i class="sp1">✦</i><i class="sp2">✦</i>':''}</div>`;}).join('')}</div></div>`;};
 new MutationObserver(()=>{const dx=$('dex');if(!dx)return;dx.querySelectorAll('[data-stk]:not([data-b])').forEach(e=>{e.dataset.b=1;e.onclick=ev=>{ev.stopPropagation();NKST.detail(e.dataset.stk);};});}).observe(document.body,{childList:true,subtree:true});
 NKST.detail=function(k){const s=SPK(k),S=NKV2.S,d=S.dex[k];let m=$('stDexD');if(!m){m=document.createElement('div');m.id='stDexD';document.body.appendChild(m);}
  const first=d&&d.t0?new Date(d.t0):new Date();const sz=d?d.max:0,pct=d?Math.round((sz-s.min)/(s.max-s.min)*100):0;

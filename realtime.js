@@ -155,6 +155,13 @@
 
   // v104: 살아 있다는 신호 (서버가 자동으로 pong · 끊긴 줄 모르는 유령 접속을 서버가 정리해요)
   setInterval(() => { try { if (ws && ws.readyState === 1 && RT.mode === "on") ws.send("ping"); } catch (e) { /* ignore */ } }, 20000);
+  // v234: 절전 모드·화면 꺼짐에서는 일반 타이머가 1분 이상 멈출 수 있어요 → 웹 워커 타이머로도 신호를 보내요 (워커는 덜 멈춰요)
+  const pingNow = () => { try { if (ws && ws.readyState === 1 && RT.mode === "on") ws.send("ping"); } catch (e) { /* ignore */ } };
+  try {
+    const src = "setInterval(()=>postMessage(0),15000);";
+    const pw = new Worker(URL.createObjectURL(new Blob([src], { type: "text/javascript" })));
+    pw.onmessage = pingNow;
+  } catch (e) { /* 워커를 못 쓰면 위 타이머만 */ }
   function send(obj) {
     if (SPEC) return;
     if (!ws || ws.readyState !== 1) return;
@@ -514,6 +521,16 @@
         if (ws !== sock) return;
         ws = null;
         if (ev && ev.code === 4008) { want = false; RT.mode = "solo"; peers.clear(); try { dispatchEvent(new CustomEvent("nk-rt-admonly")); } catch (e) { /* ignore */ } if (!settled) finish({ ok: false, reason: "admin" }); return; }
+        if (!settled && isRetry && want && token === gen) {
+          /* v234: 다시 잇기(재접속) 중에 실패하면 예전엔 바로 「혼자 플레이」로 굳어서 새로고침 전까지 안 돌아왔어요 (절전 모드에서 깨어날 때 인터넷이 늦게 붙으면 자주 생김).
+             이제는 재접속 횟수를 세서 계속 시도하고, 그래도 안 되면 잠시 뒤 자동으로 다시 이어요 */
+          retry += 1;
+          if (retry > 3) { RT.mode = "solo"; peers.clear(); lostAt = Date.now(); lostTry = Date.now(); lostN = 0; finish({ ok: false, reason: "offline" }); return; }
+          RT.mode = "connecting";
+          setTimeout(() => { if (want && token === gen) openSocket(token, serverId, Object.assign({}, profile, RT.profile || {}), true); }, 700 * retry);
+          finish({ ok: false, reason: "retry" });
+          return;
+        }
         if (!settled) {
           refresh(1200).finally(() => {
             if (token !== gen) { finish({ ok: false, reason: "cancel" }); return; }
@@ -532,6 +549,8 @@
           RT.mode = "solo";
           peers.clear();
           lostAt = Date.now();
+          lostTry = Date.now();
+          lostN = 0;
           return;
         }
         RT.mode = "connecting";
@@ -542,15 +561,33 @@
   }
 
   // v60: 모바일에서 백그라운드로 갔다가 돌아왔을 때 끊긴 연결을 다시 잇기
-  let lostAt = 0;
+  let lostAt = 0, lostTry = 0, lostN = 0, resuming = false;
   const resume = () => {
-    if (document.hidden || !RT.profile) return;
-    if (lostAt) { lostAt = 0; RT.connect(RT.sid, RT.profile).then((r) => { if (r && r.ok) dispatchEvent(new CustomEvent("nk-rt-rejoin")); }); return; }
+    if (document.hidden || !RT.profile || resuming) return;
+    if (lostAt) {
+      lostAt = 0; resuming = true;
+      RT.connect(RT.sid, RT.profile).then((r) => {
+        resuming = false;
+        if (r && r.ok) { lostN = 0; dispatchEvent(new CustomEvent("nk-rt-rejoin")); }
+        else if (r && (r.reason === "offline" || r.reason === "cancel")) { lostAt = Date.now(); lostTry = Date.now(); lostN += 1; } /* v234: 아직 인터넷이 안 붙었으면 잠시 뒤 다시 */
+      }, () => { resuming = false; lostAt = Date.now(); lostTry = Date.now(); lostN += 1; });
+      return;
+    }
     if (want && ws && ws.readyState > 1) { try { ws.onclose && ws.onclose(); } catch (e) { /* ignore */ } }
   };
   document.addEventListener("visibilitychange", resume);
   addEventListener("online", resume);
+  addEventListener("focus", resume);
+  document.addEventListener("resume", resume); /* 크롬 「얼린 탭」에서 돌아올 때 */
   addEventListener("pageshow", (e) => { if (e.persisted) resume(); });
+  /* v234: 절전 모드(화면 꺼짐·잠자기)에서 깨어나면 화면이 계속 보이는 상태라 visibilitychange 가 안 올 수 있어요.
+     5초마다 시계가 크게 건너뛰었는지(잠들었다 깨어남) 보고, 끊겼으면 다시 잇고 · 계속 끊긴 상태면 5초→10초→20초→30초 간격으로 다시 시도해요 */
+  let wdLast = Date.now();
+  setInterval(() => {
+    const now = Date.now(), slept = now - wdLast > 20000; wdLast = now;
+    if (slept) { if (ws && ws.readyState === 1) pingNow(); else if (want && ws && ws.readyState > 1) { try { ws.onclose && ws.onclose(); } catch (e) { /* ignore */ } } }
+    if (lostAt && !document.hidden && (slept || now - lostTry >= [5000, 10000, 20000][Math.min(lostN, 2)] || (lostN > 2 && now - lostTry >= 30000))) resume();
+  }, 5000);
 
   RT.connect = async function (serverId, profile) {
     lostAt = 0;

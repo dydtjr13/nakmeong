@@ -1380,6 +1380,8 @@ body.m3 #mSys{flex-wrap:nowrap!important;justify-content:flex-start!important}
 body.m3 #mSys>*,body.m3 #mSys #mDrop51>*{flex-shrink:0!important}
 /* v208: 낚시 카드는 할아버지 목표 창(z 47)보다 위에 · 창(모달)이 열리면 원래대로 */
 #toast:has(.cc){z-index:48}
+/* v234: 낚시 카드는 body 맨 위 층에서 (업적 알림 #gq z43 위) · #hud 의 안전 영역 여백만큼 똑같이 밀어요 */
+#toast.ccTop{position:fixed;z-index:49!important;margin:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 body:has(.modal.show) #toast:has(.cc){z-index:auto}
 
 /* v213: 운영자 보상 수령 창 A안 — 아이템 카드 그리드 */
