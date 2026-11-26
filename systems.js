@@ -12,7 +12,7 @@ SYS.gearGrade=(D,g)=>{if(g.gr==null){const s=SYS.gearScore(D,g);g.gr=SYS.GRADE_C
 SYS.slotCount=(D,g)=>D.GEAR.slots[g.k]+D.GEAR.starSlot.filter(s=>g.star>=s).length;
 SYS.extraMax=(D,g,ok)=>D.CHARM.opts[ok].cap*D.GEAR.mul[g.k];
 SYS.addExtra=(D,g,rnd=Math.random)=>{const pool=D.GEAR.pool.filter(k=>!g.extra.some(e=>e.k===k));if(!pool.length)return;const k=pool[Math.floor(rnd()*pool.length)];const xb=D.GEAR.xBand?D.GEAR.xBand[g.tier==null?1:g.tier]:[.4,1];g.extra.push({k,v:R1(SYS.extraMax(D,g,k)*(xb[0]+(xb[1]-xb[0])*rnd()))});};
-SYS.gearStats=(D,g)=>{const r=D.RODS.find(x=>x.k===(g?g.k:'bamboo')),m=g?(D.GEAR.fixedBase?SYS.baseMul(D,g):g.q)*(1+D.GEAR.starBonus*g.star):1;
+SYS.gearStats=(D,g)=>{const r=D.RODS.find(x=>x.k===(g?g.k:'bamboo')),m=g?(D.GEAR.fixedBase?SYS.baseMul(D,g):g.q)*(1+SYS.starAdd(D,g.star)):1;
   const B=SYS.enhBonus(D,g?g.enh:0);return {k:r.k,n:r.n,id:g&&g.id,star:g?g.star:0,enh:g?g.enh:0,q:g?g.q:1,size:(1+(r.size-1)*m)*(1+B.size),speed:1-(1-r.speed)*m,luck:r.luck*m+B.luck,coin:(r.coin||0)*m+B.coin,box:(r.box||0)+B.box,price:r.price,bt:B};};
 // v11 강화 돌파 보너스(+5/+10/+15/+20 누적)
 SYS.enhBonus=(D,lv)=>{const o={size:0,luck:0,coin:0,box:0};((D.ENH&&D.ENH.bt)||[]).forEach(b=>{if(lv>=b.lv)for(const k in o)o[k]+=b[k]||0;});return o;};
@@ -55,6 +55,8 @@ SYS.enhTry=(D,S,rnd=Math.random)=>{const g=SYS.gearOf(S);if(!g)return {r:'none'}
   const F=E.fail?E.fail(lv):{p:lv>=E.dropFrom?E.dropChance:0,floor:0};if(F.p>0&&lv-1>=F.floor&&rnd()<F.p){g.enh=lv-1;return {r:'drop',lv:lv-1};}return {r:'fail',lv};};
 // 합성: 같은 종류 낚싯대 2개 → 대상 ★+1, 품질 상승, 추가옵션 강화/슬롯 해금. 재료의 강화(+)는 대상에 높은 쪽 유지
 /* v230: 낚싯대 등급(D.ROD_TIER)이 높을수록 강화·합성 비용이 커져요 */
+/* v232: ★ 누적 기본 성능 (starAdd 표가 있으면 그 값) */
+SYS.starAdd=(D,s)=>{const A=D.GEAR.starAdd;s=Math.max(0,s|0);return A?(A[Math.min(A.length-1,s)]||0):(D.GEAR.starBonus||0)*s;};
 SYS.rodTier=(D,k)=>{const T=D.ROD_TIER||{};if(T[k]!=null)return T[k];const i=Math.max(0,D.RODS.findIndex(r=>r.k===k));return Math.min(6,Math.floor(i/2));};
 SYS.enhCost=(D,g,lv)=>{const E=D.ENH,M=E.tierMul,t=SYS.rodTier(D,g?g.k:'bamboo'),sm=M?(M.st[t]||1):1,cm=M?(M.co[t]||1):1;return {st:Math.ceil(E.stone(lv)*sm-1e-9),co:Math.round(E.coin(lv)*cm/10)*10};};
 SYS.synthCost=(D,g)=>{const B=D.GEAR.synB;if(!B)return D.GEAR.synthCoin(D.RODS.findIndex(r=>r.k===g.k),g.star);const t=SYS.rodTier(D,g.k),s=Math.min(B.coM.length-1,g.star|0);return Math.round(B.co[t]*B.coM[s]/10)*10;};
