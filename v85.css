@@ -1435,3 +1435,7 @@ body:has(.modal.show) #toast:has(.cc){z-index:auto}
   .giftA-btns .acc{padding:11px 14px}
   .giftA-grid{margin-bottom:8px;gap:6px}
 }
+/* v232: ★6~10 보라 별 */
+.st2{color:#a463ff!important;text-shadow:0 0 4px rgba(164,99,255,.55)}
+/* v232: 장착 칸 낚싯대 별 + 강화 수치가 좁은 폰 칸에서 잘리지 않게 */
+.bag31 .dslot.rod .dl{letter-spacing:-1.2px;font-size:8.5px;text-overflow:clip}
