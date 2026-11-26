@@ -445,7 +445,8 @@ const anyModal=()=>!!document.querySelector('.modal.show');
 // ───────── 렌더러/씬 ─────────
 // v27 화질: 저/중/고 (nk_gfx). 이전엔 모바일(DPR 2~3)에서 안티에일리어싱을 끄고 해상도도 1.5배로 묶어서 흐리고 계단이 보였어요.
 const GFX=(()=>{let q='';try{q=localStorage.getItem('nk_gfx')||'';}catch(e){}const mob=innerWidth<700||matchMedia('(pointer:coarse)').matches;if(!q)q='high';const dpr=devicePixelRatio||1;
- const P={low:{pr:1,aa:false},mid:{pr:Math.min(dpr,mob?2:1.5),aa:true},high:{pr:Math.min(dpr,mob?3:2),aa:true}}[q]||{pr:Math.min(dpr,1.5),aa:true};return Object.assign({q,mob},P);})();window.NK_GFX=GFX;
+ /* v233: 📱 모바일 자동 화질(mobPerf)이 켜져 있으면 휴대폰 「선명하게」도 최대 2배로 시작해요 (3배는 픽셀이 2.25배 많아 물 셰이더가 특히 무거워요) */let MP=true;try{MP=String(uiOpt('mobPerf','on'))!=='off';}catch(e){}
+ const P={low:{pr:1,aa:false},mid:{pr:Math.min(dpr,mob?2:1.5),aa:true},high:{pr:Math.min(dpr,mob?(MP?2:3):2),aa:true}}[q]||{pr:Math.min(dpr,1.5),aa:true};return Object.assign({q,mob},P);})();window.NK_GFX=GFX;
 const R=new THREE.WebGLRenderer({canvas:$('world'),antialias:GFX.aa,powerPreference:'high-performance'});
 R.setPixelRatio(GFX.pr);R.setSize(innerWidth,innerHeight);R.outputEncoding=THREE.sRGBEncoding;
 const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,.1,400);
@@ -533,7 +534,13 @@ if(mode==5.){c=mix(c,sky*1.02,fr*.5+.06);float k=caus(p*.55)*(1.-smoothstep(2.,1
 gl_FragColor=vec4(c,a);
 #include <encodings_fragment>
 }`;
-function buildWater(){wU.mode={value:5};const m=new THREE.ShaderMaterial({uniforms:wU,transparent:true,vertexShader:WATER_VS,fragmentShader:WATER_FS});const w=new THREE.Mesh(new THREE.CircleGeometry(LR+1.2,72).rotateX(-Math.PI/2),m);w.position.y=-.1;scene.add(w);}
+/* v233: 💧 물 셰이더 최적화 (LAB waterLite) — 물 모양(잔물결·거품·빛무늬·반사) 4가지를 한 셰이더에서 매번 고르던 것을,
+   지금 고른 모양만 들어간 셰이더로 바꿔요. 화면은 똑같고, 쓰지 않는 계산이 빠져서 휴대폰 GPU가 가벼워져요 (측정: 물 그리기 약 30% 감소) */
+function waterFsFor(md){return WATER_FS.replace('uniform float t,night,R,mode;','uniform float t,night,R;const float mode='+(+md||5).toFixed(1)+';');}
+function waterLiteOn(){let v='on';try{v=String(uiOpt('waterLite','on'));}catch(e){}return v!=='off';}
+function waterWant(){return waterLiteOn()?'m'+(+(S.waterQ||5)):'all';}
+setInterval(()=>{try{const m=window.__nkWaterM;if(!m)return;const w=waterWant();if(w!==m.userData.wv){m.userData.wv=w;m.fragmentShader=w==='all'?WATER_FS:waterFsFor(S.waterQ||5);m.needsUpdate=true;}}catch(e){}},500);
+function buildWater(){wU.mode={value:5};const m=new THREE.ShaderMaterial({uniforms:wU,transparent:true,vertexShader:WATER_VS,fragmentShader:WATER_FS});window.__nkWaterM=m;try{m.userData.wv=waterWant();if(m.userData.wv!=='all')m.fragmentShader=waterFsFor(S.waterQ||5);}catch(e){}const w=new THREE.Mesh(new THREE.CircleGeometry(LR+1.2,72).rotateX(-Math.PI/2),m);w.position.y=-.1;scene.add(w);}
 // ───────── 데크 (DECKS 값으로 자동 배치) ─────────
 const decks=[];let D4NOW='off',LANPOS=[];
 // v79: 4인용 데크 설정이 바뀌면(내 테스트 기능 · 관리자 ✅ 인게임 적용) 저장하고 자동으로 다시 불러와요
@@ -2123,6 +2130,8 @@ const LAB=[
  {k:'tankUi',n:'🐠 내 어항 화면',d:'A안: 맨 위 효과 합계 줄 + [물고기]·[조합]·[판매중] 탭, 판매 가능 필터, 여러 마리 한 번에 팔기',scope:'me',o:[['old','기존 (기본)'],['A','A 탭 분리 + 효과 요약']]},
  {k:'hudSt',n:'💎 상단 상태바 강화석 표시',d:'골드 오른쪽에 강화석 개수를 같은 크기로 표시해요',scope:'me',o:[['old','기존 (강화석 없음)'],['H1','H1 한 줄 균등'],['H3','H3 컴팩트 링'],['H4','H4 알약 묶음']]},
  {k:'mapSt',n:'🗺 맵 시안',d:'데크·오리·상점·쉼터는 그대로 두고 주변 풍경만 바뀌어요. 🎄·🌻 시안은 시간(낮·노을·밤)과 날씨(눈·비·폭풍)에 따라 불빛·눈·바람이 바뀌고, 처음 고를 때 풍경을 따로 불러와요. 세부(구조물·디테일·밝기)는 설정 › 화면에서 조절해요',scope:'me',o:[['old','기존 (기본)'],['A','A 포근한 호숫가'],['B','B 숲속 비밀 호수'],['C','C 바닷가 항구'],['X','🎄 눈 내리는 성탄 마을'],['XM','🎄 성탄 아침 햇살'],['GB','🌻 황금빛 노을 보리밭']]},
+ {k:'mobPerf',n:'📱 모바일 자동 화질',d:'휴대폰에서 1.5초마다 FPS를 재서 느리면 해상도를 조금씩 낮추고(최소 1배) 넉넉하면 다시 올려요. 운하에만 있던 기능을 호숫가·달에도 켜요. 휴대폰 「선명하게」는 최대 2배로 시작해요 (새로고침 후)',scope:'all',o:[['on','켜기 (기본)'],['off','끄기 (예전처럼)']]},
+ {k:'waterLite',n:'💧 물 셰이더 최적화',d:'호수 물을 그릴 때 지금 고른 물 모양만 계산해요. 화면은 똑같고 물 그리기가 약 30% 가벼워져요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기 (예전 방식)']]},
  {k:'fuseOn',n:'✨ 물고기 합성',d:'같은 물고기·같은 별 3마리 → 별 올리기 + 가끔 변이(황금·벚꽃·알비노·무지개·유령). 메뉴에 「합성」 버튼이 생겨요. 촉매는 모험에서 얻어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
  {k:'mergeBoard',n:'🪵 나무 작업대 합성판',d:'「합성」 버튼을 누르면 새 합성판이 열려요. 목록에서 물고기를 누르면 빈 칸으로 들어가고, 같은 물고기·같은 단계 2개를 겹치면 1개로 (★1~★5 → 블랙~무지개). 하루 횟수 기본 30 + 낚시 50회마다 +5 + 광고 +10 + 후원자 +100 (자정 초기화). 「예전 합성」은 3마리 별 올리기 창. 물고기 데이터는 둘 다 같아요',scope:'me',o:[['off','예전 합성 (기본)'],['on','새 합성판 (테스트)']]},
  {k:'mbInf',n:'♾️ 합성판 테스트 무제한',d:'새 합성판 테스트 중에는 하루 횟수 없이 마음껏 합성해요. 끄면 하루 횟수(기본 30회)를 세요',scope:'me',o:[['on','무제한 (테스트 중 기본)'],['off','하루 횟수 세기']]},
@@ -5979,10 +5988,11 @@ function cnlStart(){try{const lowQ=!!(window.NK_GFX&&NK_GFX.q==='low');const C=C
 {const _fa=fishAction;fishAction=function(auto){try{if(CNL.st&&fishing.state==='off'&&!mySeat&&nearSpot===CSPOT&&me){const p0=me.o.position;const st=SEATS.filter(s=>s.cnl&&seatFree(s)).map(s=>[s,Math.hypot(s.x-p0.x,s.z-p0.z)]).filter(a=>a[1]<2.4).sort((a,b)=>a[1]-b[1]).map(a=>a[0])[0];if(st&&!remoteHolds(st))sitOn(st);}}catch(e){}return _fa.apply(this,arguments);};}
 /* v163: 운하 자동 화질 — 드로우콜이 아니라 화면 픽셀(해상도 × 물·반사 셰이더)이 무거워서 생기는 끊김.
    1.5초마다 평균 FPS를 재서 느리면 해상도를 조금씩 낮추고(최소 1배), 넉넉하면 다시 올려요. 아주 느리면 물 반사를 2프레임에 한 번 그려요 */
-{const AQ={n:0,tm:0,good:0,k:1,max:0,set:0};FHOOK.push(()=>{const nw=performance.now(),dt=AQ.lt?(nw-AQ.lt)/1000:0;AQ.lt=nw;/* 게임 dt는 0.05초로 잘려서 실제 시간을 따로 재요 */if(!CNL.st||BGRUN||document.hidden||!dt||dt>2)return;const cur=R.getPixelRatio();if(Math.abs(cur-AQ.set)>.01){AQ.max=cur;AQ.set=cur;AQ.k=Math.min(1,Math.max(AQ.k,1/Math.max(1,cur)));}
+{const AQ={n:0,tm:0,good:0,k:1,max:0,set:0,all:false,at:0};/* v233: 📱 휴대폰이면 호숫가·달에서도 자동 화질 (관리자 LAB mobPerf, 기본 켜기) */const aqAll=nw=>{if(nw-AQ.at>2000){AQ.at=nw;let on=false;try{on=!!(GFX.mob&&String(uiOpt('mobPerf','on'))!=='off');}catch(e){}if(AQ.all&&!on&&!CNL.st&&AQ.max&&R.getPixelRatio()<AQ.max-.01){try{R.setPixelRatio(AQ.max);R.setSize(innerWidth,innerHeight);AQ.set=AQ.max;AQ.k=1;}catch(e){}}AQ.all=on;}return AQ.all;};
+ FHOOK.push(()=>{const nw=performance.now(),dt=AQ.lt?(nw-AQ.lt)/1000:0;AQ.lt=nw;/* 게임 dt는 0.05초로 잘려서 실제 시간을 따로 재요 */if(!(CNL.st||aqAll(nw))||BGRUN||document.hidden||!dt||dt>2)return;const cur=R.getPixelRatio();if(Math.abs(cur-AQ.set)>.01){AQ.max=cur;AQ.set=cur;AQ.k=Math.min(1,Math.max(AQ.k,1/Math.max(1,cur)));}
  AQ.n++;AQ.tm+=dt;if(AQ.tm<1.5)return;const fps=AQ.n/AQ.tm;AQ.n=0;AQ.tm=0;const minK=1/Math.max(1,AQ.max);let k=AQ.k;
  if(fps<44){k=Math.max(minK,k-(fps<30?.2:.1));AQ.good=0;}else if(fps>56){if(++AQ.good>=3){k=Math.min(1,k+.08);AQ.good=0;}}else AQ.good=0;
- CNL.mskip=fps<36&&k<=minK+.01;/* v167: 반사를 건너뛰면 카메라가 움직일 때 물·벽 경계가 깜빡여서 → 매 프레임 그리되 해상도만 낮춰요 */window.__nkMirQ=CNL.mskip?.6:1;CNL.fps=Math.round(fps);
+ CNL.mskip=!!CNL.st&&fps<36&&k<=minK+.01;/* v167: 반사를 건너뛰면 카메라가 움직일 때 물·벽 경계가 깜빡여서 → 매 프레임 그리되 해상도만 낮춰요 */window.__nkMirQ=CNL.mskip?.6:1;CNL.fps=Math.round(fps);
  if(Math.abs(k-AQ.k)>.001){AQ.k=k;const pr=Math.max(1,Math.round(AQ.max*k*20)/20);if(Math.abs(pr-cur)>.04){R.setPixelRatio(pr);R.setSize(innerWidth,innerHeight);AQ.set=pr;}}});
  window.__nkAQ=AQ;}
 {const _c=MAPV.cull;MAPV.cull=function(c){try{if(_c)_c.apply(this,arguments);}finally{const C=CNL.st;if(C&&CNL.mir&&!BGRUN){/* 이름표는 물에 비치지 않게 · v163: 느릴 땐 물 반사를 2프레임에 한 번 */const hz=[];for(const ch of chars){const t=ch.tag;if(t&&t.visible){t.visible=false;hz.push(t);}}try{C.mirror(R,scene,c);}catch(e){CNL.mir=false;console.warn('[canal mirror]',e);}hz.forEach(t=>t.visible=true);}}};}
