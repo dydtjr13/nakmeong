@@ -1383,7 +1383,7 @@ export class LakeRoom extends DurableObject {
   }
 
   async alarm() {
-    const STALE_MS = 75000;
+    const STALE_MS = 120000; // v234: 절전 모드에서 타이머가 늦어져도 끊기지 않게 75초 → 120초
     const now = Date.now();
     let pending = false;
     let specAny = false;
@@ -1406,7 +1406,7 @@ export class LakeRoom extends DurableObject {
       const att = this.attachment(ws);
       return !att || !att.ready;
     });
-    // v104: 핑이 75초 넘게 없는 접속(앱 강제 종료·통신 끊김)은 정리해요 → 다른 유저 화면에 캐릭터·그릴·어항이 남지 않게
+    // v104: 핑이 오래(v234: 120초) 없는 접속(앱 강제 종료·통신 끊김)은 정리해요 → 다른 유저 화면에 캐릭터·그릴·어항이 남지 않게
     let live = 0;
     for (const ws of this.openSockets()) {
       const att = this.attachment(ws);
