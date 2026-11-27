@@ -8377,6 +8377,7 @@ window.__nkMB={get S(){return S;},fzOn:()=>fzOn(),uiOpt:(k,d)=>uiOpt(k,d),pool:(
  snd:()=>snd,coin:()=>{try{sfx.coin();}catch(e){}},tankView:()=>tankView,
  /* v200 */mbLvCfg:()=>window.NK_mbLvCfg?NK_mbLvCfg():null,
  /* v195 */s5On:()=>!!(window.NK_s5On&&NK_s5On()),s5N:()=>window.NK_s5Api?NK_s5Api.n():0,s5Shop:()=>window.NK_s5Shop&&NK_s5Shop(),s5Shout:f=>window.NK_s5Api&&NK_s5Api.shout(f),fzGrOn:()=>window.NK_fzGrOn?NK_fzGrOn():false,GR:g=>window.NK_GR?NK_GR(g):null,setHTML:k=>window.NK_fzSetHTML?NK_fzSetHTML(k):'',setBind:R=>window.NK_fzSetBind&&NK_fzSetBind(R)};
+/* v242: 🛒 상점 B안(shop-b-v242.js)이 쓰는 다리 — 기존 상점 그리기·구매 로직을 그대로 빌려 써요 */window.__nkShop={get S(){return S;},get tab(){return shopTab;},set tab(v){shopTab=v;},render:()=>renderShop(),wrap:f=>{_renderShop=f(_renderShop);},openM:id=>openM(id),closeM:id=>closeM(id),toast:(h,ms)=>toast(h,ms),uiOpt:(k,d)=>uiOpt(k,d),adm:()=>balTabOk()};
 /* v182 🧪 관리자 › 테스트 기능 — 시안 C: 켜진 것/전체 · 분류 · 끄기/나만/모두에게 · 정식 기능으로 (세부 설정 상자와 예전 목록은 아래 접기 안에 그대로) */
 {const LC={f:'on',c:'',q:'',open:{}};
  const CATS=[['first','처음 유저','#5b3fa6',/처음|가이드|튜토|tut|guide|wel|할아버지/i],['veh','탈것 · 펫','#2e7a46',/탈것|펫|veh|pet|turtle|거북|boats|배 |요트|ufo/i],['tank','어항 · 합성 · 요리','#8a6510',/어항|합성|요리|음식|tank|fuse|정수|cook/i],['map','맵 · 날씨','#2f7a8a',/맵|날씨|운하|달 |하늘|map|wx|sea|moon|sky|눈|비 |오로라|연등/i],['fish','낚시','#b5532a',/낚시|미끼|낚싯대|rod|bait|입질|챔질|reel/i],['ui','화면 · 메뉴','#2f5b9a',/화면|메뉴|ui|hud|버튼|창|채팅|카드|lay/i]];
