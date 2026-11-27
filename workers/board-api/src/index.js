@@ -119,6 +119,8 @@ async function ensureSchema(db) {
     "ALTER TABLE wishes ADD COLUMN m TEXT NOT NULL DEFAULT 'canal'",
     // v172: 게스트 닉네임 번호 (나1, 나2 …) — 한 줄짜리 카운터
     'CREATE TABLE IF NOT EXISTS guestseq (id INTEGER PRIMARY KEY, n INTEGER NOT NULL)',
+    // v235: 🔒 닉네임 고정 — 처음 정한 닉네임을 기기(owner 해시)·저장 코드와 묶어 둬요 (다른 사람이 같은 닉네임으로 시작하지 못하게)
+    "CREATE TABLE IF NOT EXISTS nicks (nk TEXT PRIMARY KEY, nick TEXT NOT NULL, code TEXT NOT NULL DEFAULT '', owner TEXT NOT NULL, at INTEGER NOT NULL)",
   ];
   for (const sql of tries) { try { await db.prepare(sql).run(); } catch (e) { /* 이미 있음 */ } }
   schemaReady = true;
@@ -383,6 +385,9 @@ export default {
         if (!mine) return bad('no save', 400, origin);
         const had = await db.prepare('SELECT code FROM accounts WHERE nk=?').bind(nk).first();
         if (had && had.code !== mine.code) return bad('taken', 409, origin);
+        // v235: 다른 사람이 정해 둔(고정한) 닉네임으로는 계정을 만들 수 없어요
+        const cl = await db.prepare('SELECT code, owner FROM nicks WHERE nk=?').bind(nk).first();
+        if (cl && cl.owner !== me && cl.code !== mine.code) return bad('taken', 409, origin);
         const salt = crypto.randomUUID(), now = Date.now();
         await db.prepare('INSERT INTO accounts (nk,nick,salt,ph,code,created_at,updated_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(nk) DO UPDATE SET salt=excluded.salt, ph=excluded.ph, nick=excluded.nick, updated_at=excluded.updated_at, fails=0, lock_until=0')
           .bind(nk, nick, salt, await pinHash(String(body.pin), salt), mine.code, now, now).run();
@@ -421,6 +426,26 @@ export default {
           if (!had) return json({ ok: true, nick }, 200, origin);
         }
         return json({ ok: true, nick: '나' + (10000 + Math.floor(Math.random() * 89999)) }, 200, origin);
+      }
+      // v235: 🔒 닉네임 확인 · 차지 — 계정 닉네임이거나 다른 사람(다른 기기·다른 저장 코드)이 이미 정한 닉네임이면 쓸 수 없어요
+      if ((path === '/nick/check' && request.method === 'GET') || (path === '/nick/claim' && request.method === 'POST')) {
+        const claim = path === '/nick/claim';
+        const body = claim ? await request.json().catch(() => ({})) : {};
+        const nick = cleanNick(claim ? body.nick : url.searchParams.get('nick')), nk = nickKey(nick);
+        if (!nk || nick === '낚시꾼' || profane(nick) || /^나\d{1,8}$/.test(nick)) return claim ? bad('nick', 400, origin) : json({ ok: true, free: false, bad: true }, 200, origin);
+        const xc = cleanCode(request.headers.get('X-Code'));
+        const acc = await db.prepare('SELECT code FROM accounts WHERE nk=?').bind(nk).first();
+        const cl = await db.prepare('SELECT code, owner FROM nicks WHERE nk=?').bind(nk).first();
+        const mineAcc = !acc || (xc && acc.code === xc);
+        const mineCl = !cl || (me && cl.owner === me) || (xc && cl.code && cl.code === xc);
+        const free = !!(mineAcc && mineCl);
+        if (!claim) return json({ ok: true, free }, 200, origin);
+        if (!me) return bad('owner required', 400, origin);
+        if (!free) return json({ ok: false, error: 'taken' }, 409, origin);
+        const now = Date.now();
+        await db.prepare('INSERT INTO nicks (nk,nick,code,owner,at) VALUES (?,?,?,?,?) ON CONFLICT(nk) DO UPDATE SET nick=excluded.nick, code=CASE WHEN excluded.code<>\'\' THEN excluded.code ELSE nicks.code END, owner=excluded.owner, at=excluded.at')
+          .bind(nk, nick, xc || (cl && cl.code) || '', me, now).run();
+        return json({ ok: true, nick }, 200, origin);
       }
       if (path === '/accounts/check' && request.method === 'GET') {
         const nick = cleanNick(url.searchParams.get('nick')), nk = nickKey(nick);

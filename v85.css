@@ -1441,3 +1441,8 @@ body:has(.modal.show) #toast:has(.cc){z-index:auto}
 .st2{color:#a463ff!important;text-shadow:0 0 4px rgba(164,99,255,.55)}
 /* v232: 장착 칸 낚싯대 별 + 강화 수치가 좁은 폰 칸에서 잘리지 않게 */
 .bag31 .dslot.rod .dl{letter-spacing:-1.2px;font-size:8.5px;text-overflow:clip}
+/* v235: 🌙 달·⛵ 운하 이어하기 — 서버만 골라도 그 맵에서 시작 (안내 줄 + 호숫가 링크) */
+#stV2 .sx2mapk{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:16px;background:#f3efff;border:1.5px dashed #cbbff2;color:#3a3340}
+#stV2 .sx2mapk .sx2no{font-size:20px}
+#stV2 .sx2card .sx2lnk.sx2lake{color:#7a6e8a;text-shadow:none;font-size:13px;font-weight:700;padding:2px 8px;align-self:center}
+@media (max-height:700px){#stV2 .sx2mapk{padding:6px 14px}}

@@ -1152,6 +1152,8 @@ export function sanitizePlay(input, prev, opt) {
   // v233: 📱 모바일 자동 화질 · 💧 물 셰이더 최적화
   if ("mobPerf" in input) out.mobPerf = pickOf(input.mobPerf, ["on", "off"]);
   if ("waterLite" in input) out.waterLite = pickOf(input.waterLite, ["on", "off"]);
+  if ("mapKeep" in input) out.mapKeep = pickOf(input.mapKeep, ["on", "off"]);
+  if ("nickLock" in input) out.nickLock = pickOf(input.nickLock, ["on", "off"]);
   if ("xmasEv" in input) out.xmasEv = pickOf(input.xmasEv, ["auto", "on", "off"]); // v202 🎄 크리스마스 한정 캐릭터 이벤트
   /* v200: 합성판 레벨 기준 (누적 합성 l2회 → 6×6, l3회 → 7×7) */
   if ("mbLvCfg" in input) { const v = input.mbLvCfg, o = {}; if (v && typeof v === "object") { const a = Math.round(Number(v.l2)), b = Math.round(Number(v.l3)); if (Number.isFinite(a) && a >= 1) o.l2 = Math.min(1e7, a); if (Number.isFinite(b) && b >= 1) o.l3 = Math.min(1e7, b); if (o.l2 && o.l3 && o.l3 <= o.l2) o.l3 = Math.min(1e7, o.l2 + 1); } out.mbLvCfg = o; }
