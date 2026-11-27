@@ -1759,7 +1759,7 @@ const ACC={err:{nick:'닉네임을 확인해 주세요',pin:'비밀번호는 숫
 window.NK_ACC=ACC;
 // v162: 자동 접속할 때 — 같은 저장 코드를 쓰는 다른 브라우저가 더 나중에 저장했으면 그 진행을 먼저 받아와요
 (async()=>{try{if(window.NK_PREV)return;const c=SV.code();if(!c)return;window.__nkPulling=1;const ac=new AbortController();setTimeout(()=>ac.abort(),6000);const r=await fetch(SV.api()+'/saves/'+encodeURIComponent(c),{headers:{'X-Owner':SV.cid()},signal:ac.signal});const j=await r.json().catch(()=>null);if(!r.ok||!j||!j.ok)return;
- const srvAt=savedAtOf(j.data),newer=srvAt>(+S.savedAt||0)+2000;/* v164: 서버 진행이 이 기기 진행보다 실제로 나중일 때만 불러와요 */if(!newer){SV.setAt(j.updated_at);return;}
+ const srvAt=savedAtOf(j.data),other=!!(j.other&&+j.updated_at>SV.at()+1500&&srvAt!==(+S.savedAt||0)),newer=srvAt>(+S.savedAt||0)+2000||other;/* v164: 서버 진행이 이 기기 진행보다 실제로 나중일 때만 불러와요 · v235: 이 기기가 마지막으로 받은 뒤 다른 기기가 저장했으면(옛 창) 서버 진행을 받아요 — 이 기기 진행은 nk_conflict_bak 에 남겨요 */if(other){try{localStorage.setItem('nk_conflict_bak',JSON.stringify({at:Date.now(),code:c,data:JSON.stringify(S)}));}catch(e){}}if(!newer){SV.setAt(j.updated_at);return;}
  const o=JSON.parse(j.data);if(!o||typeof o.coins!=='number')return;if(started){staleTab('other');return;}SV.pend={code:c,at:+j.updated_at};applySaveObj(o);_myAt=+S.savedAt||_myAt;try{window.NK_STREFRESH&&NK_STREFRESH();}catch(e){}toast('☁️ 다른 브라우저에서 한 진행을 불러왔어요',2600);}catch(e){}finally{window.__nkPulling=0;}})();
 // v165: 간편 로그인(구글·카카오) · QR 기기 연결 — 모두 '저장 코드'로 바뀌어서 기존 코드 불러오기 흐름을 그대로 써요
 const AUTHX=(()=>{const CFG={g:'1039496411057-0qkrtdd0qq48ej9idg3kdelhsvobuqua.apps.googleusercontent.com',k:'cfac3ce1979cba2c5ce3d2a8118b7d60',n:'hXnhwedFOB4_A27rt438'};const X={CFG,

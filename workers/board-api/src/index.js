@@ -120,6 +120,8 @@ async function ensureSchema(db) {
     // v172: 게스트 닉네임 번호 (나1, 나2 …) — 한 줄짜리 카운터
     'CREATE TABLE IF NOT EXISTS guestseq (id INTEGER PRIMARY KEY, n INTEGER NOT NULL)',
     // v235: 🔒 닉네임 고정 — 처음 정한 닉네임을 기기(owner 해시)·저장 코드와 묶어 둬요 (다른 사람이 같은 닉네임으로 시작하지 못하게)
+    // v235: 마지막으로 저장한 기기(owner 해시) — 다른 기기가 그 뒤에 저장했으면 옛 창이 덮어쓰지 못하게
+    'ALTER TABLE saves ADD COLUMN wr TEXT',
     "CREATE TABLE IF NOT EXISTS nicks (nk TEXT PRIMARY KEY, nick TEXT NOT NULL, code TEXT NOT NULL DEFAULT '', owner TEXT NOT NULL, at INTEGER NOT NULL)",
   ];
   for (const sql of tries) { try { await db.prepare(sql).run(); } catch (e) { /* 이미 있음 */ } }
@@ -281,27 +283,29 @@ export default {
         // v162: 저장 코드로 이어 하는 기기들은 같은 저장 칸을 함께 써요 (코드 = 열쇠). 다른 기기가 더 나중에 저장했으면 덮어쓰지 않고 알려요
         const xc = cleanCode(request.headers.get('X-Code'));
         if (xc) {
-          const row = await db.prepare('SELECT code, updated_at, data FROM saves WHERE code=?').bind(xc).first();
+          const row = await db.prepare('SELECT code, updated_at, data, wr FROM saves WHERE code=?').bind(xc).first();
           if (row) {
             const base = Number(body.base) || 0;
+            // v235: 내가 마지막으로 받은 뒤(base)에 '다른 기기'가 저장했으면 옛 창이에요 → 덮어쓰지 않고 알려요 (내 저장 응답만 못 받은 경우는 wr 이 나라서 통과)
+            if (base && row.updated_at > base + 1500 && row.wr && row.wr !== me) return json({ ok: false, error: 'newer', code: xc, updated_at: row.updated_at }, 409, origin);
             // v164: 시간만 보면 휴대폰이 닫히며 응답을 못 받은 '자기 저장'까지 다른 기기로 착각해요 → 서버 진행(savedAt)이 실제로 더 나중일 때만 거부
             const sa = t => { const m = t && /"savedAt":(\d+)/.exec(t); return m ? +m[1] : 0; };
-            if (base && row.updated_at > base + 1500 && sa(row.data) > sa(data) + 2000) return json({ ok: false, error: 'newer', code: xc, updated_at: row.updated_at }, 409, origin);
-            await db.prepare('UPDATE saves SET data=?, size=?, updated_at=? WHERE code=?').bind(data, data.length, now, xc).run();
+            if (base && row.updated_at > base + 1500 && !row.wr && sa(row.data) > sa(data) + 2000) return json({ ok: false, error: 'newer', code: xc, updated_at: row.updated_at }, 409, origin);
+            await db.prepare('UPDATE saves SET data=?, size=?, updated_at=?, wr=? WHERE code=?').bind(data, data.length, now, me, xc).run();
             await snapSave(db, xc, data, now);
             return json({ ok: true, code: xc, updated_at: now }, 200, origin);
           }
         }
         const mine = await db.prepare('SELECT code FROM saves WHERE owner=? ORDER BY updated_at DESC LIMIT 1').bind(me).first();
         if (mine) {
-          await db.prepare('UPDATE saves SET data=?, size=?, updated_at=? WHERE code=?').bind(data, data.length, now, mine.code).run();
+          await db.prepare('UPDATE saves SET data=?, size=?, updated_at=?, wr=? WHERE code=?').bind(data, data.length, now, me, mine.code).run();
           await snapSave(db, mine.code, data, now);
           return json({ ok: true, code: mine.code, updated_at: now }, 200, origin);
         }
         let code = '';
         for (let i = 0; i < 5 && !code; i++) { const c = newCode(); const hit = await db.prepare('SELECT code FROM saves WHERE code=?').bind(c).first(); if (!hit) code = c; }
         if (!code) return bad('try again', 503, origin);
-        await db.prepare('INSERT INTO saves (code,owner,data,size,created_at,updated_at) VALUES (?,?,?,?,?,?)').bind(code, me, data, data.length, now, now).run();
+        await db.prepare('INSERT INTO saves (code,owner,data,size,created_at,updated_at,wr) VALUES (?,?,?,?,?,?,?)').bind(code, me, data, data.length, now, now, me).run();
         await snapSave(db, code, data, now);
         return json({ ok: true, code, updated_at: now }, 201, origin);
       }
@@ -309,9 +313,10 @@ export default {
       if (saveOne && request.method === 'GET') {
         const code = cleanCode(decodeURIComponent(saveOne[1]));
         if (!code) return bad('bad code', 400, origin);
-        const row = await db.prepare('SELECT data, updated_at FROM saves WHERE code=?').bind(code).first();
+        const row = await db.prepare('SELECT data, updated_at, wr FROM saves WHERE code=?').bind(code).first();
         if (!row) return bad('not found', 404, origin);
-        return json({ ok: true, code, data: row.data, updated_at: row.updated_at }, 200, origin);
+        // v235: other = 마지막 저장이 다른 기기에서였어요 (이 기기는 그 진행을 받아야 해요)
+        return json({ ok: true, code, data: row.data, updated_at: row.updated_at, other: !!(row.wr && me && row.wr !== me) }, 200, origin);
       }
       // v56: 관리자 — 닉네임으로 저장 코드 찾기 (계정 복구용)
       if (path === '/saves/find' && request.method === 'GET') {
