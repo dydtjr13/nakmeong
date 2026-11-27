@@ -1158,8 +1158,9 @@ export function sanitizePlay(input, prev, opt) {
   /* v200: 합성판 레벨 기준 (누적 합성 l2회 → 6×6, l3회 → 7×7) */
   if ("mbLvCfg" in input) { const v = input.mbLvCfg, o = {}; if (v && typeof v === "object") { const a = Math.round(Number(v.l2)), b = Math.round(Number(v.l3)); if (Number.isFinite(a) && a >= 1) o.l2 = Math.min(1e7, a); if (Number.isFinite(b) && b >= 1) o.l3 = Math.min(1e7, b); if (o.l2 && o.l3 && o.l3 <= o.l2) o.l3 = Math.min(1e7, o.l2 + 1); } out.mbLvCfg = o; }
   if ("stRate" in input) { const n = Math.round(Number(input.stRate)); out.stRate = Number.isFinite(n) ? Math.max(10000, Math.min(100000000, n)) : 300000; }
-  if ("guideV2" in input) out.guideV2 = pickOf(input.guideV2, ["off", "new"]);
-  if ("guideMe" in input) out.guideMe = pickOf(input.guideMe, ["off", "on"]);
+  if ("guideGen" in input) { const n = Math.round(Number(input.guideGen)); out.guideGen = Number.isFinite(n) ? Math.max(0, Math.min(9999, n)) : 0; }
+  if ("guideV2" in input) { out.guideV2 = pickOf(input.guideV2, ["off", "new"]); if ((out.guideGen | 0) < 245) out.guideGen = 245; }
+  if ("guideMe" in input) { out.guideMe = pickOf(input.guideMe, ["off", "on"]); if ((out.guideGen | 0) < 245) out.guideGen = 245; }
   if ("fzGrade" in input) out.fzGrade = pickOf(input.fzGrade, ["on", "off"]);
   if ("robotTkP" in input) out.robotTkP = pickOf(input.robotTkP, ["1", "0.3", "0.5", "2", "5", "0"]);
   if ("seaLay" in input) out.seaLay = pickOf(input.seaLay, ["cur", "A", "B", "C"]);
@@ -1315,6 +1316,11 @@ export function sanitizePlay(input, prev, opt) {
   const bump = !!(opt && opt.bump);
   out.rev = bump ? ((base.rev | 0) + 1) : Math.max(0, Math.round(finite(input.rev, base.rev || 0)));
   out.at = bump ? now : Math.max(0, Math.round(finite(input.at, base.at || 0)));
+  // v245: 예전 서버 값(guideV2=new, guideMe=on)은 꺼진 것으로 내려 보내요. 관리자가 이 버전 이후 다시 저장하면 guideGen>=245 이라 그대로 켜져요.
+  if ((out.guideGen | 0) < 245) {
+    if (out.guideV2 === "new") out.guideV2 = "off";
+    if (out.guideMe === "on") out.guideMe = "off";
+  }
   return out;
 }
 

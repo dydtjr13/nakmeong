@@ -949,3 +949,28 @@ test("v243: petRide2/resumePos2 keep on/off only and old keys stay untouched", (
   const bad = sanitizePlay({ petRide2: "maybe" }, null, { bump: true, now });
   assert.ok(bad.petRide2 === undefined || ["on", "off"].includes(bad.petRide2));
 });
+
+test("v245: stale guideV2/guideMe are forced off until guideGen>=245", () => {
+  const now = Date.now();
+  const stale = sanitizePlay({ guideV2: "new", guideMe: "on" }, null, { bump: true, now });
+  // input includes the keys so guideGen is stamped 244 — that's a *new* save. Check prev-only path:
+  const stored = { guideV2: "new", guideMe: "on", duckOn: 1 };
+  const read = sanitizePlay({}, stored, { bump: false, now });
+  assert.equal(read.guideV2, "off");
+  assert.equal(read.guideMe, "off");
+  assert.ok((read.guideGen | 0) < 245);
+  const again = sanitizePlay({ moveOn: true }, stored, { bump: true, now });
+  assert.equal(again.guideV2, "off");
+  assert.equal(again.guideMe, "off");
+  const reon = sanitizePlay({ guideV2: "new" }, again, { bump: true, now: now + 1 });
+  assert.equal(reon.guideV2, "new");
+  assert.equal(reon.guideGen, 245);
+  const me = sanitizePlay({ guideMe: "on", guideGen: 245 }, reon, { bump: true, now: now + 2 });
+  assert.equal(me.guideMe, "on");
+  assert.equal(me.guideGen, 245);
+  const staleNew = sanitizePlay({ guideV2: "new", guideMe: "on" }, null, { bump: true, now });
+  // explicitly saving the key in this version stamps guideGen and keeps the value
+  assert.equal(staleNew.guideV2, "new");
+  assert.equal(staleNew.guideMe, "on");
+  assert.equal(staleNew.guideGen, 245);
+});

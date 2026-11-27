@@ -81,7 +81,7 @@
       .then(function (j) {
         if (j && j.play && typeof j.play === 'object') {
           try { localStorage.setItem('nk_play_cache', JSON.stringify(j.play)); } catch (e) {}
-          var pk = PK[j.play.mapSt];
+          var pk = PK[j.play.mapSt || 'X'];
           if (pk) { var l = document.createElement('link'); l.rel = 'preload'; l.as = 'script'; l.href = 'assets/' + pk + '.js?v59'; document.head.appendChild(l); }
         }
         return j;
