@@ -12,7 +12,7 @@ const D=NK_DATA,$=id=>document.getElementById(id),qs=new URLSearchParams(locatio
 // v25: 낚싯대 설명의 옛 "(옵션 N슬롯)"·"랜덤 옵션 1" 문구 정리 (실제 추가옵션 슬롯은 상점 카드에 따로 표기)
 D.RODS.forEach(r=>{if(r.desc)r.desc=r.desc.replace(/\s*\(옵션 \d+슬롯\)/,"").replace(/\s*·\s*🎲랜덤 옵션 1/,"");});
 // v12 시안용 숨김 파라미터: ?mock30&decks=30&lr=32&lay=ring|alt|bay (기본 게임은 20데크·LR 24 그대로)
-const CFG=Object.assign({lay:'a',bots:9},JSON.parse(localStorage.getItem('nk_cfg')||'{}'));const LAYS={a:['ring',32],b:['alt',26],c:['bay',29],o:['ring',24]};
+const CFG=Object.assign({lay:'a',bots:9,deckW:'W1'},JSON.parse(localStorage.getItem('nk_cfg')||'{}'));/* v243: 데크 모양 기본 = 지금 서버에 적용된 W1 (전체 넓게) */const LAYS={a:['ring',32],b:['alt',26],c:['bay',29],o:['ring',24]};
 // v121: 🌙 하늘섬 채널은 따로 된 작은 섬 맵으로 불러와요 (탭에 「하늘섬」 표시가 있을 때만 · 원래 설정은 그대로 저장)
 /* v211: 재접속하면 마지막 맵(🌙 달 7 · ⛵ 운하 20)에서 다시 시작해요 — 예전엔 맵 정보가 이 탭(sessionStorage)에만 있어서 창을 닫고 다시 열면 늘 호숫가였어요.
    · 마지막 맵은 기기(localStorage nk_lastMap · 계정 칸마다 따로)에 남겨요 · 이 탭에서 이미 정한 맵(nk_mapTab)이 있으면 그대로 써요
@@ -31,7 +31,7 @@ const SKYBOOT=(()=>{try{return sessionStorage.getItem('nk_sky')==='1';}catch(e){
 /* v151 ⛵ 운하 (테스트) — 실시간 방 20 */const SEABOOT=(()=>{try{return !SKYBOOT&&sessionStorage.getItem('nk_sea')==='1';}catch(e){return false;}})();
 if(SKYBOOT){const real={lay:CFG.lay,decks:CFG.decks,bots:CFG.bots,deckW:CFG.deckW};LAYS.sky=['ring',13];const _mt=(()=>{try{return sessionStorage.getItem('nk_moonT');}catch(e){return '';}})();Object.assign(CFG,{lay:'a',decks:25,bots:0,deckW:real.deckW&&window.NK_DECKW&&NK_DECKW[real.deckW]?real.deckW:'W1'});
  try{const _si=Storage.prototype.setItem;Storage.prototype.setItem=function(k,v){if(k==='nk_cfg'){try{const o=JSON.parse(v);Object.assign(o,real);for(const x in real)if(real[x]===undefined)delete o[x];v=JSON.stringify(o);}catch(e){}}return _si.call(this,k,v);};}catch(e){}}
-const BOOT={lay:'a',deckW:'',decks:25,bots:9,chN:4};
+const BOOT={lay:'a',deckW:'W1',decks:25,bots:9,chN:4};
 // v79: 🧪 4인용 데크를 켜면 관리자 맵의 '데크 폭' 설정(넓은 데크)보다 먼저 적용해요 — 넓은 데크가 켜져 있으면 4인용이 꺼져 보이던 문제
 // v85: 🧪 데크 어항 위치 B — 어항을 데크 입구 쪽 양옆으로, 의자 쪽(안쪽)을 보게 돌려 놓아요. 바꾸면 새로고침해야 적용
 function DTKBOOT(){const ok=v=>v!=null&&v!=='';try{const sv=JSON.parse(localStorage.getItem(localStorage.getItem('nk_solo')!=='0'?'nakmeong_solo':'nakmeong_v2')||'{}');if(ok(sv.deckTank))return String(sv.deckTank);}catch(e){}try{const pc=JSON.parse(localStorage.getItem('nk_play_cache')||'null');if(pc&&ok(pc.deckTank))return String(pc.deckTank);}catch(e){}return 'off';}
@@ -180,7 +180,9 @@ function afExpire(){if(afOK()){_afNote=0;return false;}if(!S.autoFish)return fal
 /* v155: 다시 접속하면 자동 낚시는 꺼진 채로 시작해요 */if(S.autoFish)S.autoFish=false;
 function lvBaitOK(k){return myLv()>=(LV.baits[k]||1)||lvK().baits.includes(k);}
 function lvCharReq(i){if(typeof KINDS==='undefined')return 1;const K=KINDS[i];return (K&&K.lv)||1;}
-function lvCharOK(i){const K=typeof KINDS!=='undefined'&&KINDS[i];if(K&&K.xev)return xmOwn(K.xev);if(K&&K.tk)return chTkUsed(K.tk)||String(uiOpt('mythChar','off'))==='on';return myLv()>=lvCharReq(i)||lvK().chars.includes(i);}
+/* v243: 🤖 로봇 등 이용권 캐릭터는 이용권을 쓴 사람만 골라요. 「로봇 바로 열기」는 관리자로 로그인한 화면에서만, 관리자가 내 화면에 켰을 때만 통해요 (서버 공유값은 무시) */
+function mythAdmOK(){try{const R=window.NK_RT;if(!(R&&R.isAdmin&&R.isAdmin()&&R.status&&R.status()==='on'))return false;const v=(S.mythChar!=null&&S.mythChar!=='')?S.mythChar:(typeof nkAdm==='function'?(nkAdm()||{}).mythChar:null);return String(v)==='on';}catch(e){return false;}}
+function lvCharOK(i){const K=typeof KINDS!=='undefined'&&KINDS[i];if(K&&K.xev)return xmOwn(K.xev);if(K&&K.tk)return chTkUsed(K.tk)||mythAdmOK();return myLv()>=lvCharReq(i)||lvK().chars.includes(i);}
 /* v172: 🎫 캐릭터 이용권 (로봇) — 신화 상자에서 드물게 한 번만 나오고, 사용하면 그 캐릭터가 열려요 */
 const chTk=()=>(S.ctk&&typeof S.ctk==='object')?S.ctk:(S.ctk={}),chTkUsed=k=>!!(chTk()[k]&&chTk()[k].used),chTkHave=k=>!!(chTk()[k]&&chTk()[k].got&&!chTk()[k].used);
 function lvCharLk(i){const K=typeof KINDS!=='undefined'&&KINDS[i];if(K&&K.xev)return xmLk(K);if(K&&K.tk)return chTkHave(K.tk)?'🎫 이용권 사용':'🎫 이용권';return 'Lv.'+lvCharReq(i);}
@@ -3940,6 +3942,102 @@ V14=(()=>{
   const ks=Object.keys(S.schGot);if(ks.length>80)ks.slice(0,ks.length-80).forEach(k=>delete S.schGot[k]);}catch(e){console.warn('[sched gift]',e);}},5000);
  addEventListener('nk-rt-sched',()=>{try{showEvPill();}catch(e){}const adm=$('admin');if(adm&&adm.classList.contains('show')&&AD.tab==='ev'){try{keepScroll('admin',admin);}catch(e){}}});
  setInterval(()=>{try{showEvPill();}catch(e){}},30000);
+ /* v243: 🛠 관리자 모드 7묶음. 원래 있던 탭(AD.tab)과 그 안의 설정·적용 버튼·운영자 권한은 그대로 두고, 화면만 「묶음 › 하위 메뉴(AD.view)」로 나눠 보여 줘요. 서버 설정 키·API는 하나도 바뀌지 않아요 */
+ const AG=[['home','🏠','홈'],['ops','📢','운영'],['usr','👥','유저·안전'],['shop','💰','상점·밸런스'],['env','🗺️','맵·환경'],['feat','🎨','기능·화면'],['dev','🔧','개발자·실험실']];
+ const ADEVK=['tankHide','dcOpt','mbInf','ncPick','guideMe'];
+ const AV=[
+  ['dash','home','대시보드','dash',{}],
+  ['ann','ops','서버 공지','ann',{b:'all'}],
+  ['ev','ops','이벤트·보상','ev',{b:'all'}],
+  ['user','usr','유저 찾기·지급·제재','user',{}],
+  ['rep','usr','신고·도배','rep',{}],
+  ['rec','usr','아이템 복구','rec',{}],
+  ['title','usr','특별 칭호','title',{b:'all'}],
+  ['prof','usr','비속어 필터','prof',{b:'all'}],
+  ['op','usr','운영자 권한','op',{}],
+  ['bal','shop','상자·부적·어종','bal',{b:'all'}],
+  ['price','shop','상점 가격','lab',{b:'all',pick:['아이템 가격','행운 상자 가격','상점 장비 가격']}],
+  ['grow','shop','경험치·레벨·확률','lab',{b:'all',pick:['경험치 · 아이템 밸런스','착용 레벨','합성판 레벨 기준','펫 골드 주머니 확률']}],
+  ['vpm','shop','펫·탈것·미션','lab',{b:'all',pick:['펫 설정','탈것 설정','미션 설정']}],
+  ['fare','shop','기차 요금','lab',{b:'all',pick:['기차 요금 설정']}],
+  ['speed','shop','이동 속도','test',{b:'all',pick:['이동 속도']}],
+  ['time','env','시간·날씨','time',{b:'all'}],
+  ['map','env','맵·데크','map',{b:'all'}],
+  ['bots','env','AI 이웃','lab',{b:'all',pick:['AI 이웃']}],
+  ['scene','env','눈·배경음악','lab',{b:'all',pick:['눈 스타일 설정','배경음악']}],
+  ['duck','env','오리','duck',{b:'all'}],
+  ['feat','feat','기능 켜기·끄기','lab',{pick:['.labC'],rows:'main',hide:['.lcgr']}],
+  ['look','feat','화면 디자인','look',{hide:['디버그'],old:1}],
+  ['noti','feat','알림·인게임 적용','test',{b:'all',pick:['인게임 적용','알림(토스트)','이벤트 알림 스타일']}],
+  ['first','feat','첫 화면·환영 문구','lab',{b:'all',pick:['환영 문구','유저 처음 화면 배치']}],
+  ['dtool','dev','테스트 도구','test',{b:'me',pick:['레벨 테스트','컷인 테스트','UI 편집 모드','게시판 스타일']}],
+  ['ddbg','dev','디버그','look',{b:'me',pick:['디버그']}],
+  ['dlab','dev','실험 기능·정식 목록','lab',{pick:['.labC'],rows:'dev'}],
+  ['dload','dev','부하·편집기','lab',{pick:['.stadm','접속 부하 테스트','탈것·캐릭터 편집기']}],
+  ['dold','dev','예전 목록','lab',{pick:['.labsum','.labtry','.labapplied']}]];
+ const ADEF={lab:'feat',test:'dtool',look:'look'};
+ const AKW={price:'낚싯대 가격 미끼 가격 어항 가격 상점 가격 장비 가격 행운 상자',grow:'경험치 레벨 착용 레벨 합성판 골드 주머니 확률',vpm:'펫 탈것 미션',fare:'기차 요금 기차표',speed:'이동 속도 걷기 속도',bal:'상자 확률 부적 어종 밸런스',time:'시간 날씨 하루 길이 낮 밤 비 눈',map:'맵 데크 배치 테마 크리스마스',bots:'AI 이웃 봇',scene:'눈 스타일 배경음악 BGM 음악',duck:'오리',ann:'공지 서버 공지',ev:'이벤트 배율 보상 지급 지금 바로 시작',user:'유저 검색 정지 채팅 금지 지급 제재 닉네임',rep:'신고 도배',rec:'복구 아이템 복구',title:'칭호',prof:'비속어 욕설 필터',op:'운영자 권한 운영자 추가',feat:'기능 켜기 끄기 실험 테스트 기능',look:'화면 디자인 시안 레이아웃 팝업 HUD',noti:'알림 토스트 인게임 적용 이벤트 알림',first:'환영 문구 처음 화면',dtool:'레벨 테스트 컷인 UI 편집 게시판',ddbg:'디버그',dlab:'정식 기능 졸업 개발',dload:'부하 테스트 편집기 초월',dold:'예전 목록 적용 중 시험 중'};
+ const ae=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+ const admVs=tabs=>{const ok=new Set(tabs.map(t=>t[0]));return AV.filter(v=>ok.has(v[3]));};
+ function admCur(){const v=AV.find(v=>v[0]===AD.view);if(v&&v[3]===AD.tab)return v;const d=ADEF[AD.tab]||AD.tab;const w=AV.find(v=>v[0]===d)||AV.find(v=>v[3]===AD.tab);if(w)AD.view=w[0];return w||null;}
+ const ABADGE={all:'<span class="adbg all">🌐 바꾸면 모든 유저에게</span>',me:'<span class="adbg me">👤 내 화면에만</span>'};
+ function admNavHTML(tabs){const V=admVs(tabs),cur=admCur();const gs=AG.filter(g=>V.some(v=>v[1]===g[0]));
+  return `<nav class="adg">${gs.map(g=>{const vs=V.filter(v=>v[1]===g[0]),on=!!(cur&&cur[1]===g[0]),dev=g[0]==='dev',open=dev?(on||!!AD.devOpen):on;
+   return `<div class="adgg${on?' on':''}${dev?' dev':''}${open?' open':''}"><button type="button" class="adgh" data-ag="${g[0]}"><span>${g[1]}</span><b>${g[2]}</b>${dev?`<i>${open?'▾':'▸'}</i>`:`<em>${vs.length>1?vs.length:''}</em>`}</button><div class="adgs">${vs.map(v=>`<button type="button" data-av="${v[0]}"${cur&&cur[0]===v[0]?' class="on"':''}>${v[2]}</button>`).join('')}</div></div>`;}).join('')}</nav>`;}
+ function admH2(tabs){const v=admCur();if(!v)return `<h2>${TI[AD.tab]||''} ${(tabs.find(t=>t[0]===AD.tab)||['',''])[1]}</h2>`;const g=AG.find(g=>g[0]===v[1]);
+  return `<h2 class="adh2"><small class="adbc">${g[1]} ${g[2]} ›</small> ${v[2]} ${ABADGE[(v[4]||{}).b]||''}</h2>${v[0]==='dash'?'<p class="adtip">💡 정지·채팅 금지는 분 단위예요. 600 = 10시간, 14,400 = 10일 · 위 🔍 칸에 설정 이름을 쳐서 바로 찾을 수 있어요</p>':''}${v[1]==='dev'?'<p class="adtip dev">🔧 개발·테스트용 모음이에요. 대부분 내 화면에만 적용되고, 일반 운영에는 쓰지 않아도 돼요</p>':''}`;}
+ const admFindHTML=()=>`<div class="adfind"><input type="search" id="admFind" placeholder="🔍 설정 찾기 (예: 기차 요금)" autocomplete="off" value="${ae(AD.fq||'')}"><div class="adfr" id="admFindR"></div></div>`;
+ function admIdx(tabs){const V=admVs(tabs),ok=new Set(V.map(v=>v[0])),out=[];const G=AG.reduce((o,g)=>(o[g[0]]=g,o),{});
+  V.forEach(v=>{out.push({t:v[2],s:G[v[1]][1]+' '+G[v[1]][2],v:v[0],w:v[2]+' '+(AKW[v[0]]||'')});const p=(v[4]||{}).pick;if(p)p.forEach(n=>{if(n[0]!=='.')out.push({t:n,s:G[v[1]][2]+' › '+v[2],v:v[0],q:n,w:n});});});
+  try{const gr=typeof window.__nkLabG==='function'?window.__nkLabG():{};(typeof LAB!=='undefined'?LAB:[]).forEach(x=>{const dv=ADEVK.includes(x.k)||gr[x.k]?'dlab':'feat';if(!ok.has(dv))return;const n=String(x.n||x.k);out.push({t:n,s:(dv==='feat'?'기능 켜기·끄기':'실험 기능·정식 목록')+(gr[x.k]?' (정식)':''),v:dv,lab:n.replace(/^[^0-9A-Za-z가-힣]+/,'').trim(),w:n+' '+x.k});});}catch(e){}
+  return out;}
+ function admGo(k,extra){const v=AV.find(v=>v[0]===k);if(!v)return;AD.view=k;AD.tab=v[3];Object.assign(AD,extra||{});uwClose();AD.back=null;if(v[1]==='dev')AD.devOpen=1;keepScroll('admin',admin);const b=$('admin')&&$('admin').querySelector('main.adb');if(b&&!(extra&&(extra.findT||extra.findLab)))b.scrollTop=0;}
+ function admNavBind(m,tabs){m.querySelectorAll('[data-av]').forEach(b=>b.onclick=()=>admGo(b.dataset.av));
+  m.querySelectorAll('[data-ag]').forEach(b=>b.onclick=()=>{const g=b.dataset.ag,V=admVs(tabs).filter(v=>v[1]===g),cur=admCur();if(g==='dev'&&innerWidth>700&&!(cur&&cur[1]==='dev')){AD.devOpen=!AD.devOpen;keepScroll('admin',admin);return;}if(cur&&cur[1]===g)return;if(V[0])admGo(V[0][0]);});
+  const fi=m.querySelector('#admFind'),fr=m.querySelector('#admFindR');if(fi&&fr){let idx=null,hits=[];const nz=s=>String(s).toLowerCase().replace(/\s+/g,'');
+   const show=()=>{const q=nz(fi.value);AD.fq=fi.value;if(!q){fr.innerHTML='';fr.classList.remove('show');return;}idx=idx||admIdx(tabs);hits=idx.filter(e=>nz(e.w).includes(q)).sort((a,b)=>(nz(a.t).includes(q)?0:1)-(nz(b.t).includes(q)?0:1)).slice(0,12);
+    fr.innerHTML=hits.length?hits.map((e,i)=>`<button type="button" data-fh="${i}"><b>${ae(e.t)}</b><small>${ae(e.s)}</small></button>`).join(''):'<p>찾는 설정이 없어요</p>';fr.classList.add('show');fr.querySelectorAll('[data-fh]').forEach(b=>b.onmousedown=ev=>{ev.preventDefault();pick(hits[+b.dataset.fh]);});};
+   const pick=e=>{if(!e)return;AD.fq='';admGo(e.v,e.lab?{findLab:e.lab}:e.q?{findT:e.q}:{});};
+   fi.oninput=show;fi.onfocus=show;fi.onblur=()=>setTimeout(()=>fr.classList.remove('show'),150);fi.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();show();pick(hits[0]);}else if(ev.key==='Escape'){fi.value='';show();}};}
+  if(!m._adObs){m._adObs=new MutationObserver(()=>{clearTimeout(m._adT);m._adT=setTimeout(()=>admPost(m),30);});m._adObs.observe(m,{childList:true,subtree:true});}
+  setTimeout(()=>admPost(m),0);}
+ const ASEC='.adbox,details.labbox,details.lkfold,details.labapplied,div.labtry,div.labsum,div.stadm,div.labC,details.lcgr';
+ const secT=s=>{const x=s.querySelector(':scope>summary')||s.querySelector(':scope>h4')||s.querySelector('.sah b')||s.querySelector('h4');return x?x.textContent.replace(/\s+/g,' ').trim():'';};
+ const secHit=(s,n)=>n[0]==='.'?s.matches(n):secT(s).includes(n);
+ function admFilter(main,v){const o=v[4]||{};const secs=[...main.querySelectorAll(ASEC)].filter(s=>!s.parentElement.closest(ASEC)||s.matches('details.lcgr'));
+  if(o.pick){const keep=new Set(secs.filter(s=>o.pick.some(n=>secHit(s,n))));if(!keep.size)return false;
+   const keepAnc=new Set();keep.forEach(s=>{let p=s.parentElement;while(p&&p!==main){keepAnc.add(p);p=p.parentElement;}});
+   const prune=el=>{[...el.children].forEach(c=>{if(c.matches('h2.adh2,p.adtip'))return;if(keep.has(c))return;if(c.matches('p:not(.small),h5')&&(keep.has(c.previousElementSibling)||c.tagName==='H5'&&keep.has(c.nextElementSibling)))return;if(keepAnc.has(c)){prune(c);return;}if(c.tagName==='SUMMARY'&&keepAnc.has(el)){c.classList.add('adhid');return;}c.classList.add('adhid');});};prune(main);
+   keepAnc.forEach(a=>{if(a.tagName==='DETAILS'){a.open=true;a.classList.add('adflat');}});keep.forEach(s=>{if(s.tagName==='DETAILS'&&keep.size===1)s.open=true;});}
+  if(o.hide)secs.forEach(s=>{if(o.hide.some(n=>secHit(s,n)))s.classList.add('adhid');});
+  const lc=main.querySelector('.labC');if(lc&&o.rows){const dev=o.rows==='dev';lc.querySelectorAll('.lcr[data-lck]').forEach(r=>{const k=r.dataset.lck,isDev=ADEVK.includes(k),gr=r.closest('details.lcgr');if(gr){if(!dev)r.classList.add('adhid');return;}r.classList.toggle('adhid',dev?!isDev:isDev);});
+   lc.querySelectorAll('details.lcfam').forEach(f=>{const any=[...f.querySelectorAll('.lcr[data-lck]')].some(r=>!r.classList.contains('adhid'));f.classList.toggle('adhid',!any);});}
+  if(v[0]==='map')main.querySelectorAll('p,small,.muted').forEach(p=>{if(/AI 이웃/.test(p.textContent)&&/테스트 기능|🧪/.test(p.textContent)&&p.textContent.length<200)p.classList.add('adhid');});
+  if(v[0]==='ev'){const tw=document.createTreeWalker(main,NodeFilter.SHOW_TEXT);let t;while(t=tw.nextNode())if(/지금 바로 이벤트 \(예전 방식\)/.test(t.nodeValue))t.nodeValue=t.nodeValue.replace(/지금 바로 이벤트 \(예전 방식\)/,'지금 바로 시작 (배율 이벤트)');}
+  if(o.old){const OLD=/^v\d{2}\b|^기존|예전|백업/;main.querySelectorAll('select').forEach(sel=>{const row=sel.closest('p,.avrow,div');const live=row?row.textContent:'';[...sel.options].forEach(op=>{const t=op.textContent.trim();if(OLD.test(t)&&!op.selected&&sel.value!==op.value){const sv=(row&&row.querySelector('.lkapply b'))?row.querySelector('.lkapply b').textContent:'';if(sv&&sv.includes(t))return;op.hidden=true;const av=sel.parentElement&&sel.parentElement.querySelector(`.avopts .avo[data-v="${CSS.escape(op.value)}"]`);if(av)av.classList.add('adhid');}});});
+   main.querySelectorAll('p,small').forEach(p=>{if(/이동 속도·데크·봇 수는/.test(p.textContent)&&p.textContent.length<240)p.classList.add('adhid');});}
+  return true;}
+ const APRE=/^(✅\s*)?(인게임 적용|적용|저장…|저장|적용…|적용하기|모든 유저에게 적용)$/;
+ const fval=e=>(e.type==='checkbox'||e.type==='radio')?(e.checked?'1':'0'):String(e.value);
+ const fOK=e=>!(e.closest('.labC')||e.id==='admFind'||/^(search|hidden|file|button|submit)$/.test(e.type)||e.classList.contains('lcq'));
+ function admTrack(m,main){if(main._trk)return;main._trk=1;main.querySelectorAll('input,select,textarea').forEach(e=>{if(fOK(e))e.dataset.o0=fval(e);});
+  const upd=()=>admBar(m,main);main.addEventListener('input',upd);main.addEventListener('change',upd);}
+ function aBtn(e,main){let el=e.parentElement;while(el){const bs=[...el.querySelectorAll('button')].filter(b=>APRE.test(b.textContent.replace(/\s+/g,' ').trim())&&b.offsetParent);if(bs.length)return bs.find(b=>e.compareDocumentPosition(b)&4)||bs[0];if(el===main)break;el=el.parentElement;}return null;}
+ const aTitle=e=>{const d=e.closest('details');if(d){const s=d.querySelector(':scope>summary');if(s)return s.textContent.replace(/\s+/g,' ').trim();}const b=e.closest('.adbox,.lookset,.avrow');if(b){const h=b.querySelector('h4,b');if(h)return h.textContent.trim();}return '';};
+ function admBar(m,main){const card=m.querySelector('.card.adm');if(!card)return;const ch=[],seen=new Set();
+  main.querySelectorAll('input,select,textarea').forEach(e=>{if(e.dataset.o0==null)return;const vis=e.offsetParent||e.classList.contains('avhid');let c=vis&&fval(e)!==e.dataset.o0;if(e.type==='radio'){const k='r:'+e.name;if(seen.has(k))return;const grp=[...main.querySelectorAll(`input[type=radio][name="${CSS.escape(e.name)}"]`)];c=grp.some(r=>r.dataset.o0!=null&&fval(r)!==r.dataset.o0);if(c)seen.add(k);grp.forEach(r=>(r.closest('label')||r).classList.toggle('admChg',c));}else{e.classList.toggle('admChg',!!c);const lb=e.type==='checkbox'&&e.closest('label');if(lb)lb.classList.toggle('admChg',!!c);}if(c)ch.push(e);});
+  let bar=card.querySelector('#admSave');if(!ch.length){if(bar)bar.remove();return;}
+  const gs=[];ch.forEach(e=>{const b=aBtn(e,main);let g=gs.find(g=>g.b===b);if(!g)gs.push(g={b,t:aTitle(e),n:0});g.n++;});
+  if(!bar){bar=document.createElement('div');bar.id='admSave';bar.className='adsave';card.appendChild(bar);}
+  bar.innerHTML=`<b>✏️ 바뀐 칸 ${ch.length}개</b><span class="sp"></span><button type="button" class="g" data-asr>되돌리기</button>${gs.filter(g=>g.b).map((g,i)=>`<button type="button" class="p" data-asg="${i}" title="${ae(g.t)}">✅ ${ae((g.t||'').slice(0,16))}${g.t?' · ':''}${ae(g.b.textContent.replace(/[✅\s]+/g,' ').trim())}</button>`).join('')}${gs.some(g=>!g.b)?'<small>바로 적용되는 칸 포함</small>':''}`;
+  const real=gs.filter(g=>g.b);bar.querySelectorAll('[data-asg]').forEach(b=>b.onclick=()=>{const g=real[+b.dataset.asg];if(g&&g.b&&g.b.isConnected)g.b.click();});
+  bar.querySelector('[data-asr]').onclick=()=>{ch.forEach(e=>{if(e.type==='radio'){main.querySelectorAll(`input[type=radio][name="${CSS.escape(e.name)}"]`).forEach(r=>{if(r.dataset.o0==='1'&&!r.checked){r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}));}});return;}if(e.type==='checkbox')e.checked=e.dataset.o0==='1';else e.value=e.dataset.o0;e.dispatchEvent(new Event('input',{bubbles:true}));e.dispatchEvent(new Event('change',{bubbles:true}));});admBar(m,main);};}
+ function admPost(m){const main=m.querySelector('main.adb');if(!main||!m.classList.contains('show')&&!m.querySelector('.adm22'))return;const v=admCur();if(!v)return;
+  const unfolded=[...main.querySelectorAll('.lookset')].some(l=>!l.closest('.labset')&&!l.querySelector('details.lkfold')&&!l.closest('details.lkfold'));if(unfolded&&(v[3]==='look'||v[3]==='test'))return;
+  if(main.dataset.adv!==v[0]||!main._flt){main._flt=1;main.dataset.adv=v[0];}admFilter(main,v);admTrack(m,main);
+  if(AD.findLab){const t=AD.findLab;const fa=main.querySelector('[data-lcf="all"]');if(fa&&!fa.classList.contains('on')){fa.click();return;}AD.findLab=null;const q=main.querySelector('.lcq');if(q){q.value=t;q.dispatchEvent(new Event('input',{bubbles:true}));setTimeout(()=>{admFilter(main,v);const r=main.querySelector('.lcr[data-lck]:not(.adhid)');if(r){r.scrollIntoView({block:'center'});r.classList.add('adflash');}},60);}else admFind(main,t);}
+  if(AD.findT){const t=AD.findT;AD.findT=null;admFind(main,t);}}
+ function admFind(main,t){const el=[...main.querySelectorAll('summary,h4,.sah b,b')].find(x=>x.textContent.includes(t)&&!x.closest('.adhid'));if(!el)return;let d=el.closest('details');while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details');}const s=el.closest(ASEC)||el;s.scrollIntoView({block:'start'});s.classList.add('adflash');setTimeout(()=>s.classList.remove('adflash'),2200);}
  function admin(){if(!NK_ADM.ok()&&!OPM())return;staffSync();if(window.NK_RT&&NK_RT.who&&(!AD._whoAt||Date.now()-AD._whoAt>5000)){AD._whoAt=Date.now();NK_RT.who();}if((!AD._rtAt||Date.now()-AD._rtAt>4000)&&window.NK_RT&&NK_RT.refresh){AD._rtAt=Date.now();NK_RT.refresh(2000).then(()=>{const el=$('admin');if(el&&el.classList.contains('show')&&(AD.tab==='user'||AD.tab==='dash'))keepScroll('admin',admin);});}let m=$('admin');if(!m){m=document.createElement('div');m.id='admin';m.className='modal';document.body.appendChild(m);}
   const tabs=[['dash','대시보드'],['user','유저'],['rep','신고·도배'],['rec','아이템 복구'],['op','운영자'],['time','시간·날씨'],['map','맵'],['duck','오리'],['bal','밸런스'],['ev','이벤트'],['ann','서버 공지'],['prof','비속어'],['look','화면·시안'],['lab','🧪 테스트 기능'],['title','🏷 칭호'],['test','테스트·디버그']].filter(([k])=>NK_ADM.ok()||can(TABP[k]));if(!tabs.length)return toast('받은 운영 권한이 없어요',2000);if(!tabs.some(t=>t[0]===AD.tab))AD.tab=tabs[0][0];let body='';
   const st=stat(),chs=Array.from({length:CH.n},(_,i)=>i+1);
@@ -3996,8 +4094,8 @@ V14=(()=>{
   if(AD.tab==='map'){const lay=CFG.lay||'a',dw=CFG.deckW||'';
    body=`<p class="small muted">카드에 마우스를 올리면 미리보기가 떠요. [적용]하면 네 호숫가에 저장돼요. 이미 들어간 사람은 이번 판을 유지하고, 새로 들어오는 사람은 바뀐 맵으로 바로 들어가요. 채널 수·봇 수는 그 자리에서 바뀌어요.</p>
    <div class="adbox"><h4>🎨 맵 테마 <small>바로 적용</small></h4><div class="tiles">${[['base','🌳','기본'],['xmas','🎄','크리스마스 (지형만)']].map(([k,e,n])=>`<button class="tile ${(S.mapTheme||'base')===k?'on':''}" data-mt="${k}"><span>${e}</span>${n}</button>`).join('')}</div></div>
-   <div class="adbox"><h4>🗺 데크 배치</h4><div class="opts">${[['a','A 큰 원형','호수 둘레에 고르게'],['b','B 지그재그 2열','안쪽·바깥쪽 번갈아'],['c','C 만(灣)형 6마을','작은 마을 단위'],['o','기존 20데크','v13 이전 배치']].map(([k,n,d])=>`<label class="opt pv ${(AD.mLay||lay)===k?'on':''}"><input type="radio" name="mLay" value="${k}" ${(AD.mLay||lay)===k?'checked':''}><b>${n}</b><small>${d}</small>${PV('img/adm/lay-'+k+'.jpg',n)}</label>`).join('')}</div></div>
-   <div class="adbox"><h4>🪵 데크 모양</h4><div class="opts">${[['','현행','좁은 데크 · 1자리'],['W1','W1 전체 넓게','2자리'],['W2','W2 끝만 넓은 T자','2자리'],['W3','W3 옆 발코니','2자리'],['W4','W4 넓게 + 가로 어항','2자리']].map(([k,n,d])=>`<label class="opt pv ${(AD.mW??dw)===k?'on':''}"><input type="radio" name="mW" value="${k}" ${(AD.mW??dw)===k?'checked':''}><b>${n}</b><small>${d}</small>${PV('img/adm/w-'+(k||'0')+'.jpg',n)}</label>`).join('')}</div></div>
+   <div class="adbox"><h4>🗺 데크 배치</h4><div class="opts">${[['a','A 큰 원형','호수 둘레에 고르게'],['b','B 지그재그 2열','안쪽·바깥쪽 번갈아'],['c','C 만(灣)형 6마을','작은 마을 단위'],['o','기존 20데크','v13 이전 배치']].filter(([k])=>k!=='o'||(AD.mLay||lay)==='o').map(([k,n,d])=>`<label class="opt pv ${(AD.mLay||lay)===k?'on':''}"><input type="radio" name="mLay" value="${k}" ${(AD.mLay||lay)===k?'checked':''}><b>${n}</b><small>${d}</small>${PV('img/adm/lay-'+k+'.jpg',n)}</label>`).join('')}</div></div>
+   <div class="adbox"><h4>🪵 데크 모양</h4><div class="opts">${[['','예전 좁은 데크','1자리'],['W1','W1 전체 넓게 (기본)','2자리'],['W2','W2 끝만 넓은 T자','2자리'],['W3','W3 옆 발코니','2자리'],['W4','W4 넓게 + 가로 어항','2자리']].map(([k,n,d])=>`<label class="opt pv ${(AD.mW??dw)===k?'on':''}"><input type="radio" name="mW" value="${k}" ${(AD.mW??dw)===k?'checked':''}><b>${n}</b><small>${d}</small>${PV('img/adm/w-'+(k||'0')+'.jpg',n)}</label>`).join('')}</div></div>
    <div class="adbox"><h4>📡 채널</h4><div class="adrow">채널 수 <input type="number" id="adCh" min="1" max="8" value="${CH.n}" style="width:64px"> · 데크 수 <select id="adDecks">${[20,25,30].map(n=>`<option value="${n}" ${(CFG.decks||25)==n?'selected':''}>${n}</option>`).join('')}</select></div><p class="small muted">AI 이웃(봇) 수는 🧪 테스트 기능 › 🤖 AI 이웃 · 과부하 테스트에서 바꿔요</p></div>
    <p><button class="acc" data-ad="mapap">적용</button></p>`;}
   if(AD.tab==='bal'){const tiers=D.BOX.tiers,F=(lab,id,v,step,cls='',k='')=>`<label class="bf"><span>${lab}</span><input ${id?`id="${id}"`:''} class="bi ${cls}" ${k} type="number" step="${step}" value="${v}" data-o="${v}"><button type="button" class="rv" title="원래 값으로">↺</button></label>`;
@@ -4041,7 +4139,7 @@ V14=(()=>{
    <div class="adrow"><input id="pQ" placeholder="목록 검색" value="${esc(f)}"><button id="pReset" class="ghost">기본 목록으로 되돌리기</button></div>
    <div class="pcols">${[['words','금칙어'],['allow','허용어 (오탐 예외)']].map(([k,n])=>`<div class="pcol"><h4>${n} <small>${L(k).length}</small></h4><div class="adrow"><input data-padd="${k}" placeholder="${n} 추가 후 Enter"></div><div class="pchips">${L(k).slice(0,300).map(w=>`<span class="pchip">${esc(w)}<button data-pdel="${k}" data-w="${encodeURIComponent(w)}" title="삭제">×</button></span>`).join('')}${L(k).length>300?`<span class="muted small">외 ${L(k).length-300}개 · 검색으로 좁혀 보세요</span>`:''}</div></div>`).join('')}</div>`;}
   const TI={duck:'🦆',dash:'📊',user:'👥',rep:'⚠️',rec:'♻️',op:'🛡️',time:'🌦️',map:'🗺️',bal:'⚖️',ev:'🎉',ann:'📢',prof:'🚫',look:'🎨',test:'🧪'};
-  m.innerHTML=`<div class="card adm adm2 adm22 ${S.admDark?'dk':''}"><header><b>${OPM()?'🛡 운영자 모드':'🛠 관리자 모드'}</b><span class="pill">${rtOn()?SRVN(CH.me)+' 공유':'이 브라우저만'} · ${AD.ops[0].r}</span><span class="sp"></span>${OPM()?'':'<button class="hb" id="admPwBtn">비밀번호</button><button class="hb" id="admOut">로그아웃</button>'}<button class="hb" id="admTheme">${S.admDark?'☀️ 라이트':'🌙 다크'}</button><button class="hb" data-close="admin">닫기</button></header><div class="alay"><aside class="adtabs">${tabs.map(([k,n])=>`<button data-at="${k}" class="${AD.tab===k?'on':''}"><span>${TI[k]||'•'}</span>${n}</button>`).join('')}<div class="atip"><b>피쉬코지 운영 팁</b><p>정지·채팅 금지는 분 단위예요. 600 = 10시간, 14,400 = 10일</p></div></aside><main class="adb"><h2>${TI[AD.tab]||''} ${(tabs.find(t=>t[0]===AD.tab)||['',''])[1]}</h2>${body}</main></div></div>`;
+  m.innerHTML=`<div class="card adm adm2 adm22 ${S.admDark?'dk':''}"><header><b>${OPM()?'🛡 운영자 모드':'🛠 관리자 모드'}</b><span class="pill">${rtOn()?SRVN(CH.me)+' 공유':'이 브라우저만'} · ${AD.ops[0].r}</span>${admFindHTML()}<span class="sp"></span>${OPM()?'':'<button class="hb" id="admPwBtn">비밀번호</button><button class="hb" id="admOut">로그아웃</button>'}<button class="hb" id="admTheme">${S.admDark?'☀️ 라이트':'🌙 다크'}</button><button class="hb" data-close="admin">닫기</button></header><div class="alay">${admNavHTML(tabs)}<main class="adb">${admH2(tabs)}${body}</main></div></div>`;
   const q=s=>m.querySelectorAll(s),g=id=>m.querySelector('#'+id),re=()=>keepScroll('admin',admin);
   m.querySelector('#admTheme').onclick=()=>{S.admDark=!S.admDark;save();re();};const _pwB=m.querySelector('#admPwBtn');if(_pwB)_pwB.onclick=()=>NK_ADM.pw();const _outB=m.querySelector('#admOut');if(_outB)_outB.onclick=()=>{NK_ADM.logout();closeM('admin');toast('로그아웃했어요');};q('[data-close]').forEach(b=>b.onclick=()=>closeM('admin'));if(AD.tab==='look'){bindLook(m);try{admEnhance(m,'look');}catch(e){console.warn(e);}}if(AD.tab==='title'){try{bindTitleAdm(m,re);}catch(e){console.warn(e);}}if(AD.tab==='lab'){try{bindLab(m,re);}catch(e){console.warn(e);}try{admEnhance(m,'lab');}catch(e){console.warn(e);}}if(AD.tab==='duck'){bindDuck(m);bindLab(m,re);try{admEnhance(m,'lab');}catch(e){console.warn(e);}}avHide();if(AD.tab==='test'){const redraw=()=>{save();re();},pc=x=>'+'+Math.round(x*100)+'%';
    q('[data-mvm]').forEach(b=>b.onclick=()=>{S.mvDraft=b.dataset.mvm;if(S.mvDraft==='fix'&&S.moveOv==null)S.moveOv=mvLv(myLv())-1;redraw();});
@@ -4049,7 +4147,7 @@ V14=(()=>{
    g('tMvGo').onclick=()=>{const P=mvPlay()||{},mode=S.mvDraft||(P.moveOn?'fix':'auto'),on=mode==='fix',v=Math.max(0,Math.min(1,+S.moveOv||0));if(!confirm(on?`유저 이동 속도를 모두 ${pc(v)}(으)로 적용할까요?`:'유저 이동 속도를 레벨 따라 자동으로 되돌릴까요?'))return;publishPlay({moveOn:on,move:on?v:0});toast(on?`✅ 유저 이동 속도 ${pc(v)} 적용`:'✅ 유저 이동 속도: 레벨 따라 자동',2000);setTimeout(redraw,500);};
    q('[data-mvme]').forEach(b=>b.onclick=()=>{S.moveMe=b.dataset.mvme==='own'?(S.moveMe!=null?S.moveMe:1):null;redraw();});
    g('tMeS').oninput=e=>{S.moveMe=+e.target.value;g('tMeV').textContent=pc(S.moveMe);};g('tMeS').onchange=()=>redraw();q('[data-me]').forEach(b=>b.onclick=()=>{S.moveMe=+b.dataset.me;redraw();});if(g('tPerf'))g('tPerf').onchange=e=>{S.perfOn=e.target.checked;applyHud();redraw();};V24H(m,redraw);V25H(m,redraw);}
-  q('[data-at]').forEach(b=>b.onclick=()=>{AD.tab=b.dataset.at;uwClose();AD.back=null;keepScroll('admin',admin);});
+  q('[data-at]').forEach(b=>b.onclick=()=>{AD.tab=b.dataset.at;uwClose();AD.back=null;keepScroll('admin',admin);});admNavBind(m,tabs);
   const reload=()=>{S.savedAt=Date.now();save();location.reload();};const cfgSet=o=>{localStorage.setItem('nk_cfg',JSON.stringify(Object.assign({},LS('nk_cfg',{}),{lay:CFG.lay,bots:CFG.bots},o)));};
   // 대시보드·채널
   q('[data-chv]').forEach(b=>b.onclick=()=>{const v=+b.dataset.chv;AD.chView=v&&AD.chView!==v?v:null;re();});q('[data-goU]').forEach(b=>b.onclick=()=>{AD.tab='user';AD.back='dash';AD.ch=+b.dataset.ch;AD.uq=b.dataset.gou||b.getAttribute('data-goU');re();});q('[data-adback]').forEach(b=>b.onclick=()=>{AD.tab=AD.back||'dash';AD.back=null;AD.uq='';AD.open=null;re();});
@@ -4703,7 +4801,7 @@ function trOff(silent){if(!TR.riding)return;const st=TR.st[TR.sc&&TR.sc.stop>=0?
 window.NK_TRAIN={on:trOn,off:trOff,st:()=>TR.st.map(s=>({k:s.k,x:s.p&&s.p.x,z:s.p&&s.p.z})),sc:()=>TR.sc,TR};
 // ═════════ v89 ═════════
 LAB.push(
- {k:'resumePos',n:'📍 다시 들어오면 있던 자리에서 시작',d:'v185: 시간과 상관없이 다시 들어오면 나갔던 자리(앉아 있던 의자 옆 포함)에서 시작해요. 다른 호숫가로 들어가도 그 자리가 걸을 수 있는 곳이면 같은 자리예요',scope:'me',o:[['on','켜기 (기본)'],['off','끄기']]},
+ {k:'resumePos2',n:'📍 다시 들어오면 있던 자리에서 시작',d:'v185: 시간과 상관없이 다시 들어오면 나갔던 자리(앉아 있던 의자 옆 포함)에서 시작해요. 다른 호숫가로 들어가도 그 자리가 걸을 수 있는 곳이면 같은 자리예요',scope:'me',o:[['on','켜기 (기본)'],['off','끄기']]},
  {k:'peerLook',n:'🪑 내 꾸미기·어항을 다른 유저에게',d:'데크 의자에 앉으면 내가 놓은 데크 꾸미기와 내 어항 디자인이 같은 호숫가 유저 화면에도 보여요 (보는 사람 쪽에서 켜져 있어야 보여요 → 「모든 유저」로 적용 추천)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
  {k:'srvAuto',n:'👥 사람 있는 호숫가로 자동 선택',d:'시작 화면에서 고른 호숫가에 사람이 3명보다 적고 다른 호숫가에 사람이 더 많으면, 그 호숫가를 미리 골라 둬요 (직접 누르면 그대로)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
  {k:'wxEach',n:'🌦 날씨 효과 하나씩 끄기',d:'설정 › 날씨 효과 아래에 오로라·소나기·이슬비·눈·벚꽃·낙엽·반딧불·별똥별·노을을 하나씩 끄고 켜는 칸이 생겨요 (화면 효과만 꺼져요, 날씨 보너스는 그대로)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},
@@ -4715,7 +4813,7 @@ LAB.push(
 const LPK='nk_lastpos';
 function lpSave(){try{if(!started||!me||PREV)return;const RT=window.NK_RT;if(!RT||RT.status()!=='on')return;const p=me.o.position;const L={sid:RT.serverId(),x:+p.x.toFixed(2),z:+p.z.toFixed(2),d:+(+me.dir||0).toFixed(2),seat:mySeat&&mySeat.kind==='stool'?SEATS.indexOf(mySeat):-1,tr:TR.riding?1:0,t:Date.now()};localStorage.setItem(LPK,JSON.stringify(L));/* v193: 저장 데이터에도 넣어서 다른 기기·다른 브라우저로 이어져요 (움직였을 때만 바꿔요) */const o=S.lp;if(!o||Math.abs(o.x-L.x)>.3||Math.abs(o.z-L.z)>.3||o.seat!==L.seat||o.sid!==L.sid||o.tr!==L.tr)S.lp=L;}catch(e){}}
 setInterval(lpSave,3000);addEventListener('pagehide',lpSave);document.addEventListener('visibilitychange',()=>{if(document.hidden)lpSave();});
-window.__nkResume=(id,online)=>{if(opt('resumePos','on')!=='on'||!online||!me)return;let L=null;try{L=JSON.parse(localStorage.getItem(LPK)||'null');}catch(e){}/* v193: 이 기기 기록과 저장 데이터(다른 기기에서 온 것) 중 더 나중 것 */try{const C=S.lp;if(C&&isFinite(C.x)&&isFinite(C.z)&&(!L||(+C.t||0)>(+L.t||0)))L=C;}catch(e){}
+window.__nkResume=(id,online)=>{if(opt('resumePos2','on')!=='on'||!online||!me)return;let L=null;try{L=JSON.parse(localStorage.getItem(LPK)||'null');}catch(e){}/* v193: 이 기기 기록과 저장 데이터(다른 기기에서 온 것) 중 더 나중 것 */try{const C=S.lp;if(C&&isFinite(C.x)&&isFinite(C.z)&&(!L||(+C.t||0)>(+L.t||0)))L=C;}catch(e){}
  if(!L||L.tr||!isFinite(L.x)||!isFinite(L.z))return;if(!(walk(L.x,L.z)||inDeck(L.x,L.z)))return;
  const p=me.o.position;p.x=L.x;p.z=L.z;p.y=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);me.dir=+L.d||0;me.o.rotation.y=me.dir;yaw=me.dir+Math.PI;
  const st=L.seat>=0?SEATS[L.seat]:null;/* v104: 다시 들어오면 의자에 바로 앉지 않고 의자 옆에서 시작 */if(st){const a=Math.atan2(-st.x,-st.z)+Math.PI;let ok=false;for(const r of [1.0,1.35,1.8,2.3]){for(const da of [0,.6,-.6,1.2,-1.2,Math.PI/2,-Math.PI/2,2.2,-2.2,Math.PI]){const x=st.x+Math.sin(a+da)*r,z=st.z+Math.cos(a+da)*r;if(walk(x,z)){p.x=x;p.z=z;ok=true;break;}}if(ok)break;}p.y=inDeck(p.x,p.z)?.39:Math.max(H(p.x,p.z),.1);me.dir=Math.atan2(st.x-p.x,st.z-p.z);me.o.rotation.y=me.dir;yaw=me.dir+Math.PI;}
@@ -5084,7 +5182,7 @@ LAB.push({k:'moonMeteor',n:'🌙 달 · 별똥별',d:'하늘에 가끔 별똥별
 LAB.push({k:'moonJump',n:'🌙 달 · 튀어오르는 별자리 물고기',d:'호수에서 가끔 별자리 물고기가 작게 튀어 올랐다가 물보라를 내며 들어가요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기']]});
 LAB.push({k:'moonSplash',n:'🌙 달 · 물고기 물 튀김',d:'튀어오르는 별자리 물고기가 나오고 들어갈 때 물보라. B 별빛 물보라(기본) · A 물기둥 + 물방울 · C 잔잔한 물결 · 예전 고리',scope:'all',o:[['B','B · 별빛 물보라 (기본)'],['A','A · 물기둥 + 물방울'],['C','C · 잔잔한 물결'],['old','예전 고리 하나']]});
 LAB.push({k:'moonTourCap',n:'🌙 달 · 둘러보기 별자리 소개',d:'자동 둘러보기가 별자리·지구를 비출 때 오른쪽에 이름과 한 줄 소개. B 자막처럼(기본) · A 유리 카드 · C 별자리 그림 카드',scope:'all',o:[['B','B · 자막처럼 (기본)'],['A','A · 유리 카드'],['C','C · 별자리 그림 카드'],['off','끄기']]});
-LAB.push({k:'petRide',n:'🐾 탈것에 펫 태우기',d:'펫을 데리고 탈것에 타면 펫도 같이 타요: 자동차 옆자리 · 비행기 날개 · 동물 등 뒤 · 로봇 어깨 · 택시·전투기는 지붕 위. 자리가 없으면(옆자리에 손님 등) 머리 위에 올라타요',scope:'me',o:[['on','켜기 (기본 · 모든 유저)'],['off','끄기']]});
+LAB.push({k:'petRide2',n:'🐾 탈것에 펫 태우기',d:'펫을 데리고 탈것에 타면 펫도 같이 타요: 자동차 옆자리 · 비행기 날개 · 동물 등 뒤 · 로봇 어깨 · 택시·전투기는 지붕 위. 자리가 없으면(옆자리에 손님 등) 머리 위에 올라타요',scope:'me',o:[['on','켜기 (기본 · 모든 유저)'],['off','끄기']]});
 LAB.push({k:'jump',n:'🦘 점프',d:'Space를 누르면 폴짝 뛰어요 (제자리에서도 돼요. 낚시 자리·의자 앞에서 멈춰 있을 때 Space는 그대로 낚시·앉기). 탈것에 타고 있을 때는 안 돼요. 다른 유저 화면에도 보여요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'camFx',n:'👀 1인칭 · 자동 둘러보기',d:'Ctrl+1(설정에서 V · Alt+1로 바꿀 수 있어요)로 1인칭 ↔ 3인칭. 1분 동안 아무것도 안 하면(자동 낚시 중 포함) 카메라가 천천히 맵을 둘러봐요 · 아무 키나 누르면 돌아와요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 // 탈것 모델 (박스 로우폴리 · 펫과 같은 톤) — 앞쪽 = +z, 바닥 y=0, 타는 자리 seat:[x,y,z]
@@ -6601,7 +6699,7 @@ PHOOK.push(dt=>{if(!me)return;const on=camFxOn();
  try{if(me.head)me.head.scale.setScalar(1);}catch(_){}
  if(FPV.set){camOverride=null;FPV.set=false;}});
 // v122 ── 🐾 탈것에 펫 태우기 (시안 A 머리 위 · B 옆자리 · 로봇은 어깨)
-const petRideV=()=>{if(PREV)return '';const v=opt('petRide','on');return v==='off'?'':'B';};// v128: 모든 유저에게 켜짐 (관리자에서 끌 수 있어요)
+const petRideV=()=>{if(PREV)return '';const v=opt('petRide2','on');return v==='off'?'':'B';};// v128: 모든 유저에게 켜짐 (관리자에서 끌 수 있어요)
 const PRSLOT={plane:[.95,.12,.2],jet:[.9,.06,-.4],jetA:[1.0,.05,-.55],jetB:[1.0,.06,-.5],archae:[0,.62,-.5],balloon:[.42,.36,.05],elephant:[0,.32,-.5],giraffe:[0,.1,-.55],capy:[0,.1,-.5],pig:[0,.1,-.48],dog:[0,.1,-.55],rudolph:[0,.1,-.48],sled:[0,0,-.55],santa:[-.42,.9,-.45],boat:[0,0,.45],turtle:[0,-.2,-.72],turtle2:[0,-.2,-.72]};
 const PRROOF={taxi:[0,1.56,-.5],taxif:[0,1.56,-.5],jet:[0,.6,-.32],hyper:[0,.72,-1.15]};
 /* v182: 변신 로봇일 때 이름표·칭호가 로봇 얼굴을 가리지 않게 로봇 머리 위로 올려요 */{const _bb=new THREE.Box3();window.__nkTagY=c=>{const V=charVeh(c);const F=V&&V.g&&V.g.userData.tf;if(!F||(F.t||0)<.05){c._tfTop=null;return;}const now=performance.now();if(!c._tfTop||now-c._tfTop[0]>200||Math.abs(c._tfTop[2]-F.t)>.02){_bb.setFromObject(V.g);c._tfTop=[now,_bb.isEmpty()?0:_bb.max.y-V.g.position.y,F.t];}const y=V.g.position.y+c._tfTop[1]+.35;if(c.tag.position.y<y)c.tag.position.y=y;};}
@@ -7113,7 +7211,7 @@ LAB.push({k:'tankHide',n:'🐠 데크 어항 끄기 (드로우콜 확인)',d:'�
 {let thPrev='';FHOOK.push(()=>{const m=opt('tankHide','off');const on=m!=='all';const pon=m==='off';
  try{for(const x of PTK.values())if(x.g)x.g.visible=pon;}catch(e){}try{if(myTankX)myTankX.visible=on;}catch(e){}
  if(m===thPrev)return;thPrev=m;try{if(DTANK.stand)DTANK.stand.visible=on;if(DTANK.glass)DTANK.glass.visible=on;}catch(e){}try{for(const k in TANKX){const t=TANKX[k];if(t.S)t.S.visible=on;if(t.G)t.G.visible=on;}}catch(e){}try{TWT.forEach(t=>{if(t&&t.S)t.S.visible=on;if(t&&t.G)t.G.visible=on;});}catch(e){}try{if(myTankX)myTankX.visible=on;}catch(e){}});}
-LAB.push({k:'xmasEv',n:'🎄 크리스마스 한정 캐릭터 이벤트',d:'평소에는 한국 시간 12월 1일~31일에만 자동으로 열려요. 「지금 켜기」를 고르고 「✅ 인게임 적용」(또는 「모두에게」)을 누르면 모든 유저의 캐릭터 고르기에 🎄 한정 탭이 바로 생기고 출석·❄️ 눈송이·교환이 시작돼요. 「닫기」는 12월에도 닫아요. 이미 얻은 캐릭터는 닫아도 계속 써요',scope:'all',o:[['auto','자동 · 12월만 (기본)'],['on','지금 켜기'],['off','닫기 · 12월에도']]});LAB.push({k:'mythChar',n:'✨ 로봇 캐릭터 바로 열기 (관리자 확인용)',d:'v172부터 유령은 Lv.85에 열리고, 로봇은 신화 상자에서 드물게 나오는 🎫 이용권으로 열려요. 이걸 켜면 내 화면에서만 이용권 없이 로봇을 고를 수 있어요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},{k:'robotTkP',n:'🎫 로봇 이용권 확률 (신화 상자)',d:'신화 상자(이상)를 열 때 로봇 캐릭터 이용권이 나올 확률이에요. 한 사람에게 한 번만 나와요. 기본 1%',scope:'all',o:[['1','1% (기본)'],['0.3','0.3%'],['0.5','0.5%'],['2','2%'],['5','5%'],['0','안 나옴']]});
+LAB.push({k:'xmasEv',n:'🎄 크리스마스 한정 캐릭터 이벤트',d:'평소에는 한국 시간 12월 1일~31일에만 자동으로 열려요. 「지금 켜기」를 고르고 「✅ 인게임 적용」(또는 「모두에게」)을 누르면 모든 유저의 캐릭터 고르기에 🎄 한정 탭이 바로 생기고 출석·❄️ 눈송이·교환이 시작돼요. 「닫기」는 12월에도 닫아요. 이미 얻은 캐릭터는 닫아도 계속 써요',scope:'all',o:[['auto','자동 · 12월만 (기본)'],['on','지금 켜기'],['off','닫기 · 12월에도']]});LAB.push({k:'mythChar',n:'✨ 로봇 캐릭터 바로 열기 (관리자 확인용)',d:'v172부터 유령은 Lv.85에 열리고, 로봇은 신화 상자에서 드물게 나오는 🎫 이용권으로 열려요. 이걸 켜면 관리자로 로그인한 내 화면에서만 이용권 없이 로봇을 고를 수 있어요. 일반 유저는 서버 값과 상관없이 이용권이 있어야 해요 (v243)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]},{k:'robotTkP',n:'🎫 로봇 이용권 확률 (신화 상자)',d:'신화 상자(이상)를 열 때 로봇 캐릭터 이용권이 나올 확률이에요. 한 사람에게 한 번만 나와요. 기본 1%',scope:'all',o:[['1','1% (기본)'],['0.3','0.3%'],['0.5','0.5%'],['2','2%'],['5','5%'],['0','안 나옴']]});
 LAB.push({k:'tankGrp',n:'🐠 어항 분류 (어종·별자리·별 수·등급·변이)',d:'내 어항 › 물고기 탭에 「어종 · 별자리 · 별 수 · 등급 · 변이」 보기 버튼이 생겨요. 고른 기준으로 물고기를 묶어서 보여주고, 묶음을 누르면 접었다 펼쳐요 (어항 화면 A안에서 보여요)',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 LAB.push({k:'tank3',n:'🐠 어항 3개 · 규칙 정리',d:'가진 어항 중 3개까지 같이 써요. 어항 창 위에 어항 3칸이 생기고, 어항마다 「넣을 물고기」(등급·변이·크기·종류)를 골라 두면 새로 낚은 물고기가 규칙대로 들어가요. 데크에는 가장 큰 어항이 보여요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
 const tk3On=()=>!PREV&&opt('tank3','off')==='on';window.NK_tk3On=tk3On;
@@ -7951,7 +8049,7 @@ function profCard(id,d){const self=id==='me',r=self?{c:me,ki:S.char|0}:remotes.g
  m.classList.add('show');}
 // v113: 🧱 블럭 편집기를 유저도 쓸 수 있게 (LAB · 기본 꺼짐) — 유저는 게임 등록 대신 「관리자에게 보내기」·창작 마당 올리기만
 LAB.push({k:'vbUser',n:'🧱 블럭 편집기 (유저용)',d:'메뉴에 「만들기」가 생겨서 유저도 탈것·캐릭터·펫을 만들 수 있어요. 유저는 게임에 바로 등록할 수 없고, 저장한 작품을 📤 관리자에게 보내거나 🏪 창작 마당에 올릴 수만 있어요. 관리자는 편집기 › 창작 마당 › 📥 받은 작품에서 보고 가져와 등록해요',scope:'me',o:[['off','끄기 (기본)'],['on','켜기']]});
-setInterval(()=>{const sy=$('mSys');if(!sy)return;let b=$('bVb');const on=opt('vbUser','off')==='on'&&!!window.NK_VBED&&!(window.matchMedia&&matchMedia('(pointer:coarse)').matches&&innerWidth<820);if(!on){if(b)b.remove();return;}if(!b){const tpl=$('bBoard')||$('bSave');b=document.createElement('button');b.id='bVb';b.type='button';b.innerHTML='<b class="mi"><img src="icons/emoji/1f9f1.svg" alt="" class="fti" onerror="this.src=\'icons/emoji-png/1f9f1.png\'"></b><small class="ml">만들기</small>';if(tpl)b.className=tpl.className.replace(/\bon\b/,'');b.onclick=e=>{e.stopPropagation();document.body.classList.remove('menu-open');try{NK_VBED.open();}catch(_){}};const ms=$('bMs');ms&&ms.nextSibling?sy.insertBefore(b,ms.nextSibling):sy.insertBefore(b,sy.firstChild);}},1600);
+setInterval(()=>{const sy=$('mSys');if(!sy)return;let b=$('bVb');const on=opt('vbUser','off')==='on'&&!!window.NK_VBED&&!(window.matchMedia&&matchMedia('(pointer:coarse)').matches&&innerWidth<820);if(!on){if(b)b.remove();return;}if(!b){const tpl=$('bBoard')||$('bSave');b=document.createElement('button');b.id='bVb';b.type='button';b.innerHTML='<b class="mi"><img src="icons/emoji/1f9f1.svg" alt="" class="fti" onerror="this.src=\'icons/emoji-png/1f9f1.png\'"></b><small class="ml">만들기</small>';if(tpl)b.className=tpl.className.replace(/\bon\b/,'');b.onclick=e=>{e.stopPropagation();document.body.classList.remove('menu-open');try{NK_VBED.open();}catch(_){}};const ms=$('bMs');ms&&ms.parentNode===sy&&ms.nextSibling?sy.insertBefore(b,ms.nextSibling):sy.insertBefore(b,sy.firstChild);}},1600);/* v243: 「만들기」 버튼 자리 오류(콘솔 에러) 수정 */
 window.NK_VBUSER=()=>opt('vbUser','off')==='on';
 window.NK89.peek.mine=()=>{profCard('me',myPeek('prof'));};
 window.NK89.peek.profile=id=>{const r=remotes.get(id);if(!r){miniToast('지금 이 호숫가에 없어요',1400);return;}peekAsk(id,'prof',d=>profCard(id,d));};
@@ -8002,7 +8100,7 @@ function bkClose(){const m=$('bkAsk');if(m)m.classList.remove('show');}
 function bkLeave(){BK.leaving=true;bkClose();try{save();}catch(e){}try{window.close();}catch(e){}try{history.back();}catch(e){}/* v98: 이전 페이지가 없으면 작별 화면으로 바로 나가요 */setTimeout(()=>{try{location.replace('bye.html');}catch(e){}},450);}
 function bkShow(){const md=bkMode();let m=$('bkAsk');if(!m){m=document.createElement('div');m.id='bkAsk';document.body.appendChild(m);}
  const lv=myLv(),earn=Math.max(0,(S.coins|0)-(BK.c0|0)),mins=Math.max(1,Math.round((Date.now()-BK.t0)/60000));
- m.className='bk'+md;m.innerHTML=md==='A'?`<div class="bkdim" data-bk="stay"></div><div class="bksheet"><div class="grab"></div><h3>🎣 낚시를 그만할까요?</h3><p>진행은 자동으로 저장돼요.${opt('resumePos','on')==='on'?'<br>다시 들어오면 지금 자리에서 시작해요.':''}</p><button type="button" class="p" data-bk="stay">계속 낚시하기</button><button type="button" class="g" data-bk="go">게임 나가기</button></div>`
+ m.className='bk'+md;m.innerHTML=md==='A'?`<div class="bkdim" data-bk="stay"></div><div class="bksheet"><div class="grab"></div><h3>🎣 낚시를 그만할까요?</h3><p>진행은 자동으로 저장돼요.${opt('resumePos2','on')==='on'?'<br>다시 들어오면 지금 자리에서 시작해요.':''}</p><button type="button" class="p" data-bk="stay">계속 낚시하기</button><button type="button" class="g" data-bk="go">게임 나가기</button></div>`
  :`<div class="bkdim" data-bk="stay"></div><div class="bkcard"><div class="ic">🐟</div><h3>벌써 가시게요?</h3><p>오늘도 즐거운 낚시였어요!</p><div class="stt"><div><b>${BK.n}</b><small>이번에 낚은 물고기</small></div><div><b>🪙 ${earn.toLocaleString()}</b><small>이번에 번 골드</small></div><div><b>Lv.${lv}</b><small>${mins}분 플레이</small></div></div><p class="small">진행은 자동으로 저장돼요</p><div class="two"><button type="button" class="g" data-bk="go">나가기</button><button type="button" class="p" data-bk="stay">더 놀기</button></div></div>`;
  m.querySelectorAll('[data-bk]').forEach(b=>b.onclick=()=>{if(b.dataset.bk==='go')bkLeave();else{bkClose();bkArm(true);}});requestAnimationFrame(()=>m.classList.add('show'));}
 addEventListener('popstate',()=>{if(!BK.armed||BK.leaving)return;BK.armed=false;BK.weak=false;if(bkMode()==='off'||!started)return;
@@ -8381,21 +8479,27 @@ window.__nkMB={get S(){return S;},fzOn:()=>fzOn(),uiOpt:(k,d)=>uiOpt(k,d),pool:(
 /* v182 🧪 관리자 › 테스트 기능 — 시안 C: 켜진 것/전체 · 분류 · 끄기/나만/모두에게 · 정식 기능으로 (세부 설정 상자와 예전 목록은 아래 접기 안에 그대로) */
 {const LC={f:'on',c:'',q:'',open:{}};
  const CATS=[['first','처음 유저','#5b3fa6',/처음|가이드|튜토|tut|guide|wel|할아버지/i],['veh','탈것 · 펫','#2e7a46',/탈것|펫|veh|pet|turtle|거북|boats|배 |요트|ufo/i],['tank','어항 · 합성 · 요리','#8a6510',/어항|합성|요리|음식|tank|fuse|정수|cook/i],['map','맵 · 날씨','#2f7a8a',/맵|날씨|운하|달 |하늘|map|wx|sea|moon|sky|눈|비 |오로라|연등/i],['fish','낚시','#b5532a',/낚시|미끼|낚싯대|rod|bait|입질|챔질|reel/i],['ui','화면 · 메뉴','#2f5b9a',/화면|메뉴|ui|hud|버튼|창|채팅|카드|lay/i]];
- const catOf=x=>{for(const s of [x.n,x.k,x.d||''])for(const c of CATS)if(c[3].test(s))return c;return ['etc','기타','#6e6470'];};
- const G=()=>{const o={};try{const RT=window.NK_RT,P=RT&&RT.status&&RT.status()==='on'?RT.play:null;((P&&P.labGrad)||[]).forEach(k=>o[k]=1);}catch(e){}Object.assign(o,S.labGrad||{});return o;};const gradSet=(k,on)=>{const g=G();if(on)g[k]=1;else{delete g[k];if(S.labGrad)delete S.labGrad[k];}const L=Object.keys(g);if(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on'){V14.publishPlay({labGrad:L});if(S.labGrad){delete S.labGrad;}}else{S.labGrad=g;}save();};
- const offV=x=>{const o=x.o.find(o=>/끄기/.test(o[1]));return o?String(o[0]):null;};const st=x=>{const def=String(x.o[0][0]);if(x.scope==='all'){const ov=offV(x);if(ov!=null)return String(labGet(x))===ov?'off':'all';return labGet(x)!==def?'all':'off';}if(labLive(x)!==def)return 'all';const am=nkAdm()[x.k];if(am!=null&&am!==''&&String(am)!==def)return 'me';const m=S[x.k];return m!=null&&m!==''&&String(m)!==def?'me':'off';};
- const onV=x=>String((x.o.find(o=>String(o[0])!==String(x.o[0][0]))||x.o[0])[0]);
+ /* v243: 분류는 이름 글자로 추측하지 않고 키마다 직접 정해요 (예: 하늘 택시가 「맵·날씨」로 가던 문제) */const CATK={first:'guideMe guideV2 ncPick welcome tutDone nickLock boxEarly stV2 srvAuto',veh:'taxi ufoSuck alienPet pets petRide2 robotTkP emoteOn szTk',tank:'cook wearFuse fzGrade advNote advOn fuseOn tank3 tankGrp tankHide deckTank tankPlus tankUi ckSnd ckPos bragOff dexPlus mbLv mbInf mergeBoard',map:'trFare snowFx snowSoft aurora wxEach train deckDeco deck4 nightGlow mapSt seaLay seaLook seaTown wishLan moonTourCap moonSplash moonJump moonMeteor moonRover moonLander moonRice moonRabbit moonHelm moonView mapKeep',fish:'reelSnd stOn wkKing rodCard afPay charmBest',ui:'pipOn backAsk timeIco profSt profView sumSt eqWin hudSt bagMob mChat mobUi topUi uiMove dcOpt waterLite mobPerf',etc:'xmasEv acctSlot socLogin resumePos2'};const CATOF={};for(const c in CATK)CATK[c].split(' ').forEach(k=>CATOF[k]=c);
+ const catOf=x=>{const ck=CATOF[x.k];if(ck){const c=CATS.find(c=>c[0]===ck);return c||['etc','기타','#6e6470'];}for(const s of [x.n,x.k,x.d||''])for(const c of CATS)if(c[3].test(s))return c;return ['etc','기타','#6e6470'];};
+ const G0=()=>{const o={};try{const RT=window.NK_RT,P=RT&&RT.status&&RT.status()==='on'?RT.play:null;((P&&P.labGrad)||[]).forEach(k=>o[k]=1);}catch(e){}Object.assign(o,S.labGrad||{});return o;};
+ /* v243: 모든 유저에게 오래 켜 둔 켜기/끄기 기능 42개는 기본으로 「정식 기능」 목록에 넣어요. 테스트 표에서만 빠지고 켜진 값(서버 설정)은 그대로예요 */
+ const NKG0=['pipOn','trFare','snowFx','deckDeco','cook','wearFuse','fzGrade','fuseOn','tank3','tankGrp','szTk','tankPlus','tankUi','taxi','mobPerf','wishLan','seaTown','reelSnd','stV2','emoteOn','stOn','wkKing','socLogin','moonJump','moonMeteor','moonRover','moonLander','moonRice','moonRabbit','alienPet','pets','rodCard','srvAuto','acctSlot','bragOff','uiMove','dexPlus','mbLv','mergeBoard','waterLite','nickLock','mapKeep'];const G=()=>{const o=G0();NKG0.forEach(k=>{if(!(S.labUngrad&&S.labUngrad[k]))o[k]=1;});return o;};window.__nkLabG=G;const gradSet=(k,on)=>{if(NKG0.includes(k)&&!G0()[k]){S.labUngrad=S.labUngrad||{};if(on)delete S.labUngrad[k];else S.labUngrad[k]=1;save();return;}const g=G0();if(on)g[k]=1;else{delete g[k];if(S.labGrad)delete S.labGrad[k];}const L=Object.keys(g);if(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on'){V14.publishPlay({labGrad:L});if(S.labGrad){delete S.labGrad;}}else{S.labGrad=g;}save();};
+ /* v243: 「켜짐」 표시를 실제 값으로 계산해요. 기본값이 이미 켜진 기능(예: 펫 태우기·달 낚시 시점 B·운하 모양 W)이 「끄기」로 보이던 표시 오류를 고쳤어요. 값 자체는 바꾸지 않아요 */
+ const OFFRE=/끄기|기존|안 나옴|표시 안 함/;const offOpt=x=>x.o.find(o=>OFFRE.test(o[1]));const offV=x=>{const o=offOpt(x);return o?String(o[0]):null;};const isOff=(x,v)=>{if(!offOpt(x))return String(v)===String(x.o[0][0]);const o=x.o.find(o=>String(o[0])===String(v));return !!(o&&OFFRE.test(o[1]));};
+ const st=x=>{const def=String(x.o[0][0]);if(x.scope==='all'){const v=String(labGet(x));return isOff(x,v)?'off':'all';}const live=labLive(x);if(!isOff(x,live))return 'all';const am=nkAdm()[x.k];if(am!=null&&am!==''&&!isOff(x,am))return 'me';const m=S[x.k];return m!=null&&m!==''&&!isOff(x,m)?'me':'off';};
+ const dOff=x=>{const def=String(x.o[0][0]);return isOff(x,def)?def:(offV(x)!=null?offV(x):def);};
+ const onV=x=>{const def=String(x.o[0][0]);if(!isOff(x,def))return def;const o=x.o.find(o=>String(o[0])!==def&&!isOff(x,o[0]));return String((o||x.o.find(o=>String(o[0])!==def)||x.o[0])[0]);};
  const pub=(k,v)=>{if(!(V14&&V14.publishPlay&&window.NK_RT&&NK_RT.status()==='on')){toast('서버에 연결된 상태에서만 모든 유저에게 적용할 수 있어요',2000);return false;}V14.publishPlay({[k]:isNaN(+v)||v===''?v:+v});return true;};
- function setSt(x,want,re){const def=String(x.o[0][0]),on=x.o.length>2&&S[x.k]!=null&&String(S[x.k])!==def?String(S[x.k]):x.o.length>2&&labLive(x)!==def?labLive(x):onV(x),cur=st(x);if(want===cur)return;
-  if(x.scope==='all'){const ov=offV(x),v=want==='off'?(ov!=null?ov:def):(ov!=null?String((x.o.find(o=>String(o[0])!==ov)||x.o[0])[0]):on);confirmBox(`<h3>🧪 ${x.n}</h3><p>모든 유저에게 「${want==='off'?'끄기':'켜기'}」로 바로 적용할까요?</p>`,()=>{labSet(x,v);toast(`✅ ${x.n}: 모든 유저 ${want==='off'?'끄기':'켜기'}`,1600);setTimeout(re,500);});return;}
+ function setSt(x,want,re){const def=dOff(x);let on=x.o.length>2&&S[x.k]!=null&&!isOff(x,S[x.k])?String(S[x.k]):x.o.length>2&&!isOff(x,labLive(x))?labLive(x):onV(x);if(isOff(x,on))on=onV(x);const cur=st(x);if(want===cur)return;
+  if(x.scope==='all'){const v=want==='off'?def:on;confirmBox(`<h3>🧪 ${x.n}</h3><p>모든 유저에게 「${want==='off'?'끄기':'켜기'}」로 바로 적용할까요?</p>`,()=>{labSet(x,v);toast(`✅ ${x.n}: 모든 유저 ${want==='off'?'끄기':'켜기'}`,1600);setTimeout(re,500);});return;}
   if(want==='all'){confirmBox(`<h3>🧪 ${x.n}</h3><p>접속한 모든 유저에게 켤까요?</p>`,()=>{if(!pub(x.k,on))return;S[x.k]=null;save();nkAdmPub(x.k,null);toast(`✅ ${x.n}: 모두에게 켰어요`,1600);setTimeout(re,900);});return;}
   const go=()=>{applyStyleSide(x.k,want==='me'?on:def);const okp=nkAdmPub(x.k,want==='me'?on:null);toast(`${x.n}: ${want==='me'?'관리자·운영자만 켜기':'끄기'}${okp?'':' (서버 연결이 없어 내 화면만)'}`,1600);setTimeout(re,400);};
   if(cur==='all'){confirmBox(`<h3>🧪 ${x.n}</h3><p>지금 모든 유저에게 켜져 있어요. 모두에게서 끄고 ${want==='me'?'관리자·운영자 화면에만 남길까요?':'끌까요?'}</p>`,()=>{if(!pub(x.k,def))return;go();});return;}go();}
- const FAM=[['moon','🌙 달 맵',/^moon/],['sea','⛵ 운하 · 소원',/^(sea|wishLan|cnl|canal)/],['veh','🚗 탈것',/^(veh|jet|ufo|ufoSuck|boats2|turtle|tfx|taxi|hyper|boat|robotTkP|vbUser|petRide)$/],['pet','🐾 펫',/^(pets|petFx|alienPet)$/],['tut','🎓 처음 유저',/^(tut|guide|welcome|backAsk|ncPick)/],['tank','🐠 어항',/^(tank|deckTank|szTk|tankGrp|tankHide)/],['fuse','⚗ 합성 · 요리',/^(fuse|fz|wearFuse|ck|hunger|cook|adv)/],['mob','📱 모바일 화면',/^(mob|topUi|mChat|bagMob|fitUi)/],['deck','🪵 데크 · 맵 꾸미기',/^(deck|mapSt|train|trFare|duckFun|nightGlow|aurora|snow|wx)/],['ui','🖥 화면 모양',/^(hud|set|lv|sum|prof|timeIco|eqWin|xp|top|tut)/]];
+ const FAM=[['moon','🌙 달 맵',/^moon/],['sea','⛵ 운하 · 소원',/^(sea|wishLan|cnl|canal)/],['veh','🚗 탈것',/^(veh|jet|ufo|ufoSuck|boats2|turtle|tfx|taxi|hyper|boat|robotTkP|vbUser|petRide2?)$/],['pet','🐾 펫',/^(pets|petFx|alienPet)$/],['tut','🎓 처음 유저',/^(tut|guide|welcome|backAsk|ncPick)/],['tank','🐠 어항',/^(tank|deckTank|szTk|tankGrp|tankHide)/],['fuse','⚗ 합성 · 요리',/^(fuse|fz|wearFuse|ck|hunger|cook|adv)/],['mob','📱 모바일 화면',/^(mob|topUi|mChat|bagMob|fitUi)/],['deck','🪵 데크 · 맵 꾸미기',/^(deck|mapSt|train|trFare|duckFun|nightGlow|aurora|snow|wx)/],['ui','🖥 화면 모양',/^(hud|set|lv|sum|prof|timeIco|eqWin|xp|top|tut)/]];
  const famOf=x=>{for(const f of FAM)if(f[2].test(x.k))return f;return null;};
  const LIMG=window.NK_LABIMG||{};
- function rowHTML(x){const c=catOf(x),s=st(x),multi=x.o.length>2;const seg=(x.scope==='all'?[['off','끄기'],['all','모두에게']]:[['off','끄기'],['me','관리자만'],['all','모두에게']]).map(([k,t])=>`<button type="button" data-lcs="${k}" class="${s===k?'on '+k:''}">${t}</button>`).join('');
-   const sel=multi?`<select data-lcv="${x.k}" title="켤 때 쓸 값">${x.o.slice(1).map(([v,t])=>`<option value="${v}" ${(String(S[x.k]??nkAdm()[x.k]??labLive(x))===String(v))?'selected':''}>${t}</option>`).join('')}</select>`:'';const img=LIMG[x.k]?`<button type="button" class="lcimg" data-lci="${x.k}" title="시안 미리 보기">🖼 시안 ${LIMG[x.k].length}</button>`:'';
+ function rowHTML(x){const c=catOf(x),s=st(x),multi=x.o.length>2,hasOff=!!offOpt(x),oT=hasOff?'끄기':'기본값';const seg=(x.scope==='all'?[['off',oT],['all','모두에게']]:x.k==='mythChar'?[['off',oT],['me','관리자만']]:[['off',oT],['me','관리자만'],['all','모두에게']]).map(([k,t])=>`<button type="button" data-lcs="${k}" class="${s===k?'on '+k:''}"${k==='off'&&!hasOff?' title="기본 모양을 써요 (끄는 게 아니에요)"':''}>${t}</button>`).join('');
+   const sel=multi?`<select data-lcv="${x.k}" title="켤 때 쓸 값">${(hasOff?x.o.filter(o=>!OFFRE.test(o[1])):x.o.slice(1)).map(([v,t])=>`<option value="${v}" ${(String(S[x.k]??nkAdm()[x.k]??labLive(x))===String(v))?'selected':''}>${t}</option>`).join('')}</select>`:'';const img=LIMG[x.k]?`<button type="button" class="lcimg" data-lci="${x.k}" title="시안 미리 보기">🖼 시안 ${LIMG[x.k].length}</button>`:'';
    return `<div class="lcr" data-lck="${x.k}"><div class="lcn"><b>${x.n}</b><small>${escRT(String(x.d||'').replace(/<[^>]*>/g,''))}</small></div><span class="lcc" style="color:${c[2]}">${c[1]}</span><div class="lcseg">${seg}</div><div class="lcx">${img}${sel}${multi&&x.scope==='all'?'<button type="button" class="lcg lcap" data-lcap title="고른 값을 모든 유저에게 적용해요">✅ 인게임 적용</button>':''}${s==='all'&&x.scope!=='all'?'<button type="button" class="lcg" data-lcg>정식 기능으로</button>':''}</div></div>`;}
  function rowsHTML(){const L=LAB.filter(x=>!/^duck/.test(x.k)&&x.o&&x.o.length>=2).slice().reverse(),q=LC.q.trim();
   const R=L.filter(x=>!G()[x.k]).filter(x=>LC.f==='all'||st(x)!=='off').filter(x=>!LC.c||catOf(x)[0]===LC.c).filter(x=>!q||(x.n+' '+(x.d||'')).includes(q));

@@ -1171,6 +1171,8 @@ export function sanitizePlay(input, prev, opt) {
   if ("moonSplash" in input) out.moonSplash = pickOf(input.moonSplash, ["B", "A", "C", "old"]);
   if ("moonTourCap" in input) out.moonTourCap = pickOf(input.moonTourCap, ["B", "A", "C", "off"]);
   if ("petRide" in input) out.petRide = pickOf(input.petRide, ["on", "off"]);
+  // v243: 펫 태우기·있던 자리 시작은 새 키(기본 켜짐)로 옮겼어요. 예전 키(petRide·resumePos)는 그대로 둬요
+  for (const k of ["petRide2", "resumePos2"]) if (k in input) out[k] = pickOf(input[k], ["on", "off"]);
   if ("ncPick" in input) out.ncPick = pickOf(input.ncPick, ["ym", "yf", "om", "of"]);
   // v183: 관리자·운영자끼리 같이 보는 테스트 설정(adm) · 정식 기능으로 옮긴 테스트 기능 목록(labGrad)
   if ("adm" in input) {

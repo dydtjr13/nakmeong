@@ -937,3 +937,15 @@ test("v206 슈퍼 초월급 공지·축하: st / stc 메시지가 서버까지 �
   assert.equal(_pc6(JSON.stringify({ t: "stc", a: "<b>" })).a, "b");
   assert.equal(_pc6(JSON.stringify({ t: "stc", a: "" })), null);
 });
+
+test("v243: petRide2/resumePos2 keep on/off only and old keys stay untouched", () => {
+  const now = Date.now();
+  const prev = sanitizePlay({ petRide: "off", resumePos: "off" }, null, { bump: true, now });
+  const next = sanitizePlay({ petRide2: "on", resumePos2: "off" }, prev, { bump: true, now: now + 1000 });
+  assert.equal(next.petRide2, "on");
+  assert.equal(next.resumePos2, "off");
+  assert.equal(next.petRide, "off");
+  assert.equal(next.resumePos, "off");
+  const bad = sanitizePlay({ petRide2: "maybe" }, null, { bump: true, now });
+  assert.ok(bad.petRide2 === undefined || ["on", "off"].includes(bad.petRide2));
+});
