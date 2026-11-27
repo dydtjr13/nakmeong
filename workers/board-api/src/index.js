@@ -119,6 +119,10 @@ async function ensureSchema(db) {
     "ALTER TABLE wishes ADD COLUMN m TEXT NOT NULL DEFAULT 'canal'",
     // v172: 게스트 닉네임 번호 (나1, 나2 …) — 한 줄짜리 카운터
     'CREATE TABLE IF NOT EXISTS guestseq (id INTEGER PRIMARY KEY, n INTEGER NOT NULL)',
+    // v235: 🔒 닉네임 고정 — 처음 정한 닉네임을 기기(owner 해시)·저장 코드와 묶어 둬요 (다른 사람이 같은 닉네임으로 시작하지 못하게)
+    // v235: 마지막으로 저장한 기기(owner 해시) — 다른 기기가 그 뒤에 저장했으면 옛 창이 덮어쓰지 못하게
+    'ALTER TABLE saves ADD COLUMN wr TEXT',
+    "CREATE TABLE IF NOT EXISTS nicks (nk TEXT PRIMARY KEY, nick TEXT NOT NULL, code TEXT NOT NULL DEFAULT '', owner TEXT NOT NULL, at INTEGER NOT NULL)",
   ];
   for (const sql of tries) { try { await db.prepare(sql).run(); } catch (e) { /* 이미 있음 */ } }
   schemaReady = true;
@@ -279,27 +283,29 @@ export default {
         // v162: 저장 코드로 이어 하는 기기들은 같은 저장 칸을 함께 써요 (코드 = 열쇠). 다른 기기가 더 나중에 저장했으면 덮어쓰지 않고 알려요
         const xc = cleanCode(request.headers.get('X-Code'));
         if (xc) {
-          const row = await db.prepare('SELECT code, updated_at, data FROM saves WHERE code=?').bind(xc).first();
+          const row = await db.prepare('SELECT code, updated_at, data, wr FROM saves WHERE code=?').bind(xc).first();
           if (row) {
             const base = Number(body.base) || 0;
+            // v235: 내가 마지막으로 받은 뒤(base)에 '다른 기기'가 저장했으면 옛 창이에요 → 덮어쓰지 않고 알려요 (내 저장 응답만 못 받은 경우는 wr 이 나라서 통과)
+            if (base && row.updated_at > base + 1500 && row.wr && row.wr !== me) return json({ ok: false, error: 'newer', code: xc, updated_at: row.updated_at }, 409, origin);
             // v164: 시간만 보면 휴대폰이 닫히며 응답을 못 받은 '자기 저장'까지 다른 기기로 착각해요 → 서버 진행(savedAt)이 실제로 더 나중일 때만 거부
             const sa = t => { const m = t && /"savedAt":(\d+)/.exec(t); return m ? +m[1] : 0; };
-            if (base && row.updated_at > base + 1500 && sa(row.data) > sa(data) + 2000) return json({ ok: false, error: 'newer', code: xc, updated_at: row.updated_at }, 409, origin);
-            await db.prepare('UPDATE saves SET data=?, size=?, updated_at=? WHERE code=?').bind(data, data.length, now, xc).run();
+            if (base && row.updated_at > base + 1500 && !row.wr && sa(row.data) > sa(data) + 2000) return json({ ok: false, error: 'newer', code: xc, updated_at: row.updated_at }, 409, origin);
+            await db.prepare('UPDATE saves SET data=?, size=?, updated_at=?, wr=? WHERE code=?').bind(data, data.length, now, me, xc).run();
             await snapSave(db, xc, data, now);
             return json({ ok: true, code: xc, updated_at: now }, 200, origin);
           }
         }
         const mine = await db.prepare('SELECT code FROM saves WHERE owner=? ORDER BY updated_at DESC LIMIT 1').bind(me).first();
         if (mine) {
-          await db.prepare('UPDATE saves SET data=?, size=?, updated_at=? WHERE code=?').bind(data, data.length, now, mine.code).run();
+          await db.prepare('UPDATE saves SET data=?, size=?, updated_at=?, wr=? WHERE code=?').bind(data, data.length, now, me, mine.code).run();
           await snapSave(db, mine.code, data, now);
           return json({ ok: true, code: mine.code, updated_at: now }, 200, origin);
         }
         let code = '';
         for (let i = 0; i < 5 && !code; i++) { const c = newCode(); const hit = await db.prepare('SELECT code FROM saves WHERE code=?').bind(c).first(); if (!hit) code = c; }
         if (!code) return bad('try again', 503, origin);
-        await db.prepare('INSERT INTO saves (code,owner,data,size,created_at,updated_at) VALUES (?,?,?,?,?,?)').bind(code, me, data, data.length, now, now).run();
+        await db.prepare('INSERT INTO saves (code,owner,data,size,created_at,updated_at,wr) VALUES (?,?,?,?,?,?,?)').bind(code, me, data, data.length, now, now, me).run();
         await snapSave(db, code, data, now);
         return json({ ok: true, code, updated_at: now }, 201, origin);
       }
@@ -307,9 +313,10 @@ export default {
       if (saveOne && request.method === 'GET') {
         const code = cleanCode(decodeURIComponent(saveOne[1]));
         if (!code) return bad('bad code', 400, origin);
-        const row = await db.prepare('SELECT data, updated_at FROM saves WHERE code=?').bind(code).first();
+        const row = await db.prepare('SELECT data, updated_at, wr FROM saves WHERE code=?').bind(code).first();
         if (!row) return bad('not found', 404, origin);
-        return json({ ok: true, code, data: row.data, updated_at: row.updated_at }, 200, origin);
+        // v235: other = 마지막 저장이 다른 기기에서였어요 (이 기기는 그 진행을 받아야 해요)
+        return json({ ok: true, code, data: row.data, updated_at: row.updated_at, other: !!(row.wr && me && row.wr !== me) }, 200, origin);
       }
       // v56: 관리자 — 닉네임으로 저장 코드 찾기 (계정 복구용)
       if (path === '/saves/find' && request.method === 'GET') {
@@ -383,6 +390,9 @@ export default {
         if (!mine) return bad('no save', 400, origin);
         const had = await db.prepare('SELECT code FROM accounts WHERE nk=?').bind(nk).first();
         if (had && had.code !== mine.code) return bad('taken', 409, origin);
+        // v235: 다른 사람이 정해 둔(고정한) 닉네임으로는 계정을 만들 수 없어요
+        const cl = await db.prepare('SELECT code, owner FROM nicks WHERE nk=?').bind(nk).first();
+        if (cl && cl.owner !== me && cl.code !== mine.code) return bad('taken', 409, origin);
         const salt = crypto.randomUUID(), now = Date.now();
         await db.prepare('INSERT INTO accounts (nk,nick,salt,ph,code,created_at,updated_at) VALUES (?,?,?,?,?,?,?) ON CONFLICT(nk) DO UPDATE SET salt=excluded.salt, ph=excluded.ph, nick=excluded.nick, updated_at=excluded.updated_at, fails=0, lock_until=0')
           .bind(nk, nick, salt, await pinHash(String(body.pin), salt), mine.code, now, now).run();
@@ -421,6 +431,26 @@ export default {
           if (!had) return json({ ok: true, nick }, 200, origin);
         }
         return json({ ok: true, nick: '나' + (10000 + Math.floor(Math.random() * 89999)) }, 200, origin);
+      }
+      // v235: 🔒 닉네임 확인 · 차지 — 계정 닉네임이거나 다른 사람(다른 기기·다른 저장 코드)이 이미 정한 닉네임이면 쓸 수 없어요
+      if ((path === '/nick/check' && request.method === 'GET') || (path === '/nick/claim' && request.method === 'POST')) {
+        const claim = path === '/nick/claim';
+        const body = claim ? await request.json().catch(() => ({})) : {};
+        const nick = cleanNick(claim ? body.nick : url.searchParams.get('nick')), nk = nickKey(nick);
+        if (!nk || nick === '낚시꾼' || profane(nick) || /^나\d{1,8}$/.test(nick)) return claim ? bad('nick', 400, origin) : json({ ok: true, free: false, bad: true }, 200, origin);
+        const xc = cleanCode(request.headers.get('X-Code'));
+        const acc = await db.prepare('SELECT code FROM accounts WHERE nk=?').bind(nk).first();
+        const cl = await db.prepare('SELECT code, owner FROM nicks WHERE nk=?').bind(nk).first();
+        const mineAcc = !acc || (xc && acc.code === xc);
+        const mineCl = !cl || (me && cl.owner === me) || (xc && cl.code && cl.code === xc);
+        const free = !!(mineAcc && mineCl);
+        if (!claim) return json({ ok: true, free }, 200, origin);
+        if (!me) return bad('owner required', 400, origin);
+        if (!free) return json({ ok: false, error: 'taken' }, 409, origin);
+        const now = Date.now();
+        await db.prepare('INSERT INTO nicks (nk,nick,code,owner,at) VALUES (?,?,?,?,?) ON CONFLICT(nk) DO UPDATE SET nick=excluded.nick, code=CASE WHEN excluded.code<>\'\' THEN excluded.code ELSE nicks.code END, owner=excluded.owner, at=excluded.at')
+          .bind(nk, nick, xc || (cl && cl.code) || '', me, now).run();
+        return json({ ok: true, nick }, 200, origin);
       }
       if (path === '/accounts/check' && request.method === 'GET') {
         const nick = cleanNick(url.searchParams.get('nick')), nk = nickKey(nick);
