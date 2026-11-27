@@ -1446,3 +1446,6 @@ body:has(.modal.show) #toast:has(.cc){z-index:auto}
 #stV2 .sx2mapk .sx2no{font-size:20px}
 #stV2 .sx2card .sx2lnk.sx2lake{color:#7a6e8a;text-shadow:none;font-size:13px;font-weight:700;padding:2px 8px;align-self:center}
 @media (max-height:700px){#stV2 .sx2mapk{padding:6px 14px}}
+
+/* v240 상점 탈것 카드 제목줄: 휴대폰에서 설명이 카드 밖으로 넘치지 않게 줄바꿈 */
+@media (max-width:700px){#shop .flyh{flex-wrap:wrap;row-gap:2px;min-width:0}#shop .flyh b{white-space:nowrap}#shop .flyh small{white-space:normal;min-width:0;flex:1 1 100%;overflow-wrap:anywhere;line-height:1.35}#shop .robc .robsw{flex-wrap:wrap;row-gap:6px;min-width:0}#shop .robc .robi{min-width:0}}
