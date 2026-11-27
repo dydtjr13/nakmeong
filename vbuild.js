@@ -810,7 +810,7 @@
       P.querySelector('[data-bback]').onclick = () => { B.cur = null; brdList(); };
       const g = P.querySelector('[data-bget]'); if (g) g.onclick = () => { if (!d) return; saveDraft(); E.k = 'x' + Date.now().toString(36).slice(-6) + 'b'; d.n = String(p.title).slice(0, 14); delete d.shop; load(d); E.undo = []; E.redo = []; E.mode = 'build'; saveDraft(); P.style.display = 'none'; changed(true); fit(); toast(`📥 「${d.n}」을(를) 내 편집기로 가져왔어요 · 고쳐서 써도 돼요`, 2200); };
       const bp = P.querySelector('[data-bpub]'); if (bp) bp.onclick = () => { bp.disabled = true; const img = thumbOf(d); const dd = Object.assign({}, d); delete dd.shop; delete dd.at; api('/posts', { method: 'POST', body: JSON.stringify({ cat: BCAT[d.t] || BCAT.veh, title: String(p.title).slice(0, 40), body: `${p.body}\n\n· 만든 사람: ${p.nick}`, nick: VB().nick(), img: img || undefined, blk: JSON.stringify(dd) }) }).then((r) => { if (r && r.ok) toast('🏪 창작 마당에 올렸어요', 1600); else { bp.disabled = false; toast('올리지 못했어요', 1600); } }); };
-      const del = P.querySelector('[data-bdel]'); if (del) del.onclick = () => { if (!confirm('이 글을 지울까요?')) return; api('/posts/' + encodeURIComponent(id), { method: 'DELETE' }).then(() => { B.cur = null; brdList(); }); };
+      const del = P.querySelector('[data-bdel]'); if (del) del.onclick = () => { const go=()=>{ api('/posts/' + encodeURIComponent(id), { method: 'DELETE' }).then(() => { B.cur = null; brdList(); }); }; _cfAsk('이 글을 지울까요?',go); };
       const cs = P.querySelector('[data-bcs]'), ci = P.querySelector('[data-bcm]');
       cs.onclick = () => { const t = ci.value.trim(); if (!t) return; cs.disabled = true; api('/posts/' + encodeURIComponent(id) + '/comments', { method: 'POST', body: JSON.stringify({ body: t, nick: VB().nick() }) }).then((r) => { if (r && r.ok) brdView(id); else { cs.disabled = false; toast(r && r.error === 'profanity' ? '쓸 수 없는 말이 있어요' : '댓글을 남기지 못했어요', 1600); } }); };
     });
@@ -853,7 +853,7 @@
     const done = () => { if (yes) yes.style.display = ''; m.classList.remove('show'); };
     const no = $('cfNo'); if (no) { no.textContent = '닫기'; const o = no.onclick; no.onclick = () => { if (yes) yes.style.display = ''; no.textContent = '취소'; o && o(); }; }
     m.querySelectorAll('[data-ldo]').forEach((b) => (b.onclick = () => { const k = b.dataset.ldo, d = all[k] && all[k].d; if (!d) return; done(); E.k = k; load(d); E.undo = []; E.redo = []; E.mode = 'build'; saveDraft(); changed(true); fit(); toast(`📂 「${d.n}」을(를) 불러왔어요`, 1400); }));
-    m.querySelectorAll('[data-ldx]').forEach((b) => (b.onclick = () => { const k = b.dataset.ldx; if (!confirm(`「${(dr[k] || {}).n || k}」을(를) 이 컴퓨터에서 지울까요? (게임에 등록된 것은 그대로예요)`)) return; const o = drafts(); delete o[k]; try { localStorage.setItem(DRAFT, JSON.stringify(o)); } catch (e) { /* ignore */ } b.closest('.vbLr').remove(); }));
+    m.querySelectorAll('[data-ldx]').forEach((b) => (b.onclick = () => { const k = b.dataset.ldx; const go=()=>{ const o = drafts(); delete o[k]; try { localStorage.setItem(DRAFT, JSON.stringify(o)); } catch (e) { /* ignore */ } b.closest('.vbLr').remove(); }; const msg=`「${(dr[k] || {}).n || k}」을(를) 이 컴퓨터에서 지울까요? (게임에 등록된 것은 그대로예요)`; _cfAsk(msg,go); }));
     const fi = m.querySelector('[data-ldin]'); m.querySelector('[data-ldfile]').onclick = () => fi.click();
     fi.onchange = () => { const f = fi.files[0]; if (!f) return; f.text().then((t) => { try { const d = JSON.parse(t); if (!d || typeof d.vox !== 'object') throw 0; done(); E.k = newKey(); load(d); E.undo = []; E.redo = []; saveDraft(); changed(true); fit(); toast('📂 파일에서 불러왔어요', 1400); } catch (e) { toast('이 편집기 파일이 아니에요', 1600); } }); };
   }
@@ -1063,7 +1063,7 @@
     function take() { d.n = ($('vbRn').value || d.n).replace(/[<>]/g, '').slice(0, 14) || '새 탈것'; d.shop = { how, pr: Math.max(0, +$('vbRp').value || 0), g: +$('vbRg').value, p: Math.max(0, Math.min(100, +$('vbRq').value || 0)), spd: Math.max(0, Math.min(150, +$('vbRs').value || 0)) }; saveDraft(); }
     m.querySelector('[data-rlocal]').onclick = () => { take(); m.classList.remove('show'); publish(true); };
     const lo = m.querySelector('[data-rloff]'); if (lo) lo.onclick = () => { m.classList.remove('show'); delete V.VBX.local[E.k]; V.vbSaveLocal(); V.vbReg(); toast('내 화면에서 뺐어요', 1400); };
-    const dl = m.querySelector('[data-rdel]'); if (dl) dl.onclick = () => { m.classList.remove('show'); if (!confirm(`「${d.n}」을(를) 게임에서 뺄까요? (산 사람 가방에서도 안 보여요)`)) return; const RT = window.NK_RT; if (RT && RT.setVbx && RT.setVbx(E.k, null)) toast('게임에서 뺐어요', 1600); else toast('서버에 연결된 상태에서만 할 수 있어요', 2000); };
+    const dl = m.querySelector('[data-rdel]'); if (dl) dl.onclick = () => { m.classList.remove('show'); const go=()=>{ const RT = window.NK_RT; if (RT && RT.setVbx && RT.setVbx(E.k, null)) toast('게임에서 뺐어요', 1600); else toast('서버에 연결된 상태에서만 할 수 있어요', 2000); }; const msg=`「${d.n}」을(를) 게임에서 뺄까요? (산 사람 가방에서도 안 보여요)`; _cfAsk(msg,go); };
   }
   function publish(local) {
     const V = VB(), dd = data();
