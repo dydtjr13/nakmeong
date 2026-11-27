@@ -110,8 +110,8 @@ function stats(s){const r={};String(s||'').replace(/(빠른입질|대어|희귀�
 function compare(o){if(o.tab!=='rod'||o.eq||o.box)return '';const cur=(ST.M.P.rod||{items:[]}).items.find(x=>x.eq);if(!cur)return '';const a=stats(cur.desc),b=stats(o.desc);const ks=['빠른입질','대어','희귀어종'].filter(k=>(b[k]||0)!==(a[k]||0));if(!ks.length)return '';
  return `<div class="nkcmp">지금 쓰는 <b>${esc(cur.name)}</b>보다 ${ks.map(k=>{const d=(b[k]||0)-(a[k]||0);return `<span class="${d>0?'up':'dn'}">${k} ${d>0?'+':''}${d}%</span>`;}).join(' ')}</div>`;}
 function optCur(o){if(!o.opts)return null;const i=ST.col[o.key];const x=o.opts[i!=null&&o.opts[i]?i:Math.max(0,o.opts.findIndex(y=>y.on)>=0?o.opts.findIndex(y=>y.on):o.opts.findIndex(y=>y.own))];return x||o.opts[0];}
-function where(o){return {rod:'가방 › 장비',bait:'상점 › 미끼 (사용 버튼)',fly:'가방 › 탈것 · 「🚗 타기」',pet:'가방 › 🐾 펫',deco:'데크 의자에 앉아 🪑 꾸미기',tank:'어항 창',wear:'가방 › 장비'}[o.tab]||'';}
-function detH(o){if(!o)return `<div class="dempty"><b>🛒</b><span>카드를 누르면 여기에서 크게 보고 살 수 있어요</span></div>`;
+function where(o){return {fly:'가방 › 탈것',pet:'가방 › 펫',deco:'데크에 앉아 꾸미기',tank:'어항'}[o.tab]||'';}
+function detH(o){if(!o)return `<div class="dempty"><b>🛒</b></div>`;
  const x=optCur(o);const A=x?x.acts:o.acts;const buy=A.find(a=>a.k==='buy'),use=A.find(a=>a.k==='use'),sells=A.filter(a=>a.k==='sell');const pr=x?x.pr:o.price;
  const tags=String(o.desc||'').split(/\s*·\s*|,\s*/).filter(Boolean).slice(0,6).map(t=>`<i class="tg">${esc(t)}</i>`).join('');
  const colH=o.opts?`<div class="cols">${o.opts.map((y,i)=>`<button type="button" class="col ${y===x?'on':''}" data-nkcol="${i}"><img src="${esc(y.img&&y.img.src||'')}" alt=""><b>${esc(y.name)}</b><small>${y.own?'✔ 보유':shortP(y.pr)}</small></button>`).join('')}</div>`
@@ -123,7 +123,7 @@ function detH(o){if(!o)return `<div class="dempty"><b>🛒</b><span>카드를 �
  if(use)btns+=`<button type="button" class="buy ok" data-nkact="use" ${use.dis?'disabled':''}>${esc(use.t.replace('이걸로',o.tab==='fly'?'이 색으로 타기':'이걸로 쓰기'))}</button>`;
  if(buy)btns+=`<button type="button" class="buy" data-nkact="buy" ${buy.dis?'disabled':''}><i class="coin"></i>${pr?fmt(pr):''} ${esc(buy.t.replace(/^구매$/,'구매'))}</button>`;
  if(!use&&!buy&&!o.box)btns+=`<button type="button" class="buy off" disabled>${o.eq?(o.tab==='fly'?'타는 중':'사용 중'):o.own?'보유 중':'지금은 살 수 없어요'}</button>`;
- sells.forEach((s,i)=>{btns+=`<button type="button" class="sellx" data-nkact="sell" data-i="${i}">💰 판매하기 · 🪙 ${fmt(num(s.t.split('🪙').pop()))} 받아요 <small>(산 값의 30%)</small></button>`;});
+ sells.forEach((s,i)=>{btns+=`<button type="button" class="sellx" data-nkact="sell" data-i="${i}">🪙 ${fmt(num(s.t.split('🪙').pop()))}에 팔기</button>`;});
  const extra=[o.info,o.set?o.set+' · '+o.setFx:'',o.ownTxt].filter(Boolean).map(t=>`<div class="inf">${esc(t)}</div>`).join('');
  return `<div class="big ${o.wide?'wide':''}"><span class="vi" data-vis="${esc(o.id)}" data-big="1"></span></div>
   <div class="dt"><h3>${esc(o.name)}${x?` <small>${esc(x.name)}</small>`:''}</h3><div class="tags">${lvl}${tags}</div>${compare(o)}${extra}${colH}</div>
@@ -148,8 +148,8 @@ function drawGrid(){const sh=$('shop'),gw=$('nkbGW');if(!gw)return;const cat=ST.
  if(RAW[cat]&&!ST.q){const body=ST.M.H[cat]&&ST.M.H[cat].querySelector('.tabs')?ST.M.H[cat].querySelector('.tabs').nextElementSibling:null;gw.innerHTML='';const w=document.createElement('div');w.className='rawb rw-'+cat;if(body){w.appendChild(body);}gw.appendChild(w);return;}
  const L=list();const selId=ST.sel[ST.q?'q':cat];let sel=L.find(o=>o.id===selId)||null;if(!sel&&!mob()&&L.length)sel=L[0];
  const notes=!ST.q&&cat!=='rec'&&ST.M.P[cat]?ST.M.P[cat].notes:[];
- const hd=ST.q?`<div class="hint">「${esc(ST.q)}」 찾은 결과 <b>${L.length}개</b></div>`:cat==='rec'?'<div class="hint">⭐ 지금 살 수 있는 다음 물건이에요 · 카테고리마다 몇 개씩 골랐어요</div>':'';
- gw.innerHTML=`${hd}${L.length?`<div class="grid">${L.map(o=>card(o,sel&&o.id===sel.id)).join('')}</div>`:`<div class="empty">${ST.q?'찾는 물건이 없어요':ST.fBuy||ST.fOwn?'조건에 맞는 물건이 없어요 · 거르기를 꺼 보세요':'여기에는 아직 물건이 없어요'}</div>`}${notes.map(n=>`<p class="note">${esc(n)}</p>`).join('')}`;
+ const hd=ST.q?`<div class="hint">「${esc(ST.q)}」 찾은 결과 <b>${L.length}개</b></div>`:cat==='rec'?'<div class="hint">⭐ 추천</div>':'';
+ gw.innerHTML=`${hd}${L.length?`<div class="grid">${L.map(o=>card(o,sel&&o.id===sel.id)).join('')}</div>`:`<div class="empty">${ST.q?'찾는 물건이 없어요':ST.fBuy||ST.fOwn?'해당하는 물건이 없어요':'아직 물건이 없어요'}</div>`}${notes.map(n=>`<p class="note">${esc(n)}</p>`).join('')}`;
  fillVis(gw);ST.cur=sel;if(!mob())drawDet(sel);else drawSheet();
  gw.querySelectorAll('[data-nksel]').forEach(c=>c.onclick=e=>{if(e.target.closest('button'))return;pick(c.dataset.nksel);});
  gw.querySelectorAll('[data-nkpick]').forEach(b=>b.onclick=()=>pick(b.dataset.nkpick));
