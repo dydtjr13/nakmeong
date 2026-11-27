@@ -1508,3 +1508,45 @@ body:has(.modal.show) #toast:has(.cc){z-index:auto}
   #confirm .card.nkcf h3{font-size:18px}
   #confirm .nkcf-btns button{min-width:0;flex:1}
 }
+/* v245: 휴대폰 관리자 모드 — 창이 화면 밖으로 나가지 않고, 넓은 표는 안쪽만 가로 스크롤(또는 카드) */
+.adm2, #admin .card.adm2{max-width:min(1100px,calc(100vw - 12px))!important;width:min(1100px,calc(100vw - 12px))!important;box-sizing:border-box}
+.adm2 .alay,.adm2 main.adb,.adm2 header{min-width:0}
+.adm2 main.adb{overflow-x:hidden;overflow-y:auto}
+.adm2 main.adb .adbox,.adm2 main.adb details,.adm2 main.adb details>*,.adm2 main.adb .labbox,.adm2 main.adb .labtry,.adm2 main.adb .labC,.adm2 main.adb .labapplied,.adm2 main.adb .stadm,.adm2 main.adb .msc,.adm2 main.adb .mscg,.adm2 main.adb .msprev,.adm2 main.adb .mscal,.adm2 main.adb .msls,.adm2 main.adb .msas,.adm2 main.adb .vehadm,.adm2 main.adb .adgrid,.adm2 main.adb .bgrid{max-width:100%;min-width:0;box-sizing:border-box}
+.adm2 .lcr,.adm2 .labrow,.adm2 .labfold{max-width:100%;min-width:0;overflow-x:hidden}
+.adm2 .adscroll{width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.adm2 .adscroll>table{width:max-content;min-width:100%;max-width:none}
+.adm2 .adrow,.adm2 .pchips,.adm2 .qk,.adm2 .tiles,.adm2 .labctl,.adm2 .acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;max-width:100%;min-width:0}
+.adm2 .adrow input,.adm2 .adrow select,.adm2 .adrow button,.adm2 main.adb input[type=text],.adm2 main.adb input[type=search]{max-width:100%;box-sizing:border-box;min-width:0}
+.adm2 img.emj{max-width:1.3em;height:auto}
+.adm22 .evg fieldset{min-width:0}
+.adbox.wxt{min-width:0;max-width:100%}
+.adbox.wxt .wxg{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:700px){
+ .adm2 header{padding:10px 12px;gap:8px}
+ .adm2 main.adb{padding:14px 12px 18px}
+ .adm2 main.adb>h2{font-size:16px;margin-bottom:12px}
+ .adm2 .adrow{gap:6px}
+ .adm2 .adrow input,.adm2 .adrow select{flex:1 1 120px}
+ .adm22 .evg{flex-direction:column}
+ .adm22 .evg fieldset{min-width:0;flex:1 1 auto;width:100%}
+ .adbox.wxt .wxl{grid-template-columns:64px max-content}
+ .adbox.wxt .wxcs{grid-template-columns:repeat(24,22px)}
+ .adbox.wxt .wxn b,.adbox.wxt .wxn small{white-space:normal}
+ .adm2 table.adcard,.adm2 table.adcard tbody{display:block;width:100%;min-width:0;background:transparent;border:0}
+ .adm2 table.adcard thead,.adm2 table.adcard tr:first-child:has(th){display:none}
+ .adm2 table.adcard tr:has(td){display:block;background:#fff;border:1px solid #f0e8dc;border-radius:14px;padding:10px 12px;margin:0 0 8px;box-sizing:border-box}
+ .adm2.dk table.adcard tr:has(td){background:#2a2439;border-color:#3a3350}
+ .adm2 table.adcard td{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;border:0;padding:5px 0;white-space:normal;min-width:0;text-align:right;overflow-wrap:anywhere}
+ .adm2 table.adcard td::before{content:attr(data-lb);font-size:11px;color:#8a7f96;font-weight:700;flex:0 0 auto;text-align:left;max-width:42%}
+ .adm2 table.adcard td.acts,.adm2 table.adcard td:last-child:not([data-lb]){display:flex;flex-wrap:wrap;justify-content:flex-start}
+ .adm2 table.adcard td.acts::before,.adm2 table.adcard td:last-child:not([data-lb])::before{content:none}
+ .adm2 .adscroll:has(table.adcard){overflow:visible}
+ .adm2 .adsave{position:sticky;bottom:0;padding:8px 10px;gap:6px}
+ .adbox.wxt .wxbs{flex-wrap:wrap;overflow:visible;max-width:100%}
+ .adm22 .bf{grid-template-columns:minmax(0,1fr) 72px 24px;max-width:100%}
+ .adm22 .bf input{width:72px!important;max-width:100%}
+ .msc .mscg,.msc .msed{width:100%;max-width:100%}
+ .msc .mscal .cal{max-width:100%}
+ .msc .msar b{white-space:normal}
+ .labC .lcn small{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}}
