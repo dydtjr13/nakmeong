@@ -1,4 +1,4 @@
-/* v238 🛩️ 오픈 전투기 (테스트) — 시안 /workspace/mount-upgrade-mock/jet (물고기·별 지운 판) · Three.js r147 프로시저럴
+/* v240 🛩️ 오픈 전투기 (테스트) — 시안 /workspace/mount-upgrade-mock/jet (물고기·별 지운 판) · Three.js r147 프로시저럴
  * 사용: const g = JET_OPEN.build('ace')  // 'ace' | 'crimson' | 'aurora'
  *  - 좌표: +z 가 앞(기수), y 위, 단위는 게임 FLY.jet.sc(1.6) 곱하기 전 값
  *  - userData: seat(탑승 위치), flame(애프터버너 그룹), fly/tilt/jet=1, hideRider=0(캐릭터 보이는 오픈 콕핏)
@@ -76,7 +76,7 @@ const xf = (g, o) => { const m=new T.Matrix4(), q=new T.Quaternion().setFromEule
 /* ---------- build ---------- */
 function build(key, opt={}){
  T = T || root.THREE;
- const M=mats(key), P=M.P, g=new T.Group(); g.name='jet-v2-'+key;
+ const M=mats(key), P=M.P, g=new T.Group(); g.name='jet-open-'+key;
  const add=(geo, mat, both)=>{ const m=new T.Mesh(geo, mat); g.add(m); if(both){ const m2=new T.Mesh(flip(geo), mat); g.add(m2); } return m; };
  const cMain=C(P.main), cBelly=C(P.belly), cGrad=P.grad?C(P.grad):null, cRad=C(P.radome), cSeat=C(P.seat), tmp=new T.Color();
  const bodyCol=(x,y,z)=>{ // 위 = 메인 · 아래 = 배색 (옆 선에서 또렷이 갈려요) · 오로라는 앞→뒤 그라데이션

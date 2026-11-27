@@ -1,4 +1,4 @@
-// v238 ✈️ 버블 전투기 (테스트) — 시안 /workspace/mount-mock-jet (별 무늬 지운 판) · 절차적 모델. 앞 +z, 위 +y, 로컬 단위(게임에서 sc 1.6 곱함)
+// v240 ✈️ 버블 전투기 (테스트) — 시안 /workspace/mount-mock-jet (별 무늬 지운 판) · 절차적 모델. 앞 +z, 위 +y, 로컬 단위(게임에서 sc 1.6 곱함)
 window.JET_BUBBLE=(function(){
 let T=null,BU=null;
 const PAL={
@@ -38,7 +38,7 @@ const M=(geo,fn)=>{fn&&fn(geo);return geo;};
 function nonIdx(g){return g.index?g.toNonIndexed():g;}
 function merge(list){const L=list.map(g=>{g=nonIdx(g);if(!g.attributes.uv){g.setAttribute('uv',new T.Float32BufferAttribute(new Float32Array(g.attributes.position.count*2),2));}['color','uv2','tangent'].forEach(a=>g.deleteAttribute&&g.attributes[a]&&g.deleteAttribute(a));return g;});return BU.mergeBufferGeometries(L,false);}
 // ---------- 환경맵 (모델이 직접 가지고 다님: 게임 씬엔 environment가 없어요) ----------
-// v238: 환경맵을 렌더러와 상관없는 HDR 데이터 텍스처로 만들어요 (게임 화면 · 상점 그림 · 다른 렌더러에서 모두 같은 반사)
+// v240: 환경맵을 렌더러와 상관없는 HDR 데이터 텍스처로 만들어요 (게임 화면 · 상점 그림 · 다른 렌더러에서 모두 같은 반사)
 let ENVT=null;
 function envMap(){if(ENVT)return ENVT;const W=256,H=128,D=new Uint16Array(W*H*4),hf=T.DataUtils.toHalfFloat;
  const B=[[0,8,2,6,3,3.2],[6,3,4,2.5,4,2.0],[-7,2.5,-3,3,1.6,1.6],[2,1.2,-8,8,.5,1.4]].map(([x,y,z,w,h,i])=>{const d=Math.hypot(x,y,z);return {d:[x/d,y/d,z/d],c:Math.cos(Math.atan(Math.max(w,h)*.5/d)),i};});
