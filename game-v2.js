@@ -6770,11 +6770,13 @@ function vsShopHTML(){const c=vehCfg(),own=vehOwn();return VEHS.filter(v=>!FLY[v
  flyThumbs(grid);};}
 // 상점 썸네일 (한 번 그려서 저장)
 const FLYT={};let flyR=null;
-window.NK89.flyThumb=k=>flyThumb(k);
+window.NK89.flyThumb=k=>flyThumb(k);window.NK89.nkVisBox=nkVisBox;window.NK89.nkFitThumbCam=nkFitThumbCam;
+function nkVisBox(o){const bb=new THREE.Box3();o.updateMatrixWorld(true);o.traverse(x=>{if((x.isMesh||x.isSkinnedMesh)&&x.visible!==false&&x.geometry){try{if(!x.geometry.boundingBox)x.geometry.computeBoundingBox();const b=x.geometry.boundingBox.clone().applyMatrix4(x.matrixWorld);if(isFinite(b.min.x)&&isFinite(b.max.y))bb.union(b);}catch(e){}}});return bb.isEmpty()?new THREE.Box3().setFromObject(o):bb;}
+function nkFitThumbCam(bb,aspect,fov,margin,dir){const ct=bb.getCenter(new THREE.Vector3());const zAx=(dir&&dir.length()?dir.clone():new THREE.Vector3(.4,.45,1)).normalize();let xAx=new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0),zAx);if(xAx.lengthSq()<1e-8)xAx.crossVectors(new THREE.Vector3(1,0,0),zAx);xAx.normalize();const yAx=new THREE.Vector3().crossVectors(zAx,xAx).normalize();const tanV=Math.tan((fov||30)*Math.PI/360),tanH=tanV*(aspect||1);let dist=.05;const min=bb.min,max=bb.max;for(const x of [min.x,max.x])for(const y of [min.y,max.y])for(const z of [min.z,max.z]){const rx=x-ct.x,ry=y-ct.y,rz=z-ct.z;const cx=rx*xAx.x+ry*xAx.y+rz*xAx.z,cy=rx*yAx.x+ry*yAx.y+rz*yAx.z,cz=rx*zAx.x+ry*zAx.y+rz*zAx.z;dist=Math.max(dist,Math.abs(cx)/Math.max(1e-6,tanH)+cz,Math.abs(cy)/Math.max(1e-6,tanV)+cz);}dist*=(margin||1.14);const c=new THREE.PerspectiveCamera(fov||30,aspect||1,.01,Math.max(80,dist*12));c.position.copy(ct).add(zAx.multiplyScalar(dist));c.lookAt(ct);c.updateProjectionMatrix();return c;}
 function flyThumb(key){if(FLYT[key])return FLYT[key];if(!flyR){flyR=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});flyR.setSize(240,160);flyR.outputEncoding=THREE.sRGBEncoding;}
- const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x8899aa,.85));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(3,5,4);sc.add(dl);const g=vehMesh(key);g.scale.setScalar(1);g.rotation.y=/^jet/.test(vehBase(key))?.75:.9;if(g.userData.flame)g.userData.flame.visible=false;sc.add(g);
- const bb=new THREE.Box3().setFromObject(g),ct=bb.getCenter(new THREE.Vector3()),r=bb.getSize(new THREE.Vector3()).length()/2;const c=new THREE.PerspectiveCamera(30,1.5,.1,100);c.position.copy(ct).add(new THREE.Vector3(.4,.45,1).normalize().multiplyScalar(r/Math.sin(15*Math.PI/180)*(/^jet/.test(vehBase(key))?.47:vehBase(key)==='turtle2'?.56:(FLY[vehBase(key)]||{}).ground?.78:.62)));c.lookAt(ct);flyR.render(sc,c);FLYT[key]=flyR.domElement.toDataURL('image/png');return FLYT[key];}
-function flyThumbs(root){root.querySelectorAll('[data-flyimg]').forEach(im=>{const k=im.dataset.flyimg;if((FLY[vehBase(k)]||{}).vbx){try{im.src=flyThumb(k);}catch(e){}return;}if(window.NK89&&NK89.VM&&(NK89.VM.VMOD.map[vehBase(k)]||NK89.VM.VMOD.local[vehBase(k)])){try{im.src=flyThumb(k);return;}catch(e){}}im.onerror=()=>{im.onerror=null;try{im.src=flyThumb(k);}catch(e){im.style.visibility='hidden';}};im.src='img/veh/fly-'+k.replace('.','-')+'.png';});}
+ const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x8899aa,.85));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(3,5,4);sc.add(dl);const g=vehMesh(key);g.scale.setScalar(1);g.rotation.y=/^jet/.test(vehBase(key))?.75:.9;if(g.userData.flame)g.userData.flame.visible=false;sc.add(g);g.updateMatrixWorld(true);
+ const bb=nkVisBox(g),c=nkFitThumbCam(bb,1.5,30,1.14,new THREE.Vector3(.4,.45,1));flyR.render(sc,c);FLYT[key]=flyR.domElement.toDataURL('image/png');return FLYT[key];}
+function flyThumbs(root){root.querySelectorAll('[data-flyimg]').forEach(im=>{const k=im.dataset.flyimg;try{im.src=flyThumb(k);return;}catch(e){}im.onerror=()=>{im.onerror=null;try{im.src=flyThumb(k);}catch(err){im.style.visibility='hidden';}};im.src='img/veh/fly-'+k.replace('.','-')+'.png?v247';});}
 window.NK89.fly={FLY,flyOwn,flyThumb,flyNow};
 
 // v93 장착 장비 창 A·B (시안 → 테스트) · 낚싯대 타일 작게
@@ -7232,6 +7234,13 @@ function tk3S(){const z=S.tk3&&typeof S.tk3==='object'?S.tk3:(S.tk3={sl:[],main:
 const tkCap=k=>{const t=D.TANKS.find(x=>x.k===k);return (t?t.cap:20)+lvTankBonus();};
 const tkName=k=>{const t=D.TANKS.find(x=>x.k===k);return t?t.n:k;};
 const tkImg=k=>'img/tanks/'+k+'.png';
+const TKTH={};let tkTR=null;
+function tkThumb(k){if(TKTH[k])return TKTH[k];const T=D.TANKS.find(t=>t.k===k);if(!T||!window.NK_TANKX)return tkImg(k);try{if(!tkTR){tkTR=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});tkTR.setSize(300,240);tkTR.outputEncoding=THREE.sRGBEncoding;}
+ const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x8aa0aa,.95));const dl=new THREE.DirectionalLight(0xffffff,.8);dl.position.set(3,6,4);sc.add(dl);sc.add(new THREE.AmbientLight(0xffffff,.25));
+ const des=T.design,cyl=des===3||des===7,o=cyl?{W:2.9,H:2.4,D:2.9,y0:0,sh:1.2}:{W:4,H:2.4,D:2,y0:0,sh:1.2};
+ const g=NK_TANKX(des,o).g;g.rotation.y=.55;sc.add(g);g.updateMatrixWorld(true);
+ const bb=nkVisBox(g),c=nkFitThumbCam(bb,300/240,30,1.14,new THREE.Vector3(.35,.42,1));tkTR.setClearColor(0x000000,0);tkTR.render(sc,c);return TKTH[k]=tkTR.domElement.toDataURL('image/png');}catch(e){return tkImg(k);}}
+window.NK89=window.NK89||{};window.NK89.tkThumb=tkThumb;
 // v103 같은 어항을 여러 개 살 수 있어요 → 남는 어항 = 가진 개수 − 쓰는 개수
 function tk3Used(){const z=tk3S(),cur=z.sw;return [cur?z.sl[cur-1].k:S.tankK,...z.sl.map((s,i)=>cur===i+1?S.tankK:s.k)];}
 function tk3Free(){const L=(S.tanks||[]).slice();for(const k of tk3Used()){const j=L.indexOf(k);if(j>=0)L.splice(j,1);}return L;}
@@ -7557,8 +7566,8 @@ function vbReg(){const keys=new Set([...Object.keys(VBX.map),...Object.keys(VBX.
 // 블럭 모델 썸네일 (가방·상점 그림)
 const VBTH={};let vbTR=null;
 function vbThumb(k){if(VBTH[k])return VBTH[k];const d=vbGet(k);if(!d)return '';try{if(!vbTR){vbTR=new THREE.WebGLRenderer({antialias:true,alpha:true,preserveDrawingBuffer:true});vbTR.setSize(200,200);vbTR.outputEncoding=THREE.sRGBEncoding;}
- const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x8899aa,.85));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(3,5,4);sc.add(dl);const g=vbBuild(d);g.rotation.y=.7;sc.add(g);
- const bb=new THREE.Box3().setFromObject(g),ct=bb.getCenter(new THREE.Vector3()),r=bb.getSize(new THREE.Vector3()).length()/2;const c=new THREE.PerspectiveCamera(30,1,.01,100);c.position.copy(ct).add(new THREE.Vector3(.35,.4,1).normalize().multiplyScalar(r/Math.sin(15*Math.PI/180)*.85));c.lookAt(ct);vbTR.render(sc,c);return VBTH[k]=vbTR.domElement.toDataURL('image/png');}catch(e){return '';}}
+ const sc=new THREE.Scene();sc.add(new THREE.HemisphereLight(0xffffff,0x8899aa,.85));const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(3,5,4);sc.add(dl);const g=vbBuild(d);g.rotation.y=.7;sc.add(g);g.updateMatrixWorld(true);
+ const bb=nkVisBox(g),c=nkFitThumbCam(bb,1,30,1.14,new THREE.Vector3(.35,.4,1));vbTR.render(sc,c);return VBTH[k]=vbTR.domElement.toDataURL('image/png');}catch(e){return '';}}
 const petImg=k=>{const p=PETS.find(x=>x.k===k);return p&&p.vbx?vbThumb(k):'img/pets/'+k+'.png';};window.__nkPET={PETS,petGet:(k,h)=>petGet(k,h),petImg,petMesh:k=>petMesh(k)};
 // 블럭 펫: 상자에서 나오기 (등급 이상 상자 · 확률)
 {const ob=SYS.openBox;SYS.openBox=function(){const r=ob.apply(this,arguments);try{if(petOn()&&r&&!r.pet){const t=r.tier|0,own=petOwn();for(const p of PETS){if(!p.vbx||p.src!=='box'||t<p.g||own[p.k])continue;if(Math.random()*100<(p.p||0)){setTimeout(()=>petGet(p.k,'box'),1800);r.pet=p.k;break;}}}}catch(e){console.warn(e);}return r;};}
