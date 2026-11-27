@@ -44,7 +44,7 @@
 #shop .nkb .sub{height:30px;padding:0 12px;border-radius:999px;font-size:12.5px;font-weight:800;color:#8a7f92;background:#f5eee4;white-space:nowrap;flex:none}
 #shop .nkb .sub.on{background:var(--ink);color:#fff}
 #shop .nkb .sub i{font-style:normal;font-size:11px;opacity:.7}
-#shop .nkb .gw{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 2px 8px;margin:0 -2px}
+#shop .nkb .gw{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:2px 2px 24px;margin:0 -2px}
 #shop .nkb .hint{font-size:12.5px;color:var(--sub);font-weight:700;margin:0 2px 8px}#shop .nkb .hint b{color:var(--ink)}
 #shop .nkb .empty{padding:40px 10px;text-align:center;color:var(--sub);font-weight:700}
 #shop .nkb .note{font-size:11.5px;color:var(--sub);font-weight:600;margin:10px 2px 0;line-height:1.45}
@@ -52,10 +52,10 @@
 /* 카드 (모든 탭 같은 모양) */
 #shop .nkb .cd{position:relative;background:#fff;border-radius:16px;box-shadow:0 0 0 1px var(--line) inset,0 1px 0 var(--line);padding:8px 8px 9px;display:flex;flex-direction:column;min-width:0;cursor:pointer}
 #shop .nkb .cd.sel{box-shadow:0 0 0 2.5px var(--acc) inset,0 6px 16px rgba(242,158,107,.25)}
-#shop .nkb .th{position:relative;border-radius:12px;height:96px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 42%,#fff,#f1ece5);overflow:hidden}
+#shop .nkb .th{position:relative;border-radius:12px;height:104px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 42%,#fff,#f1ece5);overflow:hidden;padding:8px}
 #shop .nkb .vi{display:flex;align-items:center;justify-content:center;width:100%;height:100%}
-#shop .nkb .vi>img{max-width:86%!important;max-height:88%!important;width:auto!important;height:auto!important;object-fit:contain;margin:0!important;position:static!important;filter:drop-shadow(0 3px 4px rgba(60,40,20,.15))}
-#shop .nkb .vi>svg,#shop .nkb .vi>span>svg{width:72px!important;height:auto!important;max-height:80px}
+#shop .nkb .vi>img,#shop .nkb .vi img,#shop .nkb .vi canvas{max-width:100%!important;max-height:100%!important;width:auto!important;height:auto!important;object-fit:contain!important;margin:0!important;position:static!important;filter:drop-shadow(0 3px 4px rgba(60,40,20,.15))}
+#shop .nkb .vi>svg,#shop .nkb .vi>span>svg,#shop .nkb .vi svg{width:auto!important;height:auto!important;max-width:100%!important;max-height:100%!important}
 #shop .nkb .vi>span{display:flex;align-items:center;justify-content:center;width:auto!important;height:auto!important;margin:0!important}
 #shop .nkb .cd.lk .vi>img{filter:grayscale(.5) opacity(.72)}
 #shop .nkb .bdg{position:absolute;top:6px;left:6px;display:flex;gap:4px;z-index:1;max-width:60%;overflow:hidden}
@@ -68,7 +68,7 @@
 #shop .nkb .sw{display:flex;gap:4px;margin:5px 2px 0;height:18px;align-items:center;overflow:hidden}
 #shop .nkb .sw .sd{width:13px;height:13px;border-radius:50%;box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px #e6dccf;flex:none}
 #shop .nkb .sw .si{width:18px;height:18px;border-radius:50%;background:#f3eee6;box-shadow:0 0 0 1px #e6dccf;flex:none;overflow:hidden;display:flex;align-items:center;justify-content:center}
-#shop .nkb .sw .si img{width:20px;height:14px;object-fit:contain}
+#shop .nkb .sw .si img{width:auto;height:auto;max-width:100%;max-height:100%;object-fit:contain}
 #shop .nkb .sw .si.own{position:static;padding:0;width:18px;height:18px;background:#f3eee6;box-shadow:0 0 0 2px #8fc7c0}#shop .nkb .sw .sd.own{position:static;padding:0;width:13px;height:13px;box-shadow:0 0 0 1.5px #fff,0 0 0 3px #3f8a80}
 #shop .nkb .sw em{font-size:10.5px;font-style:normal;font-weight:800;color:var(--sub)}
 #shop .nkb .ft{display:flex;align-items:center;gap:4px;margin:auto 2px 0;padding-top:7px;min-height:33px;min-width:0}
@@ -80,10 +80,10 @@
 #shop .nkb .lv{font-size:11px;font-weight:900;color:#c0503a;background:#fde9e4;border-radius:7px;height:22px;padding:0 7px;display:inline-flex;align-items:center;white-space:nowrap;flex:none}
 /* 오른쪽 미리보기 */
 #shop .nkb .det{width:300px;flex:none;margin:0 16px 16px 0;background:#fff;border-radius:20px;box-shadow:0 0 0 1px var(--line) inset;padding:14px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;scrollbar-width:thin}
-#shop .nkb .big{height:170px;flex:none;border-radius:16px;background:radial-gradient(circle at 50% 45%,#fff 0%,#eaf4fb 72%);display:flex;align-items:center;justify-content:center;overflow:hidden}
-#shop .nkb .big .vi>img{max-width:88%!important;max-height:90%!important;filter:drop-shadow(0 8px 10px rgba(60,40,20,.18))}
+#shop .nkb .big{height:180px;flex:none;border-radius:16px;background:radial-gradient(circle at 50% 45%,#fff 0%,#eaf4fb 72%);display:flex;align-items:center;justify-content:center;overflow:hidden;padding:10px}
+#shop .nkb .big .vi>img,#shop .nkb .big .vi img,#shop .nkb .big .vi canvas{max-width:100%!important;max-height:100%!important;filter:drop-shadow(0 8px 10px rgba(60,40,20,.18))}
 #shop .nkb .big .vi>svg,#shop .nkb .big .vi>span>svg{width:130px!important;max-height:130px}
-#shop .nkb .big.wide .vi>img{max-width:94%!important}
+#shop .nkb .big.wide .vi>img,#shop .nkb .big.wide .vi img{max-width:100%!important}
 #shop .nkb .dt{display:flex;flex-direction:column;gap:8px;min-width:0}
 #shop .nkb .dt h3{font-size:19px;font-weight:900;margin:0;line-height:1.25}#shop .nkb .dt h3 small{font-size:13px;color:var(--sub);font-weight:800}
 #shop .nkb .tags{display:flex;gap:5px;flex-wrap:wrap}
@@ -94,7 +94,7 @@
 #shop .nkb .inf{font-size:12px;font-weight:600;color:#7a6f84;line-height:1.45}
 #shop .nkb .cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 #shop .nkb .col{border-radius:12px;padding:6px 2px;background:#fff;text-align:center;box-shadow:0 0 0 1.5px var(--line) inset;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
-#shop .nkb .col>img{width:46px;height:30px;object-fit:contain}
+#shop .nkb .col>img{width:auto;height:auto;max-width:100%;max-height:44px;object-fit:contain}
 #shop .nkb .col i{width:22px;height:22px;border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 0 3px #e6dccf;margin:3px 0}
 #shop .nkb .col b{font-size:11px;font-weight:800;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #shop .nkb .col small{font-size:10px;font-weight:800;color:#b0661f;white-space:nowrap;min-height:12px}
@@ -111,7 +111,7 @@
 #shop .nkb .dempty{margin:auto;text-align:center;color:var(--sub);font-weight:700;display:flex;flex-direction:column;gap:8px;align-items:center}#shop .nkb .dempty b{font-size:34px}
 /* 예전 화면 그대로 (행운 상자 · 물고기 팔기 · 밸런스표) */
 #shop .nkb.raw .main{padding-right:16px}
-#shop .nkb .rawb{min-width:0}
+#shop .nkb .rawb{min-width:0;padding:4px 2px 28px;box-sizing:border-box}#shop .nkb.raw .gw{padding-bottom:24px}
 #shop .nkb .rawb .fcard{max-width:100%}
 /* 휴대폰 */
 #shop .nkb.m .hd{padding:12px 12px 8px 16px;gap:6px}#shop .nkb.m .hd h2{font-size:17px}
@@ -134,5 +134,10 @@
 @keyframes nkbUp{from{transform:translateY(30px);opacity:.4}to{transform:none;opacity:1}}
 #shop .nkb.m .sheet .grab{width:44px;height:5px;border-radius:3px;background:#e3d9cc;margin:0 auto;flex:none}
 #shop .nkb.m .sheet .shx{position:absolute;top:10px;right:12px;width:30px;height:30px;border-radius:50%;background:#f5eee4;font-size:16px;font-weight:800;padding:0}
-#shop .nkb.m .sheet .big{height:140px}
+#shop .nkb.m .sheet .big{height:150px;padding:10px}
 #shop .nkb.m .sheet .dbot{margin-top:4px}
+
+/* v244: 휴대폰 행운 상자 — 큰 그림·확률 칸이 창 바닥에 잘리지 않게 */
+#shop .nkb.m .rawb .bxshop{gap:14px;padding:4px 2px 20px;align-items:center}
+#shop .nkb.m .rawb .bxshop>img{width:120px;height:120px;max-width:100%}
+#shop .nkb.m .rawb .bxs-t{padding-bottom:6px}

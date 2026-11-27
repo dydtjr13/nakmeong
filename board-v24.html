@@ -77,6 +77,16 @@ main{flex:1;overflow:auto;padding:0 18px 18px}
 .toast.show{opacity:1}
 .pimg{display:block;margin:12px 0;border-radius:14px;overflow:hidden;background:#f3ece0}.pimg img{display:block;width:100%;height:auto}
 .wimg{margin-bottom:4px}.wpv{display:flex;flex-direction:column;gap:6px;align-items:flex-start}.wpv img{max-width:100%;max-height:240px;border-radius:12px}
+
+#nkcf{display:none;position:fixed;inset:0;z-index:4000;align-items:center;justify-content:center;background:rgba(60,45,70,.35);backdrop-filter:blur(3px)}
+#nkcf.show{display:flex}
+#nkcf .nkcf-card{width:min(420px,92vw);max-height:min(86vh,calc(100dvh - 24px));overflow:auto;background:#fffaf4;border-radius:24px;padding:22px 22px 18px;text-align:center;box-shadow:0 18px 50px rgba(40,24,10,.35),0 0 0 1px rgba(255,255,255,.6) inset;word-break:keep-all;color:#4a4058;font-family:inherit}
+#nkcf .nkcf-card h3{margin:0 0 10px;font-size:20px;font-weight:900}
+#nkcf .nkcf-card p{margin:0 0 8px;font-size:14.5px;line-height:1.55;color:#5a4e62}
+#nkcf .nkcf-btns{display:flex;gap:8px;justify-content:center;margin:16px 0 0}
+#nkcf .nkcf-btns button{min-width:112px;height:44px;border-radius:14px;font-size:15px;font-weight:900;padding:0 16px;border:0;cursor:pointer;background:#fff;color:#6f6478;box-shadow:0 0 0 1.5px #efe4d6 inset;font-family:inherit}
+#nkcf .nkcf-btns button.ok{background:#f29e6b;color:#fff;box-shadow:0 3px 0 #e07f45}
+
 </style>
 </head>
 <body>
@@ -110,6 +120,7 @@ function ownerId(){try{return localStorage.getItem('nk_cid')||'';}catch(e){retur
 function bad(t){try{return !!(P&&P.NK_PROF&&P.NK_PROF.has&&P.NK_PROF.has(String(t||'')));}catch(e){return false;}}
 const ERRMSG=e=>/bad image/.test(e.message)?'사진이 너무 크거나 지원하지 않는 형식이에요':/image limit/.test(e.message)?'사진은 하루 20장까지 올릴 수 있어요':/profanity/.test(e.message)?'비속어가 들어 있어 올릴 수 없어요':/admin only/.test(e.message)?'공지·업데이트와 운영자 닉네임은 관리자만 쓸 수 있어요':/not yours/.test(e.message)?'내가 쓴 글만 고칠 수 있어요':'처리하지 못했어요. 다시 시도해 주세요';
 function when(ts){const t=+ts||0;if(!t)return '';const d=Date.now()-t;if(d<60e3)return '방금';if(d<3600e3)return Math.floor(d/60e3)+'분 전';if(d<86400e3)return Math.floor(d/3600e3)+'시간 전';const x=new Date(t);return (x.getMonth()+1)+'.'+x.getDate();}
+function boardAsk(msg){if(window._cfAsk)return _cfAsk(msg);return new Promise(resolve=>{let m=document.getElementById('nkcf');if(!m){m=document.createElement('div');m.id='nkcf';m.innerHTML='<div class="nkcf-card" role="dialog" aria-modal="true"><h3>정말 할까요?</h3><p id="nkcfMsg"></p><p class="nkcf-btns"><button type="button" id="nkcfNo">취소</button> <button type="button" class="ok" id="nkcfYes">확인</button></p></div>';document.body.appendChild(m);}m.querySelector('#nkcfMsg').textContent=msg;m.classList.add('show');const done=v=>{m.classList.remove('show');document.removeEventListener('keydown',onKey,true);resolve(!!v);};const onKey=e=>{if(e.key==='Escape'){e.preventDefault();done(false);}if(e.key==='Enter'){e.preventDefault();done(true);}};const yes=m.querySelector('#nkcfYes'),no=m.querySelector('#nkcfNo');yes.onclick=()=>done(true);no.onclick=()=>done(false);m.onclick=e=>{if(e.target===m)done(false);};document.addEventListener('keydown',onKey,true);setTimeout(()=>yes.focus(),0);});}
 function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>el.classList.remove('show'),1800);}
 function close(){try{parent.postMessage('nkBoardClose','*');}catch(e){}}
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=close);
@@ -192,8 +203,8 @@ async function showPost(id){
   const pe=$('#pedit');if(pe)pe.onclick=()=>showWrite(p);
   const pr=$('#prep');if(pr)pr.onclick=()=>reportPost(p);
   const pu=$('#punh');if(pu)pu.onclick=async()=>{try{await api('/posts/'+encodeURIComponent(id)+'/unhide',{method:'POST'});p.hid=false;p.rp=0;toast('숨김을 풀었어요');showPost(id);}catch(e){toast(ERRMSG(e));}};
-  const pd=$('#pdel');if(pd)pd.onclick=async()=>{if(!confirm('이 글을 삭제할까요? 댓글도 함께 지워져요'))return;try{await api('/posts/'+encodeURIComponent(id),{method:'DELETE'});all=all.filter(x=>x.id!==id);if(craft)craft=craft.filter(x=>x.id!==id);toast('글을 삭제했어요');showList();}catch(e){toast('삭제하지 못했어요');}};
-  $('#cml').addEventListener('click',async e=>{const b=e.target.closest('[data-cdel]');if(!b)return;if(!confirm('이 댓글을 삭제할까요?'))return;try{await api('/comments/'+encodeURIComponent(b.dataset.cdel),{method:'DELETE'});await paint();}catch(err){toast('삭제하지 못했어요');}});
+  const pd=$('#pdel');if(pd)pd.onclick=async()=>{if(!await boardAsk('이 글을 삭제할까요? 댓글도 함께 지워져요'))return;try{await api('/posts/'+encodeURIComponent(id),{method:'DELETE'});all=all.filter(x=>x.id!==id);if(craft)craft=craft.filter(x=>x.id!==id);toast('글을 삭제했어요');showList();}catch(e){toast('삭제하지 못했어요');}};
+  $('#cml').addEventListener('click',async e=>{const b=e.target.closest('[data-cdel]');if(!b)return;if(!await boardAsk('이 댓글을 삭제할까요?'))return;try{await api('/comments/'+encodeURIComponent(b.dataset.cdel),{method:'DELETE'});await paint();}catch(err){toast('삭제하지 못했어요');}});
   const go=async()=>{const inp=$('#cin'),v=inp.value.trim();if(!v)return;if(bad(v))return toast('비속어가 들어 있어 올릴 수 없어요');$('#cgo').disabled=true;
     try{await api('/posts/'+encodeURIComponent(id)+'/comments',{method:'POST',body:JSON.stringify({body:v,nick:myNick()})});inp.value='';await paint();}
     catch(e){toast(ERRMSG(e));}
