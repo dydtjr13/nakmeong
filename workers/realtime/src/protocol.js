@@ -1153,6 +1153,9 @@ export function sanitizePlay(input, prev, opt) {
   if ("mobPerf" in input) out.mobPerf = pickOf(input.mobPerf, ["on", "off"]);
   if ("waterLite" in input) out.waterLite = pickOf(input.waterLite, ["on", "off"]);
   if ("mapKeep" in input) out.mapKeep = pickOf(input.mapKeep, ["on", "off"]);
+  if ("notiB" in input) out.notiB = pickOf(input.notiB, ["on", "off"]);
+  if ("landFit" in input) out.landFit = pickOf(input.landFit, ["on", "off"]);
+  if ("tfxPlus" in input) out.tfxPlus = pickOf(input.tfxPlus, ["on", "off"]);
   if ("nickLock" in input) out.nickLock = pickOf(input.nickLock, ["on", "off"]);
   if ("xmasEv" in input) out.xmasEv = pickOf(input.xmasEv, ["auto", "on", "off"]); // v202 🎄 크리스마스 한정 캐릭터 이벤트
   /* v200: 합성판 레벨 기준 (누적 합성 l2회 → 6×6, l3회 → 7×7) */
