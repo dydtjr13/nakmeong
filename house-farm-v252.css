@@ -98,7 +98,7 @@ img.hfti{width:20px;height:20px;object-fit:contain;vertical-align:-5px}
  #hfSeed .gr{grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 10px}
  .hfsd img.ci{width:46px;height:46px}.hfsd b{font-size:12px}.hfsd small{font-size:10px}.hfsd .bx{font-size:9px}
  #hfSeed .ft .sel small{font-size:10px}
- #hfAct{bottom:calc(236px + env(safe-area-inset-bottom));font-size:14px;padding:9px 16px}
+ #hfAct{bottom:calc(266px + env(safe-area-inset-bottom));font-size:14px;padding:9px 16px}
  #hfCont{top:calc(64px + env(safe-area-inset-top))}
  body.hfOpen #joy,body.hfOpen #fishBtn,body.hfOpen #bShop,body.hfOpen #bTank,body.hfOpen #bAutoFish,body.hfOpen #bBox,body.hfOpen #bBag,body.hfOpen #houseBack,body.hfOpen #hfBag,body.hfOpen #chatBtn{visibility:hidden}
 }
