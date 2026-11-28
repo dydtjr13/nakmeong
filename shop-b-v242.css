@@ -141,3 +141,13 @@
 #shop .nkb.m .rawb .bxshop{gap:14px;padding:4px 2px 20px;align-items:center}
 #shop .nkb.m .rawb .bxshop>img{width:120px;height:120px;max-width:100%}
 #shop .nkb.m .rawb .bxs-t{padding-bottom:6px}
+
+/* v250: 진주(캐시 재화) C안 */
+#shop .nkb .pill.pearl{gap:5px}
+#shop .nkb .pill .pearl-ico,#shop .nkb .pr.pearl .pearl-ico,#shop .nkb .dpr .pearl-ico{width:16px;height:16px;object-fit:contain;flex:none;display:block;vertical-align:middle}
+#shop .nkb .dpr .pearl-ico{width:18px;height:18px}
+#shop .nkb .pr.pearl,#shop .nkb .dpr{display:inline-flex;align-items:center;gap:5px}
+#shop .nkb .sn .e .pearl-ico{width:18px;height:18px;display:block}
+#shop .nkb.m .sn .e .pearl-ico{width:16px;height:16px}
+#shop .nkb .nb.pearl,#shop .nkb .buy.pearl{font-weight:800}
+#shop .nkb .pr.soon,#shop .nkb .dpr .soon{color:#7a6a4a;font-weight:800}

@@ -13,7 +13,7 @@ if(window.NK_PREV)return;
 const B=()=>window.__nkShop; /* 게임 코드(game-v2.js)는 시작 준비 뒤에 늦게 돌아요 → 다리가 생길 때까지 기다려요 */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const CATS=[['rec','⭐','추천','추천'],['rod','🎣','낚싯대','낚싯대'],['bait','🪱','미끼','미끼'],['fly','🚗','탈것','탈것'],['pet','🐾','펫','펫'],['deco','🪑','데크 꾸미기','꾸미기'],['tank','🐠','어항','어항'],['wear','👕','장비','장비'],['box','🎁','행운 상자','상자']];
+const CATS=[['rec','⭐','추천','추천'],['rod','🎣','낚싯대','낚싯대'],['bait','🪱','미끼','미끼'],['fly','🚗','탈것','탈것'],['pet','🐾','펫','펫'],['deco','🪑','데크 꾸미기','꾸미기'],['tank','🐠','어항','어항'],['wear','👕','장비','장비'],['box','🎁','행운 상자','상자'],['pearl','진주','진주 상점','진주']];
 const RAW={box:1,sell:1,bal:1};
 const SUBS={rod:[['all','전체'],['shop','상점'],['box','상자에서']],bait:[['all','전체'],['cnt','소모품'],['perm','영구 루어']],fly:[['all','전체'],['sky','✈️ 하늘'],['ani','🐾 동물'],['land','🚗 땅·물']],deco:[['all','전체'],['plank','판 색'],['sign','간판'],['obj','소품']],wear:[['all','전체'],['hat','모자'],['cloth','옷'],['shoe','신발'],['glove','장갑']]};
 const ST={cat:null,last:null,q:'',fBuy:false,fOwn:false,sort:'rec',sub:{},sel:{},sheet:false,col:{},M:null,orig:null};
@@ -24,6 +24,27 @@ const fmt=n=>(+n||0).toLocaleString();
 const shortP=n=>n>=1e8?(Math.round(n/1e7)/10+'억').replace('.0',''):n>=1e4?(Math.round(n/1e3)/10+'만').replace('.0',''):fmt(n);
 const txt=e=>e?e.textContent.replace(/\s+/g,' ').trim():'';
 const coins=()=>{try{return +B().S.coins||0;}catch(e){return 0;}};
+const pearls=()=>{try{return +B().S.pearls||0;}catch(e){return 0;}};
+const pearlIco=(px)=>window.NK_PEARL?NK_PEARL.img(px||16):`<img class="pearl-ico" src="img/ui/pearl-32.png?v250" width="${px||16}" height="${px||16}" alt="진주">`;
+function pearlVis(){const im=document.createElement('img');im.src='img/ui/pearl-128.png?v250';im.alt='진주';im.width=128;im.height=128;im.draggable=false;return im;}
+function pearlCatalog(){
+  const packs=[
+    {id:'pearl:pack:110',name:'진주 110개',price:110,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'},
+    {id:'pearl:pack:330',name:'진주 330개',price:330,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'},
+    {id:'pearl:pack:550',name:'진주 550개',price:550,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'},
+    {id:'pearl:pack:1100',name:'진주 1,100개',price:1100,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'},
+    {id:'pearl:pack:3300',name:'진주 3,300개',price:3300,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'},
+    {id:'pearl:pack:5500',name:'진주 5,500개',price:5500,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'}
+  ];
+  return {items:packs.map(o=>({...o,tab:'pearl',curr:'pearl',key:o.id,vis:pearlVis(),acts:[],buy:{t:'충전하기',el:null,k:'buy'},own:false,eq:false,box:false})),notes:['진주는 캐시 재화예요. 충전과 결제는 아직 준비 중이에요. 골드 탈 것 가격은 바꾸지 않았어요.']};
+}
+function pearlBuy(o){
+  if(!o||o.curr!=='pearl')return;
+  const html=`<h3>진주 충전</h3><div class="pearl-cfm">${pearlIco(28)}<div><b>${fmt(o.price)}</b> 진주를 충전할까요?</div></div><p class="muted">결제는 아직 준비 중이에요. 지금은 바로 충전이 되지 않아요.</p>`;
+  if(typeof confirmBox==='function')confirmBox(html,()=>{if(typeof toast==='function')toast('결제는 아직 준비 중이에요',2200);});
+  else if(typeof toast==='function')toast('결제는 아직 준비 중이에요',2200);
+}
+
 
 // ── 원래 버튼 분류 ──
 function act(b){const d=Object.keys(b.dataset).join(' '),t=txt(b);
@@ -72,8 +93,8 @@ function build(orig,ctx,args){const sh=$('shop');const tab0=B().tab;
  const take=()=>{const h=document.createElement('div');h.className='nkb-h';while(sh.firstChild)h.appendChild(sh.firstChild);return h;};
  orig.apply(ctx,args);const t1=B().tab;tabs=[...sh.querySelectorAll('.tabs [data-tab]')].map(b=>b.dataset.tab);H[t1]=take();
  for(const k of tabs){if(H[k])continue;B().tab=k;try{orig.apply(ctx,args);}catch(e){console.warn('상점 탭',k,e);}H[k]=take();}
- B().tab=t1;if(ST.cat!=='rec'&&!tabs.includes(ST.cat))ST.cat=t1;ST.last=t1;
- const M={tabs,H,P:{}};for(const k of tabs)if(!RAW[k])M.P[k]=parse(k,H[k]);ST.M=M;
+ B().tab=t1;if(ST.cat!=='rec'&&ST.cat!=='pearl'&&!tabs.includes(ST.cat))ST.cat=t1;ST.last=t1;
+ const M={tabs,H,P:{}};for(const k of tabs)if(!RAW[k])M.P[k]=parse(k,H[k]);M.P.pearl=pearlCatalog();ST.M=M;
  const close=H[t1].querySelector('[data-close]');ST.closeBtn=close;
  draw();}
 
@@ -83,7 +104,7 @@ function list(){const M=ST.M;let L=[];const q=ST.q.trim().toLowerCase();
  if(q){for(const k in M.P)L=L.concat(M.P[k].items);L=L.filter(o=>(o.name+' '+o.desc+' '+(o.info||'')+' '+(o.set||'')+' '+(o.opts||[]).map(x=>x.name).join(' ')+' '+(o.cols||[]).map(x=>x.name).join(' ')+' '+catN(o.tab)+' '+subN(o)).toLowerCase().includes(q));}
  else if(ST.cat==='rec'){const per={rod:2,bait:2,fly:3,pet:2,deco:2,tank:2,wear:3};for(const k of Object.keys(per)){if(!M.P[k])continue;L=L.concat(M.P[k].items.filter(o=>o.buy&&!o.lock&&!o.own&&(o.price||0)<=Math.max(coins()*1.5,1000)).slice(0,per[k]));}}
  else{L=(M.P[ST.cat]||{items:[]}).items.slice();const s=ST.sub[ST.cat]||'all';if(s!=='all')L=L.filter(o=>o.sub===s);}
- if(ST.fBuy)L=L.filter(o=>o.buy&&!o.lock&&(o.price||0)<=coins());if(ST.fOwn)L=L.filter(o=>o.own);
+ if(ST.fBuy)L=L.filter(o=>o.curr==='pearl'?!!o.buy&&!o.soon:(o.buy&&!o.lock&&(o.price||0)<=coins()));if(ST.fOwn)L=L.filter(o=>o.own);
  if(ST.sort==='low')L.sort((a,b)=>(a.price||0)-(b.price||0));else if(ST.sort==='high')L.sort((a,b)=>(b.price||0)-(a.price||0));
  return L;}
 const catN=k=>(CATS.find(c=>c[0]===k)||[,,k==='sell'?'물고기 팔기':k==='bal'?'밸런스표':k])[2];
@@ -91,9 +112,9 @@ const catN=k=>(CATS.find(c=>c[0]===k)||[,,k==='sell'?'물고기 팔기':k==='bal
 // ── 카드 ──
 function badges(o){const b=[];if(o.badge)o.badge.forEach(t=>{if(/NEW/.test(t))b.push(`<i class="bd new">NEW</i>`);else if(t)b.push(`<i class="bd g" style="--gc:${esc(o.gc||'#9aa3ad')}">${esc(t)}</i>`);});if(o.box)b.push('<i class="bd box">상자</i>');return b.join('');}
 function ownTag(o){if(o.eq)return `<i class="own eq">✔ ${o.tab==='fly'?'타는 중':'사용 중'}</i>`;if(o.own)return '<i class="own">✔ 보유</i>';return '';}
-function priceH(o){if(o.box)return `<span class="pr boxw">🎁 ${esc(o.src||'행운 상자')}</span>`;if(o.free||(!o.price&&!o.opts))return '<span class="pr free">무료</span>';
+function priceH(o){if(o.box)return `<span class="pr boxw">🎁 ${esc(o.src||'행운 상자')}</span>`;if(o.curr==='pearl'){if(o.soon)return '<span class="pr soon">곧 만나요</span>';return `<span class="pr pearl">${pearlIco(16)}${shortP(o.price)}</span>`;}if(o.free||(!o.price&&!o.opts))return '<span class="pr free">무료</span>';
  const p=o.opts&&o.priceMax>o.price?shortP(o.price)+'~':shortP(o.price);return `<span class="pr"><i class="coin"></i>${p}</span>`;}
-function mainBtn(o){if(o.box)return '';if(o.lock&&!o.own)return `<span class="lv">🔒 ${esc(o.lock)}</span>`;
+function mainBtn(o){if(o.curr==='pearl')return o.soon?'<span class="nb off">곧 만나요</span>':`<button type="button" class="nb pearl" data-nkpearl="${esc(o.id)}">충전하기</button>`;if(o.box)return '';if(o.lock&&!o.own)return `<span class="lv">🔒 ${esc(o.lock)}</span>`;
  if(o.opts||o.cols&&o.cols.length>1)return `<button type="button" class="nb ${o.own?'ok':''}" data-nkpick="${esc(o.id)}">${o.own?'보기':'색 고르기'}</button>`;
  if(o.use)return `<button type="button" class="nb ok" data-nkgo="${esc(o.id)}" data-a="use">${esc(o.use.t.replace('이걸로',o.tab==='fly'?'타기':'쓰기'))}</button>`;
  if(o.buy)return `<button type="button" class="nb" data-nkgo="${esc(o.id)}" data-a="buy">${esc(/하나 더/.test(o.buy.t)?'하나 더':o.buy.t.replace(/\s*\(.*\)$/,''))}</button>`;
@@ -122,25 +143,25 @@ function detH(o){if(!o)return `<div class="dempty"><b>🛒</b></div>`;
  if(o.box)btns=`<div class="srcbox">🎁 ${esc(o.src||'행운 상자에서 나와요')}</div>`;
  if(use)btns+=`<button type="button" class="buy ok" data-nkact="use" ${use.dis?'disabled':''}>${esc(use.t.replace('이걸로',o.tab==='fly'?'이 색으로 타기':'이걸로 쓰기'))}</button>`;
  if(buy)btns+=`<button type="button" class="buy" data-nkact="buy" ${buy.dis?'disabled':''}><i class="coin"></i>${pr?fmt(pr):''} ${esc(buy.t.replace(/^구매$/,'구매'))}</button>`;
- if(!use&&!buy&&!o.box)btns+=`<button type="button" class="buy off" disabled>${o.eq?(o.tab==='fly'?'타는 중':'사용 중'):o.own?'보유 중':'지금은 살 수 없어요'}</button>`;
+ if(!use&&!buy&&!o.box&&o.curr!=='pearl')btns+=`<button type="button" class="buy off" disabled>${o.eq?(o.tab==='fly'?'타는 중':'사용 중'):o.own?'보유 중':'지금은 살 수 없어요'}</button>`;
  sells.forEach((s,i)=>{btns+=`<button type="button" class="sellx" data-nkact="sell" data-i="${i}">🪙 ${fmt(num(s.t.split('🪙').pop()))}에 팔기</button>`;});
  const extra=[o.info,o.set?o.set+' · '+o.setFx:'',o.ownTxt].filter(Boolean).map(t=>`<div class="inf">${esc(t)}</div>`).join('');
  return `<div class="big ${o.wide?'wide':''}"><span class="vi" data-vis="${esc(o.id)}" data-big="1"></span></div>
   <div class="dt"><h3>${esc(o.name)}${x?` <small>${esc(x.name)}</small>`:''}</h3><div class="tags">${lvl}${tags}</div>${compare(o)}${extra}${colH}</div>
-  <div class="dbot">${o.box?'':`<div class="dpr">${pr?`<i class="coin"></i><b>${fmt(pr)}</b>`:'<b class="free">무료</b>'}</div>`}${btns}<div class="after">${after}${where(o)?`${after?' · ':''}사면 <b>${esc(where(o))}</b>에서 써요`:''}</div></div>`;}
+  <div class="dbot">${o.box?'':`<div class="dpr">${o.curr==='pearl'?(o.soon?'<b class="soon">곧 만나요</b>':pearlIco(18)+'<b>'+fmt(o.price||0)+'</b>'):(pr?`<i class="coin"></i><b>${fmt(pr)}</b>`:'<b class="free">무료</b>')}</div>`}${o.curr==='pearl'&&!o.soon?`<button type="button" class="buy pearl" data-nkpearl="${esc(o.id)}">충전하기</button>`:''}${btns}<div class="after">${after}${where(o)?`${after?' · ':''}사면 <b>${esc(where(o))}</b>에서 써요`:''}</div></div>`;}
 
 // ── 화면 ──
 function counts(k){const P=ST.M.P[k];return P?P.items.length:0;}
-function catsShown(){return CATS.filter(c=>c[0]==='rec'||ST.M.tabs.includes(c[0]));}
+function catsShown(){return CATS.filter(c=>c[0]==='rec'||c[0]==='pearl'||ST.M.tabs.includes(c[0]));}
 function draw(){const sh=$('shop');const M=ST.M;const m=mob();const cat=ST.cat;const raw=RAW[cat];
- const cs=catsShown();const gold=coins();
- const nav=cs.map(c=>`<button type="button" class="sn ${!ST.q&&cat===c[0]?'on':''}" data-nkcat="${c[0]}"><span class="e">${c[1]}</span><span class="t">${m?c[3]:c[2]}</span>${!m&&counts(c[0])?`<span class="c">${counts(c[0])}</span>`:''}</button>`).join('');
+ const cs=catsShown();const gold=coins();const pearlN=pearls();
+ const nav=cs.map(c=>`<button type="button" class="sn ${!ST.q&&cat===c[0]?'on':''}" data-nkcat="${c[0]}"><span class="e">${c[0]==='pearl'?pearlIco(18):c[1]}</span><span class="t">${m?c[3]:c[2]}</span>${!m&&counts(c[0])?`<span class="c">${counts(c[0])}</span>`:''}</button>`).join('');
  const sellB=M.tabs.includes('sell')?`<button type="button" class="sn sellnav ${cat==='sell'&&!ST.q?'on':''}" data-nkcat="sell"><span class="e">💰</span><span class="t">${m?'팔기':'물고기 팔기'}</span></button>`:'';
  const balB=M.tabs.includes('bal')&&!m?`<button type="button" class="sn ${cat==='bal'?'on':''}" data-nkcat="bal"><span class="e">📊</span><span class="t">밸런스표</span></button>`:'';
  const subs=!ST.q&&SUBS[cat]?`<div class="subs">${SUBS[cat].map(([s,n])=>{const c=s==='all'?counts(cat):(M.P[cat]?M.P[cat].items.filter(o=>o.sub===s).length:0);if(s!=='all'&&!c)return '';return `<button type="button" class="sub ${(ST.sub[cat]||'all')===s?'on':''}" data-nksub="${s}">${n} <i>${c}</i></button>`;}).join('')}</div>`:'';
  const tools=raw&&!ST.q?'':`<div class="tool"><label class="search"><span>🔍</span><input type="search" id="nkbQ" placeholder="이름·효과로 찾기 (예: 대어, 하늘)" value="${esc(ST.q)}" autocomplete="off" enterkeyhint="search">${ST.q?'<button type="button" class="qx" data-nkqx="1">×</button>':''}</label>${m?'':fl()}</div>${m?`<div class="frow">${fl()}</div>`:''}`;
  function fl(){return `<button type="button" class="fchip ${ST.fBuy?'on':''}" data-nkf="buy">${ST.fBuy?'✔ ':''}살 수 있는 것만</button><button type="button" class="fchip ${ST.fOwn?'on':''}" data-nkf="own">${ST.fOwn?'✔ ':''}보유 중</button><label class="sort"><select id="nkbSort"><option value="rec" ${ST.sort==='rec'?'selected':''}>기본순</option><option value="low" ${ST.sort==='low'?'selected':''}>가격 낮은순</option><option value="high" ${ST.sort==='high'?'selected':''}>가격 높은순</option></select></label>`;}
- const head=`<div class="hd"><h2>🛒 <span>호숫가 작은 상점</span></h2><span class="sp"></span><span class="pill"><i class="coin"></i>${fmt(gold)}</span><button type="button" class="x" data-nkx="1" aria-label="닫기">×</button></div>`;
+ const head=`<div class="hd"><h2>🛒 <span>호숫가 작은 상점</span></h2><span class="sp"></span><span class="pill"><i class="coin"></i>${fmt(gold)}</span><span class="pill pearl">${pearlIco(16)}${fmt(pearlN)}</span><button type="button" class="x" data-nkx="1" aria-label="닫기">×</button></div>`;
  sh.innerHTML=`<div class="nkb ${m?'m':'pc'} ${raw&&!ST.q?'raw':''}" role="dialog" aria-label="상점">${head}<div class="bd0">${m?`<div class="mcats">${nav}${sellB}</div>`:`<nav class="side">${nav}<span class="sp"></span><div class="sdiv"></div>${balB}${sellB}</nav>`}<div class="main">${tools}${subs}<div class="gw" id="nkbGW"></div></div>${m||raw&&!ST.q?'':'<aside class="det" id="nkbDet"></aside>'}</div>${m?'<div class="dim2" id="nkbDim"></div><div class="sheet" id="nkbSheet"></div>':''}<div class="nkb-src" hidden></div></div>`;
  const src=sh.querySelector('.nkb-src');for(const k in M.H)src.appendChild(M.H[k]);
  drawGrid();bind();}
@@ -153,13 +174,15 @@ function drawGrid(){const sh=$('shop'),gw=$('nkbGW');if(!gw)return;const cat=ST.
  fillVis(gw);ST.cur=sel;if(!mob())drawDet(sel);else drawSheet();
  gw.querySelectorAll('[data-nksel]').forEach(c=>c.onclick=e=>{if(e.target.closest('button'))return;pick(c.dataset.nksel);});
  gw.querySelectorAll('[data-nkpick]').forEach(b=>b.onclick=()=>pick(b.dataset.nkpick));
- gw.querySelectorAll('[data-nkgo]').forEach(b=>b.onclick=()=>{const o=byId(b.dataset.nkgo);if(!o)return;const a=b.dataset.a==='use'?o.use:o.buy;if(a&&a.el&&!a.el.disabled){ST.sel[ST.q?'q':ST.cat]=o.id;a.el.click();}});}
+ gw.querySelectorAll('[data-nkgo]').forEach(b=>b.onclick=()=>{const o=byId(b.dataset.nkgo);if(!o)return;const a=b.dataset.a==='use'?o.use:o.buy;if(a&&a.el&&!a.el.disabled){ST.sel[ST.q?'q':ST.cat]=o.id;a.el.click();}});
+ gw.querySelectorAll('[data-nkpearl]').forEach(b=>b.onclick=()=>{const o=byId(b.dataset.nkpearl);if(o)pearlBuy(o);});}
 function fillVis(root){root.querySelectorAll('[data-vis]').forEach(s=>{const o=byId(s.dataset.vis);if(!o)return;let v=o.vis;if(s.dataset.big&&o.opts){const x=optCur(o);if(x&&x.img)v=x.img;}const c=cloneVis(v);s.innerHTML='';if(c)s.appendChild(c);else s.textContent='🎁';});}
 function pick(id){const o=byId(id);if(!o)return;ST.sel[ST.q?'q':ST.cat]=id;const gw=$('nkbGW');gw.querySelectorAll('.cd').forEach(c=>c.classList.toggle('sel',c.dataset.nksel===id));ST.cur=o;if(mob()){ST.sheet=true;drawSheet();}else drawDet(o);}
 function bindDet(root,o){if(!o)return;fillVis(root);
  root.querySelectorAll('[data-nkcol]').forEach(b=>b.onclick=()=>{ST.col[o.key]=+b.dataset.nkcol;mob()?drawSheet():drawDet(o);});
  root.querySelectorAll('[data-nkrob]').forEach(b=>b.onclick=()=>{const c=o.cols[+b.dataset.nkrob];if(c&&c.sw&&!c.on){ST.keepSheet=mob();c.sw.click();}});
  root.querySelectorAll('[data-nkact]').forEach(b=>b.onclick=()=>{const x=optCur(o);const A=x?x.acts:o.acts;const a=b.dataset.nkact==='sell'?A.filter(y=>y.k==='sell')[+b.dataset.i||0]:A.find(y=>y.k===b.dataset.nkact);if(a&&a.el&&!a.el.disabled){ST.keepSheet=mob()&&b.dataset.nkact!=='sell';a.el.click();}});
+ root.querySelectorAll('[data-nkpearl]').forEach(b=>b.onclick=()=>pearlBuy(o));
  const xb=root.querySelector('[data-nkshx]');if(xb)xb.onclick=()=>{ST.sheet=false;drawSheet();};}
 function drawDet(o){const d=$('nkbDet');if(!d)return;d.innerHTML=detH(o);bindDet(d,o);}
 function drawSheet(){const s=$('nkbSheet'),dm=$('nkbDim');if(!s)return;const o=ST.cur;const show=ST.sheet&&o;s.classList.toggle('show',!!show);dm.classList.toggle('show',!!show);

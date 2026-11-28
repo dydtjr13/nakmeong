@@ -741,13 +741,13 @@ body.perf #dc.mini{padding:3px 8px;border-radius:999px}
  body.m3.hm2 #xpTop{display:block;height:4px}
  body.m3.hm2 #mStat{top:10px;right:52px;background:transparent;box-shadow:none;padding:0;gap:6px}
  body.m3.hm2 #mStat .lvb{background:var(--bg);border-radius:999px;padding:3px 10px 3px 3px;box-shadow:0 3px 10px #0002}body.m3.hm2 .lvb .xp{display:none}body.m3.hm2 .lvb .ttl2{display:inline-block}
- body.m3.hm2 #mStat .pill{background:var(--bg);box-shadow:0 3px 10px #0002;padding:5px 10px}body.m3.hm2 #mStat #coins{margin-left:auto}
+ body.m3.hm2 #mStat .pill{background:var(--bg);box-shadow:0 3px 10px #0002;padding:5px 10px}body.m3.hm2 #mStat #coins{margin-left:auto}body.m3.hm2 #mStat #pearls{flex:none}
  body.m3.hm2 #mStat #streak{flex:none}body.m3.hm2 #streak .sk-bar,body.m3.hm2 #streak .sk-d{display:none}
  body.m3.hm2 #bMore{top:9px;width:38px;height:38px}body.m3.hm2 #mSys{top:54px!important}body.m3.hm2 #wxCard{right:8px}
  body.m3.hm3 #mStat{background:transparent;box-shadow:none;padding:0;gap:6px;right:8px}
  body.m3.hm3 #mStat .lvb{background:transparent;padding:0;gap:6px}body.m3.hm3 .lvb .lvc{display:none}body.m3.hm3 .lvb .avw{display:block;width:50px;height:50px}
  body.m3.hm3 .lvb .xp{display:flex;width:auto;background:var(--bg);border-radius:12px;padding:4px 9px;box-shadow:0 3px 10px #0002}body.m3.hm3 .lvb .xp .nm{display:block;font-weight:900;font-size:12px;color:#3a3048}body.m3.hm3 .lvb .xp .t{font-size:10px}body.m3.hm3 .lvb .ttl{display:inline-block!important}body.m3.hm3 .lvb .xp .n,body.m3.hm3 .lvb .xp .b{display:none!important}
- body.m3.hm3 #mStat .pill{background:var(--bg);box-shadow:0 3px 10px #0002}body.m3.hm3 #mStat #coins{margin-left:auto}body.m3.hm3 #mStat #streak{flex:none}body.m3.hm3 #streak .sk-bar,body.m3.hm3 #streak .sk-d{display:none}
+ body.m3.hm3 #mStat .pill{background:var(--bg);box-shadow:0 3px 10px #0002}body.m3.hm3 #mStat #coins{margin-left:auto}body.m3.hm3 #mStat #pearls{flex:none}body.m3.hm3 #mStat #streak{flex:none}body.m3.hm3 #streak .sk-bar,body.m3.hm3 #streak .sk-d{display:none}
  body.m3.hm3 #chatBtn{top:66px}body.m3.hm3 #bMore{top:66px}body.m3.hm3 #mSys{top:112px!important}body.m3.hm3 #chat{top:112px}body.m3.hm3 #wxCard{top:66px!important}
  body.m3.hm3 .lvb{position:relative}
 }
@@ -1313,3 +1313,11 @@ button.brb.on{background:#ff8a4c;color:#fff;border-color:#ff8a4c}
 .xbset .xbg{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin:8px 0}.xbset .xbg>span{font-weight:800;font-size:12px;min-width:84px}.xbset label{font-size:12px;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}.xbset input[type=number]{padding:4px 6px;border-radius:8px;border:1.5px solid #e6d8c3;font-size:12px}.xbset details{margin:8px 0}.xbset summary{cursor:pointer;font-weight:800;font-size:12px}
 .xbset .xbh{background:#f6f1e7;border-radius:10px;padding:8px 10px;margin:8px 0}.xbset .xbh div{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:4px;font-size:12px}
 .xbset select{width:auto!important;max-width:none!important;min-width:96px;font-size:12px;padding:4px 6px}
+
+/* v250: 진주(캐시 재화) C안 아이콘 */
+img.pearl-ico{width:18px;height:18px;object-fit:contain;flex:none;display:inline-block;vertical-align:-3px;image-rendering:auto}
+.pearl-amt{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;vertical-align:middle}
+.pearl-amt b{font-weight:800}
+#pearls{height:30px;box-sizing:border-box;padding:0 12px;display:inline-flex;align-items:center;gap:5px;font-size:15px}
+#pearls img.pearl-ico{width:18px;height:18px}
+@media (max-width:700px){/* 진주 알약은 골드(#coins)와 같이 높이 30px·아이콘 18px를 유지해서 글자와 수직 정렬이 맞아요 */}
