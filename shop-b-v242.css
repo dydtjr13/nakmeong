@@ -151,3 +151,7 @@
 #shop .nkb.m .sn .e .pearl-ico{width:16px;height:16px}
 #shop .nkb .nb.pearl,#shop .nkb .buy.pearl{font-weight:800}
 #shop .nkb .pr.soon,#shop .nkb .dpr .soon{color:#7a6a4a;font-weight:800}
+
+/* v251: 진주 충전은 원화 가격 */
+#shop .nkb .pr.won,#shop .nkb .dpr .won{font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+#shop .nkb .bd.bonus{background:#f7e7c8;color:#8a5a18;font-weight:800}
