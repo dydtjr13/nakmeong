@@ -153,14 +153,23 @@ function plotWorld(i){const v=new T.Vector3();const [x,z]=FB.plotPos(i);v.set(x,
 let SHG=null,RGG=null,HTG=null,SHM=null,RGM=null,HTM=null;
 function shared(){if(SHG)return;SHG=new T.PlaneGeometry(1,1);RGG=new T.PlaneGeometry(1.25,1.25);HTG=new T.BoxGeometry(1.05,.5,1.05);SHM=new T.MeshBasicMaterial({map:shTex,transparent:true,depthWrite:false});RGM=new T.MeshBasicMaterial({map:ringTex,transparent:true,depthWrite:false,blending:T.AdditiveBlending});HTM=new T.MeshBasicMaterial({visible:false});}
 const SHARED=o=>o===SHG||o===RGG||o===HTG||o===PG||o===SHM||o===RGM||o===HTM;
+// v253: 25칸 그리기 비용 줄이기 — 작물·그림자·반짝 고리를 칸마다 따로 그리지 않고 같은 그림끼리 한 번에(InstancedMesh) 그려요
+//   (v252: 심은 칸 하나에 그림자·앞장·옆장 2·고리 = 최대 5번 → 25칸이면 드로우콜 +80 안팎)
 function mkPlot(i){shared();const gr=new T.Group();cropRoot.add(gr);const w=plotWorld(i);gr.position.copy(w);
- const sh=new T.Mesh(SHG,SHM);sh.rotation.x=-Math.PI/2;sh.position.y=.012;gr.add(sh);
- const cg=new T.Group();gr.add(cg);
- const main=new T.Mesh(PG,windMat(false,0xfbf6ef)),s1=new T.Mesh(PG,windMat(true,0xc9d2bd)),s2=new T.Mesh(PG,windMat(true,0xc9d2bd));s1.renderOrder=s2.renderOrder=1;cg.add(s1,s2,main);
- const ring=new T.Mesh(RGG,RGM);ring.rotation.x=-Math.PI/2;ring.position.y=.01;gr.add(ring);
  const hit=new T.Mesh(HTG,HTM);hit.position.y=.25;hit.userData.plot=i;gr.add(hit);
  const ry=(farmG.rotation.y||0)+(((i*37)%11)/11-.5)*.5;
- return {i,gr,sh,cg,main,s1,s2,ring,hit,ph:i*1.73,ry,key:'',pop:0,lift:0,h:0};}
+ return {i,gr,hit,ph:i*1.73,ry,key:'',pop:0,lift:0,h:0,vis:false,ring:false};}
+function windMatI(cut,tint){const m=new T.MeshBasicMaterial({alphaTest:.35,side:T.DoubleSide,color:tint,fog:true});
+ m.userData.u={uT:UT,uAmp:{value:.045},uCut:{value:cut?1:0}};
+ m.onBeforeCompile=s=>{Object.assign(s.uniforms,m.userData.u);
+  s.vertexShader='uniform float uT,uAmp;\nattribute float iph;\n'+s.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nfloat hw=pow(uv.y,1.6);transformed.x+=(sin(uT*2.1+iph)*1.0+sin(uT*3.7+iph*1.9)*.35)*uAmp*hw;transformed.z+=sin(uT*1.6+iph*.7)*uAmp*.5*hw;');
+  s.fragmentShader='uniform float uCut;\n'+s.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n#ifdef USE_MAP\nif(uCut>.5){vec3 cc=diffuseColor.rgb;float l=dot(cc,vec3(.3,.59,.11));if(vUv.y<.4&&cc.r>cc.g*1.05&&l<.2)discard;}\n#endif');};
+ m.customProgramCacheKey=()=>'hfwindI'+(cut?1:0);return m;}
+const POOL={};let SHI=null,RGI=null;const _o=new T.Object3D();
+function pool(key,side,tx,st){const n=key+(side?'s':'m');let q=POOL[n];if(q)return q;const cap=side?50:25;const g=PG.clone();g.setAttribute('iph',new T.InstancedBufferAttribute(new Float32Array(cap),1));
+ const m=windMatI(side,side?0xc9d2bd:0xfbf6ef);m.map=tx;m.userData.u.uAmp.value=st===1?.025:.05;const im=new T.InstancedMesh(g,m,cap);im.count=0;im.frustumCulled=false;im.renderOrder=side?1:0;im.name='hfCrop';cropRoot.add(im);
+ return POOL[n]=q={im,g,n:0};}
+function instInit(){if(SHI)return;SHI=new T.InstancedMesh(SHG,SHM,25);RGI=new T.InstancedMesh(RGG,RGM,25);[SHI,RGI].forEach(m=>{m.count=0;m.frustumCulled=false;cropRoot.add(m);});}
 function disposePlot(P){cropRoot.remove(P.gr);P.gr.traverse(o=>{if(o.geometry&&!SHARED(o.geometry))o.geometry.dispose();if(o.material&&!SHARED(o.material))o.material.dispose();});}
 function burst(w,kind){for(let k=0;k<(kind==='buy'?70:kind==='harv'?16:22);k++){const a=Math.random()*6.283,sp=kind==='buy'?2.2+Math.random()*1.4:.6+Math.random()*1.2;const c=kind==='grow'?[.75,.95,.55]:kind==='buy'?[.93,.88,.78]:[.42,.27,.15];const sh=.75+.25*Math.random();
  PARTS.push({x:w.x+(kind==='buy'?Math.cos(a)*2.6:0),y:w.y+.05,z:w.z+(kind==='buy'?Math.sin(a)*2.6:0),vx:Math.cos(a)*sp*.9,vy:(kind==='grow'?.9:1.6)+Math.random()*1.4,vz:Math.sin(a)*sp*.9,t:0,life:kind==='grow'?.6:.8,r:c[0]*sh,g:c[1]*sh,b:c[2]*sh,fl:kind==='grow'});}}
@@ -181,26 +190,28 @@ let lastT=performance.now();
 function frame(){const t=performance.now(),dt=Math.min(.1,(t-lastT)/1000);lastT=t;UT.value=t/1000;const f=F();const cam=G('cam');if(!cam)return;
  // 텃밭 솟아오르기
  if(farmG&&farmG.userData.rise){const u=(t-farmG.userData.rise)/550;const sy=u<1?Math.max(.01,back(u)):1;farmG.scale.set(1,sy,1);if(cropRoot)cropRoot.visible=u>=1;if(u>=1)farmG.userData.rise=0;}
- if(f&&FB&&cropRoot){refreshSoil(false);
+ if(f&&FB&&cropRoot){refreshSoil(false);instInit();for(const k in POOL)POOL[k].n=0;let nS=0,nR=0;
   for(const P of plotsV){const p=f.plots[P.i];const inf=plotInfo(p);const x=P.gr.position.x,z=P.gr.position.z,y0=P.gr.position.y;
    let vis=inf.st>0;if(P.harvT){const u=(t-P.harvT)/380;if(u>=1){P.harvT=0;vis=false;}else{vis=true;P.lift=Math.sin(u*Math.PI*.5)*.7;P.sc=1+.25*u;}}else{P.lift=0;P.sc=1;}
    const key=vis?(P.harvT?P.key:(inf.c.k+inf.st)):'';
    if(key!==P.key&&!P.harvT){if(P.key&&key&&P.key[0]!==undefined){const prevSt=+P.key.slice(-1),ns=inf.st;if(ns>prevSt){P.pop=t;if(ns>1)burst(P.gr.position,'grow');}}else if(key)P.pop=t;P.key=key;}
-   P.cg.visible=vis;P.sh.visible=vis;const done=inf.st===3&&!P.harvT;P.ring.visible=done;
-   if(!vis)continue;const k=P.key.replace(/\d$/,''),st=+P.key.slice(-1);const tx=tex(k,st);const im=tx.image;if(!im||!im.width){P.cg.visible=false;continue;}
+   const done=inf.st===3&&!P.harvT;P.ring=done;P.vis=false;
+   if(done&&nR<25){_o.position.set(x,y0+.01,z);_o.rotation.set(-Math.PI/2,0,0);_o.scale.set(1,1,1);_o.updateMatrix();RGI.setMatrixAt(nR++,_o.matrix);}
+   if(!vis)continue;const k=P.key.replace(/\d$/,''),st=+P.key.slice(-1);const tx=tex(k,st);const im=tx.image;if(!im||!im.width)continue;P.vis=true;
    const K=1.14/450,w=im.width*K,h=im.height*K;let pop=1;if(P.pop){const u=(t-P.pop)/420;pop=u<1?(st===1?back(u):.82+.18*back(u)):1;if(u>=1)P.pop=0;}
-   const s=(P.sc||1)*pop;
-   [P.main,P.s1,P.s2].forEach((m,j)=>{if(m.material.map!==tx){m.material.map=tx;m.material.needsUpdate=true;}const u=m.material.userData.u;u.uPh.value=P.ph+j*1.3;u.uAmp.value=st===1?.025:.05;});
-   P.cg.position.set(0,P.lift,0);
+   const s=(P.sc||1)*pop;const yl=y0+P.lift;
    const dx=cam.position.x-x,dz=cam.position.z-z,dy=cam.position.y-y0;const yaw=Math.atan2(dx,dz),el=Math.atan2(dy,Math.hypot(dx,dz));
    // 위에서 내려다봐도 눕지 않게: 앞장을 카메라 쪽으로 기울이고(최대 0.55), 뒷장은 고정 각도로 엇갈려요
-   P.main.rotation.order='YXZ';P.main.rotation.set(Math.min(.55,.4*el),yaw,0);P.main.scale.set(w*s,h*s,1);P.main.position.set(Math.sin(yaw)*.02,0,Math.cos(yaw)*.02);
-   const side=st>1;P.s1.visible=P.s2.visible=side;if(side){[[P.s1,1.05,-1],[P.s2,-1.05,1]].forEach(([m,da,fl])=>{m.rotation.order='YXZ';m.rotation.set(Math.min(.35,.2*el),P.ry+da,0);m.scale.set(w*s*.88*fl,h*s*.9,1);m.position.set(-Math.sin(yaw)*.05,0,-Math.cos(yaw)*.05);});}
-   P.sh.scale.set(w*s*.95,(st===1?.45:.7)*w*s,1);P.h=h*s;}}
+   const M=pool(P.key,false,tx,st);_o.rotation.order='YXZ';_o.rotation.set(Math.min(.55,.4*el),yaw,0);_o.scale.set(w*s,h*s,1);_o.position.set(x+Math.sin(yaw)*.02,yl,z+Math.cos(yaw)*.02);_o.updateMatrix();M.im.setMatrixAt(M.n,_o.matrix);M.g.attributes.iph.array[M.n]=P.ph;M.n++;
+   if(st>1){const Sd=pool(P.key,true,tx,st);[[1.05,-1,1.3],[-1.05,1,2.6]].forEach(([da,fl,ph])=>{_o.rotation.set(Math.min(.35,.2*el),P.ry+da,0);_o.scale.set(w*s*.88*fl,h*s*.9,1);_o.position.set(x-Math.sin(yaw)*.05,yl,z-Math.cos(yaw)*.05);_o.updateMatrix();Sd.im.setMatrixAt(Sd.n,_o.matrix);Sd.g.attributes.iph.array[Sd.n]=P.ph+ph;Sd.n++;});}
+   _o.rotation.order='XYZ';_o.rotation.set(-Math.PI/2,0,0);_o.scale.set(w*s*.95,(st===1?.45:.7)*w*s,1);_o.position.set(x,y0+.012,z);_o.updateMatrix();SHI.setMatrixAt(nS++,_o.matrix);P.h=h*s;}
+  for(const k in POOL){const q=POOL[k];q.im.count=q.n;q.im.visible=q.n>0;if(q.n){q.im.instanceMatrix.needsUpdate=true;q.g.attributes.iph.needsUpdate=true;}}
+  SHI.count=nS;SHI.visible=nS>0;SHI.instanceMatrix.needsUpdate=true;RGI.count=nR;RGI.visible=nR>0;RGI.instanceMatrix.needsUpdate=true;}
+ else if(SHI){SHI.visible=RGI.visible=false;for(const k in POOL)POOL[k].im.visible=false;}
  // 반짝이 (다 자란 칸) + 파티클
  if(PTS){const pos=PTSG.attributes.position.array,col=PTSG.attributes.color.array;let n=0;const N=pos.length/3;const add=(x,y,z,r,g,b)=>{if(n>=N)return;pos[n*3]=x;pos[n*3+1]=y;pos[n*3+2]=z;col[n*3]=r;col[n*3+1]=g;col[n*3+2]=b;n++;};
   for(let i=PARTS.length-1;i>=0;i--){const q=PARTS[i];q.t+=dt;if(q.t>q.life){PARTS.splice(i,1);continue;}q.x+=q.vx*dt;q.z+=q.vz*dt;q.y+=q.vy*dt;q.vy-=(q.fl?1.2:4.9)*dt;if(q.y<.12&&!q.fl){q.y=.12;q.vx*=.8;q.vz*=.8;}add(q.x,q.y,q.z,q.r,q.g,q.b);}
-  if(f)for(const P of plotsV){if(!P.ring.visible)continue;const tt=t/1000;for(let k=0;k<3;k++){const a=tt*1.1+k*2.094+P.i,ph=(tt*1.3+k*.37+P.i*.21)%1;add(P.gr.position.x+Math.cos(a)*.38,P.gr.position.y+.25+ph*.75,P.gr.position.z+Math.sin(a)*.38,1,.95,.6);}}
+  if(f)for(const P of plotsV){if(!P.ring)continue;const tt=t/1000;for(let k=0;k<3;k++){const a=tt*1.1+k*2.094+P.i,ph=(tt*1.3+k*.37+P.i*.21)%1;add(P.gr.position.x+Math.cos(a)*.38,P.gr.position.y+.25+ph*.75,P.gr.position.z+Math.sin(a)*.38,1,.95,.6);}}
   for(let k=n;k<N;k++)pos[k*3+1]=-99;PTSG.attributes.position.needsUpdate=true;PTSG.attributes.color.needsUpdate=true;}
  if(RGM)RGM.opacity=.45+.3*Math.sin(t/250);
  if(markers&&markers.g.visible)markers.mat.opacity=.7+.25*Math.sin(t/200);
@@ -244,14 +255,19 @@ function farmCam(dt){const h=W.__nkHF;if(!h||!h.me)return;tagHook();const me=h.m
 // ── 칸 위 이름표 (남은 시간·수확!) ──
 let chipW=null;const CH=[];
 function chips(t){const f=F();if(!chipW){chipW=document.createElement('div');chipW.id='hfChips';document.body.appendChild(chipW);}
- const me=G('me');const near=f&&farmG&&me&&me.o.position.distanceTo(farmG.position)<18&&!panelOpen()&&!(G('anyModal')&&G('anyModal')());chipW.style.display=near?'':'none';
+ const me=G('me');const md=G('anyModal')&&G('anyModal')();const dd=f&&farmG&&me?me.o.position.distanceTo(farmG.position):1e9;
+ // v253: 칸마다 이름표는 크게 볼 때만 (멀리서 25칸 이름표가 화면·말풍선을 덮던 문제) · 평소에는 텃밭 위에 요약 한 줄 + 「눌러서 크게 보기」
+ const near=dd<18&&FC.k>.6&&!panelOpen()&&!md;chipW.style.display=near?'':'none';sumTag(f&&dd<24&&FC.k<.2&&!panelOpen()&&!md);
  if(!near)return;const mob=innerWidth<700;
  for(let i=0;i<plotsV.length;i++){const P=plotsV[i];let e=CH[i];if(!e){e=CH[i]=document.createElement('div');e.className='hfc';chipW.appendChild(e);}
-  const inf=plotInfo(f.plots[i]);const hy=P.cg.visible?Math.max(.55,P.h)+.28:.55;const [x,y,z]=proj(P.gr.position.x,P.gr.position.y+hy,P.gr.position.z);
+  const inf=plotInfo(f.plots[i]);const hy=P.vis?Math.max(.55,P.h)+.28:.55;const [x,y,z]=proj(P.gr.position.x,P.gr.position.y+hy,P.gr.position.z);
   if(z>1||x<-40||x>innerWidth+40||y<-20||y>innerHeight+20||P.harvT){e.style.display='none';continue;}e.style.display='';
   let cls='hfc',html='';if(inf.st===0){cls+=' e';html='＋';}else if(inf.st===3){cls+=' r';html=mob?'수확!':'✨ 수확!';}else{cls+=' g';html=`<b>${fmt(inf.left)}</b><i><u style="width:${Math.round(inf.k*100)}%"></u></i>`;}
   if(e._c!==cls)e.className=e._c=cls;if(e._h!==html)e.innerHTML=e._h=html;e.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px) translate(-50%,-100%)`;}
  for(let i=plotsV.length;i<CH.length;i++)CH[i].style.display='none';}
+let sumE=null;function sumTag(on){if(!sumE){sumE=document.createElement('div');sumE.id='hfSum';document.body.appendChild(sumE);}if(!on){sumE.style.display='none';return;}
+ const r=readyIdx().length,e=emptyIdx().length;const [x,y,z]=proj(farmG.position.x,1.75,farmG.position.z);if(z>1||x<0||x>innerWidth||y<40||y>innerHeight-40){sumE.style.display='none';return;}
+ const h=`🌱 내 텃밭${r?` · <b>수확 ${r}</b>`:''}${e?` · 빈 칸 ${e}`:''}<i>🔍 눌러서 크게 보기</i>`;if(sumE._h!==h)sumE.innerHTML=sumE._h=h;sumE.style.display='';sumE.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px) translate(-50%,-100%)`;}
 // ═════════════ UI ═════════════
 let panel=null,selCrop=null,selPlot=-1,contCrop=null,contT=0;
 const panelOpen=()=>!!(panel&&panel.classList.contains('on'))||!!($('hfBagP')&&$('hfBagP').classList.contains('on'));
@@ -370,10 +386,13 @@ function rfBuild(r){const s=SLOTS[r.lot-1];if(!s)return;const n=STAGES[r.lv].n;c
  const st=[];for(let i=0;i<n;i++)st.push(r.cs[i]?'watered':'tilled');
  const fb=W.NK_FARM.build(T,{style:'fence',size:n,plots:st.map(q=>({state:q}))});fb.group.traverse(o=>{if(o.isMesh){o.castShadow=false;o.receiveShadow=true;}});g.add(fb.group);
  shared();const hb=new T.Mesh(new T.BoxGeometry(rfHalf(r.lv)*2+.3,1.2,rfHalf(r.lv)*2+.3),HTM);hb.position.y=.6;g.add(hb);r.hit=hb;
- // 작물: 엇갈린 두 장(위에서 봐도 납작하지 않게) · 재질은 작물·단계마다 하나를 함께 써요
+ // 작물: 엇갈린 두 장(위에서 봐도 납작하지 않게) · 같은 작물·단계끼리 한 덩어리로 합쳐 그려요 (텃밭 하나 = 작물 종류 수 + 그림자 1번)
+ const BG=T.BufferGeometryUtils,byK={},shs=[],O=new T.Object3D();
  for(let i=0;i<n;i++){const c=r.cs[i];if(!c)continue;const [px,pz]=fb.plotPos(i);const tx=tex(c.k,c.st),im=tx.image;const K=1.14/450,w=(im&&im.width?im.width:300)*K,h=(im&&im.height?im.height:340)*K;
-  const sh=new T.Mesh(SHG,SHM);sh.rotation.x=-Math.PI/2;sh.position.set(px,.172,pz);sh.scale.set(w*.9,(c.st===1?.45:.7)*w,1);g.add(sh);
-  for(const a of [0,Math.PI/2]){const m=new T.Mesh(PG,rMat(c.k,c.st));m.position.set(px,.16,pz);m.rotation.y=a+((i*37)%11)/11*.6;m.scale.set(w,h,1);g.add(m);}}
+  O.position.set(px,.172,pz);O.rotation.set(-Math.PI/2,0,0);O.scale.set(w*.9,(c.st===1?.45:.7)*w,1);O.updateMatrix();shs.push(SHG.clone().applyMatrix4(O.matrix));
+  for(const a of [0,Math.PI/2]){O.position.set(px,.16,pz);O.rotation.set(0,a+((i*37)%11)/11*.6,0);O.scale.set(w,h,1);O.updateMatrix();(byK[c.k+c.st]=byK[c.k+c.st]||{c,L:[]}).L.push(PG.clone().applyMatrix4(O.matrix));}}
+ try{if(shs.length){const m=new T.Mesh(BG.mergeBufferGeometries(shs),SHM);g.add(m);}for(const k in byK){const q=byK[k];const m=new T.Mesh(BG.mergeBufferGeometries(q.L),rMat(q.c.k,q.c.st));g.add(m);}}catch(e){console.warn('[farm] rf merge',e);}
+ shs.forEach(x=>x.dispose());for(const k in byK)byK[k].L.forEach(x=>x.dispose());
  G('scene').add(g);r.g=g;r.fbKey=n+':'+st.join(',');r.loaded=r.cs.every(c=>!c||(tex(c.k,c.st).image||{}).width);}
 function rfTick(){const RT=W.NK_RT;const ps=RT&&RT.status&&RT.status()==='on'&&RT.peers?RT.peers():[];const myLot=(F()||{}).lot|0;const used=new Set();if(myLot)used.add(myLot);const want=new Map();
  // 같은 집터를 여러 명이 골랐으면 접속 번호(id) 순서로 1명만 보여요 · 내 집터와 같으면 늘 내 텃밭

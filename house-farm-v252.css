@@ -109,3 +109,5 @@ img.hfti{width:20px;height:20px;object-fit:contain;vertical-align:-5px}
 #hfRF{position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:40}
 #hfRF .hfRFt{position:absolute;left:0;top:0;font:800 11px/1.2 system-ui,sans-serif;color:#2f4a22;background:#f4ffe9ee;border:1.5px solid #bfe0a4;border-radius:999px;padding:3px 9px;white-space:nowrap;box-shadow:0 2px 6px #0002}
 #hfRF .hfRFt b{font-weight:900}
+#hfSum{position:fixed;left:0;top:0;z-index:40;pointer-events:none;font:800 12px/1.25 system-ui,sans-serif;color:#3b2a1a;background:#fffaf0f2;border:1.5px solid #e9d7b4;border-radius:12px;padding:5px 10px;white-space:nowrap;box-shadow:0 3px 10px #0003;text-align:center}
+#hfSum b{color:#b86b00}#hfSum i{display:block;font-style:normal;font-size:11px;color:#4f9a3a;margin-top:1px}
