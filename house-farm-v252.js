@@ -8,7 +8,7 @@
 // ─────────────────────────────────────────────────────────────
 (function(){'use strict';
 const W=window;const $=id=>document.getElementById(id);
-const GC={};const G=k=>{if(GC[k])return GC[k];try{return W.eval(k);}catch(e){return undefined;}};// game-v2 전역(같은 전역 스코프)을 안전하게 읽기
+const GC={},GN={miniToast:'mini'};const G=k=>{if(GC[k])return GC[k];const h=W.__nkHF;if(!h)return undefined;try{return h[GN[k]||k];}catch(e){return undefined;}};// game-v2 다리(window.__nkHF)로 읽기
 const LOG=(...a)=>{try{if(W.__nkFarmLog)console.log('[farm]',...a);}catch(e){}};
 // ── 작물 14종 (README-작물시안 · data.py 제안값) dur=초, seed=씨앗값, y=칸당 수확, sell=판매(개당, 0=판매 불가)
 const CROPS=[
@@ -40,7 +40,7 @@ const coinI='<span class="hfC">🪙</span>';
 const S_=()=>G('S');const lv=()=>{try{return +G('myLv')()||1;}catch(e){return 1;}};
 const saveG=()=>{try{G('save')();}catch(e){}};const hudG=()=>{try{G('hud')();}catch(e){}};
 const toastG=(h,ms)=>{try{G('toast')(h,ms||2200);}catch(e){}};const mini=(h,ms)=>{try{G('miniToast')(h,ms||2000);}catch(e){toastG(h,ms);}};
-const sfx=k=>{try{const s=G('sfx');s&&s[k]&&s[k]();}catch(e){}};
+const sfx=k=>{try{W.__nkHF.coin();}catch(e){}};
 function F(){const S=S_();if(!S)return null;if(S.farm&&typeof S.farm==='object'){const f=S.farm;f.plots=Array.isArray(f.plots)?f.plots:[];f.seeds=f.seeds||{};f.lv=Math.max(1,Math.min(5,f.lv|0||1));return f;}return null;}
 function crops(){const S=S_();if(!S.crops||typeof S.crops!=='object')S.crops={};return S.crops;}
 // ── 시계: 서버 시각 기준 (기기 시계를 바꿔도 덜 흔들리게) ──
@@ -74,7 +74,7 @@ if(!HB)setInterval(()=>{try{lakeBtn();}catch(e){}},500);
 
 // 딸기 씨앗: 상자를 열 때 2.5%로 한 번 더 굴려 1개 (Lv.35 · 농사 땅이 있을 때)
 W.__nkBoxFxWrap=function(orig){return function(list){try{const f=F();if(f&&lv()>=CR.strawberry.lv&&Array.isArray(list)){let n=0;list.forEach(()=>{if(Math.random()<BERRY_P)n++;});if(n){f.seeds.strawberry=(f.seeds.strawberry|0)+n;saveG();setTimeout(()=>mini('🍓 딸기 씨앗 '+n+'개를 얻었어요 · 하우징 섬 텃밭에 심을 수 있어요',3200),2600);}}}catch(e){}return orig.apply(this,arguments);};};
-try{if(typeof G('boxFx')==='function'&&!G('boxFx').__hf){W.eval('boxFx=window.__nkBoxFxWrap(boxFx);boxFx.__hf=1;');}}catch(e){console.warn('[farm] boxFx',e);}
+{const iv2=setInterval(()=>{const h=W.__nkHF;if(!h)return;clearInterval(iv2);try{h.wrapBoxFx(W.__nkBoxFxWrap);}catch(e){console.warn('[farm] boxFx',e);}},200);}
 
 if(!HB){return;}
 // ═════════════ 하우징 섬 ═════════════
@@ -104,7 +104,7 @@ function buildIsland(){
  buildMarkers();
  W.__nkHouseY=groundY;
  // 걷기: 섬 땅 위에서만 · 내 텃밭 울타리는 못 들어가요
- try{const _w=G('walk');W.__nkHouseWalk=function(x,z){if(x<-600){if(!onLand(x,z))return false;if(farmG){const lp=farmLocal(x,z),h=farmHalf()+.35;if(Math.abs(lp[0])<h&&Math.abs(lp[1])<h)return false;}return true;}return _w.apply(this,arguments);};W.eval('walk=window.__nkHouseWalk');}catch(e){console.warn('[farm] walk',e);}
+ try{W.__nkHF.wrapWalk(_w=>function(x,z){if(x<-600){if(!onLand(x,z))return false;if(farmG){const lp=farmLocal(x,z),h=farmHalf()+.35;if(Math.abs(lp[0])<h&&Math.abs(lp[1])<h)return false;}return true;}return _w.apply(this,arguments);});}catch(e){console.warn('[farm] walk',e);}
  try{const cam=G('cam');cam.far=Math.max(cam.far,700);cam.updateProjectionMatrix();}catch(e){}
  LOG('island',JSON.stringify(I.info));}
 function farmLocal(x,z){const s=SLOTS[(F().lot|0)-1];const [fx,fz]=lw(s,0,-9.0);const dx=x-fx,dz=z-fz,c=Math.cos(s.ry),sn=Math.sin(s.ry);return [dx*c-dz*sn,dx*sn+dz*c];}
@@ -128,7 +128,7 @@ function windMat(cut,tint){const m=new T.MeshBasicMaterial({alphaTest:.35,side:T
  m.userData.u={uT:UT,uPh:{value:0},uAmp:{value:.045},uCut:{value:cut?1:0}};
  m.onBeforeCompile=s=>{Object.assign(s.uniforms,m.userData.u);
   s.vertexShader='uniform float uT,uPh,uAmp;\n'+s.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nfloat hw=pow(uv.y,1.6);transformed.x+=(sin(uT*2.1+uPh)*1.0+sin(uT*3.7+uPh*1.9)*.35)*uAmp*hw;transformed.z+=sin(uT*1.6+uPh*.7)*uAmp*.5*hw;');
-  s.fragmentShader='uniform float uCut;\n'+s.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\nif(uCut>.5){vec3 cc=diffuseColor.rgb;float l=dot(cc,vec3(.3,.59,.11));if(vUv.y<.4&&cc.r>cc.g*1.05&&l<.2)discard;}');};
+  s.fragmentShader='uniform float uCut;\n'+s.fragmentShader.replace('#include <map_fragment>','#include <map_fragment>\n#ifdef USE_MAP\nif(uCut>.5){vec3 cc=diffuseColor.rgb;float l=dot(cc,vec3(.3,.59,.11));if(vUv.y<.4&&cc.r>cc.g*1.05&&l<.2)discard;}\n#endif');};
  m.customProgramCacheKey=()=>'hfwind'+(cut?1:0);return m;}
 let PG=null,PTS=null,PTSG=null;const PARTS=[];// 파티클 {x,y,z,vx,vy,vz,t,life,r,g,b}
 function lotOf(n){return SLOTS[n-1];}
@@ -194,7 +194,37 @@ function frame(){const t=performance.now(),dt=Math.min(.1,(t-lastT)/1000);lastT=
   if(f)for(const P of plotsV){if(!P.ring.visible)continue;const tt=t/1000;for(let k=0;k<3;k++){const a=tt*1.1+k*2.094+P.i,ph=(tt*1.3+k*.37+P.i*.21)%1;add(P.gr.position.x+Math.cos(a)*.38,P.gr.position.y+.25+ph*.75,P.gr.position.z+Math.sin(a)*.38,1,.95,.6);}}
   for(let k=n;k<N;k++)pos[k*3+1]=-99;PTSG.attributes.position.needsUpdate=true;PTSG.attributes.color.needsUpdate=true;}
  if(markers&&markers.g.visible)markers.mat.opacity=.7+.25*Math.sin(t/200);
+ try{farmCam(dt);}catch(e){}
  chips(t);}
+// ── 텃밭 카메라: 텃밭 가까이 멈춰 있거나 씨앗 창을 열면 텃밭이 한눈에 보이게 (움직이면 원래대로) ──
+const FC={k:0,cur:null,lp:null,ly:null,idle:0,cool:0,mine:false};
+function followPose(){const h=W.__nkHF;const pp=h.me.o.position,yw=h.yaw,pt=h.pitch,ds=h.dist;const dd=pt<0?ds*Math.max(.3,1+pt*1.1):ds;return [pp.x+Math.sin(yw)*Math.cos(pt)*dd,pp.y+1.6+Math.sin(pt)*dd,pp.z+Math.cos(yw)*Math.cos(pt)*dd,pp.x,pp.y+1.6,pp.z];}
+function farmPose(fp,km){km=km||1;const cam=GC.cam,c=farmG.position;const n=nPlots(),cols=n===6?3:Math.round(Math.sqrt(n)),rows=n===6?2:cols;const Wd=Math.max(cols,rows)*1.14+1.6;
+ let dx=fp[0]-c.x,dz=fp[2]-c.z;const L=Math.hypot(dx,dz)||1;dx/=L;dz/=L;const vf=cam.fov*Math.PI/180,asp=innerWidth/innerHeight,hf=2*Math.atan(Math.tan(vf/2)*asp),el=.84;
+ const mob=innerWidth<700,po=panelOpen();let D=Math.max(6.2,Wd*1.2/(2*Math.tan(vf/2)),Wd*(mob?1.08:1.25)/(2*Math.tan(hf/2)));if(po&&!mob)D*=1.12;D*=km;
+ let tx=c.x,ty=.35,tz=c.z;
+ if(po&&!mob){const vw=2*D*Math.tan(hf/2),sh=(384/2)/innerWidth*vw;tx+=dz*sh;tz+=-dx*sh;}
+ if(po&&mob){const vh=2*D*Math.tan(vf/2),sh=vh*.27;tx+=dx*sh/Math.sin(el)*.9;tz+=dz*sh/Math.sin(el)*.9;D*=1.05;}
+ return [tx+dx*Math.cos(el)*D,ty+Math.sin(el)*D,tz+dz*Math.cos(el)*D,tx,ty,tz];}
+// 텃밭 카메라일 때 내 이름표가 카메라 바로 앞에서 크게 보이지 않게 잠깐 숨겨요
+function tagHook(){const o=W.__nkTagY;if(o&&o.__hf)return;const fn=c=>{if(o)try{o(c);}catch(e){}try{const h=W.__nkHF;if(h&&c===h.me&&FC.hid)c.tag.position.y-=500;}catch(e){}};fn.__hf=1;W.__nkTagY=fn;}
+// 내 캐릭터가 화면 아래에 잘려 보이지 않도록 다 들어올 때까지 조금씩 멀리 (최대 1.7배)
+const _fc={c:null,v:null};
+function fitPose(fp){const tp=farmPose(fp);const me=W.__nkHF.me.o.position;if(!_fc.c){_fc.c=new T.PerspectiveCamera();_fc.v=new T.Vector3();}const C=_fc.c,cam=GC.cam;C.fov=cam.fov;C.aspect=innerWidth/innerHeight;C.near=.1;C.far=500;C.updateProjectionMatrix();
+ C.position.set(tp[0],tp[1],tp[2]);C.lookAt(tp[3],tp[4],tp[5]);C.updateMatrixWorld();C.matrixWorldInverse.copy(C.matrixWorld).invert();
+ let ok=true;for(const hy of [0,1.2,2.6]){_fc.v.set(me.x,me.y+hy,me.z).applyMatrix4(C.matrixWorldInverse);if(-_fc.v.z<5){ok=false;break;}_fc.v.set(me.x,me.y+hy,me.z).project(C);if(_fc.v.y<-.82||Math.abs(_fc.v.x)>.95){ok=false;break;}}
+ FC.ok=ok;return tp;}
+function farmCam(dt){const h=W.__nkHF;if(!h||!h.me)return;tagHook();const me=h.me.o.position;const f=F();
+ const mv=FC.lp?Math.hypot(me.x-FC.lp[0],me.z-FC.lp[1]):0;FC.lp=[me.x,me.z];if(mv>.015)FC.idle=0;else FC.idle+=dt;
+ const yw=h.yaw;if(FC.ly!=null&&Math.abs(yw-FC.ly)>.004&&FC.k>.5&&!panelOpen()){FC.cool=performance.now()+5000;}FC.ly=yw;
+ const near=f&&farmG&&!farmG.userData.rise&&me.distanceTo(farmG.position)<7.5;
+ const busy=h.camOv&&!FC.mine;
+ const want=!busy&&near&&(panelOpen()||(FC.idle>.45&&performance.now()>FC.cool))&&!(h.anyModal&&h.anyModal());
+ FC.k=Math.max(0,Math.min(1,FC.k+(want?1:-1)*dt/.65));
+ const hideMe=FC.k>.35&&!FC.ok;if(hideMe!==!!FC.hid){FC.hid=hideMe;try{h.me.o.visible=!hideMe;}catch(e){}}
+ if(FC.k<=0){if(FC.mine){h.setCamOv(null);FC.mine=false;}FC.cur=null;return;}
+ const fp=followPose(),tp=fitPose(fp);if(!FC.cur)FC.cur=tp.slice();else{const a=Math.min(1,dt*5);for(let i=0;i<6;i++)FC.cur[i]+=(tp[i]-FC.cur[i])*a;}
+ const e=FC.k*FC.k*(3-2*FC.k);const o=[];for(let i=0;i<6;i++)o[i]=fp[i]+(FC.cur[i]-fp[i])*e;h.setCamOv(o);FC.mine=true;}
 // ── 칸 위 이름표 (남은 시간·수확!) ──
 let chipW=null;const CH=[];
 function chips(t){const f=F();if(!chipW){chipW=document.createElement('div');chipW.id='hfChips';document.body.appendChild(chipW);}
@@ -212,15 +242,15 @@ const panelOpen=()=>!!(panel&&panel.classList.contains('on'))||!!($('hfBagP')&&$
 function closePanels(){if(panel)panel.classList.remove('on');const b=$('hfBagP');if(b)b.classList.remove('on');document.body.classList.remove('hfOpen');selPlot=-1;}
 function seedCard(c){const f=F();const lk=!unlocked(c),box=c.box,have=box?(f.seeds.strawberry|0):0,dis=lk||(box&&!have);
  const sub=lk?`<span class="lk">🔒 Lv.${c.lv}</span>`:box?`<span class="bx">상자 전용 · 보유 ${have}</span>`:`<span class="pr">${coinI}${num(c.seed)}</span>`;
- return `<button type="button" class="hfsd${dis?' dis':''}${selCrop===c.k?' on':''}${lk?' lock':''}" data-k="${c.k}"><img src="${IMG(c.k,3)}" alt="" loading="lazy"><b>${c.n}</b><small class="tm">⏱ ${fmtD(c.dur)}</small>${sub}</button>`;}
-function openSeed(i){const f=F();if(!f)return;selPlot=i;if(!selCrop||!unlocked(CR[selCrop])||(CR[selCrop].box&&!(f.seeds.strawberry|0)))selCrop=(CROPS.filter(c=>unlocked(c)&&!c.box).slice(-1)[0]||CROPS[0]).k;
+ return `<button type="button" class="hfsd${dis?' dis':''}${selCrop===c.k?' on':''}${lk?' lock':''}" data-k="${c.k}"><img class="ci" src="${IMG(c.k,3)}" alt=""><b>${c.n}</b><small class="tm">⏱ ${fmtD(c.dur)}</small>${sub}</button>`;}
+function openSeed(i){const f=F();if(!f)return;selPlot=i;if(!selCrop||!unlocked(CR[selCrop])||(CR[selCrop].box&&!(f.seeds.strawberry|0)))selCrop=(f.last&&CR[f.last]&&unlocked(CR[f.last])&&!CR[f.last].box)?f.last:'onion';
  if(!panel){panel=document.createElement('div');panel.id='hfSeed';document.body.appendChild(panel);panel.addEventListener('click',onPanel);}
  renderSeed();panel.classList.add('on');document.body.classList.add('hfOpen');}
 function renderSeed(){const f=F();const c=CR[selCrop];const st=STAGES[f.lv],nx=STAGES[f.lv+1];
  const can=c&&unlocked(c)&&(!c.box||(f.seeds.strawberry|0)>0)&&(c.box||(S_().coins|0)>=c.seed);
  panel.innerHTML=`<div class="hd"><b>🌱 씨앗 심기</b><span class="sub">${selPlot+1}번 칸 · 텃밭 ${f.lv}단계 ${st.n}칸</span><button type="button" class="x" data-a="x" aria-label="닫기">✕</button></div>
  <div class="gr">${CROPS.map(seedCard).join('')}</div>
- <div class="ft">${c?`<div class="sel"><img src="${ICO(c.k)}" alt=""><div><b>${c.n}</b> <small>${c.eff} 요리 재료</small><br><small>⏱ ${fmtD(c.dur)} · 수확 ${c.y}개 · +${c.xp} XP</small></div></div>`:''}
+ <div class="ft">${c?`<div class="sel"><img class="ci" src="${ICO(c.k)}" alt=""><div><b>${c.n}</b> <small>${c.eff} 요리 재료</small><br><small>⏱ ${fmtD(c.dur)} · 수확 ${c.y}개 · +${c.xp} XP</small></div></div>`:''}
  <button type="button" class="go" data-a="plant" ${can?'':'disabled'}>${c&&c.box?'심기 (씨앗 1개)':'심기 · '+coinI+num(c?c.seed:0)}</button></div>
  ${nx?`<div class="up">다음 단계: ${nx.n}칸 · Lv.${nx.lv} · ${coinI}${num(nx.cost)} <button type="button" data-a="up">텃밭 넓히기</button></div>`:'<div class="up">텃밭이 가장 넓어요 (25칸)</div>'}`;}
 function onPanel(e){const b=e.target.closest('button');if(!b)return;const a=b.dataset.a;
@@ -230,14 +260,14 @@ function onPanel(e){const b=e.target.closest('button');if(!b)return;const a=b.da
 function plant(i,k,fromPanel){const f=F(),S=S_(),c=CR[k];if(!f||!c||i<0||i>=nPlots())return false;if(f.plots[i]&&f.plots[i].c)return false;if(!unlocked(c))return false;
  if(c.box){if(!(f.seeds.strawberry|0)){mini('🍓 딸기 씨앗이 없어요',1500);return false;}f.seeds.strawberry--;}
  else{if((S.coins|0)<c.seed){toastG('🪙 골드가 모자라요',1500);return false;}S.coins-=c.seed;}
- f.plots[i]={c:k,t0:now()};saveG();hudG();sfx('coin');burst(plotsV[i].gr.position,'plant');
+ f.plots[i]={c:k,t0:now()};f.last=k;saveG();hudG();sfx('coin');burst(plotsV[i].gr.position,'plant');
  if(fromPanel){closePanels();const left=emptyIdx();if(left.length&&(!c.box||(f.seeds.strawberry|0)>0)){contCrop=k;contT=performance.now();showCont();}}
  else if(contCrop){contT=performance.now();showCont();}
  return true;}
 const emptyIdx=()=>{const f=F();const r=[];for(let i=0;i<nPlots();i++)if(!(f.plots[i]&&f.plots[i].c))r.push(i);return r;};
 const readyIdx=()=>{const f=F();const r=[];for(let i=0;i<nPlots();i++)if(plotInfo(f.plots[i]).st===3)r.push(i);return r;};
 function showCont(){let e=$('hfCont');if(!e){e=document.createElement('button');e.id='hfCont';e.type='button';document.body.appendChild(e);e.onclick=()=>{contCrop=null;e.classList.remove('on');};}
- const c=CR[contCrop];if(!c){e.classList.remove('on');return;}e.innerHTML=`<img src="${ICO(c.k)}" alt=""><span><b>${c.n} 연속 심기</b> · 빈 칸을 누르세요</span><i>✕</i>`;e.classList.add('on');}
+ const c=CR[contCrop];if(!c){e.classList.remove('on');return;}e.innerHTML=`<img class="ci" src="${ICO(c.k)}" alt=""><span><b>${c.n} 연속 심기</b> · 빈 칸을 누르세요</span><i>✕</i>`;e.classList.add('on');}
 function harvest(i,quiet){const f=F(),P=plotsV[i];const inf=plotInfo(f.plots[i]);if(inf.st!==3)return null;const c=inf.c;const n=c.y;const cs=crops();cs[c.k]=(cs[c.k]|0)+n;f.plots[i]=null;f.hv=(f.hv|0)+1;
  P.harvT=performance.now();burst(P.gr.position,'harv');flyIcon(c.k,P.gr.position,n);try{G('addXP')(c.xp,'농사');}catch(e){}saveG();hudG();sfx('coin');
  if(!quiet)mini(`<img class="hfti" src="${ICO(c.k)}" alt=""> <b>${c.n} ×${n}</b> 획득 · +${c.xp} XP${c.box?' <small>(상자 전용 작물)</small>':''}`,2200);
@@ -249,7 +279,7 @@ function flyIcon(k,w,n){const [x,y]=proj(w.x,w.y+.6,w.z);const tg=$('hfBag');con
  setTimeout(()=>{e.remove();if(tg){tg.classList.remove('bump');void tg.offsetWidth;tg.classList.add('bump');}bagBtn();},700);setTimeout(()=>p.remove(),1100);}
 function harvestAll(){const r=readyIdx();if(!r.length)return;const got={};let xp=0;r.forEach((i,k)=>setTimeout(()=>{const h=harvest(i,true);if(h){got[h.k]=(got[h.k]||0)+h.n;xp+=h.xp;}if(k===r.length-1)setTimeout(()=>result(got,xp),450);},k*160));}
 function result(got,xp){let e=$('hfRes');if(!e){e=document.createElement('div');e.id='hfRes';document.body.appendChild(e);e.onclick=()=>e.classList.remove('on');}
- e.innerHTML=`<b>🧺 모두 수확 완료!</b><div class="it">${Object.keys(got).map(k=>`<span><img src="${ICO(k)}" alt=""><small>${CR[k].n} ×${got[k]}</small></span>`).join('')}</div><small class="xp">+${xp} XP · 가방에 넣었어요</small>`;
+ e.innerHTML=`<b>🧺 모두 수확 완료!</b><div class="it">${Object.keys(got).map(k=>`<span><img class="ci" src="${ICO(k)}" alt=""><small>${CR[k].n} ×${got[k]}</small></span>`).join('')}</div><small class="xp">+${xp} XP · 가방에 넣었어요</small>`;
  e.classList.remove('on');void e.offsetWidth;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),3200);}
 function askUp(){const f=F(),nx=STAGES[f.lv+1];if(!nx)return;if(lv()<nx.lv){mini(`⬆ 텃밭 ${f.lv+1}단계는 Lv.${nx.lv}부터예요`,1800);return;}
  const go=()=>{const S=S_();if((S.coins|0)<nx.cost){toastG('🪙 골드가 모자라요',1500);return false;}S.coins-=nx.cost;f.lv++;saveG();hudG();sfx('coin');closePanels();buildFarmObj(true);burst(farmG.position,'buy');mini(`⬆ 텃밭이 ${nx.n}칸으로 넓어졌어요!`,2200);return true;};
@@ -260,7 +290,7 @@ function askBuy(n){const S=S_();if(F())return;const s=lotOf(n);if(!s)return;cons
  cb&&cb(html,()=>{if((S.coins|0)<st.cost){toastG('🪙 골드가 모자라요',1500);return false;}S.coins-=st.cost;S.farm={lot:n,lv:1,plots:[],seeds:{},at:now()};saveG();hudG();sfx('coin');buildFarmObj(true);setTimeout(()=>burst(farmG.position,'buy'),60);
   mini('🌱 텃밭이 생겼어요! 빈 칸(＋)을 눌러 씨앗을 심어 보세요',3000);});}
 // ── 가방 (수확한 작물) ──
-function bagHTML(){const f=F(),cs=crops();const rows=CROPS.map(c=>{const n=cs[c.k]|0;return `<div class="bi${n?'':' z'}"><img src="${ICO(c.k)}" alt=""><b>${c.n}</b><small>×${num(n)}</small>${n&&c.sell?`<button type="button" data-sell="${c.k}">팔기 ${coinI}${num(c.sell*n)}</button>`:c.box?'<em>판매 불가</em>':''}</div>`;}).join('');
+function bagHTML(){const f=F(),cs=crops();const rows=CROPS.map(c=>{const n=cs[c.k]|0;return `<div class="bi${n?'':' z'}"><img class="ci" src="${ICO(c.k)}" alt=""><b>${c.n}</b><small>×${num(n)}</small>${n&&c.sell?`<button type="button" data-sell="${c.k}">팔기 ${coinI}${num(c.sell*n)}</button>`:c.box?'<em>판매 불가</em>':''}</div>`;}).join('');
  const st=f?STAGES[f.lv]:null,nx=f?STAGES[f.lv+1]:null;
  return `<div class="hd"><b>🧺 작물 가방</b><span class="sub">요리 재료로 쓸 수 있어요 (요리는 곧 열려요)</span><button type="button" class="x" data-a="x" aria-label="닫기">✕</button></div>
  <div class="bg">${rows}</div>
@@ -299,7 +329,7 @@ W.NK_FARM_UI={tapAt,tapPlot,openSeed,openBag,harvestAll,plant,askBuy,houseSwitch
 function spawn(){const me=G('me');const f=F();let x,z,a;
  if(f&&lotOf(f.lot)){const s=lotOf(f.lot);[x,z]=lw(s,3.9,-5.2);const fp=lw(s,0,-9.0);a=Math.atan2(fp[0]-x,fp[1]-z);}
  else if(PIER){x=OX+PIER.start[0]+3;z=PIER.start[1];a=Math.PI/2;}else{x=OX-100;z=0;a=Math.PI/2;}
- me.o.position.set(x,.1,z);me.dir=a;me.o.rotation.y=a;try{W.eval('yaw='+(a+Math.PI));}catch(e){}}
+ me.o.position.set(x,.1,z);me.dir=a;me.o.rotation.y=a;try{W.__nkHF.setYaw(a+Math.PI);}catch(e){}}
 function boot(){GC.cam=G('cam');GC.scene=G('scene');mkTex();PG=new T.PlaneGeometry(1,1);PG.translate(0,.5,0);buildIsland();mkParts();if(F()){sanitize();buildFarmObj(false);}hideLake();setInterval(()=>{try{hideLake();}catch(e){}},1000);
  spawn();try{const S=S_();S.vehRide=0;}catch(e){}
  const cv=G('R')&&G('R').domElement||$('world');(cv||document).addEventListener('pointerdown',onDown,{passive:true});(cv||document).addEventListener('pointerup',onUp,{passive:true});
