@@ -26,21 +26,23 @@ const txt=e=>e?e.textContent.replace(/\s+/g,' ').trim():'';
 const coins=()=>{try{return +B().S.coins||0;}catch(e){return 0;}};
 const pearls=()=>{try{return +B().S.pearls||0;}catch(e){return 0;}};
 const pearlIco=(px)=>window.NK_PEARL?NK_PEARL.img(px||16):`<img class="pearl-ico" src="img/ui/pearl-32.png?v250" width="${px||16}" height="${px||16}" alt="진주">`;
-function pearlVis(){const im=document.createElement('img');im.src='img/ui/pearl-128.png?v250';im.alt='진주';im.width=128;im.height=128;im.draggable=false;return im;}
+function wonH(n){return fmt(n)+'원';}
+function pearlVis(pack){const im=document.createElement('img');const n=pack||1;im.src='img/ui/pearl-pack-'+n+'.png?v251';im.srcset='img/ui/pearl-pack-'+n+'-512.webp?v251 512w, img/ui/pearl-pack-'+n+'.webp?v251 1024w';im.sizes='(max-width:700px) 42vw, 180px';im.alt='진주 충전';im.width=128;im.height=128;im.draggable=false;return im;}
 function pearlCatalog(){
   const packs=[
-    {id:'pearl:pack:110',name:'진주 110개',price:110,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'},
-    {id:'pearl:pack:330',name:'진주 330개',price:330,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'},
-    {id:'pearl:pack:550',name:'진주 550개',price:550,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'},
-    {id:'pearl:pack:1100',name:'진주 1,100개',price:1100,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'},
-    {id:'pearl:pack:3300',name:'진주 3,300개',price:3300,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'},
-    {id:'pearl:pack:5500',name:'진주 5,500개',price:5500,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'}
+    {id:'pearl:pack:110',pack:1,name:'진주 110개',pearls:110,won:1100,price:1100,bonus:0,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'},
+    {id:'pearl:pack:330',pack:2,name:'진주 330개',pearls:330,won:3300,price:3300,bonus:0,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'},
+    {id:'pearl:pack:550',pack:3,name:'진주 550개',pearls:550,won:5500,price:5500,bonus:0,desc:'캐시 재화 충전',info:'결제는 아직 준비 중이에요'},
+    {id:'pearl:pack:1150',pack:4,name:'진주 1,150개',pearls:1150,won:11000,price:11000,bonus:50,desc:'+50개 보너스',info:'결제는 아직 준비 중이에요'},
+    {id:'pearl:pack:3550',pack:5,name:'진주 3,550개',pearls:3550,won:33000,price:33000,bonus:250,desc:'+250개 보너스',info:'결제는 아직 준비 중이에요'},
+    {id:'pearl:pack:6000',pack:6,name:'진주 6,000개',pearls:6000,won:55000,price:55000,bonus:500,desc:'+500개 보너스',info:'결제는 아직 준비 중이에요'}
   ];
-  return {items:packs.map(o=>({...o,tab:'pearl',curr:'pearl',key:o.id,vis:pearlVis(),acts:[],buy:{t:'충전하기',el:null,k:'buy'},own:false,eq:false,box:false})),notes:['진주는 캐시 재화예요. 충전과 결제는 아직 준비 중이에요. 골드 탈 것 가격은 바꾸지 않았어요.']};
+  return {items:packs.map(o=>({...o,tab:'pearl',curr:'pearl',key:o.id,vis:pearlVis(o.pack),acts:[],buy:{t:'충전하기',el:null,k:'buy'},own:false,eq:false,box:false})),notes:['진주는 캐시 재화예요. 충전과 결제는 아직 준비 중이에요.']};
 }
 function pearlBuy(o){
   if(!o||o.curr!=='pearl')return;
-  const html=`<h3>진주 충전</h3><div class="pearl-cfm">${pearlIco(28)}<div><b>${fmt(o.price)}</b> 진주를 충전할까요?</div></div><p class="muted">결제는 아직 준비 중이에요. 지금은 바로 충전이 되지 않아요.</p>`;
+  const bonus=o.bonus?`<small class="pearl-bon">+${fmt(o.bonus)}개 보너스</small>`:'';
+  const html=`<h3>진주 충전</h3><div class="pearl-cfm">${pearlIco(28)}<div><b>${fmt(o.pearls||0)}</b>개의 진주를 받을게요${bonus}</div></div><p class="pearl-won">${wonH(o.won||o.price||0)}으로 충전할까요?</p><p class="muted">결제는 아직 준비 중이에요. 지금은 바로 충전이 되지 않아요.</p>`;
   if(typeof confirmBox==='function')confirmBox(html,()=>{if(typeof toast==='function')toast('결제는 아직 준비 중이에요',2200);});
   else if(typeof toast==='function')toast('결제는 아직 준비 중이에요',2200);
 }
@@ -110,9 +112,9 @@ function list(){const M=ST.M;let L=[];const q=ST.q.trim().toLowerCase();
 const catN=k=>(CATS.find(c=>c[0]===k)||[,,k==='sell'?'물고기 팔기':k==='bal'?'밸런스표':k])[2];
 
 // ── 카드 ──
-function badges(o){const b=[];if(o.badge)o.badge.forEach(t=>{if(/NEW/.test(t))b.push(`<i class="bd new">NEW</i>`);else if(t)b.push(`<i class="bd g" style="--gc:${esc(o.gc||'#9aa3ad')}">${esc(t)}</i>`);});if(o.box)b.push('<i class="bd box">상자</i>');return b.join('');}
+function badges(o){const b=[];if(o.badge)o.badge.forEach(t=>{if(/NEW/.test(t))b.push(`<i class="bd new">NEW</i>`);else if(t)b.push(`<i class="bd g" style="--gc:${esc(o.gc||'#9aa3ad')}">${esc(t)}</i>`);});if(o.bonus)b.push(`<i class="bd bonus">+${fmt(o.bonus)}개</i>`);if(o.box)b.push('<i class="bd box">상자</i>');return b.join('');}
 function ownTag(o){if(o.eq)return `<i class="own eq">✔ ${o.tab==='fly'?'타는 중':'사용 중'}</i>`;if(o.own)return '<i class="own">✔ 보유</i>';return '';}
-function priceH(o){if(o.box)return `<span class="pr boxw">🎁 ${esc(o.src||'행운 상자')}</span>`;if(o.curr==='pearl'){if(o.soon)return '<span class="pr soon">곧 만나요</span>';return `<span class="pr pearl">${pearlIco(16)}${shortP(o.price)}</span>`;}if(o.free||(!o.price&&!o.opts))return '<span class="pr free">무료</span>';
+function priceH(o){if(o.box)return `<span class="pr boxw">🎁 ${esc(o.src||'행운 상자')}</span>`;if(o.curr==='pearl'){if(o.soon)return '<span class="pr soon">곧 만나요</span>';return `<span class="pr won">${wonH(o.won||o.price||0)}</span>`;}if(o.free||(!o.price&&!o.opts))return '<span class="pr free">무료</span>';
  const p=o.opts&&o.priceMax>o.price?shortP(o.price)+'~':shortP(o.price);return `<span class="pr"><i class="coin"></i>${p}</span>`;}
 function mainBtn(o){if(o.curr==='pearl')return o.soon?'<span class="nb off">곧 만나요</span>':`<button type="button" class="nb pearl" data-nkpearl="${esc(o.id)}">충전하기</button>`;if(o.box)return '';if(o.lock&&!o.own)return `<span class="lv">🔒 ${esc(o.lock)}</span>`;
  if(o.opts||o.cols&&o.cols.length>1)return `<button type="button" class="nb ${o.own?'ok':''}" data-nkpick="${esc(o.id)}">${o.own?'보기':'색 고르기'}</button>`;
@@ -148,7 +150,7 @@ function detH(o){if(!o)return `<div class="dempty"><b>🛒</b></div>`;
  const extra=[o.info,o.set?o.set+' · '+o.setFx:'',o.ownTxt].filter(Boolean).map(t=>`<div class="inf">${esc(t)}</div>`).join('');
  return `<div class="big ${o.wide?'wide':''}"><span class="vi" data-vis="${esc(o.id)}" data-big="1"></span></div>
   <div class="dt"><h3>${esc(o.name)}${x?` <small>${esc(x.name)}</small>`:''}</h3><div class="tags">${lvl}${tags}</div>${compare(o)}${extra}${colH}</div>
-  <div class="dbot">${o.box?'':`<div class="dpr">${o.curr==='pearl'?(o.soon?'<b class="soon">곧 만나요</b>':pearlIco(18)+'<b>'+fmt(o.price||0)+'</b>'):(pr?`<i class="coin"></i><b>${fmt(pr)}</b>`:'<b class="free">무료</b>')}</div>`}${o.curr==='pearl'&&!o.soon?`<button type="button" class="buy pearl" data-nkpearl="${esc(o.id)}">충전하기</button>`:''}${btns}<div class="after">${after}${where(o)?`${after?' · ':''}사면 <b>${esc(where(o))}</b>에서 써요`:''}</div></div>`;}
+  <div class="dbot">${o.box?'':`<div class="dpr">${o.curr==='pearl'?(o.soon?'<b class="soon">곧 만나요</b>':'<b class="won">'+wonH(o.won||o.price||0)+'</b>'):(pr?`<i class="coin"></i><b>${fmt(pr)}</b>`:'<b class="free">무료</b>')}</div>`}${o.curr==='pearl'&&!o.soon?`<button type="button" class="buy pearl" data-nkpearl="${esc(o.id)}">충전하기</button>`:''}${btns}<div class="after">${after}${where(o)?`${after?' · ':''}사면 <b>${esc(where(o))}</b>에서 써요`:''}</div></div>`;}
 
 // ── 화면 ──
 function counts(k){const P=ST.M.P[k];return P?P.items.length:0;}

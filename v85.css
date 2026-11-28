@@ -1572,3 +1572,10 @@ body:has(.modal.show) #toast:has(.cc){z-index:auto}
 #confirm .pearl-cfm{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0 12px;font-size:18px;font-weight:800;color:#4a4058;line-height:1.2}
 #confirm .pearl-cfm .pearl-ico{width:28px;height:28px;object-fit:contain;flex:none;display:block}
 #confirm .pearl-cfm b{font-size:22px;font-variant-numeric:tabular-nums}
+
+/* v251: 충전 확인 창 — 받을 진주와 원화 가격을 나눠 보여 줘요 */
+#confirm .pearl-cfm{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0 8px;font-size:17px;font-weight:800;color:#4a4058;line-height:1.25;text-align:left}
+#confirm .pearl-cfm .pearl-ico{width:28px;height:28px;object-fit:contain;flex:none;display:block}
+#confirm .pearl-cfm b{font-size:22px;font-variant-numeric:tabular-nums}
+#confirm .pearl-cfm .pearl-bon{display:block;margin-top:2px;font-size:13px;font-weight:700;color:#b07828}
+#confirm .pearl-won{margin:0 0 8px;font-size:18px;font-weight:800;color:#4a4058}
