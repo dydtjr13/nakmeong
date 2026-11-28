@@ -329,7 +329,7 @@ W.NK_FARM_UI={tapAt,tapPlot,openSeed,openBag,harvestAll,plant,askBuy,houseSwitch
 function spawn(){const me=G('me');const f=F();let x,z,a;
  if(f&&lotOf(f.lot)){const s=lotOf(f.lot);[x,z]=lw(s,3.9,-5.2);const fp=lw(s,0,-9.0);a=Math.atan2(fp[0]-x,fp[1]-z);}
  else if(PIER){x=OX+PIER.start[0]+3;z=PIER.start[1];a=Math.PI/2;}else{x=OX-100;z=0;a=Math.PI/2;}
- me.o.position.set(x,.1,z);me.dir=a;me.o.rotation.y=a;try{W.__nkHF.setYaw(a+Math.PI);}catch(e){}}
+ me.o.position.set(x,.1,z);me.dir=a;me.o.rotation.y=a;/* 선착장 도착: 광장 가로등이 캐릭터를 가리지 않게 카메라를 살짝 비스듬히 */try{W.__nkHF.setYaw(a+Math.PI+(f&&lotOf(f.lot)?0:.5));}catch(e){}}
 function boot(){GC.cam=G('cam');GC.scene=G('scene');mkTex();PG=new T.PlaneGeometry(1,1);PG.translate(0,.5,0);buildIsland();mkParts();if(F()){sanitize();buildFarmObj(false);}hideLake();setInterval(()=>{try{hideLake();}catch(e){}},1000);
  spawn();try{const S=S_();S.vehRide=0;}catch(e){}
  const cv=G('R')&&G('R').domElement||$('world');(cv||document).addEventListener('pointerdown',onDown,{passive:true});(cv||document).addEventListener('pointerup',onUp,{passive:true});
