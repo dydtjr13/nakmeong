@@ -6773,7 +6773,7 @@ const tourIdle=()=>{TOUR.last=performance.now();if(TOUR.on){TOUR.on=false;TOUR.b
 const _cv1=new THREE.Vector3(),_cv2=new THREE.Vector3();
 PHOOK.push(dt=>{if(!me)return;const on=camFxOn();
  // v133: 자동 둘러보기 — 자동 낚시 중이어도 1분 동안 입력(키·마우스·터치)이 없을 때만
- const idle=(performance.now()-TOUR.last)/1000,want=on&&S.tourOff!==true&&!anyModal()&&idle>60&&!flyNow();
+ const idle=(performance.now()-TOUR.last)/1000,want=on&&!HOUSEBOOT&&S.tourOff!==true&&!anyModal()&&idle>60&&!flyNow();/* v252: 하우징 섬에서는 호숫가 둘러보기를 하지 않아요 */
  if(want&&!TOUR.on){TOUR.on=true;TOUR.blend=0;TOUR.a=Math.atan2(cam.position.x,cam.position.z);let el=$('tourPill');if(!el){el=document.createElement('div');el.id='tourPill';el.textContent='🎥 둘러보는 중 · 클릭하거나 키를 누르면 돌아와요';document.body.appendChild(el);}el.classList.add('on');}
  if(TOUR.on&&!want)tourIdle();
  if(TOUR.on){TOUR.t+=dt;TOUR.a+=dt*.06;TOUR.blend=Math.min(1,TOUR.blend+dt*.35);const R=LR+16+Math.sin(TOUR.t*.11)*6,y=10+Math.sin(TOUR.t*.07)*5,ph=(Math.sin(TOUR.t*.05)+1)/2;
