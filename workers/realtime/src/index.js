@@ -1,6 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
 import { defaultGame, sanitizeGame, pickQuestion, pushUsed, pickKind, publicRun, newRun, submitAnswer, submitPick } from "./game.js";
 import {
+  HUBS,
   ADMIN_OPS,
   CAP,
   HELLO_MS,
@@ -477,7 +478,7 @@ export class LakeRoom extends DurableObject {
   async acceptOps(fromId, msg) {
     const now = Date.now();
     // v133b: 하늘섬(7)도 관리자 설정을 같이 받아요 — 빠져 있어서 하늘섬에 다녀오면 예전 설정(어항 위치 등)이 덮어썼어요
-    const all = [1, 2, 3, 4, 7, 20];
+    const all = [1, 2, 3, 4, 7, 20, 21];
     if (msg.t === "vbx") {
       const d = msg.d ? sanitizeVbxOne(msg.d) : null;
       if (msg.d && !d) return;
@@ -508,7 +509,7 @@ export class LakeRoom extends DurableObject {
       if (!n && msg.notice != null && !(msg.notice && (msg.notice.off || msg.notice.del))) return;
       const ch = n ? n.ch : ((msg.notice && msg.notice.ch) || "all");
       // v128: 하늘섬(7번)까지 서버 전체에 공지
-      await this.fan(fromId, [1, 2, 3, 4, 7], { t: "notice", notice: n || { off: true, ch } });
+      await this.fan(fromId, [1, 2, 3, 4, 7, 21], { t: "notice", notice: n || { off: true, ch } });
       return;
     }
     if (msg.t === "event") {
@@ -562,7 +563,7 @@ export class LakeRoom extends DurableObject {
       const next = sanitizeStage(msg.stage, prev, { bump: true, now });
       if (!next) return;
       // v135: 데크 배치(stage)는 호숫가 1~4만 — 하늘섬은 자기 배치를 써요
-      await this.fan(fromId, all.filter((id) => id !== 7), { t: "stage", stage: next });
+      await this.fan(fromId, all.filter((id) => id !== 7 && id !== 21), { t: "stage", stage: next });
       return;
     }
     if (msg.t === "play") {
@@ -753,9 +754,9 @@ export class LakeRoom extends DurableObject {
   }
 
   /** v141: 🌙 달(7) ↔ 호숫가(1~4) — 채팅을 서로 보여 주고, 실접속 인원을 함께 세요 */
-  static isPub(srv) { return srv === 7 || srv === 20 || SERVERS.some((s) => s.id === srv); }
+  static isPub(srv) { return HUBS.includes(srv) || SERVERS.some((s) => s.id === srv); }
   /** v168: 🌙 달(7)과 🏘 바닷가 마을(20)은 모두 '허브' — 호숫가·다른 허브와 채팅·인원을 함께 나눠요 */
-  static isHub(srv) { return srv === 7 || srv === 20; }
+  static isHub(srv) { return HUBS.includes(srv); }
   mhMerge() { const h = {}; for (const k of Object.keys(this.mhBy || {})) for (const [id, n] of Object.entries(this.mhBy[k] || {})) h[id] = (h[id] | 0) + (n | 0); this.mh = h; return h; }
   postTo(ids, payload) {
     const body = JSON.stringify(payload);
@@ -765,7 +766,7 @@ export class LakeRoom extends DurableObject {
   }
   chatLink(srv, ev) {
     if (!LakeRoom.isPub(srv) || !ev || ev.t !== "chat") return;
-    const to = LakeRoom.isHub(srv) ? [...SERVERS.map((s) => s.id), ...[7, 20].filter((h) => h !== srv)] : [7, 20];
+    const to = LakeRoom.isHub(srv) ? [...SERVERS.map((s) => s.id), ...HUBS.filter((h) => h !== srv)] : HUBS;
     this.postTo(to, { t: "xchat", from: srv, ev: { id: ev.id, nick: ev.nick, text: ev.text, adm: ev.adm ? 1 : 0 } });
   }
   cntPush(srv, except) {
@@ -777,13 +778,13 @@ export class LakeRoom extends DurableObject {
     const homes = LakeRoom.isHub(srv) ? this.homesOf(except) : null;
     if (homes) { this.mhBy = this.mhBy || {}; this.mhBy[srv] = homes; this.mhMerge(); }
     this.broadcast({ t: "cnt", by: this.cnt, mh: this.mh || {} });
-    this.postTo([...SERVERS.map((s) => s.id), 7, 20].filter((id) => id !== srv), homes ? { t: "cnt", srv, n, homes } : { t: "cnt", srv, n });
+    this.postTo([...SERVERS.map((s) => s.id), ...HUBS].filter((id) => id !== srv), homes ? { t: "cnt", srv, n, homes } : { t: "cnt", srv, n });
   }
   /** 이 방 인원을 처음 알게 될 때(방이 막 깨어났을 때) 다른 곳 인원을 한 번 물어 와요 */
   cntFill(srv) {
     if (!LakeRoom.isPub(srv)) return;
     this.cnt = this.cnt || {};
-    const miss = [...SERVERS.map((s) => s.id), 7, 20].filter((id) => id !== srv && !(id in this.cnt));
+    const miss = [...SERVERS.map((s) => s.id), ...HUBS].filter((id) => id !== srv && !(id in this.cnt));
     if (!miss.length) return;
     this.ctx.waitUntil((async () => {
       for (const id of miss) {
@@ -868,7 +869,7 @@ export class LakeRoom extends DurableObject {
     if (n >= (testRoom ? 60 : admRoom ? 10 : CAP)) {
       return Response.json({ ok: false, error: "full", n, cap: CAP }, { status: 503 });
     }
-    const path = url.pathname.match(/\/ws\/([1-4]|7|8|9|20)$/);
+    const path = url.pathname.match(/\/ws\/([1-4]|7|8|9|20|21)$/);
     const server = path ? +path[1] : 0;
     const pair = new WebSocketPair();
     const [client, serverWs] = Object.values(pair);
@@ -898,7 +899,7 @@ export class LakeRoom extends DurableObject {
   }
 
   async acceptSpec(url) {
-    const path = url.pathname.match(/\/ws\/([1-4]|7|20)$/);
+    const path = url.pathname.match(/\/ws\/([1-4]|7|20|21)$/);
     if (!path) return Response.json({ ok: false, error: "spec room" }, { status: 404 });
     if (this.specSockets().length >= SPEC_CAP) return Response.json({ ok: false, error: "full" }, { status: 503 });
     const server = +path[1];
@@ -960,7 +961,7 @@ export class LakeRoom extends DurableObject {
       let n = 0;
       if (!test && !room9) { try { n = prev.server === 1 ? await this.stBump(st.k) : await this.env.LAKE.getByName("lake-1").stBump(st.k); } catch (e) { n = 0; } }
       const a = `${prev.server}:${prev.id}:${now}`;
-      await this.fan(prev.server, room9 ? [9] : [...SERVERS.map((x) => x.id), 7, 20], { t: "st", a, id: prev.id, nick: prev.nick, srv: prev.server, k: st.k, cm: st.cm, n, at: now, ...(test || room9 ? { test: 1 } : {}) });
+      await this.fan(prev.server, room9 ? [9] : [...SERVERS.map((x) => x.id), ...HUBS], { t: "st", a, id: prev.id, nick: prev.nick, srv: prev.server, k: st.k, cm: st.cm, n, at: now, ...(test || room9 ? { test: 1 } : {}) });
       return;
     }
     // v193: 🪵 합성판 하루 횟수 (사용·낚시·광고·오프라인 사용) → 호숫가 1이 세고 결과를 돌려줘요
@@ -1000,7 +1001,7 @@ export class LakeRoom extends DurableObject {
       if (prev.stcSeen.includes(a)) return;
       prev.stcSeen = [...prev.stcSeen.slice(-9), a];
       try { ws.serializeAttachment(prev); } catch { /* ignore */ }
-      await this.fan(prev.server, prev.server === 9 ? [9] : [...SERVERS.map((x) => x.id), 7, 20], { t: "stc", a, id: prev.id, nick: prev.nick });
+      await this.fan(prev.server, prev.server === 9 ? [9] : [...SERVERS.map((x) => x.id), ...HUBS], { t: "stc", a, id: prev.id, nick: prev.nick });
       return;
     }
     // v195: ✨ 초월 부적 획득 — 모든 서버(1~4 · 7 · 20)에 공지 · 한 사람당 30초에 한 번
@@ -1010,7 +1011,7 @@ export class LakeRoom extends DurableObject {
       if (now - (prev.lastTxc || 0) < 30000) return;
       prev.lastTxc = now;
       try { ws.serializeAttachment(prev); } catch { /* ignore */ }
-      await this.fan(prev.server, [...SERVERS.map((x) => x.id), 7, 20], { t: "txc", nick: prev.nick, id: prev.id, srv: prev.server, how: msg.how === "syn" ? "syn" : "box", at: now });
+      await this.fan(prev.server, [...SERVERS.map((x) => x.id), ...HUBS], { t: "txc", nick: prev.nick, id: prev.id, srv: prev.server, how: msg.how === "syn" ? "syn" : "box", at: now });
       return;
     }
     // v205: 🌈 합성판 무지개 완성 — 모든 서버(1~4 · 7 · 20)에 공지 · 한 사람당 10초에 한 번
@@ -1021,7 +1022,7 @@ export class LakeRoom extends DurableObject {
       if (now - (prev.lastMbr || 0) < 10000) return;
       prev.lastMbr = now;
       try { ws.serializeAttachment(prev); } catch { /* ignore */ }
-      const to = prev.server === 9 ? [9] : [...SERVERS.map((x) => x.id), 7, 20];
+      const to = prev.server === 9 ? [9] : [...SERVERS.map((x) => x.id), ...HUBS];
       await this.fan(prev.server, to, { t: "mbr", nick: prev.nick, id: prev.id, srv: prev.server, k: msg.k, at: now });
       return;
     }
@@ -1081,7 +1082,7 @@ export class LakeRoom extends DurableObject {
     if (msg.t === "who") {
       if (!prev.ready) return;
       const rooms = {};
-      for (const id of [...SERVERS.map((x) => x.id), 7, 8, 20]) {
+      for (const id of [...SERVERS.map((x) => x.id), 7, 8, 20, 21]) {
         if (id === prev.server) { rooms[id] = await this.roster(); continue; }
         if (id === 8 && !prev.admin) continue;
         try { rooms[id] = await this.env.LAKE.getByName(`lake-${id}`).roster(); } catch { rooms[id] = null; }
@@ -1095,7 +1096,7 @@ export class LakeRoom extends DurableObject {
       let tAtt = target && this.attachment(target), far = null;
       // v149: 다른 서버(달 포함)에 있는 유저도 운영자로 등록할 수 있어요
       if (!tAtt && typeof msg.id === "string" && msg.id) {
-        for (const id of [...SERVERS.map((x) => x.id), 7]) {
+        for (const id of [...SERVERS.map((x) => x.id), 7, 20, 21]) {
           if (id === prev.server) continue;
           try { const st = this.env.LAKE.getByName(`lake-${id}`), inf = await st.peerInfo(msg.id); if (inf && inf.nick) { tAtt = { nick: inf.nick }; far = st; break; } } catch { /* ignore */ }
         }
@@ -1290,7 +1291,7 @@ export class LakeRoom extends DurableObject {
       const world = await this.worldGet();
       const ops = await this.welcomeOps();
       // v133b: 하늘섬은 예전에 관리자 설정을 못 받았어요 — 호숫가 1의 설정이 더 새것이면 그걸로 맞추고 저장
-      if (next.att.server === 7 || next.att.server === 20) {
+      if (LakeRoom.isHub(next.att.server)) {
         try {
           const occ = await this.env.LAKE.getByName("lake-1").occupancy();
           const p1 = occ && occ.play;
@@ -1559,21 +1560,23 @@ export default {
       if (path === "/servers" && request.method === "GET") {
         // v146: 서버 인원 = 그 서버 호숫가 + 그 서버에서 달로 간 유저
         // v188: ⛵ 운하(lake-20)로 간 유저도 그 서버 인원에 더해요
-        let moonHomes = {}, seaHomes = {};
+        // v253: 🏡 하우징 섬(lake-21)에 간 유저도 그 서버 인원에 더해요
+        let moonHomes = {}, seaHomes = {}, islHomes = {};
         try { const mo = await env.LAKE.getByName("lake-7").occupancy(); moonHomes = (mo && mo.homes) || {}; } catch { /* ignore */ }
         try { const so = await env.LAKE.getByName("lake-20").occupancy(); seaHomes = (so && so.homes) || {}; } catch { /* ignore */ }
+        try { const io = await env.LAKE.getByName("lake-21").occupancy(); islHomes = (io && io.homes) || {}; } catch { /* ignore */ }
         const servers = await Promise.all(SERVERS.map(async (s) => {
           const stub = env.LAKE.getByName(`lake-${s.id}`);
           const occ = await stub.occupancy();
-          const moon = moonHomes[s.id] | 0, sea = seaHomes[s.id] | 0;
-          return { id: s.id, name: s.name, n: occ.n + moon + sea, lake: occ.n, moon, sea, cap: occ.cap || CAP, stage: occ.stage || null, play: occ.play || null };
+          const moon = moonHomes[s.id] | 0, sea = seaHomes[s.id] | 0, isl = islHomes[s.id] | 0;
+          return { id: s.id, name: s.name, n: occ.n + moon + sea + isl, lake: occ.n, moon, sea, isl, cap: occ.cap || CAP, stage: occ.stage || null, play: occ.play || null };
         }));
         // v73: 관리자 설정(맵 등)을 접속 전에 미리 알려 줘서 첫 화면부터 맞는 맵이 보이게
         const play = (servers.find((r) => r.play) || {}).play || null;
         servers.forEach((r) => { delete r.play; });
         return json({ ok: true, servers, play }, 200, origin);
       }
-      const room = path.match(/^\/ws\/([1-4]|7|8|9|20)$/);
+      const room = path.match(/^\/ws\/([1-4]|7|8|9|20|21)$/);
       if (room && request.method === "GET") {
         if (!originAllowed(origin, host)) {
           return json({ ok: false, error: "origin" }, 403, origin);

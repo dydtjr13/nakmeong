@@ -35,8 +35,15 @@ body.houseB #wishBtn,body.houseB #wishBtnL,body.houseB #seaBtn,body.houseB #hous
 #hfChips .hfc i{display:block;height:4px;width:46px;background:#e8dcc4;border-radius:3px;margin-top:2px;overflow:hidden}
 #hfChips .hfc i u{display:block;height:100%;background:linear-gradient(90deg,#7cc74f,#4fae3a)}
 #hfChips .hfc.e{width:22px;height:22px;padding:0;border-radius:50%;text-align:center;line-height:20px;font-size:15px;color:#4f9a3a;background:#fffaf0d9}
-#hfChips .hfc.r{background:linear-gradient(#ffe27a,#ffc93a);border-color:#fff;color:#6b3f00;animation:hfPulse 1.2s ease-in-out infinite}
-@keyframes hfPulse{50%{box-shadow:0 0 0 4px #ffe27a66,0 2px 6px #0002}}
+#hfChips .hfc.c{padding:2px 4px;border-radius:8px}
+#hfChips .hfc.g.c i{width:26px;margin:0;height:5px}
+#hfChips .hfc.r.c{width:22px;height:22px;padding:0;border-radius:50%;text-align:center;line-height:19px;font-size:13px}
+#hfChips .hfc.r.c::after{border-radius:50%}
+#hfChips .hfc.e.c{width:18px;height:18px;line-height:16px;font-size:12px;padding:0}
+#hfChips .hfc.r{background:linear-gradient(#ffe27a,#ffc93a);border-color:#fff;color:#6b3f00}
+/* v253: 수확 칸 반짝임 — 그림자를 매 프레임 다시 그리던 애니메이션 대신 투명도만 바뀌는 고리 (25칸에서도 가볍게) */
+#hfChips .hfc.r::after{content:'';position:absolute;inset:-4px;border-radius:12px;box-shadow:0 0 0 4px #ffe27a66;opacity:0;animation:hfPulse 1.2s ease-in-out infinite;pointer-events:none}
+@keyframes hfPulse{50%{opacity:1}}
 /* 씨앗 창 · 가방 창 (PC: 오른쪽 세로 창) */
 #hfSeed,#hfBagP{position:fixed;z-index:60;right:12px;top:calc(76px + env(safe-area-inset-top));bottom:calc(92px + env(safe-area-inset-bottom));width:372px;max-width:calc(100vw - 24px);background:#fffaf0;border:2px solid #ecdcc0;border-radius:18px;box-shadow:0 10px 30px #0003;display:none;flex-direction:column;font:600 13px/1.35 system-ui,sans-serif;color:#3b2a1a;overflow:hidden}
 #hfSeed.on,#hfBagP.on{display:flex}
@@ -96,9 +103,16 @@ img.hfti{width:20px;height:20px;object-fit:contain;vertical-align:-5px}
  #hfSeed .gr{grid-template-columns:repeat(4,1fr);gap:6px;padding:8px 10px}
  .hfsd img.ci{width:46px;height:46px}.hfsd b{font-size:12px}.hfsd small{font-size:10px}.hfsd .bx{font-size:9px}
  #hfSeed .ft .sel small{font-size:10px}
- #hfAct{bottom:calc(236px + env(safe-area-inset-bottom));font-size:14px;padding:9px 16px}
+ #hfAct{bottom:calc(266px + env(safe-area-inset-bottom));font-size:14px;padding:9px 16px}
  #hfCont{top:calc(64px + env(safe-area-inset-top))}
  body.hfOpen #joy,body.hfOpen #fishBtn,body.hfOpen #bShop,body.hfOpen #bTank,body.hfOpen #bAutoFish,body.hfOpen #bBox,body.hfOpen #bBag,body.hfOpen #houseBack,body.hfOpen #hfBag,body.hfOpen #chatBtn{visibility:hidden}
 }
 
 #hfSeed .emj,#hfBagP .emj,#hfAct .emj,#hfRes .emj,#hfChips .emj,#hfCont .emj{width:1.1em!important;height:1.1em!important;vertical-align:-.18em;margin:0 .05em}
+
+/* v253 🏡 멀티: 다른 낚시꾼 텃밭 이름표 */
+#hfRF{position:fixed;left:0;top:0;width:0;height:0;pointer-events:none;z-index:40}
+#hfRF .hfRFt{position:absolute;left:0;top:0;font:800 11px/1.2 system-ui,sans-serif;color:#2f4a22;background:#f4ffe9ee;border:1.5px solid #bfe0a4;border-radius:999px;padding:3px 9px;white-space:nowrap;box-shadow:0 2px 6px #0002}
+#hfRF .hfRFt b{font-weight:900}
+#hfSum{position:fixed;left:0;top:0;z-index:40;pointer-events:none;font:800 12px/1.25 system-ui,sans-serif;color:#3b2a1a;background:#fffaf0f2;border:1.5px solid #e9d7b4;border-radius:12px;padding:5px 10px;white-space:nowrap;box-shadow:0 3px 10px #0003;text-align:center}
+#hfSum b{color:#b86b00}#hfSum i{display:block;font-style:normal;font-size:11px;color:#4f9a3a;margin-top:1px}

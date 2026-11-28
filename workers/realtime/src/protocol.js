@@ -22,6 +22,8 @@ export function cleanHome(v) { const n = Math.round(Number(v)); return n >= 1 &&
 export function cleanHomes(o) { const h = {}; if (o && typeof o === "object") for (const k of Object.keys(o).slice(0, 20)) { const id = cleanHome(k), n = Math.max(0, Math.min(1000, o[k] | 0)); if (id && n) h[id] = n; } return h; }
 
 export const CAP = 100; // v141: 호숫가·달 한 곳에 100명까지
+/** v253: 🏡 하우징 섬(21)도 달(7)·운하(20)처럼 '허브' — 모든 호숫가 서버가 함께 쓰는 방이고, 어느 호숫가에서 왔는지(home)를 세요 */
+export const HUBS = [7, 20, 21];
 export const POSE_MS = 90;
 export const CHAT_MS = 700;
 export const HELLO_MS = 20000;
@@ -215,7 +217,7 @@ export function sanitizePose(msg, prev) {
   const fish = FISH.has(msg.fish) ? msg.fish : p.fish || "off";
   const anim = ANIMS.has(msg.anim) ? msg.anim : p.anim || "idle";
   return {
-    x: +num(msg.x, -130, 1000, p.x ?? 0).toFixed(2), // v160: 바닷가 마을(x 700 근처)도 위치가 맞게
+    x: +num(msg.x, -900, 1000, p.x ?? 0).toFixed(2), // v160: 바닷가 마을(x 700 근처)도 위치가 맞게 · v253: 하우징 섬(x -880 ~ -650)도
     z: +num(msg.z, -130, 130, p.z ?? 0).toFixed(2),
     y: +num(msg.y, -1, 8, p.y ?? 0.4).toFixed(2),
     d: +num(msg.d, -7, 7, p.d ?? 0).toFixed(2),
