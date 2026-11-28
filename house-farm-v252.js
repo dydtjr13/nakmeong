@@ -259,10 +259,13 @@ function chips(t){const f=F();if(!chipW){chipW=document.createElement('div');chi
  // v253: 칸마다 이름표는 크게 볼 때만 (멀리서 25칸 이름표가 화면·말풍선을 덮던 문제) · 평소에는 텃밭 위에 요약 한 줄 + 「눌러서 크게 보기」
  const near=dd<18&&FC.k>.6&&!panelOpen()&&!md;chipW.style.display=near?'':'none';sumTag(f&&dd<24&&FC.k<.2&&!panelOpen()&&!md);
  if(!near)return;const mob=innerWidth<700;
+ /* v253: 칸 간격이 좁으면(휴대폰 16·25칸) 이름표를 작게 — 다 자람 ✓, 자라는 중은 막대만 (이름표끼리 겹치지 않게) */
+ let gap=1e9;if(plotsV.length>1){const pv=plotsV.map(P=>proj(P.gr.position.x,P.gr.position.y,P.gr.position.z));const sd=Math.round(Math.sqrt(plotsV.length));for(let i=0;i<pv.length;i++){const j=i+1,k=i+sd;if(j<pv.length&&(j%sd))gap=Math.min(gap,Math.hypot(pv[i][0]-pv[j][0],pv[i][1]-pv[j][1]));if(k<pv.length)gap=Math.min(gap,Math.hypot(pv[i][0]-pv[k][0],pv[i][1]-pv[k][1]));}}
+ const cmp=gap<84;
  for(let i=0;i<plotsV.length;i++){const P=plotsV[i];let e=CH[i];if(!e){e=CH[i]=document.createElement('div');e.className='hfc';chipW.appendChild(e);}
   const inf=plotInfo(f.plots[i]);const hy=P.vis?Math.max(.55,P.h)+.28:.55;const [x,y,z]=proj(P.gr.position.x,P.gr.position.y+hy,P.gr.position.z);
   if(z>1||x<-40||x>innerWidth+40||y<-20||y>innerHeight+20||P.harvT){e.style.display='none';continue;}e.style.display='';
-  let cls='hfc',html='';if(inf.st===0){cls+=' e';html='＋';}else if(inf.st===3){cls+=' r';html=mob?'수확!':'✨ 수확!';}else{cls+=' g';html=`<b>${fmt(inf.left)}</b><i><u style="width:${Math.round(inf.k*100)}%"></u></i>`;}
+  let cls='hfc',html='';if(inf.st===0){cls+=' e';html='＋';}else if(inf.st===3){cls+=' r';html=cmp?'✓':mob?'수확!':'✨ 수확!';}else{cls+=' g';html=cmp?`<i><u style="width:${Math.round(inf.k*100)}%"></u></i>`:`<b>${fmt(inf.left)}</b><i><u style="width:${Math.round(inf.k*100)}%"></u></i>`;}if(cmp)cls+=' c';
   if(e._c!==cls)e.className=e._c=cls;if(e._h!==html)e.innerHTML=e._h=html;e.style.transform=`translate(${Math.round(x)}px,${Math.round(y)}px) translate(-50%,-100%)`;}
  for(let i=plotsV.length;i<CH.length;i++)CH[i].style.display='none';}
 let sumE=null;function sumTag(on){if(!sumE){sumE=document.createElement('div');sumE.id='hfSum';document.body.appendChild(sumE);}if(!on){sumE.style.display='none';return;}

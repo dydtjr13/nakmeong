@@ -35,6 +35,11 @@ body.houseB #wishBtn,body.houseB #wishBtnL,body.houseB #seaBtn,body.houseB #hous
 #hfChips .hfc i{display:block;height:4px;width:46px;background:#e8dcc4;border-radius:3px;margin-top:2px;overflow:hidden}
 #hfChips .hfc i u{display:block;height:100%;background:linear-gradient(90deg,#7cc74f,#4fae3a)}
 #hfChips .hfc.e{width:22px;height:22px;padding:0;border-radius:50%;text-align:center;line-height:20px;font-size:15px;color:#4f9a3a;background:#fffaf0d9}
+#hfChips .hfc.c{padding:2px 4px;border-radius:8px}
+#hfChips .hfc.g.c i{width:26px;margin:0;height:5px}
+#hfChips .hfc.r.c{width:22px;height:22px;padding:0;border-radius:50%;text-align:center;line-height:19px;font-size:13px}
+#hfChips .hfc.r.c::after{border-radius:50%}
+#hfChips .hfc.e.c{width:18px;height:18px;line-height:16px;font-size:12px;padding:0}
 #hfChips .hfc.r{background:linear-gradient(#ffe27a,#ffc93a);border-color:#fff;color:#6b3f00}
 /* v253: 수확 칸 반짝임 — 그림자를 매 프레임 다시 그리던 애니메이션 대신 투명도만 바뀌는 고리 (25칸에서도 가볍게) */
 #hfChips .hfc.r::after{content:'';position:absolute;inset:-4px;border-radius:12px;box-shadow:0 0 0 4px #ffe27a66;opacity:0;animation:hfPulse 1.2s ease-in-out infinite;pointer-events:none}
