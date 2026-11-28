@@ -358,7 +358,8 @@ const CIDX={};CROPS.forEach((c,i)=>{CIDX[c.k]=i+1;});
 function farmCode(){const f=F();if(!f||!(f.lot>0))return null;const n=nPlots();let q='';for(let i=0;i<n;i++){const inf=plotInfo(f.plots[i]);q+=EXA[inf.st&&CIDX[inf.c.k]?CIDX[inf.c.k]*4+inf.st:0];}
  const o={hfl:f.lot|0,hfv:f.lv|0,hfa:q.slice(0,13)||'A'};if(q.length>13)o.hfb=q.slice(13);return o;}
 function farmDecode(q){const out=[];for(let i=0;i<q.length;i++){const c=EXA.indexOf(q[i]);if(c<4){out.push(null);continue;}const cr=CROPS[(c>>2)-1];out.push(cr?{k:cr.k,st:Math.max(1,Math.min(3,c&3))}:null);}return out;}
-{const _px=W.NK_POSE_EX;W.NK_POSE_EX=()=>{const o=(_px&&_px())||{};try{const c=farmCode();if(c)Object.assign(o,c);}catch(e){}return Object.keys(o).length?o:null;};}
+// 게임 쪽 덧붙이기(NK_POSE_EX)가 섬 스크립트보다 늦게 감쌀 수 있어서, 실어 보낸 값에 텃밭이 빠져 있으면 다시 감싸요
+function wrapEx(){try{const c=farmCode();if(!c)return;const cur=W.NK_POSE_EX;const r=cur?cur():null;if(r&&r.hfl===c.hfl)return;W.NK_POSE_EX=()=>{const o=(cur&&cur())||{};try{const q=farmCode();if(q)Object.assign(o,q);}catch(e){}return Object.keys(o).length?o:null;};}catch(e){}}
 const RF=new Map();// 사람 id → {lot,lv,q,nick,g,fb,crops:[],hit}
 const RMAT={};function rMat(k,st){const n=k+st;if(RMAT[n])return RMAT[n];const m=windMat(false,0xf4efe6);m.map=tex(k,st);m.userData.u.uAmp.value=st===1?.02:.04;return RMAT[n]=m;}
 function rfLocal(lot,x,z){const s=SLOTS[lot-1];const [fx,fz]=lw(s,0,-9.0);const dx=x-fx,dz=z-fz,c=Math.cos(s.ry),sn=Math.sin(s.ry);return [dx*c-dz*sn,dx*sn+dz*c];}
@@ -401,7 +402,7 @@ function boot(){GC.cam=G('cam');GC.scene=G('scene');mkTex();PG=new T.PlaneGeomet
  try{G('FHOOK').push(()=>{try{frame();}catch(e){if(!frame._e){frame._e=1;console.warn('[farm] frame',e);}}});}catch(e){setInterval(frame,33);}
  setInterval(()=>{try{hudBtns();const fi=G('fishing');if(fi&&fi.state!=='off'){G('endFish')();mini('🏡 하우징 섬에서는 낚시를 할 수 없어요',1600);}try{W.NK_HOUSE.setTime(T,+G('NIGHT')||0);}catch(e){}}catch(e){}},300);
  syncClock();
- setInterval(()=>{try{rfTick();}catch(e){if(!rfTick._e){rfTick._e=1;console.warn('[farm] rf',e);}}},700);
+ setInterval(()=>{try{wrapEx();rfTick();}catch(e){if(!rfTick._e){rfTick._e=1;console.warn('[farm] rf',e);}}},700);
  setTimeout(()=>{mini(F()?`🏡 하우징 섬 · ${F().lot}번 집터 내 텃밭`:'🏡 하우징 섬에 왔어요 · 마음에 드는 집터의 빈 땅(점선)에서 농사 땅을 살 수 있어요',3400);},900);
  W.__nkHouseReady=1;}
 const iv=setInterval(()=>{try{if(!G('started')||!G('me')||!W.NK_ISLAND50)return;clearInterval(iv);boot();}catch(e){clearInterval(iv);console.warn('[farm] boot',e);}},300);
