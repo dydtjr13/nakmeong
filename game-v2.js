@@ -369,7 +369,7 @@ function applyHud(){const B=document.body.classList;['hp1','hp2','hp3','hm1','hm
 // 토스트: T2 한 줄 알약 + 색 띠 + 닫기·남은 시간 막대 (기본) / T0 / T1 / T3 / T4 / 기존
 const TQC={ok:'#5cb85c',info:'#4a8fe0',warn:'#f0a020',err:'#e05050'};
 function tqType(h){const t=h.replace(/<[^>]+>/g,'');if(/부족|없어요|실패|못 |할 수 없|🔒|⛔|❌|불가|필요해요/.test(t))return 'err';if(/가득|주의|소진|⚠|이미/.test(t))return 'warn';if(/성공|완료|구매|획득|저장|달성|해금|ON|열렸|✅|🎉|아꼈/.test(t))return 'ok';return 'info';}
-function toastQ(h,ms,st){let w=$('tq');if(!w){w=document.createElement('div');w.id='tq';document.body.appendChild(w);}w.className='s'+st;ms=Math.max(1600,ms);if(S.toastFix)ms=S.toastFix*1000;else if(S.toastMul)ms*=S.toastMul;
+function toastQ(h,ms,st){if(notiBOn()&&!toastQ._q){if(headPop(h,ms))return;/* 긴 글은 위쪽 카드 자리에서 하나씩 */NBQ.push(()=>{toastQ._q=1;try{toastQ(h,ms,st);}finally{toastQ._q=0;}},Math.max(2600,Math.min(6000,ms||2600)));return;}let w=$('tq');if(!w){w=document.createElement('div');w.id='tq';document.body.appendChild(w);}w.className='s'+st;ms=Math.max(1600,ms);if(S.toastFix)ms=S.toastFix*1000;else if(S.toastMul)ms*=S.toastMul;
  const key=h.replace(/<[^>]+>/g,'');const dup=[...w.children].find(e=>e._key===key&&!e.classList.contains('out'));if(dup){dup._arm(ms);return;}
  const ty=tqType(h),parts=h.split(/<br\s*\/?>/i),m=parts[0].match(/^\s*(?:<b>)?\s*((?:\p{Extended_Pictographic}|[\u2600-\u27BF])\uFE0F?)\s*/u);let ic='',tt=parts[0];if(m&&st!=='T2'&&st!=='T4'){ic=m[1];tt=parts[0].replace(m[1],'').trim();}
  const ds=parts.slice(1).join(' ').replace(/<\/?small>/g,''),e=document.createElement('div');e._key=key;e.className='tqi '+ty;e.style.setProperty('--c',TQC[ty]);const pill=st==='T2'||st==='T4',cls=st!=='T1';
@@ -379,11 +379,53 @@ function toastQ(h,ms,st){let w=$('tq');if(!w){w=document.createElement('div');w.
  e.onmouseenter=()=>{clearTimeout(e._t);left-=performance.now()-t0;};e.onmouseleave=()=>{t0=performance.now();e._t=setTimeout(kill,Math.max(400,left));};
  e.onclick=ev=>{ev.stopPropagation();kill();};w.appendChild(e);while(w.children.length>4)w.firstChild.remove();e._arm(ms);}
 // 수집 목표·업적 알림 G1~G4 (G2 기본)
-function goalG(v,title,sub,rw,kind){let w=$('gq');if(!w){w=document.createElement('div');w.id='gq';document.body.appendChild(w);}w.className='g'+v;const lab=kind==='ach'?'업적 달성':'수집 목표 달성',ic=EPNG(kind==='ach'?'1f451':'1f3c6'),cs=(rw||sub||'').split(/ · |, /).filter(Boolean).map(t=>`<span class="rw">${t}</span>`).join('');
+function goalG(v,title,sub,rw,kind){if(notiBOn()&&!goalG._q){NBQ.push(()=>{goalG._q=1;try{goalG(v,title,sub,rw,kind);}finally{goalG._q=0;}},4600);return;}let w=$('gq');if(!w){w=document.createElement('div');w.id='gq';document.body.appendChild(w);}w.className='g'+v;const lab=kind==='ach'?'업적 달성':'수집 목표 달성',ic=EPNG(kind==='ach'?'1f451':'1f3c6'),cs=(rw||sub||'').split(/ · |, /).filter(Boolean).map(t=>`<span class="rw">${t}</span>`).join('');
  const e=document.createElement('div');e.className='gqi '+(kind==='ach'?'ach':'goal');
  e.innerHTML=v==='G1'?`${ic}<small>${lab}</small><b>${title}</b>${cs?`<span class="cs">${cs}</span>`:''}`:v==='G3'?`<span class="ic">${ic}</span><div class="tt"><small>${lab}</small><b>${title}</b></div>${cs?`<div class="cs">${cs}</div>`:''}`:
   v==='G4'?`<span class="ic">${ic}</span><div class="tt"><small>${lab}</small><b>${title}</b></div><div class="cs">${cs}</div>`:`<div class="h">${ic}<div><small>${lab}</small><b>${title}</b></div></div>${cs?`<div class="cs">${cs}</div>`:''}<i class="gb"></i>`;
  e.onclick=()=>e.remove();w.appendChild(e);while(w.children.length>3)w.firstChild.remove();setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),400);},4200);}
+/* v248: 📱 모바일 알림 B안 (LAB notiB) — 짧은 알림(골드·입질·잡은 물고기·작은 알림)은 내 캐릭터 머리 위에 떠올랐다 사라지고,
+   업적·목표·5성 소식처럼 중요한 것만 위쪽 카드로 하나씩 보여 줘요. 위쪽 카드가 떠 있는 동안 할아버지 목표 말풍선은 잠깐 접혀요. 긴 글은 예전 자리 */
+function notiBOn(){try{return !!(GFX&&GFX.mob)&&String(uiOpt('notiB','on'))!=='off';}catch(e){return false;}}
+const NBQ={q:[],busy:0,push(fn,ms){this.q.push([fn,ms]);if(!this.busy)this.next();},
+ next(){const it=this.q.shift();if(!it){this.busy=0;document.body.classList.remove('nbTop');return;}this.busy=1;document.body.classList.add('nbTop');try{it[0]();}catch(e){}setTimeout(()=>this.next(),it[1]+250);}};
+const HP={L:[],raf:0,v:null};
+function headPop(h,ms,small){try{if(!started||!me||!me.o||!cam)return false;const txt=String(h).replace(/<br\s*\/?>/gi,' · ').replace(/<[^>]+>/g,'').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim();if(!txt)return true;if(txt.length>24)return false;
+ let w=$('hpop');if(!w){w=document.createElement('div');w.id='hpop';document.body.appendChild(w);}
+ const dup=HP.L.find(o=>o.txt===txt&&!o.gone);if(dup){dup.n++;dup.e.dataset.n='×'+dup.n;dup.t0=performance.now();return true;}
+ const e=document.createElement('div');e.className='hp '+(small?'s ':'')+(/골드|💰|\+\d/.test(txt)?'gold':/입질|당겨|🎣/.test(txt)?'bite':/잡았|cm|🐟/.test(txt)?'fish':'');e.textContent=txt;w.appendChild(e);
+ HP.L.push({e,txt,n:1,t0:performance.now(),ms:Math.max(1700,Math.min(3200,ms||2200))});while(HP.L.length>4){const o=HP.L.shift();o.e.remove();}
+ if(!HP.raf)HP.raf=requestAnimationFrame(hpTick);return true;}catch(e){return false;}}
+function hpTick(){HP.raf=0;if(!HP.L.length)return;try{const v=HP.v||(HP.v=new THREE.Vector3());v.copy(me.o.position);v.y+=2.4;v.project(cam);const x=(v.x+1)/2*innerWidth,y=(1-v.y)/2*innerHeight-54,now=performance.now(),n=HP.L.length;
+ for(let i=n-1;i>=0;i--){const o=HP.L[i],k=(now-o.t0)/o.ms;if(k>=1){o.e.remove();HP.L.splice(i,1);continue;}}
+ let cr=null;if(document.body.classList.contains('nbTop'))for(const id of ['gq','tq','s5ban']){const e=$(id);if(e&&e.children.length&&e.offsetWidth){const r=e.getBoundingClientRect();if(r.height>8&&getComputedStyle(e).opacity!=='0'){cr=r;break;}}}
+ let minY=60;HP.L.forEach((o,i)=>{const W=o.e.offsetWidth,px=Math.max(6,Math.min(innerWidth-W-6,x-W/2));if(cr&&px<cr.right&&px+W>cr.left)minY=Math.max(minY,cr.bottom+6+(HP.L.length-1-i)*28);});
+ HP.L.forEach((o,i)=>{const k=(now-o.t0)/o.ms,up=(HP.L.length-1-i)*28+k*16,a=k<.08?k/.08:k>.8?(1-k)/.2:1;const W=o.e.offsetWidth;o.e.style.transform=`translate(${Math.round(Math.max(6,Math.min(innerWidth-W-6,x-W/2)))}px,${Math.round(Math.max(minY-(HP.L.length-1-i)*28,y-up))}px)`;o.e.style.opacity=a.toFixed(2);});}catch(e){}
+ if(HP.L.length)HP.raf=requestAnimationFrame(hpTick);}
+window.__nkHeadPop=headPop;
+/* v248: 📱 휴대폰 가로 화면 겹침 정리 (LAB landFit) — 화면 요소를 실제로 재서
+   ① 아래 메뉴가 채팅창과 겹치면 메뉴를 오른쪽(조이스틱 앞)으로 옮기고, 그래도 좁으면 채팅창 폭을 줄여요
+   ② 소원 버튼(⛵·🏮·⭐)이 목표 카드·채팅과 겹치면 조이스틱 바로 위로 옮겨요 */
+function landFitOn(){try{return matchMedia('(pointer:coarse) and (orientation:landscape)').matches&&innerHeight<=500&&String(uiOpt('landFit','on'))!=='off';}catch(e){return false;}}
+const LF={set:new Set()};
+function lfSet(el,k,v){el.style.setProperty(k,v,'important');LF.set.add(el);}
+function lfClear(){LF.set.forEach(el=>{['left','right','top','bottom','transform','width','max-width','max-height','overflow-y'].forEach(k=>el.style.removeProperty(k));});LF.set.clear();}
+function lfR(el){if(!el||!el.offsetWidth)return null;const cs=getComputedStyle(el);if(cs.display==='none'||cs.visibility==='hidden')return null;return el.getBoundingClientRect();}
+const lfHit=(a,b,g=4)=>a&&b&&a.left<b.right+g&&a.right+g>b.left&&a.top<b.bottom+g&&a.bottom+g>b.top;
+function landFit(){if(!landFitOn()||!started){if(LF.set.size)lfClear();return;}lfClear();
+ const mm=$('mMain'),ch=$('chat'),jy=$('joy');let M=lfR(mm),C=lfR(ch);const J=lfR(jy);
+ if(M&&C&&lfHit(M,C,6)){const W=M.width,R=(J?J.left:innerWidth)-10,gap=R-(C.right+8);
+  if(gap>=W){lfSet(mm,'left',Math.round(C.right+8+(gap-W)/2)+'px');lfSet(mm,'right','auto');lfSet(mm,'transform','none');}
+  else{const L=Math.max(C.left+190+8,R-W);lfSet(mm,'left',Math.round(L)+'px');lfSet(mm,'right','auto');lfSet(mm,'transform','none');/* 폭을 줄여도 높이는 그대로 (글이 줄바꿈되며 커지면 위 목표 카드를 밀어 올려요) — 커진 칸은 원래 높이로 묶고 안에서 스크롤 */const kids=[...ch.querySelectorAll('*')].filter(e=>e.offsetHeight>24).map(e=>[e,e.offsetHeight]);lfSet(ch,'width',Math.max(190,Math.round(L-8-C.left))+'px');lfSet(ch,'max-width','none');kids.forEach(([e,h0])=>{if(e.offsetHeight>h0+2&&e.scrollHeight>h0){lfSet(e,'max-height',h0+'px');lfSet(e,'overflow-y','auto');}});}
+  M=lfR(mm);C=lfR(ch);}
+ const q=lfR($('tq25')),eq=lfR($('equip'));
+ ['wishBtn','wishBtnL','wishBtnM'].forEach(id=>{const b=$(id),B=lfR(b);if(!B)return;if(!(lfHit(B,q)||lfHit(B,C)||lfHit(B,M)||lfHit(B,eq)||lfHit(B,J)))return;
+  /* 빈자리 후보: 조이스틱 위 → 조이스틱 오른쪽 → 오른쪽 위 버튼 아래 → 목표 카드 아래 · 화면의 다른 버튼과 겹치지 않는 첫 자리 */
+  const busy=[q,C,M,eq,J].concat(['fishBtn','bShop','bTank','bAutoFish','bBox','bBag','rtPill','chatBtn','emoFab','mStat','mSys','ssBtn','bMore'].map(i=>lfR($(i)))).filter(Boolean),bw=B.width,bh=B.height,top=Math.max(...['mSys','ssBtn','bMore','mStat'].map(i=>{const r=lfR($(i));return r&&r.left>innerWidth/2?r.bottom:0;}),8);
+  const cands=[];if(J){cands.push([J.left+J.width/2-bw/2,J.top-10-bh],[J.right+10,J.top+J.height/2-bh/2]);}cands.push([innerWidth-bw-12,top+8]);if(q)cands.push([12,q.bottom+8]);
+  const fit=cands.map(([x,y])=>[Math.round(Math.min(innerWidth-bw-8,Math.max(8,x))),Math.round(Math.min(innerHeight-bh-8,Math.max(8,y)))]).find(([x,y])=>{const r={left:x,top:y,right:x+bw,bottom:y+bh};return !busy.some(o=>lfHit(r,o,4));});
+  if(fit){lfSet(b,'left',fit[0]+'px');lfSet(b,'top',fit[1]+'px');lfSet(b,'right','auto');lfSet(b,'bottom','auto');lfSet(b,'transform','none');}});}
+setInterval(()=>{try{landFit();}catch(e){}},700);addEventListener('resize',()=>setTimeout(()=>{try{landFit();}catch(e){}},120));setInterval(()=>{try{document.body.classList.toggle('nkNB',notiBOn());}catch(e){}},1000);
 // 모바일 M3 (게임패드식) · 채팅 접기
 function applyMob(){document.body.classList.toggle('m3',(S.mobLay||'m3')==='m3');}applyMob();
 {const cb=document.createElement('button');cb.id='chatBtn';cb.innerHTML='💬<b></b>';cb.onclick=e=>{e.stopPropagation();document.body.classList.toggle('chat-open');cb._n=0;cb.querySelector('b').textContent='';};$('hud').appendChild(cb);
@@ -1312,7 +1354,7 @@ const TSORT=[['new','최근순'],['vhi','가격 높은순'],['vlo','가격 낮�
 function rodOptTxt(s){const a=[];if(s.speed<1)a.push(`⚡빠른입질 ${((1-s.speed)*100).toFixed(1)}%`);if(s.size>1)a.push(`📏대어 ${((s.size-1)*100).toFixed(1)}%`);if(s.luck>0)a.push(`🌟희귀어종 ${(s.luck*1000).toFixed(0)}%`);return a.length?a.join(' · '):'옵션 없음';}
 function tankSorted(L){const k=S.tankSort||'new';if(k==='new')return L;const a=L.slice();const v=f=>f.v||0;
   if(k==='vhi')a.sort((x,y)=>v(y)-v(x));if(k==='vlo')a.sort((x,y)=>v(x)-v(y));if(k==='ghi')a.sort((x,y)=>y.g-x.g||v(y)-v(x));if(k==='glo')a.sort((x,y)=>x.g-y.g||v(x)-v(y));return a;}
-function miniToast(h,ms=2500){let w=$('miniT');if(!w){w=document.createElement('div');w.id='miniT';document.body.appendChild(w);}const e=document.createElement('div');e.className='mt';e.innerHTML=h;w.appendChild(e);while(w.children.length>3)w.firstChild.remove();setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),400);},ms);}
+function miniToast(h,ms=2500){if(notiBOn()&&headPop(h,ms,1))return;let w=$('miniT');if(!w){w=document.createElement('div');w.id='miniT';document.body.appendChild(w);}const e=document.createElement('div');e.className='mt';e.innerHTML=h;w.appendChild(e);while(w.children.length>3)w.firstChild.remove();setTimeout(()=>{e.classList.add('out');setTimeout(()=>e.remove(),400);},ms);}
 function fakeTimes(){const n=Math.random()<D.BITE.fake?(Math.random()<.35?2:1):0,a=[];for(let i=0;i<n;i++)a.push(rand(2.5,9));return a.sort((x,y)=>x-y);}
 function enhBtTable(lv){const E=D.ENH;if(!E.bt)return '';return `<div class="btrow">${E.bt.map(b=>`<div class="bt ${lv>=b.lv?'on':''}"><b>${b.n}</b><small>${b.d}</small></div>`).join('')}</div>`;}
 // 어종별 최대 크기 랭킹 (서버=현재 방의 봇+나, 전체=가상 서버 3곳 합산). 봇 기록은 이름·어종으로 고정 시드 생성
@@ -2171,6 +2213,9 @@ const LAB=[
  {k:'hudSt',n:'💎 상단 상태바 강화석 표시',d:'골드 오른쪽에 강화석 개수를 같은 크기로 표시해요',scope:'me',o:[['old','기존 (강화석 없음)'],['H1','H1 한 줄 균등'],['H3','H3 컴팩트 링'],['H4','H4 알약 묶음']]},
  {k:'mapSt',n:'🗺 맵 시안',d:'데크·오리·상점·쉼터는 그대로 두고 주변 풍경만 바뀌어요. 기본은 🎄 눈 내리는 성탄 마을이에요. 🎄·🌻 시안은 시간(낮·노을·밤)과 날씨(눈·비·폭풍)에 따라 불빛·눈·바람이 바뀌고, 처음 고를 때 풍경을 따로 불러와요. 세부(구조물·디테일·밝기)는 설정 › 화면에서 조절해요',scope:'me',o:[['X','🎄 눈 내리는 성탄 마을 (기본)'],['old','기존'],['A','A 포근한 호숫가'],['B','B 숲속 비밀 호수'],['C','C 바닷가 항구'],['XM','🎄 성탄 아침 햇살'],['GB','🌻 황금빛 노을 보리밭']]},
  {k:'mobPerf',n:'📱 모바일 자동 화질',d:'휴대폰에서 1.5초마다 FPS를 재서 느리면 해상도를 조금씩 낮추고(최소 1배) 넉넉하면 다시 올려요. 운하에만 있던 기능을 호숫가·달에도 켜요. 휴대폰 「선명하게」는 최대 2배로 시작해요 (새로고침 후)',scope:'all',o:[['on','켜기 (기본)'],['off','끄기 (예전처럼)']]},
+ {k:'tfxPlus',n:'🤖 트랜스 로봇카 로봇 다듬기',d:'트랜스 로봇카가 로봇으로 변신하면 헬멧 머리(빛나는 눈 띠·볏·안테나)·어깨 장갑·주먹·가슴 빛 코어·허리띠·무릎 장갑·발·등 추진기가 나타나요. 자동차 모습은 그대로예요. 끄면 예전 로봇',scope:'all',o:[['on','켜기 (기본)'],['off','끄기 (예전처럼)']]},
+ {k:'notiB',n:'📱 모바일 알림 B안',d:'휴대폰에서 짧은 알림(골드·입질·잡은 물고기·작은 알림)은 내 캐릭터 머리 위에 떠올랐다 사라지고, 업적·목표·5성 소식은 위쪽 카드로 하나씩 보여 줘요 (카드가 뜨는 동안 할아버지 말풍선은 잠깐 접혀요). 끄면 예전 알림 자리',scope:'all',o:[['on','켜기 (기본)'],['off','끄기 (예전처럼)']]},
+ {k:'landFit',n:'📱 휴대폰 가로 화면 겹침 정리',d:'휴대폰 가로 화면에서 아래 메뉴가 채팅창과 겹치면 메뉴를 오른쪽으로 옮기고(좁으면 채팅창 폭을 줄여요), 소원 돛단배·연등·별 버튼이 목표 카드·채팅과 겹치면 조이스틱 위로 옮겨요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기 (예전처럼)']]},
  {k:'mapKeep',n:'🌙 달·운하 이어하기 = 서버만 고르기',d:'달·운하에서 나갔다가 다시 들어오면 시작 화면에서 서버만 골라도 그 맵에서 이어서 시작해요. 호숫가로 가려면 「호숫가에서 시작할래요」. 끄면 예전처럼 서버를 누르면 호숫가로 가요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기 (예전처럼)']]},
  {k:'nickLock',n:'🔒 닉네임 고정',d:'닉네임은 처음 정한 뒤 바꿀 수 없어요. 게스트도 시작할 때 닉네임을 꼭 정해요 (자동 「나1234」 이름 없음). 예전 자동 이름(나+숫자)이던 사람은 한 번만 바꿀 수 있어요. 처음 정할 때 다른 사람이 쓰는 닉네임인지 서버에서 확인해요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기 (예전처럼 바꿀 수 있음)']]},
  {k:'waterLite',n:'💧 물 셰이더 최적화',d:'호수 물을 그릴 때 지금 고른 물 모양만 계산해요. 화면은 똑같고 물 그리기가 약 30% 가벼워져요',scope:'all',o:[['on','켜기 (기본)'],['off','끄기 (예전 방식)']]},
@@ -5813,9 +5858,35 @@ function flyTfx(cc){const P=TFC[cc]||TFC.crimson,T=THREE,root=new T.Group(),g=ne
  // 목·어깨 연결대 (로봇일 때만 보여요)
  {const G=part('frame',[0,.4,0],{p:[0,2.92,-.1]},.3,.8,{cs:.2});G.add(mesh(new T.BoxGeometry(1.7,.16,.3),dark,0,0,0));G.add(mesh(new T.BoxGeometry(1.6,.03,.03),neon,0,.09,.14));G.add(mesh(new T.CylinderGeometry(.11,.13,.3,12),chrome,0,.2,0));}
  g.traverse(o=>{if(o.isMesh)o.castShadow=true;});
- root.userData.tf={parts,P,t:0,wheels:WH};root.userData.wheels=WH;root.userData.seat=[-.3,.58,-.3];root.userData.seat2=[.3,.58,-.3];root.userData.pose='drive';root.userData.hideRider=1;tfxSet(root,0);return root;}
+ root.userData.tf={parts,P,t:0,wheels:WH};root.userData.wheels=WH;root.userData.seat=[-.3,.58,-.3];root.userData.seat2=[.3,.58,-.3];root.userData.pose='drive';root.userData.hideRider=1;tfxSet(root,0);/* v248 */try{if(tfxPlusOn())tfxPlus(root,cc);}catch(e){}return root;}
 // 변신 진행도 t: 0 자동차 → 1 로봇. 부품마다 시작·끝 시간이 달라서 순서대로 착착 변해요
-const _tq=new THREE.Quaternion();function tfxSet(root,t){const F=root.userData.tf;if(!F)return;F.t=t;for(const pr of F.parts){const k0=Math.max(0,Math.min(1,(t-pr.d0)/(pr.d1-pr.d0))),k=k0*k0*(3-2*k0);const G=pr.grp;G.position.lerpVectors(pr.c.p,pr.r.p,k);G.position.y+=Math.sin(k*Math.PI)*pr.arc;_tq.copy(pr.c.q).slerp(pr.r.q,k);G.quaternion.copy(_tq);const sc=pr.c.s+(pr.r.s-pr.c.s)*Math.min(1,k*1.4);G.scale.setScalar(sc);G.visible=!(pr.c.s<1&&k<.02);}}
+const _tq=new THREE.Quaternion();function tfxSet(root,t){const F=root.userData.tf;if(!F)return;F.t=t;for(const pr of F.parts){const k0=Math.max(0,Math.min(1,(t-pr.d0)/(pr.d1-pr.d0))),k=k0*k0*(3-2*k0);const G=pr.grp;G.position.lerpVectors(pr.c.p,pr.r.p,k);G.position.y+=Math.sin(k*Math.PI)*pr.arc;_tq.copy(pr.c.q).slerp(pr.r.q,k);G.quaternion.copy(_tq);const sc=pr.c.s+(pr.r.s-pr.c.s)*Math.min(1,k*1.4);G.scale.setScalar(sc);G.visible=!(pr.c.s<1&&k<.02);}if(root.userData.tfPlusSet)root.userData.tfPlusSet(t);}
+
+/* v248: 🤖 트랜스 로봇카 로봇 모습 다듬기 (LAB tfxPlus) — 로봇으로 변신하면 마지막 20%에 헬멧 머리(빛나는 눈 띠·볏·안테나)·어깨 장갑·주먹·가슴 빛 코어·허리띠·무릎 장갑·발·등 추진기가 커지며 나타나요.
+   자동차일 때는 숨어 있어요. 부품마다 재질끼리 한 덩어리로 합쳐서 그리는 횟수를 줄였어요 */
+const tfxPlusOn=()=>{try{return String(uiOpt('tfxPlus','on'))!=='off';}catch(e){return true;}};
+function tfxPlus(root,cc){const F=root&&root.userData.tf;if(!F||root.userData.tfPlus)return root;const T=THREE,P=TFC[cc]||TFC.crimson,g0=root.children[0];
+ const paint=hyMat('tf'+cc,P.p,{base:'#ffffff',mix:P.dk?.22:.3,ir:P.dk?.75:.95,gl:1.5}),dark=hyB(P.k,{metalness:.75,roughness:.32}),chrome=hyB('#c8ccd8',{metalness:.95,roughness:.18}),neon=hyN(P.n),eye=hyN(P.e);
+ const M=(geo,mat,x,y,z,r,sc)=>{const m=new T.Mesh(geo,mat);m.position.set(x||0,y||0,z||0);if(r)m.rotation.set(r[0]||0,r[1]||0,r[2]||0);if(sc)(typeof sc==='number'?m.scale.setScalar(sc):m.scale.set(sc[0],sc[1],sc[2]));return m;};
+ const R=new T.Group();R.name='tfPlus';g0.add(R);const grp=(x,y,z,sc)=>{const G=new T.Group();G.position.set(x,y,z);if(sc)(typeof sc==='number'?G.scale.setScalar(sc):G.scale.set(sc[0],sc[1],sc[2]));R.add(G);return G;};
+ // 머리
+ const H=grp(0,3.6,.1,1.3);H.add(M(new T.SphereGeometry(.3,24,16,0,Math.PI*2,0,Math.PI*.62),paint,0,.02,0,null,[1,1.05,1.08]));H.add(M(new T.BoxGeometry(.4,.26,.12),dark,0,-.08,.25));H.add(M(new T.BoxGeometry(.34,.06,.02),eye,0,0,.32));
+ H.add(M(new T.BoxGeometry(.14,.05,.04),chrome,0,-.18,.3));for(let i=-1;i<=1;i++)H.add(M(new T.BoxGeometry(.02,.07,.03),dark,i*.04,-.18,.32));H.add(M(new T.BoxGeometry(.05,.24,.34),paint,0,.3,-.02,[-.25,0,0]));H.add(M(new T.BoxGeometry(.055,.04,.3),neon,0,.42,-.04,[-.25,0,0]));
+ [-1,1].forEach(sd=>{H.add(M(new T.CylinderGeometry(.09,.09,.08,14),chrome,sd*.31,-.02,0,[0,0,Math.PI/2]));H.add(M(new T.CylinderGeometry(.012,.012,.36,6),chrome,sd*.33,.22,-.08,[-.4,0,sd*-.25]));H.add(M(new T.SphereGeometry(.03,8,6),neon,sd*.37,.38,-.16));H.add(M(new T.BoxGeometry(.06,.18,.2),paint,sd*.27,-.12,.1,[0,sd*.3,0]));});
+ // 어깨 · 주먹 · 무릎 · 발 · 등 추진기
+ [-1,1].forEach(sd=>{const S=grp(sd*1.1,2.36,.1,[1.1,1.2,1.1]);S.add(M(new T.SphereGeometry(.3,18,10,0,Math.PI*2,0,Math.PI/2),paint,0,0,0,null,[1.05,.75,1.1]));S.add(M(new T.TorusGeometry(.3,.025,6,24),dark,0,0,0,[Math.PI/2,0,0],[1.05,1.1,1]));S.add(M(new T.BoxGeometry(.04,.02,.5),neon,sd*.12,.2,0,[0,0,sd*.5]));
+  const Hd=grp(sd*1.08,1.3,.12);Hd.add(M(new T.BoxGeometry(.26,.22,.26),dark,0,0,0));Hd.add(M(new T.BoxGeometry(.28,.06,.28),paint,0,.12,0));for(let i=0;i<4;i++){Hd.add(M(new T.BoxGeometry(.055,.1,.08),dark,-.09+i*.06,-.13,.1));Hd.add(M(new T.SphereGeometry(.03,8,6),chrome,-.09+i*.06,-.08,.15));}Hd.add(M(new T.BoxGeometry(.07,.12,.08),dark,sd*-.15,-.04,.1,[0,0,sd*.3]));Hd.add(M(new T.CylinderGeometry(.11,.11,.08,14),chrome,0,.2,0));
+  const K=grp(sd*.36,.95,.48);K.add(M(new T.SphereGeometry(.18,14,10,0,Math.PI*2,0,Math.PI/2),paint,0,0,0,[Math.PI/2,0,0],[1,1,.7]));K.add(M(new T.BoxGeometry(.2,.03,.02),neon,0,0,.12));
+  const Ft=grp(sd*.36,.1,.1);Ft.add(M(new T.BoxGeometry(.4,.14,.34),dark,0,-.03,.45));Ft.add(M(new T.BoxGeometry(.38,.08,.2),paint,0,.07,.5,[-.25,0,0]));Ft.add(M(new T.BoxGeometry(.3,.12,.14),dark,0,-.02,-.46));
+  const B=grp(sd*.42,2.7,-1.12);B.add(M(new T.CylinderGeometry(.13,.16,.5,16),dark,0,0,0));B.add(M(new T.CylinderGeometry(.14,.14,.06,16),chrome,0,.24,0));B.add(M(new T.TorusGeometry(.13,.03,6,18),neon,0,-.26,0,[Math.PI/2,0,0]));B.add(M(new T.BoxGeometry(.05,.5,.36),paint,sd*.16,.1,.05,[0,0,sd*-.2]));});
+ // 가슴 코어 · 허리띠
+ const C=grp(0,2.42,.62);C.add(M(new T.CylinderGeometry(.17,.17,.06,24),dark,0,0,0,[Math.PI/2,0,0]));C.add(M(new T.TorusGeometry(.15,.025,8,28),neon,0,0,.03));C.add(M(new T.SphereGeometry(.08,14,10),eye,0,0,.03));C.add(M(new T.TorusGeometry(.19,.018,6,28),chrome,0,0,.02));for(let i=0;i<6;i++){const a=i/6*Math.PI*2;C.add(M(new T.BoxGeometry(.03,.07,.02),chrome,Math.cos(a)*.24,Math.sin(a)*.24,.02,[0,0,a]));}
+ const W=grp(0,1.82,0);W.add(M(new T.CylinderGeometry(.44,.42,.12,24),chrome,0,0,-.02));W.add(M(new T.OctahedronGeometry(.08),neon,0,0,.43,null,[1,1.3,.5]));
+ // 부품마다 재질끼리 합치기
+ const BGU=THREE.BufferGeometryUtils;R.children.forEach(G=>{if(!BGU||!BGU.mergeBufferGeometries)return;const by=new Map();G.updateMatrix();G.children.forEach(m=>{m.updateMatrix();let ge=m.geometry.clone().applyMatrix4(m.matrix);if(ge.index)ge=ge.toNonIndexed();Object.keys(ge.attributes).forEach(k=>{if(k!=='position'&&k!=='normal')ge.deleteAttribute(k);});if(!by.has(m.material))by.set(m.material,[]);by.get(m.material).push(ge);});
+  const out=[];by.forEach((list,mat)=>{const mg=BGU.mergeBufferGeometries(list,false);list.forEach(x=>x.dispose());if(mg){const mm=new T.Mesh(mg,mat);mm.castShadow=true;out.push(mm);}});G.children.slice().forEach(m=>{G.remove(m);});out.forEach(m=>G.add(m));});
+ R.children.forEach(c=>{c.userData.s0=c.scale.clone();});const hp=F.parts.find(p=>p.name==='head');
+ root.userData.tfPlus=R;root.userData.tfPlusSet=t=>{const k=Math.max(0,Math.min(1,(t-.8)/.2)),e=k*k*(3-2*k);R.visible=e>.01;if(hp&&e>=.5)hp.grp.visible=false;R.children.forEach(c=>c.scale.copy(c.userData.s0).multiplyScalar(Math.max(.001,e)));};root.userData.tfPlusSet(F.t||0);return root;}
 FLYB.tfx=flyTfx;window.NK89.tfx={flyTfx,tfxSet,TFC};
 // v159: 달리면 자동차, 멈춘 지 0.5초 지나면 로봇으로 변신 (약 1.6초) · 다시 움직이면 바로 자동차로
 const tfxOn=()=>!PREV&&opt('tfx','off')==='on';
@@ -6008,7 +6079,7 @@ const S5R=new Map();function s5Dup(who,k,g){const key=who+'|'+k+'|'+g,now=Date.n
 addEventListener('nk-rt-s5',e=>{try{const m=e.detail||{};if(!s5On()||!m.k||!FI(m.k))return;const RT=window.NK_RT;if(RT&&RT.id&&m.id&&String(m.id)===String(RT.id))return;const who=m.nick||'낚시꾼';if(s5Dup(who,m.k,m.g|0))return;const here=RT&&RT.serverId&&+RT.serverId()===+m.srv;s5Banner(who,m.k,m.g|0,here?m.id:null,false,here?null:m.srv);}catch(err){}});
 {const _px=window.NK_POSE_EX;window.NK_POSE_EX=()=>{const o=_px()||{};try{if(S5B.out&&performance.now()-S5B.at<12000)o.sf=S5B.out;}catch(e){}return Object.keys(o).length?o:null;};}
 RHOOK.push((r,p)=>{if(!p.ex||typeof p.ex.sf!=='string')return;const v=p.ex.sf;if(S5B.seen.get(p.id)===v)return;const first=!S5B.seen.has(p.id);S5B.seen.set(p.id,v);if(first&&(performance.now()<20000))return;if(!s5On())return;const [,k,g]=v.split('_');if(!FI(k))return;const who=(r&&r.c&&r.c.name)||'낚시꾼';if(s5Dup(who,k,+g|0))return;s5Banner(who,k,+g|0,p.id,false);});
-function s5Banner(who,k,g,id,mine,srv){const F=FI(k);if(!F)return;let el=$('s5ban');if(!el){el=document.createElement('div');el.id='s5ban';document.body.appendChild(el);}clearTimeout(el._t);
+function s5Banner(who,k,g,id,mine,srv){const F=FI(k);if(!F)return;if(notiBOn()&&!s5Banner._q){NBQ.push(()=>{s5Banner._q=1;try{s5Banner(who,k,g,id,mine,srv);}finally{s5Banner._q=0;}},5400);return;}let el=$('s5ban');if(!el){el=document.createElement('div');el.id='s5ban';document.body.appendChild(el);}clearTimeout(el._t);
  el.innerHTML=`<div class="s5bi"><img src="${F.img}" alt=""><span class="s5bs">★★★★★</span></div><div class="s5bt"><small>${mine?'축하해요!':'⭐ 5성 완성'+(srv?' · '+(+srv===7?'달':SRVN(srv)):'')}</small><b>${escRT(who)}님이 <em>${sxH(F.n)}</em> 5성을 완성했어요!</b></div>${!mine&&id?'<button type="button">구경 가기</button>':''}`;
  const b=el.querySelector('button');if(b)b.onclick=()=>{el.classList.remove('on');try{peekTank(id);}catch(e){}};el.classList.remove('on');void el.offsetWidth;el.classList.add('on');el._t=setTimeout(()=>el.classList.remove('on'),5200);}
 // 5성은 어항(3D) 속에서 반짝이는 빛 꼬리를 남겨요
