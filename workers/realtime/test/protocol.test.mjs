@@ -208,6 +208,11 @@ test("notice, event, balance, grant and gift are bounded", () => {
   assert.equal(gift.nick, "*");
   assert.deepEqual(gift.servers, [1, 2]);
   assert.equal(sanitizeGift({ nick: "달빛", c: 0 }, now), null);
+  assert.equal(gift.pearl, 0);
+  const pg = sanitizeGift({ id: "gP", nick: "*", pearl: 1280, c: 0 }, now);
+  assert.equal(pg.pearl, 1280);
+  assert.equal(pg.c, 0);
+  assert.equal(sanitizeGift({ nick: "달빛", pearl: 0, c: 0 }, now), null);
   assert.equal(sanitizeProf({ enabled: false, words: ["금칙"], allow: [] }).enabled, false);
   const ops = parseClient(JSON.stringify({ t: "notice", notice: { msg: "안녕", min: 5, ch: "all" } }));
   assert.equal(ops.t, "notice");
@@ -848,15 +853,19 @@ test("v174 sanitizeSched keeps valid schedule rows and drops bad ones", async ()
   const rows = sanitizeSched([
     { id: "a", from: now + 1000, to: now + 86400000, coin: 2, title: "주말" },
     { id: "b", from: now, to: now + 3600000, gift: { c: 3000, b: 3, bt: 2, mode: "first" } },
+    { id: "p", from: now, to: now + 3600000, gift: { pearl: 110 } },
     { id: "c", from: now, to: now - 1, coin: 2 },
     { id: "d", from: now, to: now + 1000, coin: 1, box: 1 },
     { id: "a", from: now, to: now + 5000, coin: 3 },
     { id: "e", from: now - 30 * 864e5, to: now - 20 * 864e5, xp: 1.5 },
   ], now);
-  assert.deepEqual(rows.map((r) => r.id), ["b", "a"]);
-  assert.equal(rows[1].coin, 2);
+  assert.deepEqual(rows.map((r) => r.id), ["b", "p", "a"]);
+  assert.equal(rows[2].coin, 2);
   assert.equal(rows[0].gift.c, 3000);
   assert.equal(rows[0].gift.mode, "first");
+  assert.equal(rows[0].gift.pearl, 0);
+  assert.equal(rows[1].gift.pearl, 110);
+  assert.equal(rows[1].gift.c, 0);
   assert.equal(sanitizeSched("x", now).length, 0);
 });
 

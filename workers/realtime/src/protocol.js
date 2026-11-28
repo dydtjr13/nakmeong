@@ -651,8 +651,8 @@ export function sanitizeSched(input, now) {
     const coin = snapMul(o.coin), box = snapMul(o.box), xp = snapMul(o.xp);
     let gift = null;
     if (o.gift && typeof o.gift === "object") {
-      const c = Math.round(nonNeg(o.gift.c, 1e8)), s = Math.round(nonNeg(o.gift.s, 1e5)), b = Math.round(nonNeg(o.gift.b, 50)), x = Math.round(nonNeg(o.gift.x, 1e7));
-      if (c || s || b || x) gift = { c, s, b, bt: Math.round(nonNeg(o.gift.bt, 5)), x, mode: o.gift.mode === "live" ? "live" : "first", msg: String(o.gift.msg || "").slice(0, 60) };
+      const c = Math.round(nonNeg(o.gift.c, 1e8)), pearl = Math.round(nonNeg(o.gift.pearl, 1e8)), s = Math.round(nonNeg(o.gift.s, 1e5)), b = Math.round(nonNeg(o.gift.b, 50)), x = Math.round(nonNeg(o.gift.x, 1e7));
+      if (c || pearl || s || b || x) gift = { c, pearl, s, b, bt: Math.round(nonNeg(o.gift.bt, 5)), x, mode: o.gift.mode === "live" ? "live" : "first", msg: String(o.gift.msg || "").slice(0, 60) };
     }
     // v181: 맵별 날씨 예약 줄 — { m: 맵, k: 날씨, sn: 눈 스타일 } (배율·보상 없이 날씨만)
     let wx = null;
@@ -839,6 +839,7 @@ export function sanitizeGift(input, now) {
   const id = String(input.id == null ? t : input.id).replace(/[^\w.-]/g, "").slice(0, 40);
   if (!id) return null;
   const c = Math.round(nonNeg(input.c, 1e9));
+  const pearl = Math.round(nonNeg(input.pearl, 1e9));
   const s = Math.round(nonNeg(input.s, 1e6));
   const b = Math.round(nonNeg(input.b, 50));
   const x = Math.round(nonNeg(input.x, 1e8));
@@ -860,7 +861,7 @@ export function sanitizeGift(input, now) {
     if (ty === "veh" && o.c) r.c = String(o.c).replace(/[^\w-]/g, "").slice(0, 16);
     return r;
   }).filter(Boolean) : [];
-  if (!(c || s || b || x || it.length)) return null;
+  if (!(c || pearl || s || b || x || it.length)) return null;
   const servers = Array.isArray(input.servers)
     ? [...new Set(input.servers.map((n) => Math.round(Number(n))).filter((n) => (n >= 1 && n <= 4) || n === 7 || n === 20))]
     : null;
@@ -868,6 +869,7 @@ export function sanitizeGift(input, now) {
     id,
     nick,
     c,
+    pearl,
     s,
     b,
     bt: Math.round(nonNeg(input.bt, 5)),
