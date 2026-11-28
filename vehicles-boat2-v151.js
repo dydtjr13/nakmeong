@@ -119,7 +119,7 @@ window.NK_BOAT2 = (function () {
   function rowb(T) {
     const g = new T.Group();
     const put = (sc) => { const o = sc.clone(true); g.add(o); const L = o.getObjectByName('oarL'), R = o.getObjectByName('oarR'); if (L && R) g.userData.oars = [L, R]; };
-    if (RB) put(RB); else { RBW.push(put); if (RBW.length === 1 && T.GLTFLoader) new T.GLTFLoader().load('assets/kenney/watercraft/boat-row-large.glb', (x) => { const s = x.scene; s.traverse((o) => { if (o.isMesh) { o.castShadow = true; if (o.material && o.material.map) o.material.map.encoding = T.sRGBEncoding; } }); const bb = new T.Box3().setFromObject(s), sz = bb.getSize(new T.Vector3()), k = 2.6 / Math.max(sz.x, sz.z); s.scale.setScalar(k); s.position.y = -bb.min.y * k - .32; if (sz.x > sz.z) s.rotation.y = Math.PI / 2; try { splitOars(T, s); } catch (e) { console.warn('[rowb oars]', e); } RB = s; RBW.splice(0).forEach((f) => f(RB)); }); }
+    if (RB) put(RB); else { RBW.push(put); if (RBW.length === 1 && T.GLTFLoader) new T.GLTFLoader().load('assets/kenney/watercraft/boat-row-large.glb', (x) => { const s = x.scene; s.traverse((o) => { if (o.isMesh) { o.castShadow = true; if (o.material && o.material.map) o.material.map.encoding = T.sRGBEncoding; } }); const bb = new T.Box3().setFromObject(s), sz = bb.getSize(new T.Vector3()), k = 2.6 / Math.max(sz.x, sz.z); s.scale.setScalar(k); s.position.y = -bb.min.y * k - .32; if (sz.x > sz.z) s.rotation.y = Math.PI / 2; try { splitOars(T, s); } catch (e) { console.warn('[rowb oars]', e); } RB = s; RBW.splice(0).forEach((f) => f(RB)); try { window.dispatchEvent(new Event('nk-rowb-ready')); } catch (e) {} }); }
     g.userData.seat = [0, .02, -.15];
     return g;
   }

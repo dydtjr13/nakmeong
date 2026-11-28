@@ -13,7 +13,7 @@
  const SETFX=[
   {xp:3},{sell:4},{coin:5},{sell:5,quickW:5},{treasure:10},{sell:8,coin:8},{shop:4,xp:6},{big:3,xp:10},{sell:10,shop:6},{sell:12,coin:12,xp:10}];
  const items=[];
- LV.forEach((lv,i)=>T.forEach(slot=>{const [ok,fn]=MAIN[slot];items.push({k:slot+lv,slot,lv,set:i,n:IN[slot][i],sn:SN[i],c:GC[i],img:'img/eq/'+slot+lv+'.png',opt:{[ok]:fn(lv)},optN:MN[ok]+' +'+fn(lv)+'%'});}));
+ LV.forEach((lv,i)=>T.forEach(slot=>{const [ok,fn]=MAIN[slot];items.push({k:slot+lv,slot,lv,set:i,n:IN[slot][i],sn:SN[i],c:GC[i],img:'img/eq/'+slot+lv+'.png?v249',opt:{[ok]:fn(lv)},optN:MN[ok]+' +'+fn(lv)+'%'});}));
  D.WEAR={slots:['hat','cloth','glove','shoe'],slotN:{hat:'모자',cloth:'옷',glove:'장갑',shoe:'신발'},items,byK:Object.fromEntries(items.map(x=>[x.k,x])),
   sets:SN.map((n,i)=>({i,n,lv:LV[i],c:GC[i],fx:SETFX[i],need:T.map(s=>s+LV[i])})),
   // 상자 드롭: 영웅+ 에서 장비 확률 (레벨대 ≈ 상자 등급)
